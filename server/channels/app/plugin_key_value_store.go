@@ -54,13 +54,10 @@ func (a *App) CompareAndDeletePluginKey(rctx request.CTX, pluginID string, key s
 	deleted, err := a.Srv().Store().Plugin().CompareAndDelete(kv, oldValue)
 	if err != nil {
 		rctx.Logger().Error("Failed to compare and delete plugin key value", mlog.String("key", key), mlog.Err(err))
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return deleted, appErr
-		default:
-			return false, model.NewAppError("CompareAndDeletePluginKey", "app.plugin_store.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return false, model.NewAppError("CompareAndDeletePluginKey", "app.plugin_store.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Clean up a previous entry using the hashed key, if it exists.
@@ -75,7 +72,7 @@ func (a *App) CompareAndDeletePluginKey(rctx request.CTX, pluginID string, key s
 func (s *Server) getPluginKey(pluginID string, key string) ([]byte, *model.AppError) {
 	if kv, err := s.Store().Plugin().Get(pluginID, key); err == nil {
 		return kv.Value, nil
-	} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", pluginID), mlog.String("key", key), mlog.Err(err))
 		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -83,7 +80,7 @@ func (s *Server) getPluginKey(pluginID string, key string) ([]byte, *model.AppEr
 	// Lookup using the hashed version of the key for keys written prior to v5.6.
 	if kv, err := s.Store().Plugin().Get(pluginID, getKeyHash(key)); err == nil {
 		return kv.Value, nil
-	} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		mlog.Error("Failed to query plugin key value using hashed key", mlog.String("plugin_id", pluginID), mlog.String("key", key), mlog.Err(err))
 		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

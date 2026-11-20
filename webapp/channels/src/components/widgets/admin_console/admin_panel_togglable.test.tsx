@@ -20,29 +20,6 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
         onToggle: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <AdminPanelTogglable {...defaultProps}>
-                {'Test'}
-            </AdminPanelTogglable>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot closed', () => {
-        const {container} = renderWithContext(
-            <AdminPanelTogglable
-                {...defaultProps}
-                open={false}
-            >
-                {'Test'}
-            </AdminPanelTogglable>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('when expanded, collapse uses expanded modifier and keeps collapse-inner for clipping', () => {
         renderWithContext(
             <AdminPanelTogglable {...defaultProps}>

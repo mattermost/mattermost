@@ -330,6 +330,104 @@ describe('components/PostMarkdown', () => {
         expect(screen.queryByText('world!', {exact: true})).toBeInTheDocument();
     });
 
+    test('underlines an entity carried on the post', () => {
+        const message = 'ask the MLT today';
+        const post = TestHelper.getPostMock({
+            message,
+            metadata: {
+                entities: [{
+                    id: '8:11',
+                    start: 8,
+                    end: 11,
+                    value: 'MLT',
+                    type_ids: ['com.example:acronym'],
+                    matcher_id: 'com.example:scan',
+                    display_name: 'Acronym',
+                    title: 'Mattermost leadership team',
+                    has_card: true,
+                }],
+            },
+        });
+
+        renderWithContext(
+            <PostMarkdown
+                {...baseProps}
+                message={message}
+                post={post}
+            />,
+            state,
+        );
+
+        const mention = screen.getByTestId('entity-mention');
+        expect(mention.tagName).toBe('BUTTON');
+        expect(mention).toHaveClass('entity-mention');
+        expect(mention).toHaveTextContent('MLT');
+        expect(mention).toHaveStyle({textDecorationLine: 'underline', textDecorationStyle: 'dotted'});
+    });
+
+    test('links an entity that already has a url', () => {
+        const message = 'ask the MLT today';
+        const post = TestHelper.getPostMock({
+            message,
+            metadata: {
+                entities: [{
+                    id: '8:11',
+                    start: 8,
+                    end: 11,
+                    value: 'MLT',
+                    type_ids: ['com.example:acronym'],
+                    matcher_id: 'com.example:scan',
+                    url: '/conflux/team/pages/mlt',
+                    title: 'Mattermost leadership team',
+                }],
+            },
+        });
+
+        renderWithContext(
+            <PostMarkdown
+                {...baseProps}
+                message={message}
+                post={post}
+            />,
+            state,
+        );
+
+        const mention = screen.getByTestId('entity-mention');
+        expect(mention.tagName).toBe('A');
+        expect(mention).toHaveAttribute('href', '/conflux/team/pages/mlt');
+        expect(mention).toHaveTextContent('MLT');
+        expect(mention).toHaveStyle({textDecorationLine: 'underline', textDecorationStyle: 'solid'});
+    });
+
+    test('does not underline entities when the rendered message is not the post', () => {
+        const post = TestHelper.getPostMock({
+            message: 'ask the MLT today',
+            metadata: {
+                entities: [{
+                    id: '8:11',
+                    start: 8,
+                    end: 11,
+                    value: 'MLT',
+                    type_ids: ['com.example:acronym'],
+                    matcher_id: 'com.example:scan',
+                    has_card: true,
+                }],
+            },
+        });
+
+        renderWithContext(
+            <PostMarkdown
+                {...baseProps}
+                message='ask the team today'
+                post={post}
+            />,
+            state,
+        );
+
+        expect(screen.queryByTestId('entity-mention')).not.toBeInTheDocument();
+        expect(screen.getByText('ask the team today')).toBeInTheDocument();
+    });
+
     test('should render data spillage card', async () => {
         const reportedPost = TestHelper.getPostMock({
             id: 'reported_post_id',

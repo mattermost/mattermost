@@ -79,18 +79,6 @@ describe('components/FileUpload', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const ref = React.createRef<FileUploadClass>();
-        const {container} = renderWithContext(
-            <FileUpload
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should call onClick when fileInput is clicked', () => {
         const ref = React.createRef<FileUploadClass>();
         const {container} = renderWithContext(

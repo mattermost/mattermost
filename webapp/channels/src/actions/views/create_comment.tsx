@@ -66,6 +66,10 @@ export function submitPost(
             type: postType,
             metadata: {
                 ...(draft.metadata?.priority && {priority: draft.metadata.priority}),
+
+                // Safety net. The composer disables scheduling while attributes are staged, so this
+                // should never have to fire.
+                ...(!schedulingInfo && options?.propertyValues?.length && {property_values: options.propertyValues}),
             },
             props: {...draft.props},
         } as unknown as Post;
@@ -172,6 +176,7 @@ export type OnSubmitOptions = {
     afterSubmit?: (response: SubmitPostReturnType) => void;
     afterOptimisticSubmit?: () => void;
     keepDraft?: boolean;
+    propertyValues?: Array<{field_id: string; value: unknown}>;
 };
 
 export function onSubmit(

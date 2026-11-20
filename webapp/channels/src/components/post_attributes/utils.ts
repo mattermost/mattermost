@@ -11,7 +11,7 @@ import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
 import {canRenderPropertyValue} from 'components/properties_card_view/propertyValueRenderer/renderable';
 
-import {resolveOptionChips} from 'utils/property_options';
+import {resolveFieldOptionChips} from 'utils/property_options';
 
 /**
  * A field paired with whatever the post stores for it.
@@ -101,7 +101,7 @@ export function chipCount(field: PropertyField, value?: PropertyValue<unknown>):
     }
 
     if (supportsOptions(field)) {
-        return resolveOptionChips(field, value.value).length;
+        return resolveFieldOptionChips(field, value.value).length;
     }
 
     /*
@@ -242,6 +242,38 @@ export function useAddableAttributes(
             canEdit(field) &&
             hasValueControl(field));
     }, [fields, values, added, canEdit]);
+}
+
+/**
+ * Splits the fields the user can fill in while writing a post into the ones
+ * taken into the post — picked from the picker, or given a value — which get a
+ * chip each, and the rest, which the picker offers.
+ *
+ * Picked chips are in the order they were picked, so a new chip lands at the
+ * end of the row, next to the inline add control that added it. `added` is a
+ * `Set`, which keeps insertion order. A field with a value that was never
+ * picked comes first, in field order. The picker's list stays in field order.
+ *
+ * `visibility` plays no part. It says where a sent post advertises an
+ * attribute, and a post being written has nothing to advertise yet, so a field
+ * the channel declares `always` is offered and drawn exactly like any other.
+ */
+export function splitComposerAttributes(
+    settable: PropertyField[],
+    values: Array<PropertyValue<unknown>>,
+    added: ReadonlySet<string>,
+): {chips: PostAttribute[]; addable: PropertyField[]} {
+    const inFieldOrder = zipAttributes(settable, values, (field, value) => added.has(field.id) || chipCount(field, value) > 0);
+    const pickOrder = new Map([...added].map((fieldId, index) => [fieldId, index]));
+    const chips = [
+        ...inFieldOrder.filter(({field}) => !pickOrder.has(field.id)),
+        ...inFieldOrder.
+            filter(({field}) => pickOrder.has(field.id)).
+            sort((a, b) => pickOrder.get(a.field.id)! - pickOrder.get(b.field.id)!),
+    ];
+    const chipIds = new Set(chips.map(({field}) => field.id));
+
+    return {chips, addable: settable.filter((field) => !chipIds.has(field.id))};
 }
 
 /**

@@ -42,6 +42,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"SAML_ID_IS_EMAIL",
 		"SAML_ID_MUTABLE",
 		"SESSION_EXTEND_OFF",
+		"OPEN_SIGNUP_UNVERIFIED",
 
 		// cluster
 		"CLUSTER_GOSSIP_UNENCRYPTED",
@@ -111,6 +112,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"NODE_HOST_LOAD_HIGH",
 		"LOG_DEBUG_PROD",
 		"LOG_FILE_OFF",
+		"LOG_WEBHOOK_PAYLOADS",
 		"METRICS_OFF",
 		"PLUGINS_OFF",
 		"PLUGIN_HEALTH_OFF",
