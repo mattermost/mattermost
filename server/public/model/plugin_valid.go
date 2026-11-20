@@ -5,6 +5,7 @@ package model
 
 import (
 	"regexp"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -12,6 +13,11 @@ import (
 // requests to plugins, and as the owner of its own plugin key value data, such as cluster mutexes.
 // Plugins must not be installed or loaded with this identity.
 const CoreServerPluginID = "com.mattermost.server"
+
+// IsReservedPluginID reports whether an ID belongs to the core server.
+func IsReservedPluginID(id string) bool {
+	return strings.EqualFold(id, CoreServerPluginID)
+}
 
 const (
 	MinIdLength  = 3
