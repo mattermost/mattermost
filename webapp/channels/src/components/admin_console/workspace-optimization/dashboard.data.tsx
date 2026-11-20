@@ -30,7 +30,7 @@ import {runConfigChecks} from './dashboard_checks/config';
 import {runDataPrivacyChecks} from './dashboard_checks/data_privacy';
 import {runEaseOfUseChecks} from './dashboard_checks/easy_management';
 import {runPerformanceChecks} from './dashboard_checks/performance';
-import {runUpdateChecks} from './dashboard_checks/updates';
+import {isLatestVersionCheckDisabled, runUpdateChecks} from './dashboard_checks/updates';
 
 import {daysToLicenseExpire, getIsStarterLicense, isEnterpriseLicense} from '../../../utils/license_utils';
 
@@ -63,6 +63,7 @@ const getUpdatesData = async (
         <Icon glyph={<ArrowUpBoldCircleOutlineIcon/>}/>
     ),
     items: await runUpdateChecks(config, formatMessage, options),
+    hide: isLatestVersionCheckDisabled(config),
 });
 
 const getConfigurationData = async (

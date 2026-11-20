@@ -85,11 +85,17 @@ export const fetchAndCompareVersion = async (
     return {type: '', description: '', status: ItemStatus.OK};
 };
 
+export const isLatestVersionCheckDisabled = (config: Partial<AdminConfig>) => config.ServiceSettings?.EnableSecurityFixAlert === false;
+
 export const runUpdateChecks = async (
     config: Partial<AdminConfig>,
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
     options: Options,
 ) => {
+    if (isLatestVersionCheckDisabled(config)) {
+        return [];
+    }
+
     const checks = [
         testServerVersion,
     ];
