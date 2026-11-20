@@ -13,7 +13,7 @@ import (
 )
 
 func (api *API) InitReaction() {
-	api.BaseRoutes.Reactions.Handle("", api.APISessionRequired(saveReaction)).Methods(http.MethodPost)
+	api.BaseRoutes.Reactions.Handle("", api.APISessionRequired(saveReaction, handlerParamScopedSessionWrite)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequired(getReactions, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods(http.MethodDelete)
 }

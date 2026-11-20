@@ -25,6 +25,11 @@ const (
 	// Only flag read routes whose permission checks go through the session
 	// scope; see TestScopedSessionRouteAllowlist.
 	handlerParamScopedSession = APIHandlerOption("scopedSession")
+
+	// handlerParamScopedSessionWrite marks a write route as reachable by scoped
+	// sessions that hold a write grant. Only flag routes whose permission checks
+	// are all for model.ScopeWritePermissions on the target channel.
+	handlerParamScopedSessionWrite = APIHandlerOption("scopedSessionWrite")
 )
 
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
@@ -289,6 +294,8 @@ func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {
 			handler.FileAPI = true
 		case handlerParamScopedSession:
 			handler.AllowScopedSession = true
+		case handlerParamScopedSessionWrite:
+			handler.AllowScopedSessionWrite = true
 		}
 	}
 }

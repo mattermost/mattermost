@@ -33,7 +33,8 @@ type SessionScopeTarget struct {
 // on a channel in the scope (see model.SessionScopeAllowsChannel), or for
 // view_team/list_team_channels, on a team a public-channel grant covers (see
 // model.SessionScopeGrantsTeamPublicChannels) or holding a channel the scope
-// lists by ID. Everything else, including every system-wide check, is denied.
+// lists by ID. Write permissions follow scopeAllowsWrite. Everything else,
+// including every system-wide check, is denied.
 func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, permissionID string, target SessionScopeTarget) (scoped bool, allowed bool) {
 	if session == nil {
 		return false, false
@@ -42,25 +43,16 @@ func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, per
 	if !scoped {
 		return false, false
 	}
-	if !scope.HasPermission(permissionID) {
+	if model.IsSessionScopeWritePermission(permissionID) {
+		return true, a.scopeAllowsWrite(rctx, session, scope, permissionID, target)
+	}
+	if !scope.HasPermission(permissionID) || !slices.Contains(model.ScopeReadPermissions, permissionID) {
 		return true, false
 	}
 
 	switch {
-	case target.Channel != nil:
-		return true, a.ScopeAllowsChannel(rctx, scope, target.Channel)
-	case target.ChannelID != "":
-		channel, appErr := a.GetChannel(rctx, target.ChannelID)
-		if appErr != nil {
-			return true, false
-		}
-		return true, a.ScopeAllowsChannel(rctx, scope, channel)
-	case target.PostID != "":
-		channel, err := a.Srv().Store().Channel().GetForPost(target.PostID)
-		if err != nil {
-			return true, false
-		}
-		return true, a.ScopeAllowsChannel(rctx, scope, channel)
+	case target.Channel != nil, target.ChannelID != "", target.PostID != "":
+		return true, a.ScopeAllowsChannel(rctx, scope, a.sessionScopeTargetChannel(rctx, target))
 	case target.TeamID != "":
 		if permissionID != model.PermissionViewTeam.Id && permissionID != model.PermissionListTeamChannels.Id {
 			return true, false
@@ -76,6 +68,54 @@ func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, per
 	}
 
 	return true, false
+}
+
+// sessionScopeTargetChannel returns the channel a channel or post target is
+// about, or nil if there is none or it can't be loaded.
+func (a *App) sessionScopeTargetChannel(rctx request.CTX, target SessionScopeTarget) *model.Channel {
+	switch {
+	case target.Channel != nil:
+		return target.Channel
+	case target.ChannelID != "":
+		channel, appErr := a.GetChannel(rctx, target.ChannelID)
+		if appErr != nil {
+			return nil
+		}
+		return channel
+	case target.PostID != "":
+		channel, err := a.Srv().Store().Channel().GetForPost(target.PostID)
+		if err != nil {
+			return nil
+		}
+		return channel
+	}
+	return nil
+}
+
+// scopeAllowsWrite allows a write permission only if the scope grants it, the
+// target is a channel the scope lists for writes and can read, and the
+// session's user holds the permission on that channel without the scope. The
+// write grant narrows the user's own permissions and never adds to them.
+func (a *App) scopeAllowsWrite(rctx request.CTX, session *model.Session, scope *model.SessionScope, permissionID string, target SessionScopeTarget) bool {
+	if !scope.HasWritePermission(permissionID) {
+		return false
+	}
+	channel := a.sessionScopeTargetChannel(rctx, target)
+	if channel == nil || !scope.ListsWriteChannel(channel.Id) || !a.ScopeAllowsChannel(rctx, scope, channel) {
+		return false
+	}
+
+	unscoped := session.DeepCopy()
+	delete(unscoped.Props, model.SessionPropScope)
+	unscoped.Local = false
+	permission := &model.Permission{Id: permissionID}
+	if ok, _ := a.sessionHasPermissionToChannelRBAC(rctx, *unscoped, channel, permission); !ok {
+		return false
+	}
+	if isChannelWritePermission(permission) {
+		return a.EnforceChannelWriteAccess(rctx, session.UserId, channel)
+	}
+	return a.EnforceChannelManagementAccess(rctx, session.UserId, channel)
 }
 
 // sessionScopeLimits returns the server settings that turn a scope's
@@ -214,9 +254,9 @@ func (a *App) scopedViewUsersRestrictions(rctx request.CTX, session *model.Sessi
 	return restrictions
 }
 
-// CreateScopedSession creates a session for userID that can only read what scope
-// allows, on behalf of the plugin pluginID. It is the only way to create a
-// scoped session.
+// CreateScopedSession creates a session for userID that can only read, and
+// write, what scope allows, on behalf of the plugin pluginID. It is the only way
+// to create a scoped session.
 func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, scope *model.SessionScope, expiresAt int64) (session *model.Session, err error) {
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventCreateScopedSession, model.AuditStatusFail)
 	defer func() {
@@ -237,6 +277,8 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 	model.AddEventParameterToAuditRec(auditRec, "open_team_public_channels", scopeCopy.Resources.OpenTeamPublicChannels)
 	model.AddEventParameterToAuditRec(auditRec, "public_channel_team_ids", scopeCopy.Resources.PublicChannelTeamIDs)
 	model.AddEventParameterToAuditRec(auditRec, "permissions", scopeCopy.Permissions)
+	model.AddEventParameterToAuditRec(auditRec, "write_permissions", scopeCopy.WritePermissions)
+	model.AddEventParameterToAuditRec(auditRec, "write_channel_ids", scopeCopy.Resources.WriteChannelIDs)
 
 	if validErr := scopeCopy.IsValid(); validErr != nil {
 		return nil, validErr

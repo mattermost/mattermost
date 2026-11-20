@@ -102,6 +102,126 @@ func TestSessionScopeIsValid(t *testing.T) {
 	})
 }
 
+func TestScopeWritePermissions(t *testing.T) {
+	assert.ElementsMatch(t, []string{
+		PermissionAddReaction.Id,
+		PermissionAddBookmarkPublicChannel.Id,
+		PermissionAddBookmarkPrivateChannel.Id,
+		PermissionEditBookmarkPublicChannel.Id,
+		PermissionEditBookmarkPrivateChannel.Id,
+		PermissionOrderBookmarkPublicChannel.Id,
+		PermissionOrderBookmarkPrivateChannel.Id,
+	}, ScopeWritePermissions)
+
+	for _, permission := range ScopeWritePermissions {
+		assert.True(t, IsSessionScopeWritePermission(permission))
+		assert.NotContains(t, ScopeReadPermissions, permission)
+	}
+	for _, permission := range []string{PermissionCreatePost.Id, PermissionDeleteBookmarkPublicChannel.Id, PermissionRemoveReaction.Id, PermissionReadChannel.Id} {
+		assert.False(t, IsSessionScopeWritePermission(permission), permission)
+	}
+}
+
+func TestSessionScopeIsValidWriteGrant(t *testing.T) {
+	channelID := NewId()
+	valid := func() *SessionScope {
+		return &SessionScope{
+			Permissions:       []string{PermissionReadChannel.Id, PermissionReadChannelContent.Id},
+			WritePermissions:  []string{PermissionAddReaction.Id, PermissionAddBookmarkPrivateChannel.Id},
+			Resources:         SessionScopeResources{ChannelIDs: []string{channelID, NewId()}, WriteChannelIDs: []string{channelID}},
+			CreatedByPluginID: "com.example.plugin",
+		}
+	}
+	require.Nil(t, valid().IsValid())
+	assert.True(t, valid().GrantsWrites())
+
+	t.Run("all write permissions", func(t *testing.T) {
+		s := valid()
+		s.WritePermissions = ScopeWritePermissions
+		assert.Nil(t, s.IsValid())
+	})
+
+	t.Run("at most the maximum write channels", func(t *testing.T) {
+		s := valid()
+		s.Resources.ChannelIDs = nil
+		s.Resources.WriteChannelIDs = nil
+		for range SessionScopeMaxWriteChannelIDs {
+			id := NewId()
+			s.Resources.ChannelIDs = append(s.Resources.ChannelIDs, id)
+			s.Resources.WriteChannelIDs = append(s.Resources.WriteChannelIDs, id)
+		}
+		assert.Nil(t, s.IsValid())
+	})
+
+	for name, tc := range map[string]struct {
+		mutate  func(*SessionScope)
+		errorID string
+	}{
+		"create_post": {func(s *SessionScope) {
+			s.WritePermissions = append(s.WritePermissions, PermissionCreatePost.Id)
+		}, "model.session_scope.is_valid.write_permissions.app_error"},
+		"delete bookmark": {func(s *SessionScope) {
+			s.WritePermissions = []string{PermissionDeleteBookmarkPublicChannel.Id}
+		}, "model.session_scope.is_valid.write_permissions.app_error"},
+		"read permission as a write": {func(s *SessionScope) {
+			s.WritePermissions = []string{PermissionReadChannel.Id}
+		}, "model.session_scope.is_valid.write_permissions.app_error"},
+		"unknown write permission": {func(s *SessionScope) {
+			s.WritePermissions = []string{"unknown"}
+		}, "model.session_scope.is_valid.write_permissions.app_error"},
+		"write permission in the read list": {func(s *SessionScope) {
+			s.Permissions = append(s.Permissions, PermissionAddReaction.Id)
+		}, "model.session_scope.is_valid.permissions.app_error"},
+		"write channels without write permissions": {func(s *SessionScope) {
+			s.WritePermissions = nil
+		}, "model.session_scope.is_valid.write_permissions.app_error"},
+		"write permissions without write channels": {func(s *SessionScope) {
+			s.Resources.WriteChannelIDs = nil
+		}, "model.session_scope.is_valid.write_channel_ids.app_error"},
+		"without read_channel_content": {func(s *SessionScope) {
+			s.Permissions = []string{PermissionReadChannel.Id}
+		}, "model.session_scope.is_valid.write_permissions.app_error"},
+		"write channel not listed for reads": {func(s *SessionScope) {
+			s.Resources.WriteChannelIDs = []string{NewId()}
+		}, "model.session_scope.is_valid.write_channel_ids.app_error"},
+		"write channel only granted through public channel grants": {func(s *SessionScope) {
+			s.Resources.OpenTeamPublicChannels = true
+			s.Resources.PublicChannelTeamIDs = []string{NewId()}
+			s.Resources.WriteChannelIDs = []string{NewId()}
+		}, "model.session_scope.is_valid.write_channel_ids.app_error"},
+		"invalid write channel ID": {func(s *SessionScope) {
+			s.Resources.ChannelIDs = append(s.Resources.ChannelIDs, "not-an-id")
+			s.Resources.WriteChannelIDs = []string{"not-an-id"}
+		}, "model.session_scope.is_valid.channel_ids.app_error"},
+		"too many write channels": {func(s *SessionScope) {
+			s.Resources.ChannelIDs = nil
+			s.Resources.WriteChannelIDs = nil
+			for range SessionScopeMaxWriteChannelIDs + 1 {
+				id := NewId()
+				s.Resources.ChannelIDs = append(s.Resources.ChannelIDs, id)
+				s.Resources.WriteChannelIDs = append(s.Resources.WriteChannelIDs, id)
+			}
+		}, "model.session_scope.is_valid.write_channel_ids.app_error"},
+	} {
+		t.Run("rejects "+name, func(t *testing.T) {
+			s := valid()
+			tc.mutate(s)
+			appErr := s.IsValid()
+			require.NotNil(t, appErr)
+			assert.Equal(t, tc.errorID, appErr.Id)
+		})
+	}
+
+	t.Run("read-only scope grants no writes", func(t *testing.T) {
+		s := valid()
+		s.WritePermissions = nil
+		s.Resources.WriteChannelIDs = nil
+		require.Nil(t, s.IsValid())
+		assert.False(t, s.GrantsWrites())
+		assert.False(t, (*SessionScope)(nil).GrantsWrites())
+	})
+}
+
 func TestSessionScopeParsing(t *testing.T) {
 	t.Run("unscoped", func(t *testing.T) {
 		s := &Session{Props: StringMap{}}
@@ -125,6 +245,32 @@ func TestSessionScopeParsing(t *testing.T) {
 		require.True(t, scoped)
 		assert.Equal(t, in, *scope)
 		assert.True(t, s.IsScoped())
+	})
+
+	t.Run("round trip with a write grant", func(t *testing.T) {
+		channelID := NewId()
+		in := SessionScope{
+			Permissions:       []string{PermissionReadChannelContent.Id},
+			WritePermissions:  []string{PermissionAddReaction.Id},
+			Resources:         SessionScopeResources{ChannelIDs: []string{channelID}, WriteChannelIDs: []string{channelID}},
+			CreatedByPluginID: "plugin",
+		}
+		b, err := json.Marshal(in)
+		require.NoError(t, err)
+		assert.Contains(t, string(b), `"write_permissions":["add_reaction"]`)
+		assert.Contains(t, string(b), `"write_channel_ids":["`+channelID+`"]`)
+		s := &Session{Props: StringMap{SessionPropScope: string(b)}}
+		scope, _ := s.Scope()
+		assert.Equal(t, in, *scope)
+		assert.True(t, scope.HasWritePermission(PermissionAddReaction.Id))
+		assert.False(t, scope.HasPermission(PermissionAddReaction.Id), "writes are not read permissions")
+		assert.True(t, scope.ListsWriteChannel(channelID))
+	})
+
+	t.Run("read-only scope omits write fields", func(t *testing.T) {
+		b, err := json.Marshal(SessionScope{Permissions: []string{PermissionReadChannel.Id}, CreatedByPluginID: "plugin"})
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), "write_")
 	})
 
 	t.Run("malformed scope denies everything", func(t *testing.T) {
@@ -284,6 +430,12 @@ func TestSessionScopeResourcesWithLimits(t *testing.T) {
 	effective.PublicChannelTeamIDs[0] = "changed"
 	assert.NotEqual(t, "changed", resources.ChannelIDs[0], "returns copies")
 	assert.NotEqual(t, "changed", resources.PublicChannelTeamIDs[0], "returns copies")
+
+	t.Run("keeps write channels", func(t *testing.T) {
+		withWrites := SessionScopeResources{ChannelIDs: []string{NewId()}}
+		withWrites.WriteChannelIDs = []string{withWrites.ChannelIDs[0]}
+		assert.Equal(t, withWrites, withWrites.WithLimits(SessionScopeLimits{ComplianceMode: true}))
+	})
 }
 
 func TestSearchParamsScopedChannelsNotFromJSON(t *testing.T) {

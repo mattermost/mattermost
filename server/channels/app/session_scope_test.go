@@ -495,6 +495,256 @@ func TestSessionScopeIsFinalThroughAccessEvaluation(t *testing.T) {
 	assert.False(t, th.App.HasPermissionToChannelAction(rctx, f.bot.Id, f.bot.Roles, f.botDM.Id, download), "scope applies without ABAC")
 }
 
+type writeScopeFixture struct {
+	*scopeFixture
+	writePublic    *model.Channel // public, open team, bot is a member, listed for writes
+	writePrivate   *model.Channel // private, open team, bot is a member, listed for writes
+	writeNonMember *model.Channel // private, open team, bot not a member, listed for writes
+	readOnlyMember *model.Channel // private, open team, bot is a member, listed for reads only
+}
+
+func newWriteScopeFixture(t *testing.T, th *TestHelper) *writeScopeFixture {
+	t.Helper()
+	f := &writeScopeFixture{scopeFixture: newScopeFixture(t, th)}
+	f.writePublic = th.CreateChannel(t, f.openTeam)
+	f.writePrivate = th.CreatePrivateChannel(t, f.openTeam)
+	f.writeNonMember = th.CreatePrivateChannel(t, f.openTeam)
+	f.readOnlyMember = th.CreatePrivateChannel(t, f.openTeam)
+	for _, channel := range []*model.Channel{f.writePublic, f.writePrivate, f.readOnlyMember} {
+		th.AddUserToChannel(t, f.bot, channel)
+	}
+	return f
+}
+
+func (f *writeScopeFixture) writeScope() *model.SessionScope {
+	return &model.SessionScope{
+		Permissions:      []string{model.PermissionReadChannel.Id, model.PermissionReadChannelContent.Id, model.PermissionViewTeam.Id},
+		WritePermissions: model.ScopeWritePermissions,
+		Resources: model.SessionScopeResources{
+			ChannelIDs:      []string{f.writePublic.Id, f.writePrivate.Id, f.writeNonMember.Id, f.readOnlyMember.Id},
+			WriteChannelIDs: []string{f.writePublic.Id, f.writePrivate.Id, f.writeNonMember.Id},
+		},
+		OnBehalfOfUserID: model.NewId(),
+	}
+}
+
+func bookmarkPermissionsFor(channel *model.Channel) []*model.Permission {
+	if channel.Type == model.ChannelTypeOpen {
+		return []*model.Permission{model.PermissionAddBookmarkPublicChannel, model.PermissionEditBookmarkPublicChannel, model.PermissionOrderBookmarkPublicChannel}
+	}
+	return []*model.Permission{model.PermissionAddBookmarkPrivateChannel, model.PermissionEditBookmarkPrivateChannel, model.PermissionOrderBookmarkPrivateChannel}
+}
+
+// checkScopedWrite asserts the decision of every permission check a write route
+// can reach for a channel write permission.
+func checkScopedWrite(t *testing.T, th *TestHelper, session *model.Session, channel *model.Channel, permission *model.Permission, want bool) {
+	t.Helper()
+	rctx := th.Context.WithSession(session)
+
+	got, _ := th.App.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission)
+	assert.Equal(t, want, got, "SessionHasPermissionToChannel %s on %s", permission.Id, channel.Name)
+	got, _ = th.App.SessionHasPermissionToChannelRBACOnly(rctx, *session, channel.Id, permission)
+	assert.Equal(t, want, got, "SessionHasPermissionToChannelRBACOnly %s on %s", permission.Id, channel.Name)
+	assert.Equal(t, want, th.App.SessionHasPermissionToChannels(rctx, *session, []string{channel.Id}, permission), "SessionHasPermissionToChannels %s on %s", permission.Id, channel.Name)
+	got, _ = th.App.HasPermissionToChannel(rctx, session.UserId, channel.Id, permission)
+	assert.Equal(t, want, got, "HasPermissionToChannel with scoped request %s on %s", permission.Id, channel.Name)
+
+	if permission.Id == model.PermissionAddReaction.Id {
+		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{ChannelId: channel.Id, UserId: th.BasicUser.Id, Message: "m"})
+		require.NoError(t, err)
+		assert.Equal(t, want, th.App.SessionHasPermissionToChannelByPost(rctx, *session, post.Id, permission), "SessionHasPermissionToChannelByPost on %s", channel.Name)
+	}
+}
+
+func TestSessionScopeWriteGrant(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	f := newWriteScopeFixture(t, th)
+	session := mintScoped(t, th, f.bot.Id, f.writeScope())
+
+	t.Run("granted writes on listed write channels the bot can write to", func(t *testing.T) {
+		for _, channel := range []*model.Channel{f.writePublic, f.writePrivate} {
+			checkScopedWrite(t, th, session, channel, model.PermissionAddReaction, true)
+			for _, permission := range bookmarkPermissionsFor(channel) {
+				checkScopedWrite(t, th, session, channel, permission, true)
+			}
+		}
+	})
+
+	t.Run("denied on channels not listed for writes", func(t *testing.T) {
+		for name, channel := range map[string]*model.Channel{
+			"listed for reads only": f.readOnlyMember,
+			"member, unlisted":      f.memberPriv,
+			"bot DM":                f.botDM,
+			"public, open team":     f.publicOpen,
+		} {
+			t.Run(name, func(t *testing.T) {
+				checkScopedWrite(t, th, session, channel, model.PermissionAddReaction, false)
+				for _, permission := range bookmarkPermissionsFor(channel) {
+					checkScopedWrite(t, th, session, channel, permission, false)
+				}
+			})
+		}
+	})
+
+	t.Run("the grant never adds to the bot's own permissions", func(t *testing.T) {
+		checkScopedWrite(t, th, session, f.writeNonMember, model.PermissionAddReaction, false)
+		checkScopedWrite(t, th, session, f.writeNonMember, model.PermissionAddBookmarkPrivateChannel, false)
+
+		th.RemovePermissionFromRole(t, model.PermissionAddReaction.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionAddReaction.Id, model.ChannelUserRoleId)
+		checkScopedWrite(t, th, session, f.writePrivate, model.PermissionAddReaction, false)
+	})
+
+	t.Run("permissions outside the grant are denied on write channels", func(t *testing.T) {
+		for _, permission := range []*model.Permission{
+			model.PermissionCreatePost,
+			model.PermissionCreatePostPublic,
+			model.PermissionRemoveReaction,
+			model.PermissionDeleteBookmarkPrivateChannel,
+			model.PermissionUploadFile,
+			model.PermissionManagePrivateChannelProperties,
+			model.PermissionManagePrivateChannelMembers,
+		} {
+			checkScopedWrite(t, th, session, f.writePrivate, permission, false)
+		}
+	})
+
+	t.Run("a write permission the scope doesn't grant is denied", func(t *testing.T) {
+		scope := f.writeScope()
+		scope.WritePermissions = []string{model.PermissionAddReaction.Id}
+		reactionsOnly := mintScoped(t, th, f.bot.Id, scope)
+		checkScopedWrite(t, th, reactionsOnly, f.writePrivate, model.PermissionAddReaction, true)
+		checkScopedWrite(t, th, reactionsOnly, f.writePrivate, model.PermissionAddBookmarkPrivateChannel, false)
+		checkScopedWrite(t, th, reactionsOnly, f.writePrivate, model.PermissionEditBookmarkPrivateChannel, false)
+	})
+
+	t.Run("a read-only scope denies every write", func(t *testing.T) {
+		scope := f.writeScope()
+		scope.WritePermissions = nil
+		scope.Resources.WriteChannelIDs = nil
+		readOnly := mintScoped(t, th, f.bot.Id, scope)
+		for _, channel := range []*model.Channel{f.writePublic, f.writePrivate} {
+			checkScopedWrite(t, th, readOnly, channel, model.PermissionAddReaction, false)
+			for _, permission := range bookmarkPermissionsFor(channel) {
+				checkScopedWrite(t, th, readOnly, channel, permission, false)
+			}
+		}
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context.WithSession(readOnly), *readOnly, f.writePrivate.Id, model.PermissionReadChannelContent)
+		assert.True(t, ok, "reads still work")
+	})
+
+	t.Run("writes are never granted system-wide or team-wide", func(t *testing.T) {
+		for _, permissionID := range model.ScopeWritePermissions {
+			permission := &model.Permission{Id: permissionID}
+			assert.False(t, th.App.SessionHasPermissionTo(*session, permission), permissionID)
+			assert.False(t, th.App.SessionHasPermissionToTeam(*session, f.openTeam.Id, permission), permissionID)
+			scoped, allowed := th.App.EvaluateSessionScope(th.Context, session, permissionID, SessionScopeTarget{})
+			assert.True(t, scoped)
+			assert.False(t, allowed, permissionID)
+		}
+	})
+
+	t.Run("an archived write channel is denied", func(t *testing.T) {
+		archived := th.CreatePrivateChannel(t, f.openTeam)
+		th.AddUserToChannel(t, f.bot, archived)
+		scope := f.writeScope()
+		scope.Resources.ChannelIDs = append(scope.Resources.ChannelIDs, archived.Id)
+		scope.Resources.WriteChannelIDs = []string{archived.Id}
+		archivedSession := mintScoped(t, th, f.bot.Id, scope)
+		checkScopedWrite(t, th, archivedSession, archived, model.PermissionAddReaction, true)
+		require.Nil(t, th.App.DeleteChannel(th.Context, archived, th.BasicUser.Id))
+		checkScopedWrite(t, th, archivedSession, archived, model.PermissionAddReaction, false)
+	})
+
+	t.Run("tampered stored scopes fail closed", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			mutate func(*model.SessionScope)
+			denied *model.Channel
+		}{
+			"write channel not listed for reads": {func(s *model.SessionScope) {
+				s.Resources.ChannelIDs = []string{f.readOnlyMember.Id}
+			}, f.writePrivate},
+			"DM listed for reads and writes": {func(s *model.SessionScope) {
+				s.Resources.ChannelIDs = append(s.Resources.ChannelIDs, f.botDM.Id)
+				s.Resources.WriteChannelIDs = append(s.Resources.WriteChannelIDs, f.botDM.Id)
+			}, f.botDM},
+			"write permission in the read list": {func(s *model.SessionScope) {
+				s.Permissions = append(s.Permissions, model.ScopeWritePermissions...)
+				s.WritePermissions = nil
+			}, f.writePrivate},
+			"write permission outside the grantable set": {func(s *model.SessionScope) {
+				s.WritePermissions = []string{model.PermissionCreatePost.Id}
+				s.Permissions = append(s.Permissions, model.PermissionCreatePost.Id)
+			}, f.writePrivate},
+		} {
+			t.Run(name, func(t *testing.T) {
+				scope := f.writeScope()
+				tc.mutate(scope)
+				forged := forgeScoped(t, f.bot.Id, scope)
+				forged.Roles = f.bot.Roles
+				checkScopedWrite(t, th, forged, tc.denied, model.PermissionAddReaction, false)
+				checkScopedWrite(t, th, forged, tc.denied, model.PermissionCreatePost, false)
+			})
+		}
+
+		t.Run("a local flag doesn't make the bot's own check unrestricted", func(t *testing.T) {
+			local := session.DeepCopy()
+			local.Local = true
+			checkScopedWrite(t, th, local, f.writeNonMember, model.PermissionAddReaction, false)
+		})
+	})
+
+	t.Run("the same bot unscoped keeps its normal access", func(t *testing.T) {
+		unscoped := &model.Session{Id: model.NewId(), UserId: f.bot.Id, Roles: f.bot.Roles}
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context, *unscoped, f.readOnlyMember.Id, model.PermissionAddReaction)
+		assert.True(t, ok)
+		ok, _ = th.App.SessionHasPermissionToChannel(th.Context, *unscoped, f.memberPriv.Id, model.PermissionCreatePost)
+		assert.True(t, ok)
+	})
+}
+
+func TestCreateScopedSessionWithWriteGrant(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	f := newWriteScopeFixture(t, th)
+	expiresAt := model.GetMillis() + 30*60*1000
+
+	t.Run("success", func(t *testing.T) {
+		scope := f.writeScope()
+		session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, scope, expiresAt)
+		require.NoError(t, err)
+		stored, appErr := th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		got, _ := stored.Scope()
+		assert.Equal(t, scope.WritePermissions, got.WritePermissions)
+		assert.Equal(t, scope.Resources.WriteChannelIDs, got.Resources.WriteChannelIDs)
+	})
+
+	for name, mutate := range map[string]func(*model.SessionScope){
+		"create_post": func(s *model.SessionScope) {
+			s.WritePermissions = append(s.WritePermissions, model.PermissionCreatePost.Id)
+		},
+		"write channel not listed for reads": func(s *model.SessionScope) {
+			s.Resources.WriteChannelIDs = []string{f.memberPriv.Id}
+		},
+		"DM write channel": func(s *model.SessionScope) {
+			s.Resources.ChannelIDs = append(s.Resources.ChannelIDs, f.botDM.Id)
+			s.Resources.WriteChannelIDs = []string{f.botDM.Id}
+		},
+		"write channels without write permissions": func(s *model.SessionScope) { s.WritePermissions = nil },
+		"write permissions without write channels": func(s *model.SessionScope) { s.Resources.WriteChannelIDs = nil },
+	} {
+		t.Run(name, func(t *testing.T) {
+			scope := f.writeScope()
+			mutate(scope)
+			session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, scope, expiresAt)
+			require.Error(t, err)
+			assert.Nil(t, session)
+		})
+	}
+}
+
 func TestCreateScopedSession(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

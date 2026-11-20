@@ -2698,7 +2698,7 @@
   {
     "id": "api.context.scoped_session_out_of_scope.app_error",
     "translation": "This request is outside the scope of the session.",
-    "description": "API error returned when a scoped (read-only, plugin-issued) session calls an endpoint or reads data that its scope does not cover. Distinct from a missing-permission error so callers can tell the two apart."
+    "description": "API error returned when a scoped (plugin-issued) session calls an endpoint, or reads or writes data, that its scope does not cover. Distinct from a missing-permission error so callers can tell the two apart."
   },
   {
     "id": "api.context.server_busy.app_error",
@@ -19748,6 +19748,16 @@
     "id": "model.session_scope.is_valid.team_ids.app_error",
     "translation": "Session scope team IDs must be valid, at most {{.Max}}.",
     "description": "Validation error when a plugin asks for a scoped session with an invalid team ID or too many teams in public_channel_team_ids. {{.Max}} is the maximum number of teams."
+  },
+  {
+    "id": "model.session_scope.is_valid.write_channel_ids.app_error",
+    "translation": "Session scope write channel IDs must be valid, listed in the scope's channel IDs, and at most {{.Max}}.",
+    "description": "Validation error when a plugin asks for a scoped session that grants writes on an invalid channel ID, on a channel the scope does not list, on too many channels, or on no channels. {{.Max}} is the maximum number of write channels."
+  },
+  {
+    "id": "model.session_scope.is_valid.write_permissions.app_error",
+    "translation": "Session scope write permissions must be allowed write permissions, need write channel IDs and read_channel_content.",
+    "description": "Validation error when a plugin asks for a scoped session whose write permission list includes a permission that cannot be granted, is empty while write channels are set, or comes without the read_channel_content permission."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

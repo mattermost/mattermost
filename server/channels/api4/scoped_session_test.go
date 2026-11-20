@@ -59,6 +59,18 @@ var scopedSessionAllowedRoutes = []string{
 	"POST /api/v4/users/usernames",
 	"GET /api/v4/users/username/{username}",
 	"POST /api/v4/users/search",
+	"GET /api/v4/channels/{channel_id}/bookmarks",
+}
+
+// scopedSessionWriteRoutes are the routes a scoped session may also reach when
+// its scope grants writes. Adding a route here needs a reviewer to confirm every
+// permission check it makes is for one of model.ScopeWritePermissions on the
+// target channel.
+var scopedSessionWriteRoutes = []string{
+	"POST /api/v4/reactions",
+	"POST /api/v4/channels/{channel_id}/bookmarks",
+	"PATCH /api/v4/channels/{channel_id}/bookmarks/{bookmark_id}",
+	"POST /api/v4/channels/{channel_id}/bookmarks/{bookmark_id}/sort_order",
 }
 
 type scopedAPIFixture struct {
@@ -165,6 +177,33 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	f := setupScopedAPIFixture(t, th)
 
+	t.Run("read-only scope", func(t *testing.T) {
+		expected := slices.Clone(scopedSessionAllowedRoutes)
+		slices.Sort(expected)
+		assert.Equal(t, expected, scopedSessionReachableRoutes(t, th, f.session.Token), "routes reachable by a scoped session must match the allowlist exactly")
+	})
+
+	t.Run("scope with a write grant", func(t *testing.T) {
+		writeSession, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+			Permissions:      model.ScopeReadPermissions,
+			WritePermissions: model.ScopeWritePermissions,
+			Resources: model.SessionScopeResources{
+				ChannelIDs:      []string{f.triggering.Id},
+				WriteChannelIDs: []string{f.triggering.Id},
+			},
+		}, model.GetMillis()+30*60*1000)
+		require.NoError(t, err)
+
+		expected := slices.Concat(scopedSessionAllowedRoutes, scopedSessionWriteRoutes)
+		slices.Sort(expected)
+		assert.Equal(t, expected, scopedSessionReachableRoutes(t, th, writeSession.Token), "routes reachable by a write-granted scoped session must match the allowlists exactly")
+	})
+}
+
+// scopedSessionReachableRoutes returns every API route that doesn't deny the
+// session for being scoped, sorted.
+func scopedSessionReachableRoutes(t *testing.T, th *TestHelper, token string) []string {
+	t.Helper()
 	type routeCase struct {
 		method   string
 		template string
@@ -213,7 +252,7 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	require.NoError(t, err)
 	require.Greater(t, len(cases), 500, "route walk found too few API routes")
 
-	for _, route := range scopedSessionAllowedRoutes {
+	for _, route := range slices.Concat(scopedSessionAllowedRoutes, scopedSessionWriteRoutes) {
 		assert.True(t, seen[route], "allowlisted route %s is not registered", route)
 	}
 
@@ -223,7 +262,7 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	for _, c := range cases {
 		req, err := http.NewRequest(c.probeMethod, baseURL+c.path, strings.NewReader("{}"))
 		require.NoError(t, err)
-		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+f.session.Token)
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+token)
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err, c.method+" "+c.template)
 		body, _ := io.ReadAll(resp.Body)
@@ -243,9 +282,7 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	}
 
 	slices.Sort(reachable)
-	expected := slices.Clone(scopedSessionAllowedRoutes)
-	slices.Sort(expected)
-	assert.Equal(t, expected, reachable, "routes reachable by a scoped session must match the allowlist exactly")
+	return reachable
 }
 
 func TestScopedSessionRouteFlag(t *testing.T) {
@@ -1141,5 +1178,330 @@ func TestScopedSessionChannelAndTeamSearch(t *testing.T) {
 		results, _, err := client.SearchPostsWithParams(ctx, "", &model.SearchParameter{Terms: &term})
 		require.NoError(t, err)
 		assert.Empty(t, results.Posts)
+	})
+}
+
+type scopedWriteFixture struct {
+	bot      *model.User
+	team     *model.Team    // open to all users
+	project  *model.Channel // private, bot is a member, listed for reads and writes
+	board    *model.Channel // public, bot is a member, listed for reads and writes
+	readOnly *model.Channel // private, bot is a member, listed for reads only
+	outside  *model.Channel // public, bot is a member, unlisted
+	public   *model.Channel // public, bot not a member, unlisted
+	scope    func() *model.SessionScope
+	client   *model.Client4
+}
+
+func setupScopedWriteFixture(t *testing.T, th *TestHelper) *scopedWriteFixture {
+	t.Helper()
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	f := &scopedWriteFixture{}
+
+	bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "scopedwriter" + model.NewId()[:8], OwnerId: th.BasicUser.Id})
+	require.Nil(t, appErr)
+	f.bot, appErr = th.App.GetUser(th.Context, bot.UserId)
+	require.Nil(t, appErr)
+
+	f.team = th.CreateTeam(t)
+	f.team.AllowOpenInvite = true
+	_, err := th.App.Srv().Store().Team().Update(f.team)
+	require.NoError(t, err)
+	th.LinkUserToTeam(t, th.BasicUser, f.team)
+	th.LinkUserToTeam(t, f.bot, f.team)
+
+	f.project = th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.team.Id)
+	f.board = th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.team.Id)
+	f.readOnly = th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.team.Id)
+	f.outside = th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.team.Id)
+	f.public = th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.team.Id)
+	for _, channel := range []*model.Channel{f.project, f.board, f.readOnly, f.outside} {
+		th.AddUserToChannel(t, f.bot, channel)
+	}
+
+	f.scope = func() *model.SessionScope {
+		return &model.SessionScope{
+			Permissions:      model.ScopeReadPermissions,
+			WritePermissions: model.ScopeWritePermissions,
+			Resources: model.SessionScopeResources{
+				ChannelIDs:      []string{f.project.Id, f.board.Id, f.readOnly.Id},
+				WriteChannelIDs: []string{f.project.Id, f.board.Id},
+			},
+			OnBehalfOfUserID: th.BasicUser.Id,
+		}
+	}
+	f.client = f.clientFor(t, th, f.scope())
+	return f
+}
+
+func (f *scopedWriteFixture) clientFor(t *testing.T, th *TestHelper, scope *model.SessionScope) *model.Client4 {
+	t.Helper()
+	session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, scope, model.GetMillis()+30*60*1000)
+	require.NoError(t, err)
+	client := th.CreateClient()
+	client.SetToken(session.Token)
+	return client
+}
+
+func requireScopedRouteDenied(t *testing.T, resp *model.Response, err error) {
+	t.Helper()
+	requireScopeError(t, resp, err)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
+	assert.Equal(t, web.ScopedSessionRouteDeniedDetail, appErr.DetailedError)
+}
+
+func linkBookmark(channelID string) *model.ChannelBookmark {
+	return &model.ChannelBookmark{ChannelId: channelID, DisplayName: "link", LinkUrl: "https://example.com", Type: model.ChannelBookmarkLink}
+}
+
+func TestScopedSessionWrites(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	// Developer mode returns detailed errors, which tell a denied route apart.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+	f := setupScopedWriteFixture(t, th)
+	ctx := context.Background()
+
+	postIn := func(t *testing.T, channel *model.Channel) *model.Post {
+		t.Helper()
+		post, _, err := th.Client.CreatePost(ctx, &model.Post{ChannelId: channel.Id, Message: "m"})
+		require.NoError(t, err)
+		return post
+	}
+	userBookmarkIn := func(t *testing.T, channel *model.Channel) *model.ChannelBookmarkWithFileInfo {
+		t.Helper()
+		bookmark, _, err := th.Client.CreateChannelBookmark(ctx, linkBookmark(channel.Id))
+		require.NoError(t, err)
+		return bookmark
+	}
+
+	t.Run("reactions and bookmark writes on the write channels", func(t *testing.T) {
+		for _, channel := range []*model.Channel{f.project, f.board} {
+			reaction, _, err := f.client.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: postIn(t, channel).Id, EmojiName: "white_check_mark"})
+			require.NoError(t, err)
+			assert.Equal(t, f.bot.Id, reaction.UserId)
+
+			bookmark, resp, err := f.client.CreateChannelBookmark(ctx, linkBookmark(channel.Id))
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			assert.Equal(t, f.bot.Id, bookmark.OwnerId)
+
+			updated, _, err := f.client.UpdateChannelBookmark(ctx, channel.Id, bookmark.Id, &model.ChannelBookmarkPatch{DisplayName: model.NewPointer("renamed")})
+			require.NoError(t, err)
+			assert.Equal(t, "renamed", updated.Updated.DisplayName)
+
+			other := userBookmarkIn(t, channel)
+			sorted, _, err := f.client.UpdateChannelBookmarkSortOrder(ctx, channel.Id, other.Id, 0)
+			require.NoError(t, err)
+			require.NotEmpty(t, sorted)
+			assert.Equal(t, other.Id, sorted[0].Id)
+
+			listed, _, err := f.client.ListChannelBookmarksForChannel(ctx, channel.Id, 0)
+			require.NoError(t, err)
+			assert.Len(t, listed, 2)
+		}
+	})
+
+	t.Run("writes outside the write channels get the scope error", func(t *testing.T) {
+		for name, channel := range map[string]*model.Channel{
+			"listed for reads only":        f.readOnly,
+			"member channel, unlisted":     f.outside,
+			"public channel, not member":   f.public,
+			"public channel on basic team": th.BasicChannel,
+		} {
+			t.Run(name, func(t *testing.T) {
+				_, resp, err := f.client.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: postIn(t, channel).Id, EmojiName: "smile"})
+				requireScopeError(t, resp, err)
+
+				_, resp, err = f.client.CreateChannelBookmark(ctx, linkBookmark(channel.Id))
+				requireScopeError(t, resp, err)
+
+				existing := userBookmarkIn(t, channel)
+				_, resp, err = f.client.UpdateChannelBookmark(ctx, channel.Id, existing.Id, &model.ChannelBookmarkPatch{DisplayName: model.NewPointer("hijacked")})
+				requireScopeError(t, resp, err)
+				_, resp, err = f.client.UpdateChannelBookmarkSortOrder(ctx, channel.Id, existing.Id, 0)
+				requireScopeError(t, resp, err)
+
+				bookmarks, _, err := th.Client.ListChannelBookmarksForChannel(ctx, channel.Id, 0)
+				require.NoError(t, err)
+				require.Len(t, bookmarks, 1, "nothing was written")
+				assert.Equal(t, "link", bookmarks[0].DisplayName)
+			})
+		}
+
+		t.Run("a missing post or channel looks the same", func(t *testing.T) {
+			_, resp, err := f.client.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: model.NewId(), EmojiName: "smile"})
+			requireScopeError(t, resp, err)
+			_, resp, err = f.client.CreateChannelBookmark(ctx, linkBookmark(model.NewId()))
+			requireScopeError(t, resp, err)
+		})
+	})
+
+	t.Run("an archived write channel gets the scope error", func(t *testing.T) {
+		archived := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.team.Id)
+		th.AddUserToChannel(t, f.bot, archived)
+		scope := f.scope()
+		scope.Resources.ChannelIDs = append(scope.Resources.ChannelIDs, archived.Id)
+		scope.Resources.WriteChannelIDs = []string{archived.Id}
+		client := f.clientFor(t, th, scope)
+		post := postIn(t, archived)
+		_, err := th.Client.DeleteChannel(ctx, archived.Id)
+		require.NoError(t, err)
+
+		_, resp, err := client.CreateChannelBookmark(ctx, linkBookmark(archived.Id))
+		requireScopeError(t, resp, err)
+		_, resp, err = client.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: post.Id, EmojiName: "smile"})
+		requireScopeError(t, resp, err)
+	})
+
+	t.Run("routes the grant doesn't cover stay denied", func(t *testing.T) {
+		post := postIn(t, f.project)
+		_, _, err := f.client.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: post.Id, EmojiName: "smile"})
+		require.NoError(t, err)
+		resp, err := f.client.DeleteReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: post.Id, EmojiName: "smile"})
+		requireScopedRouteDenied(t, resp, err)
+
+		bookmark := userBookmarkIn(t, f.project)
+		_, resp, err = f.client.DeleteChannelBookmark(ctx, f.project.Id, bookmark.Id)
+		requireScopedRouteDenied(t, resp, err)
+
+		_, resp, err = f.client.CreatePost(ctx, &model.Post{ChannelId: f.project.Id, Message: "nope"})
+		requireScopedRouteDenied(t, resp, err)
+		_, resp, err = f.client.PatchChannel(ctx, f.project.Id, &model.ChannelPatch{DisplayName: model.NewPointer("nope")})
+		requireScopedRouteDenied(t, resp, err)
+		_, resp, err = f.client.AddChannelMember(ctx, f.project.Id, th.BasicUser2.Id)
+		requireScopedRouteDenied(t, resp, err)
+	})
+
+	t.Run("a reaction must be the session user's own", func(t *testing.T) {
+		_, resp, err := f.client.SaveReaction(ctx, &model.Reaction{UserId: th.BasicUser.Id, PostId: postIn(t, f.project).Id, EmojiName: "smile"})
+		requireScopeError(t, resp, err)
+	})
+
+	t.Run("an ungranted write permission is denied", func(t *testing.T) {
+		scope := f.scope()
+		scope.WritePermissions = []string{model.PermissionAddReaction.Id}
+		reactionsOnly := f.clientFor(t, th, scope)
+
+		_, _, err := reactionsOnly.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: postIn(t, f.project).Id, EmojiName: "smile"})
+		require.NoError(t, err)
+		_, resp, err := reactionsOnly.CreateChannelBookmark(ctx, linkBookmark(f.project.Id))
+		requireScopeError(t, resp, err)
+	})
+
+	t.Run("the grant never adds to the bot's own permissions", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		_, resp, err := f.client.CreateChannelBookmark(ctx, linkBookmark(f.project.Id))
+		requireScopeError(t, resp, err)
+	})
+
+	t.Run("a read-only scope can't reach write routes", func(t *testing.T) {
+		scope := f.scope()
+		scope.WritePermissions = nil
+		scope.Resources.WriteChannelIDs = nil
+		readOnly := f.clientFor(t, th, scope)
+
+		_, resp, err := readOnly.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: postIn(t, f.project).Id, EmojiName: "smile"})
+		requireScopedRouteDenied(t, resp, err)
+		_, resp, err = readOnly.CreateChannelBookmark(ctx, linkBookmark(f.project.Id))
+		requireScopedRouteDenied(t, resp, err)
+		bookmark := userBookmarkIn(t, f.project)
+		_, resp, err = readOnly.UpdateChannelBookmark(ctx, f.project.Id, bookmark.Id, &model.ChannelBookmarkPatch{DisplayName: model.NewPointer("x")})
+		requireScopedRouteDenied(t, resp, err)
+		_, resp, err = readOnly.UpdateChannelBookmarkSortOrder(ctx, f.project.Id, bookmark.Id, 0)
+		requireScopedRouteDenied(t, resp, err)
+
+		_, _, err = readOnly.ListChannelBookmarksForChannel(ctx, f.project.Id, 0)
+		require.NoError(t, err, "bookmark reads are open to read-only scopes")
+		_, resp, err = readOnly.ListChannelBookmarksForChannel(ctx, f.outside.Id, 0)
+		requireScopeError(t, resp, err)
+	})
+}
+
+func TestScopedSessionExactChannelList(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedWriteFixture(t, th)
+	ctx := context.Background()
+
+	term := "exactlistneedle" + model.NewId()[:6]
+	posts := map[string]string{}
+	for _, channel := range []*model.Channel{f.project, f.board, f.readOnly, f.outside, f.public} {
+		post, _, err := th.Client.CreatePost(ctx, &model.Post{ChannelId: channel.Id, Message: term})
+		require.NoError(t, err)
+		posts[channel.Id] = post.Id
+	}
+	listed := []string{posts[f.project.Id], posts[f.board.Id], posts[f.readOnly.Id]}
+
+	postIDs := func(list *model.PostList) []string {
+		var ids []string
+		for id := range list.Posts {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	channelIDs := func(channels []*model.Channel) []string {
+		var ids []string
+		for _, channel := range channels {
+			ids = append(ids, channel.Id)
+		}
+		return ids
+	}
+
+	t.Run("listed channels are readable", func(t *testing.T) {
+		for _, channel := range []*model.Channel{f.project, f.board, f.readOnly} {
+			_, _, err := f.client.GetChannel(ctx, channel.Id)
+			require.NoError(t, err)
+			_, _, err = f.client.GetPostsForChannel(ctx, channel.Id, 0, 10, "", false, false)
+			require.NoError(t, err)
+		}
+		_, _, err := f.client.GetTeam(ctx, f.team.Id, "")
+		require.NoError(t, err, "the team holding the listed channels")
+	})
+
+	t.Run("public and member channels on the same open team are not", func(t *testing.T) {
+		for _, channel := range []*model.Channel{f.outside, f.public, th.BasicChannel} {
+			_, resp, err := f.client.GetChannel(ctx, channel.Id)
+			requireScopeError(t, resp, err)
+			_, resp, err = f.client.GetPostsForChannel(ctx, channel.Id, 0, 10, "", false, false)
+			requireScopeError(t, resp, err)
+		}
+		for _, channel := range []*model.Channel{f.outside, f.public} {
+			_, resp, err := f.client.GetPost(ctx, posts[channel.Id], "")
+			requireScopeError(t, resp, err)
+		}
+	})
+
+	t.Run("team channel list holds only the listed public channel", func(t *testing.T) {
+		channels, _, err := f.client.GetPublicChannelsForTeam(ctx, f.team.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{f.board.Id}, channelIDs(channels))
+	})
+
+	t.Run("search returns only the listed channels", func(t *testing.T) {
+		results, _, err := f.client.SearchPosts(ctx, f.team.Id, term, false)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, listed, postIDs(results))
+
+		results, _, err = f.client.SearchPostsWithParams(ctx, "", &model.SearchParameter{Terms: &term})
+		require.NoError(t, err)
+		assert.ElementsMatch(t, listed, postIDs(results))
+	})
+
+	t.Run("the open-team grant is what widens it", func(t *testing.T) {
+		scope := f.scope()
+		scope.Resources.OpenTeamPublicChannels = true
+		wide := f.clientFor(t, th, scope)
+
+		_, _, err := wide.GetChannel(ctx, f.public.Id)
+		require.NoError(t, err)
+		results, _, err := wide.SearchPosts(ctx, f.team.Id, term, false)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, append(slices.Clone(listed), posts[f.outside.Id], posts[f.public.Id]), postIDs(results))
+
+		_, resp, err := wide.CreateChannelBookmark(ctx, linkBookmark(f.public.Id))
+		requireScopeError(t, resp, err)
+		_, resp, err = wide.SaveReaction(ctx, &model.Reaction{UserId: f.bot.Id, PostId: posts[f.outside.Id], EmojiName: "smile"})
+		requireScopeError(t, resp, err)
 	})
 }

@@ -1988,8 +1988,12 @@ type API interface {
 	// direct or group channels. The server sets scope.CreatedByPluginID to the
 	// calling plugin. Read access is exactly the scope: the user's memberships
 	// neither add to it nor are required for it. Every write, websocket and
-	// plugin route is denied. The session is revoked when the plugin is
-	// disabled; revoke it sooner with RevokeSession.
+	// plugin route is denied, except that scope.WritePermissions (a subset of
+	// model.ScopeWritePermissions) may grant reactions and bookmark writes on
+	// scope.Resources.WriteChannelIDs (at most
+	// model.SessionScopeMaxWriteChannelIDs, each also in ChannelIDs), and only
+	// where the user already holds the permission. The session is revoked when
+	// the plugin is disabled; revoke it sooner with RevokeSession.
 	//
 	// @tag User
 	// Minimum server version: 12.2
