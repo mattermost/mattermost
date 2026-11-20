@@ -65,6 +65,25 @@ const entityLookupPlugin = `
 		}); appErr != nil {
 			return appErr
 		}
+		if appErr := p.API.RegisterEntityType(&model.EntityType{Name: "zone", DisplayName: "Zone"}); appErr != nil {
+			return appErr
+		}
+		if appErr := p.API.RegisterEntityMatcher(&model.EntityMatcher{
+			Name:    "zone.scan",
+			Type:    "zone",
+			Pattern: "ZONE-[0-9]+",
+			Scope:   []string{"security"},
+		}); appErr != nil {
+			return appErr
+		}
+		if appErr := p.API.RegisterEntityProvider(&model.EntityProvider{
+			Name:    "zone.card",
+			Types:   []string{"zone"},
+			HasCard: true,
+			Cache:   model.EntityCacheNone,
+		}); appErr != nil {
+			return appErr
+		}
 		return nil
 	}
 
@@ -190,6 +209,42 @@ func TestEntityLookupHook(t *testing.T) {
 		require.Equal(t, th.BasicUser.Id, req.UserID)
 		require.Empty(t, req.PostID)
 		require.Zero(t, req.CreateAt)
+	})
+
+	t.Run("a scoped matcher is not asked when there is no post", func(t *testing.T) {
+		require.NotEqual(t, "security", th.BasicTeam.Name)
+		zoneID := pluginID + ":zone"
+		post := th.CreateMessagePost(t, th.BasicChannel, "see ZONE-100 today")
+		fromPost, err := th.App.GetEntityCardFromPost(reader, post.Id, zoneID, "ZONE-100")
+		require.Nil(t, fromPost)
+		postErr := model.AsAppError(err)
+		require.NotNil(t, postErr)
+		require.Equal(t, http.StatusNotFound, postErr.StatusCode)
+
+		card, err := th.App.GetEntityCard(reader, zoneID, "ZONE-100")
+		require.Nil(t, card)
+		appErr := model.AsAppError(err)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		raw, keyErr := th.App.GetPluginKey(pluginID, "lookup-ZONE-100")
+		require.Nil(t, keyErr)
+		require.Empty(t, raw)
+
+		require.NoError(t, th.App.RegisterPluginEntityMatcher(pluginID, &model.EntityMatcher{
+			Name:    "zone.open",
+			Type:    "zone",
+			Pattern: "ZONE-[0-9]+",
+		}))
+		t.Cleanup(func() {
+			_ = th.App.UnregisterPluginEntityMatcher(pluginID, "zone.open")
+		})
+		card, err = th.App.GetEntityCard(reader, zoneID, "ZONE-200")
+		require.NoError(t, err)
+		require.Equal(t, "opened ZONE-200", card.Title)
+		req := recorded(t, "ZONE-200")
+		require.Equal(t, th.BasicUser.Id, req.UserID)
+		require.Empty(t, req.PostID)
 	})
 
 	t.Run("the plugin can refuse a lookup that has no post", func(t *testing.T) {

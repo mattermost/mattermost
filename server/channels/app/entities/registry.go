@@ -344,12 +344,25 @@ func (r *registry) lookupPlan(typeID string) (*Remote, bool) {
 }
 
 // PatternCovers reports whether a matcher accepts value as a whole token.
-// A glossary term alone does not.
+// A glossary term alone does not. Scope is ignored.
 func PatternCovers(typeID, value string) bool {
 	reg.mu.RLock()
 	defer reg.mu.RUnlock()
 	for _, stored := range reg.matchers {
 		if stored.typeID == typeID && matcherCovers(stored, value) {
+			return true
+		}
+	}
+	return false
+}
+
+// UnscopedPatternCovers reports whether a matcher with an empty scope accepts
+// value as a whole token. A scoped matcher and a glossary term do not.
+func UnscopedPatternCovers(typeID, value string) bool {
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	for _, stored := range reg.matchers {
+		if stored.typeID == typeID && len(stored.scope) == 0 && matcherCovers(stored, value) {
 			return true
 		}
 	}

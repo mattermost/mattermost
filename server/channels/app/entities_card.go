@@ -25,15 +25,23 @@ func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.Enti
 	// asking. The plugin allows or refuses. The answer is not cached.
 	// A value that is only a glossary term is not asked: the term has no
 	// hook, and an unknown value gets the same refusal, so the route is not
-	// a dictionary. A matcher that accepts the whole value does ask the plugin.
+	// a dictionary. An unscoped matcher that accepts the whole value does
+	// ask the plugin. A matcher limited to a team or channel does not: this
+	// route has no channel to check, and the refusal matches an unknown value.
+	// mm:time is the exception. A scoped matcher, a missing caller, or a plugin
+	// that returns nothing leaves the built-in clock to answer.
 	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, 0)
-	if remote != nil && err == nil && entities.PatternCovers(typeID, value) {
-		if rctx.Session().UserId == "" {
-			return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-		}
+	if remote != nil && err == nil && entities.UnscopedPatternCovers(typeID, value) && rctx.Session().UserId != "" {
 		if got := a.lookupEntityProvider(rctx, remote, typeID, value, "", 0); got != nil {
 			return got, nil
 		}
+		if typeID != entities.CoreTimeTypeID {
+			return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+		card, err = entities.CoreLookup(rctx.Context(), typeID, value, 0)
+	} else if remote != nil && typeID == entities.CoreTimeTypeID {
+		card, err = entities.CoreLookup(rctx.Context(), typeID, value, 0)
+	} else if remote != nil {
 		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 	if typeID != entities.CoreTimeTypeID {

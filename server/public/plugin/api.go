@@ -2005,8 +2005,9 @@ type API interface {
 	// call EntityLookup when a reader opens a value of that type. The request
 	// always names the caller. A post id means the server has already checked
 	// that the caller can read the post. No post id means the plugin decides,
-	// and only a value a matcher accepts is asked. A glossary term with no
-	// matching pattern is not asked. A shared card stored for a post must not
+	// and only a value an unscoped matcher accepts is asked. A scoped matcher
+	// is not enough. A glossary term with no matching pattern is not asked.
+	// A shared card stored for a post must not
 	// depend on the caller. Use cache "user" or "none" when it does.
 	//
 	// Minimum server version: 12.2

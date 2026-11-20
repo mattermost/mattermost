@@ -71,6 +71,34 @@ func TestProviderEntityCardWithoutAnAnswerIsRefused(t *testing.T) {
 	}
 }
 
+func TestScopedMatcherOnCoreTimeLeavesTheClock(t *testing.T) {
+	const pluginID = "com.example.scopedtime"
+	t.Cleanup(func() { entities.RemoveOwner(pluginID) })
+	require.NoError(t, entities.AddMatcher(pluginID, &model.EntityMatcher{
+		Name:    "zone",
+		Type:    "mm:time",
+		Pattern: `ZXSCOPE-[0-9]{4}`,
+		Scope:   []string{"security"},
+	}))
+	require.NoError(t, entities.AddProvider(pluginID, &model.EntityProvider{
+		Name:    "card",
+		Types:   []string{"mm:time"},
+		HasCard: true,
+	}))
+
+	card, err := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), entities.CoreTimeTypeID, "ZXSCOPE-1000")
+	require.Nil(t, card)
+	appErr := model.AsAppError(err)
+	require.NotNil(t, appErr)
+	require.Equal(t, "api.context.invalid_url_param.app_error", appErr.Id)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	clock, clockErr := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), entities.CoreTimeTypeID, "2024-06-01T15:04:05Z")
+	require.NoError(t, clockErr)
+	require.Equal(t, entities.CoreTimeTypeID, clock.TypeID)
+	require.NotZero(t, clock.Instant)
+}
+
 func TestTermCardNeedsAPost(t *testing.T) {
 	const pluginID = "com.example.glossary"
 	typeID := pluginID + ":acronym"
