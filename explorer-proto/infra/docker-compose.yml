@@ -1,0 +1,57 @@
+# Disposable, offline Mattermost + PostgreSQL for the explorer pilot.
+# No host ports are published; the worker reaches Mattermost via forwarder.mjs.
+# MM_LICENSE is passed through by name only and inherited from the invoking shell.
+# Never run `docker compose config` on this file: it would print the inherited value.
+name: explorer-pilot
+
+services:
+  postgres:
+    image: postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5
+    container_name: explorer-pilot-postgres
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: mostest-synthetic
+      POSTGRES_DB: mattermost_pilot
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mmuser", "-d", "mattermost_pilot"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks:
+      - pilot_internal
+
+  mattermost:
+    image: mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7
+    platform: linux/amd64
+    container_name: explorer-pilot-mattermost
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - MM_SQLSETTINGS_DRIVERNAME=postgres
+      - MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest-synthetic@postgres:5432/mattermost_pilot?sslmode=disable&connect_timeout=10
+      - MM_SERVICESETTINGS_SITEURL=http://127.0.0.1:8065
+      - MM_SERVICESETTINGS_ALLOWCORSFROM=http://127.0.0.1:8065
+      # Required by the image's own healthcheck (`mmctl system status --local`); socket stays inside the container.
+      - MM_SERVICESETTINGS_ENABLELOCALMODE=true
+      # Outbound off. Keys verified in server/public/model/config.go at v12.1.0.
+      - MM_LOGSETTINGS_ENABLEDIAGNOSTICS=false
+      - MM_SERVICESETTINGS_ENABLESECURITYFIXALERT=false
+      - MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=false
+      - MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS=false
+      - MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER=
+      - MM_PLUGINSETTINGS_ENABLEMARKETPLACE=false
+      - MM_PLUGINSETTINGS_ENABLEREMOTEMARKETPLACE=false
+      - MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS=false
+      - MM_METRICSSETTINGS_ENABLECLIENTMETRICS=false
+      - MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED=false
+      - MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED=false
+      - MM_LICENSE
+    networks:
+      - pilot_internal
+
+networks:
+  pilot_internal:
+    internal: true
