@@ -249,11 +249,13 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         // for the admin too.
         const adminSession = await pw.testBrowser.login(adminUser);
         await adminSession.page.goto('/select_team', {waitUntil: 'domcontentloaded'});
-        await expect(
-            adminSession.page
-                .getByRole('heading', {name: /Teams you can join/})
-                .or(adminSession.page.getByText('No teams are available to join')),
-        ).toBeVisible();
+        await expect
+            .poll(async () => {
+                const heading = await adminSession.page.getByRole('heading', {name: /Teams you can join/}).count();
+                const empty = await adminSession.page.getByText('No teams are available to join').count();
+                return heading + empty;
+            })
+            .toBeGreaterThan(0);
         await expect(adminSession.page.getByText(governed.display_name, {exact: false})).toHaveCount(0);
     });
 
