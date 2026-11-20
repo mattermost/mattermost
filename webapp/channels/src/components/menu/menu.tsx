@@ -9,6 +9,7 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from 'react';
 import type {
     ButtonHTMLAttributes,
@@ -125,6 +126,14 @@ type MenuProps = {
     disableRestoreFocus?: boolean;
 
     /**
+     * When true, hovering the trigger opens the menu, and moving the pointer off both the trigger
+     * and the menu closes it again. A menu opened this way doesn't take focus or block the page,
+     * so hovering past it doesn't interrupt the user. Clicking the trigger, or opening it from the
+     * keyboard, still opens it as usual. Ignored in mobile view.
+     */
+    openOnHover?: boolean;
+
+    /**
      * When false, the menu will not auto-focus the first item on open.
      * Focus stays on the trigger button; ArrowDown moves focus into the list.
      * Defaults to true (standard MUI behavior).
@@ -140,6 +149,11 @@ type MenuProps = {
 };
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
+
+// How long the pointer rests on an openOnHover trigger before its menu opens, and how long it can be
+// off both the trigger and the menu (crossing the gap between them, say) before the menu closes.
+const HOVER_OPEN_DELAY = 100;
+const HOVER_CLOSE_DELAY = 200;
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
 
 interface Props {
@@ -178,6 +192,13 @@ export function Menu(props: Props) {
     // Initialize from prop so initial mount with isMenuOpen={true} opens.
     const [isMenuOpen, setIsMenuOpen] = useState(props.menu.isMenuOpen === true);
 
+    // Whether the menu is open because the pointer is over it (openOnHover), rather than from a click
+    // or the keyboard. Mirrored in a ref for the hover timers.
+    const [openedByHover, setOpenedByHover] = useState(false);
+    const openedByHoverRef = useRef(false);
+    const hoverTimer = useRef<number | undefined>(undefined);
+    const hoverEnabled = Boolean(props.menu.openOnHover) && !isMobileView;
+
     // State (not ref) so MUI's anchorEl reacts when the button mounts.
     const [menuButton, setMenuButton] = useState<HTMLElement | null>(null);
 
@@ -193,6 +214,46 @@ export function Menu(props: Props) {
             setIsMenuOpen(false);
         }
     }
+
+    function setHoverOpened(byHover: boolean) {
+        openedByHoverRef.current = byHover;
+        setOpenedByHover(byHover);
+    }
+
+    function handleHoverEnter() {
+        if (!hoverEnabled) {
+            return;
+        }
+        window.clearTimeout(hoverTimer.current);
+        if (!isMenuOpen) {
+            hoverTimer.current = window.setTimeout(() => {
+                setHoverOpened(true);
+                setIsMenuOpen(true);
+            }, HOVER_OPEN_DELAY);
+        }
+    }
+
+    function handleHoverLeave() {
+        if (!hoverEnabled) {
+            return;
+        }
+        window.clearTimeout(hoverTimer.current);
+
+        // A menu opened by a click or the keyboard stays open until it's dismissed.
+        hoverTimer.current = window.setTimeout(() => {
+            if (openedByHoverRef.current) {
+                setIsMenuOpen(false);
+            }
+        }, HOVER_CLOSE_DELAY);
+    }
+
+    useEffect(() => {
+        if (!isMenuOpen) {
+            setHoverOpened(false);
+        }
+    }, [isMenuOpen]);
+
+    useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
@@ -277,6 +338,10 @@ export function Menu(props: Props) {
         event.preventDefault();
         event.stopPropagation();
 
+        // A click turns a menu opened by hovering into one opened as usual.
+        window.clearTimeout(hoverTimer.current);
+        setHoverOpened(false);
+
         if (isMobileView) {
             dispatch(
                 openModal<MenuModalProps>({
@@ -347,6 +412,8 @@ export function Menu(props: Props) {
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onMouseDown={props.menuButton?.onMouseDown}
+                onMouseEnter={isDisabled ? undefined : handleHoverEnter}
+                onMouseLeave={isDisabled ? undefined : handleHoverLeave}
                 onClick={isDisabled ? undefined : handleMenuButtonClick}
                 onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
                 {...customTriggerProps}
@@ -378,7 +445,8 @@ export function Menu(props: Props) {
     }, [isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, isMenuOpen);
-    const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction);
+    const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction || openedByHover);
+    const paperStyle = pointerEventsPassThrough ? {pointerEvents: 'auto' as const} : undefined;
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -403,15 +471,24 @@ export function Menu(props: Props) {
                         marginThreshold={0}
                         anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                         transformOrigin={props.transformOrigin || defaultTransformOrigin}
-                        hideBackdrop={props.menu.hideBackdrop}
-                        disableRestoreFocus={props.menu.disableRestoreFocus}
+                        hideBackdrop={props.menu.hideBackdrop || openedByHover}
+                        disableRestoreFocus={props.menu.disableRestoreFocus || openedByHover}
+
+                        // Opened by hovering, the menu leaves focus and scrolling where they were.
+                        disableAutoFocus={openedByHover}
+                        disableEnforceFocus={openedByHover}
+                        disableScrollLock={openedByHover}
 
                         // hideBackdrop (DnD) and allowTriggerInteraction (chip
                         // remove) both need the modal root to stop eating clicks
                         // so the trigger behind it stays usable. Paper stays
                         // interactive so the list itself still receives them.
                         style={pointerEventsPassThrough ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={pointerEventsPassThrough ? {style: {pointerEvents: 'auto'}} : undefined}
+                        PaperProps={{
+                            style: paperStyle,
+                            onMouseEnter: hoverEnabled ? handleHoverEnter : undefined,
+                            onMouseLeave: hoverEnabled ? handleHoverLeave : undefined,
+                        }}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,
@@ -446,7 +523,7 @@ export function Menu(props: Props) {
                                 minWidth: props.menu.minWidth,
                                 maxWidth: props.menu.maxWidth,
                             }}
-                            autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
+                            autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen && !openedByHover}
                             onKeyDown={handleMenuListKeyDown}
                         >
                             {props.children}

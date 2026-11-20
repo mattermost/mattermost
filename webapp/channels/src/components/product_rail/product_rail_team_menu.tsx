@@ -46,7 +46,8 @@ const messages = defineMessages({
 });
 
 // Stands in for the team sidebar at the top of the product rail while the user has hidden it:
-// shows the current team, and opens a menu to switch teams or bring the team sidebar back.
+// shows the current team, and opens a menu on hover (or click) to switch teams or bring the team
+// sidebar back.
 export default function ProductRailTeamMenu() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -93,13 +94,13 @@ export default function ProductRailTeamMenu() {
                     </span>
                 ),
             }}
-            menuButtonTooltip={{
-                text: currentTeam.display_name,
-            }}
             menu={{
                 id: 'productRailTeamMenu',
                 width: '264px',
                 'aria-label': formatMessage(messages.menuLabel),
+
+                // Hovering the team opens the teams, as the team sidebar would show them.
+                openOnHover: true,
             }}
             anchorOrigin={{vertical: 'top', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'left'}}

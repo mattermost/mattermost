@@ -51,6 +51,14 @@ describe('ProductRailTeamMenu', () => {
         expect(twoTeams.querySelectorAll('.ProductRail__teamStackCard')).toHaveLength(1);
     });
 
+    test('should open the teams on hover', async () => {
+        renderWithContext(<ProductRailTeamMenu/>, getState());
+
+        await userEvent.hover(screen.getByRole('button', {name: 'Switch teams'}));
+
+        expect(await screen.findByRole('menuitem', {name: /Bravo/})).toBeInTheDocument();
+    });
+
     test('should list every team and mark the current one', async () => {
         renderWithContext(<ProductRailTeamMenu/>, getState());
 

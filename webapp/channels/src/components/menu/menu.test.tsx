@@ -556,3 +556,67 @@ describe('Menu — isMenuOpen control transition matrix', () => {
         });
     });
 });
+
+describe('Menu with openOnHover', () => {
+    // The open menu hides the rest of the page from assistive technology, its trigger included.
+    const teamsButton = () => screen.getByRole('button', {name: 'Teams', hidden: true});
+
+    function renderHoverMenu() {
+        const onItemClick = jest.fn();
+        renderWithContext(
+            <>
+                <input aria-label='Message'/>
+                <Menu
+                    menuButton={{id: 'hover-menu-button', children: 'Teams'}}
+                    menu={{id: 'hover-menu', 'aria-label': 'Teams menu', openOnHover: true}}
+                >
+                    <MenuItem
+                        id='hover-menu-item'
+                        labels={<span>{'Alpha'}</span>}
+                        onClick={onItemClick}
+                    />
+                </Menu>
+            </>,
+        );
+        return {onItemClick};
+    }
+
+    test('should open on hover without taking focus, and close when the pointer leaves', async () => {
+        renderHoverMenu();
+        const message = screen.getByRole('textbox', {name: 'Message', hidden: true});
+        message.focus();
+
+        await userEvent.hover(teamsButton());
+
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+        expect(message).toHaveFocus();
+
+        await userEvent.unhover(teamsButton());
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+    });
+
+    test('should stay open while the pointer moves onto the menu, and run its items', async () => {
+        const {onItemClick} = renderHoverMenu();
+
+        await userEvent.hover(teamsButton());
+        const item = await screen.findByRole('menuitem', {name: 'Alpha'});
+        await userEvent.unhover(teamsButton());
+        await userEvent.hover(item);
+        await userEvent.click(item);
+
+        await waitFor(() => expect(onItemClick).toHaveBeenCalled());
+    });
+
+    test('should stay open after the pointer leaves when opened by a click', async () => {
+        renderHoverMenu();
+
+        await userEvent.click(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+
+        await userEvent.unhover(teamsButton());
+        await new Promise((resolve) => setTimeout(resolve, 400));
+
+        expect(screen.getByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+    });
+});
