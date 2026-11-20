@@ -776,7 +776,7 @@ func requireReviewerChecksumMessage(t *testing.T, th *TestHelper, reviewerID str
 	require.Nil(t, appErr)
 
 	for _, p := range posts.Posts {
-		if strings.Contains(p.Message, "File: `"+fileName+"`\nSHA-256: `"+checksum+"`") {
+		if strings.Contains(p.Message, "File: `"+fileName+"`\n\nSHA-256: `"+checksum+"`") {
 			return
 		}
 	}
