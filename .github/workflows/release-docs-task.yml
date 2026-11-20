@@ -1,7 +1,8 @@
 name: Release Docs Task
 
-# One Phase 3 release docs or comms task for one version, shared by the release-docs-*.yml
-# workflows. The code is in .github/scripts/release_docs/.
+# One release docs task for one version, shared by the release-docs-*.yml workflows. Every task
+# writes only to public GitHub repos; it reports in its PR and in this run's summary. The code is
+# in .github/scripts/release_docs/.
 #
 # Mode: PHASE3_MODE (variable) is dry_run (the default) or live; a manual run's mode input
 # overrides it. dry_run writes the result to the run summary and the release-docs-<task>
@@ -11,73 +12,35 @@ name: Release Docs Task
 # release-agent/dot-release-docs/<first version>.
 # A missing input is written as TODO(release-agent) and fails the run.
 #
+# Release Day is the due date of the release's vX.Y.0 milestone in mattermost/mattermost (the
+# Desktop App's and the mobile app's in mattermost/desktop and mattermost/mattermost-mobile, for
+# their releases pages). A milestone with no due date is a TODO, never a guess.
+#
 # Settings (Settings → Secrets and variables → Actions):
 #   PHASE3_MODE                     (variable) dry_run or live
 #   CHANGELOG_WRITE_CLIENT_ID       (variable) and CHANGELOG_WRITE_PRIVATE_KEY (secret): the changelog
-#                                              write app. Every write (branches, commits, PRs, labels, the
-#                                              release description) uses its token, limited to the one repo
-#                                              the task writes to: mattermost/mattermost, mattermost/notices
-#                                              (upgrade-notice) or mattermost/docker (docker-env); esr-comms
-#                                              also gets one for mattermost/mattermost-mobile. Required
-#                                              for live runs: PRs opened with GITHUB_TOKEN start no CI. If
-#                                              the app is not installed on notices or docker, that task
-#                                              fails with a message saying so; other tasks are not affected.
+#                                              write app. Every write (branches, commits, PRs, labels, review
+#                                              requests, the release description) uses its token, limited to the
+#                                              one repo the task writes to: mattermost/mattermost,
+#                                              mattermost/notices (upgrade-notice) or mattermost/docker
+#                                              (docker-env); esr-comms also gets one for
+#                                              mattermost/mattermost-mobile. Required for live runs: PRs opened
+#                                              with GITHUB_TOKEN start no CI. If the app is not installed on a
+#                                              repo, that task fails with a message saying so; other tasks are
+#                                              not affected.
 #   CHANGELOG_GIT_USERNAME          (variable) and CHANGELOG_GIT_EMAIL (variable): author and committer
 #                                              of the commits, required for live runs
-#   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
-#   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
-#   ANTHROPIC_API_KEY               (secret)   highlights, the breaking-change review and notices, blog and
-#                                              email drafts, dot release bullets for PRs with no release note
-#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): a read-only Jira
-#                                              account, used for every Jira and Confluence read: versions
-#                                              and epics for drafts and release-highlights, the ticket
-#                                              labels that mark security fixes and breaking changes, the
-#                                              release docs PR's accessibility tickets (listed on Hub only),
-#                                              the holidays page, and esr-comms's check for an existing ticket
-#   RELEASE_AGENT_JIRA_WRITE_EMAIL  (variable) and RELEASE_AGENT_JIRA_WRITE_TOKEN (secret): a Jira account
-#                                              that can create tickets, used only to create esr-comms's
-#                                              feature-flag removal ticket when an ESR's support ends. Passed
-#                                              to live esr-comms runs alone; never to a dry run or another
-#                                              task. Unset: the ticket text is posted in Hub for the release
-#                                              manager to file by hand, naming these settings
 #   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): the changelog
-#                                              read app. Every read uses its token (it also reads
-#                                              mattermost/enterprise PRs for the drafts). Without it, a
-#                                              dry run reads mattermost/mattermost with GITHUB_TOKEN.
-#
-# drafts, release-highlights and breaking-changes read Jira and mattermost/enterprise: their full
-# output goes to the review channel in Hub (RELEASE_AGENT_MM_TOKEN and the review channel below,
-# needed even for dry runs), and the run summary and artifact keep only counts and
-# mattermost/mattermost PRs. Without Hub the run fails, since the output would be lost.
-# Run locally (GITHUB_ACTIONS unset), they also write the full report and files to
-# OUTPUT_DIR/private/, so a dry run can be checked without Hub; that never happens in Actions.
-#
-# Hub and calendar tasks (announcement, key-dates, marketing, esr-comms, feature-review; see
-# release-docs-hub.yml). What they post or create goes to Hub and the calendar, never to the
-# run summary: nothing from mattermost/enterprise or Jira appears in public Actions output.
-#   RELEASE_AGENT_MM_TOKEN          (secret)   the release agent's Hub bot, a member of every channel below
-#   RELEASE_AGENT_MM_URL            (variable) Hub, default https://hub.mattermost.com
-#   RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID (variable) Staff: Announcements
-#   RELEASE_DOCS_MARKETING_CHANNEL_ID     (variable) Staff: Marketing
-#   RELEASE_DOCS_REVIEW_CHANNEL_ID  (variable) where reports and approvals go. When unset: a live run uses the
-#                                              release channel ("Release: vX.Y"), found by name as the release
-#                                              agent does; a dry run uses RELEASE_AGENT_TEST_CHANNEL_ID, never
-#                                              the release channel
-#   RELEASE_AGENT_TEST_CHANNEL_ID   (variable) the release agent's test channel, the dry runs' fallback above
-#   RELEASE_DOCS_MARKETING_EMAIL_OWNER  (variable) Hub username to mention in the Marketing email post. No
-#                                              default: when unset, nobody is mentioned and the post says so
-#   RELEASE_DOCS_MARKETING_SOCIAL_OWNER (variable) the same for the social post
-#   RELEASE_DOCS_ASANA_FORM_URL     (variable) the Marketing request form's URL (https). No default: when
-#                                              unset, the Asana form text has no link and says so
-#   RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC  (variable) when the approved Announcements post goes out on
-#                                              Release Day, HH:MM in UTC, default 14:00, if its blog post
-#                                              link is live by then (otherwise once it is, that day)
-#   RELEASE_DOCS_GOOGLE_SA_KEY      (secret)   JSON key of a service account added to the Release Dates
-#                                              calendar with "Make changes to events"
-#   RELEASE_DATES_CALENDAR_ID       (variable) the Release Dates calendar's ID
-#   RELEASE_AGENT_HOLIDAYS_PAGE_ID  (variable) the Release Processes Overview page, default 2928869382,
-#                                              read with the RELEASE_AGENT_JIRA_* account
+#                                              read app. Every read uses its token. Without it, a dry run
+#                                              reads with GITHUB_TOKEN.
+#   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
 #   DESKTOP_ESR_VERSIONS            (variable) server ESR -> desktop ESR, e.g. {"v10.11": "v5.13", "v11.7": "v6.2"}
+#   ANTHROPIC_API_KEY               (secret)   highlights for the upgrade notice and the release description,
+#                                              dot release bullets for PRs with no release note, and upgrade
+#                                              notes for confirmed breaking changes with no changelog bullet
+#   RELEASE_DOCS_REVIEWERS          (variable) who reviews the PRs the tasks open: comma-separated GitHub
+#                                              logins and org/team names, e.g. "alice, mattermost/release-team".
+#                                              Asked once, when a PR is opened. Unset: nobody is asked.
 
 on:
   workflow_call:
@@ -87,8 +50,8 @@ on:
         type: string
       version:
         description: >-
-          Version, or the milestone for breaking-changes, or one or more versions for dot-release-docs.
-          Empty on release and branch events.
+          Version, or one or more versions for dot-release-docs, or the ESR for esr-comms.
+          Empty on release and tag events and on weekday runs.
         required: false
         type: string
         default: ''
@@ -97,24 +60,12 @@ on:
         type: string
         default: ''
       release_date:
-        required: false
-        type: string
-        default: ''
-      milestone:
-        required: false
-        type: string
-        default: ''
-      jira_fix_version:
+        description: upgrade-notice and dot-release-docs only
         required: false
         type: string
         default: ''
       severity:
         description: dot-release-docs only, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium"
-        required: false
-        type: string
-        default: ''
-      confirmed:
-        description: breaking-changes and drafts, the PRs to draft notices for
         required: false
         type: string
         default: ''
@@ -132,7 +83,8 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: read
-      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -206,8 +158,8 @@ jobs:
           exit 1
 
       # esr-comms also opens the mobile ESR PR in mattermost/mattermost-mobile, with its own token
-      # limited to that repo. Without one, this step fails naming the repo, the run goes on, and
-      # the PR's exact changes are posted in Hub instead.
+      # limited to that repo. Without one, this step fails naming the repo, the run goes on and
+      # fails, and its summary has the PR's exact changes to make by hand.
       - name: Get write token for mattermost-mobile
         id: mobile_write
         if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && inputs.task == 'esr-comms'
@@ -223,17 +175,8 @@ jobs:
         if: steps.mobile_write.outcome == 'failure'
         continue-on-error: true
         run: |
-          echo "::error title=Write token for mattermost/mattermost-mobile::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for mattermost/mattermost-mobile. Check that the app is installed on mattermost/mattermost-mobile with contents and pull requests write access. The mobile ESR PR is not opened; its changes are posted in Hub instead."
+          echo "::error title=Write token for mattermost/mattermost-mobile::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for mattermost/mattermost-mobile. Check that the app is installed on mattermost/mattermost-mobile with contents and pull requests write access. The mobile ESR PR is not opened; its changes are in the run summary."
           exit 1
-
-      # breaking-changes lists candidates with apidiff over the server/public Go module, which needs
-      # Go; each side is then built with the Go version its go.mod names (GOTOOLCHAIN).
-      - name: Set up Go
-        if: steps.resolve.outputs.run == 'true' && inputs.task == 'breaking-changes' && inputs.confirmed == ''
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
-        with:
-          go-version-file: server/public/go.mod
-          cache: false
 
       - name: Install dependencies
         if: steps.resolve.outputs.run == 'true'
@@ -250,42 +193,21 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           # Reads the changelog runs' sections.json (actions: read).
           ACTIONS_TOKEN: ${{ github.token }}
-          RUN_APIDIFF: ${{ inputs.task == 'breaking-changes' && inputs.confirmed == '' && 'true' || '' }}
           READ_TOKEN: ${{ steps.read.outputs.token }}
           WRITE_TOKEN: ${{ steps.write.outputs.token }}
           MOBILE_WRITE_TOKEN: ${{ steps.mobile_write.outputs.token }}
           COMMIT_USER_NAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
           COMMIT_USER_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
-          REPOS: ${{ steps.read.outputs.token && 'mattermost/mattermost,mattermost/enterprise' || 'mattermost/mattermost' }}
+          # generate_changelog.py, whose release-note parser the tasks use, reads these when imported.
+          REPOS: mattermost/mattermost
+          MILESTONE: ''
           ESR_VERSIONS: ${{ vars.CHANGELOG_ESR_VERSIONS }}
-          CALENDAR_ICS_URL: ${{ secrets.RELEASE_AGENT_CALENDAR_ICS_URL || vars.RELEASE_AGENT_CALENDAR_ICS_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
-          JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
-          # The account that creates tickets: only esr-comms creates one, and only in a live run.
-          # Every other task and every dry run gets an empty value.
-          JIRA_WRITE_EMAIL: ${{ inputs.task == 'esr-comms' && steps.resolve.outputs.mode == 'live' && vars.RELEASE_AGENT_JIRA_WRITE_EMAIL || '' }}
-          JIRA_WRITE_TOKEN: ${{ inputs.task == 'esr-comms' && steps.resolve.outputs.mode == 'live' && secrets.RELEASE_AGENT_JIRA_WRITE_TOKEN || '' }}
-          JIRA_FIX_VERSION: ${{ inputs.jira_fix_version }}
-          SEVERITY: ${{ inputs.severity }}
-          CONFIRMED: ${{ inputs.confirmed }}
-          RELEASE_DATE: ${{ inputs.release_date }}
-          MILESTONE: ${{ inputs.milestone }}
-          ESR_STAGE: ${{ inputs.esr_stage }}
           DESKTOP_ESR_VERSIONS: ${{ vars.DESKTOP_ESR_VERSIONS }}
-          MM_URL: ${{ vars.RELEASE_AGENT_MM_URL }}
-          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
-          ANNOUNCEMENTS_CHANNEL_ID: ${{ vars.RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID }}
-          MARKETING_CHANNEL_ID: ${{ vars.RELEASE_DOCS_MARKETING_CHANNEL_ID }}
-          REVIEW_CHANNEL_ID: ${{ vars.RELEASE_DOCS_REVIEW_CHANNEL_ID }}
-          TEST_CHANNEL_ID: ${{ vars.RELEASE_AGENT_TEST_CHANNEL_ID }}
-          MARKETING_EMAIL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_EMAIL_OWNER }}
-          MARKETING_SOCIAL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_SOCIAL_OWNER }}
-          ASANA_FORM_URL: ${{ vars.RELEASE_DOCS_ASANA_FORM_URL }}
-          ANNOUNCEMENT_TIME: ${{ vars.RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC }}
-          GOOGLE_SA_KEY: ${{ secrets.RELEASE_DOCS_GOOGLE_SA_KEY }}
-          CALENDAR_ID: ${{ vars.RELEASE_DATES_CALENDAR_ID }}
-          HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REVIEWERS: ${{ vars.RELEASE_DOCS_REVIEWERS }}
+          SEVERITY: ${{ inputs.severity }}
+          RELEASE_DATE: ${{ inputs.release_date }}
+          ESR_STAGE: ${{ inputs.esr_stage }}
           OUTPUT_DIR: ${{ runner.temp }}/release-docs-output
         run: python3 -m release_docs run "$TASK"
 

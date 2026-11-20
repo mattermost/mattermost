@@ -57,4 +57,5 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
-      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)

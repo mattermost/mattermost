@@ -1,11 +1,18 @@
 name: Release Docs PR Check
 
-# Fails the release docs PR (branch release-agent/vX.Y.0/release-docs) while the Important
-# Upgrade Notes or Deprecated Features page still has its release-agent placeholder or a
-# TODO(release-agent) marker: breaking-change candidates that nobody has confirmed or removed
-# yet, or a confirmed one with no wording. The release docs task fills both pages from the
-# confirmed breaking changes and updates the PR as confirmations arrive; a person can also
-# fill them by hand and remove the placeholder. Rerun by any push to the PR.
+# Checks the release docs PR (branch release-agent/vX.Y.0/release-docs): the Important Upgrade
+# Notes and Deprecated Features pages must not keep their release-agent placeholder or a
+# TODO(release-agent) marker, which they do until the confirmed breaking changes are known (the
+# release-automation:confirmed-breaking marker in the PR description) and each has wording.
+#
+# The check fails for that only from T-2: two working days (Monday to Friday) before Release Day,
+# the due date of the vX.Y.0 milestone. Before T-2 it passes, with a notice saying when it will
+# fail. With no due date on the milestone it fails, since T-2 can't be known.
+#
+# It runs on every change to the PR (pushes and description edits). A PR that doesn't change still
+# has to start failing at T-2, so every weekday the recheck job starts this workflow again on each
+# open release docs PR's branch (workflow_dispatch, which GITHUB_TOKEN may start); that run's check
+# has the same name, on the PR's head commit.
 
 on:
   pull_request:
@@ -13,19 +20,26 @@ on:
     paths:
       - "docs/main/administration-guide/upgrade/important-upgrade-notes.mdx"
       - "docs/main/product-overview/deprecated-features.mdx"
+  schedule:
+    - cron: '23 6 * * 1-5'
+  workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
-  group: release-docs-pr-check-${{ github.event.pull_request.number }}
+  group: release-docs-pr-check-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   check:
     name: Check release docs
-    if: startsWith(github.head_ref, 'release-agent/') && endsWith(github.head_ref, '/release-docs')
+    if: >-
+      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'release-agent/') && endsWith(github.head_ref, '/release-docs')) ||
+      (github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'release-agent/') && endsWith(github.ref_name, '/release-docs'))
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: read # the vX.Y.0 milestone's due date
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -39,4 +53,32 @@ jobs:
 
       - name: Check
         working-directory: .github/scripts
+        env:
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 -m release_docs check release-docs
+
+  recheck:
+    name: Recheck open release docs PRs
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write # start this workflow on each PR's branch
+      pull-requests: read
+    steps:
+      - name: Start the check on each open release docs PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          branches="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
+            --jq ".[] | select(.head.repo.full_name == \"$REPO\") | .head.ref" \
+            | grep -E '^release-agent/v[0-9]+\.[0-9]+\.0/release-docs$' || true)"
+          if [ -z "$branches" ]; then
+            echo "No open release docs PR." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          for branch in $branches; do
+            echo "Checking $branch" | tee -a "$GITHUB_STEP_SUMMARY"
+            gh workflow run release-docs-release-pr-check.yml --repo "$REPO" --ref "$branch"
+          done
