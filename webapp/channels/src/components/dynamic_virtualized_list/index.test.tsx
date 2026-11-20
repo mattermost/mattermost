@@ -399,32 +399,65 @@ describe('DynamicVirtualizedList: centered item', () => {
         expect(getScrollTop()).toBe(centeredOffset(rowHeight * (itemCount - 1 - targetIndex)));
     });
 
-    test('keeps the item centered when a new message arrives and the item is far from the bottom', () => {
+    test('keeps the item centered when a new message arrives and more than half a screen is below it', () => {
         const {listRef, setItemData} = setup();
+
+        // 200px are below the item, half of the list is 150px
+        act(() => {
+            listRef.current!.scrollToItem(2, 'center');
+        });
 
         act(() => {
             setItemData(['item-new', ...itemData]);
         });
+        act(() => {
+            listRef.current!._handleNewMeasurements('item-new', rowHeight, false);
+        });
 
         expect(listRef.current!._isCenteredItemHeld()).toBe(true);
-        expect(listRef.current!._getHeldItemIndex()).toBe(targetIndex + 1);
     });
 
-    test('releases the hold when a new message arrives and the item is one of the newest', () => {
-        const {listRef, setItemData} = setup();
+    test('follows a new message when less than half a screen is below the held item', () => {
+        const {listRef, getOuter, getScrollTop, setItemData} = setup();
 
+        // 100px are below the item, so it is centered at the very bottom of the list
         act(() => {
             listRef.current!.scrollToItem(1, 'center');
         });
         expect(listRef.current!._isCenteredItemHeld()).toBe(true);
+        expect(getScrollTop()).toBe(centeredOffset(rowHeight * (itemCount - 2)));
 
+        Object.defineProperty(getOuter(), 'scrollHeight', {configurable: true, value: (itemCount + 1) * rowHeight});
+
+        // The new row is added and then measured, as it is in the browser
         act(() => {
             setItemData(['item-new', ...itemData]);
         });
+        act(() => {
+            listRef.current!._handleNewMeasurements('item-new', rowHeight, false);
+        });
 
         expect(listRef.current!._isCenteredItemHeld()).toBe(false);
+        expect(getScrollTop()).toBe(((itemCount + 1) * rowHeight) - listHeight);
     });
 
+    test('releases the hold in the measuring step when a new message is measured near the bottom', () => {
+        const {listRef, getOuter, getScrollTop} = setup();
+
+        act(() => {
+            listRef.current!.scrollToItem(1, 'center');
+        });
+        Object.defineProperty(getOuter(), 'scrollHeight', {configurable: true, value: (itemCount + 1) * rowHeight});
+
+        // The newest item changes without the list having rendered it yet
+        act(() => {
+            listRef.current!.props.itemData.unshift('item-new');
+            listRef.current!._handleNewMeasurements('item-new', rowHeight, false);
+        });
+
+        expect(listRef.current!._isCenteredItemHeld()).toBe(false);
+        expect(getScrollTop()).toBe(((itemCount + 1) * rowHeight) - listHeight);
+    });
     test('does not re-center and removes its listeners when the list is unmounted', () => {
         const {getOuter, getScrollTop, unmount, growRowAboveTarget} = setup();
         const removeEventListener = jest.spyOn(getOuter(), 'removeEventListener');

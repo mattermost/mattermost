@@ -77,6 +77,7 @@ interface HeldItem {
     index: number;
     offset: number;
     since: number;
+    newestId: string;
 }
 
 interface State {
@@ -158,6 +159,8 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     };
 
     public scrollTo(scrollOffset: number, scrollByValue?: number, useAnimationFrame = false) {
+        this._syncHeldItem();
+
         if (scrollByValue !== undefined && this._isCenteredItemHeld()) {
             // A relative correction (e.g. for rows that were added above, requested by this list or by
             // its parent) is applied in an animation frame, i.e. after the held item has been re-centered,
@@ -210,7 +213,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
 
         if (align === 'center' && index >= 0) {
-            this._heldItem = {id: this.props.itemData[index], index, offset, since: Date.now()};
+            this._heldItem = {id: this.props.itemData[index], index, offset, since: Date.now(), newestId: this.props.itemData[0]};
         } else if (!(internal && align === 'end')) {
             // A newer request from the owner replaces the centered one. The list itself requests 'end'
             // whenever it measures that it is at the bottom, which must not end the hold.
@@ -307,12 +310,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         this._commitHook();
         if (prevProps.itemData !== this.props.itemData) {
             this._dataChange();
-
-            // A new message arrived while the held item is close to the bottom: let the list follow the
-            // bottom as usual instead of keeping the item centered.
-            if (prevProps.itemData.length && this.props.itemData[0] !== prevProps.itemData[0] && this._isHeldItemNearBottom()) {
-                this._releaseCenteredItem();
-            }
+            this._syncHeldItem();
         }
 
         if (prevProps.height !== this.props.height) {
@@ -479,33 +477,19 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     };
 
     _heightChange = (prevHeight: number, prevOffset: number) => {
-        if (this._isCenteredItemHeld()) {
-            this._recenterHeldItem();
-            return;
-        }
-
         const wasAtBottom =
             prevOffset + prevHeight >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
 
-        if (wasAtBottom) {
-            this._scrollToBottom();
-        }
+        this._keepBottomOrHeldItem(wasAtBottom);
     };
 
     _widthChange = (prevHeight: number, prevOffset: number) => {
-        if (this._isCenteredItemHeld()) {
-            this._recenterHeldItem();
-            return;
-        }
-
         const wasAtBottom =
             prevOffset + prevHeight >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
 
-        if (wasAtBottom) {
-            this._scrollToBottom();
-        }
+        this._keepBottomOrHeldItem(wasAtBottom);
     };
 
     // Lazily create and cache item styles while scrolling,
@@ -641,6 +625,8 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
+        // This also releases the hold when the row that is measured is a new message below the held item.
+        this._syncHeldItem();
         if (this._isCenteredItemHeld()) {
             // A "center" request is still being honored: keep the item centered instead of
             // applying the keep-at-bottom or relative corrections below.
@@ -721,37 +707,42 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
     };
 
-    // Returns the current index of the held item, or -1 if nothing is held. A hold that has expired or whose
-    // item is no longer in the list is released here. The remembered index is checked first so that the
-    // list is only searched when rows were added or removed.
-    _getHeldItemIndex = () => {
+    // Called once at each entry point (scrollTo, measurements, size and data changes) before the hold is read:
+    // refreshes the remembered index and releases the hold if it has expired, if the item is no longer in the
+    // list, or if a new message arrived and the item is too close to the bottom to be centered anyway.
+    // The other helpers only read the hold.
+    _syncHeldItem = () => {
         const held = this._heldItem;
         if (!held) {
-            return -1;
+            return;
         }
 
         if ((Date.now() - held.since) >= centeredItemHoldMs) {
             this._releaseCenteredItem();
-            return -1;
+            return;
         }
 
+        // The remembered index is checked first so that the list is only searched when rows were added or removed.
         const {itemData} = this.props;
         if (itemData[held.index] !== held.id) {
             held.index = itemData.indexOf(held.id);
             if (held.index < 0) {
                 this._releaseCenteredItem();
-                return -1;
+                return;
             }
         }
 
-        return held.index;
+        if (itemData[0] !== held.newestId && this._isHeldItemNearBottom()) {
+            this._releaseCenteredItem();
+        }
     };
 
     _isCenteredItemHeld = () => {
-        return this._getHeldItemIndex() >= 0;
+        return this._heldItem !== null;
     };
 
-    // True if less than a viewport of content is below the held item, i.e. it is one of the newest.
+    // True if less than half of the list is below the held item. An item can be centered until then, after
+    // that the list is scrolled to the bottom anyway, so a new message should be followed instead.
     _isHeldItemNearBottom = () => {
         const held = this._heldItem;
         if (!held) {
@@ -761,7 +752,18 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         const {itemOffsetMap, itemSizeMap, totalMeasuredSize} = this._listMetaData;
         const bottomOfItem = (itemOffsetMap[held.id] || 0) + (itemSizeMap[held.id] || 0);
 
-        return (totalMeasuredSize - bottomOfItem) < this.props.height;
+        return (totalMeasuredSize - bottomOfItem) < (this.props.height / 2);
+    };
+
+    // The one place that decides between keeping the held item centered and keeping the bottom.
+    _keepBottomOrHeldItem = (atBottom: boolean) => {
+        this._syncHeldItem();
+
+        if (this._isCenteredItemHeld()) {
+            this._recenterHeldItem();
+        } else if (atBottom) {
+            this._scrollToBottom();
+        }
     };
 
     // Re-centers the held item once the measurements have settled.
@@ -780,13 +782,15 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         this._recenterTimer = setTimeout(() => {
             this._recenterTimer = null;
 
+            this._syncHeldItem();
+
             const element = this._outerRef;
-            const index = this._getHeldItemIndex();
-            if (!element || !this._heldItem || index < 0) {
+            const held = this._heldItem;
+            if (!element || !held) {
                 return;
             }
 
-            const offset = getOffsetForIndexAndAlignment(this.props, index, 'center', element.scrollTop, this._listMetaData) + this._heldItem.offset;
+            const offset = getOffsetForIndexAndAlignment(this.props, held.index, 'center', element.scrollTop, this._listMetaData) + held.offset;
             if (Number.isFinite(offset) && Math.abs(element.scrollTop - offset) > 1) {
                 element.scrollTop = offset;
             }
@@ -812,11 +816,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
 
             this._generateOffsetMeasurements();
 
-            if (this._isCenteredItemHeld()) {
-                this._recenterHeldItem();
-            } else if (atBottom) {
-                this._scrollToBottom();
-            }
+            this._keepBottomOrHeldItem(atBottom);
 
             this.forceUpdate();
         }
