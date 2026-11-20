@@ -44,6 +44,7 @@ func parityVersions(t *testing.T) (running, latest string) {
 // A live snapshot and the Support Packet written from it evaluate the same, however the live
 // check got, or didn't get, the latest release. The snapshot is built from the packet fixtures;
 // TestHealthSnapshotLiveOfflineParity and the mmctl e2e test cover real collection.
+// It is scaffolding for the collection-failure cases MM-71665 and MM-72006 will add.
 func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 	mainHelper.Parallel(t)
 
