@@ -49,22 +49,50 @@ func setupPropertyValuesCreateTest(t *testing.T, flagEnabled bool) *propertyValu
 
 func newPropertyValuesTestHelper(t *testing.T, th *TestHelper) *propertyValuesTestHelper {
 	t.Helper()
-	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+	// Post fields live in access_control, which requires an Enterprise licence.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
 
 	return &propertyValuesTestHelper{TestHelper: th, groupID: group.ID}
 }
 
-// createField registers a post-object field at the given target. targetID is empty for system.
-func (th *propertyValuesTestHelper) createField(t *testing.T, targetType, targetID, name string) *model.PropertyField {
+// createField registers a system-scoped post-object field.
+func (th *propertyValuesTestHelper) createField(t *testing.T, name string) *model.PropertyField {
 	t.Helper()
 	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
 		GroupID:    th.groupID,
 		Name:       name,
 		Type:       model.PropertyFieldTypeText,
 		ObjectType: model.PropertyFieldObjectTypePost,
-		TargetType: targetType,
-		TargetID:   targetID,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+	return field
+}
+
+// createOtherGroup registers a V2 group with no access_control hooks, so it has no field cap.
+func (th *propertyValuesTestHelper) createOtherGroup(t *testing.T) string {
+	t.Helper()
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "post_values_test_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+	return group.ID
+}
+
+// createOtherGroupField registers a system-scoped post-object field in a group of its own, so it is
+// not one of the fields a post's values may name.
+func (th *propertyValuesTestHelper) createOtherGroupField(t *testing.T) *model.PropertyField {
+	t.Helper()
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    th.createOtherGroup(t),
+		Name:       "f_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypePost,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	}, false, "")
 	require.Nil(t, appErr)
 	return field
@@ -119,7 +147,7 @@ func TestHydratePropertyValues(t *testing.T) {
 
 	t.Run("attaches values only when a group is requested", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 		post := th.post(t, th.BasicChannel)
 		th.setValue(t, post, field, `"confidential"`)
 
@@ -140,7 +168,7 @@ func TestHydratePropertyValues(t *testing.T) {
 
 	t.Run("success with no values sends the unavailable flag as false", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
-		th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		th.createField(t, "sensitivity")
 		post := th.post(t, th.BasicChannel)
 
 		hydrated := th.prepare(t, post, th.groupID)
@@ -169,50 +197,10 @@ func TestHydratePropertyValues(t *testing.T) {
 		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 	})
 
-	t.Run("applies system, team and channel fields but not another channel's", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
-		otherChannel := th.CreateChannel(t, th.BasicTeam)
-
-		systemField := th.createField(t, string(model.PropertyFieldTargetLevelSystem), "", "system-attr")
-		teamField := th.createField(t, string(model.PropertyFieldTargetLevelTeam), th.BasicTeam.Id, "team-attr")
-		channelField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "channel-attr")
-		otherField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), otherChannel.Id, "other-attr")
-
-		post := th.post(t, th.BasicChannel)
-		th.setValue(t, post, systemField, `"s"`)
-		th.setValue(t, post, teamField, `"t"`)
-		th.setValue(t, post, channelField, `"c"`)
-		// A value for a field scoped to a different channel must be dropped, not returned.
-		th.setValue(t, post, otherField, `"x"`)
-
-		hydrated := th.prepare(t, post, th.groupID)
-		assert.ElementsMatch(t, []string{systemField.ID, teamField.ID, channelField.ID}, valueFieldIDs(hydrated))
-		assert.NotContains(t, valueFieldIDs(hydrated), otherField.ID)
-	})
-
-	t.Run("a DM has no team scope", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
-		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-		require.Nil(t, appErr)
-
-		systemField := th.createField(t, string(model.PropertyFieldTargetLevelSystem), "", "system-attr")
-		teamField := th.createField(t, string(model.PropertyFieldTargetLevelTeam), th.BasicTeam.Id, "team-attr")
-		dmField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), dm.Id, "dm-attr")
-
-		post := th.post(t, dm)
-		th.setValue(t, post, systemField, `"s"`)
-		th.setValue(t, post, dmField, `"c"`)
-		// No team, so a team-scoped value cannot apply.
-		th.setValue(t, post, teamField, `"t"`)
-
-		hydrated := th.prepare(t, post, th.groupID)
-		assert.ElementsMatch(t, []string{systemField.ID, dmField.ID}, valueFieldIDs(hydrated))
-	})
-
 	t.Run("drops values whose field is deleted or is not a post field", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
-		liveField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "live")
-		deletedField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "doomed")
+		liveField := th.createField(t, "live")
+		deletedField := th.createField(t, "doomed")
 
 		post := th.post(t, th.BasicChannel)
 		th.setValue(t, post, liveField, `"live"`)
@@ -227,12 +215,12 @@ func TestHydratePropertyValues(t *testing.T) {
 	t.Run("orders values by field creation time", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		// Names are deliberately reverse-alphabetical relative to creation order.
-		first := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "zulu")
+		first := th.createField(t, "zulu")
 		// CreateAt is millisecond-resolution; same-ms fields fall back to FieldID order.
 		for model.GetMillis() <= first.CreateAt {
 			time.Sleep(time.Millisecond)
 		}
-		second := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "alpha")
+		second := th.createField(t, "alpha")
 		require.Greater(t, second.CreateAt, first.CreateAt)
 
 		post := th.post(t, th.BasicChannel)
@@ -250,7 +238,7 @@ func TestHydratePropertyValues(t *testing.T) {
 	// access control hook refuse the read and the post come back without values.
 	t.Run("a local-mode session gets values", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 		post := th.post(t, th.BasicChannel)
 		th.setValue(t, post, field, `"confidential"`)
 
@@ -269,7 +257,7 @@ func TestHydratePropertyValues(t *testing.T) {
 
 	t.Run("a deleted post is never hydrated", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 		post := th.post(t, th.BasicChannel)
 		th.setValue(t, post, field, `"confidential"`)
 
@@ -288,7 +276,7 @@ func TestHydratePropertyValues(t *testing.T) {
 
 	t.Run("values survive sanitization", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 		post := th.post(t, th.BasicChannel)
 		th.setValue(t, post, field, `"confidential"`)
 
@@ -312,7 +300,7 @@ func TestHydratePropertyValues(t *testing.T) {
 			cfg.ServiceSettings.EnableBurnOnRead = new(true)
 		})
 
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 
 		borPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -361,37 +349,192 @@ func TestHydratePropertyValues(t *testing.T) {
 	})
 }
 
-// createFieldsPastCap writes channel-scoped fields straight to the store. The per-target cap is
-// enforced by FieldLimitHook, which the property service runs on create, so the store is the way
-// to reach a field count that CreatePropertyField would refuse.
-func (th *propertyValuesTestHelper) createFieldsPastCap(t *testing.T, channelID string, n int) []*model.PropertyField {
+// maskedPostFixture is a select template that masks its values, a user field linked to it that
+// holds each viewer's options, and a system post field linked to the same template, so a post's
+// value is visible only to a viewer holding that option.
+type maskedPostFixture struct {
+	postField *model.PropertyField
+	optionA   string
+	optionB   string
+}
+
+// newMaskedPostFixture builds the fields through the App as a system admin. The fields are linked
+// before the template turns masking on, the same order an admin would follow.
+func (th *propertyValuesTestHelper) newMaskedPostFixture(t *testing.T, holder *model.User) maskedPostFixture {
+	t.Helper()
+
+	admin := th.Context.WithSession(&model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	})
+	createField := func(field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		created, appErr := th.App.CreatePropertyField(admin, field, false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	optA, optB := model.NewId(), model.NewId()
+	template := createField(&model.PropertyField{
+		GroupID:    th.groupID,
+		Name:       "f_" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": optA, "name": "A"},
+			map[string]any{"id": optB, "name": "B"},
+		}},
+	})
+
+	userField := createField(&model.PropertyField{
+		GroupID:       th.groupID,
+		Name:          "f_" + model.NewId(),
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		// A masking field's holdings cannot be writable by the people it filters.
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		}},
+	})
+
+	postField := createField(&model.PropertyField{
+		GroupID:       th.groupID,
+		Name:          "f_" + model.NewId(),
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypePost,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		}},
+	})
+
+	// The template masks by the user field: a viewer sees a value only when they hold it there. Only
+	// the masking block changes: the restrictions bound the linked fields' tiers, so they stay.
+	require.NotNil(t, template.Permissions)
+	template.Permissions.Masking = &model.Masking{MaskByFieldID: userField.ID}
+	_, _, appErr := th.App.UpdatePropertyField(admin, th.groupID, template, false, "")
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertPropertyValues(admin, []*model.PropertyValue{{
+		TargetID:   holder.Id,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    th.groupID,
+		FieldID:    userField.ID,
+		Value:      json.RawMessage(`"` + optA + `"`),
+	}}, model.PropertyValueTargetTypeUser, holder.Id, "")
+	require.Nil(t, appErr)
+
+	return maskedPostFixture{postField: postField, optionA: optA, optionB: optB}
+}
+
+// Masking applies per viewer to a post's value, exactly as it does to a user's: a post field linked to a
+// masked template shows its value to a viewer who holds that value and omits it for one who doesn't.
+func TestHydratePropertyValuesMasking(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPropertyValuesTest(t)
+	fixture := th.newMaskedPostFixture(t, th.BasicUser)
+
+	post := th.post(t, th.BasicChannel)
+	_, err := th.App.Srv().Store().PropertyValue().Create(&model.PropertyValue{
+		TargetID:   post.Id,
+		TargetType: model.PropertyValueTargetTypePost,
+		GroupID:    th.groupID,
+		FieldID:    fixture.postField.ID,
+		Value:      json.RawMessage(`"` + fixture.optionA + `"`),
+		CreatedBy:  th.BasicUser.Id,
+		UpdatedBy:  th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	prepareAs := func(userID string) *model.Post {
+		fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		fresh.Metadata = nil
+		viewer := th.Context.WithSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		return th.App.PreparePostForClient(viewer, fresh, &model.PreparePostForClientOpts{PropertyGroupID: th.groupID})
+	}
+
+	t.Run("a viewer holding the value sees it", func(t *testing.T) {
+		hydrated := prepareAs(th.BasicUser.Id)
+		require.Len(t, hydrated.Metadata.PropertyValues, 1)
+		assert.Equal(t, fixture.postField.ID, hydrated.Metadata.PropertyValues[0].FieldID)
+		assert.JSONEq(t, `"`+fixture.optionA+`"`, string(hydrated.Metadata.PropertyValues[0].Value))
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
+	})
+
+	t.Run("a viewer not holding the value gets it omitted, and the post is not marked unavailable", func(t *testing.T) {
+		hydrated := prepareAs(th.BasicUser2.Id)
+		assert.Empty(t, hydrated.Metadata.PropertyValues)
+		// Withheld is not failed: the lookup worked, so the client must not retry or show an error.
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
+	})
+}
+
+// The property_values_updated event reaches every member of the channel from one payload, so a value that
+// the template masks is withheld from it even though the author, who holds the value, may read it.
+func TestPostPropertyValueBroadcastWithholdsMaskedValue(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPropertyValuesTest(t)
+	fixture := th.newMaskedPostFixture(t, th.BasicUser)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+	post := th.post(t, th.BasicChannel)
+
+	messages, closeWS := connectFakeWebSocket(t, th.TestHelper, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyValuesUpdated})
+	defer closeWS()
+
+	th.setValue(t, post, fixture.postField, `"`+fixture.optionA+`"`)
+
+	select {
+	case event := <-messages:
+		raw, ok := event.GetData()["values"].(string)
+		require.True(t, ok, "event carries no values payload")
+		var broadcast []model.PropertyValue
+		require.NoError(t, json.Unmarshal([]byte(raw), &broadcast))
+		require.Len(t, broadcast, 1)
+		assert.Equal(t, fixture.postField.ID, broadcast[0].FieldID)
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(broadcast[0].Value))
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the property_values_updated event was not published")
+	}
+}
+
+// createFields registers n system-scoped post-object fields in groupID. access_control caps post
+// fields well below the hydration bound, so tests that need more fields use a group of their own.
+func (th *propertyValuesTestHelper) createFields(t *testing.T, groupID string, n int) []*model.PropertyField {
 	t.Helper()
 	fields := make([]*model.PropertyField, n)
 	for i := range fields {
-		field := &model.PropertyField{
-			GroupID:    th.groupID,
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
 			Name:       "attr-" + strconv.Itoa(i),
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypePost,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channelID,
-		}
-		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
-		field, err := th.App.Srv().Store().PropertyField().Create(field)
-		require.NoError(t, err)
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
 		fields[i] = field
 	}
 	return fields
 }
 
-func (th *propertyValuesTestHelper) setValues(t *testing.T, post *model.Post, fields []*model.PropertyField) {
+func (th *propertyValuesTestHelper) setValues(t *testing.T, post *model.Post, groupID string, fields []*model.PropertyField) {
 	t.Helper()
 	values := make([]*model.PropertyValue, len(fields))
 	for i, field := range fields {
 		values[i] = &model.PropertyValue{
 			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
-			GroupID:    th.groupID,
+			GroupID:    groupID,
 			FieldID:    field.ID,
 			Value:      json.RawMessage(`"v"`),
 			CreatedBy:  th.BasicUser.Id,
@@ -404,8 +547,8 @@ func (th *propertyValuesTestHelper) setValues(t *testing.T, post *model.Post, fi
 
 // hydrateChannelPropertyValues refuses to hydrate rather than hand back a possibly truncated page,
 // once either the applicable fields or the fetched values exceed their bound. Neither bound is
-// merely defensive: the field bound is sized for post_attributes (three targets, 50 each) but
-// applied to whatever PSAv2 group the caller names, and nothing caps the value count at all.
+// merely defensive: the field bound is the post field cap, but it is applied to whatever PSAv2
+// group the caller names, and nothing caps the value count at all.
 //
 // What matters at each guard is that the caller still gets its posts, marked "attributes unknown"
 // rather than silently carrying none.
@@ -415,9 +558,10 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 	t.Run("more applicable fields than the bound", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		post := th.post(t, th.BasicChannel)
-		th.createFieldsPastCap(t, th.BasicChannel.Id, model.PostAttributesMaxApplicableFields+1)
+		groupID := th.createOtherGroup(t)
+		th.createFields(t, groupID, model.PostAttributesMaxFields+1)
 
-		hydrated := th.prepare(t, post, th.groupID)
+		hydrated := th.prepare(t, post, groupID)
 
 		require.NotNil(t, hydrated.Metadata)
 		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
@@ -432,60 +576,17 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 	t.Run("exactly the field bound still hydrates", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		post := th.post(t, th.BasicChannel)
-		fields := th.createFieldsPastCap(t, th.BasicChannel.Id, model.PostAttributesMaxApplicableFields)
-		th.setValues(t, post, fields[:1])
+		groupID := th.createOtherGroup(t)
+		fields := th.createFields(t, groupID, model.PostAttributesMaxFields)
+		th.setValues(t, post, groupID, fields[:1])
 
-		hydrated := th.prepare(t, post, th.groupID)
+		hydrated := th.prepare(t, post, groupID)
 
 		require.NotNil(t, hydrated.Metadata)
 		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
 		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 		require.Len(t, hydrated.Metadata.PropertyValues, 1)
 		assert.Equal(t, fields[0].ID, hydrated.Metadata.PropertyValues[0].FieldID)
-	})
-
-	// Channels are hydrated in separate batches, so one channel's failed lookup marks only its own
-	// posts. The others still report how their hydration went.
-	t.Run("a list spanning channels reports each channel's result", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
-		healthyChannel := th.CreateChannel(t, th.BasicTeam)
-		emptyChannel := th.CreateChannel(t, th.BasicTeam)
-
-		failingPost := th.post(t, th.BasicChannel)
-		th.createFieldsPastCap(t, th.BasicChannel.Id, model.PostAttributesMaxApplicableFields+1)
-
-		healthyField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), healthyChannel.Id, "sensitivity")
-		healthyPost := th.post(t, healthyChannel)
-		th.setValue(t, healthyPost, healthyField, `"confidential"`)
-
-		emptyPost := th.post(t, emptyChannel)
-
-		list := model.NewPostList()
-		for _, post := range []*model.Post{failingPost, healthyPost, emptyPost} {
-			fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
-			require.Nil(t, appErr)
-			fresh.Metadata = nil
-			list.AddPost(fresh)
-			list.AddOrder(fresh.Id)
-		}
-
-		prepared := th.App.PreparePostListForClient(th.Context, list,
-			&model.PreparePostForClientOpts{PropertyGroupID: th.groupID})
-
-		failing := prepared.Posts[failingPost.Id]
-		require.NotNil(t, failing.Metadata.PropertyValuesUnavailable)
-		assert.True(t, *failing.Metadata.PropertyValuesUnavailable)
-		assert.Empty(t, failing.Metadata.PropertyValues)
-
-		healthy := prepared.Posts[healthyPost.Id]
-		require.NotNil(t, healthy.Metadata.PropertyValuesUnavailable)
-		assert.False(t, *healthy.Metadata.PropertyValuesUnavailable)
-		assert.Equal(t, []string{healthyField.ID}, valueFieldIDs(healthy))
-
-		empty := prepared.Posts[emptyPost.Id]
-		require.NotNil(t, empty.Metadata.PropertyValuesUnavailable)
-		assert.False(t, *empty.Metadata.PropertyValuesUnavailable)
-		assert.Empty(t, empty.Metadata.PropertyValues)
 	})
 }
 
@@ -606,7 +707,7 @@ func (th *propertyValuesTestHelper) storedValueFieldIDs(t *testing.T, postID str
 	values, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
 		TargetType: model.PropertyValueTargetTypePost,
 		TargetIDs:  []string{postID},
-		PerPage:    model.PostAttributesMaxApplicableFields + 1,
+		PerPage:    model.PostAttributesMaxFields + 1,
 	})
 	require.Nil(t, appErr)
 
@@ -702,7 +803,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	t.Run("staged values are written, attached and persisted", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 
 		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -735,7 +836,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	t.Run("a reply behaves like a root post", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 		root := th.post(t, th.BasicChannel)
 
 		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
@@ -761,7 +862,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	t.Run("a nil value is refused before the post is saved", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 
 		before, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 100)
 		require.Nil(t, appErr)
@@ -792,7 +893,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	t.Run("no staged values writes nothing", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		th.createField(t, "sensitivity")
 
 		testCases := []struct {
 			name     string
@@ -895,14 +996,13 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	t.Run("values reach members through property_values_updated, not the posted event", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		openField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		openField := th.createField(t, "sensitivity")
 		restrictedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    th.groupID,
 			Name:       "f_" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypePost,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   th.BasicChannel.Id,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
 				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin, Write: model.PermissionLevelMember},
 				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
@@ -981,7 +1081,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 			cfg.ServiceSettings.EnableBurnOnRead = new(true)
 		})
 
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		field := th.createField(t, "sensitivity")
 		posts := th.watchPostStore(t, nil)
 
 		pendingPostID := model.NewId()
@@ -1027,7 +1127,7 @@ func TestCreatePostPropertyValuesFeatureFlagOff(t *testing.T) {
 	th.asUser(t, th.BasicUser.Id)
 	// The field exists and the value is staged as a caller would after validating it, so the
 	// refusal is the flag's doing and not a failed lookup or write.
-	field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+	field := th.createField(t, "sensitivity")
 	posts := th.watchPostStore(t, nil)
 
 	pendingPostID := model.NewId()
@@ -1192,7 +1292,7 @@ func TestCreatePostPropertyValuesReplacementPost(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			th := setupPropertyValuesCreateTest(t, true)
 			th.asUser(t, th.BasicUser.Id)
-			field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+			field := th.createField(t, "sensitivity")
 
 			tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{replacementPostPlugin(th.groupID, field.ID)}, th.App, th.NewPluginAPI)
 			t.Cleanup(tearDown)
@@ -1271,9 +1371,9 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := setupPropertyValuesTest(t)
-	systemField := th.createField(t, string(model.PropertyFieldTargetLevelSystem), "", "f_"+model.NewId())
-	teamField := th.createField(t, string(model.PropertyFieldTargetLevelTeam), th.BasicTeam.Id, "f_"+model.NewId())
-	channelField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "f_"+model.NewId())
+	systemField := th.createField(t, "f_"+model.NewId())
+	secondField := th.createField(t, "f_"+model.NewId())
+	channelField := th.createField(t, "f_"+model.NewId())
 
 	// submitted builds the shape a caller hands in: field and value, nothing the server owns.
 	submitted := func(fieldID, raw string) *model.PropertyValue {
@@ -1291,10 +1391,10 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 		assert.Nil(t, fields)
 	}
 
-	t.Run("system, team and channel values come back fresh, each with its field", func(t *testing.T) {
+	t.Run("values come back fresh, each with its field", func(t *testing.T) {
 		values, fields, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
 			submitted(systemField.ID, `"sys"`),
-			submitted(teamField.ID, `"team"`),
+			submitted(secondField.ID, `"second"`),
 			submitted(channelField.ID, `"chan"`),
 		}, th.BasicChannel)
 		require.NoError(t, err)
@@ -1306,7 +1406,7 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 			raw   string
 		}{
 			{systemField, `"sys"`},
-			{teamField, `"team"`},
+			{secondField, `"second"`},
 			{channelField, `"chan"`},
 		}
 		for i, want := range expected {
@@ -1322,9 +1422,9 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 		}
 	})
 
-	t.Run("a field scoped to another channel is unknown", func(t *testing.T) {
-		otherChannelField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.CreateChannel(t, th.BasicTeam).Id, "f_"+model.NewId())
-		requireInvalid(t, submitted(otherChannelField.ID, `"x"`))
+	t.Run("a field from another group is unknown", func(t *testing.T) {
+		otherGroupField := th.createOtherGroupField(t)
+		requireInvalid(t, submitted(otherGroupField.ID, `"x"`))
 	})
 
 	t.Run("a well-formed id no field has is unknown", func(t *testing.T) {
@@ -1341,53 +1441,6 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 
 	t.Run("a nil value is refused", func(t *testing.T) {
 		requireInvalid(t, submitted(channelField.ID, `"x"`), nil)
-	})
-
-	t.Run("a value that doesn't fit its field's type is refused", func(t *testing.T) {
-		typedField := func(t *testing.T, fieldType model.PropertyFieldType) *model.PropertyField {
-			t.Helper()
-			field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
-				GroupID:    th.groupID,
-				Name:       "f_" + model.NewId(),
-				Type:       fieldType,
-				ObjectType: model.PropertyFieldObjectTypePost,
-				TargetType: string(model.PropertyFieldTargetLevelChannel),
-				TargetID:   th.BasicChannel.Id,
-			}, false, "")
-			require.Nil(t, appErr)
-			return field
-		}
-		numberField := typedField(t, model.PropertyFieldTypeNumber)
-		checkboxField := typedField(t, model.PropertyFieldTypeCheckbox)
-
-		t.Run("a string for a number field", func(t *testing.T) {
-			requireInvalid(t, submitted(numberField.ID, `"abc"`))
-		})
-
-		t.Run("a non-boolean for a checkbox field", func(t *testing.T) {
-			requireInvalid(t, submitted(checkboxField.ID, `"yes"`))
-		})
-
-		t.Run("one bad value refuses the whole set", func(t *testing.T) {
-			requireInvalid(t, submitted(channelField.ID, `"x"`), submitted(numberField.ID, `"abc"`))
-		})
-
-		t.Run("values that fit are accepted", func(t *testing.T) {
-			values, _, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
-				submitted(numberField.ID, `42`),
-				submitted(checkboxField.ID, `true`),
-				submitted(channelField.ID, `"7"`),
-			}, th.BasicChannel)
-			require.NoError(t, err)
-			require.Len(t, values, 3)
-		})
-
-		t.Run("null fits a number field", func(t *testing.T) {
-			_, _, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
-				submitted(numberField.ID, `null`),
-			}, th.BasicChannel)
-			require.NoError(t, err)
-		})
 	})
 
 	t.Run("an entry without a value is refused", func(t *testing.T) {

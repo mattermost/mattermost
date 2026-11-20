@@ -77,15 +77,15 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
 		ChannelID:   channelID,
 		TeamID:      channel.TeamId,
-		PerPage:     model.PostAttributesMaxApplicableFields + 1,
+		PerPage:     model.PostAttributesMaxFields + 1,
 	})
 	if appErr != nil {
 		return appErr
 	}
 
-	// Over the bound means the per-target cap was bypassed and the page may be truncated, so the
+	// Over the bound means the post field cap was bypassed and the page may be truncated, so the
 	// value set below would be silently incomplete. Report unavailable rather than partial.
-	if len(fields) > model.PostAttributesMaxApplicableFields {
+	if len(fields) > model.PostAttributesMaxFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.field_bound_exceeded.app_error",
 			nil, "applicable field count exceeds the per-post bound", http.StatusInternalServerError)
 	}
@@ -108,13 +108,13 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 	values, appErr := a.SearchPropertyValues(rctx, groupID, model.PropertyValueSearchOpts{
 		TargetType: model.PropertyValueTargetTypePost,
 		TargetIDs:  postIDs,
-		PerPage:    len(postIDs)*model.PostAttributesMaxApplicableFields + 1,
+		PerPage:    len(postIDs)*model.PostAttributesMaxFields + 1,
 	})
 	if appErr != nil {
 		return appErr
 	}
 
-	if len(values) > len(postIDs)*model.PostAttributesMaxApplicableFields {
+	if len(values) > len(postIDs)*model.PostAttributesMaxFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.value_bound_exceeded.app_error",
 			nil, "value count exceeds the per-page bound", http.StatusInternalServerError)
 	}
@@ -179,7 +179,7 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		return model.NewAppError("PreparePostPropertyValuesForCreate", "api.post.create_post.invalid_attribute.app_error", nil, detail, http.StatusBadRequest)
 	}
 
-	group, appErr := a.GetPropertyGroup(rctx, model.PostAttributesPropertyGroupName)
+	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, nil, appErr
 	}
@@ -190,14 +190,14 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
 		ChannelID:   channel.Id,
 		TeamID:      channel.TeamId,
-		PerPage:     model.PostAttributesMaxApplicableFields + 1,
+		PerPage:     model.PostAttributesMaxFields + 1,
 	})
 	if appErr != nil {
 		return nil, nil, appErr
 	}
 
-	// The per-target cap keeps a post's applicable fields within the page. Were it ever
-	// bypassed, a field past PostAttributesMaxApplicableFields would be refused as unknown.
+	// The post field cap keeps a post's applicable fields within the page. Were it ever
+	// bypassed, a field past PostAttributesMaxFields would be refused as unknown.
 	fieldByID := make(map[string]*model.PropertyField, len(fields))
 	for _, field := range fields {
 		fieldByID[field.ID] = field

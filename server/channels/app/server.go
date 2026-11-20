@@ -306,7 +306,6 @@ func NewServer(options ...Option) (*Server, error) {
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
-		{Name: model.PostAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.PostAttributesPropertyGroupSchemaVersion},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
@@ -421,27 +420,16 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Field limit hook — enforces per-object-type and global field limits.
 	// "user" fields are capped at 20 and "post" fields at
-	// PostAttributesMaxFieldsPerTarget, each counted across the whole group.
+	// PostAttributesMaxFields, each counted across the whole group.
 	// Post fields still count toward AccessControlGroupFieldLimit, which is the
 	// only ceiling for the other object types within this group.
 	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
 	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
 		PerObjectType: map[string]int64{
 			model.PropertyFieldObjectTypeUser: 20,
-			model.PropertyFieldObjectTypePost: model.PostAttributesMaxFieldsPerTarget,
+			model.PropertyFieldObjectTypePost: model.PostAttributesMaxFields,
 		},
 		GlobalLimit: model.AccessControlGroupFieldLimit,
-	})
-
-	// Post attributes are capped per target (the system, one team, or one channel) rather
-	// than group-wide, so one busy channel cannot exhaust every other channel's allowance.
-	// This cap is also what bounds the post hydration value lookup, so the two cannot drift.
-	postAttrGroup, err := s.propertyService.Group(model.PostAttributesPropertyGroupName)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to look up post attributes property group")
-	}
-	fieldLimitHook.AddGroupLimit(postAttrGroup.ID, &properties.FieldLimitConfig{
-		PerTarget: model.PostAttributesMaxFieldsPerTarget,
 	})
 
 	s.propertyService.AddHook(fieldLimitHook)

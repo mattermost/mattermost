@@ -36,7 +36,7 @@ func withGroup(path string) string {
 	if strings.Contains(path, "?") {
 		sep = "&"
 	}
-	return path + sep + "propertyGroup=" + model.PostAttributesPropertyGroupName
+	return path + sep + "propertyGroup=" + model.AccessControlPropertyGroupName
 }
 
 // TestPostPropertyValuesEtagSuppression covers every read handler that hydrates property
@@ -160,7 +160,7 @@ func TestPostPropertyValuesEtagSuppression(t *testing.T) {
 		_, _, err := th.Client.ViewChannel(context.Background(), th.BasicUser.Id, &model.ChannelView{ChannelId: th.BasicChannel.Id})
 		require.NoError(t, err)
 
-		opts := model.GetPostsOptions{Page: 0, PerPage: 60, PropertyGroup: model.PostAttributesPropertyGroupName}
+		opts := model.GetPostsOptions{Page: 0, PerPage: 60, PropertyGroup: model.AccessControlPropertyGroupName}
 
 		list, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "", opts)
 		require.NoError(t, err)
