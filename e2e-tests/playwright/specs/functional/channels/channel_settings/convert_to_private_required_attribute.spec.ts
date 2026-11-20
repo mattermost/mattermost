@@ -76,9 +76,7 @@ test.describe('Convert to private - required channel attributes', {tag: ['@chann
 
             // * The channel is private and carries the value
             await expect.poll(async () => (await adminClient.getChannel(offTopic.id)).type).toBe('P');
-            expect(valueFor(await readChannelValues(adminClient, offTopic.id), field)).toBe(
-                optionId(field, 'AURORA'),
-            );
+            expect(valueFor(await readChannelValues(adminClient, offTopic.id), field)).toBe(optionId(field, 'AURORA'));
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -126,9 +124,7 @@ test.describe('Convert to private - required channel attributes', {tag: ['@chann
 
             // * The channel is private and the value is untouched
             await expect.poll(async () => (await adminClient.getChannel(offTopic.id)).type).toBe('P');
-            expect(valueFor(await readChannelValues(adminClient, offTopic.id), field)).toBe(
-                optionId(field, 'ZEPHYR'),
-            );
+            expect(valueFor(await readChannelValues(adminClient, offTopic.id), field)).toBe(optionId(field, 'ZEPHYR'));
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -209,9 +205,7 @@ test.describe('Convert to private - required channel attributes', {tag: ['@chann
 
             // * The channel is private and carries the value from the page
             await expect.poll(async () => (await adminClient.getChannel(offTopic.id)).type).toBe('P');
-            expect(valueFor(await readChannelValues(adminClient, offTopic.id), field)).toBe(
-                optionId(field, 'AURORA'),
-            );
+            expect(valueFor(await readChannelValues(adminClient, offTopic.id), field)).toBe(optionId(field, 'AURORA'));
         } finally {
             await deleteAttributes(adminClient, created);
         }

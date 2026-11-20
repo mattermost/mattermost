@@ -15,7 +15,10 @@ import {
     readChannelValues,
     valueFor,
 } from '../channel_attributes/helpers';
-import {REQUIRED_FIELD_TEST_TIMEOUT, expectMissingRequiredRefusal} from '../channel_attributes/missing_required_helpers';
+import {
+    REQUIRED_FIELD_TEST_TIMEOUT,
+    expectMissingRequiredRefusal,
+} from '../channel_attributes/missing_required_helpers';
 
 const OPTIONS = ['AURORA', 'ZEPHYR'];
 
