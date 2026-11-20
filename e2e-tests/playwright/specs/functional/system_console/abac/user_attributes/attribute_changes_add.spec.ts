@@ -82,7 +82,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policyName;
         await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
 
         const policyRow = systemConsolePage.page.locator('.policy-name').first();
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');

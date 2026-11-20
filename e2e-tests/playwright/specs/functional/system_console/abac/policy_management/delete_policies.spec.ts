@@ -70,7 +70,6 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
 
         // Navigate back to ABAC page
         await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
 
         // Create policy WITHOUT channel using UI (Advanced mode)
         // We'll create the policy, save it without channels, then remove channels via UI
@@ -78,7 +77,6 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // Click Add policy
         const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
         await addPolicyButton.click();
-        await page.waitForLoadState('networkidle');
 
         // Fill policy name
         const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
@@ -89,7 +87,6 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         const advancedModeButton = page.getByRole('button', {name: /advanced/i});
         if (await advancedModeButton.isVisible({timeout: 2000})) {
             await advancedModeButton.click();
-            await page.waitForTimeout(1000);
         }
 
         // Fill CEL expression in Monaco editor
@@ -98,14 +95,11 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
 
         const editorLines = page.locator('.monaco-editor .view-lines').first();
         await editorLines.click({force: true});
-        await page.waitForTimeout(300);
 
         // Type a simple expression
         const isMac = process.platform === 'darwin';
         await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-        await page.waitForTimeout(100);
         await page.keyboard.type('user.attributes.Department == "Sales"', {delay: 10});
-        await page.waitForTimeout(1000);
 
         // Save policy WITHOUT assigning any channels
         const saveButton = page.getByRole('button', {name: 'Save'});
@@ -115,8 +109,6 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // The webapp will call handleSubmit() directly and navigate back automatically
         // Wait for navigation to complete
         await page.waitForURL('**/membership_policies', {timeout: 10000});
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1500);
 
         // ===========================================
         // STEP 1-2: Verify Delete is DISABLED for policy WITH channel
@@ -125,15 +117,19 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // Clear any existing search and verify both policies exist
         const searchInput = page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
-        await searchInput.clear();
-        await page.waitForTimeout(500);
+        if (await searchInput.inputValue()) {
+            const cleared = page.waitForResponse(
+                (r) => r.url().includes('/api/v4/access_control_policies/search') && r.request().method() === 'POST',
+            );
+            await searchInput.clear();
+            await cleared;
+        }
 
         // Verify both policies are visible
         await page.locator('.policy-name, tr.clickable').count();
 
         // Now search for the policy with channel
         await searchInput.fill(policyWithChannelName);
-        await page.waitForTimeout(1000);
 
         // Find and click the three-dot menu for the policy with channel
         const policyWithChannelRow = page
@@ -146,15 +142,14 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
             .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
             .first();
         await menuButtonWithChannel.click();
-        await page.waitForTimeout(500);
 
         // Check if Delete is disabled
         const deleteMenuItemWithChannel = page.getByRole('menuitem', {name: /delete/i});
+        await expect(deleteMenuItemWithChannel).toBeVisible();
         const isDeleteDisabled = await deleteMenuItemWithChannel.isDisabled();
 
         // Close the menu
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
 
         expect(isDeleteDisabled).toBe(true);
 
@@ -163,22 +158,26 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // ===========================================
 
         // Clear search first to ensure we're seeing all policies
+        const clearedAgain = page.waitForResponse(
+            (r) => r.url().includes('/api/v4/access_control_policies/search') && r.request().method() === 'POST',
+        );
         await searchInput.clear();
-        await page.waitForTimeout(500);
+        await clearedAgain;
 
         // Verify policy without channel exists in the list
-        const policyWithoutChannelExists = await page.locator('text=' + policyWithoutChannelName).count();
+        const policyWithoutChannelExists = (await page
+            .locator('text=' + policyWithoutChannelName)
+            .isVisible({timeout: 5000}))
+            ? 1
+            : 0;
 
         if (policyWithoutChannelExists === 0) {
             // Try reloading if policy not visible
             await page.reload();
-            await page.waitForLoadState('networkidle');
-            await page.waitForTimeout(1000);
         }
 
         // Now search for the policy without channel
         await searchInput.fill(policyWithoutChannelName);
-        await page.waitForTimeout(1000);
 
         // Find and click the three-dot menu for the policy without channel
         const policyWithoutChannelRow = page
@@ -191,36 +190,45 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
             .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
             .first();
         await menuButtonWithoutChannel.click();
-        await page.waitForTimeout(500);
 
         // Check if Delete is enabled
         const deleteMenuItemWithoutChannel = page.getByRole('menuitem', {name: /delete/i});
+        await expect(deleteMenuItemWithoutChannel).toBeVisible();
         const isDeleteEnabled = !(await deleteMenuItemWithoutChannel.isDisabled());
 
         expect(isDeleteEnabled).toBe(true);
 
-        // Click Delete
+        // Click Delete. The DELETE is sent by the menu item or by the confirmation.
+        const deleted = page.waitForResponse(
+            (r) => r.url().includes('/api/v4/access_control_policies/') && r.request().method() === 'DELETE',
+        );
         await deleteMenuItemWithoutChannel.click();
-        await page.waitForTimeout(500);
 
         // Handle confirmation modal if it appears
         const confirmDeleteButton = page.getByRole('button', {name: /delete|confirm/i});
         if (await confirmDeleteButton.isVisible({timeout: 2000})) {
             await confirmDeleteButton.click();
-            await page.waitForTimeout(1000);
         }
-
-        await page.waitForLoadState('networkidle');
+        await deleted;
 
         // Verify the policy was deleted
         await searchInput.clear();
+        const searched = page.waitForResponse(async (r) => {
+            if (!r.url().includes('/api/v4/access_control_policies/search') || r.request().method() !== 'POST') {
+                return false;
+            }
+            try {
+                const body = r.request().postDataJSON() as {term?: string};
+                return body?.term === policyWithoutChannelName;
+            } catch {
+                return false;
+            }
+        });
         await searchInput.fill(policyWithoutChannelName);
-        await page.waitForTimeout(1000);
+        await searched;
 
-        const policyStillExists = await page
-            .locator('tr.clickable, .DataGrid_row')
-            .filter({hasText: policyWithoutChannelName})
-            .isVisible({timeout: 3000});
-        expect(policyStillExists).toBe(false);
+        await expect(
+            page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyWithoutChannelName}),
+        ).toHaveCount(0);
     });
 });

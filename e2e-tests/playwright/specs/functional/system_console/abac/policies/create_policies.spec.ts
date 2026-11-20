@@ -119,11 +119,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         // ============================================================
 
         // Navigate back to policy to test the access rule
-        await systemConsolePage.page.waitForTimeout(1000);
         const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             const testResult = await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
@@ -296,11 +294,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         // STEP 3: Test Access Rule (navigate back to policy to test)
         // ============================================================
 
-        await systemConsolePage.page.waitForTimeout(1000);
         const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             const testResult = await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
@@ -323,7 +319,6 @@ test.describe('ABAC Policies - Create Policies', () => {
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policyName;
         await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
 
         const policyRow = systemConsolePage.page.locator('.policy-name').first();
         const policyElementId = await policyRow.getAttribute('id');
