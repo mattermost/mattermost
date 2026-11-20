@@ -390,6 +390,13 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			if err != nil || int64(len(payload)) != size {
 				break
 			}
+			// Take the slot after reading the payload, not before: the read can
+			// block on a slow upload stream and must not hold a decoder slot.
+			// The container copy and the decode are bounded by the semaphore.
+			if d.opts.ConcurrencyLevel != 0 {
+				d.sem <- struct{}{}
+				defer func() { <-d.sem }()
+			}
 			container, err := anmfContainer(payload)
 			if err != nil {
 				return nil, err
@@ -397,10 +404,6 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			rd, err := d.enforceResolutionLimit(bytes.NewReader(container))
 			if err != nil {
 				return nil, err
-			}
-			if d.opts.ConcurrencyLevel != 0 {
-				d.sem <- struct{}{}
-				defer func() { <-d.sem }()
 			}
 			img, _, err := image.Decode(rd)
 			if err != nil {
