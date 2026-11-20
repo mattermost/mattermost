@@ -50,6 +50,10 @@ type Props = {
     // onMissingRequiredChange's empty list can't yet be trusted.
     onCheckingRequiredChange?: (checking: boolean) => void;
 
+    // True when this channel's values failed to load, so whether anything
+    // required is missing is unknown rather than "nothing".
+    onRequiredCheckFailedChange?: (failed: boolean) => void;
+
     // Marks each attribute in onMissingRequiredChange's list while the page
     // holds back Save because of them.
     showRequiredErrors?: boolean;
@@ -91,7 +95,7 @@ function selectedOptionIds(rawValue: unknown): string[] {
  * Attributes and Channel Info use: a bordered dropdown with wrapping value
  * chips for select/multiselect/rank, and the hierarchical picker for graph.
  */
-const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange, onCheckingRequiredChange, showRequiredErrors}: Props) => {
+const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange, onCheckingRequiredChange, onRequiredCheckFailedChange, showRequiredErrors}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -190,6 +194,14 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
     useEffect(() => {
         return () => onCheckingRequiredChange?.(false);
     }, [onCheckingRequiredChange]);
+
+    const requiredCheckFailed = Boolean(enabled && requiredEnforced && !isDisabled && valuesFailed);
+    useEffect(() => {
+        onRequiredCheckFailedChange?.(requiredCheckFailed);
+    }, [requiredCheckFailed, onRequiredCheckFailedChange]);
+    useEffect(() => {
+        return () => onRequiredCheckFailedChange?.(false);
+    }, [onRequiredCheckFailedChange]);
 
     if (!enabled || (!fieldsLoading && fields.length === 0)) {
         return null;
