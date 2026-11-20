@@ -34,6 +34,8 @@ services:
       - MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest-synthetic@postgres:5432/mattermost_pilot?sslmode=disable&connect_timeout=10
       - MM_SERVICESETTINGS_SITEURL=http://127.0.0.1:8065
       - MM_SERVICESETTINGS_ALLOWCORSFROM=http://127.0.0.1:8065
+      # Approved for the pilot: MM_LICENSE is test-signed and is rejected by the default production signing environment.
+      - MM_SERVICEENVIRONMENT=test
       # Required by the image's own healthcheck (`mmctl system status --local`); socket stays inside the container.
       - MM_SERVICESETTINGS_ENABLELOCALMODE=true
       # Outbound off. Keys verified in server/public/model/config.go at v12.1.0.
