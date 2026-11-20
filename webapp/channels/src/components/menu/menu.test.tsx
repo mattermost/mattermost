@@ -558,7 +558,7 @@ describe('Menu — isMenuOpen control transition matrix', () => {
 });
 
 describe('Menu with openOnHover', () => {
-    // The open menu hides the rest of the page from assistive technology, its trigger included.
+    // Only a menu opened by a click hides the rest of the page from assistive technology.
     const teamsButton = () => screen.getByRole('button', {name: 'Teams', hidden: true});
 
     function renderHoverMenu() {
@@ -583,13 +583,17 @@ describe('Menu with openOnHover', () => {
 
     test('should open on hover without taking focus, and close when the pointer leaves', async () => {
         renderHoverMenu();
-        const message = screen.getByRole('textbox', {name: 'Message', hidden: true});
+        const message = screen.getByRole('textbox', {name: 'Message'});
         message.focus();
 
         await userEvent.hover(teamsButton());
 
         expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
         expect(message).toHaveFocus();
+
+        // The page stays available to assistive technology under a menu opened by hovering.
+        expect(screen.getByRole('textbox', {name: 'Message'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Teams'})).toBeInTheDocument();
 
         await userEvent.unhover(teamsButton());
 
@@ -618,5 +622,30 @@ describe('Menu with openOnHover', () => {
         await new Promise((resolve) => setTimeout(resolve, 400));
 
         expect(screen.getByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+    });
+
+    test('should close on Escape while focus stays outside it', async () => {
+        renderHoverMenu();
+        screen.getByRole('textbox', {name: 'Message'}).focus();
+
+        await userEvent.hover(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+        expect(screen.getByRole('textbox', {name: 'Message'})).toHaveFocus();
+    });
+
+    test('should return focus to the trigger when a click took over a hover-opened menu', async () => {
+        renderHoverMenu();
+
+        await userEvent.hover(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+        await userEvent.click(teamsButton());
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+        expect(teamsButton()).toHaveFocus();
     });
 });

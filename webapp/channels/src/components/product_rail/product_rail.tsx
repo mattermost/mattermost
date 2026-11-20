@@ -527,6 +527,16 @@ export default function ProductRail() {
                         className: 'ProductRail__moreMenu',
                         width: '248px',
                         'aria-label': formatMessage(messages.moreMenuLabel),
+
+                        // Right Arrow on a row moves to its pin button.
+                        onKeyDown: (event) => {
+                            const row = event.target as HTMLElement;
+                            const pinButton = row.getAttribute('role') === 'menuitem' ? row.querySelector<HTMLElement>('.ProductRail__pinButton') : null;
+                            if (event.key === 'ArrowRight' && pinButton) {
+                                event.preventDefault();
+                                pinButton.focus();
+                            }
+                        },
                     }}
                     anchorOrigin={{vertical: 'top', horizontal: 'right'}}
                     transformOrigin={{vertical: 'top', horizontal: 'left'}}
@@ -548,7 +558,31 @@ export default function ProductRail() {
                                         onClick={(event) => {
                                             // Pins without opening the product, and leaves the menu open.
                                             event.stopPropagation();
+
+                                            // The row goes once pinned, so keyboard focus moves to a neighbour.
+                                            const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
+                                            if (row?.contains(document.activeElement)) {
+                                                ((row.nextElementSibling ?? row.previousElementSibling) as HTMLElement | null)?.focus();
+                                            }
                                             dispatch(setProductRailItemHidden(entry.itemId, false));
+                                        }}
+                                        onKeyDown={(event) => {
+                                            const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                                // The button's own click pins; the row mustn't open the product too.
+                                                event.stopPropagation();
+                                            } else if (event.key === 'ArrowLeft') {
+                                                event.preventDefault();
+                                                row?.focus();
+                                            } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                                                // Back on the row, the menu moves on from it as usual.
+                                                row?.focus();
+                                            }
+                                        }}
+                                        onKeyUp={(event) => {
+                                            if (event.key === ' ') {
+                                                event.stopPropagation();
+                                            }
                                         }}
                                     />
                                 </>

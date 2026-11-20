@@ -600,6 +600,30 @@ describe('ProductRail', () => {
             expect(historyPush).not.toHaveBeenCalled();
         });
 
+        test('should reach a row\'s pin button with the keyboard and pin without opening the product', async () => {
+            const historyPush = (global as unknown as {historyMock: {push: jest.Mock}}).historyMock.push;
+            historyPush.mockClear();
+            renderAt('/team-one/channels/town-square', getHiddenState(['boards', 'mattermost-ai']));
+
+            screen.getByRole('button', {name: 'More products'}).focus();
+            await userEvent.keyboard('{Enter}');
+            const boardsRow = await screen.findByRole('menuitem', {name: /Boards/});
+            await waitFor(() => expect(boardsRow).toHaveFocus());
+
+            await userEvent.keyboard('{ArrowRight}');
+            expect(screen.getByRole('button', {name: 'Pin Boards', hidden: true})).toHaveFocus();
+            await userEvent.keyboard('{ArrowLeft}');
+            expect(boardsRow).toHaveFocus();
+
+            await userEvent.keyboard('{ArrowRight}{Enter}');
+
+            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                name: 'product_rail_hidden_items',
+                value: JSON.stringify(['mattermost-ai']),
+            })]);
+            expect(historyPush).not.toHaveBeenCalled();
+        });
+
         test('should offer no right-click menu on Threads or Channels', () => {
             renderAt('/team-one/channels/town-square', getHiddenState([]));
 

@@ -154,6 +154,19 @@ const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverO
 // off both the trigger and the menu (crossing the gap between them, say) before the menu closes.
 const HOVER_OPEN_DELAY = 100;
 const HOVER_CLOSE_DELAY = 200;
+
+// Menus opened by hovering are mounted in a container of their own. The popover hides everything
+// sharing its container from assistive technology, so this keeps the rest of the page available.
+function getHoverMenuContainer() {
+    const id = 'hoverMenuContainer';
+    let container = document.getElementById(id);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = id;
+        document.body.appendChild(container);
+    }
+    return container;
+}
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
 
 interface Props {
@@ -196,6 +209,12 @@ export function Menu(props: Props) {
     // or the keyboard. Mirrored in a ref for the hover timers.
     const [openedByHover, setOpenedByHover] = useState(false);
     const openedByHoverRef = useRef(false);
+
+    // Set from a hover-open until the menu has closed, even if a click then takes it over: switching
+    // its container while open, or closing, would remount it. A menu a click took over restores focus itself, as the
+    // popover only reads whether to when it opens.
+    const [hoverSession, setHoverSession] = useState(false);
+    const takenOverByClick = useRef(false);
     const hoverTimer = useRef<number | undefined>(undefined);
     const hoverEnabled = Boolean(props.menu.openOnHover) && !isMobileView;
 
@@ -228,6 +247,7 @@ export function Menu(props: Props) {
         if (!isMenuOpen) {
             hoverTimer.current = window.setTimeout(() => {
                 setHoverOpened(true);
+                setHoverSession(true);
                 setIsMenuOpen(true);
             }, HOVER_OPEN_DELAY);
         }
@@ -250,8 +270,26 @@ export function Menu(props: Props) {
     useEffect(() => {
         if (!isMenuOpen) {
             setHoverOpened(false);
+            if (takenOverByClick.current) {
+                takenOverByClick.current = false;
+                menuButton?.focus();
+            }
         }
     }, [isMenuOpen]);
+
+    // Focus stays where it was under a hover-opened menu, so Escape there wouldn't reach the menu.
+    useEffect(() => {
+        if (!openedByHover) {
+            return undefined;
+        }
+        const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsMenuOpen(false);
+            }
+        };
+        document.addEventListener('keydown', closeOnEscape);
+        return () => document.removeEventListener('keydown', closeOnEscape);
+    }, [openedByHover]);
 
     useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
@@ -340,6 +378,9 @@ export function Menu(props: Props) {
 
         // A click turns a menu opened by hovering into one opened as usual.
         window.clearTimeout(hoverTimer.current);
+        if (openedByHoverRef.current) {
+            takenOverByClick.current = true;
+        }
         setHoverOpened(false);
 
         if (isMobileView) {
@@ -462,7 +503,7 @@ export function Menu(props: Props) {
                 {menuButton && (
                     <MuiPopover
                         anchorEl={menuButton}
-                        container={props.menu.container}
+                        container={hoverSession ? getHoverMenuContainer : props.menu.container}
                         open={isMenuOpen}
                         onClose={handleMenuClose}
                         onClick={handleMenuClick}
@@ -510,7 +551,12 @@ export function Menu(props: Props) {
                                 },
                             },
                         }}
-                        onTransitionExited={providerValue.handleClosed}
+                        onTransitionExited={() => {
+                            providerValue.handleClosed();
+
+                            // Only once closed: switching containers remounts the menu.
+                            setHoverSession(false);
+                        }}
                     >
                         {props.menuHeader}
                         <MuiMenuList
