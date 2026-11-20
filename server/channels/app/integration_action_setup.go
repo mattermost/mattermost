@@ -74,6 +74,8 @@ type postActionSetup struct {
 	ephemeralChannelID   string
 	ephemeralRootPostID  string
 	ephemeralSetUserID   bool
+	// post is set when the action was read from a stored post.
+	post *model.Post
 }
 
 func (a *App) resolvePostActionSetup(
@@ -351,6 +353,7 @@ func (a *App) resolvePostActionSetupFromPost(
 			originalIsPinned:     preserve.OriginalIsPinned,
 			originalHasReactions: preserve.OriginalHasReactions,
 			rootPostId:           preserve.RootPostId,
+			post:                 post,
 		}, "", nil
 
 	case model.PostActionIntegrationFormatAttachment:
@@ -377,6 +380,7 @@ func (a *App) resolvePostActionSetupFromPost(
 			originalIsPinned:     preserve.OriginalIsPinned,
 			originalHasReactions: preserve.OriginalHasReactions,
 			rootPostId:           preserve.RootPostId,
+			post:                 post,
 		}, "", nil
 	}
 
