@@ -105,7 +105,10 @@ const AddUsersToGroupModal = (props: Props) => {
             aria-labelledby='createUserGroupsModalLabel'
             id='addUsersToGroupsModal'
         >
-            <div ref={modalRef}>
+            <div
+                ref={modalRef}
+                data-testid='add_users_to_group_modal'
+            >
                 <Modal.Header closeButton={false}>
                     <div className='user-groups-modal__header-title-row d-flex align-items-center'>
                         <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
@@ -115,6 +118,7 @@ const AddUsersToGroupModal = (props: Props) => {
                                 icon={<Icon glyph={<ArrowLeftIcon/>}/>}
                                 aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                                 onClick={goBack}
+                                data-testid='add_users_to_group_modal.back--button'
                             />
                         </WithTooltip>
                         <Modal.Title
@@ -135,6 +139,7 @@ const AddUsersToGroupModal = (props: Props) => {
                             size='medium'
                             icon={<Icon glyph={<CloseIcon/>}/>}
                             onClick={doHide}
+                            data-testid='add_users_to_group_modal.close--button'
                             aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                         />
                     </WithTooltip>

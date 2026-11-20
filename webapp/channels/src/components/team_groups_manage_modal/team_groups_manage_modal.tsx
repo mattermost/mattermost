@@ -130,6 +130,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
             <div
                 key={item.id}
                 className='more-modal__row'
+                data-testid={`team_groups_manage_modal.group:${item.id}`}
             >
                 <img
                     className='more-modal__image'
@@ -141,7 +142,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                 <div className='more-modal__details'>
                     <div
                         className='more-modal__name'
-                        data-testid='group-name'
+                        data-testid='team_groups_manage_modal.group.name--text'
                     >{item.display_name} <Nbsp/> {'-'} <Nbsp/>
                         <span className='more-modal__name_count'>
                             <FormattedMessage
@@ -161,7 +162,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                             className='dropdown-toggle theme color--link style--none'
                             type='button'
                             aria-expanded='true'
-                            data-testid='menu-button'
+                            data-testid='team_groups_manage_modal.group.role--button'
                         >
                             <span>{title} </span>
                             <DropdownIcon/>
@@ -171,16 +172,19 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                             ariaLabel={Utils.localizeMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
                         >
                             <Menu.ItemAction
+                                testId='team_groups_manage_modal.group.role_menu.make_admins'
                                 show={!item.scheme_admin}
                                 onClick={() => this.setTeamMemberStatus(item, listModal, true)}
                                 text={Utils.localizeMessage({id: 'team_members_dropdown.makeTeamAdmins', defaultMessage: 'Make Team Admins'})}
                             />
                             <Menu.ItemAction
+                                testId='team_groups_manage_modal.group.role_menu.make_members'
                                 show={Boolean(item.scheme_admin)}
                                 onClick={() => this.setTeamMemberStatus(item, listModal, false)}
                                 text={Utils.localizeMessage({id: 'team_members_dropdown.makeTeamMembers', defaultMessage: 'Make Team Members'})}
                             />
                             <Menu.ItemAction
+                                testId='team_groups_manage_modal.group.role_menu.remove'
                                 id='remove-group'
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
                                 text={Utils.localizeMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
@@ -206,9 +210,10 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     onHide={this.onHide}
                     titleBarButtonText={formatMessage({id: 'group_list_modal.addGroupButton', defaultMessage: 'Add Groups'})}
                     titleBarButtonOnClick={this.titleButtonOnClick}
-                    data-testid='list-modal'
+                    testId='team_groups_manage_modal'
                 />
                 <ConfirmModal
+                    testId='team_groups_manage_modal.remove_group_modal'
                     show={this.state.showConfirmModal}
                     title={formatMessage({id: 'remove_group_confirm_title', defaultMessage: 'Remove Group and {memberCount, number} {memberCount, plural, one {Member} other {Members}}'}, {memberCount})}
                     message={formatMessage({id: 'remove_group_confirm_message', defaultMessage: '{memberCount, number} {memberCount, plural, one {member} other {members}} associated to this group will be removed from the team. Are you sure you wish to remove this group and {memberCount} {memberCount, plural, one {member} other {members}}?'}, {memberCount})}

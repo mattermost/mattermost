@@ -51,6 +51,7 @@ function BookmarkDeleteModal({
             handleCancel={onCancel ?? noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
+            testId='bookmark_delete_modal'
             onExited={onExited}
             compassDesign={true}
         >

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
 import {createLinkBookmark} from './support';
 
@@ -12,28 +12,30 @@ test('MM-T5610 edits a bookmark URL and title', {tag: '@channels'}, async ({pw})
     const {adminClient, team, user, userClient} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Edit ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
-    await createLinkBookmark(userClient, channel.id, 'Community Server', 'https://community.mattermost.com');
+    const bookmark = await createLinkBookmark(
+        userClient,
+        channel.id,
+        'Community Server',
+        'https://community.mattermost.com',
+    );
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    const editModal = channelsPage.getBookmarkEditModal();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
+    const item = app.channelBookmarks.bookmark(bookmark);
 
     // # Open the bookmark editor and change its URL and title
-    await channelsPage.channelBookmarksBar.openBookmarkMenu('Community Server');
-    await channelsPage.channelBookmarksBar.editMenuItem.click();
-    await editModal.toBeVisible();
-    await editModal.linkInput.fill('https://hub.mattermost.com');
-    await expect(editModal.titleInput).toHaveValue('hub.mattermost.com');
-    await expect(editModal.saveButton).toBeEnabled();
-    await editModal.titleInput.fill('Hub Server');
-    await editModal.saveButton.click();
+    await item.container.hover();
+    await item.openMenuButton.clickTo(app.bookmarkMenu.openMenuItem);
+    const editModal = await app.bookmarkMenu.editMenuItem.clickTo(app.bookmarkModal);
+    await editModal.link.container.fill('https://hub.mattermost.com');
+    await expect(editModal.title.container).toHaveValue('hub.mattermost.com');
+    await expect(editModal.confirmButton).toBeEnabled();
+    await editModal.title.container.fill('Hub Server');
+    await settle(editModal.confirmButton, {wait: Api.UpdateChannelBookmark}).click();
 
     // * Verify the updated bookmark title and link
-    await expect(channelsPage.channelBookmarksBar.getBookmark('Hub Server')).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.getBookmark('Hub Server')).toHaveAttribute(
-        'href',
-        /^https:\/\/hub\.mattermost\.com/,
-    );
+    await expect(item.openLink).toHaveText('Hub Server');
+    await expect(item.openLink).toHaveAttribute('href', /^https:\/\/hub\.mattermost\.com/);
 });
 
 /**
@@ -43,8 +45,8 @@ test('MM-T5615 restricts bookmark management to users with permission', {tag: '@
     const {adminClient, team, user, userClient} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Permissions ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
-    await createLinkBookmark(userClient, channel.id, 'First link', 'https://example.com/first');
-    await createLinkBookmark(userClient, channel.id, 'Second link', 'https://example.com/second');
+    const first = await createLinkBookmark(userClient, channel.id, 'First link', 'https://example.com/first');
+    const second = await createLinkBookmark(userClient, channel.id, 'Second link', 'https://example.com/second');
     await pw.ensurePhase2MigrationCompleted();
     const scheme = await adminClient.createScheme({
         display_name: `Bookmark permissions ${pw.random.id()}`,
@@ -56,35 +58,33 @@ test('MM-T5615 restricts bookmark management to users with permission', {tag: '@
     // # Assign an isolated team scheme without bookmark-management permissions
     await adminClient.patchRole(channelUserRole.id, {permissions: restrictedPermissions});
     await adminClient.updateTeamScheme(team.id, scheme.id);
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.channelBookmarksBar.toBeVisible();
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
+    await expect(app.channelBookmarks).toBeVisible();
 
     // * Verify add, edit, and delete controls are unavailable
-    await expect(channelsPage.channelBookmarksBar.addBookmarkButton).not.toBeVisible();
-    await channelsPage.channelBookmarksBar.openBookmarkMenu('First link');
-    await expect(channelsPage.channelBookmarksBar.openMenuItem).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.copyLinkMenuItem).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.editMenuItem).not.toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.deleteMenuItem).not.toBeVisible();
+    const bar = app.channelBookmarks;
+    const firstItem = bar.bookmark(first);
+    await expect(bar.openMenuButton).not.toBeVisible();
+    await firstItem.container.hover();
+    await firstItem.openMenuButton.clickTo(app.bookmarkMenu.openMenuItem);
+    await expect(app.bookmarkMenu.copyLinkMenuItem).toBeVisible();
+    await expect(app.bookmarkMenu.editMenuItem).not.toBeVisible();
+    await expect(app.bookmarkMenu.deleteMenuItem).not.toBeVisible();
     await page.keyboard.press('Escape');
+    await expect(app.bookmarkMenu.openMenuItem).not.toBeVisible();
 
     // * Verify bookmarks render in their original order
-    const bookmarkLinks = channelsPage.channelBookmarksBar.getBookmarkLinks();
-    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
+    await expect(bar.bookmarkList).toHaveKeys([first.id, second.id]);
+    await expect(firstItem.openLink).toHaveText('First link');
+    await expect(bar.bookmark(second).openLink).toHaveText('Second link');
 
-    const firstLink = channelsPage.channelBookmarksBar.getBookmark('First link');
-    await firstLink.focus();
-    await firstLink.press('Space');
-    await firstLink.press('ArrowRight');
-    await firstLink.press('Space');
+    await firstItem.openLink.focus();
+    await firstItem.openLink.press('Space', 'ArrowRight', 'Space');
 
     // * Verify the keyboard reorder attempt did not change the bookmark order or link
-    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
-    await expect(channelsPage.channelBookmarksBar.getBookmark('First link')).toHaveAttribute(
-        'href',
-        /^https:\/\/example\.com\/first/,
-    );
+    await expect(bar.bookmarkList).toHaveKeys([first.id, second.id]);
+    await expect(firstItem.openLink).toHaveAttribute('href', /^https:\/\/example\.com\/first/);
 });
 
 /**
@@ -94,37 +94,38 @@ test('MM-T5725 prevents bookmark management in an archived channel', {tag: '@cha
     const {adminClient, team, user, userClient} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Archived ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
-    await createLinkBookmark(userClient, channel.id, 'First link', 'https://example.com/first');
-    await createLinkBookmark(userClient, channel.id, 'Second link', 'https://example.com/second');
+    const first = await createLinkBookmark(userClient, channel.id, 'First link', 'https://example.com/first');
+    const second = await createLinkBookmark(userClient, channel.id, 'Second link', 'https://example.com/second');
 
     // # Archive a channel containing two bookmarks
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.archiveChannel();
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.archiveChannelMenuItem);
+    const archiveModal = await app.channelHeader.menu.archiveChannelMenuItem.clickTo(app.deleteChannelModal);
+    await settle(archiveModal.confirmButton, {wait: Api.DeleteChannel}).click();
+    await expect(app.center.archivedNotice).toBeVisible();
 
     // * Verify bookmark management controls are unavailable
-    await expect(channelsPage.channelBookmarksBar.addBookmarkButton).not.toBeVisible();
-    await channelsPage.channelBookmarksBar.openBookmarkMenu('First link');
-    await expect(channelsPage.channelBookmarksBar.openMenuItem).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.copyLinkMenuItem).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.editMenuItem).not.toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.deleteMenuItem).not.toBeVisible();
+    const bar = app.channelBookmarks;
+    const firstItem = bar.bookmark(first);
+    await expect(bar.openMenuButton).not.toBeVisible();
+    await firstItem.container.hover();
+    await firstItem.openMenuButton.clickTo(app.bookmarkMenu.openMenuItem);
+    await expect(app.bookmarkMenu.copyLinkMenuItem).toBeVisible();
+    await expect(app.bookmarkMenu.editMenuItem).not.toBeVisible();
+    await expect(app.bookmarkMenu.deleteMenuItem).not.toBeVisible();
     await page.keyboard.press('Escape');
+    await expect(app.bookmarkMenu.openMenuItem).not.toBeVisible();
 
     // * Verify bookmarks render in their original order
-    const bookmarkLinks = channelsPage.channelBookmarksBar.getBookmarkLinks();
-    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
+    await expect(bar.bookmarkList).toHaveKeys([first.id, second.id]);
+    await expect(firstItem.openLink).toHaveText('First link');
+    await expect(bar.bookmark(second).openLink).toHaveText('Second link');
 
-    const firstLink = channelsPage.channelBookmarksBar.getBookmark('First link');
-    await firstLink.focus();
-    await firstLink.press('Space');
-    await firstLink.press('ArrowRight');
-    await firstLink.press('Space');
+    await firstItem.openLink.focus();
+    await firstItem.openLink.press('Space', 'ArrowRight', 'Space');
 
     // * Verify the keyboard reorder attempt did not change the bookmark order or link
-    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
-    await expect(channelsPage.channelBookmarksBar.getBookmark('First link')).toHaveAttribute(
-        'href',
-        /^https:\/\/example\.com\/first/,
-    );
+    await expect(bar.bookmarkList).toHaveKeys([first.id, second.id]);
+    await expect(firstItem.openLink).toHaveAttribute('href', /^https:\/\/example\.com\/first/);
 });

@@ -79,7 +79,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // * Verify Invite Guest link
-        cy.findByTestId('inviteGuestLink').should('be.visible').click();
+        cy.findByTestId('invitation_modal.invite.as_guest').should('be.visible').click();
         cy.findByText('Add to channels').should('be.visible');
 
         // * Verify the header has changed in the modal
@@ -190,7 +190,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
-        cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
+        cy.get('.InviteAs').findByTestId('invitation_modal.invite.as_member').click();
 
         // # Search and add a member
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
@@ -252,7 +252,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // # Select Guest
-        cy.findByTestId('inviteGuestLink').should('be.visible').click();
+        cy.findByTestId('invitation_modal.invite.as_guest').should('be.visible').click();
 
         // * The button "Copy invite link" should not exist
         cy.findByTestId('invitation_modal.invite.copy_link--button').should('not.exist');

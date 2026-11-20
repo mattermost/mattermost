@@ -24,7 +24,7 @@ describe('components/TeamSidebar/TeamButton', () => {
         switchTeam: () => {},
         isDraggable: false,
         teamIndex: 0,
-        teamId: '',
+        teamId: 'team_id',
         isInProduct: false,
     };
 
@@ -39,8 +39,8 @@ describe('components/TeamSidebar/TeamButton', () => {
             <TeamButton {...props}/>,
         );
 
-        expect(screen.queryByTestId('team-badge-')).toBeInTheDocument();
-        expect(screen.getByTestId('team-container-')).toHaveClass('unread');
+        expect(screen.queryByTestId('team_sidebar.team.unread--text')).toBeInTheDocument();
+        expect(screen.getByTestId('team_sidebar.team:team_id--link').closest('.team-container')).toHaveClass('unread');
     });
 
     it('should hide unread badge and set no class when unread in a product', () => {
@@ -55,8 +55,9 @@ describe('components/TeamSidebar/TeamButton', () => {
             <TeamButton {...props}/>,
         );
 
-        expect(screen.queryByTestId('team-badge-')).not.toBeInTheDocument();
-        expect(screen.getByTestId('team-container-')).not.toHaveClass('unread');
+        expect(screen.queryByTestId('team_sidebar.team.unread--text')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('team_sidebar.team.mentions--text')).not.toBeInTheDocument();
+        expect(screen.getByTestId('team_sidebar.team:team_id--link').closest('.team-container')).not.toHaveClass('unread');
     });
 
     it('should show mentions badge and set class when mentions in channels', () => {
@@ -71,8 +72,8 @@ describe('components/TeamSidebar/TeamButton', () => {
             <TeamButton {...props}/>,
         );
 
-        expect(screen.queryByTestId('team-badge-')).toHaveClass('badge-max-number');
-        expect(screen.getByTestId('team-container-')).toHaveClass('unread');
+        expect(screen.queryByTestId('team_sidebar.team.mentions--text')).toHaveClass('badge-max-number');
+        expect(screen.getByTestId('team_sidebar.team:team_id--link').closest('.team-container')).toHaveClass('unread');
     });
 
     it('should hide mentions badge and set no class when mentions in product', () => {
@@ -88,8 +89,9 @@ describe('components/TeamSidebar/TeamButton', () => {
             <TeamButton {...props}/>,
         );
 
-        expect(screen.queryByTestId('team-badge-')).not.toBeInTheDocument();
-        expect(screen.getByTestId('team-container-')).not.toHaveClass('unread');
+        expect(screen.queryByTestId('team_sidebar.team.unread--text')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('team_sidebar.team.mentions--text')).not.toBeInTheDocument();
+        expect(screen.getByTestId('team_sidebar.team:team_id--link').closest('.team-container')).not.toHaveClass('unread');
     });
 
     it('should show urgent class on mentions badge when hasUrgent is true', () => {
@@ -106,7 +108,7 @@ describe('components/TeamSidebar/TeamButton', () => {
             <TeamButton {...props}/>,
         );
 
-        expect(screen.queryByTestId('team-badge-')).toHaveClass('urgent');
+        expect(screen.queryByTestId('team_sidebar.team.mentions--text')).toHaveClass('urgent');
         expect(screen.getByRole('link')).toHaveAccessibleName(/including an urgent mention/i);
     });
 
@@ -123,7 +125,7 @@ describe('components/TeamSidebar/TeamButton', () => {
             <TeamButton {...props}/>,
         );
 
-        expect(screen.queryByTestId('team-badge-')).not.toHaveClass('urgent');
+        expect(screen.queryByTestId('team_sidebar.team.mentions--text')).not.toHaveClass('urgent');
     });
 
     describe('aria-label accessibility', () => {

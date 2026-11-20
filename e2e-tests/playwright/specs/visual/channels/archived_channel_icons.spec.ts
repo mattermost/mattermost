@@ -37,19 +37,19 @@ test(
         await adminClient.deleteChannel(privateChannel.id);
 
         // # Log in user
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {app, page} = await pw.testBrowser.login(user);
 
         // # Visit town square to ensure we're in a stable state
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
-        // # Open browse channels modal to show archived channels
-        await page.keyboard.press('Control+K');
-        await page.waitForTimeout(500);
+        // # Open the channel switcher to show archived channels
+        const switcher = await app.center.postCreate.message.container.pressTo('Control+K', app.quickSwitchModal);
 
         // # Type to search for archived channels
-        await page.keyboard.type('archive');
-        await page.waitForTimeout(500);
+        await switcher.searchTextbox.fill('archive');
+        await expect(switcher.suggestions.suggestion(publicChannel.id)).toBeVisible();
+        await expect(switcher.suggestions.suggestion(privateChannel.id)).toBeVisible();
 
         // # Hide dynamic content
         await pw.hideDynamicChannelsContent(page);
@@ -94,18 +94,19 @@ test(
         await adminClient.deleteChannel(privateChannel.id);
 
         // # Log in as admin
-        const {page} = await pw.testBrowser.login(adminUser);
+        const {app, page} = await pw.testBrowser.login(adminUser);
 
         // # Navigate to admin console channels list
         await page.goto('/admin_console/user_management/channels');
-        await page.waitForTimeout(1000);
 
         // # Wait for channel list to load
-        await expect(page.locator('.DataGrid')).toBeVisible({timeout: 10000});
+        const channels = app.admin.channels;
+        await expect(channels.rows).toBeVisible({timeout: 10000});
 
         // # Search for our test channels to bring them into view
-        await page.fill('[data-testid="searchInput"]', 'Admin');
-        await page.waitForTimeout(500);
+        await channels.searchTextbox.fill('Admin');
+        await expect(channels.row(publicChannel)).toBeVisible();
+        await expect(channels.row(privateChannel)).toBeVisible();
 
         // * Verify both archived channels are visible with correct icons
         const testArgs = {page, browserName, viewport};
@@ -136,23 +137,22 @@ test(
         // # Archive the channel
         await adminClient.deleteChannel(privateChannel.id);
 
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+        const {app, page} = await pw.testBrowser.login(adminUser);
 
         // # Visit the archived channel directly
-        await channelsPage.goto(team.name, privateChannel.name);
+        await app.channelsPage.goto({team, channel: privateChannel.name});
 
         // # Wait for channel header to load (archived channels don't have post-create)
-        await expect(page.locator('.channel-header')).toBeVisible();
+        await expect(app.channelHeader).toBeVisible();
 
         // # Verify archived channel message is visible
-        await expect(page.locator('#channelArchivedMessage')).toBeVisible();
+        await expect(app.center.archivedNotice).toBeVisible();
 
         // # Hide dynamic content
         await pw.hideDynamicChannelsContent(page);
 
         // # Focus on channel header area for snapshot
-        const headerElement = page.locator('.channel-header');
-        await expect(headerElement).toBeVisible();
+        await expect(app.channelHeader.archivedIconText).toBeVisible();
 
         // * Verify channel header shows archive-lock icon for private archived channel
         const testArgs = {page, browserName, viewport};

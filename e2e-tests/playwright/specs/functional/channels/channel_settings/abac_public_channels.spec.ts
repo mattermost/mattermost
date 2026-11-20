@@ -9,7 +9,7 @@
  * @reference Public-channel ABAC feature
  */
 
-import {ChannelsPage, expect, getAdminClient, test, closeChannelSettings} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test, closeChannelSettings} from '@mattermost/playwright-lib';
 
 import {enableABACConfig, enableAPIUserDeletion} from '../team_settings/helpers';
 
@@ -74,28 +74,32 @@ test.describe('ABAC - Public channels', () => {
         await enableABACConfig(adminClient);
 
         // # Navigate to Team Settings → Membership Policies → New policy editor
-        const {app, page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
+        const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+        const offTopic = await adminClient.getChannelByName(team.id, 'off-topic');
+        const {app} = await pw.testBrowser.login(adminUser);
         await app.teamPage.goto({team});
         await expect(app.center.postCreate).toBeVisible();
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        await expect(teamSettings.container.getByRole('button', {name: /Add channels/i})).toBeVisible();
+        await app.lhs.header.openTeamMenuButton.clickTo(app.lhs.teamMenu.teamSettingsMenuItem);
+        const teamSettings = await app.lhs.teamMenu.teamSettingsMenuItem.clickTo(app.teamSettingsModal);
+        const policies = teamSettings.accessPolicies;
+        await teamSettings.tabs.tab('access_policies').select();
+        await expect(policies.addPolicyButton).toBeVisible();
+        await policies.addPolicyButton.clickTo(policies.editor.addChannelsButton);
 
         // # Open the channel selector modal
-        await teamSettings.container.getByRole('button', {name: /Add channels/i}).click();
-        const channelSelector = page.locator('.channel-selector-modal');
-        await expect(channelSelector).toBeVisible();
+        const channelSelector = await policies.editor.addChannelsButton.clickTo(app.channelSelectorModal);
 
         // * Both default channels (town-square, off-topic) are absent from the list.
-        // The component contract is `excludeDefaultChannels={true}` — assert the
-        // canonical channel rows by their stable test ids rather than display text.
-        await expect(channelSelector.locator('[data-testid="ChannelRow-town-square"]')).toHaveCount(0);
-        await expect(channelSelector.locator('[data-testid="ChannelRow-off-topic"]')).toHaveCount(0);
+        // The component contract is `excludeDefaultChannels={true}`.
+        await expect(channelSelector.channels.results.channel(townSquare)).toHaveCount(0);
+        await expect(channelSelector.channels.results.channel(offTopic)).toHaveCount(0);
 
-        await teamSettings.close();
+        // # Close the channel selector first: it sits on top of Team Settings and blocks its close button
+        await channelSelector.closeButton.click();
+        await expect(channelSelector).not.toBeVisible();
+        await teamSettings.closeButton.click();
+        await expect(teamSettings).not.toBeVisible();
     });
 
     test('Public channel with matching policy surfaces as Recommended for matching user (auto-add off)', async ({
@@ -150,29 +154,22 @@ test.describe('ABAC - Public channels', () => {
             'matching user must not be auto-joined when auto-add is OFF (advisory recommendation only)',
         ).not.toContain(matchingUser.id);
 
-        const {app, page} = await pw.testBrowser.login(matchingUser);
-        const channelsPage = new ChannelsPage(page);
+        const {app} = await pw.testBrowser.login(matchingUser);
         await app.teamPage.goto({team});
         await expect(app.center.postCreate).toBeVisible();
 
         // # Open Browse Channels and switch the type filter to "Recommended channels"
-        const browse = await channelsPage.openBrowseChannelsModal();
-        await browse.toBeDoneLoading();
+        await app.lhs.header.openBrowseOrAddMenuButton.clickTo(app.lhs.browseOrAddMenu.browseChannelsMenuItem);
+        const browse = await app.lhs.browseOrAddMenu.browseChannelsMenuItem.clickTo(app.browseChannels);
+        await expect(browse.loading).toHaveCount(0);
 
-        // The recommended menu item is keyed by `id="channelsMoreDropdownRecommended"`,
-        // gated by the `showRecommendedFilter` prop which is set whenever ABAC is
-        // enabled in client config. Using the stable id avoids brittleness from
-        // the dropdown's localized label.
-        await browse.container.locator('#menuWrapper').click();
-        await expect(page.locator('#channelsMoreDropdownRecommended')).toBeVisible();
-        await page.locator('#channelsMoreDropdownRecommended').click();
+        // The recommended filter is rendered whenever ABAC is enabled in client config
+        const recommended = browse.typeFilterMenu.filter('Recommended');
+        await browse.typeFilterButton.clickTo(recommended);
+        await recommended.click();
 
-        // * The public channel appears in the Recommended results. The row id
-        //   is generated by the SearchableChannelList component as
-        //   `ChannelRow-${channel.name}` — assert against that, not the display
-        //   text, which can be locale-dependent.
-        const channelRow = browse.container.locator(`[data-testid="ChannelRow-${publicChannel.name}"]`);
-        await expect(channelRow).toBeVisible({timeout: 15000});
+        // * The public channel appears in the Recommended results
+        await expect(browse.results.channel(publicChannel)).toBeVisible({timeout: 15000});
     });
 
     test('Public channel with auto-add ON adds matching users; non-matching members are NOT removed', async ({pw}) => {

@@ -16,6 +16,7 @@ interface Props extends Partial<AnnouncementBarProps> {
     text: React.ReactNode;
     onDismissal?: () => void;
     className?: string;
+    testId: string;
 }
 
 const options = {

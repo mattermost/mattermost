@@ -195,7 +195,7 @@ export const TourTip = ({
         <>
             <div
                 className='tour-tip__header'
-                data-testid={'current_tutorial_tip'}
+                data-testid='tour_tip.header'
             >
                 <h4
                     id={titleId}
@@ -209,7 +209,7 @@ export const TourTip = ({
                         icon={<Icon glyph={<CloseIcon/>}/>}
                         onClick={handleDismiss}
                         aria-label={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}
-                        data-testid={'close_tutorial_tip'}
+                        data-testid='tour_tip.close--button'
                     />
                 </WithTooltip>
             </div>

@@ -90,7 +90,7 @@ export default function TeamButton({
 
             badge = (
                 <span
-                    data-testid={'team-badge-' + teamId}
+                    data-testid={teamId ? 'team_sidebar.team.unread--text' : undefined}
                     className={'unread-badge'}
                 />
             );
@@ -130,7 +130,7 @@ export default function TeamButton({
 
             const mentionBadge = (
                 <span
-                    data-testid={'team-badge-' + teamId}
+                    data-testid={teamId ? 'team_sidebar.team.mentions--text' : undefined}
                     className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}
                 >
                     {mentions > 99 ? '99+' : mentions}
@@ -149,6 +149,7 @@ export default function TeamButton({
 
     const content = (
         <TeamIcon
+            testIdScope={teamId ? 'team_sidebar.team' : undefined}
             className={teamClass}
             withHover={true}
             content={otherProps.content || displayName || ''}
@@ -182,6 +183,7 @@ export default function TeamButton({
     const teamButton = (
         <Link
             id={`${url.slice(1)}TeamButton`}
+            data-testid={teamId ? `team_sidebar.team:${teamId}--link` : undefined}
             aria-label={isNotCreateTeamButton ? ariaLabel : displayName}
             to={url}
             onClick={handleSwitch}
@@ -200,6 +202,7 @@ export default function TeamButton({
                     <Link
                         to={url}
                         id={`${url.slice(1)}TeamButton`}
+                        data-testid={`team_sidebar.team:${teamId}--link`}
                         aria-label={ariaLabel}
                         onClick={handleSwitch}
                         className='draggable-team-container inline-block'
@@ -219,7 +222,6 @@ export default function TeamButton({
         </Draggable>
     ) : (
         <div
-            data-testid={'team-container-' + teamId}
             className={`team-container ${teamClass}`}
         >
             {teamButton}

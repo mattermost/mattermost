@@ -40,6 +40,7 @@ function JoinPrivateChannelModal({channelName, onCancel, onExited, onJoin}: Prop
 
     return (
         <ConfirmModal
+            testId='join_private_channel_modal'
             show={show}
             title={
                 <FormattedMessage

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {Api, expect, test, waitForApi} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that Browse Channels modal search results prioritize channels whose DisplayName matches the search
@@ -45,27 +45,32 @@ test(
         });
 
         // # Log in as regular user
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
         // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Open the Browse Channels modal
-        const dialog = await channelsPage.openBrowseChannelsModal();
-        await dialog.toBeVisible();
+        await app.lhs.header.openBrowseOrAddMenuButton.clickTo(app.lhs.browseOrAddMenu.browseChannelsMenuItem);
+        const dialog = await app.lhs.browseOrAddMenu.browseChannelsMenuItem.clickTo(app.browseChannels);
 
         // # Search for the term that matches DisplayName on some channels and Purpose on others
-        await dialog.fillSearchInput('gamma');
-        await dialog.toBeDoneLoading();
-        await dialog.toHaveNResults(4);
+        await Promise.all([
+            waitForApi(app.page, Api.SearchAllChannels, {
+                predicate: (_, response) => response.request().postDataJSON()?.term === 'gamma',
+            }),
+            dialog.searchTextbox.fill('gamma'),
+        ]);
+        await expect(dialog.loading).toHaveCount(0);
 
-        // DisplayName matches come first, sorted alphabetically
-        await dialog.toHaveChannelAsNthResult(displayMatchA.name, 0);
-        await dialog.toHaveChannelAsNthResult(displayMatchB.name, 1);
-
-        // Purpose-only matches come after, sorted alphabetically by DisplayName
-        await dialog.toHaveChannelAsNthResult(purposeMatchA.name, 2);
-        await dialog.toHaveChannelAsNthResult(purposeMatchB.name, 3);
+        // * DisplayName matches come first, sorted alphabetically; purpose-only matches come after, sorted
+        //   alphabetically by DisplayName
+        await expect(dialog.results.channelList).toHaveKeys([
+            displayMatchA.id,
+            displayMatchB.id,
+            purposeMatchA.id,
+            purposeMatchB.id,
+        ]);
     },
 );

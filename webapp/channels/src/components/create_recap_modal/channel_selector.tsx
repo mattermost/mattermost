@@ -57,12 +57,13 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
             <div
                 key={channel.id}
                 className='channel-selector-item'
-                data-testid='channel-selector-item'
+                data-testid={`create_recap_modal.channel:${channel.id}`}
                 onClick={() => toggleChannel(channel.id)}
             >
                 <div className='channel-selector-checkbox'>
                     <input
                         type='checkbox'
+                        data-testid='create_recap_modal.channel.select--checkbox'
                         checked={isSelected}
                         onChange={() => toggleChannel(channel.id)}
                         onClick={(e) => e.stopPropagation()}
@@ -87,6 +88,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
                     <Input
                         type='text'
                         placeholder={defineMessage({id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'})}
+                        testId='create_recap_modal.channel_search'
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         useLegend={false}

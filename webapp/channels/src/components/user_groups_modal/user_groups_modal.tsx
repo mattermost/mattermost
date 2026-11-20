@@ -200,6 +200,7 @@ const UserGroupsModal = (props: Props) => {
     return (
         <GenericModal
             id='userGroupsModal'
+            testId='user_groups_modal'
             ariaLabel='userGroupsModalLabel'
             className='a11y__modal user-groups-modal'
             show={show}
@@ -218,6 +219,7 @@ const UserGroupsModal = (props: Props) => {
                     emphasis='tertiary'
                     size='small'
                     onClick={goToCreateModal}
+                    data-testid='user_groups_modal.create--button'
                 >
                     <FormattedMessage
                         id='user_groups_modal.createNew'
@@ -257,7 +259,7 @@ const UserGroupsModal = (props: Props) => {
                     placeholder={defineMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
                     onChange={handleSearch}
                     value={props.searchTerm}
-                    data-testid='searchInput'
+                    testId='user_groups_modal.search'
                     className={'user-group-search-input'}
                     inputPrefix={inputPrefix}
                 />

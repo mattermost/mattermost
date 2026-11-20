@@ -73,7 +73,7 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
                 </div>
             );
         } else {
-            backButton = (<BackButton/>);
+            backButton = (<BackButton testId='mfa.back'/>);
         }
 
         return (

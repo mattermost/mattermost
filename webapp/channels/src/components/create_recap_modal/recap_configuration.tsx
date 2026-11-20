@@ -59,7 +59,7 @@ const RecapConfiguration = ({
                 checked={runOnce}
                 onChange={() => setRunOnce(!runOnce)}
                 disabled={runOnceDisabled}
-                data-testid='run-once-toggle-button'
+                data-testid='create_recap_modal.run_once--switch'
                 tabIndex={0}
                 semiBold={true}
             >
@@ -86,6 +86,7 @@ const RecapConfiguration = ({
                 <div className={`input-container${showError ? ' has-error' : ''}`}>
                     <input
                         id='recap-name-input'
+                        data-testid='create_recap_modal.name--textbox'
                         type='text'
                         autoFocus={true}
                         className={`form-control${showError ? ' input-error' : ''}`}
@@ -122,6 +123,7 @@ const RecapConfiguration = ({
                     <button
                         type='button'
                         className={`recap-type-card ${recapType === 'selected' ? 'selected' : ''}`}
+                        data-testid='create_recap_modal.type:selected--button'
                         onClick={() => setRecapType('selected')}
                     >
                         <div className='recap-type-card-icon'>
@@ -147,6 +149,7 @@ const RecapConfiguration = ({
                     <button
                         type='button'
                         className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''}`}
+                        data-testid='create_recap_modal.type:all_unreads--button'
                         onClick={handleAllUnreadsClick}
                     >
                         <div className='recap-type-card-icon'>

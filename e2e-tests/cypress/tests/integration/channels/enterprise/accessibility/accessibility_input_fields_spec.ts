@@ -40,7 +40,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
-        cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
+        cy.get('.InviteAs').findByTestId('invitation_modal.invite.as_member').click();
 
         cy.findByTestId('invitation_modal.invite.copy_link--button').then((el) => {
             const copyInviteLinkAriaLabel = el.attr('aria-label');
@@ -54,7 +54,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
 
         // # Click on Invite Guests link
-        cy.findByTestId('inviteGuestLink').should('be.visible').click();
+        cy.findByTestId('invitation_modal.invite.as_guest').should('be.visible').click();
 
         // * Verify Accessibility Support in Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {

@@ -119,6 +119,7 @@ const CloudPreviewAnnouncementBar: React.FC = () => {
 
     return (
         <AnnouncementBar
+            testId='announcement_bars.cloud_preview'
             type={AnnouncementBarTypes.ADVISOR}
             showCloseButton={false}
             message={message}

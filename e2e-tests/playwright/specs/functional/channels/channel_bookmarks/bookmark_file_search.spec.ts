@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, type ChannelsPage} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test, type App} from '@mattermost/playwright-lib';
 
 import {addFileBookmark} from './support';
 
 const fileName = 'sample_text_file.txt';
 
-async function searchFiles(channelsPage: ChannelsPage) {
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.toBeVisible();
-    await channelsPage.searchBox.searchInput.fill(fileName);
-    await channelsPage.searchBox.searchInput.press('Enter');
-    await channelsPage.searchResultsPanel.toBeVisible();
-    await channelsPage.searchResultsPanel.filesTab.click();
+async function searchFiles(app: App) {
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await app.searchBox.inputSearchbox.fill(fileName);
+    await app.searchBox.inputSearchbox.press('Enter');
+    await expect(app.search.panel).toBeVisible();
+    await app.search.tabs.filesTab.select();
+    await expect(app.search.tabs.filesTab).toHaveAttribute('aria-selected', 'true');
 }
 
 /**
@@ -24,15 +24,15 @@ test('MM-T5613 finds a file bookmark in Files search results', {tag: '@channels'
     const channel = await adminClient.createPublicChannel(team.id, `Search ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
     // # Add a file bookmark and search for its filename
-    await addFileBookmark(page, channelsPage);
+    const {fileId} = await addFileBookmark(page, app);
 
-    await searchFiles(channelsPage);
+    await searchFiles(app);
 
     // * Verify the file bookmark appears in Files results
-    await expect(channelsPage.searchResultsPanel.container.getByText(fileName, {exact: true})).toBeVisible();
+    await expect(app.search.results.file(fileId)).toContainText(fileName);
 });
 
 /**
@@ -43,23 +43,25 @@ test('MM-T5614 removes a deleted file bookmark from Files search results', {tag:
     const channel = await adminClient.createPublicChannel(team.id, `Delete ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
     // # Add a file bookmark and confirm it is searchable
-    await addFileBookmark(page, channelsPage);
+    const {bookmark, fileId} = await addFileBookmark(page, app);
 
-    await searchFiles(channelsPage);
-    await expect(channelsPage.searchResultsPanel.container.getByText(fileName, {exact: true})).toBeVisible();
+    await searchFiles(app);
+    await expect(app.search.results.file(fileId)).toContainText(fileName);
     await page.keyboard.press('ControlOrMeta+.');
-    await expect(channelsPage.searchResultsPanel.container).not.toBeVisible();
+    await expect(app.search.panel).not.toBeVisible();
 
     // # Delete the file bookmark
-    await channelsPage.channelBookmarksBar.openBookmarkMenu(fileName);
-    await channelsPage.channelBookmarksBar.deleteMenuItem.click();
-    await expect(channelsPage.channelBookmarksBar.deleteDialog).toBeVisible();
-    await channelsPage.channelBookmarksBar.confirmDeleteButton.click();
+    const item = app.channelBookmarks.bookmark(bookmark);
+    await item.container.hover();
+    await item.openMenuButton.clickTo(app.bookmarkMenu.deleteMenuItem);
+    const deleteModal = await app.bookmarkMenu.deleteMenuItem.clickTo(app.bookmarkDeleteModal);
+    await settle(deleteModal.confirmButton, {wait: Api.DeleteChannelBookmark}).click();
+    await expect(item.container).not.toBeVisible();
 
     // * Verify the deleted file no longer appears in Files results
-    await searchFiles(channelsPage);
-    await expect(channelsPage.searchResultsPanel.container.getByText(fileName, {exact: true})).not.toBeVisible();
+    await searchFiles(app);
+    await expect(app.search.results.file(fileId)).not.toBeVisible();
 });

@@ -43,6 +43,7 @@ const DayOfWeekSelector = ({value, onChange, disabled, error}: Props) => {
                     onClick={() => toggleDay(day.bit)}
                     disabled={disabled}
                     aria-pressed={isDaySelected(day.bit)}
+                    data-testid={`create_recap_modal.schedule.day:${day.bit}--togglebutton`}
                     aria-label={formatMessage(day.fullName)}
                 >
                     {formatMessage(day.shortLabel)}

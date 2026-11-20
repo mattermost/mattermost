@@ -80,7 +80,7 @@ describe('PreviewModalContent', () => {
 
         renderComponent(content);
 
-        const video = screen.getByTestId('video-element') as HTMLVideoElement;
+        const video = screen.getByTestId('cloud_preview_modal.video') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
         expect(video.src).toBe('https://example.com/video.mp4');
 
@@ -97,7 +97,7 @@ describe('PreviewModalContent', () => {
 
         renderComponent(content);
 
-        const video = screen.getByTestId('video-element') as HTMLVideoElement;
+        const video = screen.getByTestId('cloud_preview_modal.video') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
         expect(video.poster).toBe('https://example.com/poster.jpg');
     });
@@ -110,7 +110,7 @@ describe('PreviewModalContent', () => {
 
         renderComponent(content);
 
-        const video = screen.getByTestId('video-element') as HTMLVideoElement;
+        const video = screen.getByTestId('cloud_preview_modal.video') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
         expect(video.poster).toBe('');
     });
@@ -155,8 +155,8 @@ describe('PreviewModalContent', () => {
 
         renderComponent(content);
 
-        expect(screen.getByTestId('video-element')).toBeInTheDocument();
-        expect(screen.getByTestId('video-element')).toHaveAttribute('src', 'test-video.webm');
+        expect(screen.getByTestId('cloud_preview_modal.video')).toBeInTheDocument();
+        expect(screen.getByTestId('cloud_preview_modal.video')).toHaveAttribute('src', 'test-video.webm');
     });
 
     it('should render image when videoUrl is provided with image extension', () => {
@@ -195,7 +195,7 @@ describe('PreviewModalContent', () => {
 
         renderComponent(content);
 
-        expect(screen.getByTestId('video-element')).toBeInTheDocument();
-        expect(screen.getByTestId('video-element')).toHaveAttribute('src', 'test-video.mov');
+        expect(screen.getByTestId('cloud_preview_modal.video')).toBeInTheDocument();
+        expect(screen.getByTestId('cloud_preview_modal.video')).toHaveAttribute('src', 'test-video.mov');
     });
 });

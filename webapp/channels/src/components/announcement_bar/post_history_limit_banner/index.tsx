@@ -118,6 +118,7 @@ const PostHistoryLimitBanner = () => {
 
     return (
         <AnnouncementBar
+            testId='announcement_bars.post_history_limit'
             type={AnnouncementBarTypes.GENERAL}
             showCloseButton={true}
             onButtonClick={handleUpgradeClick}

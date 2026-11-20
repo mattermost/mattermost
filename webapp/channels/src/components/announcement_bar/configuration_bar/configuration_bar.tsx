@@ -80,6 +80,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
             </>);
             return (
                 <AnnouncementBar
+                    testId='announcement_bars.license_expired'
                     type={AnnouncementBarTypes.CRITICAL}
                     message={
                         <div className='announcement-bar__configuration'>
@@ -149,6 +150,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
 
             return (
                 <AnnouncementBar
+                    testId='announcement_bars.trial_expiring'
                     showCloseButton={true}
                     handleClose={dismissExpiringTrialLicense}
                     type={announcementBarType}
@@ -180,6 +182,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
             </>);
             return (
                 <AnnouncementBar
+                    testId='announcement_bars.license_expiring'
                     showCloseButton={true}
                     handleClose={dismissExpiringLicense}
                     type={AnnouncementBarTypes.ANNOUNCEMENT}
@@ -198,6 +201,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
         if (isLicensePastGracePeriod(props.license)) { //eslint-disable-line no-lonely-if
             return (
                 <AnnouncementBar
+                    testId='announcement_bars.license_past_grace'
                     type={AnnouncementBarTypes.CRITICAL}
                     message={
                         <>
@@ -229,6 +233,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
 
         return (
             <TextDismissableBar
+                testId='announcement_bars.preview_mode'
                 allowDismissal={true}
                 text={emailMessage}
                 type={AnnouncementBarTypes.SUCCESS}
@@ -268,6 +273,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
 
         return (
             <TextDismissableBar
+                testId='announcement_bars.site_url'
                 allowDismissal={true}
                 text={siteURLMessage}
                 type={AnnouncementBarTypes.ANNOUNCEMENT}

@@ -118,7 +118,7 @@ describe('component/view_user_group_modal', () => {
         );
 
         // Find the search input by data-testid
-        const searchInput = screen.getByTestId('searchInput');
+        const searchInput = screen.getByTestId('view_user_group_modal.search--textbox');
         expect(searchInput).toBeInTheDocument();
 
         // Simulate search input change - clear first then type

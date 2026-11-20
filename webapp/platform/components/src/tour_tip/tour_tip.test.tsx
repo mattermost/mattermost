@@ -71,7 +71,7 @@ describe('TourTip', () => {
         const {rerender} = renderTourTip({show: true});
 
         expect(await screen.findByRole('dialog')).toBeInTheDocument();
-        expect(screen.getByTestId('current_tutorial_tip')).toBeInTheDocument();
+        expect(screen.getByTestId('tour_tip.header')).toBeInTheDocument();
 
         rerender(wrapIntl(
             <TourTip

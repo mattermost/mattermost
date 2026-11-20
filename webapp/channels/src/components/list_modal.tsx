@@ -15,6 +15,11 @@ export const DEFAULT_NUM_PER_PAGE = 50;
 type Props = {
 
     /**
+     * testId: the modal's testid.
+     */
+    testId: string;
+
+    /**
      * titleText (optional) a string to show at the top bar of the modal.
      */
     titleText?: string;
@@ -133,6 +138,7 @@ export default class ListModal extends React.PureComponent<Props, State> {
                     <LoadingScreen
                         position='absolute'
                         key='loading'
+                        testId={`${this.props.testId}.loading`}
                     />
                 </div>
             );
@@ -185,6 +191,8 @@ export default class ListModal extends React.PureComponent<Props, State> {
             <div>
                 <Modal
                     dialogClassName='a11y__modal more-modal more-modal--action'
+                    data-testid={this.props.testId}
+                    role='dialog'
                     show={this.state.show}
                     onHide={this.handleHide}
                     onExited={this.handleExit}
