@@ -557,12 +557,20 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
         keep = not upgrade.complete
         rows = upgrade_docs.note_rows(version.short, upgrade.notes) if upgrade.notes else ""
         removed = upgrade_docs.removed_section(version.short, release_day, upgrade.removed) if upgrade.removed else ""
-        apply(UPGRADE_NOTES, lambda c: upgrade_docs.fill(
-            upgrade_docs.without_rows(c, version.short), "<tbody>\n", rows,
-            placeholder(version, "Important Upgrade Notes"), keep))
-        apply(DEPRECATED_FEATURES, lambda c: upgrade_docs.fill(
-            upgrade_docs.without_section(c, version.short), "## Removed features by Mattermost version\n\n", removed,
-            placeholder(version, "Deprecated Features"), keep))
+
+        def fill(path, remove, anchor, where, block, what):
+            def edit(content):
+                filled = upgrade_docs.fill(remove(content, version.short), anchor, block, placeholder(version, what), keep)
+                if filled is None:  # the page is left as it is
+                    result.todo(f"{path} has no `{where}` to add {version.short}'s {what} after, so it is unchanged")
+                    return content
+                return filled
+            apply(path, edit)
+
+        fill(UPGRADE_NOTES, upgrade_docs.without_rows, upgrade_docs.NOTES_ANCHOR, "<tbody>", rows,
+             "Important Upgrade Notes")
+        fill(DEPRECATED_FEATURES, upgrade_docs.without_section, upgrade_docs.REMOVED_ANCHOR,
+             "## Removed features by Mattermost version", removed, "Deprecated Features")
         for todo in upgrade.todos:
             result.todo(todo)
     elif today and release_day and today >= check_fails_from(release_day):

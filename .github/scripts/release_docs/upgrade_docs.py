@@ -140,8 +140,10 @@ def draft_notices(prs: dict, claude, result: Result) -> dict:
                            "upgrade_notes": upgrade_section(pr.get("body"))} for source, pr in prs.items()], indent=1)
     try:
         for item in claude.ask_json(NOTICE_SYSTEM, listing).get("notices", []):
-            if item.get("source") in prs:
-                drafts[item["source"]] = " ".join(str(item.get("notice", "")).split())
+            notice = item.get("notice") if isinstance(item, dict) else None
+            # Only a nonempty string is a notice: anything else leaves the PR without one, so plan() lists it.
+            if item.get("source") in prs and isinstance(notice, str) and notice.strip():
+                drafts[item["source"]] = " ".join(notice.split())
     except Exception as err:  # noqa: BLE001 - surfaced as a TODO
         result.todo(f"Claude could not draft the upgrade notices: {type(err).__name__}")
     return {source: text for source, text in drafts.items() if text}
@@ -152,7 +154,7 @@ def draft_notices(prs: dict, claude, result: Result) -> dict:
 def to_html(markdown: str) -> str:
     """A changelog bullet as the upgrade notes table's HTML: code, links, bold and italics. Braces
     and angle brackets become entities, so MDX reads them as text."""
-    text = markdown.replace("\\{", "{").replace("\\<", "<")
+    text = re.sub(r"\\([<>{}])", r"\1", markdown)
     parts, pos = [], 0
     for match in re.finditer(r"``(.+?)``|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)", text):
         parts.append(("text", text[pos:match.start()]))
@@ -191,9 +193,22 @@ def note_rows(short: str, entries: list[Entry]) -> str:
     return "".join(rows)
 
 
+def to_mdx(markdown: str) -> str:
+    """A changelog bullet as MDX text: ``<``, ``>``, ``{`` and ``}`` outside inline code are
+    escaped (unless they already are), so MDX doesn't read them as JSX or an expression. Inline
+    code and link targets are kept as they are."""
+    parts, pos = [], 0
+    for match in re.finditer(r"``.+?``|`[^`]+`|\]\([^)\s]+\)", markdown):
+        parts.append(re.sub(r"(?<!\\)([<>{}])", r"\\\1", markdown[pos:match.start()]))
+        parts.append(match.group(0))
+        pos = match.end()
+    parts.append(re.sub(r"(?<!\\)([<>{}])", r"\\\1", markdown[pos:]))
+    return "".join(parts)
+
+
 def removed_section(short: str, release_day: date | None, entries: list[Entry]) -> str:
     when = f" ({release_day.strftime('%B')} {release_day.year})" if release_day else ""
-    return f"### Mattermost Server {short}{when}\n\n" + "".join(f"- {entry.text}\n" for entry in entries) + "\n"
+    return f"### Mattermost Server {short}{when}\n\n" + "".join(f"- {to_mdx(entry.text)}\n" for entry in entries) + "\n"
 
 
 def without_rows(content: str, short: str) -> str:
@@ -219,12 +234,17 @@ def without_section(content: str, short: str) -> str:
                   count=1, flags=re.MULTILINE)
 
 
-def fill(content: str, after: str, block: str, placeholder: str, keep_placeholder: bool) -> str:
-    """``content`` with ``block`` right after ``after``, and the placeholder there only when it's kept.
-    The page may be the PR branch's, so the caller removes the release's earlier block first."""
+# Where each page's block goes: right after these lines.
+NOTES_ANCHOR = re.compile(r"<tbody>[ \t]*\n")
+REMOVED_ANCHOR = re.compile(r"## Removed features by Mattermost version[ \t]*\n\n")
+
+
+def fill(content: str, after: re.Pattern, block: str, placeholder: str, keep_placeholder: bool) -> str | None:
+    """``content`` with ``block`` right after the first match of ``after``, and the placeholder
+    there only when it's kept; None, with nothing removed, when ``after`` isn't there. The page may
+    be the PR branch's, so the caller removes the release's earlier block first."""
+    if not after.search(content.replace(placeholder, "")):
+        return None
     content = content.replace(placeholder, "")
-    at = content.find(after)
-    if at < 0:
-        return content
-    at += len(after)
+    at = after.search(content).end()
     return content[:at] + block + (placeholder if keep_placeholder else "") + content[at:]

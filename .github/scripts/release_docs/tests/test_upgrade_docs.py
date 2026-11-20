@@ -104,6 +104,25 @@ class ChangelogRunTest(unittest.TestCase):
             "text": "Plugin signatures that use SHA-1 are now rejected; re-sign them with SHA-256."}])
         self.assertEqual(changelog_run.bullets_for(f"{SERVER}#202", found, ENTRY), [])  # a reviewer deleted it
 
+    def test_the_same_text_from_two_runs_keeps_both_runs_sources(self):
+        reports = [{"sections": [{"section": "API Changes", "items": [{"text": "Removed ``X``.", "sources": [f"{SERVER}#2"]}]}]},
+                   {"sections": [{"section": "API Changes", "items": [{"text": "Removed  ``X``.",
+                                                                       "sources": [f"{SERVER}#1", f"{SERVER}#2"]}]}]}]
+        [item] = changelog_run.items(reports)
+        self.assertEqual(item["sources"], [f"{SERVER}#2", f"{SERVER}#1"])
+        self.assertEqual(len(changelog_run.bullets_for(f"{SERVER}#1", [item], " - Removed ``X``.\n")), 1)
+
+    def test_a_removal_never_matches_an_addition_and_two_close_bullets_are_unresolved(self):
+        removal = [{"section": "API Changes", "subsection": None, "sources": [f"{SERVER}#1"],
+                    "text": "Removed ``GET /api/v4/things`` API endpoint."}]
+        self.assertEqual(changelog_run.bullets_for(f"{SERVER}#1", removal, ENTRY), [])  # ENTRY has "Added" it
+        edited = "### API Changes\n - The ``GET /api/v4/things`` API endpoint was removed.\n"
+        self.assertEqual([b["text"] for b in changelog_run.bullets_for(f"{SERVER}#1", removal, edited)],
+                         ["The ``GET /api/v4/things`` API endpoint was removed."])
+        two = ("### API Changes\n - Removed the ``GET /api/v4/things`` API endpoint.\n"
+               " - Removed ``GET /api/v4/things`` API endpoints.\n")
+        self.assertEqual(changelog_run.bullets_for(f"{SERVER}#1", removal, two), [])
+
     def test_reports_come_from_the_changelog_workflows_artifacts(self):
         calls = []
 
@@ -166,9 +185,14 @@ class UpgradeDocsTest(unittest.TestCase):
                          'See <a href="https://d/x">the guide</a>.</p></td>\n</tr>\n'
                          '<tr>\n<td><p>Upgrade <strong>before</strong> you start.</p></td>\n</tr>\n')
         self.assertTrue(upgrade_docs.note_rows("v12.2", entries[1:]).startswith("<tr>\n<td>v12.2</td>\n"))
-        self.assertEqual(upgrade_docs.removed_section("v12.2", date(2026, 12, 16), entries[:1]),
-                         "### Mattermost Server v12.2 (December 2026)\n\n- Removed ``GET /x/{id}`` & <b>. See "
-                         "[the guide](https://d/x).\n\n")
+        # MDX-safe: literal braces and angle brackets escaped outside inline code; code and links kept.
+        entries.append(upgrade_docs.Entry("c", "Removed the {legacy} <Setting> flag; see \\{already\\}. `a{b}<c>`"))
+        self.assertEqual(upgrade_docs.removed_section("v12.2", date(2026, 12, 16), [entries[0], entries[2]]),
+                         "### Mattermost Server v12.2 (December 2026)\n\n- Removed ``GET /x/{id}`` & \\<b\\>. See "
+                         "[the guide](https://d/x).\n- Removed the \\{legacy\\} \\<Setting\\> flag; see "
+                         "\\{already\\}. `a{b}<c>`\n\n")
+        self.assertIn("<p>Removed the &#123;legacy&#125; &lt;Setting&gt; flag; see &#123;already&#125;. "
+                      "<code>a&#123;b&#125;&lt;c&gt;</code></p>", upgrade_docs.note_rows("v12.2", entries[2:]))
 
     def build(self, docs, today=None):
         files = {**real_docs(), release_docs_pr.POSTGRES_REQUIREMENT: "\tMinimumPostgresMajorVersion = 15\n"}
@@ -225,7 +249,7 @@ class UpgradeDocsTest(unittest.TestCase):
         placeholder = release_docs_pr.placeholder(Version.parse("v12.2.0"), "Important Upgrade Notes")
         self.assertEqual(upgrade_docs.fill(first.replace("Plugin signatures using SHA-1 are now rejected. See "
                                                          '<a href="https://docs.mattermost.com/x">the guide</a>.', "x"),
-                                           "<tbody>\n", "", placeholder, True).count(placeholder), 1)
+                                           upgrade_docs.NOTES_ANCHOR, "", placeholder, True).count(placeholder), 1)
 
     def test_a_rerun_on_the_pr_branch_replaces_the_release_rows_and_section(self):
         def build_on(files, docs):
@@ -249,6 +273,22 @@ class UpgradeDocsTest(unittest.TestCase):
         self.assertNotIn("ServiceSettings.EnableLegacy", removed)
         self.assertIn('<td rowspan="27">v12.0</td>', notes)
         self.assertIn("### Mattermost Server v12.0 (October 2026)", removed)
+
+    def test_a_page_without_its_anchor_is_left_unchanged_and_reported(self):
+        docs = upgrade_docs.plan([f"{SERVER}#201"], BULLETS, {})
+        notes = real_docs()[release_docs_pr.UPGRADE_NOTES]
+        broken = notes.replace("<tbody>", "<tbody >")
+        result = self.build_with({release_docs_pr.UPGRADE_NOTES: broken}, docs)
+        self.assertNotIn(release_docs_pr.UPGRADE_NOTES, result.files)
+        self.assertIn(f"{release_docs_pr.UPGRADE_NOTES} has no `<tbody>` to add v12.2's Important Upgrade Notes after, "
+                      "so it is unchanged", result.todos)
+        spaced = notes.replace("<tbody>\n", "<tbody>  \n", 1)  # trailing spaces after <tbody> are fine
+        result = self.build_with({release_docs_pr.UPGRADE_NOTES: spaced}, docs)
+        self.assertIn("<tbody>  \n<tr>\n<td>v12.2</td>", result.files[release_docs_pr.UPGRADE_NOTES])
+
+    def build_with(self, pages, docs):
+        files = {**real_docs(), release_docs_pr.POSTGRES_REQUIREMENT: "", **pages}
+        return release_docs_pr.build(Version.parse("v12.2.0"), files, "v10.11,v11.7,v12.4", date(2026, 12, 16), 15, {}, docs)
 
     def test_the_check_ignores_the_ui_accessibility_placeholder(self):
         page = "<tbody>\n{/* release-agent placeholder: v12.2 UI & Accessibility changelog rows, filled in a later PR. */}\n"
@@ -308,6 +348,13 @@ class FromMarkerTest(unittest.TestCase):
         docs, _ = self.upgrade("<!-- release-automation:confirmed-breaking: 201 -->")
         self.assertEqual(self.claude.prompts, [])
         self.assertTrue(docs.complete)
+
+    def test_a_notice_that_is_not_a_nonempty_string_is_no_notice(self):
+        for notice in (None, 7, "  "):
+            self.claude = FakeClaude({"notices": [{"source": f"{SERVER}#204", "notice": notice}]})
+            docs, _ = self.upgrade("<!-- release-automation:confirmed-breaking: 204 -->")
+            self.assertEqual(docs.notes, [], notice)
+            self.assertIn(f"{SERVER}#204 is a confirmed breaking change with no changelog bullet", docs.todos[0])
 
     def test_without_claude_a_pr_with_no_bullet_is_a_missing_input(self):
         self.claude = None

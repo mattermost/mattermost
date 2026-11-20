@@ -55,16 +55,22 @@ def fetch_reports(version: str, token: str, repo: str = "mattermost/mattermost",
 
 def items(reports: list[dict]) -> list[dict]:
     """Every bullet the changelog runs wrote, newest run first, each text once:
-    ``{"section", "subsection", "text", "sources"}``."""
-    found, seen = [], set()
+    ``{"section", "subsection", "text", "sources"}``. A text written by several runs keeps the
+    newest run's place and every run's sources."""
+    found, by_text = [], {}
     for report in reports:
         for group in report.get("sections", []):
             for item in group.get("items", []):
                 text = " ".join((item.get("text") or "").split())
-                if text and text not in seen:
-                    seen.add(text)
-                    found.append({"section": group.get("section"), "subsection": group.get("subsection"),
-                                  "text": text, "sources": list(item.get("sources") or [])})
+                if not text:
+                    continue
+                sources = list(item.get("sources") or [])
+                if text in by_text:
+                    by_text[text]["sources"] = list(dict.fromkeys(by_text[text]["sources"] + sources))
+                    continue
+                by_text[text] = {"section": group.get("section"), "subsection": group.get("subsection"),
+                                 "text": text, "sources": list(dict.fromkeys(sources))}
+                found.append(by_text[text])
     return found
 
 
@@ -98,20 +104,47 @@ def _identifiers(text: str) -> set[str]:
     return {a or b for a, b in _CODE.findall(text)}
 
 
+# What a bullet does to its subject. An "Added X" bullet and a "Removed X" one name the same
+# thing in nearly the same words, so they never match each other.
+_ACTIONS = {"added": "added", "introduced": "added", "removed": "removed", "dropped": "removed",
+            "deleted": "removed", "deprecated": "deprecated", "changed": "changed", "updated": "changed",
+            "renamed": "changed", "replaced": "changed", "moved": "changed", "modified": "changed"}
+_LEADING = re.compile(r"^\W*(\w+)")
+_PASSIVE = re.compile(r"\b(?:is|are|was|were|has been|have been|will be) (" + "|".join(_ACTIONS) + r")\b", re.IGNORECASE)
+
+
+def _action(text: str) -> str | None:
+    leading = _LEADING.match(text)
+    if leading and leading.group(1).lower() in _ACTIONS:
+        return _ACTIONS[leading.group(1).lower()]
+    passive = _PASSIVE.search(text)
+    return _ACTIONS[passive.group(1).lower()] if passive else None
+
+
+def _compatible(a: str, b: str) -> bool:
+    first, second = _action(a), _action(b)
+    return first is None or second is None or first == second
+
+
 def bullets_for(source: str, all_items: list[dict], entry: str | None) -> list[dict]:
     """The changelog bullets of ``source``, with the wording the entry has now when the bullet is
     still there (edited or not); a bullet no longer in the entry is left out. Changelog bullets
     share their phrasing ("Removed ``X`` API endpoint."), so a bullet naming identifiers only
-    matches an entry bullet that names one of them."""
+    matches an entry bullet that names one of them, and never one doing something else to it
+    ("Added ``X``" is not "Removed ``X``"). The same text in the entry is a match; otherwise
+    several close entry bullets are ambiguous, and the bullet is left out (unresolved)."""
     current = entry_bullets(entry)
     found = []
     for item in all_items:
         if source not in item["sources"]:
             continue
         names = _identifiers(item["text"])
-        options = [b for b in current if not names or names & _identifiers(b["text"])]
-        best = max(options, key=lambda b: _similar(b["text"], item["text"]), default=None)
-        if best is not None and _similar(best["text"], item["text"]) >= SIMILAR:
+        options = [b for b in current if (not names or names & _identifiers(b["text"])) and
+                   _compatible(b["text"], item["text"])]
+        same = [b for b in options if " ".join(b["text"].split()) == item["text"]]
+        close = same[:1] or [b for b in options if _similar(b["text"], item["text"]) >= SIMILAR]
+        if len(close) == 1:
+            best = close[0]
             found.append({**item, "text": best["text"], "section": best["section"] or item["section"],
                           "subsection": best["subsection"]})
         elif entry is None:
