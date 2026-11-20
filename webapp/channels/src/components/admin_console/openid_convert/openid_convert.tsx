@@ -4,6 +4,7 @@
 import React, {memo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -81,8 +82,8 @@ const OpenIdConvert = ({
                     />
                 </p>
                 <div className='OpenIdConvert_actionWrapper'>
-                    <button
-                        className='btn'
+                    <Button
+                        emphasis='primary'
                         data-testid='openIdConvert'
                         disabled={disabled}
                         onClick={upgradeConfig}
@@ -91,18 +92,22 @@ const OpenIdConvert = ({
                             id='admin.openIdConvert.text'
                             defaultMessage='Convert to OpenID Connect'
                         />
-                    </button>
-                    <ExternalLink
-                        className='btn-secondary'
-                        location='openid_convert'
-                        href='https://www.mattermost.com/default-openid-docs'
-                        data-testid='openIdLearnMore'
+                    </Button>
+                    <Button
+                        asChild={true}
+                        emphasis='secondary'
                     >
-                        <FormattedMessage
-                            id='admin.openIdConvert.help'
-                            defaultMessage='Learn more'
-                        />
-                    </ExternalLink>
+                        <ExternalLink
+                            location='openid_convert'
+                            href='https://www.mattermost.com/default-openid-docs'
+                            data-testid='openIdLearnMore'
+                        >
+                            <FormattedMessage
+                                id='admin.openIdConvert.help'
+                                defaultMessage='Learn more'
+                            />
+                        </ExternalLink>
+                    </Button>
                     <div
                         className='error-message'
                         data-testid='errorMessage'

@@ -46,7 +46,7 @@ export default class NotificationsSettings {
         this.channelWideMentionsCheckbox = container.getByRole('checkbox', {name: 'Channel-wide mentions'});
 
         this.testNotificationButton = container.getByRole('button', {name: 'Send a test notification'});
-        this.troubleshootingDocsButton = container.getByRole('button', {name: 'Troubleshooting docs 󰏌'});
+        this.troubleshootingDocsButton = container.getByRole('button', {name: 'Troubleshooting docs'});
 
         this.keysWithHighlightDesc = container.locator('#keywordsAndHighlightDesc');
     }

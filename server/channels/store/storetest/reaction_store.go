@@ -155,6 +155,14 @@ func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
 
+		// updatePostForReactionsOnDelete stamps UpdateAt with model.GetMillis()
+		// (1ms resolution). Wait until the clock advances past firstUpdateAt so
+		// Delete is guaranteed to write a larger UpdateAt, regardless of how
+		// coarse the wall-clock granularity is.
+		for model.GetMillis() <= firstUpdateAt {
+			time.Sleep(time.Millisecond)
+		}
+
 		_, nErr = ss.Reaction().Delete(reaction)
 		require.NoError(t, nErr)
 
@@ -428,6 +436,23 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		returned, err := ss.Reaction().GetForPostSince(postId, later*2, "", true)
 		require.NoError(t, err)
 		require.Empty(t, returned, "should've returned 0 reactions")
+	})
+
+	t.Run("reactions since zero, incl rows without UpdateAt", func(t *testing.T) {
+		_, err := s.GetMaster().Exec("UPDATE Reactions SET UpdateAt = NULL WHERE PostId = $1 AND UserId = $2", postId, reactions[1].UserId)
+		require.NoError(t, err)
+
+		returned, err := ss.Reaction().GetForPostSince(postId, 0, "", true)
+		require.NoError(t, err)
+		require.Len(t, returned, 4, "should've returned all 4 reactions for post")
+		var found bool
+		for _, r := range returned {
+			if r.UserId == reactions[1].UserId {
+				found = true
+				assert.Equal(t, r.CreateAt, r.UpdateAt, "UpdateAt should fall back to CreateAt")
+			}
+		}
+		assert.True(t, found, "should've returned the reaction without UpdateAt")
 	})
 }
 

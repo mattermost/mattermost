@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Prints the tag identifying the mattermost-build-server image, e.g.
-# "go1.26.7-node24.11.1". The image bakes in both toolchains, so the tag names
+# "go1.27.3-node24.11.1". The image bakes in both toolchains, so the tag names
 # both. CI resolves this once and propagates it as BUILD_SERVER_TAG.
 #
 # The tag comes from the Dockerfiles, since those are what actually determine
 # the image, and they are checked against .go-version and .nvmrc so the pins
-# cannot drift apart unnoticed.
+# cannot drift apart unnoticed. mise.toml pins Node for developers rather than
+# for the image, but it is checked here too, for the same reason.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
@@ -18,13 +19,18 @@ fail() {
 }
 
 # A pin may be more specific than its source of truth: the FIPS base image
-# carries a fourth component, 1.26.7.1 for Go 1.26.7.
+# may carry a fourth component, e.g. 1.26.7.1 for Go 1.26.7.
 satisfies() {
     [[ "$1" == "$2" || "$1" == "$2."* ]]
 }
 
 go_version=$(cat server/.go-version)
 node_spec=$(cat .nvmrc)
+
+mise_version=$(awk -F'"' '$1 ~ /^node[[:space:]]*=[[:space:]]*$/ { print $2; exit }' mise.toml)
+[[ -n "${mise_version}" ]] || fail "mise.toml: no node pin"
+satisfies "${mise_version}" "${node_spec}" ||
+    fail "mise.toml: node is ${mise_version}, but .nvmrc says ${node_spec}"
 
 node_version=""
 for dockerfile in "${DOCKERFILES[@]}"; do

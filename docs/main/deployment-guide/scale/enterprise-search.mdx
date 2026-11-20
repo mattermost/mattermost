@@ -71,7 +71,7 @@ The migration path from Elasticsearch v7.10.x to OpenSearch has been designed to
 
 ### Do I need to use Elasticsearch or AWS OpenSearch?
 
-No. Enterprise search engines are designed for large Enterprise deployments to run highly efficient database searches in a cluster environment. The default Mattermost database search starts to show performance degradation at around 2.5 million posts, depending on the specifications for the database server. If you expect your Mattermost server to have more than 2.5 million posts, we recommend using Elasticsearch or AWS OpenSearch for optimum search performance.
+No. Enterprise search engines are designed for large Enterprise deployments to run highly efficient database searches in a cluster environment. The default Mattermost database search starts to show performance degradation at around 2 million posts, depending on the specifications for the database server. If you expect your Mattermost server to have more than 2 million posts, we recommend using Elasticsearch or AWS OpenSearch for optimum search performance.
 
 ### Should I install Elasticsearch or OpenSearch on the same machine as Mattermost Server?
 
@@ -151,6 +151,10 @@ During an outage, you may see the following log messages:
 ### My search indexes won't complete, what should I do?
 
 If you have an search indexing job that's paused, it's likely your Elasticsearch or OpenSearch server has restarted. If you restart that server, you must also restart Mattermost to ensure jobs are completed. If restarting the Mattermost server does not resolve the issue, [customers with a Mattermost subscription can contact Mattermost Support](https://mattermost.com/support/) for assistance.
+
+### Should I turn off indexing before a large bulk permanent channel delete?
+
+Yes. Turn off Elasticsearch indexing before a large bulk permanent deletion of channels, and leave the Elasticsearch or OpenSearch cluster running. Permanently deleting a channel reindexes every member, and that indexing work can exhaust server memory. After the deletes finish, turn indexing back on and run a bulk index. See [Enable Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing).
 
 ### Do I need to purge first then bulk index each time?
 

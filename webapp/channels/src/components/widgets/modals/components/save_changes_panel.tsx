@@ -3,12 +3,16 @@
 
 import classNames from 'classnames';
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
-
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import {
+    AlertCircleOutlineIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './save_changes_panel.scss';
 
@@ -40,6 +44,7 @@ function SaveChangesPanel({
     cancelButtonText,
     saving = false,
 }: Props) {
+    const intl = useIntl();
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
@@ -92,16 +97,15 @@ function SaveChangesPanel({
         if (state === 'saved') {
             return (
                 <div className='SaveChangesPanel__btn-ctr'>
-                    <button
-                        id='panelCloseButton'
-                        type='button'
-                        className='btn btn-icon btn-sm'
-                        onClick={handleClose}
-                    >
-                        <i
-                            className='icon icon-close'
+                    <WithTooltip title={intl.formatMessage({id: 'saveChangesPanel.dismiss', defaultMessage: 'Dismiss'})}>
+                        <IconButton
+                            id='panelCloseButton'
+                            size='small'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            onClick={handleClose}
+                            aria-label={intl.formatMessage({id: 'saveChangesPanel.dismiss', defaultMessage: 'Dismiss'})}
                         />
-                    </button>
+                    </WithTooltip>
                 </div>
             );
         }
@@ -113,7 +117,7 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__cancel-btn'
                     emphasis='tertiary'
-                    size='sm'
+                    size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
                     disabled={saving}
@@ -128,19 +132,16 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__save-btn'
                     emphasis='primary'
-                    size='sm'
-                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error', 'btn-force-disabled': saving})}
+                    size='small'
+                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
+                    loading={saving}
                 >
                     {saving ? (
-                        <LoadingSpinner
-                            text={
-                                <FormattedMessage
-                                    id='saveChangesPanel.saving'
-                                    defaultMessage='Saving...'
-                                />
-                            }
+                        <FormattedMessage
+                            id='saveChangesPanel.saving'
+                            defaultMessage='Saving...'
                         />
                     ) : (saveButtonText || (
                         <FormattedMessage

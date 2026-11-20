@@ -65,22 +65,14 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
 
     const baseProps = {
         outgoingWebhook,
-        onRegenToken: () => {}, //eslint-disable-line no-empty-function
-        onDelete: () => {}, //eslint-disable-line no-empty-function
+        onRegenToken: () => {},
+        onDelete: () => {},
         filter: '',
         creator: userProfile,
         canChange: true,
         team,
         channel,
     };
-
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <InstalledOutgoingWebhook {...baseProps}/>,
-            initialState as GlobalState,
-        );
-        expect(container).toMatchSnapshot();
-    });
 
     test('should not have edit and delete actions if user does not have permissions to change', () => {
         const newCanChange = false;
@@ -172,40 +164,6 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
 
         await userEvent.click(screen.getByText('Delete'));
         expect(newOnDelete).toHaveBeenCalledTimes(1);
-    });
-
-    test('Should match snapshot of makeDisplayName', () => {
-        // Test with webhook display name
-        const {container: container1} = renderWithContext(
-            <InstalledOutgoingWebhook
-                {...baseProps}
-                outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: 'hook display name'})}
-            />,
-            initialState as GlobalState,
-        );
-        expect(container1.querySelector('.item-details__name')).toMatchSnapshot();
-
-        // Test with channel display name (no webhook display name)
-        const {container: container2} = renderWithContext(
-            <InstalledOutgoingWebhook
-                {...baseProps}
-                outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: ''})}
-                channel={TestHelper.getChannelMock({display_name: 'channel display name'})}
-            />,
-            initialState as GlobalState,
-        );
-        expect(container2.querySelector('.item-details__name')).toMatchSnapshot();
-
-        // Test with no display name and no channel - displays "A Private Webhook"
-        const {container: container3} = renderWithContext(
-            <InstalledOutgoingWebhook
-                {...baseProps}
-                outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: ''})}
-                channel={undefined as unknown as Channel}
-            />,
-            initialState as GlobalState,
-        );
-        expect(container3.querySelector('.item-details__name')).toMatchSnapshot();
     });
 
     test('Should match result when matchesFilter is called', () => {

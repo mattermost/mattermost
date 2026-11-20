@@ -57,16 +57,19 @@
 
     .attribute-options-values__chip-remove {
         display: inline-flex;
+        width: 24px;
+        height: 24px;
         align-items: center;
+        align-self: center;
         justify-content: center;
-        padding: 0 4px;
+        padding: 0;
         border: none;
+        margin-right: 6px;
         background: transparent;
-        color: var(--center-channel-color);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
 
         &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
             color: var(--center-channel-color);
         }
     }
@@ -106,6 +109,27 @@
 
         &:focus {
             outline: none;
+        }
+    }
+
+    &.attribute-options-values--readOnly {
+        .attribute-options-values__chips {
+            padding-right: 0;
+            padding-left: 0;
+            margin: 0;
+            cursor: default;
+            list-style: none;
+
+            &:hover,
+            &:focus-within {
+                background: transparent;
+            }
+        }
+
+        .attribute-options-values__chip-label--static {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 8px;
         }
     }
 

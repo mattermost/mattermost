@@ -5,6 +5,7 @@ package import_process
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -30,8 +31,9 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 	BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError)
-	BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError)
+	BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *imports.ImportReport, *model.AppError)
 	Log() *mlog.Logger
 }
 
@@ -183,10 +185,31 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			ResumeFromLine:         resumeFromLine,
 			OnCheckpoint:           onCheckpoint,
 		}
-		lineNumber, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
+		lineNumber, report, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr
+		}
+
+		// Persist the log of users who could not be matched to an existing account on
+		// the destination (scoped migrations). Best-effort: a failure to write the
+		// report must not fail an otherwise-successful import, so we only warn.
+		if report != nil {
+			localMode := job.Data["local_mode"] == "true"
+			if count, reportPath, rErr := writeUnmatchedUsersReport(app, report, importFileName, localMode); rErr != nil {
+				logger.Warn("Failed to write unmatched-users report", mlog.Err(rErr))
+			} else if count > 0 {
+				job.Data["unmatched_users_count"] = strconv.Itoa(count)
+				job.Data["unmatched_users_report"] = reportPath
+				// SetJobSuccess only updates status, not Data, so persist here while the
+				// job is still in_progress (same approach as the checkpoint writer).
+				if _, uErr := jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); uErr != nil {
+					logger.Warn("Failed to persist unmatched-users report metadata", mlog.Err(uErr))
+				}
+				logger.Info("Scoped import: some users were not matched on the destination",
+					mlog.Int("unmatched_users", count),
+					mlog.String("report", reportPath))
+			}
 		}
 
 		// No need to remove the file in local mode.
@@ -200,4 +223,35 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	}
 	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
+}
+
+// writeUnmatchedUsersReport serializes the scoped-import unmatched-user log to CSV and
+// persists it next to the import file, returning the row count and the path it wrote.
+// It returns (0, "", nil) when there are no unmatched users, so the caller can skip
+// recording an empty report. In local mode the file is written to the local
+// filesystem alongside the import file; otherwise it is written to the filestore under
+// the configured import directory.
+func writeUnmatchedUsersReport(app AppIface, report *imports.ImportReport, importFileName string, localMode bool) (int, string, error) {
+	var buf bytes.Buffer
+	count, err := report.WriteUnmatchedUsersCSV(&buf)
+	if err != nil {
+		return 0, "", err
+	}
+	if count == 0 {
+		return 0, "", nil
+	}
+
+	reportName := importFileName + ".unmatched-users.csv"
+	if localMode {
+		if err := os.WriteFile(reportName, buf.Bytes(), 0600); err != nil {
+			return 0, "", err
+		}
+		return count, reportName, nil
+	}
+
+	reportPath := filepath.Join(*app.Config().ImportSettings.Directory, reportName)
+	if _, appErr := app.WriteFile(&buf, reportPath); appErr != nil {
+		return 0, "", appErr
+	}
+	return count, reportPath, nil
 }

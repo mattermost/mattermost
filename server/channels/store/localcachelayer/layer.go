@@ -46,6 +46,9 @@ const (
 	AllChannelMembersForUserCacheSize     = model.SessionCacheSize
 	AllChannelMembersForUserCacheDuration = 15 * time.Minute
 
+	ChannelMemberRolesCacheSize     = 500000 // User+channel combos; ~300 B each, so ~150-190 MB when full
+	ChannelMemberRolesCacheDuration = 15 * time.Minute
+
 	AllChannelMembersNotifyPropsForChannelCacheSize     = model.SessionCacheSize
 	AllChannelMembersNotifyPropsForChannelCacheDuration = 30 * time.Minute
 
@@ -102,6 +105,9 @@ const (
 
 	UserPropertyValuesEpochCacheSize = 25000 // Per-user CPA epochs
 	UserPropertyValuesEpochCacheSec  = 15 * 60
+
+	UserAttributesCacheSize = 25000 // Per-user CPA attribute blobs (Subject.Attributes)
+	UserAttributesCacheSec  = 15 * 60
 )
 
 var clearCacheMessageData = []byte("")
@@ -136,6 +142,7 @@ type LocalCacheStore struct {
 	channelPinnedPostCountsCache   cache.Cache
 	channelByIdCache               cache.Cache
 	channelMembersForUserCache     cache.Cache
+	channelMemberRolesCache        cache.Cache
 	channelMembersNotifyPropsCache cache.Cache
 	channelByNameCache             cache.Cache
 
@@ -187,6 +194,7 @@ type LocalCacheStore struct {
 
 	attributes                   LocalCacheAttributesStore
 	userPropertyValuesEpochCache cache.Cache
+	userAttributesCache          cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -325,6 +333,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Name:                   "ChannelMembersForUser",
 		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelMemberRolesCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ChannelMemberRolesCacheSize,
+		Name:                   "ChannelMemberRoles",
+		DefaultExpiry:          ChannelMemberRolesCacheDuration,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelMemberRoles,
 	}); err != nil {
 		return
 	}
@@ -553,6 +569,16 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+
+	// User attributes (CPA)
+	if localCacheStore.userAttributesCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   UserAttributesCacheSize,
+		Name:                   "UserAttributes",
+		DefaultExpiry:          UserAttributesCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUserAttributes,
+	}); err != nil {
+		return
+	}
 	localCacheStore.attributes = LocalCacheAttributesStore{AttributesStore: baseStore.Attributes(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -571,6 +597,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelGuestCount, localCacheStore.channel.handleClusterInvalidateChannelGuestCounts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannel, localCacheStore.channel.handleClusterInvalidateChannelById)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUser, localCacheStore.channel.handleClusterInvalidateChannelForUser)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMemberRoles, localCacheStore.channel.handleClusterInvalidateChannelMemberRoles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMembersNotifyProps, localCacheStore.channel.handleClusterInvalidateChannelMembersNotifyProps)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, localCacheStore.channel.handleClusterInvalidateChannelByName)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForLastPosts, localCacheStore.post.handleClusterInvalidateLastPosts)
@@ -589,6 +616,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPropertyFields, localCacheStore.propertyField.handleClusterInvalidatePropertyField)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAccessControlPolicyEtag, localCacheStore.accessControlPolicy.handleClusterInvalidateAccessControlPolicyEtag)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch, localCacheStore.attributes.handleClusterInvalidateUserPropertyValuesEpoch)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAttributes, localCacheStore.attributes.handleClusterInvalidateUserAttributes)
 	}
 	return
 }
@@ -803,6 +831,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.channelGuestCountCache)
 	s.doClearCacheCluster(s.channelByIdCache)
 	s.doClearCacheCluster(s.channelMembersForUserCache)
+	s.doClearCacheCluster(s.channelMemberRolesCache)
 	s.doClearCacheCluster(s.channelMembersNotifyPropsCache)
 	s.doClearCacheCluster(s.channelByNameCache)
 	s.doClearCacheCluster(s.postLastPostsCache)
@@ -823,6 +852,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.propertyFieldCache)
 	s.doClearCacheCluster(s.accessControlPolicyEtagCache)
 	s.doClearCacheCluster(s.userPropertyValuesEpochCache)
+	s.doClearCacheCluster(s.userAttributesCache)
 }
 
 // allocateCacheTargets is used to fill target value types

@@ -146,11 +146,7 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		}
 		if replacementPost != nil {
 			post = replacementPost
-			if post.Metadata != nil && metadata != nil {
-				post.Metadata.Priority = metadata.Priority
-			} else {
-				post.Metadata = metadata
-			}
+			restorePriorityAndValues(post, metadata)
 		}
 		return true
 	}, plugin.MessageWillBePostedID)
@@ -178,11 +174,7 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		}
 		if replacement != nil {
 			post = replacement
-			if post.Metadata != nil && metadata != nil {
-				post.Metadata.Priority = metadata.Priority
-			} else {
-				post.Metadata = metadata
-			}
+			restorePriorityAndValues(post, metadata)
 		}
 		if trackPluginDelivery {
 			deliveredPluginIDs = append(deliveredPluginIDs, g.PluginId)
@@ -190,6 +182,18 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 	}
 
 	return post, deliveredPluginIDs, nil
+}
+
+// restorePriorityAndValues puts the original post's priority and property values back on a
+// plugin's replacement post. Values are validated before the hooks run, and a plugin sets
+// values through the plugin API, not by rewriting the post here.
+func restorePriorityAndValues(replacement *model.Post, original *model.PostMetadata) {
+	if replacement.Metadata != nil && original != nil {
+		replacement.Metadata.Priority = original.Priority
+		replacement.Metadata.PropertyValues = original.PropertyValues
+	} else {
+		replacement.Metadata = original
+	}
 }
 
 // runGuardedMessageWillBeUpdated dispatches MessageWillBeUpdated. In the non-guarded
@@ -409,6 +413,14 @@ func (a *App) runGuardedScheduledPostWillBeCreated(
 	callerName string,
 	buildRejectionErr func(reason string) *model.AppError,
 ) (*model.ScheduledPost, *model.AppError) {
+	// Plugins must never learn that a burn-on-read post happened, matching CreatePost. The hook
+	// is skipped outright rather than sanitized, so guard claimants cannot reject these either.
+	// Unlike CreatePost, which gates this at the call site before invoking the guarded hook, the
+	// check lives inside this method so callers can't accidentally run the hook for these posts.
+	if scheduledPost.Type == model.PostTypeBurnOnRead {
+		return scheduledPost, nil
+	}
+
 	// Channel the guard is resolved for; reused for the inactive-plugin log below.
 	originalChannelID := scheduledPost.ChannelId
 

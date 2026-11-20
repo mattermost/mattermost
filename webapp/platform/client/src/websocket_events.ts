@@ -78,7 +78,6 @@ export const enum WebSocketEvents {
     PostAcknowledgementAdded = 'post_acknowledgement_added',
     PostAcknowledgementRemoved = 'post_acknowledgement_removed',
     PersistentNotificationTriggered = 'persistent_notification_triggered',
-    HostedCustomerSignupProgressUpdated = 'hosted_customer_signup_progress_updated',
     ChannelBookmarkCreated = 'channel_bookmark_created',
     ChannelBookmarkUpdated = 'channel_bookmark_updated',
     ChannelBookmarkDeleted = 'channel_bookmark_deleted',

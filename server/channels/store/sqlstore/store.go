@@ -49,7 +49,7 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	minimumRequiredPostgresVersion = 150000
+	minimumRequiredPostgresVersion = model.MinimumPostgresMajorVersion * 10000
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -122,6 +122,7 @@ type SqlStoreStores struct {
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
+	healthFinding              store.HealthFindingStore
 }
 
 type SqlStore struct {
@@ -317,6 +318,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
+	store.stores.healthFinding = newSqlHealthFindingStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -980,6 +982,10 @@ func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 
 func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return ss.stores.channelJoinRequest
+}
+
+func (ss *SqlStore) HealthFinding() store.HealthFindingStore {
+	return ss.stores.healthFinding
 }
 
 func (ss *SqlStore) DropAllTables() {

@@ -309,6 +309,11 @@ func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID
 func (s *SqlAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {}
 func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
 
+// No-op at the SQL layer; the user-attributes Subject is cached in and invalidated by the local
+// cache layer.
+func (s *SqlAttributesStore) InvalidateUserAttributes(userID string) {}
+func (s *SqlAttributesStore) ClearUserAttributesCache()              {}
+
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
 		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").

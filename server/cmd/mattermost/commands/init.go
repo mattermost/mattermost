@@ -59,11 +59,21 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool, options ..
 
 func initStoreCommandContextCobra(logger mlog.LoggerIFace, command *cobra.Command) (store.Store, error) {
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	cfgStore, err := newCommandConfigStore(cfgDSN, true, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load configuration")
 	}
 
 	config := cfgStore.Get()
 	return sqlstore.New(config.SqlSettings, logger, nil)
+}
+
+// newCommandConfigStore loads translations before the config store, so that validation
+// errors and locale checks during config loading work as they do when starting the server.
+func newCommandConfigStore(dsn string, readOnly bool, customDefaults *model.Config) (*config.Store, error) {
+	if err := utils.TranslationsPreInit(); err != nil {
+		return nil, errors.Wrap(err, "unable to load Mattermost translation files")
+	}
+
+	return config.NewStoreFromDSN(dsn, readOnly, customDefaults, true)
 }

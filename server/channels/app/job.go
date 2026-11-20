@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -39,13 +40,10 @@ func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
 func (a *App) GetJob(rctx request.CTX, id string) (*model.Job, *model.AppError) {
 	job, err := a.Srv().Store().Job().Get(rctx, id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return job, nil
@@ -91,6 +89,18 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 	case model.JobTypeAccessControlTeamSync:
 		// Route team ABAC jobs to specialized deduplication handler
 		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
+	case model.JobTypeHealthCheck:
+		// One run at a time: an active run is returned instead of a new one.
+		run, err := a.StartHealthCheckRun(rctx)
+		return run, model.AsAppError(err)
+	case model.JobTypeElasticsearchPostIndexing:
+		if _, ok := job.Data["index_files"]; !ok {
+			if job.Data == nil {
+				job.Data = model.StringMap{}
+			}
+			job.Data["index_files"] = strconv.FormatBool(*a.Config().ElasticsearchSettings.EnableFileIndexing)
+		}
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	default:
 		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	}
@@ -250,6 +260,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeCleanupExpiredAccessTokens,
 		model.JobTypeNotifyExpiringAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeHealthCheck:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 			return true, model.PermissionManageSystem
@@ -386,7 +398,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeDeleteExpiredPosts,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionReadJobs
-	case model.JobTypeAccessControlSync:
+	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
 		permission = model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {

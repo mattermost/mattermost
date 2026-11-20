@@ -41,6 +41,7 @@ SEE ALSO
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 * `mmctl extract <mmctl_extract.rst>`_ 	 - Management of content extraction job.
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
+* `mmctl health <mmctl_health.rst>`_ 	 - Inspect workspace health findings
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
 * `mmctl job <mmctl_job.rst>`_ 	 - Management of jobs

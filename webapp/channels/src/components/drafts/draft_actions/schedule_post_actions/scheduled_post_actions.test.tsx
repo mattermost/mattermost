@@ -7,12 +7,19 @@ import React from 'react';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import * as commonSelectors from 'mattermost-redux/selectors/entities/common';
 import * as usersSelectors from 'mattermost-redux/selectors/entities/users';
+
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ScheduledPostActions from './scheduled_post_actions';
+
+jest.mock('components/common/hooks/useCreateBurnOnReadAccess', () => ({
+    useCreateBurnOnReadAccess: jest.fn(),
+}));
 
 const initialState = {
     entities: {
@@ -86,6 +93,7 @@ describe('ScheduledPostActions Component', () => {
         getMyChannelMembershipsnMock = jest.spyOn(commonSelectors, 'getMyChannelMemberships');
 
         // Set default return values
+        (useCreateBurnOnReadAccess as jest.Mock).mockReset().mockReturnValue(true);
         isCurrentUserSystemAdminMock.mockReturnValue(false);
         getMyChannelMembershipsnMock.mockReturnValue({
             channel_id: {
@@ -225,5 +233,87 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).toContain('draft_icon-send-outline_sendNow');
         expect(buttonIds).toContain('draft_icon-pencil-outline_edit');
         expect(buttonIds).toContain('draft_icon-clock-send-outline_reschedule');
+    });
+
+    // Edit / Reschedule / Send now all end in a 403 once the author loses the
+    // create_burn_on_read_post policy, and Send now's error is swallowed by
+    // draft_row.tsx's ignorePostError, so we hide them. Delete and Copy text stay:
+    // deleting is the only way out of the state.
+    //
+    // Feature flags, pending decisions and fetching are useCreateBurnOnReadAccess's own business
+    // and are covered by its tests. All this component gets back is a boolean.
+    describe('burn-on-read policy gating', () => {
+        const burnOnReadPost = {
+            ...defaultProps.scheduledPost,
+            type: PostTypes.BURN_ON_READ,
+        } as ScheduledPost;
+
+        function renderedButtonIds() {
+            return screen.getAllByRole('button').map((button) => button.id);
+        }
+
+        function expectOnlyDeleteAndCopy() {
+            const buttonIds = renderedButtonIds();
+            expect(buttonIds).toHaveLength(2);
+            expect(buttonIds).toContain('draft_icon-trash-can-outline_delete');
+            expect(buttonIds).toContain('draft_icon-content-copy_copy_text');
+            expect(buttonIds).not.toContain('draft_icon-pencil-outline_edit');
+            expect(buttonIds).not.toContain('draft_icon-clock-send-outline_reschedule');
+            expect(buttonIds).not.toContain('draft_icon-send-outline_sendNow');
+        }
+
+        it('asks about the post channel', () => {
+            renderComponent({...defaultProps, scheduledPost: burnOnReadPost});
+
+            expect(useCreateBurnOnReadAccess).toHaveBeenCalledWith('channel_id');
+        });
+
+        // No channel means the hook neither selects nor fetches. This page renders one row per
+        // scheduled post, so without that a list of ordinary posts would ask the server for a
+        // decision per channel.
+        it('asks about no channel on an ordinary scheduled post', () => {
+            renderComponent();
+
+            expect(useCreateBurnOnReadAccess).toHaveBeenCalledWith(undefined);
+        });
+
+        it('hides edit, reschedule and send now on a denied burn-on-read post', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+
+            renderComponent({...defaultProps, scheduledPost: burnOnReadPost});
+
+            expectOnlyDeleteAndCopy();
+        });
+
+        // The plausible way to get this wrong is to gate on the decision alone, which
+        // would strip the controls off every scheduled post in the list.
+        it('leaves an ordinary scheduled post alone when the decision is a deny', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+
+            renderComponent();
+
+            expect(renderedButtonIds()).toHaveLength(5);
+        });
+
+        it('shows every action on a burn-on-read post the policy allows', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
+
+            renderComponent({...defaultProps, scheduledPost: burnOnReadPost});
+
+            expect(renderedButtonIds()).toHaveLength(5);
+        });
+
+        // The isAdmin bypass exists for membership and archived channels — "an admin may act
+        // outside their own membership". ABAC is not that: HasPermissionToChannelAction hands
+        // the session's roles to the PDP, whose RoleFallback maps system_admin -> system_user,
+        // so an admin with no admin-scoped policy is denied exactly like a member.
+        it('hides the actions for a system admin too', () => {
+            isCurrentUserSystemAdminMock.mockReturnValue(true);
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+
+            renderComponent({...defaultProps, scheduledPost: burnOnReadPost});
+
+            expectOnlyDeleteAndCopy();
+        });
     });
 });

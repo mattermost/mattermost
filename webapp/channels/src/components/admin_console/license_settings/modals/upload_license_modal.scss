@@ -96,6 +96,12 @@
         &.preview-footer {
             flex-direction: row;
 
+            // The 8px between Cancel and Apply used to come from the global
+            // `.btn + .btn` rule in _buttons.scss, which the Compass buttons
+            // no longer match. This footer is not a .modal-footer, so it does
+            // not pick up that gap either.
+            gap: 8px;
+
             button {
                 margin-top: 0 !important;
             }

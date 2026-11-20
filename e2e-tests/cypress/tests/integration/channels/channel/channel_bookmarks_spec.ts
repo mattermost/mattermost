@@ -127,7 +127,7 @@ describe('Channel Bookmarks', () => {
             cy.get('.file-preview-modal').findByRole('heading', {name: file});
             cy.get('.file-preview-modal__file-details-user-name').should('have.text', admin.username);
             cy.get('.file-preview-modal__channel').should('have.text', `Shared in ~${publicChannel.display_name}`);
-            cy.get('.icon-close').click();
+            cy.uiCloseFilePreviewModal();
         });
 
         it('create file bookmark, progress and cancel upload', () => {
@@ -187,7 +187,7 @@ describe('Channel Bookmarks', () => {
 
             // * Verify preview opened
             cy.get('.file-preview-modal').findByRole('heading', {name: file});
-            cy.get('.icon-close').click();
+            cy.uiCloseFilePreviewModal();
         });
 
         it('edit link bookmark', () => {

@@ -56,6 +56,10 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	checkChannelFlaggable(c, channel)
 	if c.Err != nil {
 		return
@@ -72,7 +76,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	includeAttachments := c.App.HasPermissionToFileAction(c.AppContext, userId, c.AppContext.Session().Roles, channel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+	includeAttachments := c.App.HasPermissionToChannelAction(c.AppContext, userId, c.AppContext.Session().Roles, channel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 
 	reportPath, omittedAttachments, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment, actionRequest.Action, includeAttachments)
 	if appErr != nil {
@@ -144,6 +148,10 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 

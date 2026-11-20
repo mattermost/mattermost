@@ -7,6 +7,10 @@ const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 const AUTOCOMPLETE_ROUTE = /\/api\/v4\/teams\/[^/]+\/channels\/autocomplete/;
 
 test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
+    test.beforeEach(async ({pw}) => {
+        await pw.ensureFeatureFlag('WysiwygEditor', true);
+    });
+
     test('slash command autocomplete opens and completes on Enter', async ({pw}) => {
         const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);
@@ -62,7 +66,7 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
 
         await expect(editor.suggestionList()).toBeVisible();
         await editor.press('Enter');
-        await expect(editor.input).toContainText(`~${linked.name}`);
+        await expect(editor.input.locator('.mention-link')).toHaveText(`~${linked.display_name}`);
     });
 
     /**

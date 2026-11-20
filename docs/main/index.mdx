@@ -12,7 +12,7 @@ The secure, self-hosted collaboration platform for defense, intelligence, securi
 ## Find your starting point
 
 <CardGrid columns={4} cards={[
-  {title: 'For End Users', to: '/for/end-user', description: 'Messaging, Playbooks, Calls, Boards — day-to-day collaboration.'},
+  {title: 'For End Users', to: '/for/end-user', description: 'Messaging, Playbooks, Calls, Boards. Day-to-day collaboration.'},
   {title: 'For Administrators', to: '/for/administrator', description: 'User provisioning, SSO, ABAC, configuration, billing.'},
   {title: 'For Developers', to: '/for/developer', description: 'Plugins, the REST API, webhooks, slash commands.'},
   {title: 'For Security Architects', to: '/for/security-architect', description: 'Compliance frameworks, FIPS, audit logging, hardening.'},
@@ -24,6 +24,7 @@ Or jump to one of the specialized personas:
   {title: 'SREs / Platform Operators', to: '/for/sre', description: 'Deploy, scale, observability, disaster recovery.'},
   {title: 'Compliance Officers', to: '/for/compliance-officer', description: 'Audit evidence, exports, framework mappings.'},
   {title: 'Air-Gapped Operators', to: '/for/air-gapped-operator', description: 'Network-isolated enclaves and the tactical edge.'},
+  {title: 'Evaluators', to: '/for/evaluator', description: '1-hour cloud preview, Docker, or Azure.'},
 ]} />
 
 ## The Intelligent Mission Environment (IME)
@@ -53,7 +54,7 @@ Built on an extensible open-core architecture, Mattermost offers an array of col
 - [Public](/end-user-guide/collaborate/channel-types#public-channels) and [private](/end-user-guide/collaborate/channel-types#private-channels) channels, [direct messages](/end-user-guide/collaborate/channel-types#direct-message-channels), and [threaded conversations](/end-user-guide/collaborate/organize-conversations) for structured operational coordination.
 - [Role-based access controls](/end-user-guide/collaborate/learn-about-roles) and [audit logs](/administration-guide/manage/logging#audit-logging) to support need-to-know enforcement.
 - Configurable [notifications](/end-user-guide/preferences/manage-your-notifications) (e.g., [alerts](/end-user-guide/preferences/manage-your-notifications#default-notifications), [keyword triggers](/end-user-guide/preferences/manage-your-mentions-keywords-notifications), [muting](/end-user-guide/preferences/manage-your-channel-specific-notifications)) to surface high-priority activity.
-- Integrated ChatOps capabilities via [slash commands](/integrations-guide/run-slash-commands), [bots](https://developers.mattermost.com/integrate/reference/bot-accounts/), and [webhooks](/integrations-guide/webhook-integrations) for real-time automation and system alerts.
+- Integrated ChatOps capabilities via [slash commands](/integrations-guide/run-slash-commands), [bots](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/), and [webhooks](/integrations-guide/webhook-integrations) for real-time automation and system alerts.
 - [Pinning](/end-user-guide/collaborate/save-pin-messages#pin-messages), [bookmarking](/end-user-guide/collaborate/manage-channel-bookmarks), and [advanced search](/end-user-guide/collaborate/search-for-messages) to maintain continuity and context in high-volume environments.
 - Cross-platform support on web, desktop, and mobile clients for flexible field to command and control access.
 
@@ -80,7 +81,7 @@ See the [Client availability](/end-user-guide/access/client-availability) docume
 - Enables [1:1 and group audio calls](/end-user-guide/collaborate/make-calls#join-a-call) directly within channels and direct messages, maintaining contextual awareness and access control based on channel membership.
 - Supports secure [screen sharing](/end-user-guide/collaborate/make-calls#share-your-screen) for visual coordination and analysis.
 - Operates in [sovereign, air-gapped, or sensitive network](/deployment-guide/calls/calls-deployment-guide) environments.
-- Offers optional [AI-based transcription](/end-user-guide/collaborate/make-calls#transcribe-recorded-calls) and [summarization](/end-user-guide/agents#analyze-threads-and-channels) for meeting capture and follow ups.
+- Offers optional [AI-based transcription](/end-user-guide/collaborate/make-calls#transcribe-recorded-calls) and [summarization](/agents/docs/summaries_and_search) for meeting capture and follow ups.
 - Works across web, desktop, and mobile for flexible, secure access.
 
 ![An image showing a Mattermost call window, highlighting the ability to make secure audio calls and share screens within channels or direct messages, with options for live text captions, transcription, and summarization.](/images/call-window.png)
@@ -101,10 +102,10 @@ See the [Client availability](/end-user-guide/access/client-availability) docume
 
 [Mattermost Agents](/end-user-guide/agents) accelerate decisions and streamline repetitive tasks with AI-driven assistance, fully controllable within sovereign infrastructure—offering intelligent support for both users and workflows:
 
-- Provides configurable AI assistants that [summarize threads](/end-user-guide/agents#summarize-discussion-threads), [extract action items and answer questions](/end-user-guide/agents#chat-with-agents) with contextual insight and operational awareness.
-- Supports [direct interactions with AI agents](/end-user-guide/agents#chat-with-agents) in dedicated threads or channels.
-- Enables [semantic search](/end-user-guide/agents#search-with-ai) using natural language to surface relevant content across Mattermost data.
-- Supports Retrieval-Augmented Generation (RAG), [custom instructions](/administration-guide/configure/agents-admin-guide#custom-instructions), and responsible [AI guardrails](/administration-guide/configure/agents-admin-guide#permission-configuration) for secure automation.
+- Provides configurable AI assistants that [summarize threads](/agents/docs/summaries_and_search#summarize-a-thread), [extract action items and answer questions](/end-user-guide/agents#start-a-conversation) with contextual insight and operational awareness.
+- Supports [direct interactions with AI agents](/end-user-guide/agents#start-a-conversation) in dedicated threads or channels.
+- Enables [semantic search](/agents/docs/summaries_and_search#search-with-ai) using natural language to surface relevant content across Mattermost data.
+- Supports Retrieval-Augmented Generation (RAG), [custom instructions](/agents/docs/managing_agents#configuration-tab), and responsible [AI guardrails](/agents/docs/access_control) for secure automation.
 - Integrates with [local models](/agents/docs/providers) (e.g., Ollama, vLLM) and cloud LLMs via OpenAI-compatible APIs for flexible deployment.
 
 ![An image showing an AI agent summarizing a meeting in Mattermost, highlighting the agent's ability to extract key points and action items from the conversation.](/images/agents-meeting-summary.png)
@@ -120,9 +121,9 @@ Built to integrate securely with complex enterprise and mission-critical environ
 Key capabilities include:
 
 - Secure video integrations: Embed secure video platforms such as [Pexip](https://mattermost.com/marketplace/pexip-video-connect/), [Webex](https://mattermost.com/marketplace/webex-cloud/), and Jitsi for sovereign mission collaboration.
-- Pre-packaged and custom integrations: Quickly connect with systems like [GitHub](/integrations-guide/github), [GitLab](/integrations-guide/gitlab), [Jira](/integrations-guide/jira), [ServiceNow](/integrations-guide/servicenow), [Jenkins](https://mattermost.com/marketplace/jenkins-plugin-2/), and [PagerDuty](https://mattermost.com/marketplace/pagerduty/).
+- Pre-packaged and custom integrations: Quickly connect with systems like [GitHub](/integrations-guide/github), [GitLab](/integrations-guide/gitlab), [Jira](/integrations-guide/jira), [Jenkins](https://mattermost.com/marketplace/jenkins-plugin-2/), and [PagerDuty](https://mattermost.com/marketplace/pagerduty/).
 - [Webhooks](/integrations-guide/webhook-integrations) and [slash commands](/integrations-guide/run-slash-commands): Enable real-time, event-driven automation and user-triggered actions directly from chat.
-- Plugin architecture: Extend the Mattermost core with [custom UI components, server-side logic, and third-party services](https://developers.mattermost.com/integrate/customization/).
+- Plugin architecture: Extend the Mattermost core with [custom UI components, server-side logic, and third-party services](https://docs.mattermost.com/developers/integrate/customization/).
 
 Learn more in our [Integrations Guide](/integrations-guide/integrations-guide-index).
 
@@ -133,10 +134,10 @@ Learn more in our [Integrations Guide](/integrations-guide/integrations-guide-in
 A secure, extensible foundation for integrating multiple large language models (LLMs) and autonomous agents within a sovereign control plane enables organizations to operationalize AI within sovereign infrastructure—fusing data across systems, accelerating decisions, and maintaining full control over AI model access and performance. Organizations can leverage the following capabilities to operationalize AI:
 
 - [Sovereign AI](/agents/docs/sovereign_ai) model support: Integrate with [OpenAI, Anthropic, Meta Llama, and other LLMs](/agents/docs/providers) via secure APIs.
-- [Custom instructions](/administration-guide/configure/agents-admin-guide#custom-instructions) and Retrieval-Augmented Generation (RAG): Adapt agent behavior to domain-specific tasks using internal data and policies.
-- [Semantic search](/end-user-guide/agents#search-with-ai) and natural language interaction: Provide operational teams with intuitive ways to retrieve and act on information.
-- [Responsible AI control plane](/agents/docs/sovereign_ai#security-and-compliance-features): Define model access policies, enforce guardrails, and monitor agent activity with feedback loops.
-- Multi-agent orchestration: Use the [Mission Control Plane (MCP)](/administration-guide/configure/agents-admin-guide#model-context-protocol-mcp) integration and agent-to-agent protocols to coordinate actions across multiple autonomous agents.
+- [Custom instructions](/agents/docs/managing_agents#configuration-tab) and Retrieval-Augmented Generation (RAG): Adapt agent behavior to domain-specific tasks using internal data and policies.
+- [Semantic search](/agents/docs/summaries_and_search#search-with-ai) and natural language interaction: Provide operational teams with intuitive ways to retrieve and act on information.
+- [Responsible AI control plane](/agents/docs/sovereign_ai#what-you-control): Define model access policies, enforce guardrails, and monitor agent activity with feedback loops.
+- Multi-agent orchestration: Use the [Model Context Protocol (MCP)](/agents/docs/mcp_integrations) integration and agent-to-agent protocols to coordinate actions across multiple autonomous agents.
 
 ## Sovereign & cyber-resilient deployment flexibility
 

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -497,19 +498,18 @@ func TestFileStoreSet(t *testing.T) {
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
-	t.Run("AppsEnabled feature flag rejected", func(t *testing.T) {
+	t.Run("retired feature flags forced off", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true}
+		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true, MoveThreadsEnabled: true}
 
 		_, _, err := configStore.Set(newCfg)
-		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: FeatureFlags.IsValid: model.config.is_valid.feature_flags.apps_enabled.app_error")
-		}
+		require.NoError(t, err)
 
 		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
 	})
 
 	t.Run("read-only", func(t *testing.T) {
@@ -644,6 +644,42 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 		assertFileNotEqualsConfig(t, emptyConfig, path)
+	})
+
+	t.Run("migrate legacy atmos/camo image proxy type", func(t *testing.T) {
+		cfg := minimalConfig.Clone()
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLegacyAtmosCamo)
+
+		path, tearDown := setupConfigFile(t, cfg)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.True(t, *fs.Get().ImageProxySettings.Enable)
+		assert.Equal(t, model.ImageProxyTypeLocal, *fs.Get().ImageProxySettings.ImageProxyType)
+
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, model.ImageProxyTypeLocal, *actualConfig.ImageProxySettings.ImageProxyType)
+	})
+
+	t.Run("retired feature flags from environment forced off", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+		os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
+
+		err := configStore.Load()
+		require.NoError(t, err)
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
 	})
 
 	t.Run("honour environment", func(t *testing.T) {
@@ -958,6 +994,162 @@ func TestFileStoreSave(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *store.Get().ServiceSettings.SiteURL)
+	})
+}
+
+func TestFileStorePersistSkipsUnchangedConfig(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+
+	fs, err := NewFileStore(path, true)
+	require.NoError(t, err)
+	require.NoError(t, fs.persist(minimalConfig))
+
+	// Push the mod time into the past so we can tell whether the file gets rewritten.
+	past := time.Now().Add(-time.Hour).Truncate(time.Second)
+	require.NoError(t, os.Chtimes(path, past, past))
+
+	require.NoError(t, fs.persist(minimalConfig))
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	assert.True(t, info.ModTime().Equal(past), "unchanged config should not be rewritten")
+
+	require.NoError(t, fs.persist(testConfig))
+	info, err = os.Stat(path)
+	require.NoError(t, err)
+	assert.False(t, info.ModTime().Equal(past), "changed config should be rewritten")
+}
+
+func TestWriteFileAtomically(t *testing.T) {
+	t.Run("replaces the contents and leaves no temporary file", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "config.json")
+		require.NoError(t, os.WriteFile(path, []byte("old"), 0600))
+
+		require.NoError(t, writeFileAtomically(path, []byte("new")))
+
+		data, err := os.ReadFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
+
+		entries, err := os.ReadDir(dir)
+		require.NoError(t, err)
+		assert.Len(t, entries, 1)
+	})
+
+	t.Run("creates the file if it does not exist", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "config.json")
+
+		require.NoError(t, writeFileAtomically(path, []byte("new")))
+
+		info, err := os.Stat(path)
+		require.NoError(t, err)
+		if runtime.GOOS != "windows" {
+			assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
+		}
+	})
+
+	t.Run("keeps the permissions of the existing file", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("unix permissions are not supported on windows")
+		}
+		path := filepath.Join(t.TempDir(), "config.json")
+		require.NoError(t, os.WriteFile(path, []byte("old"), 0600))
+		require.NoError(t, os.Chmod(path, 0640))
+
+		require.NoError(t, writeFileAtomically(path, []byte("new")))
+
+		info, err := os.Stat(path)
+		require.NoError(t, err)
+		assert.Equal(t, os.FileMode(0640), info.Mode().Perm())
+	})
+
+	t.Run("writes through a symlink", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("creating symlinks requires elevated privileges on windows")
+		}
+		dir := t.TempDir()
+		target := filepath.Join(dir, "real-config.json")
+		link := filepath.Join(dir, "config.json")
+		require.NoError(t, os.WriteFile(target, []byte("old"), 0600))
+		require.NoError(t, os.Symlink(target, link))
+
+		require.NoError(t, writeFileAtomically(link, []byte("new")))
+
+		info, err := os.Lstat(link)
+		require.NoError(t, err)
+		assert.Equal(t, os.ModeSymlink, info.Mode()&os.ModeSymlink)
+
+		data, err := os.ReadFile(target)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
+	})
+
+	t.Run("writes in place when the directory is not writable", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("unix permissions are not supported on windows")
+		}
+		if os.Geteuid() == 0 {
+			t.Skip("root can write to read-only directories")
+		}
+		dir := t.TempDir()
+		path := filepath.Join(dir, "config.json")
+		require.NoError(t, os.WriteFile(path, []byte("old"), 0600))
+		require.NoError(t, os.Chmod(dir, 0500))
+		t.Cleanup(func() { require.NoError(t, os.Chmod(dir, 0700)) })
+
+		require.NoError(t, writeFileAtomically(path, []byte("new")))
+
+		data, err := os.ReadFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
+	})
+
+	t.Run("leaves the original untouched when the replacement fails", func(t *testing.T) {
+		dir := t.TempDir()
+		// Renaming over a non-empty directory always fails, which gives us an easy way to
+		// make the write fail after the temp file has already been written.
+		path := filepath.Join(dir, "config.json")
+		require.NoError(t, os.Mkdir(path, 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(path, "keep"), []byte("old"), 0600))
+
+		require.Error(t, writeFileAtomically(path, []byte("new")))
+
+		data, err := os.ReadFile(filepath.Join(path, "keep"))
+		require.NoError(t, err)
+		assert.Equal(t, "old", string(data))
+
+		entries, err := os.ReadDir(dir)
+		require.NoError(t, err)
+		assert.Len(t, entries, 1)
+	})
+}
+
+func TestWriteFileInPlace(t *testing.T) {
+	for name, tc := range map[string]struct{ old, new string }{
+		"grows":       {"old", "much longer new content"},
+		"shrinks":     {"much longer old content", "new"},
+		"same length": {"abc", "xyz"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.json")
+			require.NoError(t, os.WriteFile(path, []byte(tc.old), 0600))
+
+			require.NoError(t, writeFileInPlace(path, []byte(tc.new), 0600))
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+			assert.Equal(t, tc.new, string(data))
+		})
+	}
+
+	t.Run("creates the file if it does not exist", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "config.json")
+
+		require.NoError(t, writeFileInPlace(path, []byte("new"), 0600))
+
+		data, err := os.ReadFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
 	})
 }
 

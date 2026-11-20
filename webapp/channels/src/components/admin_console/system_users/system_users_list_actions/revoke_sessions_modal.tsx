@@ -64,7 +64,7 @@ export default function RevokeSessionsModal({user, currentUser, onExited, onErro
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmButtonText={revokeUserButtonButton}
             onConfirm={confirm}
             onExited={onExited}

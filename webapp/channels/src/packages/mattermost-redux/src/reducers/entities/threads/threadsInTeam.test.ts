@@ -97,4 +97,82 @@ describe('unreadThreadsInTeam', () => {
         expect(nextState).not.toBe(state);
         expect(nextState.a).toEqual(['t1', 't2']);
     });
+
+    const unreadThread = {id: 't_new', unread_replies: 1, unread_mentions: 0, last_reply_at: 300} as UserThread;
+    const threads = {
+        t_old: {id: 't_old', last_reply_at: 100},
+        t_mid: {id: 't_mid', last_reply_at: 200},
+        t_new: unreadThread,
+        t_newest: {id: 't_newest', last_reply_at: 400},
+    };
+    const extraWithThreads = {
+        threads,
+        threadsInTeam: {a: ['t_old', 't_mid']},
+    } as unknown as ExtraData;
+
+    test.each([
+        ['empty', {a: []}],
+        ['missing', {}],
+    ])('RECEIVED_THREAD should add an unread thread newer than every followed thread when the unread list is %s', (_, initialState) => {
+        const nextState: RelationOneToMany<Team, UserThread> = unreadThreadsInTeamReducer(deepFreeze(initialState), {
+            type: ThreadTypes.RECEIVED_THREAD,
+            data: {team_id: 'a', thread: unreadThread},
+        }, extraWithThreads);
+
+        expect(nextState.a).toEqual(['t_new']);
+    });
+
+    test('RECEIVED_THREAD should not add to an empty unread list when a followed thread is newer', () => {
+        const state = deepFreeze({a: []});
+
+        const nextState = unreadThreadsInTeamReducer(state, {
+            type: ThreadTypes.RECEIVED_THREAD,
+            data: {team_id: 'a', thread: unreadThread},
+        }, {threads, threadsInTeam: {a: ['t_old', 't_newest']}} as unknown as ExtraData);
+
+        expect(nextState).toBe(state);
+    });
+
+    test('RECEIVED_THREAD should not add to an empty unread list when no followed threads are loaded', () => {
+        const state = deepFreeze({a: []});
+
+        const nextState = unreadThreadsInTeamReducer(state, {
+            type: ThreadTypes.RECEIVED_THREAD,
+            data: {team_id: 'a', thread: unreadThread},
+        }, {threads} as unknown as ExtraData);
+
+        expect(nextState).toBe(state);
+    });
+
+    test('READ_CHANGED_THREAD should add the newest followed thread when it becomes unread and the unread list is empty', () => {
+        const nextState: RelationOneToMany<Team, UserThread> = unreadThreadsInTeamReducer(deepFreeze({a: []}), {
+            type: ThreadTypes.READ_CHANGED_THREAD,
+            data: {id: 't_new', teamId: 'a', newUnreadReplies: 1, newUnreadMentions: 0},
+        }, {threads, threadsInTeam: {a: ['t_old', 't_new']}} as unknown as ExtraData);
+
+        expect(nextState.a).toEqual(['t_new']);
+    });
+
+    test('RECEIVED_THREAD should not add a thread older than every loaded thread', () => {
+        const state = deepFreeze({a: ['t_mid']});
+        const olderThread = {id: 't_old', unread_replies: 1, unread_mentions: 0, last_reply_at: 100} as UserThread;
+
+        const nextState = unreadThreadsInTeamReducer(state, {
+            type: ThreadTypes.RECEIVED_THREAD,
+            data: {team_id: 'a', thread: olderThread},
+        }, extraWithThreads);
+
+        expect(nextState).toBe(state);
+    });
+
+    test('RECEIVED_THREAD should ignore loaded ids whose thread entity is missing', () => {
+        const state = deepFreeze({a: ['t_gone']});
+
+        const nextState = unreadThreadsInTeamReducer(state, {
+            type: ThreadTypes.RECEIVED_THREAD,
+            data: {team_id: 'a', thread: unreadThread},
+        }, extraWithThreads);
+
+        expect(nextState).toBe(state);
+    });
 });

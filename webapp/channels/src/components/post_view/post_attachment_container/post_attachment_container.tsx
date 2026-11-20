@@ -67,10 +67,12 @@ const PostAttachmentContainer = (props: Props) => {
         e.stopPropagation();
         const elements = ['A', 'IMG', 'BUTTON', 'I'];
         const targetClassName = getElementClassName(target);
+        const interactiveAncestor = target.closest('a, button, [role="button"]');
 
         if (
             !elements.includes(tagName) &&
                 target.getAttribute('role') !== 'button' &&
+                (!interactiveAncestor || interactiveAncestor === e.currentTarget) &&
                 targetClassName !== `attachment attachment--${className}`
         ) {
             const classNames = [

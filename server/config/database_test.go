@@ -1043,21 +1043,125 @@ func TestDatabaseRemoveFile(t *testing.T) {
 }
 
 func TestDatabaseStoreString(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
-	defer tearDown()
+	// Only URL-form connection strings are partially redacted; anything else is
+	// reported without any part of the original. parseDSN is what
+	// NewDatabaseStore accepts, so pinning the two together is what lets
+	// String() rely on always having a description of its own DSN available.
+	t.Run("connection string formats", func(t *testing.T) {
+		testCases := []struct {
+			name string
+			dsn  string
+			// credential is the part of the connection string that must never
+			// be reported.
+			credential string
+			// described, when set, is the exact value reported for a connection
+			// string that can be partially redacted.
+			described string
+			// accepted records whether parseDSN takes the connection string,
+			// which is what NewDatabaseStore requires of it.
+			accepted bool
+		}{
+			{
+				name:       "postgres scheme",
+				dsn:        "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
+				credential: "sentinel_pw_alpha",
+				described:  "postgres://" + model.SanitizedPassword + ":" + model.SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
+				accepted:   true,
+			},
+			{
+				name:       "postgresql scheme",
+				dsn:        "postgresql://mmuser:sentinel_pw_bravo@localhost:5432/mattermost?sslmode=disable",
+				credential: "sentinel_pw_bravo",
+				described:  "postgresql://" + model.SanitizedPassword + ":" + model.SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
+				accepted:   true,
+			},
+			{
+				name:       "credentials in the query string",
+				dsn:        "postgres://localhost:5432/mattermost?user=mmuser&password=sentinel_pw_charlie",
+				credential: "sentinel_pw_charlie",
+				accepted:   true,
+			},
+			{
+				name:       "another scheme",
+				dsn:        "mysql://mmuser:sentinel_pw_delta@localhost/mattermost",
+				credential: "sentinel_pw_delta",
+			},
+			{
+				name:       "upper case scheme",
+				dsn:        "POSTGRES://mmuser:sentinel_pw_echo@localhost/mattermost",
+				credential: "sentinel_pw_echo",
+			},
+			{
+				name:       "keyword/value connection string",
+				dsn:        "user=mmuser password=sentinel_pw_foxtrot host=localhost dbname=mattermost",
+				credential: "sentinel_pw_foxtrot",
+			},
+			{
+				name:       "keyword/value connection string with an sslmode parameter",
+				dsn:        "user=mmuser password=sentinel_pw_bravo host=localhost dbname=mattermost sslmode=disable",
+				credential: "sentinel_pw_bravo",
+			},
+			{
+				name: "file path",
+				dsn:  "/opt/mattermost/config/config.json",
+			},
+		}
 
-	ds, err := newTestDatabaseStore(nil)
-	require.NoError(t, err)
-	require.NotNil(t, ds)
-	defer ds.Close()
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				driverName, dataSourceName, parseErr := parseDSN(tc.dsn)
+				assert.Equal(t, tc.accepted, parseErr == nil)
+				if tc.accepted {
+					assert.Equal(t, model.DatabaseDriverPostgres, driverName)
+					assert.Equal(t, tc.dsn, dataSourceName)
+				}
+				assert.Equal(t, tc.accepted, IsDatabaseDSN(tc.dsn))
 
-	maskedDSN := ds.String()
-	assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
-	assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-	assert.False(t, strings.Contains(maskedDSN, "mostest_password"))
+				// A store is only ever built from an accepted connection string,
+				// and always records the registered driver name.
+				ds := &DatabaseStore{
+					driverName:  model.DatabaseDriverPostgres,
+					originalDsn: tc.dsn,
+				}
+
+				maskedDSN := ds.String()
+				assert.NotContains(t, maskedDSN, "sentinel_pw_")
+				if tc.credential != "" {
+					assert.NotContains(t, maskedDSN, tc.credential)
+				}
+				if tc.described != "" {
+					assert.Equal(t, tc.described, maskedDSN)
+				}
+				if !tc.accepted {
+					return
+				}
+				assert.NotEmpty(t, maskedDSN, "an accepted DSN must still be described")
+
+				described, err := model.SanitizeDataSource(model.DatabaseDriverPostgres, tc.dsn)
+				require.NoError(t, err)
+				assert.NotContains(t, described, "sentinel_pw_")
+			})
+		}
+	})
+
+	t.Run("against a live store", func(t *testing.T) {
+		if testing.Short() {
+			t.SkipNow()
+		}
+
+		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(nil)
+		require.NoError(t, err)
+		require.NotNil(t, ds)
+		defer ds.Close()
+
+		maskedDSN := ds.String()
+		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
+		assert.False(t, strings.Contains(maskedDSN, "mostest_password"))
+	})
 }
 
 func TestCleanUp(t *testing.T) {
@@ -1144,4 +1248,139 @@ func TestCleanUp(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, count, "should have only 1 configuration left")
 	})
+}
+
+func TestDatabaseStoreHistory(t *testing.T) {
+	_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+	defer tearDown()
+
+	ds, err := newTestDatabaseStore(nil)
+	require.NoError(t, err)
+	defer ds.Close()
+
+	oldCfg := ds.Get().Clone()
+	*oldCfg.ServiceSettings.SiteURL = "http://old.example.com"
+	_, _, err = ds.Set(oldCfg)
+	require.NoError(t, err)
+
+	newCfg := oldCfg.Clone()
+	*newCfg.ServiceSettings.SiteURL = "http://new.example.com"
+	_, _, err = ds.Set(newCfg)
+	require.NoError(t, err)
+
+	history, err := ds.GetHistory(0, 2)
+	require.NoError(t, err)
+	require.Len(t, history, 2)
+
+	t.Run("lists saved configurations newest first", func(t *testing.T) {
+		assert.True(t, history[0].Active)
+		assert.False(t, history[1].Active)
+		assert.GreaterOrEqual(t, history[0].CreateAt, history[1].CreateAt)
+		assert.Equal(t, "http://new.example.com", *history[0].Config.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://old.example.com", *history[1].Config.ServiceSettings.SiteURL)
+	})
+
+	t.Run("gets a saved configuration", func(t *testing.T) {
+		cfg, err := ds.GetHistoricalConfig(history[0].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://new.example.com", *cfg.ServiceSettings.SiteURL)
+
+		cfg, err = ds.GetHistoricalConfig(history[1].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://old.example.com", *cfg.ServiceSettings.SiteURL)
+	})
+
+	t.Run("pages through the history", func(t *testing.T) {
+		page, err := ds.GetHistory(1, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, history[1].Id, page[0].Id)
+		assert.Equal(t, "http://old.example.com", *page[0].Config.ServiceSettings.SiteURL)
+
+		page, err = ds.GetHistory(1000, 1)
+		require.NoError(t, err)
+		assert.Empty(t, page)
+	})
+
+	t.Run("applies defaults and fixes to a configuration saved by an older server", func(t *testing.T) {
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
+
+		id := model.NewId()
+		_, err := dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", map[string]any{
+			"id":        id,
+			"value":     `{"ServiceSettings": {"SiteURL": "http://older.example.com", "IdleTimeout": 0}}`,
+			"create_at": model.GetMillis(),
+		})
+		require.NoError(t, err)
+
+		cfg, err := ds.GetHistoricalConfig(id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://older.example.com", *cfg.ServiceSettings.SiteURL)
+		require.NotNil(t, cfg.TeamSettings.SiteName)
+		assert.Equal(t, model.TeamSettingsDefaultSiteName, *cfg.TeamSettings.SiteName)
+		assert.Equal(t, model.ServiceSettingsDefaultIdleTimeout, *cfg.ServiceSettings.IdleTimeout)
+	})
+
+	t.Run("applies environment overrides", func(t *testing.T) {
+		t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override.example.com")
+
+		cfg, err := ds.GetHistoricalConfig(history[1].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://override.example.com", *cfg.ServiceSettings.SiteURL)
+
+		page, err := ds.GetHistory(0, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, "http://override.example.com", *page[0].Config.ServiceSettings.SiteURL)
+	})
+
+	t.Run("unknown configuration", func(t *testing.T) {
+		_, err := ds.GetHistoricalConfig(model.NewId())
+		require.ErrorIs(t, err, ErrHistoricalConfigNotFound)
+	})
+
+	t.Run("lists a configuration that can't be loaded", func(t *testing.T) {
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
+
+		id := model.NewId()
+		_, err := dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", map[string]any{
+			"id":        id,
+			"value":     `{"ServiceSettings": {"SiteURL": 5}}`,
+			"create_at": model.GetMillis(),
+		})
+		require.NoError(t, err)
+
+		page, err := ds.GetHistory(0, 10)
+		require.NoError(t, err)
+		var unreadable *HistoryEntry
+		for _, saved := range page {
+			if saved.Id == id {
+				unreadable = saved
+				continue
+			}
+			assert.False(t, saved.Unreadable)
+			assert.NotNil(t, saved.Config)
+			assert.NoError(t, saved.LoadErr)
+		}
+		require.NotNil(t, unreadable)
+		assert.True(t, unreadable.Unreadable)
+		assert.Nil(t, unreadable.Config)
+		assert.Error(t, unreadable.LoadErr)
+
+		_, err = ds.GetHistoricalConfig(id)
+		require.Error(t, err)
+	})
+}
+
+func TestStoreHistoryNotSupported(t *testing.T) {
+	ms := NewTestMemoryStore()
+	defer ms.Close()
+
+	_, err := ms.GetHistory(0, 10)
+	require.ErrorIs(t, err, ErrHistoryNotSupported)
+
+	_, err = ms.GetHistoricalConfig(model.NewId())
+	require.ErrorIs(t, err, ErrHistoryNotSupported)
 }

@@ -15,18 +15,6 @@
         line-height: 24px;
     }
 
-    &__add-btn {
-        display: flex;
-        align-items: center;
-        padding: 6px 16px;
-        font-size: 13px;
-        gap: 4px;
-
-        .icon {
-            font-size: 16px;
-        }
-    }
-
     // Override PolicyTable (policies list) DataGrid styles for the channels product context.
     .PolicyTable {
         .DataGrid {

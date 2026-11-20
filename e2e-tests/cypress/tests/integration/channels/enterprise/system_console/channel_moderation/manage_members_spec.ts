@@ -186,7 +186,7 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
         visitChannelConfigPage(testChannel);
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('not.exist');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('have.class', 'checkbox checked');
+        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.checked');
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
 
         visitChannel(regularUser, testChannel, testTeam);

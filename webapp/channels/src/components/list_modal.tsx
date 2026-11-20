@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Group} from '@mattermost/types/groups';
 
 import LoadingScreen from 'components/loading_screen';
@@ -196,7 +196,7 @@ export default class ListModal extends React.PureComponent<Props, State> {
                         {this.props.titleBarButtonText && this.props.titleBarButtonOnClick &&
                             <Button
                                 emphasis='primary'
-                                size='md'
+                                size='medium'
                                 onClick={this.props.titleBarButtonOnClick}
                             >
                                 {this.props.titleBarButtonText}
@@ -243,7 +243,7 @@ export default class ListModal extends React.PureComponent<Props, State> {
                                 <Button
                                     onClick={this.onPrev}
                                     emphasis='tertiary'
-                                    size='sm'
+                                    size='small'
                                     className='filter-control filter-control__prev'
                                 >
                                     <FormattedMessage
@@ -255,7 +255,7 @@ export default class ListModal extends React.PureComponent<Props, State> {
                                 <Button
                                     onClick={this.onNext}
                                     emphasis='tertiary'
-                                    size='sm'
+                                    size='small'
                                     className='filter-control filter-control__next'
                                 >
                                     <FormattedMessage

@@ -20,16 +20,16 @@ test.afterEach(async () => {
 });
 
 /**
- * @objective Verify the System Console header menu is not clipped by the fixed-width sidebar, so the
+ * @objective Verify the Switch teams submenu is not clipped by the fixed-width sidebar, so the
  * scroll bar it renders when the team list overflows stays visible and reachable.
  */
 test(
-    'does not clip the System Console header menu scroll bar when the team list overflows',
+    'does not clip the Switch teams submenu scroll bar when the team list overflows',
     {tag: '@system_console'},
     async ({pw}) => {
         const {adminUser, adminClient} = await initSetupTracked(pw);
 
-        // # Give the admin enough teams for the header menu's team list to overflow
+        // # Give the admin enough teams for the Switch teams submenu to overflow
         await Promise.all(
             Array.from({length: 30}, async () => {
                 const team = await adminClient.createTeam(await pw.random.team());
@@ -42,27 +42,27 @@ test(
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
 
-        // # Open the menu in the sidebar header
-        const menu = await systemConsolePage.sidebar.header.openMenu();
+        // # Open the header menu, then the Switch teams submenu
+        const menu = await systemConsolePage.sidebar.header.openSwitchTeamsMenu();
 
-        // * Verify the team list is long enough for the menu to scroll
+        // * Verify the team list is long enough for the submenu paper to scroll
         const verticalOverflow = await menu.evaluate((el: HTMLElement) => el.scrollHeight - el.clientHeight);
         expect(
             verticalOverflow,
-            'the menu should have more entries than fit, so that it renders a scroll bar',
+            'the Switch teams submenu should have more entries than fit, so that it renders a scroll bar',
         ).toBeGreaterThan(0);
 
-        // * Verify the menu is wider than the sidebar column, which is what put its scroll bar inside
+        // * Verify the submenu extends past the sidebar column, which is what put its scroll bar inside
         // the region the sidebar clips
         const menuBox = await menu.boundingBox();
         const sidebarBox = await systemConsolePage.sidebar.container.boundingBox();
         expect(
             menuBox!.x + menuBox!.width,
-            'the menu should be wider than the sidebar column it is rendered in',
+            'the Switch teams submenu should extend past the sidebar column it opens from',
         ).toBeGreaterThan(sidebarBox!.x + sidebarBox!.width);
 
-        // * Verify the strip just inside the menu's right border, where the scroll bar is drawn, still
-        // hit-tests back to the menu rather than to whatever the sidebar clips it down to. Headless
+        // * Verify the strip just inside the paper's right border, where the scroll bar is drawn, still
+        // hit-tests back to the submenu rather than to whatever the sidebar clips it down to. Headless
         // Chromium runs with --hide-scrollbars, so probe that strip rather than measure its width.
         await expect
             .poll(
@@ -77,15 +77,15 @@ test(
                         }
                         return hit ? `${hit.tagName.toLowerCase()}.${hit.getAttribute('class')}` : 'nothing';
                     }),
-                {message: 'the menu scroll bar strip should not be clipped away by the sidebar'},
+                {message: 'the submenu scroll bar strip should not be clipped away by the sidebar'},
             )
             .toBe('the menu');
 
-        // # Scroll the menu with the wheel
+        // # Scroll the submenu with the wheel
         await menu.hover();
         await systemConsolePage.page.mouse.wheel(0, 200);
 
-        // * Verify the menu scrolled
+        // * Verify the submenu scrolled
         await expect.poll(async () => menu.evaluate((el: HTMLElement) => el.scrollTop)).toBeGreaterThan(0);
     },
 );

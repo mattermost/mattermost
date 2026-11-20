@@ -62,13 +62,10 @@ func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
 	d, err := a.Srv().Store().NotifyAdmin().Save(data)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if nfErr, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
-		default:
-			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return d, nil
@@ -191,8 +188,7 @@ func (a *App) CanNotifyAdmin(rctx request.CTX, trial bool) bool {
 
 	sysVal, sysValErr := a.Srv().Store().System().GetByName(systemVarName)
 	if sysValErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(sysValErr, &nfErr) { // if no timestamps have been recorded before, system is free to notify
+		if _, ok := errors.AsType[*store.ErrNotFound](sysValErr); ok { // if no timestamps have been recorded before, system is free to notify
 			return true
 		}
 		rctx.Logger().Error("Cannot notify", mlog.Err(sysValErr))

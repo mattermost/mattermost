@@ -2,24 +2,25 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
-import {isTextField, supportsOptions} from '@mattermost/types/properties';
+import {isTextField, supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelAttributesRequiredEnabled, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -44,10 +45,8 @@ import useClassificationMarkings from 'components/common/hooks/useClassification
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import type {TextboxElement} from 'components/textbox';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import type {PluginOptionButtonProps} from 'components/widgets/public-private-selector/public-private-selector';
 
@@ -83,7 +82,24 @@ const enum ServerErrorId {
     CHANNEL_PURPOSE_SIZE = 'model.channel.is_valid.purpose.app_error',
 }
 
-const NewChannelModal = () => {
+export type Props = {
+
+    /**
+     * Offers only the channel types this plugin registered, without Public and Private Channel,
+     * so a plugin can open the modal for its own kind of channel (Boards' "Create new board").
+     */
+    channelTypePluginId?: string;
+
+    /** Wording for that kind of channel, in place of the channel wording. */
+    modalHeaderText?: string;
+    nameLabel?: string;
+    namePlaceholder?: string;
+    purposeLabel?: string;
+    purposeHelpText?: string;
+    categoryHelpText?: string;
+};
+
+const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, namePlaceholder, purposeLabel, purposeHelpText, categoryHelpText}: Props = {}) => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
@@ -97,7 +113,24 @@ const NewChannelModal = () => {
     const showManagedCategorySelector = useSelector(areManagedCategoriesEnabled);
     const dispatch = useDispatch();
 
-    const [type, setType] = useState<string>(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
+    const availableOptions = useSelector(
+        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => {
+            const offered = channelTypePluginId ? o.pluginId === channelTypePluginId : o.showInNewChannelModal !== false;
+            if (!offered) {
+                return false;
+            }
+            try {
+                return o.isAvailable(state);
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${o.pluginId}:${o.id} isAvailable threw`, e);
+                return false;
+            }
+        }),
+        shallowEqual,
+    );
+
+    const [type, setType] = useState<string>(() => (channelTypePluginId ? availableOptions[0]?.id ?? '' : getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel)));
 
     // Discoverable Private Channels — only available when the FF is on AND the
     // creator has the team-scope discoverability permission (the server
@@ -128,6 +161,7 @@ const NewChannelModal = () => {
 
     const classification = useClassificationMarkings();
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const requiredAttributesEnforced = useSelector(isChannelAttributesRequiredEnabled);
 
     const channelAttributes = useChannelAttributes();
 
@@ -136,37 +170,54 @@ const NewChannelModal = () => {
     const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
 
-    // Required attributes, plus classification whether or not it is required: it has
-    // always been offered here, and its dedicated section below is suppressed once the
-    // flag is on, so leaving it out would take it off the dialog altogether. Every
-    // other optional attribute is added later from Channel Info.
+    const classificationFieldId = classification.channelField?.id;
+
+    // While ChannelAttributes is on but ChannelAttributesRequired is off,
+    // the System Console hides the Required toggle for channel fields entirely,
+    // so there is no admin path left to freshly mark one required during that
+    // window. Classification is the one courtesy exception: it is still offered
+    // here unconditionally, so admins can keep classifying channels even though
+    // nothing enforces it — every other channel attribute stays hidden like normal.
+    const classificationOfferedUnconditionally = channelAttributes.enabled && !requiredAttributesEnforced && classification.available;
+
+    // Required attributes only (classification's exception above aside).
+    // Optional attributes, including an optional classification outside that
+    // exception, are added later from Channel Info.
     //
     // The setter tier cannot be evaluated without a channel, so this renders
     // optimistically and the server stays authoritative. sysadmin is the exception:
     // a required sysadmin-only attribute would disable Create for everyone else,
     // which is a worse failure than an unset marking — the server skips the same
     // tier for the same reason.
-    const classificationFieldId = classification.channelField?.id;
     const assignableAttributeFields = useMemo(() => {
-        return channelAttributes.fields.filter((field) => {
-            if (!isPropertyFieldRequired(field) && field.id !== classificationFieldId) {
-                return false;
-            }
-            if (!supportsOptions(field) && !isTextField(field)) {
-                return false;
-            }
-            if (field.permission_values === 'none' || field.permission_values === undefined) {
-                return false;
-            }
-            if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
-                return false;
-            }
-            return true;
-        });
-    }, [channelAttributes.fields, classificationFieldId, isSystemAdmin]);
+        return channelAttributes.fields.
+            filter((field) => {
+                const isClassificationException = field.id === classificationFieldId && classificationOfferedUnconditionally;
+                if (!isClassificationException && (!requiredAttributesEnforced || !isPropertyFieldRequired(field))) {
+                    return false;
+                }
+                if (!supportsOptions(field) && !supportsHierarchy(field) && !isTextField(field)) {
+                    return false;
+                }
+                if (field.permission_values === 'none' || field.permission_values === undefined) {
+                    return false;
+                }
+                if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
+                    return false;
+                }
+                return true;
+            }).
+            map((field) => {
+                // Visually optional and never blocking: nothing enforces this
+                // value when ChannelAttributesRequired is off, so the required
+                // marker would be misleading.
+                if (field.id === classificationFieldId && classificationOfferedUnconditionally && isPropertyFieldRequired(field)) {
+                    return {...field, attrs: {...field.attrs, required: false}};
+                }
+                return field;
+            });
+    }, [channelAttributes.fields, classificationFieldId, classificationOfferedUnconditionally, isSystemAdmin, requiredAttributesEnforced]);
 
-    // Reads attrs.required rather than membership of the list above, so an optional
-    // classification never blocks Create.
     const missingRequiredAttributes = useMemo(() => {
         return assignableAttributeFields.filter((field) => {
             if (!isPropertyFieldRequired(field)) {
@@ -237,20 +288,18 @@ const NewChannelModal = () => {
     const [pluginCanCreate, setPluginCanCreate] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const availableOptions = useSelector(
-        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => {
-            try {
-                return o.isAvailable(state);
-            } catch (e) {
-                // eslint-disable-next-line no-console
-                console.error(`ChannelTypeOption ${o.pluginId}:${o.id} isAvailable threw`, e);
-                return false;
-            }
-        }),
-        shallowEqual,
-    );
-
     const activePluginOption = availableOptions.find((o) => o.id === type);
+
+    // The plugin's options can become available after the modal opens (its status loads late).
+    const firstOptionId = availableOptions[0]?.id;
+    useEffect(() => {
+        if (channelTypePluginId && !activePluginOption && firstOptionId) {
+            setType(firstOptionId);
+
+            // As on a type change: the gate belonged to the option that went away.
+            setPluginCanCreate(true);
+        }
+    }, [channelTypePluginId, activePluginOption, firstOptionId]);
 
     const handleURLChange = useCallback((newURL: string) => {
         setURL(newURL);
@@ -512,7 +561,7 @@ const NewChannelModal = () => {
                     <div className='title'>
                         <FormattedMessage
                             id={'channel_modal.create_board.tooltip_title'}
-                            defaultMessage={'Manage your task with a board'}
+                            defaultMessage={'Manage your tasks with a board'}
                         />
                     </div>
                     <div className='description'>
@@ -530,19 +579,16 @@ const NewChannelModal = () => {
 
     let confirmButtonText: React.ReactNode = activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
     if (isSubmitting) {
-        confirmButtonText = (
-            <LoadingSpinner
-                text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
-            />
-        );
+        confirmButtonText = formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'});
     }
 
     return (
         <GenericModal
             id='new-channel-modal'
             className='new-channel-modal'
-            modalHeaderText={formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
+            modalHeaderText={modalHeaderText ?? formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
             confirmButtonText={confirmButtonText}
+            isConfirmLoading={isSubmitting}
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
             errorText={serverError}
             isConfirmDisabled={!canCreate}
@@ -557,7 +603,8 @@ const NewChannelModal = () => {
                 <ChannelNameFormField
                     value={displayName}
                     name='new-channel-modal-name'
-                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
+                    label={nameLabel}
+                    placeholder={namePlaceholder ?? formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={setDisplayName}
                     onURLChange={handleURLChange}
                     onErrorStateChange={setChannelInputError}
@@ -577,6 +624,7 @@ const NewChannelModal = () => {
                         disabled: !canCreatePrivateChannel,
                     }}
                     pluginOptions={pluginOptions}
+                    hideBuiltInOptions={Boolean(channelTypePluginId)}
                     onChange={handleOnTypeChange}
                 />
                 {showDiscoverableOption && (
@@ -584,34 +632,18 @@ const NewChannelModal = () => {
                         className='new-channel-modal-discoverable'
                         data-testid='new-channel-discoverable-section'
                     >
-                        <div className='channel_banner_header'>
-                            <div className='channel_banner_header__text'>
-                                <label
-                                    className='Input_legend'
-                                    aria-label={discoverableTitle}
-                                >
-                                    {discoverableTitle}
-                                </label>
-                                <label
-                                    className='Input_subheading'
-                                    aria-label={discoverableDescription}
-                                >
-                                    {discoverableDescription}
-                                </label>
-                            </div>
-                            <div className='channel_banner_header__toggle'>
-                                <Toggle
-                                    id='newChannelDiscoverableToggle'
-                                    overrideTestId={true}
-                                    ariaLabel={discoverableTitle}
-                                    size='btn-md'
-                                    toggled={discoverable}
-                                    onToggle={() => setDiscoverable((v) => !v)}
-                                    tabIndex={0}
-                                    toggleClassName='btn-toggle-primary'
-                                />
-                            </div>
-                        </div>
+                        <Switch
+                            id='newChannelDiscoverableToggle'
+                            size='medium'
+                            checked={discoverable}
+                            onChange={() => setDiscoverable((v) => !v)}
+                            data-testid='newChannelDiscoverableToggle'
+                            tabIndex={0}
+                            semiBold={true}
+                            secondaryLabel={discoverableDescription}
+                        >
+                            {discoverableTitle}
+                        </Switch>
                     </div>
                 )}
                 {showDefaultCategorySelector && (
@@ -621,7 +653,7 @@ const NewChannelModal = () => {
                             onChange={setDefaultCategoryName}
                             getOptions={getSidebarCategoryNamesForTeam.current}
                             menuPortalTargetId='new-channel-modal'
-                            helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                            helpText={categoryHelpText ?? formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
                         />
                     </div>
                 )}
@@ -644,7 +676,7 @@ const NewChannelModal = () => {
                         value={purpose}
                         onChange={handleOnPurposeChange}
                         onKeyDown={handleOnPurposeKeyDown}
-                        label={formatMessage({id: 'channel_modal.purpose.label', defaultMessage: 'Channel Purpose'})}
+                        label={purposeLabel ?? formatMessage({id: 'channel_modal.purpose.label', defaultMessage: 'Channel Purpose'})}
                         placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
                         maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
                         autoComplete='off'
@@ -659,7 +691,7 @@ const NewChannelModal = () => {
                     ) : (
                         <div className='new-channel-modal-purpose-info'>
                             <span>
-                                {formatMessage({id: 'channel_modal.purpose.info', defaultMessage: 'This will be displayed when browsing for channels.'})}
+                                {purposeHelpText ?? formatMessage({id: 'channel_modal.purpose.info', defaultMessage: 'This will be displayed when browsing for channels.'})}
                             </span>
                         </div>
                     )}
@@ -683,13 +715,14 @@ const NewChannelModal = () => {
                                     />
                                 </h4>
                             </div>
-                            <Toggle
+                            <Switch
                                 id='channelClassificationToggle'
-                                toggled={classificationEnabled}
-                                onToggle={() => setClassificationEnabled(!classificationEnabled)}
-                                toggleClassName='btn-toggle-primary'
-                                size='btn-md'
-                                ariaLabel={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
+                                size='medium'
+                                checked={classificationEnabled}
+                                onChange={() => setClassificationEnabled(!classificationEnabled)}
+                                data-testid='channelClassificationToggle-button'
+                                tabIndex={0}
+                                aria-label={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
                             />
                         </div>
                         <p className='new-channel-modal-classification__description'>

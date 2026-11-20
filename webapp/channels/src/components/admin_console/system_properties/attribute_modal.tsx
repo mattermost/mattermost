@@ -5,6 +5,8 @@ import React, {useState, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import type {FieldType} from '@mattermost/types/properties';
+import {supportsExternalSync} from '@mattermost/types/properties';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 
@@ -12,7 +14,9 @@ const MAX_LDAP_LENGTH = 64;
 
 type Props = {
     initialValue: string;
-    fieldType: string;
+
+    // The server field type, so phone, URL and email arrive as text.
+    fieldType: FieldType;
     onExited: () => void;
     onSave: (value: string) => Promise<void>;
     error: string | null;
@@ -36,7 +40,8 @@ const AttributeModal = ({
     const handleConfirm = () => onSave(value);
     const isConfirmDisabled = () => value.length > MAX_LDAP_LENGTH;
 
-    const showTypeWarning = fieldType !== 'text';
+    // Only a type an identity source cannot populate is converted on link.
+    const showTypeWarning = !supportsExternalSync({type: fieldType});
 
     return (
         <GenericModal

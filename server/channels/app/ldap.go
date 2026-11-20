@@ -50,7 +50,7 @@ func ldapConnectionSettingChanged[T comparable](submitted *T, saved *T) bool {
 	return submitted != nil && *submitted != model.SafeDereference(saved)
 }
 
-func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSettings) *model.AppError {
+func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSettings) error {
 	savedSettings := a.Config().LdapSettings
 
 	if model.SafeDereference(savedSettings.BindPassword) == "" {
@@ -73,8 +73,8 @@ func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSetting
 }
 
 func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
-	if appErr := a.checkLdapTestBindPassword("TestLdapConnection", settings); appErr != nil {
-		return appErr
+	if err := a.checkLdapTestBindPassword("TestLdapConnection", settings); err != nil {
+		return model.AsAppError(err)
 	}
 
 	license := a.Srv().License()
@@ -91,8 +91,8 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) 
 }
 
 func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
-	if appErr := a.checkLdapTestBindPassword("TestLdapDiagnostics", settings); appErr != nil {
-		return nil, appErr
+	if err := a.checkLdapTestBindPassword("TestLdapDiagnostics", settings); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	license := a.Srv().License()
@@ -247,7 +247,7 @@ func (a *App) MigrateIdLDAP(rctx request.CTX, toAttribute string) *model.AppErro
 	return model.NewAppError("IdMigrateLDAP", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
-func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *model.AppError {
+func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) error {
 	file, err := fileData.Open()
 	if err != nil {
 		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -269,7 +269,7 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 
 func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
 	if err := a.writeLdapFile(model.LdapPublicCertificateName, fileData); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -286,7 +286,7 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 
 func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
 	if err := a.writeLdapFile(model.LdapPrivateKeyName, fileData); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -301,7 +301,7 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 	return nil
 }
 
-func (a *App) removeLdapFile(filename string) *model.AppError {
+func (a *App) removeLdapFile(filename string) error {
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -310,7 +310,7 @@ func (a *App) removeLdapFile(filename string) *model.AppError {
 
 func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 	if err := a.removeLdapFile(*a.Config().LdapSettings.PublicCertificateFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -327,7 +327,7 @@ func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 
 func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
 	if err := a.removeLdapFile(*a.Config().LdapSettings.PrivateKeyFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()

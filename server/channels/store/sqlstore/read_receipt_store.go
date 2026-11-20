@@ -95,6 +95,18 @@ func (s *SqlReadReceiptStore) DeleteByPost(rctx request.CTX, postID string) erro
 	return err
 }
 
+func (s *SqlReadReceiptStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
+	query := s.getQueryBuilder().
+		Delete("ReadReceipts").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ReadReceipts with userId=%s", userID)
+	}
+
+	return nil
+}
+
 func (s *SqlReadReceiptStore) Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error) {
 	query := s.selectQueryBuilder.
 		Where(sq.Eq{"PostId": postID, "UserId": userID})

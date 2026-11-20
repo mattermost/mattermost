@@ -101,7 +101,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await expect(deleteBtn).toBeDisabled();
 
             // Remove the channel — button must STAY disabled due to masked values
-            const removeLink = teamSettings.container.getByText('Remove').first();
+            const removeLink = teamSettings.policyChannelRemoveLink;
             await expect(removeLink).toBeVisible({timeout: 5000});
             await removeLink.click();
             await page.waitForTimeout(300);

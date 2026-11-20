@@ -1,0 +1,435 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import MuiPopover from '@mui/material/Popover';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {
+    ChevronLeftIcon,
+    CloseIcon,
+    PlusIcon,
+} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import CompassDesignProvider from 'components/compass_design_provider';
+import * as Menu from 'components/menu';
+import Input from 'components/widgets/inputs/input/input';
+
+import {GraphParentEdgeAlert} from './edge_alert';
+import type {EdgeDirection, Suggestion} from './edge_candidates';
+import type {CheckParentEdgeInvalid} from './graph_utils';
+
+export const SEARCH_FIELD_CLASS = 'attribute-graph-parents-pane__search-field';
+export const SUGGESTIONS_PAPER_CLASS = 'attribute-graph-parents-pane__suggestions-paper';
+export const SUGGESTIONS_POPOVER_CLASS = 'attribute-graph-parents-pane__suggestions-popover';
+
+function isNodeInSearchUi(node: Node, combobox: HTMLElement | null): boolean {
+    if (combobox?.contains(node)) {
+        return true;
+    }
+    const el = node instanceof Element ? node : node.parentElement;
+    return Boolean(el?.closest(`.${SUGGESTIONS_PAPER_CLASS}`));
+}
+
+export type EdgeListLabels = {
+    back: MessageDescriptor;
+    empty: MessageDescriptor;
+    emptyTestId: string;
+    rowTestId: string;
+    removeTestId: string;
+    removeAria: MessageDescriptor;
+    searchName: string;
+    searchTestId: string;
+    searchPlaceholder: MessageDescriptor;
+    searchAria: MessageDescriptor;
+    suggestionsTestId: string;
+    createTestId: string;
+    removeTooltip?: MessageDescriptor;
+    anchorIs: 'parent' | 'child';
+};
+
+export function edgeListLabels(direction: EdgeDirection): EdgeListLabels {
+    switch (direction) {
+    case 'children':
+        return {
+            back: messages.childrenOf,
+            empty: messages.noChildrenYet,
+            emptyTestId: 'attributeGraphParentsPane__childrenEmpty',
+            rowTestId: 'attributeGraphParentsPane__childRow',
+            removeTestId: 'attributeGraphParentsPane__childRemove',
+            removeAria: messages.removeChild,
+            searchName: 'attributeGraphParentsPane__childSearch',
+            searchTestId: 'attributeGraphParentsPane__childSearch',
+            searchPlaceholder: messages.addChildPlaceholder,
+            searchAria: messages.addChildAria,
+            suggestionsTestId: 'attributeGraphParentsPane__childSuggestions',
+            createTestId: 'attributeGraphParentsPane__createChild',
+            anchorIs: 'parent',
+        };
+    case 'parents':
+        return {
+            back: messages.parentsOf,
+            empty: messages.noParentsYet,
+            emptyTestId: 'attributeGraphParentsPane__empty',
+            rowTestId: 'attributeGraphParentsPane__parentRow',
+            removeTestId: 'attributeGraphParentsPane__parentRemove',
+            removeAria: messages.removeParent,
+            searchName: 'attributeGraphParentsPane__search',
+            searchTestId: 'attributeGraphParentsPane__search',
+            searchPlaceholder: messages.addParentPlaceholder,
+            searchAria: messages.addParentAria,
+            suggestionsTestId: 'attributeGraphParentsPane__suggestions',
+            createTestId: 'attributeGraphParentsPane__create',
+            removeTooltip: messages.removeParentTooltip,
+            anchorIs: 'child',
+        };
+    default: {
+        const exhaustive: never = direction;
+        return exhaustive;
+    }
+    }
+}
+
+export type EdgeListProps = {
+    direction: EdgeDirection;
+    optionName: string;
+    relatedNames: string[];
+    query: string;
+    searchOpen: boolean;
+    suggestions: Suggestion[];
+    edgeAlert: CheckParentEdgeInvalid | null;
+    alertRelatedName: string;
+    disabled: boolean;
+    atMax: boolean;
+    onBack: () => void;
+    onQueryChange: (value: string) => void;
+    onSearchOpen: () => void;
+    onSearchClose: () => void;
+    onAddExisting: (name: string) => void;
+    onCreate: (name: string) => void;
+    onRemoveEdge: (childName: string, parentName: string) => void;
+};
+
+export function EdgeList({
+    direction,
+    optionName,
+    relatedNames,
+    query,
+    searchOpen,
+    suggestions,
+    edgeAlert,
+    alertRelatedName,
+    disabled,
+    atMax,
+    onBack,
+    onQueryChange,
+    onSearchOpen,
+    onSearchClose,
+    onAddExisting,
+    onCreate,
+    onRemoveEdge,
+}: EdgeListProps) {
+    const {formatMessage} = useIntl();
+    const theme = useSelector(getTheme);
+    const comboboxRef = useRef<HTMLDivElement>(null);
+    const searchFieldBoxRef = useRef<HTMLDivElement>(null);
+
+    const handleSearchBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const next = event.relatedTarget;
+        if (next instanceof Node && isNodeInSearchUi(next, comboboxRef.current)) {
+            return;
+        }
+        onSearchClose();
+    }, [onSearchClose]);
+
+    useEffect(() => {
+        if (!searchOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (target instanceof Node && isNodeInSearchUi(target, comboboxRef.current)) {
+                return;
+            }
+            onSearchClose();
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [onSearchClose, searchOpen]);
+
+    const handleSearchKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+        event.stopPropagation();
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            onSearchClose();
+            return;
+        }
+        if (event.key !== 'Enter') {
+            return;
+        }
+        event.preventDefault();
+        if (disabled || atMax) {
+            return;
+        }
+        const existing = suggestions.filter((row) => row.kind === 'existing');
+        const create = suggestions.find((row) => row.kind === 'create');
+        if (existing.length === 1 && !create) {
+            onAddExisting(existing[0].name);
+            return;
+        }
+        if (existing.length === 0 && create) {
+            onCreate(create.name);
+        }
+    }, [atMax, disabled, onAddExisting, onCreate, onSearchClose, suggestions]);
+
+    const labels = edgeListLabels(direction);
+    const showSuggestions = searchOpen && suggestions.length > 0 && !disabled;
+    const searchFieldBox = searchFieldBoxRef.current;
+    const alertChildName = labels.anchorIs === 'parent' ? alertRelatedName : optionName;
+    const alertParentName = labels.anchorIs === 'parent' ? optionName : alertRelatedName;
+
+    return (
+        <>
+            <button
+                type='button'
+                className='attribute-graph-parents-pane__back'
+                data-testid='attributeGraphParentsPane__back'
+                onClick={onBack}
+            >
+                <ChevronLeftIcon size={16}/>
+                <FormattedMessage
+                    {...labels.back}
+                    values={{name: optionName}}
+                />
+            </button>
+            <Menu.Separator className='attribute-graph-parents-pane__divider'/>
+            <div className='attribute-graph-parents-pane__rows'>
+                {relatedNames.length === 0 && (
+                    <p
+                        className='attribute-graph-parents-pane__empty'
+                        data-testid={labels.emptyTestId}
+                    >
+                        <FormattedMessage {...labels.empty}/>
+                    </p>
+                )}
+                {relatedNames.map((relatedName) => {
+                    const removeAriaValues = labels.anchorIs === 'parent' ?
+                        {parent: optionName, child: relatedName} :
+                        {parent: relatedName, child: optionName};
+                    const removeButton = (
+                        <button
+                            type='button'
+                            className='attribute-graph-parents-pane__row-remove'
+                            data-testid={labels.removeTestId}
+                            aria-label={formatMessage(labels.removeAria, removeAriaValues)}
+                            disabled={disabled}
+                            onClick={() => {
+                                const removeChildName = labels.anchorIs === 'parent' ? relatedName : optionName;
+                                const removeParentName = labels.anchorIs === 'parent' ? optionName : relatedName;
+                                onRemoveEdge(removeChildName, removeParentName);
+                            }}
+                        >
+                            <CloseIcon
+                                size={12}
+                                aria-hidden={true}
+                            />
+                        </button>
+                    );
+
+                    return (
+                        <div
+                            key={relatedName}
+                            className='attribute-graph-parents-pane__row'
+                            data-testid={labels.rowTestId}
+                        >
+                            <div className='attribute-graph-parents-pane__row-top'>
+                                <span className='attribute-graph-parents-pane__row-label'>{relatedName}</span>
+                                {labels.removeTooltip ? (
+                                    <WithTooltip title={formatMessage(labels.removeTooltip)}>
+                                        {removeButton}
+                                    </WithTooltip>
+                                ) : removeButton}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            {edgeAlert && (
+                <GraphParentEdgeAlert
+                    result={edgeAlert}
+                    childName={alertChildName}
+                    parentName={alertParentName}
+                    className='attribute-graph-parents-pane__alert'
+                    testId='attributeGraphParentsPane__alert'
+                />
+            )}
+            <Menu.Separator className='attribute-graph-parents-pane__divider'/>
+            <div
+                ref={comboboxRef}
+                className='attribute-graph-parents-pane__combobox'
+            >
+                <div
+                    ref={searchFieldBoxRef}
+                    className={SEARCH_FIELD_CLASS}
+                >
+                    <Input
+                        name={labels.searchName}
+                        type='text'
+                        useLegend={false}
+                        placeholder={formatMessage(labels.searchPlaceholder)}
+                        aria-label={formatMessage(labels.searchAria, {name: optionName})}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                        onFocus={onSearchOpen}
+                        onBlur={handleSearchBlur}
+                        onKeyDown={handleSearchKeyDown}
+                        onKeyUp={(event) => event.stopPropagation()}
+                        disabled={disabled || atMax}
+                        autoComplete='off'
+                        data-testid={labels.searchTestId}
+                    />
+                </div>
+            </div>
+            {showSuggestions && searchFieldBox && (
+                <CompassDesignProvider theme={theme}>
+                    <MuiPopover
+                        open={true}
+                        anchorEl={searchFieldBox}
+                        onClose={onSearchClose}
+                        hideBackdrop={true}
+                        disableAutoFocus={true}
+                        disableEnforceFocus={true}
+                        disableRestoreFocus={true}
+                        disableScrollLock={true}
+                        className={SUGGESTIONS_POPOVER_CLASS}
+                        anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                        transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                        marginThreshold={0}
+                        PaperProps={{
+                            className: SUGGESTIONS_PAPER_CLASS,
+                            style: {
+                                width: searchFieldBox.offsetWidth,
+                                pointerEvents: 'auto',
+                            },
+                            onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => {
+                                event.preventDefault();
+                            },
+                            onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+                                event.stopPropagation();
+                            },
+                        }}
+                    >
+                        <ul
+                            className='attribute-graph-parents-pane__suggestions'
+                            data-testid={labels.suggestionsTestId}
+                        >
+                            {suggestions.map((row) => {
+                                switch (row.kind) {
+                                case 'create':
+                                    return (
+                                        <li key='__create'>
+                                            <button
+                                                type='button'
+                                                className='attribute-graph-parents-pane__suggestion attribute-graph-parents-pane__suggestion--create'
+                                                data-testid={labels.createTestId}
+                                                disabled={disabled || atMax}
+                                                onMouseDown={(event) => event.preventDefault()}
+                                                onClick={() => onCreate(row.name)}
+                                            >
+                                                <PlusIcon
+                                                    size={16}
+                                                    aria-hidden={true}
+                                                />
+                                                <FormattedMessage
+                                                    {...messages.createParent}
+                                                    values={{name: row.name}}
+                                                />
+                                            </button>
+                                        </li>
+                                    );
+                                case 'existing':
+                                    return (
+                                        <li key={row.name}>
+                                            <button
+                                                type='button'
+                                                className='attribute-graph-parents-pane__suggestion'
+                                                data-testid={`attributeGraphParentsPane__candidate-${row.name}`}
+                                                disabled={disabled || atMax}
+                                                onMouseDown={(event) => event.preventDefault()}
+                                                onClick={() => onAddExisting(row.name)}
+                                            >
+                                                {row.name}
+                                            </button>
+                                        </li>
+                                    );
+                                default: {
+                                    const exhaustive: never = row;
+                                    return exhaustive;
+                                }
+                                }
+                            })}
+                        </ul>
+                    </MuiPopover>
+                </CompassDesignProvider>
+            )}
+        </>
+    );
+}
+
+const messages = defineMessages({
+    childrenOf: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.children_back',
+        defaultMessage: 'Children of {name}',
+    },
+    parentsOf: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.back',
+        defaultMessage: 'Parents of {name}',
+    },
+    noParentsYet: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.no_parents',
+        defaultMessage: 'No parents yet.',
+    },
+    noChildrenYet: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.no_children',
+        defaultMessage: 'No children yet.',
+    },
+    addChildPlaceholder: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_child',
+        defaultMessage: 'Add a child, or type a new name…',
+    },
+    addChildAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_child_aria',
+        defaultMessage: 'Add a value granted by {name}',
+    },
+    removeChild: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_child',
+        defaultMessage: 'Remove {child} as a child of {parent}',
+    },
+    addParentPlaceholder: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent',
+        defaultMessage: 'Add a parent, or type a new name…',
+    },
+    addParentAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent_aria',
+        defaultMessage: 'Add a parent of {name}',
+    },
+    createParent: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.create_parent',
+        defaultMessage: 'Create "{name}"',
+    },
+    removeParent: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent',
+        defaultMessage: 'Remove {parent} as a parent of {child}',
+    },
+    removeParentTooltip: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent_tooltip',
+        defaultMessage: 'Remove Parent',
+    },
+});

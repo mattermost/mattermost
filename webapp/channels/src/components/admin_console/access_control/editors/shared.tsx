@@ -5,7 +5,9 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -13,9 +15,11 @@ import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import Markdown from 'components/markdown';
 
+import {isWrappedInParens, splitOutsideLiterals} from '../cel_lexer';
 import TestResultsModal from '../modals/policy_test/test_modal';
 
 import './shared.scss';
@@ -81,6 +85,18 @@ export enum OperatorLabel {
     VERSION_AT_LEAST = 'version is at least',
     VERSION_LESS_THAN = 'version is less than',
     VERSION_AT_MOST = 'version is at most',
+
+    // Hierarchy predicates, shown only for attributes of type 'graph', whose
+    // options form a hierarchy. The attribute holds a set of options; "covers"
+    // asks whether each held option is at or above a target, "within" whether it
+    // is at or below. The label is the CEL function name itself because the
+    // server reports the function as the condition's operator when it converts a
+    // saved expression back to rows — a second spelling would be one more thing
+    // to keep in step.
+    COVERS_ALL = 'coversAll',
+    COVERS_ANY = 'coversAny',
+    WITHIN_ALL = 'withinAll',
+    WITHIN_ANY = 'withinAny',
 }
 
 // Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
@@ -107,6 +123,15 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.VERSION_LTE]: OperatorLabel.VERSION_AT_MOST,
     hasAnyOf: OperatorLabel.HAS_ANY_OF,
     hasAllOf: OperatorLabel.HAS_ALL_OF,
+
+    // The graph hierarchy predicates keep their CEL spelling as their label, so
+    // these entries are identities. They are listed anyway: this map is what
+    // parseExpression consults, and an operator missing from it silently falls
+    // back to "is".
+    coversAll: OperatorLabel.COVERS_ALL,
+    coversAny: OperatorLabel.COVERS_ANY,
+    withinAll: OperatorLabel.WITHIN_ALL,
+    withinAny: OperatorLabel.WITHIN_ANY,
 };
 
 // 'native_method' is a member call whose argument is emitted verbatim (e.g. an
@@ -141,11 +166,32 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
 };
 
 export function isMultiValueOperator(op: string): boolean {
-    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF ||
+        isGraphOperator(op);
 }
 
 export function isMultiselectOperator(op: string): boolean {
     return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+// The four hierarchy predicates, exclusive to attributes of type 'graph'. Each
+// is a member call taking one argument: a list of option names, or the accessed
+// channel's graph attribute. No OPERATOR_CONFIG entry can describe that — its
+// shapes each take a single literal or none at all — so the predicates are
+// deliberately absent from it and every site that would consult it asks here.
+export function isGraphOperator(op: string): boolean {
+    return op === OperatorLabel.COVERS_ALL ||
+        op === OperatorLabel.COVERS_ANY ||
+        op === OperatorLabel.WITHIN_ALL ||
+        op === OperatorLabel.WITHIN_ANY;
+}
+
+// Whether a row's right-hand side may be the accessed channel's attribute
+// (resource.attributes.*) rather than literal values: true for the comparison
+// operators, the multiselect list operators and the graph hierarchy predicates.
+export function operatorSupportsChannelTarget(op: string): boolean {
+    return isGraphOperator(op) || isMultiselectOperator(op) ||
+        OPERATOR_CONFIG[op]?.type === 'comparison';
 }
 
 // Ordinal comparison operators exclusive to ranked attributes. IS_NOT is
@@ -189,11 +235,11 @@ export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean
     return Boolean(field?.attrs?.native);
 }
 
-// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// True when an attribute's values come from a controlled source (AD/LDAP, SAML or OpenID Connect sync,
 // admin-managed, plugin-protected, or owner-managed integration) and so cannot be
 // set by users. Such attributes are safe to reference in access control policies.
 export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
-    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isSynced = isPropertyFieldSynced(field);
     const isAdminManaged = field.attrs?.managed === 'admin';
     const isProtected = Boolean(field.attrs?.protected);
     const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;
@@ -323,11 +369,19 @@ const RESOURCE_SELECTOR = String.raw`resource\.attributes\.\w+`;
 const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:${CEL_STRING}|${RESOURCE_SELECTOR})$`),
 
-    // Multiselect list-vs-list against the accessed channel's attribute,
-    // stored verbatim as a member call: the receiver is the user's multiselect
-    // attribute and the single argument is a resource.attributes.* selector
-    // (never a literal — that form is the in-chain below).
+    // List-vs-list against the accessed channel's attribute, stored verbatim
+    // as a member call: the receiver is the user's multiselect attribute, or a
+    // graph attribute matched exactly against a channel graph attribute, and the
+    // single argument is a resource.attributes.* selector (never a literal —
+    // that form is the in-chain below).
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(${RESOURCE_SELECTOR}\)$`),
+
+    // A graph hierarchy predicate: a member call on the user's graph attribute
+    // whose single argument is a list of option names or the accessed channel's
+    // graph attribute. Only the custom-profile namespace, since a session
+    // attribute is never a graph field. Exact membership against literal options is
+    // the `in` form below; against a channel attribute it is the member call above.
+    new RegExp(String.raw`^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:${CEL_STRING_LIST}|${RESOURCE_SELECTOR})\)$`),
 
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
     new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.(?:attributes|session)\.\w+$`),
@@ -357,24 +411,52 @@ export function isSimpleCondition(s: string): boolean {
     return SIMPLE_CONDITION_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
-export function isMultiselectOrGroup(s: string): boolean {
+function isMultiselectGroupBody(body: string): boolean {
+    return splitOutsideLiterals(body, '||').every((part) => MULTISELECT_GROUP_PART.test(part.trim()));
+}
+
+// A "has any of" group, with or without one pair of enclosing parens.
+export function isMultiselectOrGroup(s: string, {requireParens = false} = {}): boolean {
     const trimmed = s.trim();
-    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+    if (isWrappedInParens(trimmed)) {
+        return isMultiselectGroupBody(trimmed.slice(1, -1));
+    } else if (requireParens) {
         return false;
     }
-    const inner = trimmed.slice(1, -1);
-    return inner.split('||').every((part) => {
-        return MULTISELECT_GROUP_PART.test(part.trim());
-    });
+    return isMultiselectGroupBody(trimmed);
 }
 
 export function isSimpleExpression(expr: string): boolean {
-    if (!expr) {
+    if (!expr.trim()) {
         return true;
     }
-    return expr.split('&&').every((condition) => {
-        return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
+    if (isMultiselectOrGroup(expr)) {
+        return true;
+    }
+
+    // && binds tighter than ||, so alongside other conditions a group must be parenthesized.
+    return splitOutsideLiterals(expr, '&&').every((condition) => {
+        const trimmed = condition.trim();
+        return isSimpleCondition(trimmed) || (isWrappedInParens(trimmed) && isMultiselectGroupBody(trimmed.slice(1, -1)));
     });
+}
+
+// The server parser behind the table editor decides what the table can show;
+// isSimpleExpression is only a text heuristic. Any failure, including a 403,
+// counts as not renderable so a rule nobody can see is never overwritten.
+export async function canTableEditorRender(
+    getVisualAST: (expression: string) => Promise<{error?: unknown}>,
+    expression: string,
+): Promise<boolean> {
+    if (!expression.trim()) {
+        return true;
+    }
+    try {
+        const result = await getVisualAST(expression);
+        return !result.error;
+    } catch {
+        return false;
+    }
 }
 
 // Checks if there are any usable attributes for ABAC policies.
@@ -399,6 +481,15 @@ export function hasUsableAttributes(
 // membership rules, so strip them before they reach the editors.
 export function excludeSessionAttributes(fields: UserPropertyField[]): UserPropertyField[] {
     return fields.filter((field) => !isSessionAttributeField(field));
+}
+
+// Only native fields are hidden, so a custom attribute sharing a name stays. Returns
+// the original array when nothing is hidden to preserve referential stability.
+export function excludeHiddenNativeFields(fields: UserPropertyField[], hiddenNames?: string[]): UserPropertyField[] {
+    if (!hiddenNames?.length) {
+        return fields;
+    }
+    return fields.filter((field) => !(isNativeField(field) && hiddenNames.includes(field.name)));
 }
 
 // CEL namespaces. CPA/user attributes are referenced as user.attributes.<name>;
@@ -454,11 +545,11 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     const button = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
         >
-            <i className='icon icon-lock-outline'/>
             {label ?? (
                 <FormattedMessage
                     id='admin.access_control.table_editor.test_access_rule'
@@ -543,11 +634,11 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
     return (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
             <FormattedMessage
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'

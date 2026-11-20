@@ -530,6 +530,10 @@
             max-height: calc(50vh - 40px);
             background-color: var(--center-channel-bg);
 
+            &.textbox-preview-area {
+                overflow-y: auto;
+            }
+
             &.custom-textarea--emoji-picker {
                 padding-right: 50px;
             }
@@ -835,15 +839,6 @@
 
                 span {
                     display: none;
-
-                    &.post-image__archived-name {
-                        display: inline-flex;
-                    }
-
-                    &.post-image__archived-filename,
-                    &.post-image__archived-label {
-                        display: inline-block;
-                    }
                 }
 
                 svg {

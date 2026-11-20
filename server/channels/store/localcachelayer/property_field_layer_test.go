@@ -75,6 +75,27 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})
 
+	t.Run("MutateOptions invalidates the group cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
+
+		// This wrapper invalidates the group on any call the store below it
+		// accepts, regardless of what changed -- the empty lists keep the test
+		// to that one behaviour.
+		err = cachedStore.PropertyField().MutateOptions(groupID, fakeField.ID, 0, nil, nil, nil)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
+
 	t.Run("Delete invalidates the group cache", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
@@ -91,5 +112,38 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
+
+	t.Run("GetForGroupVersion is cached until the group's fields are dropped", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+		require.NoError(t, err)
+
+		version, err := cachedStore.PropertyField().GetForGroupVersion(rctx, groupID)
+		require.NoError(t, err)
+		requireVersion := func(changed bool) {
+			t.Helper()
+			next, nextErr := cachedStore.PropertyField().GetForGroupVersion(rctx, groupID)
+			require.NoError(t, nextErr)
+			require.Equal(t, changed, next != version)
+			version = next
+		}
+
+		requireVersion(false)
+
+		_, err = cachedStore.PropertyField().Update(groupID, fakeFields, nil)
+		require.NoError(t, err)
+		requireVersion(true)
+
+		cachedStore.propertyField.handleClusterInvalidatePropertyField(&model.ClusterMessage{Data: []byte("other-group-id")})
+		requireVersion(false)
+
+		cachedStore.propertyField.handleClusterInvalidatePropertyField(&model.ClusterMessage{Data: []byte(groupID)})
+		requireVersion(true)
+
+		cachedStore.propertyField.handleClusterInvalidatePropertyField(&model.ClusterMessage{Data: clearCacheMessageData})
+		requireVersion(true)
+
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroupVersion", 4)
 	})
 }

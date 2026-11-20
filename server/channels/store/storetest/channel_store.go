@@ -130,6 +130,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, rctx, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, rctx, ss) })
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, rctx, ss) })
+	t.Run("GetChannelMemberRoles", func(t *testing.T) { testGetChannelMemberRoles(t, rctx, ss) })
 	t.Run("GetMemberLastViewedAt", func(t *testing.T) { testGetMemberLastViewedAt(t, rctx, ss) })
 	t.Run("GetMembersWithLastViewedAtSince", func(t *testing.T) { testGetMembersWithLastViewedAtSince(t, rctx, ss, s) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, rctx, ss) })
@@ -170,6 +171,141 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("SaveBoardChannel", func(t *testing.T) { testChannelStoreSaveBoardChannel(t, rctx, ss) })
 	t.Run("SaveRejectsBoardTypes", func(t *testing.T) { testChannelStoreSaveRejectsBoardTypes(t, rctx, ss) })
+	t.Run("PolicyAutoAdd", func(t *testing.T) { testChannelStorePolicyAutoAdd(t, rctx, ss) })
+}
+
+// testChannelStorePolicyAutoAdd covers the PolicyAutoAdd column the channel
+// queries derive from the policy's membership rule. Every case stores Active as
+// the opposite of the expected value, so a regression that reads the reserved
+// column instead of the rule fails here.
+func testChannelStorePolicyAutoAdd(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	saveChannel := func() *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Name",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Channel().PermanentDelete(rctx, channel.Id) })
+		return channel
+	}
+
+	savePolicy := func(channelID string, rules []model.AccessControlPolicyRule, autoAdd bool) {
+		policy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  !autoAdd,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules:   rules,
+		}
+		policy.SetAutoAddMode(autoAddMode(autoAdd))
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.AccessControlPolicy().Delete(rctx, channelID) })
+	}
+
+	membershipRules := []model.AccessControlPolicyRule{{
+		Actions:    []string{model.AccessControlPolicyActionMembership},
+		Expression: `user.attributes.program == "engineering"`,
+	}}
+
+	t.Run("no policy", func(t *testing.T) {
+		channel := saveChannel()
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("policy that auto-adds members", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.True(t, got.PolicyAutoAdd)
+		require.True(t, got.PolicyIsActive, "the deprecated alias must mirror PolicyAutoAdd")
+	})
+
+	t.Run("policy that does not auto-add members", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, false)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	// An expression-less membership rule carries the mode for a policy that only
+	// imports a parent, so it has to hydrate like any other.
+	t.Run("carrier rule alone reports auto-add", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: "",
+		}}, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyAutoAdd)
+	})
+
+	// The mode lives on the membership rule only, so a permission rule that
+	// happens to sit first must not be read for it.
+	t.Run("only the membership rule carries the mode", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, []model.AccessControlPolicyRule{
+			{
+				Name:       "Uploads",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: `user.attributes.program == "engineering"`,
+			},
+			membershipRules[0],
+		}, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyAutoAdd)
+
+		stored, err := ss.AccessControlPolicy().Get(rctx, channel.Id)
+		require.NoError(t, err)
+		require.Nil(t, stored.Rules[0].Metadata, "the permission rule must stay untouched")
+		require.True(t, stored.Rules[1].AutoAdd())
+	})
+
+	// GetChannels feeds the sidebar, which is a different query builder than Get.
+	t.Run("list queries hydrate PolicyAutoAdd", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, true)
+
+		userID := model.NewId()
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		channels, err := ss.Channel().GetChannels(teamID, userID, &model.ChannelSearchOpts{})
+		require.NoError(t, err)
+
+		var found bool
+		for _, c := range channels {
+			if c.Id == channel.Id {
+				found = true
+				require.True(t, c.PolicyAutoAdd)
+			}
+		}
+		require.True(t, found, "the channel should be in the user's channel list")
+	})
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5215,6 +5351,104 @@ func testUpdateChannelMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Error(t, err, "bad user id - should fail")
 }
 
+func testGetChannelMemberRoles(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamScheme, err := ss.Scheme().Save(&model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.NoError(t, err)
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Name",
+		Name:        NewTestID(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+		SchemeId:    &teamScheme.Id,
+	})
+	require.NoError(t, err)
+
+	user, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
+	require.NoError(t, err)
+	otherUser, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
+	require.NoError(t, err)
+
+	newChannelWithMember := func(member model.ChannelMember) *model.Channel {
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}, -1)
+		require.NoError(t, nErr)
+		t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) })
+
+		member.ChannelId = channel.Id
+		member.NotifyProps = model.GetDefaultChannelNotifyProps()
+		_, nErr = ss.Channel().SaveMember(rctx, &member)
+		require.NoError(t, nErr)
+		t.Cleanup(func() { _ = ss.Channel().RemoveMember(rctx, channel.Id, member.UserId) })
+		return channel
+	}
+
+	adminChannel := newChannelWithMember(model.ChannelMember{UserId: user.Id, SchemeUser: true, SchemeAdmin: true})
+	// A row the scheme migration never reached: the admin role is still an explicit role name.
+	legacyAdminChannel := newChannelWithMember(model.ChannelMember{UserId: user.Id, SchemeUser: true, ExplicitRoles: model.ChannelAdminRoleId})
+	archivedChannel := newChannelWithMember(model.ChannelMember{UserId: user.Id, SchemeGuest: true})
+	require.NoError(t, ss.Channel().Delete(archivedChannel.Id, model.GetMillis()))
+	otherUsersChannel := newChannelWithMember(model.ChannelMember{UserId: otherUser.Id, SchemeUser: true})
+
+	// The other user's channel and a channel that does not exist are not the user's memberships.
+	memberRoles, err := ss.Channel().GetChannelMemberRoles(rctx, user.Id, []string{
+		adminChannel.Id, legacyAdminChannel.Id, archivedChannel.Id, otherUsersChannel.Id, model.NewId(),
+	}, false)
+	require.NoError(t, err)
+	require.Len(t, memberRoles, 3)
+	assert.NotContains(t, memberRoles, otherUsersChannel.Id)
+
+	t.Run("only the requested channels are returned", func(t *testing.T) {
+		onlyAdmin, err := ss.Channel().GetChannelMemberRoles(rctx, user.Id, []string{adminChannel.Id}, false)
+		require.NoError(t, err)
+		require.Len(t, onlyAdmin, 1)
+		assert.Equal(t, memberRoles[adminChannel.Id], onlyAdmin[adminChannel.Id])
+	})
+
+	t.Run("no channels returns an empty map", func(t *testing.T) {
+		none, err := ss.Channel().GetChannelMemberRoles(rctx, user.Id, nil, false)
+		require.NoError(t, err)
+		require.NotNil(t, none)
+		assert.Empty(t, none)
+	})
+
+	t.Run("each membership resolves the same as GetMember", func(t *testing.T) {
+		for _, channelID := range []string{adminChannel.Id, legacyAdminChannel.Id, archivedChannel.Id} {
+			member, err := ss.Channel().GetMember(rctx, channelID, user.Id)
+			require.NoError(t, err)
+			assert.Equal(t, store.ChannelMemberRoles{
+				Roles:       member.Roles,
+				SchemeGuest: member.SchemeGuest,
+				SchemeUser:  member.SchemeUser,
+				SchemeAdmin: member.SchemeAdmin,
+			}, memberRoles[channelID])
+		}
+	})
+
+	t.Run("scheme roles resolve against the team scheme", func(t *testing.T) {
+		roles := memberRoles[adminChannel.Id]
+		assert.True(t, roles.SchemeAdmin)
+		assert.ElementsMatch(t, []string{teamScheme.DefaultChannelUserRole, teamScheme.DefaultChannelAdminRole}, strings.Fields(roles.Roles))
+	})
+
+	t.Run("a legacy role name folds into its scheme flag", func(t *testing.T) {
+		assert.True(t, memberRoles[legacyAdminChannel.Id].SchemeAdmin)
+	})
+
+	t.Run("archived channels are included", func(t *testing.T) {
+		assert.True(t, memberRoles[archivedChannel.Id].SchemeGuest)
+	})
+}
+
 func testGetMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	userID := model.NewId()
 
@@ -7966,20 +8200,36 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, rctx request.CTX, ss store
 }
 
 func testChannelStoreMaxChannelsPerTeam(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel := &model.Channel{
-		TeamId:      model.NewId(),
-		DisplayName: "Channel",
-		Name:        model.NewId(),
-		Type:        model.ChannelTypeOpen,
+	newChannel := func(teamID string) *model.Channel {
+		return &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Channel",
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
 	}
-	_, nErr := ss.Channel().Save(rctx, channel, 0)
-	assert.Error(t, nErr)
-	var ltErr *store.ErrLimitExceeded
-	assert.True(t, errors.As(nErr, &ltErr))
 
-	channel.Id = ""
-	_, nErr = ss.Channel().Save(rctx, channel, 1)
-	assert.NoError(t, nErr)
+	t.Run("limit exceeded", func(t *testing.T) {
+		teamID := model.NewId()
+
+		_, nErr := ss.Channel().Save(rctx, newChannel(teamID), 1)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().Save(rctx, newChannel(teamID), 1)
+		require.Error(t, nErr)
+		var ltErr *store.ErrLimitExceeded
+		assert.True(t, errors.As(nErr, &ltErr))
+	})
+
+	t.Run("no limit when max channels per team is 0", func(t *testing.T) {
+		teamID := model.NewId()
+
+		_, nErr := ss.Channel().Save(rctx, newChannel(teamID), 0)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().Save(rctx, newChannel(teamID), 0)
+		require.NoError(t, nErr)
+	})
 }
 
 func testChannelStoreGetChannelsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -51,7 +51,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
             >
                 <FormattedMessage
                     id='katex.error'
-                    defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
+                    defaultMessage="Couldn't compile your LaTeX code. Please review the syntax and try again."
                 />
             </span>
         );

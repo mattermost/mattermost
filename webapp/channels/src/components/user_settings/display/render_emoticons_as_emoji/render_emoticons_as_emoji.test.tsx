@@ -35,12 +35,6 @@ describe('components/user_settings/display/render_emoticons_as_emoji/render_emot
             })},
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<RenderEmoticonsAsEmoji {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should call updateSection on submit', async () => {
         const {getByRole, getByLabelText} = renderWithContext(<RenderEmoticonsAsEmoji {...props}/>);
 

@@ -138,7 +138,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
             <>
                 {icon}
                 {channel.display_name}
-                <span className='channel-name'>{channel.name}</span>
+                <span className='channel-name'>{'~'}{channel.name}</span>
             </>
         );
     };

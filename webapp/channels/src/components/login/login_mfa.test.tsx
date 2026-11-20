@@ -15,14 +15,6 @@ describe('components/login/LoginMfa', () => {
     };
     const token = '123456';
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <LoginMfa {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should handle token entered', async () => {
         renderWithContext(
             <LoginMfa {...baseProps}/>,

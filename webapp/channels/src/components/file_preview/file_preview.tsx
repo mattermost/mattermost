@@ -63,7 +63,7 @@ export default class FilePreview extends React.PureComponent<Props> {
         e.stopPropagation();
 
         const fileInfo = this.props.fileInfos[startIndex];
-        if (!fileInfo || fileInfo.archived || fileInfo.delete_at > 0) {
+        if (!fileInfo || fileInfo.delete_at > 0) {
             return;
         }
 
@@ -90,7 +90,7 @@ export default class FilePreview extends React.PureComponent<Props> {
 
             let className = 'file-preview post-image__column';
             let previewImage;
-            const canOpenPreviewModal = !info.archived && info.delete_at === 0;
+            const canOpenPreviewModal = info.delete_at === 0;
 
             if (type === FileTypes.SVG && this.props.enableSVGs) {
                 previewImage = (

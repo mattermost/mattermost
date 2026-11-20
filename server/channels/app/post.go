@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -197,23 +198,44 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	// If we get this far, we've recorded the client-provided pending post id to the cache.
-	// Remove it if we fail below, allowing a proper retry by the client.
+	// Remove it if we fail below, allowing a proper retry by the client. The id is read now:
+	// post may be replaced by a plugin's post below, which need not carry it.
+	pendingPostID := post.PendingPostId
 	defer func() {
-		if post.PendingPostId == "" {
+		if pendingPostID == "" {
 			return
 		}
 
 		if err != nil {
-			if appErr := a.Srv().seenPendingPostIdsCache.Remove(post.PendingPostId); appErr != nil {
+			if appErr := a.Srv().seenPendingPostIdsCache.Remove(pendingPostID); appErr != nil {
 				err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 			}
 			return
 		}
 
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(pendingPostID, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
 			err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}()
+
+	if values := post.Metadata.GetPropertyValues(); len(values) > 0 {
+		// Every caller reaches CreatePost, not only the API, so the flag is enforced here as
+		// well as where each caller validates the values.
+		if !a.Config().FeatureFlags.PostAttributes {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		// Readers get a post's values from property_values_updated and the property value API,
+		// and neither knows whether a reader has revealed a burn-on-read post.
+		if post.Type == model.PostTypeBurnOnRead {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
+		// Callers other than the API and the plugin API reach this without
+		// PreparePostPropertyValuesForCreate, and a nil value would only be caught after the
+		// post is saved, by a dereference.
+		if slices.Contains(values, nil) {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.invalid_attribute.app_error", nil, "nil value", http.StatusBadRequest)
+		}
+	}
 
 	if flags.SilentNotification {
 		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
@@ -413,6 +435,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 		post = newPost
 		willBePostedPluginIDs = deliveredIDs
+
+		// A plugin's replacement keeps the submitted values (restorePriorityAndValues) but can
+		// change the type, so the burn-on-read check above has to hold for it too.
+		if post.Type == model.PostTypeBurnOnRead && len(post.Metadata.GetPropertyValues()) > 0 {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -443,13 +471,25 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// Runs before anything announces the post, so a failed write removes it before any
+	// `posted` event, notification or MessageHasBeenPosted hook. On success the values are
+	// taken off rpost and only handed back to the caller at the end.
+	var writtenPropertyValues []*model.PropertyValue
+	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
+		written, err := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues)
+		if err != nil {
+			return nil, false, model.AsAppError(err)
+		}
+		writtenPropertyValues = written
+	}
+
 	// MessageWillBePosted ran before the post had an ID, so this is recorded here, now that
 	// rpost carries the one assigned by Save.
 	a.RecordPostDeliveryToPlugins(rctx, willBePostedPluginIDs, rpost)
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
+	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(pendingPostID, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
 		return nil, false, model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -561,6 +601,20 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	rpost, isMemberForPreviews, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
 	if err != nil {
 		return nil, false, err
+	}
+
+	// The caller wrote these values, so it gets them back the way the property value API
+	// returns a write: unfiltered, to that caller only. The `posted` event above went out
+	// without them. Set on a copy, because the work handlePostEvents started in the
+	// background holds rpost and shares its metadata.
+	if len(writtenPropertyValues) > 0 {
+		rpost = rpost.Clone()
+		if rpost.Metadata != nil {
+			rpost.Metadata = rpost.Metadata.Copy()
+		} else {
+			rpost.Metadata = &model.PostMetadata{}
+		}
+		rpost.Metadata.PropertyValues = writtenPropertyValues
 	}
 
 	return rpost, isMemberForPreviews, nil
@@ -944,7 +998,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(rctx, receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	// Read the row we are about to mutate from master. The post may have been written
+	// milliseconds ago, so a replica that has not caught up yet would report it missing
+	// and callers would surface that as a spurious failure. DeletePost and
+	// PermanentDeletePost already pin their equivalent lookup (MM-70867).
+	//
+	// GetSingle rather than Get: only this row is needed, and Get additionally fetches
+	// every reply in the thread just for them to be discarded here.
+	oldPost, nErr := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), receivedUpdatedPost.Id, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -957,13 +1018,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			return nil, false, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
-	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
 	var appErr *model.AppError
-	if oldPost == nil {
-		appErr = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, false, appErr
-	}
 
 	if oldPost.DeleteAt != 0 {
 		appErr = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
@@ -1230,9 +1286,16 @@ func (a *App) sessionMayUpdateMmBlocksActions(rctx request.CTX, oldPost *model.P
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	// The author copy is built from this post after the broadcast payload is serialized.
+	var burnOnReadHashtags string
 	if post.Type == model.PostTypeBurnOnRead {
+		burnOnReadHashtags = post.Hashtags
 		post.Message = ""
 		post.FileIds = []string{}
+		post.Hashtags = ""
+		defer func() {
+			post.Hashtags = burnOnReadHashtags
+		}()
 	}
 
 	// Extract metadata that needs per-recipient filtering before serialization
@@ -1275,6 +1338,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
+		post.Hashtags = burnOnReadHashtags
 		appErr = a.processBroadcastHookForBurnOnRead(rctx, postJSON, post, message)
 		if appErr != nil {
 			return appErr
@@ -1282,6 +1346,11 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
+	// For some events the channel ID is not attached to the event directly so we need to get it from the post.
+	// Some of such events are channel_member_updated,user_removed, scheduled_post events, etc
+	if message.GetBroadcast().ChannelId == "" {
+		a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+	}
 
 	a.Publish(message)
 	return nil
@@ -1290,16 +1359,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 // setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
 // the post has file attachments. Skipped for burn-on-read posts (handled by their own hook).
 func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.WebSocketEvent) {
-	if a.Srv().Channels().AccessControl == nil {
-		return
-	}
-
-	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
-	if cfg == nil || !*cfg {
-		return
-	}
-
-	if !a.Config().FeatureFlags.PermissionPolicies {
+	if !a.abacFileActionsActive() {
 		return
 	}
 
@@ -1405,12 +1465,25 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON string, post *model.Post, message *model.WebSocketEvent) *model.AppError {
 	tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
 	if appErr != nil {
+		var nfErr *store.ErrNotFound
+		if message.EventType() == model.WebsocketEventPostDeleted && errors.As(appErr, &nfErr) {
+			return nil
+		}
 		return appErr
 	}
 
 	// Use master context to avoid replica lag when fetching priority for newly created posts
 	masterCtx := sqlstore.RequestContextWithMaster(rctx)
 	tmpPost = a.PreparePostForClient(masterCtx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
+
+	// Deleted-event author copies keep hashtags and channel mentions, and leave message and file ids empty.
+	if message.EventType() == model.WebsocketEventPostDeleted {
+		tmpPost.Message = ""
+		tmpPost.FileIds = []string{}
+		if tmpPost.Metadata != nil {
+			tmpPost.Metadata.Files = nil
+		}
+	}
 
 	revealedPostJSON, err := tmpPost.ToJSON()
 	if err != nil {
@@ -1425,13 +1498,15 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		patchPostOptions = model.DefaultUpdatePostOptions()
 	}
 
-	post, err := a.GetSinglePost(rctx, postID, false)
+	// Read the row we are about to mutate from master; see the note in UpdatePost
+	// (MM-70867).
+	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, false, err
 	}
 
-	// only allow to update the pinned status of burn-on-read posts if the status is different
-	if post.Type == model.PostTypeBurnOnRead {
+	// Removing the link preview is the only change allowed on burn-on-read posts.
+	if post.Type == model.PostTypeBurnOnRead && !isRemoveLinkPreviewPatch(patch) {
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_burn_on_read_post.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1454,6 +1529,10 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
+	if post.Type == model.PostTypeBurnOnRead {
+		return a.removeBurnOnReadLinkPreview(rctx, post.Id)
+	}
+
 	if ok, _ := a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
 		patch.DisableMentionHighlights()
 	}
@@ -1467,6 +1546,48 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 	}
 
 	return updatedPost, isMemberForPreviews, nil
+}
+
+func isRemoveLinkPreviewPatch(patch *model.PostPatch) bool {
+	if patch.Props == nil || patch.Message != nil || patch.FileIds != nil || patch.IsPinned != nil || patch.HasReactions != nil {
+		return false
+	}
+	return (*patch.Props)[model.PostPropsRemoveLinkPreview] == "true"
+}
+
+// removeBurnOnReadLinkPreview sets remove_link_preview on the stored burn-on-read post. It
+// bypasses UpdatePost because the revealed content lives in TemporaryPosts and must never be
+// written to the Posts row.
+func (a *App) removeBurnOnReadLinkPreview(rctx request.CTX, postID string) (*model.Post, bool, *model.AppError) {
+	masterCtx := sqlstore.RequestContextWithMaster(rctx)
+	storedPost, err := a.Srv().Store().Post().GetSingle(masterCtx, postID, false)
+	if err != nil {
+		return nil, false, model.NewAppError("PatchPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	storedPost.AddProp(model.PostPropsRemoveLinkPreview, "true")
+	updatedPost, err := a.Srv().Store().Post().Overwrite(rctx, storedPost)
+	if err != nil {
+		return nil, false, model.NewAppError("PatchPost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
+	// Only the author's clients get the edit: recipients would receive the unrevealed post
+	// and their already revealed copy would be concealed again.
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, updatedPost.UserId, nil, "")
+	broadcastPost := a.PreparePostForClient(rctx, updatedPost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
+	if appErr := a.publishWebsocketEventForPost(rctx, broadcastPost, message); appErr != nil {
+		return nil, false, appErr
+	}
+
+	revealedPost, appErr := a.GetSinglePost(masterCtx, postID, false)
+	if appErr != nil {
+		return nil, false, appErr
+	}
+	revealedPost = a.PreparePostForClientWithEmbedsAndImages(rctx, revealedPost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
+
+	return a.SanitizePostMetadataForUser(rctx, revealedPost, rctx.Session().UserId)
 }
 
 func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
@@ -1576,18 +1697,18 @@ func degradedABACEtagEpoch() string {
 	return unknownABACEtagEpoch + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 }
 
-// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
-// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
-// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
+// AppendABACEtag folds the policy, user-attribute, and session-attribute epochs into a base ETag,
+// so a change to any of them misses the cache and SanitizePostListMetadataForUser runs instead of
+// the request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
 //
 // Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
 // system-scoped permission policies.
-func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
+func (a *App) AppendABACEtag(rctx request.CTX, base string, channelID string) string {
 	if !a.attributeBasedAccessControlEnabled() {
 		return base
 	}
 
-	rctx := request.EmptyContext(a.Log())
+	userID := rctx.Session().UserId
 
 	policyEpoch := degradedABACEtagEpoch()
 	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
@@ -1609,10 +1730,22 @@ func (a *App) AppendABACEtag(base string, userID string, channelID string) strin
 		}
 	}
 
-	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
+	sessionEpoch := unknownABACEtagEpoch
+	if sessionID := rctx.Session().Id; sessionID != "" {
+		sessionEpoch = degradedABACEtagEpoch()
+		if epoch, err := a.Srv().Store().SessionAttribute().GetEpoch(sessionID); err == nil {
+			sessionEpoch = epoch
+		} else {
+			a.Log().Warn("ABAC ETag: failed to get session attribute epoch; session component will be unknown",
+				mlog.String("session_id", sessionID),
+				mlog.Err(err))
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s.%s", base, policyEpoch, cpaEpoch, sessionEpoch)
 }
 
-func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThreads bool) string {
+func (a *App) GetPostsEtag(rctx request.CTX, channel *model.Channel, collapsedThreads bool) string {
 	includeTranslations := false
 	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
 		if enabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id); err == nil && enabled {
@@ -1620,7 +1753,7 @@ func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThrea
 		}
 	}
 	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
-	base = a.AppendABACEtag(base, userID, channel.Id)
+	base = a.AppendABACEtag(rctx, base, channel.Id)
 	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
 }
 
@@ -1799,8 +1932,55 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	return posts, nil
 }
 
+// fillFlaggedPostPage keeps a page of saved posts a full page after channel_read_access
+// removes the ones the session may not read, refetching from the store until the page
+// is filled or the store runs dry. A short page would otherwise tell the client it had
+// reached the end, hiding every saved post past the first denied one.
+func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (*model.PostList, error)) (*model.PostList, error) {
+	if !a.ChannelAccessEnforcementActive() {
+		return fetch(offset, limit)
+	}
+
+	kept, truncated, err := putils.FetchUntil(offset, limit,
+		func(from int) ([]*model.Post, error) {
+			page, fetchErr := fetch(from, limit)
+			if fetchErr != nil {
+				return nil, fetchErr
+			}
+			return page.ToSlice(), nil
+		},
+		func(post *model.Post) bool {
+			return a.HasChannelReadAccessByID(rctx, userID, post.ChannelId)
+		},
+		// FetchUntil hands advance only the page it just read, so the offset has to
+		// accumulate here rather than being derived from the cursor.
+		func(page []*model.Post) int {
+			offset += len(page)
+			return offset
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of saved posts; the policy denies most of what this query returns",
+			mlog.String("user_id", userID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	postList := model.NewPostList()
+	for _, post := range kept {
+		postList.AddPost(post)
+		postList.AddOrder(post.Id)
+	}
+	return postList, nil
+}
+
 func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetFlaggedPosts(userID, offset, limit)
+	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
+		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1826,7 +2006,9 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 }
 
 func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
+	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
+		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1852,7 +2034,9 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 }
 
 func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
+	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
+		return a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2340,7 +2524,17 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channel
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(rctx, userID, user.Id)
+		channel, err := a.getDirectChannel(rctx, userID, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if channel != nil {
+			return channel, nil
+		}
+		if !a.HasPermissionTo(rctx, userID, model.PermissionCreateDirectChannel) {
+			return nil, model.NewAppError("parseAndFetchChannelIdByNameFromInFilter", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+		channel, err = a.GetOrCreateDirectChannel(rctx, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -2392,8 +2586,8 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		return nil, appErr
 	}
 
-	if appErr := a.filterBurnOnReadPosts(posts); appErr != nil {
-		return nil, appErr
+	if err := a.filterBurnOnReadPosts(posts); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return posts, nil
@@ -2403,7 +2597,12 @@ func (a *App) convertChannelNamesToChannelIds(rctx request.CTX, channels []strin
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(rctx, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
-			rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			// A client can send a channel id in place of a name, which is the only way to name a
+			// channel unambiguously when the search isn't scoped to one team. Such a value is passed
+			// through as it is, and only matches channels the user is a member of.
+			if !model.IsValidId(channelName) {
+				rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			}
 			continue
 		}
 		channels[idx] = channel.Id
@@ -2482,8 +2681,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -2511,7 +2709,6 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 }
 
 func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, bool, *model.AppError) {
-	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
@@ -2525,10 +2722,9 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
-			// TODO: we have to send channel ids
-			// from the front-end. Otherwise it's not possible to distinguish
-			// from just the channel name at a cross-team level.
-			// Convert channel names to channel IDs
+			// Convert channel names to channel IDs. A name only identifies a channel within one
+			// team, so a client filtering across teams sends ids instead, which pass through here
+			// untouched.
 			params.InChannels = a.convertChannelNamesToChannelIds(rctx, params.InChannels, userID, teamID, includeDeletedChannels)
 			params.ExcludedChannels = a.convertChannelNamesToChannelIds(rctx, params.ExcludedChannels, userID, teamID, includeDeletedChannels)
 
@@ -2545,35 +2741,100 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return model.MakePostSearchResults(model.NewPostList(), nil), true, nil
 	}
 
-	postSearchResults, err := a.Srv().Store().Post().SearchPostsForUser(rctx, finalParamsList, userID, teamID, page, perPage)
+	postSearchResults, rawLen, allPostHaveMembership, err := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
 	if err != nil {
-		var appErr *model.AppError
+		return nil, false, model.AsAppError(err)
+	}
+
+	if !a.ChannelAccessEnforcementActive() {
+		return postSearchResults, allPostHaveMembership, nil
+	}
+
+	// Top up the page that channel_read_access just shortened. Deliberately additive
+	// rather than a putils.FetchUntil over perPage: the database search path ignores
+	// perPage and can hand back more rows than were asked for, and trimming to perPage
+	// would silently drop the remainder on a store that cannot serve page 1.
+	for range putils.FetchUntilMaxRounds {
+		if len(postSearchResults.Order) >= perPage || rawLen < perPage {
+			return postSearchResults, allPostHaveMembership, nil
+		}
+
+		page++
+		next, nextRawLen, nextAllHaveMembership, nextErr := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
+		if nextErr != nil {
+			return nil, false, model.AsAppError(nextErr)
+		}
+
+		// Extend calls UniqueOrder, so an overlapping page dedupes and the original
+		// ordering - CreateAt on the database path, relevance on the engine path - holds.
+		postSearchResults.PostList.Extend(next.PostList)
+		for postID, matches := range next.Matches {
+			if postSearchResults.Matches == nil {
+				postSearchResults.Matches = model.PostSearchMatches{}
+			}
+			postSearchResults.Matches[postID] = matches
+		}
+		allPostHaveMembership = allPostHaveMembership && nextAllHaveMembership
+		rawLen = nextRawLen
+	}
+
+	rctx.Logger().Warn("Gave up filling a page of search results; the policy denies most of what this query returns",
+		mlog.String("user_id", userID),
+		mlog.Int("rounds", putils.FetchUntilMaxRounds),
+	)
+
+	return postSearchResults, allPostHaveMembership, nil
+}
+
+// searchPostsForUserPage runs one store page through the filters. rawLen is the number
+// of posts the store returned before any filtering, which is the only reliable signal
+// for whether it still has more to give.
+func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userID, teamID string, page, perPage int) (results *model.PostSearchResults, rawLen int, allPostHaveMembership bool, err error) {
+	postSearchResults, searchErr := a.Srv().Store().Post().SearchPostsForUser(rctx, finalParamsList, userID, teamID, page, perPage)
+	if searchErr != nil {
+		var nErr *model.AppError
 		switch {
-		case errors.As(err, &appErr):
-			return nil, false, appErr
+		case errors.As(searchErr, &nErr):
+			return nil, 0, false, nErr
 		default:
-			return nil, false, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, 0, false, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(searchErr)
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, false, appErr
+	rawLen = len(postSearchResults.Order)
+
+	if filterErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); filterErr != nil {
+		return nil, 0, false, filterErr
 	}
 
 	allPostHaveMembership, appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID)
 	if appErr != nil {
-		return nil, false, appErr
+		return nil, 0, false, appErr
 	}
 
-	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
-		return nil, false, appErr
+	if borErr := a.filterBurnOnReadPosts(postSearchResults.PostList); borErr != nil {
+		return nil, 0, false, borErr
 	}
 
-	if appErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
-		return nil, false, appErr
+	if suppressErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); suppressErr != nil {
+		return nil, 0, false, suppressErr
 	}
 
-	return postSearchResults, allPostHaveMembership, nil
+	pruneSearchMatches(postSearchResults)
+
+	return postSearchResults, rawLen, allPostHaveMembership, nil
+}
+
+// pruneSearchMatches drops the match entries of posts the filters removed. Every filter
+// in the search pipeline rewrites Order and Posts but leaves Matches alone, so without
+// this a removed post still ships its id and the terms it matched on. Only the search
+// engines populate Matches; the database path leaves it nil.
+func pruneSearchMatches(results *model.PostSearchResults) {
+	for postID := range results.Matches {
+		if _, ok := results.Posts[postID]; !ok {
+			delete(results.Matches, postID)
+		}
+	}
 }
 
 func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.PostList, userID string) (bool, *model.AppError) {
@@ -2647,12 +2908,12 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 		}
 	}
 
-	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	infos, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+	if len(infos) == 0 && len(post.Filenames) > 0 {
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		// The post has Filenames that need to be replaced with FileInfos
@@ -2662,20 +2923,19 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 	return infos, nil
 }
 
-// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileIDs := post.FileIds
 	if fromMaster {
 		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		fileIDs = masterPost.FileIds
 	}
 
 	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
-		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
@@ -2683,14 +2943,9 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 	// reorder to match the post's stored attachment order.
 	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
-	if appErr != nil {
-		return nil, 0, appErr
-	}
-
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
-	return fileInfos, firstInaccessibleFileTime, nil
+	return fileInfos, nil
 }
 
 func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
@@ -3027,7 +3282,7 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	ok, isMember := a.SessionHasPermissionToReadChannel(rctx, *session, channel)
+	ok, isMember := a.SessionHasPermissionToReadChannelRBACOnly(rctx, *session, channel)
 	if !ok {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
@@ -3036,6 +3291,14 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		} else {
 			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
 		}
+	}
+
+	// After RBAC, as in the other read gates: a session RBAC already refuses gets the
+	// generic error without a policy evaluation. Nothing above bypasses this check, so
+	// every allowed path, the public-channel fallback included, still meets it.
+	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
+		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
+			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}
 
 	return post, nil, isMember
@@ -3065,6 +3328,63 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	}
 
 	return posts, firstInaccessiblePostTime, nil
+}
+
+// GetPostsByIdsForUser returns posts for the given IDs for userID.
+// Burn-on-read posts are handled the same way as other post reads.
+func (a *App) GetPostsByIdsForUser(rctx request.CTX, userID string, postIDs []string) ([]*model.Post, int64, *model.AppError) {
+	posts, firstInaccessiblePostTime, appErr := a.GetPostsByIds(postIDs)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	posts, appErr = a.prepareBurnOnReadPostsForUser(rctx, posts, userID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	return posts, firstInaccessiblePostTime, nil
+}
+
+// prepareBurnOnReadPostsForUser applies the same per-reader burn-on-read handling
+// used by other post reads. Posts removed by that handling are omitted.
+func (a *App) prepareBurnOnReadPostsForUser(rctx request.CTX, posts []*model.Post, userID string) ([]*model.Post, *model.AppError) {
+	if len(posts) == 0 || !a.isBurnOnReadEnabled() {
+		return posts, nil
+	}
+
+	list := model.NewPostList()
+	for _, post := range posts {
+		if post != nil && post.Type == model.PostTypeBurnOnRead {
+			list.AddPost(post)
+		}
+	}
+	if len(list.BurnOnReadPosts) == 0 {
+		return posts, nil
+	}
+
+	list, appErr := a.revealBurnOnReadPostsForUser(rctx, list, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	prepared := make([]*model.Post, 0, len(posts))
+	for _, post := range posts {
+		if post == nil {
+			continue
+		}
+		if post.Type != model.PostTypeBurnOnRead {
+			prepared = append(prepared, post)
+			continue
+		}
+		updated, ok := list.Posts[post.Id]
+		if !ok {
+			continue
+		}
+		prepared = append(prepared, updated)
+	}
+
+	return prepared, nil
 }
 
 // GetEditHistoryForPost returns the historical versions of a post, redacting attachments the
@@ -3211,6 +3531,11 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	rctx = rctx.WithLogFields(mlog.String("component", "post_reminders"))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
+		// A fresh server has no system admin yet, so there is no one to own the system bot.
+		if appErr.Id == "app.bot.get_system_bot.empty_admin_list.app_error" {
+			rctx.Logger().Debug("Skipping post reminders because there is no system admin to own the system bot")
+			return
+		}
 		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
@@ -3556,6 +3881,12 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// Moving copies the thread's files into the target channel, so it needs the
+	// same upload_file_attachment permission as attaching them there directly.
+	if wpl.ContainsFileAttachments() && !a.HasPermissionToChannelAction(rctx, user.Id, user.Roles, targetChannel.Id, model.AccessControlPolicyActionUploadFileAttachment) {
+		return model.NewAppError("MoveThread", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	}
+
 	var targetTeam *model.Team
 	if targetChannel.IsGroupOrDirect() {
 		if !originalChannel.IsGroupOrDirect() {
@@ -3710,7 +4041,18 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	sanitizedPostJSON, jsonErr := post.ToJSON()
+	// The author copy is built from this post after the broadcast payload is serialized.
+	broadcastPost := post
+	if post.Type == model.PostTypeBurnOnRead {
+		broadcastPost = post.Clone()
+		a.ensurePostMetadata(broadcastPost)
+		broadcastPost.Message = ""
+		broadcastPost.FileIds = []string{}
+		broadcastPost.Hashtags = ""
+		broadcastPost.DelProp(model.PostPropsChannelMentions)
+	}
+
+	sanitizedPostJSON, jsonErr := broadcastPost.ToJSON()
 	if jsonErr != nil {
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
@@ -3718,12 +4060,28 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, userMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(userMessage)
 
+	// Burn-on-read uses the same cleared payload. The hook above restores the author copy.
+	adminPostJSON := string(postJSON)
+	if post.Type == model.PostTypeBurnOnRead {
+		adminPostJSON = sanitizedPostJSON
+	}
+
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("post", adminPostJSON)
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, adminMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
@@ -4077,7 +4435,7 @@ User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Kee
 func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, connectionID string) (*model.Post, *model.AppError) {
 	// Validate that this is a burn-on-read post
 	if err := a.validateBurnOnReadPost(rctx, post); err != nil {
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	// Extract and validate post expiration time
@@ -4135,13 +4493,13 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 	if isFirstReveal {
 		// Send to post author for recipient count updates
 		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, userID, connectionID); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 
 		// Send to revealing user for multi-device sync
 		// Note: API layer already ensures userID != post.UserId (api4/post.go:1483-1486)
 		if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 	}
 
@@ -4149,7 +4507,7 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 }
 
 // validateBurnOnReadPost ensures the post is of type burn-on-read.
-func (a *App) validateBurnOnReadPost(rctx request.CTX, post *model.Post) *model.AppError {
+func (a *App) validateBurnOnReadPost(rctx request.CTX, post *model.Post) error {
 	if post.Type != model.PostTypeBurnOnRead {
 		return model.NewAppError("RevealPost", "app.reveal_post.not_burn_on_read.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
 	}
@@ -4277,7 +4635,7 @@ func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentT
 
 // publishPostRevealedEventToAuthor publishes a websocket event to the post author
 // with updated recipients list for real-time recipient count tracking.
-func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, revealingUserID string, connectionID string) *model.AppError {
+func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, revealingUserID string, connectionID string) error {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
@@ -4303,6 +4661,8 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 		event.Add("recipients", []string{})
 	}
 
+	// Sent to one user without a channel, so the central read-access hook can't see it.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4310,7 +4670,7 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 
 // publishPostRevealedEventToUser publishes a websocket event to the revealing user
 // for multi-device synchronization of revealed post content.
-func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post, userID string, connectionID string) *model.AppError {
+func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post, userID string, connectionID string) error {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
@@ -4327,6 +4687,8 @@ func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post,
 
 	event.Add("post", postJSON)
 
+	// Sent to one user without a channel, so the central read-access hook can't see it.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4411,7 +4773,7 @@ func (a *App) revealPostForAuthor(rctx request.CTX, postList *model.PostList, po
 }
 
 // getUserReadReceipt retrieves a user's read receipt for a post, returning nil if not found.
-func (a *App) getUserReadReceipt(rctx request.CTX, postID, userID string) (*model.ReadReceipt, *model.AppError) {
+func (a *App) getUserReadReceipt(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error) {
 	receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, postID, userID)
 	if err != nil && !store.IsErrNotFound(err) {
 		return nil, model.NewAppError("RevealBurnOnReadPostsForUser", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4429,6 +4791,8 @@ func (a *App) setUnrevealedPost(postList *model.PostList, postID string) {
 	unrevealedPost.Metadata.Images = map[string]*model.PostImage{}
 	unrevealedPost.Metadata.Acknowledgements = []*model.PostAcknowledgement{}
 	unrevealedPost.Message = ""
+	unrevealedPost.Hashtags = ""
+	unrevealedPost.DelProp(model.PostPropsChannelMentions)
 	postList.Posts[postID] = unrevealedPost
 }
 

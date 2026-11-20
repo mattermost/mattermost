@@ -748,6 +748,20 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostThread(postId string) (*model.PostList, *model.AppError)
 
+	// GetThreadFollowers gets the IDs of the active users who follow the thread of a root post.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	GetThreadFollowers(threadID string) ([]string, *model.AppError)
+
+	// SetThreadFollowing makes a user follow, or stop following, the thread of a root post, as
+	// the user's follow button on the thread does. It does not check that the user can read the
+	// post's channel: the plugin is responsible for that.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+
 	// GetPost gets a post.
 	//
 	// @tag Post
@@ -793,6 +807,21 @@ type API interface {
 	// @tag Post
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// UpdatePostWithOptions updates a post using the supplied options.
+	// UpdatePost is the same edit with SafeUpdate false, no file creator, and
+	// AllowMmBlocksActionsUpdate set only when the post carries a valid
+	// mm_blocks_actions value. This method uses the options as given.
+	// FileCreatorID selects newly added files: a file attaches when its
+	// creator is that id, or when it was uploaded with UploadFile (creator
+	// "nouser"). A file that cannot be attached is omitted and the rest of
+	// the edit is saved. Nil options match the zero value. The plugin
+	// authorizes the edit. Permissions, hooks, and the returned post match
+	// UpdatePost: no session is created.
+	//
+	// @tag Post
+	// Minimum server version: 12.1
+	UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
 	//
@@ -1007,11 +1036,28 @@ type API interface {
 	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
-	// KVList lists all keys for a plugin.
+	// KVList lists all keys for a plugin, sorted by key.
+	// To list only the keys with a given prefix, use KVListWithOptions.
 	//
 	// @tag KeyValueStore
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
+
+	// KVListWithOptions lists the keys for a plugin that match the given options, sorted by key.
+	// The database filters the keys before it applies page and perPage, so the pages contain
+	// only matching keys. A page with fewer than perPage keys is the last page.
+	//
+	// Options.Prefix returns only the keys that start with the prefix. All characters in the
+	// prefix match literally, including SQL wildcards such as % and _. An empty prefix returns
+	// all keys, as KVList does. Expired keys are not returned.
+	//
+	// On a server older than 12.2, the call returns an AppError with status code 501
+	// (Not Implemented). The pluginapi ListKeys method with WithPrefix uses KVListWithOptions,
+	// and on older servers it lists all keys and filters them in the plugin.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 12.2
+	KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
@@ -1229,6 +1275,23 @@ type API interface {
 	// Minimum server version: 5.36
 	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 
+	// GetClusterNodeID returns the cluster ID of the node the plugin is running on, for use as
+	// PluginClusterEventSendOptions.TargetId by other nodes. It returns an empty string until
+	// the node has joined a High-Availability cluster, e.g. when clustering is disabled.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodeID() string
+
+	// GetClusterNodes returns the nodes connected to the High-Availability cluster, including
+	// the one the plugin is running on. Each Id can be used as
+	// PluginClusterEventSendOptions.TargetId. It returns an empty list until this node has
+	// joined a cluster. Each call may query the database, so avoid calling it on hot paths.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodes() ([]*model.ClusterInfo, error)
+
 	// RequestTrialLicense requests a trial license and installs it in the server
 	//
 	// Minimum server version: 5.36
@@ -1344,6 +1407,15 @@ type API interface {
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error
+
+	// GetSharedChannelCursor returns the sync cursor for the specified channel and RemoteID (passed by
+	// the plugin when registering). The remote must belong to the calling plugin. This can be used to
+	// track the progress of a re-sync started by rewinding the cursor with UpdateSharedChannelCursor.
+	// Returns an error if the remote is not invited to the channel or its invite is not yet confirmed.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 12.2
+	GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error)
 
 	// SyncSharedChannel forces a shared channel to send any changed content to all remotes.
 	//
@@ -1579,6 +1651,67 @@ type API interface {
 	// Minimum server version: 11.0
 	CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 
+	// GetPropertyFieldOptions returns one page of a property field's options,
+	// ordered by creation time and continuing after the option the cursor names.
+	// Pass a zero cursor for the first page, then the create_at and id of the
+	// last option of the page just read. Both cursor parts or neither.
+	//
+	// The page includes the options the field inherits from the template it
+	// links to, flagged read_only, and for a field whose options form a
+	// hierarchy each option carries the names of the options directly above it.
+	// A page size is required, and at most 200 options are served at a time.
+	//
+	// A page holds the options this caller may see, which on a field whose
+	// options are access-controlled is fewer than the field has -- and on one
+	// whose options form a hierarchy the options above the caller's own are
+	// withheld along with their names, so those options carry no parents.
+	// Continue while the page's HasMore is true, passing its NextCursorCreateAt
+	// and NextCursorID back on the next call: the page length alone does not say
+	// whether the listing is over, and the cursor names the last option the page
+	// query examined rather than the last one it returned.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
+
+	// CreatePropertyFieldOptions adds options to a property field, at most 200
+	// per call. Each option may name the options it sits under, by name, in
+	// parents; a name resolves against the field's existing options and the
+	// names in the same payload, so a hierarchy can be built in one call.
+	//
+	// Every option is created or none is: the first item that cannot be
+	// accepted fails the call, reporting its position and the reason. An
+	// option's identifier is assigned here, so supplying one is refused.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+
+	// UpdatePropertyFieldOptions rewrites options a property field owns, at most
+	// 200 per call, each named by id. A part the payload leaves out is left as
+	// it was, so changing a name does not discard a colour or detach an option
+	// from the options above it; parents, when given, replaces that option's
+	// parent set rather than adding to it.
+	//
+	// Options the field inherits from a template cannot be changed through the
+	// field that inherits them. Every option is updated or none is.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+
+	// DeletePropertyFieldOptions removes options a property field owns, at most
+	// 200 per call, named by id. The set is judged as a whole, so a branch of a
+	// hierarchy can be removed in one call; an option left with something still
+	// below it is refused, because that option would become a root of its own.
+	//
+	// Values naming a removed option are left alone: a value naming an option
+	// that no longer exists is ignored wherever it is read.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error
+
 	// CreatePropertyValue creates a new property value.
 	//
 	// @tag PropertyValue
@@ -1734,6 +1867,37 @@ type API interface {
 	// Minimum server version: 11.10
 	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
 
+	// EvaluateAccessControlBatch evaluates whether userID may perform action on
+	// each of the plugin-owned resources (resourceType, resourceIDs[i]) and
+	// returns one decision per resource ID, keyed by ID. The user's subject is
+	// built once for the whole batch, so this is the method to use when
+	// filtering a list of resources for a single user. It is the plugin form of
+	// the access control engine's "evaluate candidates" step: any future
+	// plugin-facing resource or subject search must verify candidates with these
+	// same semantics (an omitted ID is a deny, IsNoPolicy() is a vacuous allow)
+	// rather than introduce a second set.
+	//
+	// Evaluation per resource is a cheap lookup once its policy is compiled; the
+	// first call for a cold policy is slower. The subject is built once but each
+	// resource is evaluated on its own, so a policy or attribute change during a
+	// call can give a mixed view across the resources.
+	//
+	// Each decision has the same semantics as EvaluateAccessControl, including
+	// IsNoPolicy(), and failures resolve the same way: when a resource could not
+	// be evaluated, the server checks whether a policy of resourceType exists
+	// for it and reports IsNoPolicy() only if none does. A resource ID that is
+	// missing from the returned map has a policy that could not be evaluated, or
+	// its existence could not be determined, and the plugin MUST treat it as a
+	// deny. The returned
+	// error covers failures that affect the whole batch (invalid arguments,
+	// more than 500 distinct resource IDs, or the store being unreachable while
+	// the access control engine is unavailable); the plugin MUST treat it as a
+	// deny for every resource.
+	//
+	// @tag AccessControl
+	// Minimum server version: 12.3
+	EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError)
+
 	// SaveAccessControlPolicy creates or updates a policy whose Type is
 	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
 	// true. policy.ID must be the resource's stable 26-char ID.
@@ -1746,6 +1910,17 @@ type API interface {
 	// not-found error if no policy exists OR the stored policy's type is not
 	// owned by the calling plugin (fail closed, no existence leak).
 	//
+	// Since server version 12.3, when the access control engine is unavailable
+	// (not licensed, disabled, or not registered) the stored policy is still
+	// returned, read straight from the store, so a plugin can show its
+	// restrictions after a license lapse. In that case CPA attribute references
+	// in rule expressions are returned as stored (id-encoded, for example
+	// "user.id_<groupID>.id_<fieldID>", not "user.attributes.<name>"), so a
+	// policy editor must expect that form during a lapse. The policy is for
+	// display only and must not be passed back to SaveAccessControlPolicy;
+	// re-read it once the engine is available. Servers before 12.3 return a not-implemented error instead,
+	// which plugins can use to detect the older behavior.
+	//
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
@@ -1753,6 +1928,13 @@ type API interface {
 	// DeleteAccessControlPolicy deletes the policy stored under id after
 	// verifying the stored policy's type equals resourceType and is owned by
 	// the calling plugin. Type mismatches return a not-found error (fail closed).
+	//
+	// Since server version 12.3, when the access control engine is unavailable
+	// (not licensed, disabled, or not registered) the policy is deleted straight
+	// from the store, so a plugin can always clear a restriction; only the
+	// delete is available then, as SaveAccessControlPolicy still requires the
+	// engine. Servers before 12.3 return a not-implemented error instead, which
+	// plugins can use to detect the older behavior.
 	//
 	// @tag AccessControl
 	// Minimum server version: 11.10
@@ -1764,6 +1946,18 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+
+	// CheckAccessControlExpressionForSearch runs CheckAccessControlExpression
+	// and additionally reports anything that would stop the expression from
+	// being translated to a user search (SQL), such as a session attribute or
+	// a function with no SQL equivalent. Plugins whose policies must also
+	// answer "which users match this rule" (for example to decide who receives
+	// a notification) should gate saves on this check; an empty slice means
+	// the expression is valid in both lanes.
+	//
+	// @tag AccessControl
+	// Minimum server version: 12.3
+	CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
 
 	// QueryUsersForAccessControlExpression returns users matching the
 	// expression (test modal support for policy editors).

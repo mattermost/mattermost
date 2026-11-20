@@ -3,66 +3,37 @@ title: "Desktop App Deployment"
 ---
 <PlanAvailability slug="all-commercial" />
 
-The Mattermost desktop app is available for Windows, macOS, and Linux operating systems, and offers [additional functionality](/end-user-guide/preferences/customize-desktop-app-experience) beyond the web-based experience.
+The Mattermost desktop app is available for Windows, macOS, and Linux, and offers [additional functionality](/end-user-guide/preferences/customize-desktop-app-experience) beyond the web-based experience. This guide walks you through rolling it out to your users. If something goes wrong along the way, see [Desktop app troubleshooting](/deployment-guide/desktop/desktop-troubleshooting).
 
-Learn more about desktop app [software requirements](/deployment-guide/software-hardware-requirements#desktop-apps), [releases and server compatibility](/product-overview/mattermost-desktop-releases) as well as [what's changed across releases](/product-overview/desktop-app-changelog).
+## Roll out the desktop app
 
-<Note>
+1.  **Check requirements.** Confirm your users' operating systems meet the [software requirements](/deployment-guide/software-hardware-requirements#desktop-apps), and that the desktop app version you plan to deploy is [compatible with your server](/product-overview/mattermost-desktop-releases).
+2.  **[Review privacy and data collection](/deployment-guide/desktop/desktop-app-privacy).** Decide whether to keep [error reporting](/deployment-guide/desktop/desktop-app-privacy#error-reporting) on, and which [session attributes](/deployment-guide/desktop/desktop-app-privacy#session-attribute-collection) your permission policies will rely on.
+3.  **[Choose how users get the app](#choose-a-distribution-channel).**
+4.  **[Pre-configure servers and settings](/deployment-guide/desktop/desktop-app-policies).** Help users have the best experience on first launch by having their servers and settings ready.
+5.  **[Plan updates](#plan-updates).**
+6.  **Let your users know.** [Install the Mattermost desktop app](/end-user-guide/access/install-desktop-app) walks them through getting started.
 
-Hitting problems with an installation or rollout? See [Desktop app troubleshooting](/deployment-guide/desktop/desktop-troubleshooting) at the end of this section, or [Deployment troubleshooting](/deployment-guide/server/troubleshooting) if the problem might not be specific to the desktop app.
+## Choose a distribution channel
 
-</Note>
+The app needs to be installed on a local drive. Running it from a network share isn't supported.
 
-## Download
+| Platform | Channel | How it's updated |
+|---|---|---|
+| Windows | [Microsoft Store](https://apps.microsoft.com/detail/xp8br8mh3lpklt?hl=en-US&gl=US) | Automatically, through the Microsoft Store. |
+| Windows | MSI | The app notifies users when an update is available, or you deploy new versions yourself. See [Deploy the desktop app on Windows](/deployment-guide/desktop/windows-desktop-install). |
+| macOS | [Mac App Store](https://apps.apple.com/us/app/mattermost-desktop/id1614666244?mt=12) | Automatically, through the Mac App Store. |
+| macOS | DMG | The app notifies users when an update is available, or you deploy new versions yourself. See [Deploy the desktop app on macOS](/deployment-guide/desktop/macos-desktop-install). |
+| Linux | APT repository, `.deb`, `.rpm`, Flatpak, AppImage, or tarball | Depends on the package. See [Deploy the desktop app on Linux](/deployment-guide/desktop/linux-desktop-install). |
 
-Download and install the Mattermost desktop app from the [App Store (macOS)](https://www.apple.com/app-store/), [Microsoft Store (Windows)](https://apps.microsoft.com/home?hl=en-US&gl=US), or by [using a package manager (Linux)](/deployment-guide/desktop/linux-desktop-install). We strongly recommend installing the desktop app on a local drive. Network shares aren't supported.
+To deploy the app to virtual desktops, also see [Run the desktop app on VDI](/deployment-guide/desktop/desktop-vdi-deployment). To ship your own white-labelled build with built-in servers, see [Distribute a custom desktop app](/deployment-guide/desktop/distribute-a-custom-desktop-app).
 
-In Matermost, users are notified under **Downloads** when new desktop app releases become available. If managing the distribution of the Desktop app on behalf of users, you can recommend that your users disable desktop update notifications by going to **… \> File \> Settings** on Windows or **Mattermost \> Settings** on Mac and clearing the **Automatically check for updates** option.
+## Plan updates
 
-See additional deployment options below to manage distribution of the desktop app to your users.
+All channels receive each release at the same time. See [Upgrade the desktop app](/end-user-guide/access/install-desktop-app#upgrade-the-desktop-app) for what users see when an update is available.
 
-### Windows distribution channels
+If you deliver updates yourself, for example with SCCM, Intune, or a base image, you can disable the `EnableAutoUpdater` policy, so users aren't prompted for updates you haven't rolled out yet. The policy is available on Windows and macOS only, so on Linux, control updates through your package source. See [Desktop app policies](/deployment-guide/desktop/desktop-app-policies).
 
-From desktop v6.1, organizations deploying on Windows have 2 primary distribution options:
+### Enforce a minimum version
 
-- **Windows Store** (recommended): Provides automatic updates through the Microsoft Store infrastructure. This is the recommended option for most organizations seeking streamlined update management.
-- **MSI packages**: Traditional deployment method with full control over installation timing. See the [MSI installer and group policy guide](/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install) documentation for details.
-
-The desktop v6.1 app includes in-app update notifications. All distribution channels (Windows Store, MSI, Mac App Store, Flathub, APT/RPM) release simultaneously to prevent notification and availability mismatches across deployment methods.
-
-## Deployment options
-
-Learn about installation, configuration, and management options for deploying the desktop app in your environment.
-
-- [Distribute a custom desktop app](/deployment-guide/desktop/distribute-a-custom-desktop-app)
-- [Silent Windows desktop distribution](/deployment-guide/desktop/silent-windows-desktop-distribution)
-- [MSI installer and group policy guide](/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install)
-- [Custom dictionaries for Windows and Linux](/deployment-guide/desktop/desktop-custom-dictionaries)
-- [Managed resources for the desktop app](/deployment-guide/desktop/desktop-app-managed-resources)
-
-## Privacy and data handling
-
-### Error reporting
-
-From Mattermost Desktop v6.1, the desktop app includes automatic error reporting to help identify and fix crashes and stability issues.
-
-**What information is sent**
-
-Error reports include:
-
-- Crash information and stack traces
-- App version and platform details (OS type, architecture)
-- Error messages and context
-
-**What is NOT sent**
-
-- Message content or user communications
-- User credentials, passwords, or authentication tokens
-- Personally identifiable information (PII)
-- Server URLs or team names
-
-**Privacy and user control**
-
-Error reporting is **enabled by default**. Users can disable it at any time by going to **Settings \> Advanced \> Send error reports to help improve the app**. Restart the app to apply the change.
-
-Organizations with data handling policies should inform users about this feature and provide guidance on whether to disable it. For organizations building the Desktop app from source, error reporting can be disabled at build time by omitting the `MM_DESKTOP_BUILD_SENTRYDSN` environment variable.
+From Mattermost server v11.6, the [Minimum desktop app version](/administration-guide/configure/site-configuration-settings#minimum-desktop-app-version) setting blocks older desktop app versions from connecting. Users below the minimum see an update required screen the next time the app loads the server, with a **Download** button that opens the [Mattermost apps download page link](/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link). You can point that link at a page that tells users how to get the update, such as an intranet page for Software Center or Company Portal. It must be an `http` or `https` URL.

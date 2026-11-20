@@ -135,6 +135,47 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 }
 
+func TestPluginKeyValueStoreListWithOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	pluginID := "testpluginid-listopts"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "prefix_a"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "prefix_b"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginID, "other_c"))
+	}()
+
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "prefix_a", []byte("val1")))
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "prefix_b", []byte("val2")))
+	assert.Nil(t, th.App.SetPluginKey(pluginID, "other_c", []byte("val3")))
+
+	// List with prefix filter
+	list, err := th.App.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{Prefix: "prefix_"}, 0, 100)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"prefix_a", "prefix_b"}, list)
+
+	// List with prefix that matches nothing
+	list, err = th.App.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{Prefix: "nomatch_"}, 0, 100)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{}, list)
+
+	// List with empty prefix (behaves like ListPluginKeys)
+	list, err = th.App.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{}, 0, 100)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"other_c", "prefix_a", "prefix_b"}, list)
+
+	// Pagination with prefix
+	list, err = th.App.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{Prefix: "prefix_"}, 0, 1)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"prefix_a"}, list)
+
+	list, err = th.App.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{Prefix: "prefix_"}, 1, 1)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"prefix_b"}, list)
+}
+
 func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1279,7 +1320,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to true", func(t *testing.T) {
-			// AppsEnabled=true is now rejected by Config.IsValid (MM-69643), so this
+			// AppsEnabled is retired and forced off on config load (MM-69643), so this
 			// override path can no longer be reached at runtime. Kept skipped rather
 			// than deleted so it is removed alongside the rest of the Apps code.
 			t.Skip("AppsEnabled feature flag is retired (MM-69643)")
@@ -1478,6 +1519,48 @@ func TestAddOnPluginLicenseGate(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
 		requireState(t, model.PluginStateRunning)
 	})
+}
+
+// Covers the activation check in installExtractedPlugin, which runs when a plugin
+// is installed while config already has it enabled.
+func TestInstallAddOnPluginUnlicensed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+		cfg.PluginSettings.PluginStates[testAddOnPluginID] = &model.PluginState{Enable: true}
+	})
+	require.Nil(t, th.App.Srv().RemoveLicense())
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	bundlePath := "webapp/testaddon_bundle.js"
+	manifest := &model.Manifest{
+		Id:            testAddOnPluginID,
+		Version:       "0.0.1",
+		RequiredAddOn: testAddOn,
+		Webapp:        &model.ManifestWebapp{BundlePath: bundlePath},
+	}
+	manifestJSON, jsonErr := json.Marshal(manifest)
+	require.NoError(t, jsonErr)
+
+	_, appErr := th.App.ch.installPluginLocally(
+		makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+			{bundlePath, "console.log('testaddon');"},
+		}),
+		installPluginLocallyOnlyIfNew,
+	)
+	checkNoError(t, appErr)
+
+	statuses, err := env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, statuses, 1)
+	require.Equal(t, testAddOnPluginID, statuses[0].PluginId)
+	require.Equal(t, model.PluginStateNotRunning, statuses[0].State)
 }
 
 func TestEnablePluginAddOnLicenseCheck(t *testing.T) {

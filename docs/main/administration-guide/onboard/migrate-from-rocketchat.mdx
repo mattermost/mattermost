@@ -13,7 +13,7 @@ The migration is a multi-step process:
 
 1.  [Preparations](#1-preparations) — scope the migration, gather MongoDB and attachment-storage details, and prepare the Mattermost server.
 2.  [Export your Rocket.Chat data](#2-export-your-rocketchat-data) — produce a `mongodump` of the Rocket.Chat database.
-3.  [Transform the export](#3-transform-the-export-for-mattermost) — validate with `mmetl check rocketchat` and convert with `mmetl transform rocketchat`.
+3.  [Transform the export](#3-transform-the-export-for-mattermost) — validate with `mmetl transform rocketchat --dry-run`, then run the full transform.
 4.  [Import into Mattermost](#4-import-into-mattermost) — upload and process the archive with `mmctl`.
 5.  [Validate, test, and go live](#5-validate-test-and-go-live) — verify the trial import before scheduling the production cutover.
 
@@ -84,19 +84,17 @@ If your deployment uses **FileSystem** storage for attachments, also copy the Ro
 
 ## 3. Transform the export for Mattermost
 
-[Download the latest release of mmetl](https://github.com/mattermost/mmetl/releases/) for your OS and architecture. Run `mmetl help` to learn more about the tool.
+[Download the latest mmetl release](https://github.com/mattermost/mmetl/releases/) for your OS and architecture. Run `mmetl help` to learn more about the tool.
 
 ### Validate the export
 
-Before transforming, check the integrity of the dump:
+Before the full transform, run the same command with `--dry-run`. Set `--team` to your destination team and include any flags you plan to use for the full run, such as `--uploads-dir` for FileSystem attachments, `--guest-handling`, and `--bot-owner` if the export contains bots:
 
 ``` sh
-./mmetl check rocketchat --dump-dir /tmp/rc-dump/meteor
+./mmetl transform rocketchat --team <TEAM-NAME> --dump-dir /tmp/rc-dump/meteor --output mattermost_import.jsonl --dry-run
 ```
 
-This reports structural issues (for example, missing required collections or invalid records) that would cause the transform or import to fail. Details are written to `check-rocketchat.log`.
-
-`check rocketchat` accepts the same `--guest-handling` flag as the transform, so you can preview how guest users will be treated before running the full transform.
+Dry-run parses and transforms the dump without writing JSONL or copying attachments. It logs warnings and errors to the terminal and exits non-zero if it finds problems, including missing attachments that a full transform would skip. Fix reported issues before the full run. Use `--skip-attachments` only if you intend to skip attachment checks and extraction in the full run.
 
 ### Run the transform
 
@@ -300,4 +298,4 @@ Because resolution happens at render time, you can add custom emoji to Mattermos
 
 **How do I handle a very large import?** Use the file store method — copy the archive directly into the server's `data/import` directory rather than uploading through `mmctl`. See [Large imports](#large-imports-file-store-method).
 
-**I hit a parse error. Is my export broken?** Possibly not. Rocket.Chat changes its MongoDB schema between versions (this tool was validated against v8.5). Run `mmetl check rocketchat` first, and check for a newer `mmetl` release before assuming the data is at fault.
+**I hit a parse error. Is my export broken?** Possibly not. Rocket.Chat changes its MongoDB schema between versions (this tool was validated against v8.5). Re-run `mmetl transform rocketchat --dry-run` with the same flags as the full transform, and check for a newer `mmetl` release before assuming the data is at fault.

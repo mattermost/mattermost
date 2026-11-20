@@ -21,6 +21,7 @@ type mockServer struct {
 	logger      *mlog.Logger
 	user        *model.User
 	customStore store.Store // if set, GetStore() returns this instead of creating default
+	metrics     einterfaces.MetricsInterface
 }
 
 func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
@@ -48,7 +49,7 @@ func (ms *mockServer) SetUser(user *model.User) {
 }
 
 func (ms *mockServer) Config() *model.Config                                  { return nil }
-func (ms *mockServer) GetMetrics() einterfaces.MetricsInterface               { return nil }
+func (ms *mockServer) GetMetrics() einterfaces.MetricsInterface               { return ms.metrics }
 func (ms *mockServer) IsLeader() bool                                         { return true }
 func (ms *mockServer) AddClusterLeaderChangedListener(listener func()) string { return model.NewId() }
 func (ms *mockServer) RemoveClusterLeaderChangedListener(id string)           {}

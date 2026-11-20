@@ -55,7 +55,7 @@ describe('Custom emojis', () => {
         cy.uiOpenCustomEmoji();
 
         // # Click on add custom emoji
-        cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible').click();
+        cy.findByRole('link', {name: 'Add Custom Emoji'}).should('be.visible').click();
 
         // # Type emoji name
         cy.get('#name').type(customEmojiWithColons);
@@ -122,5 +122,5 @@ function saveCustomEmoji(teamName: string) {
 
     // * Should return to list of custom emojis
     cy.url().should('include', `${teamName}/emoji`);
-    cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible');
+    cy.findByRole('link', {name: 'Add Custom Emoji'}).should('be.visible');
 }

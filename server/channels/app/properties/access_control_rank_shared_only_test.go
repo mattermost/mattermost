@@ -77,19 +77,22 @@ func TestRankSharedOnly_FieldOptions(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	t.Run("caller at a middle rank sees their rank and below", func(t *testing.T) {
+	t.Run("caller at a middle rank sees only their own rank", func(t *testing.T) {
 		field := newRankField(t, "clearance-middle")
 		userID := model.NewId()
 		assignRank(t, field.ID, userID, "opt_secret") // rank 2
 
+		// A masked rank field's options are exact-option membership, the same
+		// rule select and multiselect use -- there is no clamp to the ranks
+		// below what the caller holds.
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
 		ids := optionIDsOf(t, retrieved)
-		assert.ElementsMatch(t, []string{"opt_public", "opt_confidential", "opt_secret"}, ids,
-			"caller at Secret should see Public, Confidential, Secret but not TopSecret")
+		assert.ElementsMatch(t, []string{"opt_secret"}, ids,
+			"caller at Secret should see only Secret, exact-match, not Public or Confidential")
 	})
 
-	t.Run("caller at the top rank sees every option", func(t *testing.T) {
+	t.Run("caller at the top rank sees only their own rank", func(t *testing.T) {
 		field := newRankField(t, "clearance-top")
 		userID := model.NewId()
 		assignRank(t, field.ID, userID, "opt_topsecret") // rank 3
@@ -97,7 +100,7 @@ func TestRankSharedOnly_FieldOptions(t *testing.T) {
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
 		ids := optionIDsOf(t, retrieved)
-		assert.ElementsMatch(t, []string{"opt_public", "opt_confidential", "opt_secret", "opt_topsecret"}, ids)
+		assert.ElementsMatch(t, []string{"opt_topsecret"}, ids)
 	})
 
 	t.Run("caller at the lowest rank sees only that rank", func(t *testing.T) {
@@ -175,12 +178,14 @@ func TestRankSharedOnly_Value(t *testing.T) {
 	assignRank(t, callerID, "opt_secret")
 	rctxCaller := RequestContextWithCallerID(th.Context, callerID)
 
-	t.Run("target below caller's rank is visible", func(t *testing.T) {
+	t.Run("target below caller's rank is not visible", func(t *testing.T) {
+		// A masked rank field matches exactly, not "at or below": the caller
+		// holds Secret, and Confidential is a different option, not a subset
+		// of it.
 		target := assignRank(t, model.NewId(), "opt_confidential") // rank 1
 		retrieved, getErr := th.service.GetPropertyValue(rctxCaller, th.CPAGroupID, target.ID)
 		require.NoError(t, getErr)
-		require.NotNil(t, retrieved)
-		assert.Equal(t, target.Value, retrieved.Value)
+		assert.Nil(t, retrieved)
 	})
 
 	t.Run("target at caller's rank is visible", func(t *testing.T) {
@@ -191,16 +196,13 @@ func TestRankSharedOnly_Value(t *testing.T) {
 		assert.Equal(t, target.Value, retrieved.Value)
 	})
 
-	t.Run("target above caller's rank is clamped to the caller's rank", func(t *testing.T) {
+	t.Run("target above caller's rank is not visible", func(t *testing.T) {
+		// The rank narrowing this masked path applies: an exact-option match,
+		// not the legacy clamp to the highest rank the two share.
 		target := assignRank(t, model.NewId(), "opt_topsecret") // rank 3
 		retrieved, getErr := th.service.GetPropertyValue(rctxCaller, th.CPAGroupID, target.ID)
 		require.NoError(t, getErr)
-		require.NotNil(t, retrieved)
-
-		expected, jsonErr := json.Marshal("opt_secret") // caller holds Secret (rank 2)
-		require.NoError(t, jsonErr)
-		assert.Equal(t, json.RawMessage(expected), retrieved.Value,
-			"caller at Secret viewing a TopSecret target should see the value clamped to Secret, the highest rank they share")
+		assert.Nil(t, retrieved)
 	})
 
 	t.Run("caller with no value of their own sees nothing", func(t *testing.T) {

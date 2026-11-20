@@ -119,10 +119,17 @@ const GlobalThreads = () => {
             promises.push(dispatch(getThreadsForCurrentTeam({unread: true})));
         }
 
+        let isStale = false;
         Promise.all(promises).then(() => {
-            setLoading(false);
+            if (!isStale) {
+                setLoading(false);
+            }
         });
-    }, [filter, threadIds, unreadThreadIds]);
+
+        return () => {
+            isStale = true;
+        };
+    }, [filter, threadIds, unreadThreadIds, numUnread]);
 
     useEffect(() => {
         if (!isLoading) {
@@ -212,7 +219,7 @@ const GlobalThreads = () => {
                                 link: (chunks) => (
                                     <Link
                                         key='single'
-                                        to={`${url}/${unreadThreadIds[0]}`}
+                                        to={unreadThreadIds.length ? `${url}/${unreadThreadIds[0]}` : url}
                                         onClick={handleSelectUnread}
                                     >
                                         {chunks}

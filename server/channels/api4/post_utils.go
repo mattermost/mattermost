@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -22,6 +24,10 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 
 	if !hasPermission {
 		c.SetPermissionError(model.PermissionCreatePost)
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, channelId) {
 		return
 	}
 }
@@ -48,11 +54,32 @@ func postCardTypeCheckWithContext(where string, c *Context, postType string) {
 	}
 }
 
+// postBurnOnReadCheckWithContext runs the channel/participant checks and then
+// the ABAC create_burn_on_read_post policy check.
+//
+// The policy check is here rather than inside PostBurnOnReadCheckWithApp
+// because the scheduled-post send job calls that function too: a post that was
+// allowed when the user scheduled it must still send, even if the policy has
+// since tightened.
+//
+// It must also stay after the create-post permission check that both callers
+// run first. A user who cannot post in the channel at all is refused on that
+// basis rather than told burn-on-read is unavailable, and a burn-on-read allow
+// must never override a create-post deny.
 func postBurnOnReadCheckWithContext(where string, c *Context, post *model.Post, channel *model.Channel) {
 	appErr := app.PostBurnOnReadCheckWithApp(where, c.App, c.AppContext, post.UserId, post.ChannelId, post.Type, channel)
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
+		return
+	}
+
+	if post.Type != model.PostTypeBurnOnRead {
+		return
+	}
+
+	if !c.App.HasPermissionToChannelAction(c.AppContext, post.UserId, c.AppContext.Session().Roles, post.ChannelId, model.AccessControlPolicyActionCreateBurnOnReadPost) {
+		c.Err = model.NewAppError(where, "api.post.create_post.burn_on_read.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}
 }
 
@@ -77,10 +104,21 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 	}
 
 	if hasNewFiles {
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetPermissionError(model.PermissionUploadFile)
-			return
-		}
+		checkUploadFileAttachmentPermission(c, "checkUploadFilePermissionForNewFiles", originalPost.ChannelId)
+	}
+}
+
+// checkUploadFileAttachmentPermission checks both the upload_file permission and
+// the upload_file_attachment permission policy for the channel. Every path that
+// uploads a file or attaches one to content in a channel must run it.
+func checkUploadFileAttachmentPermission(c *Context, where string, channelID string) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionUploadFile); !ok {
+		c.SetPermissionError(model.PermissionUploadFile)
+		return
+	}
+
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelID, model.AccessControlPolicyActionUploadFileAttachment) {
+		c.Err = model.NewAppError(where, "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}
 }
 
@@ -93,4 +131,41 @@ func checkEditFileAttachmentPermission(c *Context, newFileIds []string, original
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditFileAttachment); !ok {
 		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
+}
+
+// postAttributeValuesForCreate turns the submitted metadata values into PropertyValues to
+// write with the post.
+//
+// When nothing was submitted this returns (nil, nil) before any lookup, channel or property,
+// which is what keeps createPost byte-identical to its pre-feature behaviour — the reason
+// this is safe to add to the most-used endpoint in the product.
+func postAttributeValuesForCreate(c *Context, post *model.Post) ([]*model.PropertyValue, *model.AppError) {
+	items := post.Metadata.GetPropertyValues()
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	if !c.App.Config().FeatureFlags.PostAttributes {
+		return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Fetched only once there are values to check: the team ID decides which team-scoped
+	// fields apply. CreatePostAsUserWithFlags reads the same channel again a moment later.
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	values, fields, err := c.App.PreparePostPropertyValuesForCreate(c.AppContext, items, channel)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+
+	for _, field := range fields {
+		if !c.App.CanSetPostPropertyValueOnCreate(c.AppContext, c.AppContext.Session().UserId, field, channel) {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attribute_no_permission.app_error", nil, "", http.StatusForbidden)
+		}
+	}
+
+	return values, nil
 }

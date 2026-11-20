@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {FieldType} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid, isOperatorValidForType} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import TableEditor, {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid, isOperatorValidForType} from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import type {TableRow} from 'components/admin_console/access_control/editors/table_editor/value_selector_menu';
+
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 describe('parseExpression', () => {
     test('handles "==" operator mapping to "is"', () => {
@@ -804,12 +808,91 @@ describe('rowToCEL', () => {
         expect(cel).toBe('user.attributes.clearance != "Secret"');
     });
 
+    // --- Graph hierarchy predicates ---
+    //
+    // Each is a member call on the user's graph attribute. The operator label is
+    // the CEL function name, so it is emitted verbatim; the argument is either a
+    // list of option names or the accessed channel's graph attribute.
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s emits a member call over a list of option names', (operator) => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator,
+            values: ['F-18 Program', 'Navy Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe(`user.attributes.programs.${operator}(["F-18 Program", "Navy Program"])`);
+    });
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s emits a member call against a channel-attribute target', (operator) => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator,
+            values: [],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+            targetAttribute: 'channelPrograms',
+        });
+        expect(cel).toBe(`user.attributes.programs.${operator}(resource.attributes.channelPrograms)`);
+    });
+
+    test('a hierarchy predicate escapes quotes in option names', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'coversAll',
+            values: ['O\'Brien\'s "Program"'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.programs.coversAll(["O\'Brien\'s \\"Program\\""])');
+    });
+
+    test('exact membership on a graph attribute keeps the element-wise in-chain', () => {
+        // Membership is hierarchy-blind and stays on the list operators. The
+        // server labels such a row multiselect — it reads no field types when it
+        // converts an expression back — so the row arrives that way and the
+        // operator, not the attribute type, is what selects the emitted form.
+        expect(rowToCEL({
+            attribute: 'programs',
+            operator: 'has all of',
+            values: ['F-18 Program', 'Navy Program'],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+        })).toBe('"F-18 Program" in user.attributes.programs && "Navy Program" in user.attributes.programs');
+
+        expect(rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: ['F-18 Program', 'Navy Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+        })).toBe('("F-18 Program" in user.attributes.programs || "Navy Program" in user.attributes.programs)');
+    });
+
+    test('a membership operator on a graph attribute emits the list-vs-list member call against a channel target', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has all of',
+            values: [],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+            targetAttribute: 'channelPrograms',
+        });
+        expect(cel).toBe('user.attributes.programs.hasAllOf(resource.attributes.channelPrograms)');
+    });
+
     // --- Masking-related tests ---
 
     test('fully-masked row (hasMaskedValues=true, values=[]) emits "in []" placeholder regardless of operator', () => {
         // The placeholder is needed so the backend merge can locate this condition
-        // by attribute and re-inject the hidden values.  The operator is irrelevant
-        // because the backend always overrides it from the stored expression.
+        // by attribute and re-inject the hidden values. The operator the row was on
+        // is not carried in it, and the server does not take the operator from the
+        // submitted side — it pairs a stored condition with the submitted one by
+        // call shape and puts the stored operator back. So a stored condition of a
+        // shape this placeholder cannot stand in for is refused rather than
+        // rewritten; the hierarchy predicates are that case, and emit a placeholder
+        // of their own shape instead.
         const operators = ['in', 'is', 'has all of', 'has any of', 'contains', 'starts with'];
         for (const operator of operators) {
             const cel = rowToCEL({
@@ -834,6 +917,48 @@ describe('rowToCEL', () => {
             hasMaskedValues: true,
         });
         expect(cel).toBe('user.attributes.program in ["Alpha"]');
+    });
+
+    test('fully-masked hierarchy predicate keeps its own shape as the placeholder', () => {
+        // The server pairs a stored condition with the submitted one by operator
+        // and call shape, so an `in []` placeholder does not stand in for a stored
+        // coversAll(...) — it is refused and the save fails. An empty target list
+        // is the placeholder that does pair, and the hidden option names are put
+        // back into it.
+        for (const operator of ['coversAll', 'coversAny', 'withinAll', 'withinAny']) {
+            const cel = rowToCEL({
+                attribute: 'programs',
+                operator,
+                values: [],
+                attribute_type: 'graph',
+                hasMaskedValues: true,
+            });
+            expect(cel).toBe(`user.attributes.programs.${operator}([])`);
+        }
+    });
+
+    test('exact membership on a graph attribute still uses the in [] placeholder', () => {
+        // It is stored as an `in` test, so the shape the server pairs on is the
+        // one the generic placeholder already produces.
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'in',
+            values: [],
+            attribute_type: 'graph',
+            hasMaskedValues: true,
+        });
+        expect(cel).toBe('user.attributes.programs in []');
+    });
+
+    test('partially-masked hierarchy predicate emits the visible option names', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'coversAll',
+            values: ['F-18 Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: true,
+        });
+        expect(cel).toBe('user.attributes.programs.coversAll(["F-18 Program"])');
     });
 
     // --- Session-attribute namespace tests ---
@@ -943,6 +1068,92 @@ describe('multiselect target round-trips (parseExpression -> rowToCEL)', () => {
         expect(rows[0].targetAttribute).toBeUndefined();
         expect(rows[0].values).toEqual(['Dragon', 'Phoenix']);
         expect(rowToCEL(rows[0])).toBe(expected);
+    });
+});
+
+describe('graph hierarchy round-trips (parseExpression -> rowToCEL)', () => {
+    // A saved graph rule comes back from the server as a condition whose
+    // operator is the CEL function name and whose attribute_type is "graph". It
+    // must re-render as a row and re-serialize to the same expression, or
+    // opening a policy in the table editor would rewrite it.
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s over literal option names', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: ['F-18 Program', 'Navy Program'],
+                    value_type: 0,
+                    attribute_type: 'graph',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].operator).toBe(celFn);
+        expect(rows[0].values).toEqual(['F-18 Program', 'Navy Program']);
+        expect(rows[0].targetAttribute).toBeUndefined();
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(["F-18 Program", "Navy Program"])`);
+    });
+
+    // The server reads no field types, so it labels this graph form multiselect.
+    test.each(['hasAnyOf', 'hasAllOf'])('%s on a graph attribute against a channel-attribute target', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].targetAttribute).toBe('channelPrograms');
+        expect(rows[0].values).toEqual([]);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+    });
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s against a channel-attribute target', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'graph',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].operator).toBe(celFn);
+        expect(rows[0].targetAttribute).toBe('channelPrograms');
+        expect(rows[0].values).toEqual([]);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+    });
+
+    test('exact membership survives arriving labelled multiselect', () => {
+        // The server cannot tell `"X" in <graph field>` from the same expression
+        // over a multiselect field, so it reports the row as multiselect with the
+        // operator promoted to hasAllOf. The chain it re-emits is identical.
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: 'hasAllOf',
+                    value: ['F-18 Program'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rowToCEL(rows[0])).toBe('"F-18 Program" in user.attributes.programs');
     });
 });
 
@@ -1259,6 +1470,46 @@ describe('isSimpleExpression', () => {
     test('native and CPA conditions combined with AND are simple', () => {
         expect(isSimpleExpression('user.verified == true && user.attributes.dept == "Eng"')).toBe(true);
     });
+
+    test('unparenthesized multiselect OR group is simple', () => {
+        expect(isSimpleExpression('"a" in user.attributes.skills || "b" in user.attributes.skills')).toBe(true);
+    });
+
+    test.each([
+        ['group first', '"a" in user.attributes.skills || "b" in user.attributes.skills && user.attributes.dept == "Eng"'],
+        ['group last', 'user.attributes.dept == "Eng" && "a" in user.attributes.skills || "b" in user.attributes.skills'],
+    ])('unparenthesized group mixed with && is NOT simple (%s)', (_label, expr) => {
+        expect(isSimpleExpression(expr)).toBe(false);
+    });
+
+    test('separately parenthesized OR operands are NOT simple', () => {
+        expect(isSimpleExpression('("a" in user.attributes.skills) || ("b" in user.attributes.skills)')).toBe(false);
+    });
+
+    test('&& and || inside literals do not split conditions', () => {
+        expect(isSimpleExpression('user.attributes.dept == "R&&D"')).toBe(true);
+        expect(isSimpleExpression('"a||b" in user.attributes.skills || "c" in user.attributes.skills')).toBe(true);
+    });
+
+    test.each([
+        ['after an equality', 'user.attributes.dept == "x") || (true'],
+        ['after a group', '"a" in user.attributes.skills || "b" in user.attributes.skills) || (true'],
+        ['inside an unterminated literal', 'user.attributes.dept == "x") || (true && user.attributes.a == "b'],
+    ])('paren breakout strings are NOT simple (%s)', (_label, expr) => {
+        expect(isSimpleExpression(expr)).toBe(false);
+    });
+
+    test('a group spanning lines is simple', () => {
+        expect(isSimpleExpression('"a" in user.attributes.skills ||\n"b" in user.attributes.skills')).toBe(true);
+    });
+
+    test('whitespace-only expression is simple', () => {
+        expect(isSimpleExpression('  \n')).toBe(true);
+    });
+
+    test('empty parens are NOT simple', () => {
+        expect(isSimpleExpression('()')).toBe(false);
+    });
 });
 
 describe('isMultiselectOrGroup', () => {
@@ -1270,8 +1521,13 @@ describe('isMultiselectOrGroup', () => {
         expect(isMultiselectOrGroup('("a" in user.attributes.X || "b" in user.attributes.X || "c" in user.attributes.X)')).toBe(true);
     });
 
-    test('rejects expression without parentheses', () => {
-        expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X')).toBe(false);
+    test('accepts a group without parentheses', () => {
+        expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X')).toBe(true);
+    });
+
+    test('requires enclosing parentheses when requested', () => {
+        expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X', {requireParens: true})).toBe(false);
+        expect(isMultiselectOrGroup('("a||b" in user.attributes.X || "c" in user.attributes.X)', {requireParens: true})).toBe(true);
     });
 
     test('rejects equality conditions in OR group', () => {
@@ -1280,6 +1536,34 @@ describe('isMultiselectOrGroup', () => {
 
     test('rejects malformed inner expression', () => {
         expect(isMultiselectOrGroup('(garbage || more garbage)')).toBe(false);
+    });
+
+    test('rejects parens that do not enclose the whole group', () => {
+        expect(isMultiselectOrGroup('("a" in user.attributes.X) || ("b" in user.attributes.X)')).toBe(false);
+    });
+
+    test('strips only one pair of enclosing parens', () => {
+        expect(isMultiselectOrGroup('(("a" in user.attributes.X || "b" in user.attributes.X))')).toBe(false);
+    });
+
+    test.each([
+        ['|| inside a literal', '"a||b" in user.attributes.X || "c" in user.attributes.X'],
+        ['parens inside literals', '("a)" in user.attributes.X || "(b" in user.attributes.X)'],
+        ['newlines and padding', '\n  "a" in user.attributes.X ||\n  "b" in user.attributes.X\n'],
+        ['a single parenthesized value', '("a" in user.attributes.X)'],
+        ['a single bare value', '"a" in user.attributes.X'],
+    ])('accepts %s', (_label, expr) => {
+        expect(isMultiselectOrGroup(expr)).toBe(true);
+    });
+
+    test.each([
+        ['empty', ''],
+        ['empty parens', '()'],
+        ['an unterminated literal', '"a" in user.attributes.X || "b'],
+        ['a group joined with &&', '"a" in user.attributes.X || "b" in user.attributes.X && user.attributes.c == "d"'],
+        ['a paren breakout after the group', '"a" in user.attributes.X || "b" in user.attributes.X) || (true'],
+    ])('rejects %s', (_label, expr) => {
+        expect(isMultiselectOrGroup(expr)).toBe(false);
     });
 });
 
@@ -1491,5 +1775,322 @@ describe('simple-expression detection with quote characters in values', () => {
         expect(isSimpleCondition('user.attributes.dept in ["say "hi""]')).toBe(false);
         expect(isSimpleCondition('user.email in ["say "hi""]')).toBe(false);
         expect(isSimpleCondition('["say "hi""] in user.attributes.dept')).toBe(false);
+    });
+});
+
+const boolOptions = [{id: 'true', name: 'true'}, {id: 'false', name: 'false'}];
+
+const makeNativeField = (
+    name: string,
+    displayName: string,
+    type: UserPropertyField['type'],
+    operators: string[],
+    extraAttrs: Partial<UserPropertyField['attrs']> = {},
+): UserPropertyField => ({
+    id: `native_user_attribute_${name}`,
+    name,
+    type,
+    group_id: 'custom_profile_attributes',
+    target_id: '',
+    target_type: 'system',
+    object_type: 'user',
+    attrs: {
+        sort_order: 0,
+        visibility: 'always',
+        value_type: '',
+        native: true,
+        display_name: displayName,
+        operators,
+        ...extraAttrs,
+    },
+    create_at: 0,
+    update_at: 0,
+    delete_at: 0,
+    created_by: '',
+    updated_by: '',
+});
+
+const nativeEmail = makeNativeField('email', 'Email', 'text', ['==', '!=', 'in', 'contains', 'startsWith', 'endsWith']);
+const nativeVerified = makeNativeField('verified', 'Email verified', 'select', ['==', '!='], {options: boolOptions});
+const nativeIsBot = makeNativeField('isbot', 'Bot account', 'select', ['==', '!='], {options: boolOptions});
+const nativeCreateAt = makeNativeField('createat', 'Account created', 'text', ['youngerThanDays']);
+const nativeFields = [nativeEmail, nativeVerified, nativeIsBot, nativeCreateAt];
+const BOT_HIDDEN = ['email', 'verified', 'isbot'];
+
+const cpaEmail: UserPropertyField = {
+    ...nativeEmail,
+    id: 'cpa-email',
+    attrs: {sort_order: 0, visibility: 'always', value_type: '', managed: 'admin', display_name: 'Work email'},
+};
+
+describe('TableEditor picker filter and help text', () => {
+    const getVisualAST = jest.fn();
+    const baseProps = {
+        value: '',
+        onChange: jest.fn(),
+        userAttributes: nativeFields,
+        enableUserManagedAttributes: false,
+        onParseError: jest.fn(),
+        actions: {getVisualAST},
+    };
+
+    const emailCondition = {attribute: 'user.email', operator: '==', value: 'a@b.com', value_type: 0, attribute_type: 'text'};
+    const isBotCondition = {attribute: 'user.isbot', operator: '==', value: true, value_type: 0, attribute_type: 'select'};
+
+    const menuItem = (field: UserPropertyField) => document.getElementById(`attribute-${field.id}`);
+    const addAttributeButton = () => screen.getByRole('button', {name: /add attribute/i});
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        getVisualAST.mockResolvedValue({data: {conditions: []}});
+    });
+
+    test('lists only non-hidden native attributes in the picker', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [emailCondition]}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                value='user.email == "a@b.com"'
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+
+        expect(screen.getByText('Built-in attributes')).toBeInTheDocument();
+        expect(menuItem(nativeCreateAt)).toBeInTheDocument();
+        expect(menuItem(nativeEmail)).toBeNull();
+        expect(menuItem(nativeVerified)).toBeNull();
+        expect(menuItem(nativeIsBot)).toBeNull();
+    });
+
+    test('a row already on a hidden attribute keeps its label, operator and value', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [emailCondition]}});
+
+        const {container} = renderWithContext(
+            <TableEditor
+                {...baseProps}
+                value='user.email == "a@b.com"'
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        expect(await screen.findByTestId('attributeSelectorMenuButton')).toHaveTextContent('Email');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is');
+        expect(container.querySelector('.values-editor__simple-input')).toHaveValue('a@b.com');
+    });
+
+    test('a row on a hidden boolean attribute still offers its true/false options', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [isBotCondition]}});
+
+        const {container} = renderWithContext(
+            <TableEditor
+                {...baseProps}
+                value='user.isbot == true'
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        expect(await screen.findByTestId('attributeSelectorMenuButton')).toHaveTextContent('Bot account');
+        expect(container.querySelector('.values-editor__simple-input')).not.toBeInTheDocument();
+    });
+
+    test('a row on a hidden attribute can be switched to a listed one', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [emailCondition]}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                value='user.email == "a@b.com"'
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(menuItem(nativeCreateAt) as HTMLElement);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('attributeSelectorMenuButton')).toHaveTextContent('Account created');
+        });
+    });
+
+    test('adding a row defaults to the first non-hidden attribute', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        await userEvent.click(addAttributeButton());
+
+        await waitFor(() => {
+            expect(screen.getAllByTestId('attributeSelectorMenuButton')[0]).toHaveTextContent('Account created');
+        });
+        expect(baseProps.onParseError).not.toHaveBeenCalled();
+    });
+
+    test('adding a row defaults to the first attribute when the prop is omitted', async () => {
+        renderWithContext(<TableEditor {...baseProps}/>);
+
+        await userEvent.click(addAttributeButton());
+
+        await waitFor(() => {
+            expect(screen.getAllByTestId('attributeSelectorMenuButton')[0]).toHaveTextContent('Email');
+        });
+        expect(baseProps.onParseError).not.toHaveBeenCalled();
+    });
+
+    test('lists every attribute in the picker when the prop is omitted', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [emailCondition]}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                value='user.email == "a@b.com"'
+            />,
+        );
+
+        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+
+        for (const field of nativeFields) {
+            expect(menuItem(field)).toBeInTheDocument();
+        }
+    });
+
+    test('disables Add attribute when every attribute is hidden', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                userAttributes={[nativeEmail, nativeVerified, nativeIsBot]}
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(addAttributeButton()).toBeDisabled();
+        });
+    });
+
+    test('still renders existing rows when every attribute is hidden', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [emailCondition]}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                userAttributes={[nativeEmail, nativeVerified, nativeIsBot]}
+                value='user.email == "a@b.com"'
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        expect(await screen.findByTestId('attributeSelectorMenuButton')).toHaveTextContent('Email');
+        expect(addAttributeButton()).toBeDisabled();
+    });
+
+    test('keeps Add attribute enabled when only some attributes are hidden', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(addAttributeButton()).toBeEnabled();
+        });
+    });
+
+    test('the disabled prop still disables Add attribute', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                disabled={true}
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(addAttributeButton()).toBeDisabled();
+        });
+    });
+
+    test('hidden names that match no attribute change nothing', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                hiddenPickerAttributeNames={['nope']}
+            />,
+        );
+
+        await userEvent.click(addAttributeButton());
+
+        await waitFor(() => {
+            expect(screen.getAllByTestId('attributeSelectorMenuButton')[0]).toHaveTextContent('Email');
+        });
+
+        // The new row auto-opens its picker.
+        await waitFor(() => {
+            expect(menuItem(nativeEmail)).toBeInTheDocument();
+        });
+        for (const field of nativeFields) {
+            expect(menuItem(field)).toBeInTheDocument();
+        }
+    });
+
+    test('a custom attribute sharing a hidden native name stays selectable', async () => {
+        getVisualAST.mockResolvedValue({data: {conditions: [emailCondition]}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                userAttributes={[cpaEmail, ...nativeFields]}
+                value='user.email == "a@b.com"'
+                hiddenPickerAttributeNames={BOT_HIDDEN}
+            />,
+        );
+
+        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+
+        expect(screen.getByText('Custom attributes')).toBeInTheDocument();
+        expect(menuItem(cpaEmail)).toBeInTheDocument();
+        expect(menuItem(nativeEmail)).toBeNull();
+    });
+
+    test('a custom helpText replaces the default help text', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                helpText='Each row is a bot condition.'
+            />,
+        );
+
+        expect(await screen.findByText('Each row is a bot condition.')).toBeInTheDocument();
+        expect(screen.queryByText(/must be met for a user to comply/)).not.toBeInTheDocument();
+    });
+
+    test('renders the default help text when helpText is omitted', async () => {
+        renderWithContext(<TableEditor {...baseProps}/>);
+
+        expect(await screen.findByText(/must be met for a user to comply/)).toBeInTheDocument();
+    });
+
+    test('a custom emptyStateText replaces the default empty-table message', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                emptyStateText='Select a bot attribute and values to create a rule'
+            />,
+        );
+
+        expect(await screen.findByText('Select a bot attribute and values to create a rule')).toBeInTheDocument();
+        expect(screen.queryByText('Select a user attribute and values to create a rule')).not.toBeInTheDocument();
+    });
+
+    test('renders the default empty-table message when emptyStateText is omitted', async () => {
+        renderWithContext(<TableEditor {...baseProps}/>);
+
+        expect(await screen.findByText('Select a user attribute and values to create a rule')).toBeInTheDocument();
     });
 });

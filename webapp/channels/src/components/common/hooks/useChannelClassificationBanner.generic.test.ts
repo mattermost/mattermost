@@ -1,13 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitFor} from '@testing-library/react';
 import * as ReactRedux from 'react-redux';
 
+import {ClientError} from '@mattermost/client';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+
+import {act, renderHookWithContext} from 'tests/react_testing_utils';
 
 import useChannelClassificationBanner from './useChannelClassificationBanner';
 import * as ClassificationHook from './useClassificationMarkings';
@@ -16,6 +21,13 @@ jest.mock('react-redux', () => ({
     __esModule: true,
     ...jest.requireActual('react-redux'),
 }));
+
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const CHANNEL_ID = 'channel1';
 const GROUP_ID = 'group_access_control';
@@ -63,7 +75,7 @@ type PartialState = Parameters<typeof renderHookWithContext>[1];
 function makeState(
     fields: PropertyField[],
     values: Array<PropertyValue<unknown>>,
-    bannerInfo?: {enabled?: boolean; text?: string; background_color?: string},
+    bannerInfo?: {enabled?: boolean; text?: string; background_color?: string; attribute_banner_disabled?: boolean},
     flag = 'true',
 ): PartialState {
     const byTargetId: Record<string, Record<string, PropertyValue<unknown>>> = {};
@@ -92,6 +104,24 @@ function makeState(
     } as PartialState;
 }
 
+function captureUnhandledRejections() {
+    const seen: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+        seen.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    return {
+        seen,
+        stop: () => process.off('unhandledRejection', onUnhandled),
+    };
+}
+
+function macrotask() {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 0);
+    });
+}
+
 // Classification is deliberately unavailable in these tests: the point is that a
 // designated attribute drives the banner on its own, with no classification
 // definition involved.
@@ -105,13 +135,16 @@ function mockNoClassification() {
 }
 
 describe('useChannelClassificationBanner — generic designated attributes', () => {
-    const dispatchMock = jest.fn();
+    const dispatchMock = jest.fn().mockResolvedValue({data: []});
 
     beforeEach(() => {
         dispatchMock.mockClear();
         jest.spyOn(ReactRedux, 'useDispatch').mockImplementation(() => dispatchMock);
         jest.spyOn(Client4, 'getPropertyValues').mockResolvedValue([]);
         mockNoClassification();
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        mockPageAll.mockResolvedValue([]);
     });
 
     afterEach(() => {
@@ -144,6 +177,30 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         );
 
         expect(result.current.bannerText).toBe('Operation Aurora — handle with care');
+    });
+
+    test('a persisted attribute banner opt-out suppresses even authored text', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', 'opt1')], {enabled: false, text: '{{program}}', attribute_banner_disabled: true}),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.bannerText).toBeUndefined();
+    });
+
+    test('an authored empty template suppresses designated values without an opt-out', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', 'opt1')], {enabled: false, text: ''}),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.bannerText).toBeUndefined();
     });
 
     // The composer previewed the resolved text while every member saw the raw
@@ -193,6 +250,33 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         );
 
         expect(result.current.position).toBe('display_banner_top');
+    });
+
+    test('a failed attribute field request does not surface as an unhandled rejection', async () => {
+        jest.mocked(ReactRedux.useDispatch).mockRestore();
+        const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(new ClientError(Client4.getUrl(), {
+            message: 'Channel attributes require an Enterprise Advanced license.',
+            server_error_id: 'api.property.channel_attributes.license.app_error',
+            status_code: 501,
+            url: '/api/v4/properties/groups/access_control/channel/fields',
+        }));
+        const rejections = captureUnhandledRejections();
+
+        try {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([], []),
+            );
+
+            await waitFor(() => expect(getPropertyFields).toHaveBeenCalledTimes(1));
+            await macrotask();
+
+            expect(rejections.seen).toEqual([]);
+            expect(getPropertyFields).toHaveBeenCalledTimes(1);
+            expect(result.current.hasClassification).toBe(false);
+        } finally {
+            rejections.stop();
+        }
     });
 
     test('joins attributes in sort_order and takes position from the lowest', () => {
@@ -303,5 +387,163 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
 
         await Promise.resolve();
         expect(fetchSpy).toHaveBeenCalledWith('access_control', 'channel', CHANNEL_ID);
+    });
+
+    test('renders no banner while any id of a designated graph value is unnamed', () => {
+        const graph = designatedField('program', 'display_banner_top', [], undefined, 'graph');
+        commitGraphOptionNames('program', {a: 'ALPHA'});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([graph], [value('program', ['a', 'b'])]),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.bannerText).toBeUndefined();
+    });
+
+    test('a fully named graph value contributes its names comma-joined', () => {
+        const graph = designatedField('program', 'display_banner_top', [], undefined, 'graph');
+        commitGraphOptionNames('program', {a: 'ALPHA', b: 'BETA'});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([graph], [value('program', ['a', 'b'])]),
+        );
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.bannerText).toBe('ALPHA, BETA');
+    });
+
+    test('a designated select still banners on its own when a designated graph value is unnamed', async () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 1);
+        const graph = designatedField('program', 'display_banner_top', [], 2, 'graph');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([marking, graph], [value('marking', 'opt1'), value('program', ['a'])]),
+        );
+
+        // The unnamed id kicks off a name walk; let it settle before asserting.
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.bannerText).toBe('RESTRICTED');
+    });
+
+    test('collapses an unnamed graph token in the banner template rather than rendering the raw id', async () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 1);
+        const graph = designatedField('program', 'display_banner_top', [], 2, 'graph');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState(
+                [marking, graph],
+                [value('marking', 'opt1'), value('program', ['a'])],
+                {enabled: true, text: '{{marking}} · {{program}}'},
+            ),
+        );
+
+        // The unnamed id kicks off a name walk; let it settle before asserting.
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(result.current.bannerText).toBe('RESTRICTED');
+        expect(result.current.bannerText).not.toContain('a');
+    });
+
+    test('substitutes a fully named graph value in the banner template', () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 1);
+        const graph = designatedField('program', 'display_banner_top', [], 2, 'graph');
+        commitGraphOptionNames('program', {a: 'ALPHA'});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState(
+                [marking, graph],
+                [value('marking', 'opt1'), value('program', ['a'])],
+                {enabled: true, text: '{{marking}} · {{program}}'},
+            ),
+        );
+
+        expect(result.current.bannerText).toBe('RESTRICTED · ALPHA');
+    });
+
+    describe('classification colour', () => {
+        const classificationField = () => designatedField('classification', 'display_banner_top', [{id: 'secret', name: 'SECRET', color: '#c8102e'}], 0);
+        const programField = () => designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA', color: '#1e325c'}], 1);
+
+        test('uses the classification colour while its token is in the banner text', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState(
+                    [classificationField(), programField()],
+                    [value('classification', 'secret'), value('program', 'opt1')],
+                    {enabled: true, text: '{{classification}} · {{program}}', background_color: '#00ff00'},
+                ),
+            );
+
+            expect(result.current.classificationBanner?.background_color).toBe('#c8102e');
+        });
+
+        test('uses the classification colour on a channel that never authored banner text', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([classificationField()], [value('classification', 'secret')]),
+            );
+
+            expect(result.current.classificationBanner?.background_color).toBe('#c8102e');
+        });
+
+        test('hands the colour back to the channel once the classification token is removed', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState(
+                    [classificationField(), programField()],
+                    [value('classification', 'secret'), value('program', 'opt1')],
+                    {enabled: true, text: '{{program}}', background_color: '#00ff00'},
+                ),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+            expect(result.current.classificationBanner?.background_color).toBe('#00ff00');
+        });
+    });
+
+    describe('banner toggle', () => {
+        const programField = (attrs: Record<string, unknown> = {}) => {
+            const f = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA', color: '#1e325c'}]);
+            return {...f, attrs: {...f.attrs, ...attrs}};
+        };
+
+        test('keeps an authored banner when legacy banner info reports disabled', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField()], [value('program', 'opt1')], {enabled: false, text: '{{program}}', background_color: '#00ff00'}),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+        });
+
+        test('still shows the designated default on a channel that never authored a banner', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField()], [value('program', 'opt1')], {enabled: false, background_color: '#00ff00'}),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+        });
+
+        test('keeps the banner when a required attribute mandates it', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField({required: true})], [value('program', 'opt1')], {enabled: false, text: '{{program}}', background_color: '#00ff00'}),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+        });
     });
 });

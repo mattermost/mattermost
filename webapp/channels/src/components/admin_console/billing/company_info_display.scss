@@ -24,14 +24,6 @@
     line-height: 20px;
 }
 
-.CompanyInfoDisplay__addInfo {
-    margin-left: auto;
-}
-
-.CompanyInfoDisplay__addInfoButton {
-    align-items: center;
-}
-
 .CompanyInfoDisplay__noCompanyInfo {
     display: flex;
     flex-direction: column;
@@ -44,14 +36,6 @@
     color: var(--sys-center-channel-color);
     font-size: 14px;
     line-height: 20px;
-}
-
-.CompanyInfoDisplay__noCompanyInfo-link {
-    margin-top: 20px;
-    color: var(--sys-button-bg);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 14px;
 }
 
 .CompanyInfoDisplay__companyInfo {
@@ -73,22 +57,4 @@
 
 .CompanyInfoDisplay__companyInfo-address > div {
     margin-top: 4px;
-}
-
-.CompanyInfoDisplay__companyInfo-edit {
-    margin-left: auto;
-}
-
-.CompanyInfoDisplay__companyInfo-editButton {
-    padding: 2px;
-    border-radius: 4px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
-    font-size: 18px;
-
-    &:hover,
-    &:focus {
-        background: rgba(var(--sys-center-channel-color-rgb), 0.08);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.75);
-        text-decoration: none;
-    }
 }

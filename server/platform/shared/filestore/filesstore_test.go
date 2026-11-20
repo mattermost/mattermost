@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"strings"
@@ -568,7 +568,7 @@ func (s *FileBackendTestSuite) TestFileSize() {
 	})
 
 	s.Run("valid file", func() {
-		data := make([]byte, rand.Intn(1024*1024)+1)
+		data := make([]byte, rand.IntN(1024*1024)+1)
 		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)

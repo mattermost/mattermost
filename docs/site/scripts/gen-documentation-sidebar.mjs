@@ -16,6 +16,38 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(SITE_ROOT, '..');
 const SRC = join(REPO_ROOT, 'main');
+
+// Sidebar entries for pages staged from the Agents plugin submodule into
+// main/agents/docs/ (see stage-agents-docs.mjs). The pinned submodule can lag
+// the plugin repo, so a page listed here may not exist yet: skip it with a
+// warning instead of failing the build. `id` is the full doc id, e.g.
+// 'agents/docs/mcp_server'. `label` overrides the staged page's title.
+function agentsDocItems(specs) {
+  const items = [];
+  for (const spec of specs) {
+    const {id, label} = typeof spec === 'string' ? {id: spec} : spec;
+    if (!existsSync(join(SRC, `${id}.md`)) && !existsSync(join(SRC, `${id}.mdx`))) {
+      console.warn(`[sidebar] WARN: ${id} was not staged from the Agents plugin docs (submodule too old?) — skipping it in the sidebar.`);
+      continue;
+    }
+    items.push(label ? {doc: id, label} : {doc: id});
+  }
+  return items;
+}
+
+// A nested sidebar category of staged Agents pages whose landing page is one
+// of them. Returns a one-element array, so callers can spread it into an
+// items list. When the landing page isn't staged (submodule too old), the
+// children are returned flat instead, so nothing is lost and the category
+// never points at a missing doc.
+function agentsDocCategory(label, landingId, specs) {
+  const children = agentsDocItems(specs);
+  if (!existsSync(join(SRC, `${landingId}.md`)) && !existsSync(join(SRC, `${landingId}.mdx`))) {
+    console.warn(`[sidebar] WARN: ${landingId} was not staged from the Agents plugin docs (submodule too old?) — listing the "${label}" pages without a category.`);
+    return children;
+  }
+  return [{label, landingDoc: landingId, items: children}];
+}
 const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 
 // ===========================================================================
@@ -39,7 +71,6 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // if it's standalone. Forgetting logs `WARN: N file(s) missing from *_ORDER`
 // and appends it at the section root, so it surfaces as a build warning
 // rather than disappearing.
-
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
   {dir: 'use-case-guide',       label: 'Use Case Guide'},
@@ -80,6 +111,7 @@ const OVERVIEW_GROUPS = {
       'release-policy',
       {label: 'Server', landing: 'server', items: [
         'mattermost-server-releases',
+        'mattermost-v12-changelog',
         'mattermost-v11-changelog',
         'mattermost-v10-changelog',
         'unsupported-legacy-releases',
@@ -318,12 +350,13 @@ const DEPLOYMENT_GROUPS = {
     label: 'Desktop App Deployment',
     landing: 'desktop/desktop-app-deployment',
     items: [
+      'desktop/windows-desktop-install',
+      'desktop/macos-desktop-install',
       'desktop/linux-desktop-install',
+      'desktop/desktop-app-policies',
+      'desktop/desktop-app-privacy',
+      'desktop/desktop-vdi-deployment',
       'desktop/distribute-a-custom-desktop-app',
-      'desktop/silent-windows-desktop-distribution',
-      'desktop/desktop-msi-installer-and-group-policy-install',
-      'desktop/desktop-custom-dictionaries',
-      'desktop/desktop-app-managed-resources',
       'desktop/desktop-troubleshooting',
     ],
   },
@@ -352,7 +385,9 @@ const DEPLOYMENT_GROUPS = {
 // constraints that shape the whole deployment, above the level of the
 // server-specific planning pages.
 const DEPLOYMENT_ROOT_ORDER = [
-  'quick-start-evaluation',
+  // Overview index + child pages (1-hour preview, Docker/Azure); auto keeps
+  // sidebar_position order without a hand-maintained items list.
+  {auto: 'quick-start-evaluation'},
   {group: 'deploymentScenarios'},
   {group: 'serverDeployment'},
   {group: 'calls'},
@@ -425,9 +460,35 @@ const ADMIN_CONFIGURE_GROUPS = {
     label: 'AI agents',
     landing: 'agents-admin-guide',
     items: [
-      {doc: 'agents/docs/providers'},
-      {doc: 'agents/docs/aws_bedrock_setup'},
-      {doc: 'agents/docs/sovereign_ai'},
+      ...agentsDocCategory('Connect an LLM', 'agents/docs/llm_services', [
+        {id: 'agents/docs/providers', label: 'Provider configuration'},
+        {id: 'agents/docs/aws_bedrock_setup', label: 'AWS Bedrock'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/managing_agents', label: 'Create and manage agents'},
+        {id: 'agents/docs/access_control', label: 'Control who can use agents'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/channel_settings', label: 'Control agents in channels'},
+      ]),
+      ...agentsDocCategory('MCP and tools', 'agents/docs/mcp_integrations', [
+        {id: 'agents/docs/tool_approval', label: 'Tool approval and credentials'},
+      ]),
+      ...agentsDocCategory('Developers and integrators', 'agents/docs/mcp_server', [
+        {id: 'agents/docs/mcp_tools', label: 'Mattermost MCP tool reference'},
+        {id: 'agents/docs/llm_bridge', label: 'LLM Bridge for plugins'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/web_search', label: 'Web search'},
+        {id: 'agents/docs/embedding_search', label: 'Set up semantic search'},
+        {id: 'agents/docs/ai_output_security', label: 'Secure AI-generated links and HTML'},
+        {id: 'agents/docs/observability', label: 'Monitor Agents'},
+        {id: 'agents/docs/backup_and_automation', label: 'Back up and automate'},
+        {id: 'agents/docs/troubleshooting', label: 'Troubleshoot Agents'},
+        {id: 'agents/docs/data_handling', label: 'Data handling'},
+        {id: 'agents/docs/sovereign_ai', label: 'Sovereign AI deployments'},
+        {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade from Agents 1.x'},
+      ]),
     ],
   },
 };
@@ -476,10 +537,11 @@ const ADMIN_MANAGE_GROUPS = {
   // "Access control" rather than "Users and access": every page here is about
   // what a user is allowed to do, not about the user records themselves.
   //
-  // User attributes nests under ABAC as its first child. Custom profile
-  // attributes are usable on their own, and the page stays directly linkable,
-  // but they are a prerequisite of the access rules that follow — you define
-  // the attributes before you can write a policy against them.
+  // Attribute-based access control reads in task order: define the user,
+  // channel and session attributes first, then write policies against them
+  // (system-wide, then team, then channel), then the expression reference that
+  // all the policy editors share. The page for the User Attributes screen of
+  // releases before v12.0 comes last; its title already marks it as legacy.
   //
   // Advanced permissions is a two-page topic, so the main page is the group's
   // landing and the backend-infrastructure page is its child.
@@ -493,11 +555,15 @@ const ADMIN_MANAGE_GROUPS = {
       ]},
       {doc: 'administration-guide/onboard/delegated-granular-administration'},
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
-        'admin/user-attributes',
+        'admin/attribute-management',
+        'admin/channel-attributes',
+        'admin/session-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
+        'admin/abac-policy-expressions',
+        'admin/user-attributes',
       ]},
     ],
   },
@@ -506,6 +572,7 @@ const ADMIN_MANAGE_GROUPS = {
     items: [
       'mmctl-command-line-tool',
       'command-line-tools',
+      'offline-documentation',
       'logging',
     ],
   },
@@ -546,7 +613,12 @@ const ADMIN_MANAGE_GROUPS = {
 };
 
 // `admin/`-prefixed basenames live in the nested sub-folder.
+//
+// Workspace organization is a standalone leaf rather than an Access control
+// child: it's structural guidance that spans teams, channels, and permissions,
+// and it's the entry point admins look for before any of the policy pages.
 const ADMIN_MANAGE_ORDER = [
+  'admin/workspace-organization',
   {group: 'accessControl'},
   {group: 'serverOps'},
   {group: 'licensing'},
@@ -557,10 +629,11 @@ const ADMIN_MANAGE_ORDER = [
 
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
-  'admin/user-management', 'admin/user-attributes', 'team-channel-members',
+  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'admin/channel-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
-  'command-line-tools', 'mmctl-command-line-tool', 'logging',
+  'admin/session-attributes',
+  'command-line-tools', 'mmctl-command-line-tool', 'offline-documentation', 'logging',
   'admin/self-hosted-billing', 'admin/installing-license-key',
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'cloud-byok',
@@ -575,7 +648,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'code-signing-custom-builds',
   // Listed under Monitor and troubleshoot.
   'admin/monitoring-and-performance', 'statistics', 'telemetry',
-  'configure-health-check-probes', 'request-server-health-check',
+  'site-health-dashboard', 'configure-health-check-probes', 'request-server-health-check',
   'admin/error-codes', 'admin/generating-support-packet',
 ]);
 
@@ -597,7 +670,6 @@ const COLLABORATE_GROUPS = {
       'browse-channels',
       'join-leave-channels',
       'create-channels',
-      'channel-naming-conventions',
       'channel-header-purpose',
       'rename-channels',
       'navigate-between-channels',
@@ -681,7 +753,7 @@ const COLLABORATE_ORDER = [
 // Agents.
 const COLLABORATE_HIDDEN = new Set([
   'channel-types', 'browse-channels', 'create-channels', 'join-leave-channels',
-  'navigate-between-channels', 'channel-naming-conventions', 'channel-header-purpose',
+  'navigate-between-channels', 'channel-header-purpose',
   'rename-channels', 'archive-unarchive-channels', 'favorite-channels',
   'mark-channels-unread', 'manage-channel-members', 'manage-channel-bookmarks',
   'display-channel-banners', 'autotranslate-messages', 'convert-public-channels',
@@ -773,9 +845,9 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'delegated-granular-administration',
   // Listed under Configure.
   'connected-workspaces',
-  // Listed under Migration.
-  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
-  'migration-announcement-email', 'bulk-loading-data',
+  // Listed under Migration (or unlisted).
+  'migrating-to-mattermost', 'slack-migration-overview', 'migrate-from-slack', 'migrate-from-rocketchat',
+  'migrate-gitlab-omnibus', 'migration-announcement-email', 'bulk-loading-data',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -802,6 +874,7 @@ const ADMIN_SCALE_GROUPS = {
   health: {
     label: 'Health and diagnostics',
     items: [
+      {doc: 'administration-guide/manage/site-health-dashboard'},
       {doc: 'administration-guide/configure/optimize-your-workspace'},
       {doc: 'administration-guide/manage/statistics'},
       {doc: 'administration-guide/manage/configure-health-check-probes'},
@@ -844,6 +917,7 @@ const ADMIN_COMPLY_ORDER = [
   'legal-hold',
   'custom-terms-of-service',
   'embedded-json-audit-log-schema',
+  'post-delivery-audit-logging',
 ];
 
 const ADMIN_COMPLY_HIDDEN = new Set([]);
@@ -894,19 +968,18 @@ const ADMIN_MIGRATION = {
   label: 'Migrate',
   landing: 'administration-guide/manage/admin/migration',
   items: [
-    'administration-guide/onboard/bulk-loading-data',
-    'administration-guide/manage/bulk-export-tool',
-    {label: 'Migrate from MySQL to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
+    {label: 'Migrate from Slack', landing: 'administration-guide/onboard/slack-migration-overview', items: [
+      {doc: 'administration-guide/onboard/migrate-from-slack', label: 'Slack migration guide'},
+    ]},
+    {doc: 'administration-guide/onboard/migrate-from-rocketchat', label: 'Migrate from RocketChat'},
+    {doc: 'administration-guide/onboard/migrate-gitlab-omnibus', label: 'Migrate from GitLab Omnibus'},
+    {label: 'Migrate to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
       'administration-guide/manage/admin/postgres-migration-assist-tool',
       'administration-guide/manage/admin/manual-postgres-migration',
     ]},
     'administration-guide/manage/admin/fips-migration',
-    {label: 'Migrate from another platform', landing: 'administration-guide/onboard/migrating-to-mattermost', items: [
-      'administration-guide/onboard/migrate-from-slack',
-      'administration-guide/onboard/migrate-from-rocketchat',
-      'administration-guide/onboard/migrate-gitlab-omnibus',
-      'administration-guide/onboard/migration-announcement-email',
-    ]},
+    'administration-guide/onboard/bulk-loading-data',
+    'administration-guide/manage/bulk-export-tool',
   ],
 };
 
@@ -917,10 +990,10 @@ const ADMIN_ROOT_ORDER = [
   'Migrate',
 ];
 
-// AI Agents above Project Management: Boards is in maintenance mode (see
+// Use Mattermost Agents above Project Management: Boards is in maintenance mode (see
 // administration-guide/configure/install-boards), Agents is not.
 const ENDUSER_ROOT_ORDER = [
-  'Access your workspace', 'Collaborate', 'Workflow Automation', 'AI Agents',
+  'Access your workspace', 'Collaborate', 'Workflow Automation', 'Use Mattermost Agents',
   'Project Management', 'Preferences',
 ];
 
@@ -1030,7 +1103,6 @@ const INTEGRATIONS_GROUPS = {
         'github',
         'gitlab',
         'jira',
-        'servicenow',
         'zoom',
       ]},
     ],
@@ -1067,7 +1139,7 @@ const INTEGRATIONS_HIDDEN = new Set([
   'popular-integrations',
   'mattermost-mission-collaboration-for-m365', 'microsoft-calendar',
   'microsoft-teams-meetings', 'microsoft-teams-sync',
-  'github', 'gitlab', 'jira', 'servicenow', 'zoom',
+  'github', 'gitlab', 'jira', 'zoom',
   'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
   'slash-commands', 'run-slash-commands', 'built-in-slash-commands',
 ]);
@@ -1437,7 +1509,9 @@ function buildAdminConfigureItem(spec, leafLabels) {
   if (spec.doc) {
     return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
   }
-  const g = ADMIN_CONFIGURE_GROUPS[spec.group];
+  // A group is either referenced by key ({group: 'agents'}) or written inline
+  // ({label, landingDoc, items}), which is how a group nests inside another.
+  const g = spec.items ? spec : ADMIN_CONFIGURE_GROUPS[spec.group];
   if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
   const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
@@ -2040,11 +2114,19 @@ function regroupEndUserSection(sectionCat, dirName, override) {
 }
 
 function buildEndUserGuideSidebar(autoCat) {
-  // usage_tips' label is overridden here because agents/docs/ is staged from
-  // the plugin submodule and gitignored, so its frontmatter title can't be
-  // corrected in this repo.
+  // Labels are overridden here where the staged page's title is longer than a
+  // sidebar entry should be. agents/docs/ is staged from the plugin submodule
+  // and gitignored, so a title can't be corrected in this repo.
   const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', [
-    {doc: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
+    ...agentsDocItems([
+      {id: 'agents/docs/personal_agent', label: 'Use Agents as your personal AI assistant'},
+      {id: 'agents/docs/using_tools', label: 'Use tools and approve actions'},
+      {id: 'agents/docs/agents_in_channels', label: 'Use agents in channels'},
+      {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
+      {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
+      {id: 'agents/docs/skills', label: 'Skills'},
+      {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code'},
+    ]),
     'end-user-guide/collaborate/agents-context-management',
   ]);
   if (!promoted) {

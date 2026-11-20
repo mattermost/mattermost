@@ -44,6 +44,19 @@ func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) 
 	return nil
 }
 
+// requirePolicyChannelManagementAccess gates channel-scoped policy administration on the
+// channel's own channel_management_access policy, so a channel or team admin who may not
+// manage the channel can no longer add, edit, read or delete its membership and permission
+// policies, or assign a parent policy to it or unassign one from it.
+func requirePolicyChannelManagementAccess(c *Context, channelID string, hasManageSystem bool) bool {
+	// Permitting for `hasManageSystem` so allow creating policies from System Console
+	if hasManageSystem || channelID == "" {
+		return true
+	}
+
+	return requireChannelManagementAccessByID(c, channelID)
+}
+
 func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
@@ -86,7 +99,7 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 	// today, so anything else is rejected rather than silently skipping the access check.
 	switch req.Resource.Type {
 	case model.AccessControlPolicyTypeChannel:
-		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
+		if hasPermission, _ := c.App.SessionHasPermissionToChannelRBACOnly(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -125,14 +138,22 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 	// Channel-scope policies are always available, but a channel policy
 	// that carries a permission-rule action (upload_file_attachment,
-	// download_file_attachment) is gated behind the channel-level
-	// sub-flag — that's the toggle that exposes the Channel Settings →
-	// Permissions Policy tab on the frontend. Membership-only channel
-	// policies stay unaffected. Helper enforces the PermissionPolicies
-	// umbrella too, so a request slipping in with the sub-flag on but
-	// the umbrella off is also rejected here.
+	// download_file_attachment, channel_read_access, create_burn_on_read_post)
+	// is gated behind the channel-level sub-flag — that's the toggle that
+	// exposes the Channel Settings → Permissions Policy tab on the frontend.
+	// Membership-only channel policies stay unaffected. Helper enforces the
+	// PermissionPolicies umbrella too, so a request slipping in with the
+	// sub-flag on but the umbrella off is also rejected here.
 	if policy.Type == model.AccessControlPolicyTypeChannel && policy.HasPermissionRuleAction() && !c.App.Config().FeatureFlags.IsChannelPermissionPoliciesEnabled() {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Channel permission actions (channel_read_access, channel_write_access,
+	// channel_management_access) have a flag of their own, on permission and
+	// channel policies alike.
+	if policy.HasChannelPermissionAction() && !c.App.Config().FeatureFlags.ChannelPermissionActions {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_actions.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -198,6 +219,10 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 
+			if !requirePolicyChannelManagementAccess(c, policy.ID, hasManageSystem) {
+				return
+			}
+
 			// Now do the full validation (channel exists, is private, etc.)
 			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
 				c.Err = appErr
@@ -250,7 +275,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.AddEventResultState(np)
 
 	if shouldRedactExpressions(c) {
-		c.App.MaskPolicyExpressions(c.AppContext, np, c.AppContext.Session().UserId)
+		c.App.MaskPolicyExpressions(c.AppContext, np, sessionCallerID(c))
 	}
 
 	js, err := json.Marshal(np)
@@ -297,6 +322,20 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 				return
 			}
 		}
+
+		if channelPermErr == nil {
+			// A channel policy's ID is its channel's ID, so the policy's own channel is always
+			// gated: a channelId naming another (or a made-up) channel must not stand in for it.
+			// A parent policy's ID resolves to no channel and passes this check. The channel
+			// named by channelId, when different, is gated as well.
+			if !requirePolicyChannelManagementAccess(c, policyID, hasSystemPermission) {
+				return
+			}
+			if channelID != "" && channelID != policyID &&
+				!requirePolicyChannelManagementAccess(c, channelID, hasSystemPermission) {
+				return
+			}
+		}
 	}
 
 	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
@@ -311,7 +350,7 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.PopulateAccessControlPolicyChildCounts(c.AppContext, policy)
 
 	if shouldRedactExpressions(c) {
-		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+		c.App.MaskPolicyExpressions(c.AppContext, policy, sessionCallerID(c))
 	}
 
 	js, err := json.Marshal(policy)
@@ -365,6 +404,10 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				}
 			}
 		}
+
+		if channelPermErr == nil && !requirePolicyChannelManagementAccess(c, policyID, hasSystemPermission) {
+			return
+		}
 	}
 
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
@@ -384,6 +427,8 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
 		TeamId     string `json:"teamId,omitempty"`
+		// Membership also rejects what the membership sync can't evaluate.
+		Membership bool `json:"membership,omitempty"`
 	}{}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
@@ -411,7 +456,15 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
+	check := c.App.CheckExpression
+	if checkExpressionRequest.Membership {
+		check = c.App.CheckMembershipExpression
+	}
+	errs, appErr := check(c.AppContext, checkExpressionRequest.Expression)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -460,6 +513,10 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
 		}
+	}
+
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	var users []*model.User
@@ -686,6 +743,10 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if !requirePolicyChannelManagementAccess(c, params.ChannelID, hasSystemPermission) {
+		return
+	}
+
 	// Cross-team consistency check: when both IDs are provided, the
 	// channel must actually belong to the named team. authorizeSimulatePolicy
 	// covers this for the team-admin shortcut, but a system admin's auth
@@ -784,6 +845,11 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 		}
 	}
 
+	// After the whole block above, so the gate binds the team-admin path too.
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
 	// Direct validation against requester
 	matches, appErr := c.App.ValidateExpressionAgainstRequester(c.AppContext, request.Expression, c.AppContext.Session().UserId)
 	if appErr != nil {
@@ -860,7 +926,7 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
-			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+			c.App.MaskPolicyExpressions(c.AppContext, p, sessionCallerID(c))
 		}
 	}
 
@@ -880,7 +946,9 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// updateActiveStatus updates the active status of a single access control policy.
+// updateActiveStatus toggles auto-adding members for a single access control
+// policy. The active query parameter is kept for compatibility; it maps onto the
+// membership rule's auto_add setting rather than the policy's active flag.
 //
 // Deprecated: This endpoint is deprecated and will be removed in a future release.
 // Use PUT /api/v4/access_control/policies/activate instead, which supports batch updates.
@@ -908,6 +976,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+
+		if !requirePolicyChannelManagementAccess(c, policyID, hasManageSystemPermission) {
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, model.AuditStatusFail)
@@ -927,10 +999,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "active", activeBool)
 
 	// Wrap single update in slice to use the batch update method
-	updates := []model.AccessControlPolicyActiveUpdate{
-		{ID: policyID, Active: activeBool},
+	updates := []model.AccessControlPolicyAutoAddUpdate{
+		{ID: policyID, AutoAdd: autoAddModeForLegacyActive(activeBool)},
 	}
-	_, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, updates)
+	_, appErr := c.App.UpdateAccessControlPoliciesAutoAdd(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -952,6 +1024,19 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// autoAddModeForLegacyActive maps the deprecated active flag onto an auto-add
+// mode. The flag only ever expressed on or off, so true becomes the always mode
+// and false becomes no mode at all.
+func autoAddModeForLegacyActive(active bool) string {
+	if !active {
+		return ""
+	}
+	return model.AccessControlAutoAddAlways
+}
+
+// setActiveStatus toggles auto-adding members for a batch of access control
+// policies. The request's active field is kept for compatibility; it maps onto
+// each membership rule's auto_add setting rather than the policy's active flag.
 func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	var list model.AccessControlPolicyActiveUpdateRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
@@ -991,19 +1076,34 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+
+			if channelPermErr == nil && !requirePolicyChannelManagementAccess(c, entry.ID, hasSystemPermission) {
+				return
+			}
 		}
 	}
 
-	policies, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, list.Entries)
+	updates := make([]model.AccessControlPolicyAutoAddUpdate, 0, len(list.Entries))
+	for _, entry := range list.Entries {
+		updates = append(updates, model.AccessControlPolicyAutoAddUpdate{ID: entry.ID, AutoAdd: autoAddModeForLegacyActive(entry.Active)})
+	}
+
+	policies, appErr := c.App.UpdateAccessControlPoliciesAutoAdd(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	auditRec.Success()
 
+	// Clients on this endpoint still read auto-add off the active field, so
+	// mirror it in the response. The stored Active column is not written.
+	for _, p := range policies {
+		p.Active = p.AutoAddMembers()
+	}
+
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
-			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+			c.App.MaskPolicyExpressions(c.AppContext, p, sessionCallerID(c))
 		}
 	}
 
@@ -1072,6 +1172,14 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
 			return
+		}
+		// Attaching or detaching a parent policy changes who may stay in the channel, so it
+		// needs management access on every target channel. One denial rejects the whole
+		// request rather than applying it to the rest.
+		for _, channelID := range assignments.ChannelIds {
+			if !requirePolicyChannelManagementAccess(c, channelID, hasSystemPermission) {
+				return
+			}
 		}
 	}
 
@@ -1170,6 +1278,14 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
 			return
+		}
+		// Attaching or detaching a parent policy changes who may stay in the channel, so it
+		// needs management access on every target channel. One denial rejects the whole
+		// request rather than applying it to the rest.
+		for _, channelID := range assignments.ChannelIds {
+			if !requirePolicyChannelManagementAccess(c, channelID, hasSystemPermission) {
+				return
+			}
 		}
 	}
 
@@ -1383,6 +1499,10 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
 	after := r.URL.Query().Get("after")
 	if after != "" && !model.IsValidId(after) {
 		c.SetInvalidParam("after")
@@ -1405,7 +1525,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, c.AppContext.Session().UserId)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, sessionCallerID(c))
 
 	if appErr != nil {
 		c.Err = appErr
@@ -1454,13 +1574,18 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
 	var visualAST *model.VisualExpression
 	var appErr *model.AppError
 
 	// Masking is attribute-based, not permission-based: all admins receive a
 	// filtered AST based on what they themselves hold, regardless of role.
 	if shouldRedactExpressions(c) {
-		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, c.AppContext.Session().UserId)
+		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, sessionCallerID(c))
 	} else {
 		visualAST, appErr = c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
 	}

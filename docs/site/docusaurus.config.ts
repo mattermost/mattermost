@@ -38,10 +38,62 @@ const algoliaThemeConfig =
       }
     : {};
 
+// OneTrust cookie banner, shared with mattermost.com (consent carries over).
+// Set only in production (docs-cd.yml); other builds skip it for check-egress.
+const oneTrustDomainScript = process.env.ONETRUST_DOMAIN_SCRIPT;
+const oneTrustHeadTags = oneTrustDomainScript
+  ? [
+      {
+        tagName: 'script',
+        attributes: {
+          src: 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js',
+          type: 'text/javascript',
+          charset: 'UTF-8',
+          'data-domain-script': oneTrustDomainScript,
+        },
+      },
+      {
+        tagName: 'script',
+        attributes: {type: 'text/javascript'},
+        innerHTML: 'function OptanonWrapper() { }',
+      },
+    ]
+  : [];
+// Google Tag Manager container for docs. Analytics and marketing tags are
+// managed in GTM, not here. Loaded after OneTrust and only alongside it, so
+// tags never load without the consent manager.
+// The ID is interpolated into an inline script, so only a well-formed
+// container ID is accepted.
+const gtmContainerId = process.env.GTM_CONTAINER_ID;
+if (gtmContainerId && !/^GTM-[A-Z0-9]+$/.test(gtmContainerId)) {
+  throw new Error(`Invalid GTM_CONTAINER_ID: ${gtmContainerId}`);
+}
+const gtmHeadTags =
+  oneTrustDomainScript && gtmContainerId
+    ? [
+        {
+          tagName: 'script',
+          attributes: {type: 'text/javascript'},
+          innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmContainerId}');`,
+        },
+      ]
+    : [];
+// Lets visitors reopen the preference center to change or withdraw consent.
+// Rendered only with the banner, since without it the button does nothing.
+const oneTrustFooterItems = oneTrustDomainScript
+  ? [
+      {
+        html: '<button type="button" id="ot-sdk-btn" class="ot-sdk-show-settings">Cookie settings</button>',
+      },
+    ]
+  : [];
+
 const config: Config = {
   title: 'Mattermost Documentation',
   tagline: 'Mission in Motion',
   favicon: 'img/brand/icon-denim.svg',
+
+  headTags: [...oneTrustHeadTags, ...gtmHeadTags],
 
   future: {
     v4: true,
@@ -54,17 +106,16 @@ const config: Config = {
   organizationName: 'mattermost',
   projectName: 'mattermost',
 
-  // Broken-link / broken-image policy. During the Phase 4 (developer docs)
-  // and Phase 5 (main docs) migrations, content references images and
-  // anchors that haven't been migrated yet — `warn` keeps the build green
-  // while the unconverted set shows up as warnings we can grep for.
-  // Tighten to `throw` after each migration phase completes.
-  onBrokenLinks: 'warn',
+  // Only site-relative links are validated; absolute https://docs.mattermost.com
+  // links are checked separately by scripts/check-absolute-docs-links.mjs.
+  onBrokenLinks: 'throw',
+  // Tighten to `throw` once the remaining migrated-content anchors are fixed.
+  onBrokenAnchors: 'warn',
 
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
       onBrokenMarkdownImages: 'warn',
     },
   },
@@ -74,19 +125,7 @@ const config: Config = {
     locales: ['en'],
   },
 
-  // Google Fonts: Inter (body) + Archivo Black (headings, free Trade Gothic Heavy fallback).
-  // Replace with Adobe Fonts kit once Trade Gothic Next licensing is confirmed
-  // — see PLAN.md §12 open items.
-  stylesheets: [
-    {
-      href: 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap',
-      type: 'text/css',
-    },
-  ],
-  headTags: [
-    {tagName: 'link', attributes: {rel: 'preconnect', href: 'https://fonts.googleapis.com'}},
-    {tagName: 'link', attributes: {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous'}},
-  ],
+  // Fonts are self-hosted from src/css/fonts (see the README there).
 
   // Use the classic preset for the default Documentation instance.
   // Developers and API are added as separate plugin instances below
@@ -104,7 +143,7 @@ const config: Config = {
         },
         blog: false,
         theme: {
-          customCss: ['./src/css/tokens.css', './src/css/custom.css'],
+          customCss: ['./src/css/fonts.css', './src/css/tokens.css', './src/css/custom.css'],
         },
       } satisfies Preset.Options,
     ],
@@ -238,6 +277,7 @@ const config: Config = {
           items: [
             {label: 'GitHub', href: 'https://github.com/mattermost/mattermost'},
             {label: 'Forum', href: 'https://forum.mattermost.com/'},
+            ...oneTrustFooterItems,
           ],
         },
       ],

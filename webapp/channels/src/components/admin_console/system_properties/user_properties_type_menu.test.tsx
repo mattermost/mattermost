@@ -194,4 +194,22 @@ describe('UserPropertyTypeMenu', () => {
 
         expect(screen.getByRole('menuitemradio', {name: 'Rank'})).toBeInTheDocument();
     });
+
+    it('names a graph field by its own type and locks the menu', () => {
+        // A graph field's options form a hierarchy only the API can build, so
+        // the type is displayed and never changed here. Without its own
+        // descriptor the field would be mislabelled "Text".
+        renderComponent({...baseField, type: 'graph'});
+
+        expect(screen.getByText('Graph')).toBeInTheDocument();
+        expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toBeDisabled();
+    });
+
+    it('never offers Graph as a type to convert to', async () => {
+        renderComponent(baseField, true);
+
+        await userEvent.click(screen.getByText('Text'));
+
+        expect(screen.queryByRole('menuitemradio', {name: 'Graph'})).not.toBeInTheDocument();
+    });
 });

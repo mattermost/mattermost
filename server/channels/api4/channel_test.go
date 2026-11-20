@@ -337,6 +337,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
 	}).InitBasic(t)
 
 	// The attribute validation hook is registered against the access_control
@@ -458,6 +459,18 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
+	t.Run("the field lookup names the caller", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+		untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+		req, _ := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"SECRET"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Empty(t, untaggedCalls())
+	})
+
 	t.Run("a value for an unknown field is refused and creates nothing", func(t *testing.T) {
 		req, name := newRequest(model.PropertyValuePatchItem{FieldID: model.NewId(), Value: json.RawMessage(`"x"`)})
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
@@ -533,6 +546,66 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Equal(t, classificationField.ID, values[0].FieldID)
 	})
 
+	t.Run("a required classification value is not enforced when ChannelAttributes is off", func(t *testing.T) {
+		// requiredAttributesEnforced folds the ChannelAttributes umbrella flag
+		// in, and classification gets no special treatment from it: it is
+		// enforced or not by the same single condition as every other field.
+		//
+		// The field itself is authored first, under default (enforced)
+		// conditions -- a channel field cannot be newly marked required once
+		// enforcement is already off, so this mirrors the real scenario the
+		// flag exists for: a field configured before, disabled after.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ClassificationMarkings = true
+		})
+
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
 	t.Run("a non-classification value is still refused when ChannelAttributes is off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = false
@@ -596,6 +669,75 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required attribute with no value is allowed when ChannelAttributesRequired is off", func(t *testing.T) {
+		createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required classification value is not enforced either when ChannelAttributesRequired is off", func(t *testing.T) {
+		// The field is authored first with enforcement on — a channel field
+		// cannot be newly marked required once enforcement is off, so this
+		// mirrors the real scenario: configured before, enforcement disabled after.
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = true
 		})
 
 		req, _ := newRequest()
@@ -2929,6 +3071,7 @@ func TestGetRecommendedChannelsForTeam(t *testing.T) {
 		// PermanentDeleteChannel during cleanup calls DeletePolicy on the ACS.
 		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
 			Return((*model.AppError)(nil)).Maybe()
+		ungovernedChannelAccess(mockACS)
 
 		included, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId:      th.BasicTeam.Id,
@@ -3664,8 +3807,16 @@ func TestSearchAllChannels(t *testing.T) {
 			[]string{openChannel.Id},
 		},
 		{
+			// The term has to contain a character model.NewId and
+			// model.NewRandomString cannot emit ('l' and 'v' are absent from
+			// their base32 alphabet). These cases assert an exact result count,
+			// so a term spelled only from that alphabet - "what" was one - is
+			// occasionally matched by a randomly generated Name or DisplayName
+			// belonging to another channel in the fixture.
 			"Name search",
-			&model.ChannelSearch{Term: "what"},
+			// Prefix of Name "whatever". Term "what" also matches InitBasic DisplayNames
+			// ("dn_"+NewId()); z-base32 includes w/h/a/t but not v.
+			&model.ChannelSearch{Term: "whatev"},
 			[]string{openChannel.Id},
 		},
 		{
@@ -5283,6 +5434,95 @@ func TestGetPinnedPosts(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetPinnedPosts(context.Background(), channel.Id, "")
 	require.NoError(t, err)
+}
+
+func TestGetPinnedPostsResultCount(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	channelWithPinnedPosts := func(t *testing.T, pinnedCount int) (*model.Channel, []*model.Post) {
+		channel := th.CreatePublicChannel(t)
+
+		createdAt := model.GetMillis()
+		posts := make([]*model.Post, 0, pinnedCount)
+		for i := range pinnedCount {
+			posts = append(posts, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf("pinned %d", i),
+				IsPinned:  true,
+				CreateAt:  createdAt + int64(i),
+			})
+		}
+
+		saved, _, nErr := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
+		require.NoError(t, nErr)
+
+		return channel, saved
+	}
+
+	shortChannel, shortPosts := channelWithPinnedPosts(t, 5)
+	longChannel, longPosts := channelWithPinnedPosts(t, web.PerPageMaximum+50)
+
+	testCases := []struct {
+		description   string
+		client        *model.Client4
+		channel       *model.Channel
+		expectedCount int
+	}{
+		{
+			description:   "returns every pinned post when they fit in a page",
+			client:        client,
+			channel:       shortChannel,
+			expectedCount: 5,
+		},
+		{
+			description:   "returns at most a page of pinned posts",
+			client:        client,
+			channel:       longChannel,
+			expectedCount: web.PerPageMaximum,
+		},
+		{
+			description:   "returns at most a page of pinned posts to a system administrator",
+			client:        th.SystemAdminClient,
+			channel:       longChannel,
+			expectedCount: web.PerPageMaximum,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			posts, _, err := testCase.client.GetPinnedPosts(context.Background(), testCase.channel.Id, "")
+			require.NoError(t, err)
+			assert.Len(t, posts.Order, testCase.expectedCount)
+		})
+	}
+
+	t.Run("keeps the most recently created pinned posts when the page is full", func(t *testing.T) {
+		posts, _, err := client.GetPinnedPosts(context.Background(), longChannel.Id, "")
+		require.NoError(t, err)
+		require.Len(t, posts.Order, web.PerPageMaximum)
+
+		oldestKept := longPosts[len(longPosts)-web.PerPageMaximum]
+		assert.Contains(t, posts.Posts, oldestKept.Id)
+		assert.NotContains(t, posts.Posts, longPosts[0].Id)
+		assert.Contains(t, posts.Posts, longPosts[len(longPosts)-1].Id)
+
+		assert.Equal(t, oldestKept.Id, posts.Order[0])
+		assert.Equal(t, longPosts[len(longPosts)-1].Id, posts.Order[len(posts.Order)-1])
+		for i := 1; i < len(posts.Order); i++ {
+			assert.LessOrEqual(t, posts.Posts[posts.Order[i-1]].CreateAt, posts.Posts[posts.Order[i]].CreateAt)
+		}
+	})
+
+	t.Run("keeps ascending order when every pinned post fits in a page", func(t *testing.T) {
+		posts, _, err := client.GetPinnedPosts(context.Background(), shortChannel.Id, "")
+		require.NoError(t, err)
+		require.Len(t, posts.Order, len(shortPosts))
+		assert.Equal(t, shortPosts[0].Id, posts.Order[0])
+		assert.Equal(t, shortPosts[len(shortPosts)-1].Id, posts.Order[len(posts.Order)-1])
+	})
 }
 
 func TestUpdateChannelRoles(t *testing.T) {
@@ -7207,6 +7447,7 @@ func TestGetChannelModerations(t *testing.T) {
 		// Playbooks DB job requires a plugin mock
 		pluginStore := mocks.PluginStore{}
 		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 		mockStore.On("Plugin").Return(&pluginStore)
 
 		mockSchemeStore := mocks.SchemeStore{}
@@ -7446,6 +7687,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		// Playbooks DB job requires a plugin mock
 		pluginStore := mocks.PluginStore{}
 		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 		mockStore.On("Plugin").Return(&pluginStore)
 
 		mockSchemeStore := mocks.SchemeStore{}
@@ -7856,7 +8098,7 @@ func TestRootMentionsCount(t *testing.T) {
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 
 	// validate that Team level counts are calculated
-	counts, appErr := th.App.GetTeamUnread(channel.TeamId, user.Id)
+	counts, appErr := th.App.GetTeamUnread(th.Context, channel.TeamId, user.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(1), counts.MentionCountRoot)
 	require.Equal(t, int64(2), counts.MentionCount)

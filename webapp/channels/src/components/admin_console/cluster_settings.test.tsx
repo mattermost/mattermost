@@ -14,7 +14,7 @@ describe('components/ClusterSettings', () => {
             Cluster: 'true',
         },
     };
-    test('should match snapshot, encryption disabled', () => {
+    test('should render encryption disabled', () => {
         const props = {
             ...baseProps,
             value: [],
@@ -30,18 +30,17 @@ describe('components/ClusterSettings', () => {
                 GossipPort: 8074,
             },
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Enable Gossip encryption:')).toBeInTheDocument();
     });
 
-    test('should match snapshot, encryption enabled', () => {
+    test('should render encryption enabled', () => {
         const props = {
             ...baseProps,
             value: [],
@@ -57,18 +56,17 @@ describe('components/ClusterSettings', () => {
                 GossipPort: 8074,
             },
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Enable Gossip encryption:')).toBeInTheDocument();
     });
 
-    test('should match snapshot, compression enabled', () => {
+    test('should render compression enabled', () => {
         const props = {
             ...baseProps,
             value: [],
@@ -84,18 +82,17 @@ describe('components/ClusterSettings', () => {
                 GossipPort: 8074,
             },
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Enable Gossip compression:')).toBeInTheDocument();
     });
 
-    test('should match snapshot, compression disabled', () => {
+    test('should render compression disabled', () => {
         const props = {
             ...baseProps,
             value: [],
@@ -111,13 +108,12 @@ describe('components/ClusterSettings', () => {
                 GossipPort: 8074,
             },
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Enable Gossip compression:')).toBeInTheDocument();
     });

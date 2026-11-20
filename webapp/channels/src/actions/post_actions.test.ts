@@ -174,7 +174,7 @@ describe('Actions.Posts', () => {
             general: {
                 license: {IsLicensed: 'false'},
                 serverVersion: '5.4.0',
-                config: {PostEditTimeLimit: -1},
+                config: {PostEditTimeLimit: -1, EnableFileAttachments: 'true', EnableFileSearch: 'true'},
             },
             roles: {
                 roles: {

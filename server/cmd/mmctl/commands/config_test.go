@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -284,6 +285,118 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Get a cloud restricted value that isn't a pointer", func() {
+		printer.Clean()
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+		outputConfig.RateLimitSettings.VaryByHeader = "X-Forwarded-For"
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("X-Forwarded-For", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get an empty cloud restricted value that isn't a pointer from a server that isn't Cloud", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(map[string]string{"IsLicensed": "true", "Cloud": "false"}, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get cloud restricted error if a value that isn't a pointer is empty on a Cloud server", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(map[string]string{"IsLicensed": "true", "Cloud": "true"}, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "accessing this config path: ClientRequirements.AndroidLatestVersion is restricted in a cloud environment")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get an empty cloud restricted value that isn't a pointer in local mode", func() {
+		printer.Clean()
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get error if checking for a Cloud server fails", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "failed to check whether the server is a Cloud server: mock error")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
@@ -426,24 +539,58 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Should get an error if a string is passed while trying to set a slice", func() {
+	s.Run("Set a slice of string config value to a single value for a given key", func() {
 		printer.Clean()
-		args := []string{"SqlSettings.DataSourceReplicas", "[\"test1\", \"test2\"]"}
+		args := []string{"SqlSettings.DataSourceReplicas", "test1"}
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
 		inputConfig := &model.Config{}
 		inputConfig.SetDefaults()
-		inputConfig.SqlSettings.DataSourceReplicas = []string{"test1", "test2"}
+		inputConfig.SqlSettings.DataSourceReplicas = []string{"test1"}
 
 		s.client.
 			EXPECT().
 			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(context.TODO(), inputConfig).
+			Return(inputConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should store a JSON array string as a single element since it is not parsed", func() {
+		printer.Clean()
+		args := []string{"SqlSettings.DataSourceReplicas", `["test1", "test2"]`}
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		inputConfig := &model.Config{}
+		inputConfig.SetDefaults()
+		inputConfig.SqlSettings.DataSourceReplicas = []string{`["test1", "test2"]`}
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(defaultConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(context.TODO(), inputConfig).
+			Return(inputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("Get error if the key doesn't exist", func() {
@@ -926,12 +1073,69 @@ func TestCloudRestricted(t *testing.T) {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
+	configID := model.NewId()
+	changes := []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}}
+	expectRestore := func(dryRun bool, changes []*model.ConfigChange) {
+		s.client.
+			EXPECT().
+			RestoreHistoricalConfig(context.TODO(), configID, dryRun).
+			Return(changes, &model.Response{}, nil).
+			Times(1)
+	}
+
+	s.Run("Should only list the changes with --dry-run", func() {
+		printer.Clean()
+		expectRestore(true, changes)
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, true), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: changes}}, printer.GetLines())
+	})
+
+	s.Run("Should roll back without listing the changes first with --confirm", func() {
+		printer.Clean()
+		expectRestore(false, changes)
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), true, false), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, Changes: changes}}, printer.GetLines())
+	})
+
+	s.Run("Should list the changes and ask for confirmation without --confirm", func() {
+		printer.Clean()
+		expectRestore(true, changes)
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, false), []string{configID})
+		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
+		s.Require().Empty(printer.GetLines(), "the changes should be printed before asking")
+	})
+
+	s.Run("Should not ask for confirmation when no settings would change", func() {
+		printer.Clean()
+		expectRestore(true, []*model.ConfigChange{})
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, false), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: []*model.ConfigChange{}}}, printer.GetLines())
+	})
+
+	s.Run("Should fail for an invalid configuration ID", func() {
+		printer.Clean()
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), true, false), []string{"not-an-id"})
+		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
+		s.Require().Empty(printer.GetLines())
+	})
+}
+
 func TestSetConfigValue(t *testing.T) {
 	tests := map[string]struct {
 		path           string
 		config         *model.Config
 		args           []string
 		expectedConfig *model.Config
+		expectedErr    string
 	}{
 		"bool": {
 			path: "LogSettings.EnableConsole",
@@ -983,6 +1187,66 @@ func TestSetConfigValue(t *testing.T) {
 				DataSourceReplicas: []string{"abc", "def"},
 			}},
 		},
+		"string slice with a single value": {
+			path: "SqlSettings.DataSourceReplicas",
+			args: []string{"abc"},
+			config: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{},
+			}},
+			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"abc"},
+			}},
+		},
+		"string slice with a single value replacing existing entries": {
+			path: "SqlSettings.DataSourceSearchReplicas",
+			args: []string{"abc"},
+			config: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceSearchReplicas: []string{"old1", "old2"},
+			}},
+			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceSearchReplicas: []string{"abc"},
+			}},
+		},
+		"pointer to string slice with a single value": {
+			path: "AutoTranslationSettings.TargetLanguages",
+			args: []string{"es"},
+			config: &model.Config{AutoTranslationSettings: model.AutoTranslationSettings{
+				TargetLanguages: &[]string{"en", "fr"},
+			}},
+			expectedConfig: &model.Config{AutoTranslationSettings: model.AutoTranslationSettings{
+				TargetLanguages: &[]string{"es"},
+			}},
+		},
+		"string slice inside a plugin settings map with a single value": {
+			path: "PluginSettings.Plugins.com.mattermost.testplugin.allowlist",
+			args: []string{"ghi"},
+			config: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"allowlist": []string{"abc", "def"}},
+				},
+			}},
+			// map entries are replaced through a newly allocated value, so the entry becomes a pointer
+			expectedConfig: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"allowlist": &[]string{"ghi"}},
+				},
+			}},
+		},
+		"slice of a type a single value cannot be converted to": {
+			path: "PluginSettings.Plugins.com.mattermost.testplugin.ports",
+			args: []string{"abc"},
+			config: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"ports": []int{1, 2}},
+				},
+			}},
+			expectedConfig: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"ports": []int{1, 2}},
+				},
+			}},
+			expectedErr: "target value is of type slice and provided value is string",
+		},
 		"json.RawMessage": {
 			path: "LogSettings.AdvancedLoggingJSON",
 			config: &model.Config{LogSettings: model.LogSettings{
@@ -996,10 +1260,16 @@ func TestSetConfigValue(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		err := setConfigValue(parseConfigPath(tc.path), tc.config, tc.args)
-		require.NoError(t, err)
+		t.Run(name, func(t *testing.T) {
+			err := setConfigValue(parseConfigPath(tc.path), tc.config, tc.args)
+			if tc.expectedErr != "" {
+				require.EqualError(t, err, tc.expectedErr)
+			} else {
+				require.NoError(t, err)
+			}
 
-		assert.Equal(t, tc.expectedConfig, tc.config, name)
+			assert.Equal(t, tc.expectedConfig, tc.config)
+		})
 	}
 }
 

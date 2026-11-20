@@ -8,6 +8,9 @@ import configureStore from 'redux-mock-store';
 
 import type {UserPropertyField, UserPropertyValueType} from '@mattermost/types/properties_user';
 
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ProfilePopoverCustomAttributes from './profile_popover_custom_attributes';
@@ -17,6 +20,13 @@ import {TestHelper} from '../../utils/test_helper';
 jest.mock('mattermost-redux/actions/users', () => ({
     getCustomProfileAttributeValues: jest.fn().mockReturnValue({type: 'GET_CUSTOM_PROFILE_ATTRIBUTE_VALUES'}),
 }));
+
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 describe('components/ProfilePopoverCustomAttributes', () => {
     const mockStore = configureStore();
@@ -105,6 +115,30 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         },
     };
 
+    const graphAttribute: UserPropertyField = {
+        id: 'graph_attribute_id',
+        name: 'Program',
+        type: 'graph',
+        group_id: 'custom_profile_attributes',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: 'user',
+        attrs: {
+            options: [
+                {id: 'opt1', name: 'Fighter', color: '', parents: []},
+                {id: 'opt2', name: 'Bomber', color: '', parents: []},
+            ],
+            visibility: 'when_set',
+            sort_order: 4,
+            value_type: '',
+        },
+    };
+
     const userProfile = TestHelper.getUserMock({
         id: 'user_id',
         custom_profile_attributes: {
@@ -112,6 +146,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
             phone_attribute_id: '+1 (555) 123-4567',
             url_attribute_id: 'https://example.com',
             select_attribute_id: 'option1',
+            graph_attribute_id: ['opt1'],
         },
     });
 
@@ -124,6 +159,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                     phone_attribute_id: phoneAttribute,
                     url_attribute_id: urlAttribute,
                     select_attribute_id: selectAttribute,
+                    graph_attribute_id: graphAttribute,
                 },
                 license: {
                     Cloud: 'false',
@@ -141,6 +177,14 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         userID: 'user_id',
     };
 
+    beforeEach(() => {
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        mockPageAll.mockImplementation(() => {
+            throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
+        });
+    });
+
     test('should render all attribute types', () => {
         const store = mockStore(baseState);
 
@@ -155,6 +199,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.getByRole('heading', {name: 'Phone Number', level: 3})).toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Website', level: 3})).toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Select Attribute', level: 3})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Program', level: 3})).toBeInTheDocument();
 
         // Check that all attribute values are rendered
         expect(screen.getByText('text value')).toBeInTheDocument();
@@ -167,6 +212,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(urlLink).toHaveAttribute('href', 'https://example.com');
 
         expect(screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.getByText('Fighter')).toBeInTheDocument();
+        expect(screen.queryByText('opt1')).not.toBeInTheDocument();
     });
 
     test('should fetch custom profile attributes if not available', () => {
@@ -277,6 +324,37 @@ describe('components/ProfilePopoverCustomAttributes', () => {
 
         // The attribute with empty value and 'when_set' visibility should not be rendered
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
+    });
+
+    test('should hide a graph attribute with when_set visibility and no value', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            custom_profile_attributes: {
+                                ...userProfile.custom_profile_attributes,
+                                graph_attribute_id: [],
+                            },
+                        }),
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        expect(screen.queryByText('Program')).not.toBeInTheDocument();
+        expect(screen.queryByText('Fighter')).not.toBeInTheDocument();
     });
 
     test('should render display_name as the visible label when set', () => {

@@ -12,6 +12,10 @@ permissions: {}
 
 jobs:
   approve-e2e:
+    concurrency:
+      group: e2e-status-publish-${{ github.event.pull_request.head.sha }}
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: read
       pull-requests: read
@@ -34,16 +38,32 @@ jobs:
           fi
           echo "User ${LABEL_AUTHOR} has ${PERMISSION} permission to the repository"
 
+      # The lane list is read from this workflow's own ref (github.sha). On pull_request that is the
+      # merge commit, so the PR controls the list as it controls this YAML; the label gate is the boundary.
+      - name: ci/checkout-trusted-lanes
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          sparse-checkout: .github
+          path: .e2e-trusted
+          fetch-depth: 1
+      - name: ci/status-lanes
+        id: lanes
+        uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
       - name: ci/override-failed-statuses
         id: override
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          LANES: ${{ steps.lanes.outputs.lanes }}
         run: |
-          # Full suites + rolling-upgrade from-version contexts (smoke must still pass).
-          # Rolling contexts are dynamic (e.g. .../upgrade-from-release-11.9), so discover by pattern.
-          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
+          # Every PR lane from the lane reader (the one list, subpath included), then the rolling-upgrade
+          # from-version contexts (smoke must still pass). Rolling contexts are dynamic
+          # (e.g. .../upgrade-from-release-11.9), so discover by pattern.
+          [ -n "$LANES" ] || { echo "::error::the lane reader produced no lanes"; exit 1; }
+          IFS=',' read -r -a FULL_TEST_CONTEXTS <<< "$LANES"
           while IFS= read -r ROLLING_CTX; do
             [ -n "$ROLLING_CTX" ] && FULL_TEST_CONTEXTS+=("$ROLLING_CTX")
           done < <(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate \
@@ -56,8 +76,8 @@ jobs:
             echo "Checking: $CONTEXT_NAME"
 
             # Get current status
-            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate --slurp \
-              --jq "[.[][] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
+            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate --slurp | \
+              jq "[.[][] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
 
             if [ -z "$STATUS_JSON" ]; then
               echo "  No status found, skipping"
@@ -118,6 +138,19 @@ jobs:
           echo "webhook_data<<EOF" >> $GITHUB_OUTPUT
           echo "$WEBHOOK_DATA" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+      # Verification keeps the original run's URL/owner and never overrides
+      # pending. Refresh its factual projection while still holding the SHA lock.
+      - name: ci/refresh-verified-summary
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
+        with:
+          composite-identity: >-
+            {"repository":"${{ github.repository }}","commit_sha":"${{ github.event.pull_request.head.sha }}","gh_run_id":"${{ github.run_id }}","gh_run_attempt":"${{ github.run_attempt }}"}
+          status-context: ${{ steps.lanes.outputs.aggregate }}
+          github-token: ${{ github.token }}
+          operation: summarize
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
 
       - name: ci/build-webhook-message
         if: env.REPORT_WEBHOOK_URL != '' && steps.override.outputs.overridden != ''

@@ -1,0 +1,865 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import type {WebSocketMessages} from '@mattermost/client';
+import type {HealthFinding, HealthFindingList} from '@mattermost/types/health';
+import type {Job} from '@mattermost/types/jobs';
+
+import {Client4} from 'mattermost-redux/client';
+
+import {handleJobUpdated} from 'actions/websocket_actions';
+
+import WebSocketClient from 'client/web_websocket_client';
+import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import HealthDashboard from './index';
+
+const NOW = Date.now();
+const hour = 60 * 60 * 1000;
+const day = 24 * hour;
+
+function makeFinding(overrides: Partial<HealthFinding> & Pick<HealthFinding, 'fingerprint'>): HealthFinding {
+    return {
+        code: 'rule',
+        subject: 'subject',
+        scope: '',
+        severity: 'warning',
+        state: 'firing',
+        area: 'database',
+        surface: 'product',
+        title: 'Finding title',
+        remediation: 'Fix it.',
+        message: 'Finding message.',
+        message_id: 'health.rule.rule.message',
+        first_seen_at: NOW - hour,
+        last_seen_at: NOW,
+        state_since: NOW - hour,
+        ...overrides,
+    };
+}
+
+function evaluated(findings: HealthFinding[]): HealthFindingList {
+    return {evaluated_at: NOW, findings};
+}
+
+const mixed = [
+    makeFinding({fingerprint: 'c1', severity: 'critical', area: 'notifications', title: 'Critical one'}),
+    makeFinding({fingerprint: 'w1', severity: 'warning', title: 'Warning old', state_since: NOW - (3 * hour)}),
+    makeFinding({fingerprint: 'w2', severity: 'warning', title: 'Warning new', state_since: NOW - hour}),
+    makeFinding({fingerprint: 'i1', severity: 'info', title: 'Info one'}),
+    makeFinding({fingerprint: 'u1', severity: 'critical', state: 'unknown', area: 'auth', title: 'Unknown one', message: 'Config section unavailable.'}),
+    makeFinding({fingerprint: 'r1', state: 'resolved', title: 'Resolved recently', state_since: NOW - (2 * day)}),
+    makeFinding({fingerprint: 'r2', state: 'resolved', title: 'Resolved long ago', state_since: NOW - (8 * day)}),
+];
+
+function tabTexts() {
+    return screen.getAllByRole('tab').map((tab) => tab.textContent);
+}
+
+function sectionHeadings() {
+    return screen.getAllByRole('heading', {level: 3}).map((heading) => heading.textContent);
+}
+
+function rowTitles() {
+    return screen.getAllByTestId(/^healthFinding-/).map((row) => row.querySelector('.HealthFinding__title')?.textContent);
+}
+
+async function renderDashboard(list: HealthFindingList, initialState = {}) {
+    jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(list);
+    renderWithContext(<HealthDashboard/>, initialState);
+    return screen.findByText(/^(Last evaluated|Not evaluated yet)/);
+}
+
+function makeRun(status: Job['status'], overrides: Partial<Job> = {}): Job {
+    return {
+        id: 'run1',
+        type: 'health_check',
+        priority: 0,
+        create_at: NOW,
+        start_at: 0,
+        last_activity_at: NOW,
+        status,
+        progress: 0,
+        data: {},
+        ...overrides,
+    };
+}
+
+describe('components/admin_console/health_dashboard', () => {
+    const originalFetch = global.fetch;
+
+    beforeEach(() => {
+        global.fetch = jest.fn();
+        jest.spyOn(Date, 'now').mockReturnValue(NOW);
+        jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        jest.restoreAllMocks();
+    });
+
+    test('makes exactly one findings request, including muted findings, and one request for the latest run on mount, and no other request', async () => {
+        const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(evaluated([makeFinding({fingerprint: 'a'})]));
+        const createJob = jest.spyOn(Client4, 'createJob');
+
+        renderWithContext(<HealthDashboard/>);
+
+        await screen.findByText('Finding title');
+        expect(getHealthFindings).toHaveBeenCalledTimes(1);
+        expect(getHealthFindings).toHaveBeenCalledWith({muted: 'included'});
+        expect(Client4.getJobsByType).toHaveBeenCalledTimes(1);
+        expect(Client4.getJobsByType).toHaveBeenCalledWith('health_check', 0, 1, undefined, undefined);
+        expect(createJob).not.toHaveBeenCalled();
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test('shows the page title once, in the admin header, above the last evaluation time', async () => {
+        await renderDashboard(evaluated(mixed));
+
+        const titles = screen.getAllByText('Site health');
+        expect(titles).toHaveLength(1);
+        expect(screen.getByTestId('admin-console-header')).toContainElement(titles[0]);
+        expect(screen.queryByRole('heading', {name: 'Site health'})).not.toBeInTheDocument();
+        expect(screen.getByText(/^Last evaluated/)).toBeInTheDocument();
+    });
+
+    test('empty state: nothing has been evaluated yet', async () => {
+        await renderDashboard({evaluated_at: 0, findings: []});
+
+        expect(screen.getByText('Not evaluated yet')).toBeInTheDocument();
+        expect(screen.queryByText(/^Last evaluated/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    });
+
+    test('shows an error when the findings cannot be loaded', async () => {
+        jest.spyOn(Client4, 'getHealthFindings').mockRejectedValue(new Error('boom'));
+
+        renderWithContext(<HealthDashboard/>);
+
+        expect(await screen.findByText('Health findings could not be loaded')).toBeInTheDocument();
+        expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    });
+
+    test('every finding muted: shows the last evaluation and the all-clear, not "Not evaluated yet"', async () => {
+        await renderDashboard(evaluated([]));
+
+        expect(screen.getByText('All clear')).toBeInTheDocument();
+        expect(screen.getByText(/^Last evaluated/)).toBeInTheDocument();
+        expect(tabTexts()).toEqual(['Open0', 'Critical0', 'Warning0', 'Info0', 'Recently resolved0', 'Unknown0']);
+        expect(screen.queryByText('Not evaluated yet')).not.toBeInTheDocument();
+    });
+
+    describe('tabs', () => {
+        test('count open as firing plus unknown, severities as firing only, and resolved within 7 days', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            expect(tabTexts()).toEqual(['Open5', 'Critical1', 'Warning2', 'Info1', 'Recently resolved1', 'Unknown1']);
+        });
+
+        test('unknown findings are excluded from severity counts', async () => {
+            await renderDashboard(evaluated([
+                makeFinding({fingerprint: 'u1', severity: 'critical', state: 'unknown'}),
+                makeFinding({fingerprint: 'u2', severity: 'warning', state: 'unknown'}),
+            ]));
+
+            expect(tabTexts()).toEqual(['Open2', 'Critical0', 'Warning0', 'Info0', 'Recently resolved0', 'Unknown2']);
+            expect(screen.queryByText('All clear')).not.toBeInTheDocument();
+            expect(sectionHeadings()).toEqual(['Could not be evaluated2']);
+        });
+
+        test('open lists firing findings by severity, then unknowns, and no resolved findings', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            expect(sectionHeadings()).toEqual(['Critical1', 'Warning2', 'Info1', 'Could not be evaluated1']);
+            expect(screen.queryByText('Resolved recently')).not.toBeInTheDocument();
+        });
+
+        test('could not be evaluated lists the most severe checks first', async () => {
+            await renderDashboard(evaluated([
+                makeFinding({fingerprint: 'u1', severity: 'info', state: 'unknown', title: 'Unknown info', state_since: NOW - (3 * hour)}),
+                makeFinding({fingerprint: 'u2', severity: 'warning', state: 'unknown', title: 'Unknown warning', state_since: NOW - (5 * 60000)}),
+                makeFinding({fingerprint: 'u3', severity: 'critical', state: 'unknown', title: 'Unknown critical', state_since: NOW - (30 * 60000)}),
+            ]));
+
+            expect(sectionHeadings()).toEqual(['Could not be evaluated3']);
+            expect(rowTitles()).toEqual(['Unknown critical', 'Unknown warning', 'Unknown info']);
+        });
+
+        test('a severity tab lists firing findings of that severity only', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Critical/}));
+
+            expect(sectionHeadings()).toEqual(['Critical1']);
+            expect(rowTitles()).toEqual(['Critical one']);
+        });
+
+        test('recently resolved lists findings resolved in the last 7 days and hides older ones', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Recently resolved/}));
+
+            expect(sectionHeadings()).toEqual(['Recently resolved1']);
+            expect(rowTitles()).toEqual(['Resolved recently']);
+        });
+
+        test('unknown lists unknown findings, expanded, with the explanation and their cause', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Unknown/}));
+
+            expect(sectionHeadings()).toEqual(['Could not be evaluated1']);
+            expect(screen.getByText(/Unknown does not mean healthy/)).toBeVisible();
+            expect(screen.getByText('Config section unavailable.')).toBeVisible();
+        });
+
+        test('form an accessible tablist with icons, selection state and arrow key navigation', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            const tablist = screen.getByRole('tablist', {name: 'Filter findings'});
+            const tabs = within(tablist).getAllByRole('tab');
+            expect(tabs).toHaveLength(6);
+
+            const [open, critical, ...rest] = tabs;
+            const unknown = rest[rest.length - 1];
+            expect(open).toHaveAttribute('aria-selected', 'true');
+            expect(open).toHaveAttribute('tabindex', '0');
+            expect(open.querySelector('svg')).toBeNull();
+            for (const tab of tabs.slice(1)) {
+                expect(tab).toHaveAttribute('aria-selected', 'false');
+                expect(tab).toHaveAttribute('tabindex', '-1');
+                expect(tab.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+            }
+            expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', open.id);
+
+            open.focus();
+            await userEvent.keyboard('{ArrowRight}');
+            expect(critical).toHaveAttribute('aria-selected', 'true');
+            expect(critical).toHaveFocus();
+            expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', critical.id);
+
+            await userEvent.keyboard('{ArrowLeft}{ArrowLeft}');
+            expect(unknown).toHaveAttribute('aria-selected', 'true');
+            expect(unknown).toHaveFocus();
+
+            await userEvent.keyboard('{Home}');
+            expect(open).toHaveAttribute('aria-selected', 'true');
+            await userEvent.keyboard('{End}');
+            expect(unknown).toHaveAttribute('aria-selected', 'true');
+        });
+
+        test.each([
+            ['Critical', 'No critical findings'],
+            ['Info', 'No info findings'],
+            ['Recently resolved', 'Nothing resolved in the last 7 days'],
+            ['Unknown', 'Every check could be evaluated'],
+        ])('an empty %s tab explains why it is empty', async (tab, message) => {
+            await renderDashboard(evaluated([makeFinding({fingerprint: 'w1', severity: 'warning'})]));
+
+            await userEvent.click(screen.getByRole('tab', {name: new RegExp(`^${tab}`)}));
+
+            expect(screen.getByText(message)).toBeInTheDocument();
+            expect(screen.queryByTestId(/^healthFinding-/)).not.toBeInTheDocument();
+        });
+    });
+
+    test('rows sort by severity, then newest first', async () => {
+        await renderDashboard(evaluated(mixed));
+
+        expect(rowTitles()).toEqual(['Critical one', 'Warning new', 'Warning old', 'Info one', 'Unknown one']);
+    });
+
+    test('only one row is expanded at a time', async () => {
+        await renderDashboard(evaluated(mixed));
+
+        const first = screen.getByRole('button', {name: /Critical one/});
+        const second = screen.getByRole('button', {name: /Warning new/});
+
+        await userEvent.click(first);
+        expect(first).toHaveAttribute('aria-expanded', 'true');
+
+        await userEvent.click(second);
+        expect(second).toHaveAttribute('aria-expanded', 'true');
+        expect(first).toHaveAttribute('aria-expanded', 'false');
+
+        await userEvent.click(second);
+        expect(second).toHaveAttribute('aria-expanded', 'false');
+        expect(screen.queryByRole('button', {expanded: true})).not.toBeInTheDocument();
+    });
+
+    test('switching tab or grouping collapses the expanded row', async () => {
+        await renderDashboard(evaluated(mixed));
+
+        await userEvent.click(screen.getByRole('button', {name: /Critical one/}));
+        await userEvent.click(screen.getByRole('tab', {name: /^Critical/}));
+        await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
+        expect(screen.getByRole('button', {name: /Critical one/})).toHaveAttribute('aria-expanded', 'false');
+
+        await userEvent.click(screen.getByRole('button', {name: /Critical one/}));
+        await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+        expect(screen.getByRole('button', {name: /Critical one/})).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    describe('group by', () => {
+        test('defaults to severity and switches to category', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            const severity = screen.getByRole('button', {name: 'Severity'});
+            const category = screen.getByRole('button', {name: 'Category'});
+            expect(screen.getByRole('group', {name: 'Group by'})).toBeInTheDocument();
+            expect(severity).toHaveAttribute('aria-pressed', 'true');
+            expect(category).toHaveAttribute('aria-pressed', 'false');
+            expect(screen.getAllByTestId('healthFindingArea')).toHaveLength(5);
+
+            await userEvent.click(category);
+
+            expect(category).toHaveAttribute('aria-pressed', 'true');
+            expect(severity).toHaveAttribute('aria-pressed', 'false');
+            expect(sectionHeadings().map((heading) => heading?.split(/\d/)[0])).toEqual(['Notifications', 'Database', 'Authentication']);
+
+            await userEvent.click(severity);
+
+            expect(sectionHeadings()).toEqual(['Critical1', 'Warning2', 'Info1', 'Could not be evaluated1']);
+        });
+
+        test('category expands areas with a firing critical and omits area tags from rows', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+            const notifications = screen.getByRole('button', {name: /^Notifications/});
+            const database = screen.getByRole('button', {name: /^Database/});
+            const auth = screen.getByRole('button', {name: /^Authentication/});
+            expect(notifications).toHaveAttribute('aria-expanded', 'true');
+            expect(database).toHaveAttribute('aria-expanded', 'false');
+            expect(auth).toHaveAttribute('aria-expanded', 'false');
+            expect(database).toHaveTextContent('3 findings');
+            expect(database).toHaveTextContent('2 Warning');
+            expect(database).toHaveTextContent('1 Info');
+
+            expect(screen.getByText('Critical one')).toBeVisible();
+            expect(screen.getByText('Warning new')).not.toBeVisible();
+            expect(screen.queryByTestId('healthFindingArea')).not.toBeInTheDocument();
+
+            await userEvent.click(database);
+            expect(database).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getByText('Warning new')).toBeVisible();
+        });
+
+        test('severity sections omit row badges, while category rows show the severity or a plain state', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            expect(screen.queryByTestId('healthFindingBadge')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+            const badges = Object.fromEntries(screen.getAllByTestId(/^healthFinding-/).map((row) => [
+                row.querySelector('.HealthFinding__title')?.textContent,
+                within(row).getByTestId('healthFindingBadge').textContent,
+            ]));
+            expect(badges).toEqual({
+                'Critical one': 'Critical',
+                'Warning new': 'Warning',
+                'Warning old': 'Warning',
+                'Info one': 'Info',
+                'Unknown one': 'Unknown',
+            });
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Recently resolved/}));
+
+            expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Resolved$/);
+        });
+
+        test('an unknown-only area is not expanded for its rule severity', async () => {
+            await renderDashboard(evaluated([
+                makeFinding({fingerprint: 'u1', severity: 'critical', state: 'unknown', area: 'auth'}),
+            ]));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+            expect(screen.getByRole('button', {name: /^Authentication/})).toHaveAttribute('aria-expanded', 'false');
+        });
+
+        test('every area starts expanded on tabs other than Open', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+            await userEvent.click(screen.getByRole('tab', {name: /^Warning/}));
+
+            expect(screen.getByRole('button', {name: /^Database/})).toHaveAttribute('aria-expanded', 'true');
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
+
+            expect(screen.getByRole('button', {name: /^Notifications/})).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getByRole('button', {name: /^Database/})).toHaveAttribute('aria-expanded', 'false');
+        });
+    });
+
+    test('node-scoped findings of one rule render one row per node', async () => {
+        await renderDashboard(evaluated([
+            makeFinding({fingerprint: 'n3', code: 'disk_low', scope: 'node-3', title: 'Disk space is low'}),
+            makeFinding({fingerprint: 'n5', code: 'disk_low', scope: 'node-5', title: 'Disk space is low'}),
+        ]));
+
+        expect(screen.getByText('Disk space is low on node-3')).toBeInTheDocument();
+        expect(screen.getByText('Disk space is low on node-5')).toBeInTheDocument();
+        expect(screen.getAllByTestId(/^healthFinding-/)).toHaveLength(2);
+    });
+
+    test('an unrecognized area still renders, labelled with its raw value', async () => {
+        await renderDashboard(evaluated([
+            makeFinding({fingerprint: 'a', area: 'brand_new_area'}),
+        ]));
+
+        expect(screen.getByTestId('healthFindingArea')).toHaveTextContent('brand_new_area');
+
+        await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+        expect(screen.getByRole('heading', {level: 3, name: /brand_new_area/})).toBeInTheDocument();
+    });
+
+    describe('mute', () => {
+        const admins = {
+            entities: {
+                users: {
+                    currentUserId: 'admin1',
+                    profiles: {
+                        admin1: TestHelper.getUserMock({id: 'admin1', username: 'alice'}),
+                        admin2: TestHelper.getUserMock({id: 'admin2', username: 'bob'}),
+                    },
+                },
+            },
+        };
+
+        const pushFinding = makeFinding({fingerprint: 'c1', severity: 'critical', title: 'Push notification server is not HTTPS'});
+        const diskFinding = makeFinding({fingerprint: 'n3', code: 'disk_low', scope: 'node-3', title: 'Disk space is low'});
+        const mutedByBob = makeFinding({fingerprint: 'm1', title: 'Muted by a colleague', muted_at: NOW - (2 * day), muted_by: 'admin2'});
+
+        function row(title: string) {
+            return screen.getByRole('button', {name: new RegExp(title)}).closest('li') as HTMLElement;
+        }
+
+        function mutedToggle() {
+            return screen.getByRole('button', {name: /^Muted\s?\d+$/});
+        }
+
+        async function mute(title: string) {
+            await userEvent.click(within(row(title)).getByRole('button', {name: 'Mute'}));
+        }
+
+        test('the muted count sits next to the tabs and muted findings are left out of every tab', async () => {
+            await renderDashboard(evaluated([pushFinding, mutedByBob]), admins);
+
+            expect(mutedToggle()).toHaveTextContent('Muted1');
+            expect(tabTexts()).toEqual(['Open1', 'Critical1', 'Warning0', 'Info0', 'Recently resolved0', 'Unknown0']);
+            expect(screen.queryByText('Muted by a colleague')).not.toBeInTheDocument();
+        });
+
+        test('the muted list shows who muted each finding and when, for every admin', async () => {
+            await renderDashboard(evaluated([pushFinding, mutedByBob]), admins);
+
+            await userEvent.click(mutedToggle());
+
+            expect(mutedToggle()).toHaveAttribute('aria-pressed', 'true');
+            expect(rowTitles()).toEqual(['Muted by a colleague']);
+            expect(within(row('Muted by a colleague')).getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @bob 2 days ago');
+            for (const tab of screen.getAllByRole('tab')) {
+                expect(tab).toHaveAttribute('aria-selected', 'false');
+            }
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
+
+            expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
+        });
+
+        test('the muted list follows the Group by choice', async () => {
+            const mutedCritical = makeFinding({fingerprint: 'm2', severity: 'critical', title: 'Muted critical', muted_at: NOW, muted_by: 'admin1'});
+            await renderDashboard(evaluated([mutedByBob, mutedCritical]), admins);
+
+            await userEvent.click(mutedToggle());
+
+            expect(sectionHeadings()).toEqual(['Critical1', 'Warning1']);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+            expect(screen.getByRole('heading', {level: 3, name: /Database/})).toBeInTheDocument();
+            expect(rowTitles()).toEqual(['Muted critical', 'Muted by a colleague']);
+        });
+
+        test('a tab emptied by muting says how many findings are muted instead of all clear', async () => {
+            await renderDashboard(evaluated([mutedByBob, makeFinding({fingerprint: 'm2', title: 'Another', muted_at: NOW, muted_by: 'admin1'})]), admins);
+
+            expect(screen.queryByText('All clear')).not.toBeInTheDocument();
+            expect(screen.getByText('2 findings here are muted')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Critical/}));
+
+            expect(screen.getByText('No critical findings')).toBeInTheDocument();
+        });
+
+        test('the muted list explains itself when nothing is muted', async () => {
+            await renderDashboard(evaluated([pushFinding]), admins);
+
+            await userEvent.click(mutedToggle());
+
+            expect(screen.getByText('No muted findings')).toBeInTheDocument();
+        });
+
+        test('mute moves a finding from the open list to the muted list, and unmute moves it back', async () => {
+            const muteRequest = jest.spyOn(Client4, 'muteHealthFinding').mockResolvedValue({status: 'OK'});
+            const unmuteRequest = jest.spyOn(Client4, 'unmuteHealthFinding').mockResolvedValue({status: 'OK'});
+            await renderDashboard(evaluated([pushFinding, diskFinding]), admins);
+
+            await mute('Push notification server is not HTTPS');
+
+            expect(muteRequest).toHaveBeenCalledWith('c1');
+            expect(rowTitles()).toEqual(['Disk space is low on node-3']);
+            expect(tabTexts()[0]).toBe('Open1');
+            expect(mutedToggle()).toHaveTextContent('Muted1');
+
+            await userEvent.click(mutedToggle());
+
+            expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
+            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @alice');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
+
+            expect(unmuteRequest).toHaveBeenCalledWith('c1');
+            expect(screen.getByText('No muted findings')).toBeInTheDocument();
+            expect(mutedToggle()).toHaveTextContent('Muted0');
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
+
+            expect(rowTitles()).toEqual(['Push notification server is not HTTPS', 'Disk space is low on node-3']);
+            expect(screen.queryByTestId('healthFindingMutedBy')).not.toBeInTheDocument();
+        });
+
+        test('a mute the server rejects is rolled back and shows an error', async () => {
+            jest.spyOn(Client4, 'muteHealthFinding').mockRejectedValue(new Error('boom'));
+            await renderDashboard(evaluated([pushFinding]), admins);
+
+            await mute('Push notification server is not HTTPS');
+
+            expect(await screen.findByText('The finding could not be muted, so it is still in the open list. Try again.')).toBeVisible();
+            expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
+            expect(mutedToggle()).toHaveTextContent('Muted0');
+        });
+
+        test('an unmute the server rejects is rolled back and shows an error', async () => {
+            jest.spyOn(Client4, 'unmuteHealthFinding').mockRejectedValue(new Error('boom'));
+            await renderDashboard(evaluated([mutedByBob]), admins);
+
+            await userEvent.click(mutedToggle());
+            await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
+
+            expect(await screen.findByText('The finding could not be unmuted, so it is still muted. Try again.')).toBeVisible();
+            expect(rowTitles()).toEqual(['Muted by a colleague']);
+            expect(mutedToggle()).toHaveTextContent('Muted1');
+        });
+    });
+
+    describe('re-run checks', () => {
+        const fresh = evaluated([makeFinding({fingerprint: 'f1', title: 'Fresh finding'})]);
+        const stale = {evaluated_at: NOW - hour, findings: [makeFinding({fingerprint: 's1', title: 'Stale finding'})]};
+        const staleAfter = 15 * 60 * 1000;
+
+        beforeEach(() => {
+            // Date stays on the spy above; only the stale-run timer is faked.
+            jest.useFakeTimers({doNotFake: ['Date']});
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        function setupUser() {
+            return userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        }
+
+        function runButton() {
+            return screen.getByRole('button', {name: /^(Re-run checks|Running checks…)$/});
+        }
+
+        async function renderRunDashboard(list: HealthFindingList) {
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(list);
+            const result = renderWithContext(<HealthDashboard/>);
+            await screen.findByText(/^(Last evaluated|Not evaluated yet)/);
+            return result;
+        }
+
+        async function flush() {
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(0);
+            });
+        }
+
+        // Delivers a job_updated WebSocket event through the real handler.
+        async function jobUpdated(store: ReturnType<typeof renderWithContext>['store'], job: Job) {
+            const msg = {event: 'job_updated', data: {job: JSON.stringify(job)}} as unknown as WebSocketMessages.JobUpdated;
+            await act(async () => {
+                store.dispatch(handleJobUpdated(msg));
+                await jest.advanceTimersByTimeAsync(0);
+            });
+        }
+
+        async function startRun(user: ReturnType<typeof setupUser>) {
+            jest.spyOn(Client4, 'createJob').mockResolvedValue(makeRun('pending'));
+            await user.click(runButton());
+            await flush();
+        }
+
+        test('starts a run, shows it running with the button disabled, and refreshes the findings when its event says it succeeded', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            getHealthFindings.mockClear();
+            const createJob = jest.spyOn(Client4, 'createJob').mockResolvedValue(makeRun('pending'));
+
+            expect(runButton()).toHaveTextContent('Re-run checks');
+            expect(runButton()).toBeEnabled();
+
+            await user.click(runButton());
+
+            expect(createJob).toHaveBeenCalledTimes(1);
+            expect(createJob).toHaveBeenCalledWith({type: 'health_check'});
+            expect(runButton()).toHaveTextContent('Running checks…');
+            expect(runButton()).toBeDisabled();
+
+            await jobUpdated(store, makeRun('in_progress'));
+            expect(runButton()).toBeDisabled();
+            expect(getHealthFindings).not.toHaveBeenCalled();
+
+            await jobUpdated(store, makeRun('success'));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(screen.queryByText('Stale finding')).not.toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+            expect(runButton()).toHaveTextContent('Re-run checks');
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('updates "Last evaluated" from the refreshed findings', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard({evaluated_at: 0, findings: []});
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+
+            expect(screen.getByText('Not evaluated yet')).toBeInTheDocument();
+            await startRun(user);
+            await jobUpdated(store, makeRun('success'));
+
+            expect(await screen.findByText(/^Last evaluated/)).toBeInTheDocument();
+            expect(screen.queryByText('Not evaluated yet')).not.toBeInTheDocument();
+        });
+
+        test('shows the error of a run that failed and keeps the findings', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings');
+            getHealthFindings.mockClear();
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error', {data: {error: 'Could not collect diagnostics from node-2.'}}));
+
+            expect(await screen.findByText('The health check failed: Could not collect diagnostics from node-2.')).toBeVisible();
+            expect(getHealthFindings).not.toHaveBeenCalled();
+            expect(screen.getByText('Stale finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('shows a generic error for a failed run without a reason', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error'));
+
+            expect(await screen.findByText('The health check did not finish.')).toBeVisible();
+        });
+
+        test('hides the error of a failed run when it is dismissed', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error'));
+            expect(await screen.findByText('The health check did not finish.')).toBeVisible();
+
+            await user.click(screen.getByRole('button', {name: 'Close'}));
+            expect(screen.queryByText('The health check did not finish.')).not.toBeInTheDocument();
+        });
+
+        test('keeps the findings on screen when they cannot be reloaded after a successful run', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockRejectedValue(new Error('boom'));
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('success'));
+
+            expect(await screen.findByText('The health check results could not be loaded. Reload the page to see them.')).toBeVisible();
+            expect(screen.queryByText('Health findings could not be loaded')).not.toBeInTheDocument();
+            expect(screen.getByText('Stale finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('shows an error when the run cannot be started', async () => {
+            const user = setupUser();
+            await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'createJob').mockRejectedValue({status_code: 500, message: 'boom'});
+
+            await user.click(runButton());
+
+            expect(await screen.findByText('The health check could not be started. Try again.')).toBeVisible();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('ignores events for an older run', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('success', {id: 'older', create_at: NOW - 1000}));
+
+            expect(runButton()).toBeDisabled();
+        });
+
+        test('reloads the newest run after the WebSocket reconnects, which may have dropped its events', async () => {
+            const user = setupUser();
+            const addReconnectListener = jest.spyOn(WebSocketClient, 'addReconnectListener');
+            await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+
+            await startRun(user);
+            expect(runButton()).toBeDisabled();
+
+            jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('success')]);
+            await act(async () => {
+                addReconnectListener.mock.calls[0][0]();
+                await jest.advanceTimersByTimeAsync(0);
+            });
+
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('stops listening for reconnects when the page is left', async () => {
+            const removeReconnectListener = jest.spyOn(WebSocketClient, 'removeReconnectListener');
+            const {unmount} = await renderRunDashboard(stale);
+
+            unmount();
+            expect(removeReconnectListener).toHaveBeenCalledTimes(1);
+        });
+
+        test('shows a run whose node stopped responding as not finished once it turns stale', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('in_progress'));
+            expect(runButton()).toBeDisabled();
+
+            jest.spyOn(Date, 'now').mockReturnValue(NOW + staleAfter + 1000);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(staleAfter + 1);
+            });
+
+            expect(screen.getByText('The health check did not finish.')).toBeVisible();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('picks up a run already in progress when the page loads', async () => {
+            jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('in_progress')]);
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            getHealthFindings.mockClear();
+
+            expect(await screen.findByText('Running checks…')).toBeInTheDocument();
+            expect(runButton()).toBeDisabled();
+
+            // The job list re-fetched after the event still has the in-progress copy, as from a
+            // lagging replica; it doesn't count once the findings reflect the run.
+            await jobUpdated(store, makeRun('success'));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('follows a run started elsewhere after the page loaded, and refreshes the findings when it succeeds', async () => {
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            getHealthFindings.mockClear();
+            expect(runButton()).toBeEnabled();
+
+            // Started by another admin, mmctl or the scheduler.
+            await jobUpdated(store, makeRun('pending', {id: 'elsewhere'}));
+            expect(runButton()).toHaveTextContent('Running checks…');
+            expect(runButton()).toBeDisabled();
+
+            await jobUpdated(store, makeRun('success', {id: 'elsewhere'}));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('clears the error of a failed run when a later run succeeds', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue({...fresh, evaluated_at: NOW + 2000});
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error'));
+            expect(await screen.findByText('The health check did not finish.')).toBeVisible();
+
+            // e.g. the next scheduled run.
+            await jobUpdated(store, makeRun('pending', {id: 'scheduled', create_at: NOW + 1000}));
+            await jobUpdated(store, makeRun('success', {id: 'scheduled', create_at: NOW + 1000}));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(screen.queryByText('The health check did not finish.')).not.toBeInTheDocument();
+        });
+
+        test('does not show a run as running again when an outdated copy says it is still in progress', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('success'));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            getHealthFindings.mockClear();
+
+            // e.g. the job list re-fetched after the run finished, read from a lagging replica.
+            await jobUpdated(store, makeRun('in_progress'));
+            expect(runButton()).toBeEnabled();
+            expect(getHealthFindings).not.toHaveBeenCalled();
+        });
+
+        test('does not follow jobs of other types', async () => {
+            const {store} = await renderRunDashboard(stale);
+
+            await jobUpdated(store, makeRun('in_progress', {id: 'indexing', type: 'elasticsearch_post_indexing'}));
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('shows the error of the newest run on page load when it failed after the last evaluation', async () => {
+            jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('error', {data: {error: 'collect failed'}})]);
+            await renderRunDashboard(stale);
+
+            expect(await screen.findByText('The health check failed: collect failed')).toBeVisible();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('ignores a run the findings already reflect', async () => {
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings');
+            jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('error', {create_at: NOW - (2 * hour), data: {error: 'old failure'}})]);
+            await renderRunDashboard(stale);
+            await flush();
+
+            expect(runButton()).toBeEnabled();
+            expect(screen.queryByText(/old failure/)).not.toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+        });
+    });
+});

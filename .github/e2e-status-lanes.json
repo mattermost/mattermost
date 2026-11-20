@@ -1,0 +1,10 @@
+{
+  "aggregate_context": "e2e-test/triage",
+  "lanes": [
+    "e2e-test/playwright-full/enterprise",
+    "e2e-test/cypress-full/enterprise",
+    "e2e-test/playwright-full/enterprise/subpath",
+    "e2e-test/playwright-full/fips",
+    "e2e-test/cypress-full/fips"
+  ]
+}

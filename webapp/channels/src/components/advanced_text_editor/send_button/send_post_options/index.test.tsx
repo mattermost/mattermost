@@ -104,7 +104,6 @@ describe('SendPostOptions', () => {
                 <SendPostOptions
                     channelId='channelId'
                     onSelect={onSelect}
-                    allowRecurring={true}
                     {...props}
                 />
                 <ModalController/>
@@ -191,6 +190,40 @@ describe('SendPostOptions', () => {
             expect(menuModal()).toBeNull();
             expect(screen.getByRole('heading', {name: 'Schedule message'})).toBeVisible();
             expect(onSelect).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('custom time modal', () => {
+        async function scheduleFromCustomTimeModal() {
+            openMenu();
+            fireEvent.click(screen.getByText('Choose a custom time'));
+            runPendingTimers();
+
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', {name: 'Schedule'}));
+            });
+        }
+
+        it('stays open and shows the error when scheduling fails', async () => {
+            onSelect.mockResolvedValue({error: 'Invalid scheduled at time.'});
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW));
+
+            await scheduleFromCustomTimeModal();
+
+            expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({scheduled_at: tomorrowAt9am}));
+            expect(screen.getByText('Invalid scheduled at time.')).toBeVisible();
+            expect(screen.getByRole('heading', {name: 'Schedule message'})).toBeVisible();
+        });
+
+        it('closes when scheduling succeeds', async () => {
+            onSelect.mockResolvedValue({});
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW));
+
+            await scheduleFromCustomTimeModal();
+            runPendingTimers();
+
+            expect(onSelect).toHaveBeenCalledTimes(1);
+            expect(screen.queryByRole('heading', {name: 'Schedule message'})).not.toBeInTheDocument();
         });
     });
 

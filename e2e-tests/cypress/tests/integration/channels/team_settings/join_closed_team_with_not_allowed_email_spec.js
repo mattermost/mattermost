@@ -53,7 +53,7 @@ describe('Team Settings', () => {
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
             });
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save
@@ -113,7 +113,7 @@ describe('Team Settings', () => {
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
             });
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save

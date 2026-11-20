@@ -107,6 +107,16 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
+	HealthFinding() HealthFindingStore
+}
+
+type HealthFindingStore interface {
+	GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error)
+	List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error)
+	Upsert(findings []*model.HealthFinding) error
+	Mute(fingerprint, userID string, at int64) error
+	Unmute(fingerprint string) error
+	DeleteBefore(lastSeenBefore int64) (int64, error)
 }
 
 type RetentionPolicyStore interface {
@@ -197,6 +207,21 @@ type TeamStore interface {
 	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
 }
 
+// ChannelMemberRoles holds the fields of a channel membership that decide the member's role in
+// the channel, resolved the same way GetMember resolves them: role names left in Roles by an
+// unmigrated row are folded into the scheme flags, and Roles also carries the roles the
+// channel's scheme implies.
+//
+// The scheme flags come from the membership row alone. The scheme roles in Roles come from the
+// channel's and team's schemes, and a cached value is not invalidated when those change, so
+// decide the member's role from the flags.
+type ChannelMemberRoles struct {
+	Roles       string
+	SchemeGuest bool
+	SchemeUser  bool
+	SchemeAdmin bool
+}
+
 type ChannelStore interface {
 	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
@@ -205,6 +230,7 @@ type ChannelStore interface {
 	Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
+	PermanentDeleteSidebarByUser(userID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
 	GetBoardChannel(id string) (*model.Channel, error)
 	GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error)
@@ -252,6 +278,9 @@ type ChannelStore interface {
 	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
+	// GetChannelMemberRoles returns userID's role fields in each of channelIDs it is a member
+	// of, keyed by channel ID. A channel it does not belong to is absent from the map.
+	GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (map[string]ChannelMemberRoles, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
@@ -350,6 +379,7 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetChannelsLeftSince(userID string, since int64) ([]string, error)
 	GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error)
+	PermanentDeleteByUser(userID string) error
 }
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
@@ -363,7 +393,7 @@ type ThreadStore interface {
 	GetTotalUnreadUrgentMentions(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetThreadsForUser(rctx request.CTX, userID, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
 	GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended, postPriorityIsEnabled bool) (*model.ThreadResponse, error)
-	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error)
+	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
 	MarkAllAsReadByTeam(userID, teamID string) error
@@ -374,6 +404,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userID, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userID, postID string) error
+	PermanentDeleteMembershipsByUser(userID string) error
 	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
@@ -440,6 +471,7 @@ type PostStore interface {
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
 	GetPostRemindersForPost(postId string) ([]*model.PostReminder, error)
 	DeleteAllPostRemindersForPost(postId string) error
+	PermanentDeletePostRemindersByUser(userId string) error
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
@@ -593,6 +625,9 @@ type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
+	// PermanentDelete removes the row for remoteClusterID and name. It is meant for a connection
+	// that was never established, so shared channel remotes are left untouched.
+	PermanentDelete(remoteClusterID string, name string) error
 	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
 	// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
 	// when the plugin has one registration. Use GetAllByPluginID instead.
@@ -710,6 +745,7 @@ type CommandWebhookStore interface {
 	Get(id string) (*model.CommandWebhook, error)
 	TryUse(id string, limit int) error
 	Cleanup()
+	PermanentDeleteByUser(userID string) error
 }
 
 type PreferenceStore interface {
@@ -746,6 +782,7 @@ type TokenStore interface {
 
 type DesktopTokensStore interface {
 	GetUserId(token string, minCreatedAt int64) (*string, error)
+	ConsumeToken(token string, minCreateAt int64) (*string, error)
 	Insert(token string, createAt int64, userID string) error
 	Delete(token string) error
 	DeleteByUserId(userID string) error
@@ -771,6 +808,7 @@ type StatusStore interface {
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
+	PermanentDeleteByUser(userID string) error
 }
 
 type FileInfoStore interface {
@@ -782,6 +820,7 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
+	GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
 	AttachToPost(rctx request.CTX, fileID string, postID string, channelID, creatorID string) error
@@ -798,8 +837,6 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
-	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
-	GetUptoNSizeFileTime(n int64) (int64, error)
 	// RefreshFileStats recomputes the fileinfo materialized views.
 	RefreshFileStats() error
 }
@@ -810,6 +847,7 @@ type UploadSessionStore interface {
 	Get(rctx request.CTX, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type ReactionStore interface {
@@ -864,7 +902,7 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
 	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
-	GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error)
+	GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error)
 	CountNonCompliantExpiry(maxExpiresAt int64) (int64, error)
 	DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error)
 	Search(term string) ([]*model.UserAccessToken, error)
@@ -884,6 +922,7 @@ type PluginStore interface {
 	DeleteAllForPlugin(PluginID string) error
 	DeleteAllExpired() error
 	List(pluginID string, page, perPage int) ([]string, error)
+	ListWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {
@@ -933,12 +972,14 @@ type ProductNoticesStore interface {
 	Clear(notices []string) error
 	ClearOldNotices(currentNotices model.ProductNotices) error
 	GetViews(userID string) ([]model.ProductNoticeViewState, error)
+	PermanentDeleteByUser(userID string) error
 }
 
 type UserTermsOfServiceStore interface {
 	GetByUser(userID string) (*model.UserTermsOfService, error)
 	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error)
 	Delete(userID, termsOfServiceID string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type GroupStore interface {
@@ -1059,6 +1100,7 @@ type NotifyAdminStore interface {
 	Get(trial bool) ([]*model.NotifyAdminData, error)
 	DeleteBefore(trial bool, now int64) error
 	Update(userID string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type SharedChannelStore interface {
@@ -1076,8 +1118,10 @@ type SharedChannelStore interface {
 	HasRemote(channelID string, remoteID string) (bool, error)
 	GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error)
+	GetRemoteByIdsFromMaster(channelID string, remoteID string) (*model.SharedChannelRemote, error)
 	GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
+	UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error)
 	UpdateRemoteMembershipCursor(id string, syncTime int64) error
 	DeleteRemote(remoteID string) (bool, error)
 	GetRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error)
@@ -1085,6 +1129,7 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
+	PermanentDeleteUsersByUser(userID string) error
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
 
@@ -1140,6 +1185,7 @@ type PostAcknowledgementStore interface {
 	Delete(acknowledgement *model.PostAcknowledgement) error
 	DeleteAllForPost(postID string) error
 	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type PostPersistentNotificationStore interface {
@@ -1186,7 +1232,7 @@ type ScheduledPostStore interface {
 
 type PropertyGroupStore interface {
 	Register(group *model.PropertyGroup) (*model.PropertyGroup, error)
-	IncrementVersion(name string) error
+	SetVersion(name string, version int) error
 	Get(name string) (*model.PropertyGroup, error)
 	GetByID(id string) (*model.PropertyGroup, error)
 }
@@ -1194,18 +1240,47 @@ type PropertyGroupStore interface {
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error)
+	ValidateMaskByFieldID(rctx request.CTX, groupID, fieldID, maskByFieldID string) error
 	GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
 	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
 	GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error)
+	GetForGroupVersion(rctx request.CTX, groupID string) (string, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
-	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
+	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
+	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)
+	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
+	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)
+	GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error)
+	CountOptions(fieldID string) (int, error)
+	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error
+	DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error
+	PermanentDeleteOwnedOptions(groupID, fieldID string) error
+	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
+	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	CountOptionEdges(fieldID string) (int, error)
+	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// GetFieldsMissingPermissions returns one page, in (CreateAt, Id) order
+	// after cursor, of the live PSAv2 fields in version 2 and 3 groups that
+	// have no permissions object: the fields the permissions backfill converts.
+	GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error)
+	SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error)
+	GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs, objectTypes []string) ([]*model.PropertyField, error)
+	GetLiveUserFieldsByNames(groupID string, names []string) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
+	GetFieldsByGrant(rctx request.CTX, ownerType, ownerID, action string) ([]string, error)
+	GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error)
+	HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error)
 }
 
 type PropertyValueStore interface {
@@ -1213,20 +1288,32 @@ type PropertyValueStore interface {
 	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
-	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	// GetReferencedOptionIDs returns the distinct option IDs that live values
+	// of the given select-shaped fields reference, from both single-option
+	// (JSON string) and multi-option (JSON string array) values. Pass a
+	// template together with the fields linking to it to cover every value
+	// that points at the template's options.
+	GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error)
 }
 
 type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
-	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
-	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
+	SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
+
+	// GetTypesByIDs returns the Type of each stored policy among ids, keyed by
+	// ID. Missing IDs are absent from the map. It reads the primary so a policy
+	// saved moments ago is never missed, which callers deciding whether a
+	// resource is policy-gated rely on. Empty input returns an empty map and
+	// fires no SQL.
+	GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
 
@@ -1277,11 +1364,21 @@ type AttributesStore interface {
 	// change that can affect many users at once (e.g. deleting a field). No-op outside the local
 	// cache layer.
 	ClearUserPropertyValuesEpochCache()
+
+	// InvalidateUserAttributes drops the cached user-attributes Subject for a single user. Call
+	// after that user's property values change. No-op outside the local cache layer.
+	InvalidateUserAttributes(userID string)
+
+	// ClearUserAttributesCache drops all cached user-attributes Subjects. Call after a change
+	// that can affect many users at once (e.g. deleting a field). No-op outside the local cache
+	// layer.
+	ClearUserAttributesCache()
 }
 
 type SessionAttributeStore interface {
 	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
 	Get(sessionID string) (map[string]any, map[string]int64, error)
+	GetEpoch(sessionID string) (string, error)
 	Invalidate(sessionID string) error
 	Clear() error
 }
@@ -1346,6 +1443,7 @@ type ReadReceiptStore interface {
 	Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
 	Delete(rctx request.CTX, postID, userID string) error
 	DeleteByPost(rctx request.CTX, postID string) error
+	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
 	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
 	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
@@ -1459,6 +1557,7 @@ type ChannelJoinRequestStore interface {
 	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
 	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
 	CountPending(channelId string) (int64, error)
+	PermanentDeleteByUser(userId string) error
 }
 
 type RecapStore interface {
@@ -1476,6 +1575,7 @@ type RecapStore interface {
 	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
+	PermanentDeleteByUser(userId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 
@@ -1504,6 +1604,7 @@ type ScheduledRecapStore interface {
 	Get(id string) (*model.ScheduledRecap, error)
 	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
 	Delete(id string) error // Soft delete (sets DeleteAt)
+	PermanentDeleteByUser(userId string) error
 
 	// Query operations
 	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)

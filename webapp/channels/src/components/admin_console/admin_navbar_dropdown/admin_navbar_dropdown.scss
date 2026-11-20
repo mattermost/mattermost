@@ -1,0 +1,27 @@
+.menu_menuStyled.AsSubMenu .MuiPaper-root:has(#adminConsoleSwitchTeamsMenu) {
+    max-width: 280px;
+}
+
+// Item padding already insets content; drop the shared paper's extra 4px block padding.
+.menu_menuStyled .MuiPaper-root:has(#adminConsoleMenu) {
+    padding: 0;
+}
+
+#adminConsoleSwitchTeamsMenu {
+    max-width: 280px;
+
+    .MuiMenuItem-root > .label-elements {
+        min-width: 0;
+        max-width: 100%;
+        flex: 1 1 auto;
+        align-self: stretch;
+    }
+
+    .MuiMenuItem-root > .label-elements > :only-child {
+        overflow: hidden;
+        max-width: 100%;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

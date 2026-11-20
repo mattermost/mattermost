@@ -15,6 +15,7 @@ import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_po
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
@@ -23,11 +24,11 @@ import './style.scss';
 type Props = {
     channelId: string;
     disabled?: boolean;
-    onSelect: (schedulingInfo: SchedulingInfo) => void;
-    allowRecurring: boolean;
+    onSelect: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
+    repeatDisabledReason?: RepeatDisabledReason;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -43,22 +44,17 @@ export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}:
         onSelect(schedulingInfo);
     }, [onSelect]);
 
-    const handleSelectCustomTime = useCallback((schedulingInfo: SchedulingInfo) => {
-        onSelect(schedulingInfo);
-        return Promise.resolve({});
-    }, [onSelect]);
-
     const handleChooseCustomTime = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 channelId,
-                onConfirm: handleSelectCustomTime,
-                allowRecurring,
+                onConfirm: onSelect,
+                repeatDisabledReason,
             },
         }));
-    }, [allowRecurring, channelId, dispatch, handleSelectCustomTime]);
+    }, [repeatDisabledReason, channelId, dispatch, onSelect]);
 
     return (
         <Menu.Container

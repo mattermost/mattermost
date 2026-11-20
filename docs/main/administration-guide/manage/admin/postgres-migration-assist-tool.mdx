@@ -13,7 +13,7 @@ Download the Mattermost `migration-assist` tool from the GitHub repository [rele
 
 While you can run the `migration-assist` tool on the same server as your Mattermost deployment, we recommend running the tool in a virtual machine on the same network as your Mattermost server instead. The tool itself is lightweight and does not require a large server. A server with 2 CPU cores and 16 GB of RAM should be sufficient. If preferred, you can download and [compile](#compile-the-migration-assist-tool) the `migration-assist` tool yourself.
 
-You'll also need to install the `pgloader` tool to migrate your data from MySQL to PostgreSQL. We recommend running `pgloader` in a virtual machine on the same network as your Mattermost server. You can use our official Mattermost Docker image for pgloader (`mattermost/pgloader:latest`); please note that it does **not** currently support MySQL’s `caching_sha2_password` authentication plugin. If you require `caching_sha2_password` support, you’ll need to build your own image and include the [qitab/qmynd](https://github.com/qitab/qmynd) library. See the [pgloader](/administration-guide/manage/admin/manual-postgres-migration#install-pgloader) installation documentation for details.
+You'll also need to install the `pgloader` tool to migrate your data from MySQL to PostgreSQL. We recommend running `pgloader` in a virtual machine on the same network as your Mattermost server, using our official Mattermost Docker image for pgloader (`mattermost/mattermost-pgloader:latest`). You can also build the image yourself from the [mattermost-pgloader-docker](https://github.com/mattermost/mattermost-pgloader-docker) repository. If you run into authentication errors, see [Unsupported authentication for MySQL](/administration-guide/manage/admin/postgres-migration#unsupported-authentication-for-mysql). See the [pgloader](/administration-guide/manage/admin/manual-postgres-migration#install-pgloader) installation documentation for details.
 
 ## Usage
 
@@ -100,7 +100,7 @@ migration-assist pgloader \
 pgloader migration.load > migration.log
 ```
 
-Carefully review <code>migration.log</code> for errors (e.g., duplicate-key or missing-table warnings). Use the `mattermost/pgloader:latest` Docker image to avoid build/auth issues.
+Carefully review <code>migration.log</code> for errors (e.g., duplicate-key or missing-table warnings). Use the `mattermost/mattermost-pgloader:latest` Docker image to avoid build/auth issues.
 
 ### Step 5 - Restore full-text indexes & create all indexes
 

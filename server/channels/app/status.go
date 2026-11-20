@@ -71,7 +71,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		return
 	}
 
-	scs, _ := a.getSharedChannelsService(false)
+	scs, _ := a.getSharedChannelsService()
 	for i := range statuses {
 		a.Srv().Platform().AddStatusCache(statuses[i])
 		a.Srv().Platform().BroadcastStatus(statuses[i])

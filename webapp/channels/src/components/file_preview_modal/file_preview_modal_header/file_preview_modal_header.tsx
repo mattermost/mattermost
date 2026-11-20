@@ -30,6 +30,7 @@ interface Props {
     handleNext: () => void;
     handleModalClose: () => void;
     content: string;
+    showMarkdownToggle?: boolean;
 }
 
 const FilePreviewModalHeader: React.FC<Props> = ({post, totalFiles, fileIndex, ...actionProps}: Props) => {

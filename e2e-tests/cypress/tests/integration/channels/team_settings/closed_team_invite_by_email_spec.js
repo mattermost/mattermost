@@ -65,7 +65,7 @@ describe('Team Settings', () => {
 
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
             });
 
             // * Verify that the '#allowedDomains' input field is empty

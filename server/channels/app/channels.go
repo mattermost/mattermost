@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -97,15 +99,14 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTaskMut sync.Mutex
-	dndTask    *model.ScheduledTask
+	dndTask           leaderTask
+	postReminderTask  leaderTask
+	scheduledPostTask leaderTask
 
-	postReminderMut  sync.Mutex
-	postReminderTask *model.ScheduledTask
+	healthCheckWorkers *jobs.Workers
+	cancelHealthCheck  context.CancelFunc
 
 	interruptQuitChan chan struct{}
-	scheduledPostMut  sync.Mutex
-	scheduledPostTask *model.ScheduledTask
 }
 
 func NewChannels(s *Server) (*Channels, error) {
@@ -150,14 +151,10 @@ func NewChannels(s *Server) (*Channels, error) {
 	}
 	if samlInterface != nil {
 		ch.Saml = samlInterface(New(ServerConnector(ch)))
-		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
-			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-		}
+		ch.configureSaml(request.EmptyContext(s.Log()))
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
-			if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
-				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-			}
+			ch.configureSaml(request.EmptyContext(s.Log()))
 		})
 	}
 
@@ -308,6 +305,7 @@ func (ch *Channels) Start() error {
 	})
 
 	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+	ch.AddConfigListener(ch.clearLatestVersionCacheOnFlip)
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
@@ -328,11 +326,10 @@ func (ch *Channels) Start() error {
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
 
-	ch.dndTaskMut.Lock()
-	if ch.dndTask != nil {
-		ch.dndTask.Cancel()
-	}
-	ch.dndTaskMut.Unlock()
+	ch.dndTask.stop()
+	ch.postReminderTask.stop()
+	ch.scheduledPostTask.stop()
+	ch.stopHealthCheckWorkers()
 
 	close(ch.interruptQuitChan)
 

@@ -132,7 +132,7 @@ func init() {
 	ImportProcessCmd.Flags().String("destination-team-id", "", "Map the source team in the export to an existing team on the destination server (by ID). Mutually exclusive with --destination-team-name.")
 	ImportProcessCmd.Flags().String("destination-channel-name", "", "Map the source channel in the export to a different channel name on the destination server (by name). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-id.")
 	ImportProcessCmd.Flags().String("destination-channel-id", "", "Map the source channel in the export to a different channel on the destination server (by ID). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-name.")
-	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
+	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip the checks run before anything is imported. By default the import fails if an auth provider present in the export is not enabled on the destination, or if the import would take a team past TeamSettings.MaxUsersPerTeam. Use this flag only after reviewing the preflight error and accepting the risk.")
 	ImportProcessCmd.Flags().String("imported-users", "", "Required for a scoped (team- or channel-scoped) export: the access posture for accounts the import creates. Use \"active\" when importing into a new instance these users are moving to, so they can sign in. Use \"inactive\" when importing into an existing instance, so accounts created from weak identity matches stay deactivated until an admin reviews them. Users deactivated on the source stay deactivated either way, and accounts that already exist on the destination are not affected. Ignored for a full-instance import.")
 
 	ImportListCmd.AddCommand(
@@ -537,6 +537,22 @@ func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	printJob(job)
+
+	// Scoped migrations may leave entries that couldn't be matched on this server:
+	// unmatched users and memberships skipped for a missing team or channel. The count
+	// is the number of report rows, not distinct users, so phrase it as entries. Surface
+	// it and the report path explicitly rather than leaving the operator to spot them in
+	// the raw Data map.
+	if count := job.Data["unmatched_users_count"]; count != "" && count != "0" {
+		noun := "entries"
+		if count == "1" {
+			noun = "entry"
+		}
+		printer.Print(fmt.Sprintf("\n%s import %s could not be matched on this server (unmatched users and skipped team or channel memberships).", count, noun))
+		if reportPath := job.Data["unmatched_users_report"]; reportPath != "" {
+			printer.Print(fmt.Sprintf("See the report for details: %s", reportPath))
+		}
+	}
 
 	return nil
 }

@@ -21,6 +21,7 @@ type DatabaseDiagnostics struct {
 	ReplicaPoolWaitDurationMs           int64
 	ReplicaConnectionsClosedMaxIdle     int64
 	ReplicaConnectionsClosedMaxLifetime int64
+	ReplicasOnline                      int
 	CacheHitRatio                       *float64
 	Deadlocks                           *int64
 	TempFiles                           *int64
@@ -30,5 +31,8 @@ type DatabaseDiagnostics struct {
 	LongestQueryDurationSeconds         *float64
 	WaitingForLockCount                 *int64
 	PostsDeadTuples                     *int64
+	PostsEstimatedRows                  *int64
+	PostsVacuumInProgress               *bool
+	PostsLastVacuum                     *time.Time
 	PostsLastAutovacuum                 *time.Time
 }

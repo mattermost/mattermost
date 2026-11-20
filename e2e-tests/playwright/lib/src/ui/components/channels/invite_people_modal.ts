@@ -11,6 +11,7 @@ export default class InvitePeopleModal {
     readonly inviteInput: Locator;
     readonly inviteButton: Locator;
     readonly copyInviteLinkButton: Locator;
+    readonly domainRestrictionError: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,6 +20,9 @@ export default class InvitePeopleModal {
         this.inviteInput = container.getByRole('combobox', {name: 'Invite People'});
         this.inviteButton = container.getByRole('button', {name: 'Invite', exact: true});
         this.copyInviteLinkButton = container.getByText('Copy invite link');
+        this.domainRestrictionError = container.getByText(
+            /The following email addresses do not belong to an accepted domain/,
+        );
     }
 
     async toBeVisible() {

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {Locator, Page} from '@playwright/test';
 
 import {expect, newTestPassword, test} from '@mattermost/playwright-lib';
 
@@ -12,11 +11,19 @@ import {
     enableTeamMembershipABACConfig,
     ensureDepartmentAttribute,
     getTeamAccessControlPolicy,
+    getTeamAutoAddMode,
     setUserAttribute,
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 
-import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembershipPolicies} from './helpers';
+import {
+    assignTeamsToPolicy,
+    createTeamMembershipParentPolicy,
+    enableTeamMembershipPolicies,
+    findPolicyRow,
+    openTeamConfig,
+    setToggle,
+} from './helpers';
 
 /**
  * ABAC — Team Membership (per-team System Console page)
@@ -59,53 +66,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             await client.updateUserActive(id, false).catch(() => {});
         }
     });
-
-    /**
-     * Navigate to a team's configuration page from the Teams list and wait for it to load.
-     */
-    async function openTeamConfig(page: Page, teamDisplayName: string): Promise<void> {
-        await page.goto('/admin_console/user_management/teams');
-        await page.waitForLoadState('networkidle');
-
-        const search = page.locator('input[placeholder*="Search" i]').first();
-        await search.fill(teamDisplayName);
-        await page.waitForTimeout(1000);
-
-        const row = page.locator('.DataGrid_row').filter({hasText: teamDisplayName}).first();
-        await row.waitFor({state: 'visible', timeout: 10000});
-        await row.getByText('Edit').click();
-        await page.waitForLoadState('networkidle');
-    }
-
-    /**
-     * Search a policy DataGrid (modal or full page) and return the matching row.
-     *
-     * The PolicyList fires an unfiltered fetch on mount; we wait for that to land
-     * before typing so our search isn't overwritten by the late-resolving initial
-     * load (which would otherwise show the first page of unrelated policies).
-     */
-    async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
-        await scope
-            .locator('.DataGrid_row')
-            .first()
-            .waitFor({state: 'visible', timeout: 15000})
-            .catch(() => {
-                // Empty list is fine — the search below will populate it.
-            });
-        await scope.locator('[data-testid="searchInput"]').fill(policyName);
-        const row = scope.locator('.DataGrid_row').filter({hasText: policyName}).first();
-        await expect(row).toBeVisible({timeout: 15000});
-        return row;
-    }
-
-    async function setToggle(page: Page, on: boolean): Promise<void> {
-        const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
-        await toggle.waitFor({state: 'visible', timeout: 10000});
-        const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
-        if (pressed !== on) {
-            await toggle.click();
-        }
-    }
 
     /**
      * Assign a membership policy to a team from the per-team page, verify the team
@@ -284,10 +244,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(disconnectModal).not.toBeVisible({timeout: 5000});
 
         // * Custom rule still governs, so enforcement stays on
-        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
+        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toBeChecked();
 
         // * Save goes straight through: removal is not new criteria, so no apply modal
         await page.getByRole('button', {name: 'Save'}).click();
@@ -582,9 +539,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await enableTeamMembershipPolicies(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering)
+        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering).
+        // Remove the admin (auto-added on create). A shared system admin may have
+        // Department=Engineering from another worker, which would hide the empty-team warning.
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
+        await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
         const mktUser = await adminClient.createUser(
             {
                 email: `mkt${suffix}@sample.mattermost.com`,
@@ -1246,7 +1206,8 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     /**
      * @objective A team governed only by an imported parent policy (no custom rule) can
      * still toggle auto-add — the rules-section checkbox is enabled even with an empty
-     * custom expression — and toggling it persists the team child policy's active flag.
+     * custom expression — and toggling it persists the auto-add mode on the team child
+     * policy's membership rule.
      */
     test('MM-68846-T22 - auto-add is interactive for a parent-only team and persists on save', async ({pw}) => {
         test.setTimeout(120000);
@@ -1290,13 +1251,13 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await confirmModal.getByRole('button', {name: 'Apply'}).click();
         await expect(confirmModal).not.toBeVisible({timeout: 10000});
 
-        // * The team child policy's active flag is now true on the server
+        // * The team child policy's membership rule now carries the auto-add mode
         await expect
-            .poll(async () => (await getTeamAccessControlPolicy(adminClient, team.id))?.policy?.active, {
+            .poll(async () => getTeamAutoAddMode(adminClient, team.id), {
                 timeout: 15000,
                 intervals: [500, 1000, 2000, 2000],
-                message: 'team child policy active should persist after enabling auto-add',
+                message: 'team child policy auto-add mode should persist after enabling auto-add',
             })
-            .toBe(true);
+            .toBe('always');
     });
 });

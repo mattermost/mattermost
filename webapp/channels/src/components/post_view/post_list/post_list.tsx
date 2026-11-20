@@ -6,14 +6,14 @@ import React from 'react';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, mark} from 'actions/telemetry_actions';
+import {mark} from 'actions/telemetry_actions';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
 import {PostRequestTypes, Constants} from 'utils/constants';
-import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+import {clearChannelSwitchMarks, Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
@@ -22,6 +22,9 @@ export const MAX_EXTRA_PAGES_LOADED = 30;
 // Post loading page sizes
 const USER_SCROLL_POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2; // 30 posts for user scroll
 const AUTO_LOAD_POSTS_PER_PAGE = 200; // Maximum server limit for auto-loading
+
+// How long to keep posts hidden while waiting for the total user count before showing them anyway
+const TOTAL_USERS_STATS_TIMEOUT = 2000;
 
 // Measures the time between channel or team switch started and the post list component rendering posts.
 // Set "fresh" to true when the posts have not been loaded before.
@@ -48,12 +51,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         canFail: true,
     });
 
-    // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
-    clearMarks([
-        Mark.ChannelLinkClicked,
-        Mark.TeamLinkClicked,
-        Mark.PostListLoaded,
-    ]);
+    clearChannelSwitchMarks();
 }
 
 export interface Props {
@@ -120,6 +118,13 @@ export interface Props {
 
     isChannelAutotranslated: boolean;
 
+    isTotalUsersCountUnknown?: boolean;
+
+    /*
+     * Whether the channel intro will be shown before the total user count it depends on is known
+     */
+    needsTotalUsersStats?: boolean;
+
     actions: {
 
         /*
@@ -150,6 +155,7 @@ export interface Props {
 
         markChannelAsRead: (channelId: string) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
+        getTotalUsersStats: () => Promise<ActionResult>;
     };
 }
 
@@ -157,6 +163,15 @@ interface State {
     loadingNewerPosts: boolean;
     loadingOlderPosts: boolean;
     autoRetryEnable: boolean;
+    channelId: string;
+    postListShown: boolean;
+    stoppedWaitingForTotalUsersStats: boolean;
+}
+
+// The channel intro changes height once the total user count loads, so hold the loading screen until then
+// to avoid shifting the post list. This only applies before the list is first shown for a channel.
+function isWaitingForTotalUsersStats(needsTotalUsersStats: boolean | undefined, state: State) {
+    return Boolean(needsTotalUsersStats) && !state.postListShown && !state.stoppedWaitingForTotalUsersStats;
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
@@ -170,6 +185,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         toggleShouldStartFromBottomWhenUnread: () => void;
     };
     private mounted: boolean | undefined;
+    private totalUsersStatsTimeout: NodeJS.Timeout | undefined;
 
     // public for testing purposes only
     public extraPagesLoaded: number;
@@ -180,6 +196,9 @@ export default class PostList extends React.PureComponent<Props, State> {
             loadingNewerPosts: false,
             loadingOlderPosts: false,
             autoRetryEnable: true,
+            channelId: props.channelId,
+            postListShown: false,
+            stoppedWaitingForTotalUsersStats: false,
         };
 
         this.extraPagesLoaded = 0;
@@ -195,6 +214,13 @@ export default class PostList extends React.PureComponent<Props, State> {
         };
     }
 
+    static getDerivedStateFromProps(props: Props, state: State): Partial<State> {
+        const postListShown = (props.channelId === state.channelId && state.postListShown) ||
+            (Boolean(props.postListIds) && !isWaitingForTotalUsersStats(props.needsTotalUsersStats, {...state, postListShown: false}));
+
+        return {channelId: props.channelId, postListShown};
+    }
+
     componentDidMount() {
         this.mounted = true;
         if (this.props.channelId) {
@@ -202,6 +228,11 @@ export default class PostList extends React.PureComponent<Props, State> {
             if (this.props.postListIds) {
                 markAndMeasureChannelSwitchEnd();
             }
+        }
+
+        // Fetched alongside the posts since the intro may need it as soon as they arrive
+        if (this.props.isTotalUsersCountUnknown) {
+            this.loadTotalUsersStats();
         }
     }
 
@@ -217,7 +248,26 @@ export default class PostList extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.mounted = false;
+        clearTimeout(this.totalUsersStatsTimeout);
     }
+
+    loadTotalUsersStats = async () => {
+        this.totalUsersStatsTimeout = setTimeout(this.stopWaitingForTotalUsersStats, TOTAL_USERS_STATS_TIMEOUT);
+
+        const {error} = await this.props.actions.getTotalUsersStats();
+
+        clearTimeout(this.totalUsersStatsTimeout);
+
+        if (error) {
+            this.stopWaitingForTotalUsersStats();
+        }
+    };
+
+    stopWaitingForTotalUsersStats = () => {
+        if (this.mounted) {
+            this.setState({stoppedWaitingForTotalUsersStats: true});
+        }
+    };
 
     postsOnLoad = async (channelId: string) => {
         const {focusedPostId, isFirstLoad, latestPostTimeStamp, isPrefetchingInProcess, actions} = this.props;
@@ -362,7 +412,7 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        if (!this.props.postListIds) {
+        if (!this.props.postListIds || isWaitingForTotalUsersStats(this.props.needsTotalUsersStats, this.state)) {
             return (
                 <LoadingScreen centered={true}/>
             );

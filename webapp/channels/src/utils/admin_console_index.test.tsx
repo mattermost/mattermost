@@ -9,20 +9,19 @@ import {samplePlugin1, samplePlugin2} from 'tests/helpers/admin_console_plugin_i
 
 import {generateIndex} from './admin_console_index';
 
-const enMessages = require('../i18n/en');
 const esMessages = require('../i18n/es');
 
 describe('AdminConsoleIndex.generateIndex', () => {
     it('should generate an index where I can search', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const idx = generateIndex(AdminDefinition, intl, {});
         expect(idx.search('ldap')).toEqual([
             'environment/session_lengths',
             'authentication/mfa',
+            'authentication/ldap',
             'authentication/saml',
             'authentication/email',
-            'authentication/ldap',
             'authentication/guest_access',
         ]);
         expect(idx.search('saml')).toEqual([
@@ -68,6 +67,26 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('notexistingword')).toEqual([]);
     });
 
+    it('should index the settings rendered by the AD/LDAP wizard', () => {
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
+
+        const idx = generateIndex(AdminDefinition, intl, {});
+
+        expect(idx.search('synchronization')).toEqual(expect.arrayContaining(['authentication/ldap', 'authentication/saml']));
+
+        // Setting label and help text
+        expect(idx.search('Base DN')).toContain('authentication/ldap');
+        expect(idx.search('Distinguished Name')).toContain('authentication/ldap');
+
+        // Setting nested inside an expandable setting
+        expect(idx.search('Guest Filter')).toContain('authentication/ldap');
+
+        // Section title, subtitle and navigation title
+        expect(idx.search('Synchronise user account properties')).toContain('authentication/ldap');
+        expect(idx.search('Tell Mattermost how to identify your users')).toContain('authentication/ldap');
+        expect(idx.search('Sync History')).toContain('authentication/ldap');
+    });
+
     xit('should generate a index where I can search in other language', () => {
         const intl = createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'});
 
@@ -97,7 +116,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
     });
 
     it('should generate a index including the plugin settings', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const idx = generateIndex(AdminDefinition, intl, {[samplePlugin1.id]: samplePlugin1, [samplePlugin2.id]: samplePlugin2});
 

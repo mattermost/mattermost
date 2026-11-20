@@ -5,9 +5,12 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -17,7 +20,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -1055,6 +1060,62 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, http.StatusRequestURITooLong, response.Code)
 	})
+
+	t.Run("414 error page should not send the browser into a redirect loop", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ServiceSettings.MaximumURLLength = new(30)
+		})
+
+		web := New(th.Server)
+		handler := web.NewStaticHandler(noOpHandler)
+
+		// Follow the error page the way a browser would, until it settles on a page that no
+		// longer sends us anywhere else.
+		nextURL := "/thisurlismorethan30characterslong"
+		var visited []string
+		for range 5 {
+			visited = append(visited, nextURL)
+
+			request := httptest.NewRequest("GET", nextURL, nil)
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, request)
+			require.Equal(t, http.StatusRequestURITooLong, response.Code)
+
+			nextURL = nextBrowserLocation(response)
+			if nextURL == "" {
+				body := response.Body.String()
+				assert.Contains(t, body, "<h2>Error</h2>")
+				assert.Contains(t, body, "URL is too long")
+				assert.NotContains(t, body, "/error?")
+				return
+			}
+		}
+
+		require.Fail(t, "the URL too long error page kept redirecting the browser", "visited: %v", visited)
+	})
+}
+
+// nextBrowserLocation returns the URL the response sends the browser to through any of the
+// mechanisms the error page uses, or an empty string if the browser stays on the page.
+func nextBrowserLocation(response *httptest.ResponseRecorder) string {
+	if location := response.Header().Get("Location"); location != "" {
+		return location
+	}
+
+	body := response.Body.String()
+	for _, pattern := range []*regexp.Regexp{
+		regexp.MustCompile(`window\.location = '([^']+)'`),
+		regexp.MustCompile(`http-equiv="refresh" content="0; url=([^"]+)"`),
+		regexp.MustCompile(`href="([^"]+)"`),
+	} {
+		if matches := pattern.FindStringSubmatch(body); len(matches) == 2 {
+			return html.UnescapeString(strings.NewReplacer(`\u0026`, "&", `\u003D`, "=").Replace(matches[1]))
+		}
+	}
+
+	return ""
 }
 
 func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
@@ -1405,4 +1466,64 @@ func TestHandlerServeDoesNotLogRawToken(t *testing.T) {
 
 		assert.NotContains(t, buffer.String(), session.Token)
 	})
+
+	t.Run("user lookup failure", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		buffer := captureLogs(t, th)
+
+		created, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+			UserId:      th.BasicUser.Id,
+			Description: "lookup",
+		})
+		require.Nil(t, appErr)
+
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&userLookupOuterStore{
+			Store: original,
+			users: &userLookupStore{
+				UserStore: original.User(),
+				userID:    th.BasicUser.Id,
+				err:       errors.New("lookup failed"),
+			},
+		})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		handler := newHandler(th)
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: created.Token})
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusInternalServerError, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+		// The log buffer does not include the submitted value.
+		assert.NotContains(t, buffer.String(), created.Token)
+		assert.Contains(t, buffer.String(), "token_id="+created.Id)
+		assert.Contains(t, buffer.String(), "user_id="+th.BasicUser.Id)
+	})
+}
+
+// userLookupStore returns an error from Get for one user id. Other calls pass through.
+type userLookupStore struct {
+	store.UserStore
+	userID string
+	err    error
+}
+
+func (s *userLookupStore) Get(rctx request.CTX, id string) (*model.User, error) {
+	if id == s.userID {
+		return nil, s.err
+	}
+	return s.UserStore.Get(rctx, id)
+}
+
+// userLookupOuterStore swaps User() for userLookupStore. Other stores pass through.
+type userLookupOuterStore struct {
+	store.Store
+	users *userLookupStore
+}
+
+func (s *userLookupOuterStore) User() store.UserStore {
+	return s.users
 }

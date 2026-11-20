@@ -66,7 +66,7 @@ In v5.16 and v5.17 the Marketplace only supports the installation of new plugins
 
 There are two settings in **System Console > Plugin Management**:
 
-![](https://user-images.githubusercontent.com/915956/66892854-94660d80-efa1-11e9-805c-a85223d43a07.png)
+![Plugin Management settings in the System Console](./img/plugin-management.png)
 
 - **Enable Marketplace:** Turns the Marketplace user interface on or off for System Admins (end users cannot see the Marketplace).
 - **Marketplace URL:** The location of the Marketplace server to query for new plugins. Mattermost hosts a Marketplace for the community and this is the default value for this field. You can also set up your own Marketplace server.
@@ -285,4 +285,4 @@ To fix this, set the `AppDirectory` of your service using `nssm set mattermost A
 
 If you're seeing `x509: certificate signed by unknown authority` in your server logs, it usually means that the CA for a self-signed certificate for a server your plugin is trying to access has not been added to your local trust store of the machine the Mattermost server is running on.
 
-You can add one in Linux [following instructions in this StackExchange article](https://unix.stackexchange.com/questions/90450/adding-a-self-signed-certificate-to-the-trusted-list), or set up a load balancer like NGINX per [production install guide](https://docs.mattermost.com/config-ssl-http2-nginx.html) to resolve the issue.
+You can add one in Linux [following instructions in this StackExchange article](https://unix.stackexchange.com/questions/90450/adding-a-self-signed-certificate-to-the-trusted-list), or set up a load balancer like NGINX per [production install guide](/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2) to resolve the issue.

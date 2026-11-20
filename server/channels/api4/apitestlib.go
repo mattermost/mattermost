@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"os"
@@ -84,11 +84,17 @@ func SetMainHelper(mh *testlib.MainHelper) {
 func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlSettings, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
 	updateConfig func(*model.Config), options []app.Option,
 ) *TestHelper {
+	backingStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
+	require.NoError(tb, err, "failed to initialize memory store")
+
+	return setupTestHelperWithBackingStore(tb, backingStore, dbStore, sqlSettings, searchEngine, enterprise, includeCache, updateConfig, options)
+}
+
+func setupTestHelperWithBackingStore(tb testing.TB, backingStore config.BackingStore, dbStore store.Store, sqlSettings *model.SqlSettings, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
+	updateConfig func(*model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
-
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	require.NoError(tb, err, "failed to initialize memory store")
 
 	memoryConfig := &model.Config{
 		SqlSettings: model.SafeDereference(sqlSettings),
@@ -135,17 +141,17 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
-	err = memoryStore.Set(memoryConfig)
+	err = backingStore.Set(memoryConfig)
 	require.NoError(tb, err)
 	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
 		var signaturePublicKey []byte
 		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
 		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
-		err = memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+		err = backingStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
 		require.NoError(tb, err)
 	}
 
-	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
+	configStore, err := config.NewStoreFromBacking(backingStore, nil, false)
 	require.NoError(tb, err)
 
 	options = append(options, app.ConfigStore(configStore))
@@ -168,15 +174,24 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	require.NoError(tb, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, app.SetLogger(testLogger))
+	options = append(options, app.SetLogger(testLogger), app.DisableGlobalLogger())
 
 	s, err := app.NewServer(options...)
 	require.NoError(tb, err)
 
+	// th.Context is tagged as a local-mode admin, the caller an `mmctl --local`
+	// request carries. The access control hook gates every PSAv2/v3 property
+	// group and refuses a caller that names nobody, so a test reaching the app
+	// layer directly with an untagged context would be refused for want of an
+	// identity rather than for the reason the test is about. Requests driven
+	// through a Client4 carry their own session's user and are unaffected.
+	emptyCtx := request.EmptyContext(testLogger)
+	localAdminCtx := emptyCtx.WithContext(model.WithCallerID(emptyCtx.Context(), model.CallerIDLocalAdmin)).(*request.Context)
+
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
-		Context:           request.EmptyContext(testLogger),
+		Context:           localAdminCtx,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
 		TestLogger:        testLogger,
@@ -228,8 +243,8 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	// Verify handling of the supported true/false values by randomizing on each run.
 	trueValues := []string{"1", "t", "T", "TRUE", "true", "True"}
 	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
-	trueString := trueValues[rand.Intn(len(trueValues))]
-	falseString := falseValues[rand.Intn(len(falseValues))]
+	trueString := trueValues[rand.IntN(len(trueValues))]
+	falseString := falseValues[rand.IntN(len(falseValues))]
 	testLogger.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)
@@ -334,6 +349,27 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 	dbStore, dbSettings, searchEngine := setupStores(tb)
 	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
+	th.InitLogin(tb)
+
+	return th
+}
+
+// SetupWithDatabaseConfigStore is like Setup, but stores the configuration in the test
+// database instead of in memory, for tests of what only a database store provides, such
+// as the configuration history.
+func SetupWithDatabaseConfigStore(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	backingStore, err := config.NewDatabaseStore(*dbSettings.DataSource)
+	require.NoError(tb, err, "failed to initialize database store")
+	th := setupTestHelperWithBackingStore(tb, backingStore, dbStore, dbSettings, searchEngine, false, true, nil, nil)
 	th.InitLogin(tb)
 
 	return th

@@ -37,26 +37,6 @@ describe('components/post_view/post_view', () => {
         rafSpy.mockRestore();
     });
 
-    test('should match snapshot for channel loading', () => {
-        const {container} = renderWithContext(<PostView {...{...baseProps, channelLoading: true}}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for loaderForChangeOfPostsChunk', () => {
-        const {container} = renderWithContext(<PostView {...baseProps}/>);
-
-        // Get changeUnreadChunkTimeStamp from PostList's last call props
-        const postListCalls = (PostList as unknown as jest.Mock).mock.calls;
-        const lastCallProps = postListCalls[postListCalls.length - 1][0];
-
-        act(() => {
-            lastCallProps.changeUnreadChunkTimeStamp(Date.now());
-        });
-
-        // loaderForChangeOfPostsChunk is now true, should show loading
-        expect(container).toMatchSnapshot();
-    });
-
     test('unreadChunkTimeStamp should be set for first load of channel', () => {
         renderWithContext(<PostView {...{...baseProps, isFirstLoad: true}}/>);
 

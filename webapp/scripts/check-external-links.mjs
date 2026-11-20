@@ -22,6 +22,7 @@ const FORMS_MATTERMOST_PATTERN = /^https?:\/\/forms\.mattermost\.com\//i;
 // them from CI.
 const UNCRAWLABLE_HOSTS = new Set([
     'support.mattermost.com', // Zendesk fronted by Cloudflare bot mgmt
+    'www.mattermost.com', // Cloudflare bot mgmt; the apex host it redirects to is still checked
 ]);
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
@@ -121,7 +122,9 @@ function findNonPermalinkUrls(urlMap) {
 
 const FETCH_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; MattermostLinkChecker/1.0; +https://github.com/mattermost/mattermost)',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    // Not text/html: forum.mattermost.com (Discourse) answers HTML requests from
+    // non-browser clients with a 403 "Checking your browser..." JS challenge.
+    'Accept': '*/*',
     'Accept-Language': 'en-US,en;q=0.5',
 };
 

@@ -66,6 +66,12 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     wrappingIndent: 'none',
     wrappingStrategy: 'advanced',
     contextmenu: false,
+
+    // Monaco 0.55+ defaults to Chrome's EditContext API, whose textupdate events React does not treat
+    // as discrete, so state updates from typing are deferred. The effect syncing editorState.expression
+    // back into Monaco then runs with a stale value and calls setValue mid-typing, resetting the cursor
+    // and scrambling input on slower machines. The textarea input path keeps those updates synchronous.
+    editContext: false,
 };
 
 type CELUserAttribute = {
@@ -157,6 +163,13 @@ export interface CELEditorProps {
      */
     onTestClick?: () => void;
 
+    /** Force the test button into the disabled state (overrides default). */
+    testButtonDisabled?: boolean;
+
+    /** Tooltip shown when the test button is disabled, in place of the
+     *  built-in reason. Useful for explaining why testing is unavailable. */
+    testButtonTooltip?: string;
+
     /** Optional label override for the test button. Lets the
      *  permission-rule editor render "Simulate rules" instead of the
      *  default "Test access rule" copy. */
@@ -179,6 +192,8 @@ function CELEditor({
     userAttributes,
     resourceAttributes = [],
     onTestClick,
+    testButtonDisabled = false,
+    testButtonTooltip,
     testButtonLabel,
     hasMaskedRows = false,
     actions,
@@ -320,7 +335,10 @@ function CELEditor({
         }
 
         // Create the editor instance
-        const editor = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
+        const editor = monaco.editor.create(editorRef.current, {
+            ...MONACO_EDITOR_OPTIONS,
+            ariaLabel: intl.formatMessage({id: 'admin.access_control.cel.editor_aria_label', defaultMessage: 'CEL expression editor'}),
+        });
         monacoRef.current = editor;
 
         // Set the initial value from the expression state
@@ -472,7 +490,11 @@ function CELEditor({
                     style={{backgroundColor: editorState.statusBarColor}}
                     data-validation-state={getValidationState()}
                 >
-                    <div className='cel-editor__status-message'>
+                    <div
+                        className='cel-editor__status-message'
+                        role='status'
+                        aria-live='polite'
+                    >
                         {renderStatusMessage(getValidationState())}
                     </div>
                     <div className='cel-editor__cursor-position'>
@@ -508,13 +530,11 @@ function CELEditor({
                     <TestButton
                         onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
                         label={testButtonLabel}
-                        disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                        disabledTooltip={
-                            hasMaskedRows ? intl.formatMessage({
-                                id: 'admin.access_control.cel_editor.masked_values_tooltip',
-                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) : undefined
-                        }
+                        disabled={testButtonDisabled || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                        disabledTooltip={testButtonTooltip ?? (hasMaskedRows ? intl.formatMessage({
+                            id: 'admin.access_control.cel_editor.masked_values_tooltip',
+                            defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+                        }) : undefined)}
                     />
                 </div>
             </div>

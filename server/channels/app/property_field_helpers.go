@@ -11,8 +11,33 @@ import (
 // nil-fill / non-admin-pin should use for this field. Templates and system
 // fields default to sysadmin (templates define the schema linked fields
 // inherit; system fields attach to the Mattermost instance and only an
-// administrator should write them). Other object types default to member.
+// administrator should write them), and so does a system TargetType: there the
+// member level resolves to "any authenticated user", which would expose a
+// globally scoped field's definition, options and values to everyone. Other
+// object types default to member.
 func DefaultPropertyFieldPermissionLevel(field *model.PropertyField) model.PermissionLevel {
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
+		field.ObjectType == model.PropertyFieldObjectTypeSystem ||
+		field.TargetType == string(model.PropertyFieldTargetLevelSystem) {
+		return model.PermissionLevelSysadmin
+	}
+	return model.PermissionLevelMember
+}
+
+// DefaultPropertyFieldValuesPermissionLevel returns the PermissionValues level
+// a field should default to. It deliberately omits the system-TargetType
+// clause above.
+//
+// That clause exists because PermissionField and PermissionOptions resolve
+// through hasPropertyFieldScopeAccess, which reads the *field's* TargetType:
+// there a system target makes the member level mean "any authenticated user",
+// so a globally scoped field would be renameable, retypeable and deletable by
+// everyone. PermissionValues never resolves that way -- a value is gated by
+// its own target, via hasPropertyFieldValueScopeAccess and
+// hasPropertyFieldValueAdmin -- so the field's TargetType does not widen it
+// and there is nothing to close. Defaulting values to sysadmin only locks out
+// the member-writable system-scoped fields that linked properties rely on.
+func DefaultPropertyFieldValuesPermissionLevel(field *model.PropertyField) model.PermissionLevel {
 	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
 		field.ObjectType == model.PropertyFieldObjectTypeSystem {
 		return model.PermissionLevelSysadmin

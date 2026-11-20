@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {revokeSessionsForAllUsers} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
@@ -38,7 +38,7 @@ export function RevokeSessionsButton() {
         <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
             <Button
                 emphasis='tertiary'
-                variant='destructive'
+                destructive={true}
                 onClick={handleModalToggle}
             >
                 <FormattedMessage
@@ -60,7 +60,7 @@ export function RevokeSessionsButton() {
                         defaultMessage='This action revokes all sessions in the system. All users will be logged out from all devices, including your session. Are you sure you want to revoke all sessions?'
                     />
                 }
-                confirmButtonVariant='destructive'
+                destructive={true}
                 confirmButtonText={
                     <FormattedMessage
                         id='admin.system_users.revoke_all_sessions_button'

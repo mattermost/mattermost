@@ -3,6 +3,7 @@
 
 import type {PropertyField, PropertyFieldOption, PropertyGroup, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
+import {POST_ATTRIBUTES_PROPERTY_GROUP_NAME, POST_ATTRIBUTES_PROPERTY_OBJECT_TYPE} from '@mattermost/types/properties_post';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {
@@ -12,6 +13,9 @@ import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
+    POST_OBJECT_TYPE,
+    SYSTEM_TARGET_TYPE,
+    USER_OBJECT_TYPE,
 } from 'mattermost-redux/constants/properties';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
@@ -22,16 +26,45 @@ function getPropertyFieldsById(state: GlobalState) {
     return state.entities.properties.fields.byId;
 }
 
-export const getPropertyFieldsForObjectTypeAndGroup = createSelector(
-    'getPropertyFieldsForObjectTypeAndGroup',
-    (state: GlobalState, objectType: string, groupId: string) => state.entities.properties.fields.byObjectType[objectType]?.[groupId],
-    (fields) => {
-        if (!fields) {
-            return [];
+const EMPTY_FIELDS: PropertyField[] = [];
+
+// Ties break on name, not create_at: chip order is something people are told to
+// read, so it must follow the configuration rather than insertion timing.
+function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
+    return [...fields].sort((a, b) => {
+        const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+        const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+        if (rankA !== rankB) {
+            return rankA - rankB;
         }
-        return Object.values(fields);
-    },
-);
+
+        // Fixed locale: the default is the viewer's, which would order equal-ranked
+        // chips differently per user. Names are ASCII slugs, so this is total.
+        return a.name.localeCompare(b.name, 'en');
+    });
+}
+
+/**
+ * A factory because Object.values() is a new array and the memoizer only
+ * keeps the last arguments. Four shared calls in one render (template /
+ * user / channel / post) evict each other and return fresh arrays on
+ * every Redux update. One instance per (objectType, consumer).
+ */
+export function makeGetPropertyFieldsForObjectTypeAndGroup(): (state: GlobalState, objectType: string, groupId: string) => PropertyField[] {
+    return createSelector(
+        'makeGetPropertyFieldsForObjectTypeAndGroup',
+        (state: GlobalState, objectType: string, groupId: string) => state.entities.properties.fields.byObjectType[objectType]?.[groupId],
+        (fields) => {
+            if (!fields) {
+                return EMPTY_FIELDS;
+            }
+            const values = Object.values(fields);
+            return values.length === 0 ? EMPTY_FIELDS : values;
+        },
+    );
+}
+
+export const getPropertyFieldsForObjectTypeAndGroup = makeGetPropertyFieldsForObjectTypeAndGroup();
 
 export function getPropertyFieldById(state: GlobalState, fieldId: string): PropertyField | undefined {
     return getPropertyFieldsById(state)[fieldId];
@@ -64,16 +97,71 @@ export function getPropertyGroupByName(state: GlobalState, name: string): Proper
 
 // Value selectors
 
-export const getPropertyValuesForTarget = createSelector(
-    'getPropertyValuesForTarget',
-    (state: GlobalState, targetId: string) => state.entities.properties.values.byTargetId[targetId],
-    (targetValues) => {
-        if (!targetValues) {
-            return [];
-        }
-        return Object.values(targetValues);
-    },
-);
+/**
+ * One target's property values.
+ *
+ * A factory per docs/develop/contribute/more-info/webapp/redux/selectors.md; the
+ * module-scoped parameterized selectors in this file predate that rule.
+ */
+export function makeGetPropertyValuesForTarget(): (state: GlobalState, targetId: string) => Array<PropertyValue<unknown>> {
+    return createSelector(
+        'getPropertyValuesForTarget',
+        (state: GlobalState, targetId: string) => state.entities.properties.values.byTargetId[targetId],
+        (targetValues) => {
+            if (!targetValues) {
+                return [];
+            }
+            return Object.values(targetValues);
+        },
+    );
+}
+
+/**
+ * The post-attribute fields that apply to a post in a given channel: the channel's
+ * scope chain, which is every system-scoped field plus the ones targeting this
+ * channel's team and this channel itself.
+ *
+ * The bucket this reads is filled incrementally by hierarchical fetches, one per
+ * channel visited, so it accumulates other channels' channel-scoped fields too — the
+ * filter is what keeps them off this channel's posts.
+ *
+ * Ordered by attrs.sort_order ascending, then name, so every post in a channel shows
+ * its attributes in the same order. A factory per
+ * docs/develop/contribute/more-info/webapp/redux/selectors.md.
+ */
+export function makeGetPostAttributeFields(): (state: GlobalState, channelId: string) => PropertyField[] {
+    return createSelector(
+        'getPostAttributeFields',
+        (state: GlobalState) => {
+            const groupId = getPropertyGroupByName(state, POST_ATTRIBUTES_PROPERTY_GROUP_NAME)?.id;
+            return groupId ? state.entities.properties.fields.byObjectType[POST_ATTRIBUTES_PROPERTY_OBJECT_TYPE]?.[groupId] : undefined;
+        },
+        (state: GlobalState, channelId: string) => channelId,
+        (state: GlobalState, channelId: string) => state.entities.channels.channels[channelId]?.team_id ?? '',
+        (fields, channelId, teamId) => {
+            // No channel means no scope chain to resolve against, so nothing applies —
+            // not even the system-scoped fields another channel's fetch left behind.
+            if (!fields || !channelId) {
+                return [];
+            }
+
+            const applicable = Object.values(fields).filter((field) => {
+                switch (field.target_type) {
+                case 'system':
+                    return true;
+                case 'team':
+                    return Boolean(teamId) && field.target_id === teamId;
+                case 'channel':
+                    return field.target_id === channelId;
+                default:
+                    return false;
+                }
+            });
+
+            return sortByFieldOrder(applicable);
+        },
+    );
+}
 
 export function getPropertyValueForTargetField(
     state: GlobalState,
@@ -114,24 +202,6 @@ export const getPropertyValuesForField = createSelector(
 
 // Channel attribute selectors
 
-const EMPTY_FIELDS: PropertyField[] = [];
-
-// Ties break on name, not create_at: chip order is something people are told to
-// read, so it must follow the configuration rather than insertion timing.
-function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
-    return [...fields].sort((a, b) => {
-        const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-        const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-        if (rankA !== rankB) {
-            return rankA - rankB;
-        }
-
-        // Fixed locale: the default is the viewer's, which would order equal-ranked
-        // chips differently per user. Names are ASCII slugs, so this is total.
-        return a.name.localeCompare(b.name, 'en');
-    });
-}
-
 /**
  * Channel-object fields in the access_control group, ordered by attrs.sort_order.
  *
@@ -153,6 +223,35 @@ export const getChannelAttributeFields: (state: GlobalState) => PropertyField[] 
         }
         const live = Object.values(fields).filter((field) => field.delete_at === 0);
         return live.length === 0 ? EMPTY_FIELDS : sortByFieldOrder(live);
+    },
+);
+
+/**
+ * System-scoped fields from all three object types (user, channel, post) that are
+ * not a template's linked child, for the Manage Attributes page. A field with
+ * linked_field_id set is already represented by that template's own row, so it is
+ * excluded here to avoid listing the same attribute twice.
+ *
+ * groupId is the group's real UUID; fields are stored under that id, never under
+ * the group name, so the caller resolves the id first.
+ */
+export const getUnlinkedSystemFieldsForGroup: (state: GlobalState, groupId: string) => PropertyField[] = createSelector(
+    'getUnlinkedSystemFieldsForGroup',
+    (state: GlobalState, groupId: string) => state.entities.properties.fields.byObjectType[USER_OBJECT_TYPE]?.[groupId],
+    (state: GlobalState, groupId: string) => state.entities.properties.fields.byObjectType[CHANNEL_OBJECT_TYPE]?.[groupId],
+    (state: GlobalState, groupId: string) => state.entities.properties.fields.byObjectType[POST_OBJECT_TYPE]?.[groupId],
+    (userFields, channelFields, postFields) => {
+        const all = [
+            ...Object.values(userFields ?? {}),
+            ...Object.values(channelFields ?? {}),
+            ...Object.values(postFields ?? {}),
+        ];
+        const unlinked = all.filter((field) => (
+            field.target_type === SYSTEM_TARGET_TYPE &&
+            field.delete_at === 0 &&
+            !field.linked_field_id
+        ));
+        return unlinked.length === 0 ? EMPTY_FIELDS : unlinked;
     },
 );
 
@@ -215,7 +314,7 @@ export type ResolvedChannelAttribute = {
 
 const EMPTY_RESOLVED: ResolvedChannelAttribute[] = [];
 
-function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]; unresolvedOptionIds?: string[]} {
+export function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]; unresolvedOptionIds?: string[]} {
     if (!isPropertyValueSet(raw)) {
         return {displayValue: '', displayValues: []};
     }

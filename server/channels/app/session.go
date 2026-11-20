@@ -42,13 +42,10 @@ func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Se
 
 	session, err := a.ch.srv.platform.CreateSession(rctx, session)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("CreateSession", "app.session.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return session, nil
@@ -66,7 +63,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 		session.AddProp(model.SessionPropType, model.SessionTypeCloudKey)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_session.error", nil, "The provided token is invalid", http.StatusUnauthorized)
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
@@ -81,7 +78,11 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 		session.AddProp(model.SessionPropType, model.SessionTypeRemoteclusterToken)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+	detail := "The provided token is invalid"
+	if appErr == nil {
+		detail += ", remote_id=" + remoteId
+	}
+	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_session.error", nil, detail, http.StatusUnauthorized)
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
@@ -94,7 +95,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	// If we don't have the session we are going to create one with the token eventually.
 	if session, _ = a.ch.srv.platform.GetSession(rctx, token); session != nil {
 		if session.Token != token {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "session token is different from the one in DB, session_id="+session.Id, http.StatusUnauthorized)
 		}
 
 		if !session.IsExpired() {
@@ -108,12 +109,12 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	if session == nil || session.Id == "" {
 		session, appErr = a.createSessionForUserAccessToken(rctx, token)
 		if appErr != nil {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token}, "", appErr.StatusCode).Wrap(appErr)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "", appErr.StatusCode).Wrap(appErr)
 		}
 	}
 
 	if session.Id == "" || session.IsExpired() {
-		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
+		return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "session is either nil or expired, session_id="+session.Id, http.StatusUnauthorized)
 	}
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
@@ -135,7 +136,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 					rctx.Logger().Warn("Error while revoking session", mlog.Err(err))
 				}
 			})
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "idle timeout", http.StatusUnauthorized)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "idle timeout, session_id="+session.Id, http.StatusUnauthorized)
 		}
 	}
 
@@ -555,6 +556,74 @@ func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model
 	return nil
 }
 
+// userAccessTokenExpiryPolicyApplies reports whether the PAT expiry policy
+// applies to tokens owned by user. It applies to every non-bot user and to
+// user-owned bots; only plugin-owned bots are exempt, because a plugin has no
+// inbox to warn and no human who can rotate the token.
+func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.User) (bool, *model.AppError) {
+	if !user.IsBot {
+		return true, nil
+	}
+
+	owner, bot, appErr := a.resolveBotOwner(rctx, user.Id)
+	if appErr != nil {
+		return false, appErr
+	}
+	if owner != nil {
+		return true, nil
+	}
+
+	// A bot whose owning account was deleted must not inherit the plugin exemption.
+	return bot.HasUserOwner(), nil
+}
+
+// enforceUserAccessTokenExpiryPolicy validates candidate against the maximum
+// lifetime policy when it applies to user, a no-op otherwise (e.g. for
+// plugin-owned bots).
+func (a *App) enforceUserAccessTokenExpiryPolicy(rctx request.CTX, user *model.User, candidate *model.UserAccessToken) *model.AppError {
+	validationErr := a.validateUserAccessTokenExpiry(candidate)
+	if validationErr == nil {
+		return nil
+	}
+
+	// Only a violating token needs the bot-owner lookup that decides exemption.
+	policyApplies, appErr := a.userAccessTokenExpiryPolicyApplies(rctx, user)
+	if appErr != nil {
+		return appErr
+	}
+	if !policyApplies {
+		return nil
+	}
+
+	return validationErr
+}
+
+// resolveAccessTokenNotificationRecipient returns the user who should be
+// notified about a personal access token's expiry: the token owner directly
+// for non-bot tokens, or the bot's active owner for user-owned bot tokens.
+// recipient is nil (with no error) when there's no one to notify — the token
+// owner is deactivated, the bot is plugin-owned or the system bot, or the
+// bot's owner is deactivated or no longer exists.
+func (a *App) resolveAccessTokenNotificationRecipient(rctx request.CTX, token *model.UserAccessToken) (recipient *model.User, bot *model.Bot, appErr *model.AppError) {
+	tokenUser, appErr := a.GetUser(rctx, token.UserId)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	if !tokenUser.IsBot {
+		if tokenUser.DeleteAt != 0 {
+			return nil, nil, nil
+		}
+		return tokenUser, nil, nil
+	}
+
+	owner, bot, appErr := a.resolveBotOwner(rctx, token.UserId)
+	if appErr != nil || owner == nil || owner.DeleteAt != 0 {
+		return nil, nil, appErr
+	}
+
+	return owner, bot, nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(rctx, token.UserId)
 	if nErr != nil {
@@ -571,27 +640,18 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	// Bot accounts are exempt from the PAT expiry policy, matching the existing
-	// EnableUserAccessTokens bypass above: bots are programmatic clients that
-	// typically need long-lived credentials, and integrations that provision
-	// them would otherwise break the moment an admin enables enforcement.
-	if !user.IsBot {
-		if err := a.validateUserAccessTokenExpiry(token); err != nil {
-			return nil, err
-		}
+	if appErr := a.enforceUserAccessTokenExpiryPolicy(rctx, user, token); appErr != nil {
+		return nil, appErr
 	}
 
 	token.Token = model.NewId()
 
 	token, nErr = a.Srv().Store().UserAccessToken().Save(token)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// Don't send emails to bot users.
@@ -611,22 +671,19 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 	}
 
 	if !token.IsActive {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token, token_id="+token.Id+", user_id="+token.UserId, http.StatusUnauthorized)
 	}
 
 	user, nErr := a.Srv().Store().User().Get(rctx, token.UserId)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("createSessionForUserAccessToken", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
+			return nil, model.NewAppError("createSessionForUserAccessToken", MissingAccountError, nil, "token_id="+token.Id+", user_id="+token.UserId, http.StatusNotFound).Wrap(nErr)
 		}
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user.get.app_error", nil, "token_id="+token.Id+", user_id="+token.UserId, http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false, token_id="+token.Id+", user_id="+token.UserId, http.StatusUnauthorized)
 	}
 
 	if token.IsExpired() {
@@ -635,7 +692,7 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		auditRec.AddMeta("user_id", token.UserId)
 		auditRec.AddMeta("expires_at", token.ExpiresAt)
 		a.LogAuditRec(rctx, auditRec, nil)
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token", http.StatusUnauthorized)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token, token_id="+token.Id+", user_id="+token.UserId, http.StatusUnauthorized)
 	}
 
 	if user.DeleteAt != 0 {
@@ -673,13 +730,10 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 
 	session, nErr = a.Srv().Store().Session().Save(rctx, session)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return nil, model.NewAppError("CreateSession", "app.session.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		default:
-			return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
@@ -733,10 +787,9 @@ func (a *App) maxUserAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
 	return model.GetMillis() + maxDays*24*60*60*1000, true
 }
 
-// CountNonCompliantUserAccessTokens returns the number of active, non-bot
-// personal access tokens that violate the current maximum lifetime policy. It
-// lets an admin preview the blast radius before revoking. When no policy is in
-// effect it returns 0 — nothing is non-compliant.
+// CountNonCompliantUserAccessTokens returns the number of active user and
+// user-owned bot personal access tokens that violate the current maximum
+// lifetime policy. Plugin-owned bot tokens are exempt.
 func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
 	if !enabled {
@@ -751,9 +804,10 @@ func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 	return count, nil
 }
 
-// RevokeNonCompliantUserAccessTokens hard-deletes every active, non-bot personal
-// access token that violates the current maximum lifetime policy, along with any
-// sessions minted from them. It returns the number of tokens actually deleted.
+// RevokeNonCompliantUserAccessTokens hard-deletes every active user and
+// user-owned bot personal access token that violates the current maximum
+// lifetime policy, along with any sessions minted from them. Plugin-owned bot
+// tokens are exempt. It returns the number of tokens actually deleted.
 // Work is done in bounded batches to keep transactions small, and the per-user
 // session cache is cleared so stale sessions aren't served from memory. When no
 // policy is in effect the call is refused — there is nothing to revoke and a
@@ -842,17 +896,15 @@ func (a *App) RotateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	if !user.IsBot {
-		// Validate against the proposed expiry using a throwaway copy so token
-		// isn't mutated unless the rotation actually succeeds.
-		rotated := &model.UserAccessToken{
-			Id:        token.Id,
-			UserId:    token.UserId,
-			ExpiresAt: expiresAt,
-		}
-		if err := a.validateUserAccessTokenExpiry(rotated); err != nil {
-			return nil, err
-		}
+	// Validate against the proposed expiry using a throwaway copy so token
+	// isn't mutated unless the rotation actually succeeds.
+	rotated := &model.UserAccessToken{
+		Id:        token.Id,
+		UserId:    token.UserId,
+		ExpiresAt: expiresAt,
+	}
+	if appErr := a.enforceUserAccessTokenExpiryPolicy(rctx, user, rotated); appErr != nil {
+		return nil, appErr
 	}
 
 	// Capture the old session before the store update so we can evict it from
@@ -910,13 +962,10 @@ func (a *App) GetUserAccessTokensForUser(userID string, page, perPage int) ([]*m
 func (a *App) GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
 	token, err := a.Srv().Store().UserAccessToken().Get(tokenID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetUserAccessToken", "app.user_access_token.get_by_user.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetUserAccessToken", "app.user_access_token.get_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetUserAccessToken", "app.user_access_token.get_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if sanitize {

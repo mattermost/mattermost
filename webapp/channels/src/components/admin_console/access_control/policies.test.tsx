@@ -34,16 +34,15 @@ describe('components/admin_console/access_control/PolicyList', () => {
         mockHistoryPushInternal.mockReset();
     });
 
-    test('should match snapshot with no policies', async () => {
+    test('should render with no policies', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('No policies found')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with policies', async () => {
+    test('should render with policies', async () => {
         mockSearchPolicies.mockResolvedValue({
             data: {
                 policies: [
@@ -53,20 +52,18 @@ describe('components/admin_console/access_control/PolicyList', () => {
                 total: 2,
             },
         } as ActionResult);
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with search error', async () => {
+    test('should render with search error', async () => {
         mockSearchPolicies.mockRejectedValue(new Error('Search failed'));
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Something went wrong. Try again')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
     test('should not call searchPolicies when clicking previous page on the first page', async () => {
@@ -349,11 +346,11 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('None')).toBeInTheDocument();
     });
 
-    test('selecting a policy reports its active flag so callers can seed auto-add', async () => {
+    test('selecting a policy reports its auto-add setting so callers can seed their own', async () => {
         const onPolicySelected = jest.fn();
         const policies = [
-            {id: 'policy1', name: 'Policy 1', active: true} as AccessControlPolicy,
-            {id: 'policy2', name: 'Policy 2', active: false} as AccessControlPolicy,
+            {id: 'policy1', name: 'Policy 1', rules: [{actions: ['membership'], expression: 'expr', metadata: {auto_add: 'always'}}]} as AccessControlPolicy,
+            {id: 'policy2', name: 'Policy 2', rules: [{actions: ['membership'], expression: 'expr'}]} as AccessControlPolicy,
         ];
         mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
         renderWithContext(

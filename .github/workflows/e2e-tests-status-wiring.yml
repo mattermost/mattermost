@@ -1,0 +1,38 @@
+---
+# Runs the status-ownership wiring tests (.github/scripts/test_e2e_status_workflows.py) when the
+# E2E workflows that publish or summarize E2E statuses change.
+name: E2E Tests (status wiring)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/e2e-tests-*.yml'
+      - '.github/actions/e2e-status-lanes/**'
+      - '.github/e2e-status-lanes.json'
+      - '.github/scripts/test_e2e_status_workflows.py'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/setup-python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.11'
+      - name: ci/install-pyyaml
+        run: pip install pyyaml==6.0.2 --quiet
+      - name: ci/test-status-wiring
+        working-directory: .github/scripts
+        run: python3 -m unittest test_e2e_status_workflows -v

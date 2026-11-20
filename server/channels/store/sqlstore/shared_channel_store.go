@@ -445,20 +445,35 @@ func (s SqlSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote,
 
 // GetRemoteByIds fetches a shared channel remote by channel id and remote cluster id.
 func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	return s.getRemoteByIds(s.GetReplica(), channelId, remoteId, false)
+}
+
+// GetRemoteByIdsFromMaster fetches a shared channel remote whose message channel exists on the master.
+func (s SqlSharedChannelStore) GetRemoteByIdsFromMaster(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	return s.getRemoteByIds(s.GetMaster(), channelId, remoteId, true)
+}
+
+func (s SqlSharedChannelStore) getRemoteByIds(db *sqlxDBWrapper, channelId string, remoteId string, requireChannel bool) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
-		Select(sharedChannelRemoteFields("")...).
+		Select(sharedChannelRemoteFields("SharedChannelRemotes")...).
 		From("SharedChannelRemotes").
 		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId}).
 		Where(sq.Eq{"SharedChannelRemotes.RemoteId": remoteId})
+
+	if requireChannel {
+		query = query.
+			Join("Channels ON Channels.Id = SharedChannelRemotes.ChannelId").
+			Where(sq.Eq{"Channels.Type": messageChannelTypes})
+	}
 
 	squery, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "get_shared_channel_remote_by_ids_tosql")
 	}
 
-	if err := s.GetReplica().Get(&remote, squery, args...); err != nil {
+	if err := db.Get(&remote, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemote", fmt.Sprintf("channelId=%s, remoteId=%s", channelId, remoteId))
 		}
@@ -602,27 +617,9 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string, 
 
 // UpdateRemoteCursor updates the cursor for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
-	var updateNeeded bool
-
-	builder := s.getQueryBuilder().
-		Update("SharedChannelRemotes").
-		Where(sq.Eq{"Id": id})
-
-	if cursor.LastPostCreateAt > 0 || cursor.LastPostCreateID != "" {
-		builder = builder.Set("LastPostCreateAt", cursor.LastPostCreateAt)
-		builder = builder.Set("LastPostCreateId", cursor.LastPostCreateID)
-		updateNeeded = true
-	}
-
-	if cursor.LastPostUpdateAt > 0 || cursor.LastPostUpdateID != "" {
-		builder = builder.Set("LastPostUpdateAt", cursor.LastPostUpdateAt)
-		builder = builder.Set("LastPostId", cursor.LastPostUpdateID)
-		updateNeeded = true
-	}
-
-	if !updateNeeded {
-		// no new cursor provided.
-		return fmt.Errorf("cursor empty")
+	builder, err := s.updateRemoteCursorBuilder(id, cursor)
+	if err != nil {
+		return err
 	}
 
 	squery, args, err := builder.ToSql()
@@ -643,6 +640,63 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 		return fmt.Errorf("id not found: %s", id)
 	}
 	return nil
+}
+
+// UpdateRemoteCursorIfUnchanged updates the cursor for the specified SharedChannelRemote
+// only if its UpdateAt still equals expectedUpdateAt. It returns false when no row matched,
+// meaning the row was written by someone else or the id was not found.
+func (s SqlSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
+	builder, err := s.updateRemoteCursorBuilder(id, next)
+	if err != nil {
+		return false, err
+	}
+
+	builder = builder.Where(sq.Eq{"UpdateAt": expectedUpdateAt})
+
+	squery, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "update_shared_channel_remote_cursor_if_unchanged_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to update cursor for SharedChannelRemote")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to determine rows affected")
+	}
+	return count > 0, nil
+}
+
+func (s SqlSharedChannelStore) updateRemoteCursorBuilder(id string, cursor model.GetPostsSinceForSyncCursor) (sq.UpdateBuilder, error) {
+	var updateNeeded bool
+
+	builder := s.getQueryBuilder().
+		Update("SharedChannelRemotes").
+		Where(sq.Eq{"Id": id})
+
+	if cursor.LastPostCreateAt > 0 || cursor.LastPostCreateID != "" {
+		builder = builder.Set("LastPostCreateAt", cursor.LastPostCreateAt)
+		builder = builder.Set("LastPostCreateId", cursor.LastPostCreateID)
+		updateNeeded = true
+	}
+
+	if cursor.LastPostUpdateAt > 0 || cursor.LastPostUpdateID != "" {
+		builder = builder.Set("LastPostUpdateAt", cursor.LastPostUpdateAt)
+		builder = builder.Set("LastPostId", cursor.LastPostUpdateID)
+		updateNeeded = true
+	}
+
+	if !updateNeeded {
+		// no new cursor provided.
+		return builder, fmt.Errorf("cursor empty")
+	}
+
+	// Bumped on every write, even within one millisecond, since UpdateRemoteCursorIfUnchanged compares on it.
+	builder = builder.Set("UpdateAt", sq.Expr("GREATEST(COALESCE(UpdateAt, 0) + 1, ?)", model.GetMillis()))
+	return builder, nil
 }
 
 // DeleteRemote deletes a single shared channel remote.
@@ -757,6 +811,18 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, ChannelId=%s, RemoteId=%s", userID, channelID, remoteID)
 	}
 	return &scu, nil
+}
+
+func (s SqlSharedChannelStore) PermanentDeleteUsersByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("SharedChannelUsers").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete SharedChannelUsers with userId=%s", userID)
+	}
+
+	return nil
 }
 
 // GetUsersForUser fetches all shared channel user records based on userID,

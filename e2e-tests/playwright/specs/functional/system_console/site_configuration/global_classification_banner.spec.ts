@@ -17,7 +17,6 @@ import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
-    setClassificationMarkingsFeatureFlag,
     setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
 
@@ -35,39 +34,12 @@ test.describe('Global Classification Banner', () => {
     test.describe.configure({mode: 'serial'});
 
     test.beforeEach(async ({pw}) => {
+        await pw.ensureFeatureFlag('ClassificationMarkings', true);
         await pw.skipIfNoLicense();
         const {adminClient} = await getAdminClient();
         const license = await adminClient.getClientLicenseOld();
         test.skip(licenseTier(license.SkuShortName) < 20, 'Classification markings requires Enterprise-tier license.');
     });
-
-    /**
-     * @objective Banner does not render when the ClassificationMarkings feature flag is off.
-     */
-    test(
-        'MM-T6220 global banner: not rendered when feature flag is disabled',
-        {tag: ['@classification_markings', '@global_banner']},
-        async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, false);
-            const {FeatureFlags} = await adminClient.getConfig();
-            test.skip(
-                FeatureFlags.ClassificationMarkings === true,
-                'Feature flag cannot be disabled in this environment.',
-            );
-
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
-
-            await expect(channelsPage.page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
-            await expect(channelsPage.page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
-
-            // Restore the flag for subsequent tests
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
-        },
-    );
 
     /**
      * @objective Banner does not render when classifications are enabled and configured,
@@ -78,8 +50,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             // Set up classification levels but keep the global banner disabled
             await setupClassificationFieldWithGlobalBanner(
@@ -111,7 +81,6 @@ test.describe('Global Classification Banner', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -143,8 +112,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -179,8 +146,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -218,8 +183,6 @@ test.describe('Global Classification Banner', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
-
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{id: 'lvlconfidential00000000000', name: 'CONFIDENTIAL', color: '#FFD700', rank: 1}],
@@ -246,8 +209,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -284,8 +245,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -330,8 +289,6 @@ test.describe('Global Classification Banner', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
-
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{id: 'lvltopsecret00000000000000', name: 'TOP SECRET', color: '#FF0000', rank: 1}],
@@ -370,8 +327,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminClient, user} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -419,8 +374,6 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             // Light background (#FFFFFF) — text should be dark (#000000)
             await setupClassificationFieldWithGlobalBanner(

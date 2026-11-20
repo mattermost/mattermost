@@ -954,6 +954,9 @@
         with whether the team currently enforces a membership policy. `policy` is
         null when no policy is assigned or attribute-based access control is not
         available on the server.
+
+        __Minimum server version__: 11.9
+
         ##### Permissions
         Must have the `manage_system` permission or the `manage_team_access_rules`
         permission for the team.
@@ -980,6 +983,14 @@
                   enforced:
                     type: boolean
                     description: Whether the team currently enforces a membership access control policy.
+                  parent_policies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AccessControlPolicy"
+                    description: >
+                      The `parent` policies that the team's policy imports,
+                      with only their `id`, `name` and `rules`. Omitted when
+                      there are none.
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -999,6 +1010,9 @@
         membership surfaces explain the requirement to join the team. Values that
         are source-only or shared-only are stripped, so no sensitive value is
         disclosed. The map is empty when no membership policy governs the team.
+
+        __Minimum server version__: 11.10
+
         ##### Permissions
         Must have the `view_team` permission for the team.
       operationId: GetTeamAccessControlAttributes
