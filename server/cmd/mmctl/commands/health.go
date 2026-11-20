@@ -147,6 +147,7 @@ func healthExportCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 	opts := report.Options{GeneratedAt: time.Now()}
 	if config, _, configErr := c.GetClientConfig(context.TODO(), ""); configErr == nil {
+		opts.SiteName = config["SiteName"]
 		opts.SiteURL = config["SiteURL"]
 		opts.ServerVersion = config["Version"]
 	}
@@ -281,6 +282,7 @@ func evaluateHealthPacket(ctx context.Context, packetPath string, filter model.H
 		PointInTime: true,
 		Notes:       notes,
 	}
+	opts.SiteName, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.TeamSettings.SiteName })
 	opts.SiteURL, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.ServiceSettings.SiteURL })
 	opts.ServerVersion = p.Snapshot.Version.Current
 	if license, ok := p.Snapshot.License(); ok {
