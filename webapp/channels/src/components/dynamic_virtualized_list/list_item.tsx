@@ -4,6 +4,7 @@
 import type {ReactNode} from 'react';
 import React, {memo, useLayoutEffect, useRef} from 'react';
 
+import {roundItemHeight} from './item_height';
 import {ListItemSizeObserver} from './list_item_size_observer';
 
 const listItemSizeObserver = ListItemSizeObserver.getInstance();
@@ -41,7 +42,7 @@ const ListItem = (props: Props) => {
     // This effect is used to measure the height of the row as soon as the component mounts.
     // It has to round the same way as the size observer, otherwise the first observed size would differ by a pixel.
     useLayoutEffect(() => {
-        const newHeight = Math.ceil(rowRef.current?.getBoundingClientRect().height ?? 0);
+        const newHeight = roundItemHeight(rowRef.current?.getBoundingClientRect().height ?? 0);
         props.onHeightChange(props.itemId, newHeight, false);
     }, [props.itemId]);
 

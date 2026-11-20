@@ -30,6 +30,7 @@ describe('DynamicVirtualizedList', () => {
     let rowHeights: Record<string, number>;
     let scrollTops: WeakMap<HTMLElement, number>;
     let currentItemData: string[];
+    let boundingRectNoise: number;
 
     const originalDescriptors = {
         offsetHeight: Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight'),
@@ -75,7 +76,7 @@ describe('DynamicVirtualizedList', () => {
         Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
             configurable: true,
             value() {
-                const height = this.classList.contains('item_measurer') ? renderedRowHeight(this) : 0;
+                const height = this.classList.contains('item_measurer') ? renderedRowHeight(this) + boundingRectNoise : 0;
                 return {x: 0, y: 0, top: 0, left: 0, right: 0, bottom: height, width: 0, height, toJSON: () => ({})};
             },
         });
@@ -95,6 +96,7 @@ describe('DynamicVirtualizedList', () => {
     beforeEach(() => {
         mockResizeCallbacks.clear();
         scrollTops = new WeakMap();
+        boundingRectNoise = 0;
 
         // item-0 is the newest item at the bottom, item-9 the oldest one at the top
         currentItemData = Array.from({length: 10}, (_, i) => `item-${i}`);
@@ -261,6 +263,25 @@ describe('DynamicVirtualizedList', () => {
         await act(() => new Promise((resolve) => requestAnimationFrame(resolve)));
 
         // item-10 and item-11 add 240px above the viewport since item-11 is now the topmost row
+        expect(scroller.scrollTop).toBe(670);
+    });
+
+    test('does not move when the size observer first reports older items rendered on a scaled display', async () => {
+        // At a display scale like 1.0000000577, a 100px row's bounding box is 100.0000019px tall,
+        // while the size observer reports 100px
+        boundingRectNoise = 0.0000019;
+
+        const {scroller, setItemData} = renderList();
+        userScrollTo(scroller, 440);
+        setItemData([...currentItemData, 'item-10', 'item-11']);
+
+        userScrollTo(scroller, 430);
+        await act(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+        expect(scroller.scrollTop).toBe(670);
+
+        resizeRow('item-10', ROW_HEIGHT);
+        resizeRow('item-11', ROW_HEIGHT);
+
         expect(scroller.scrollTop).toBe(670);
     });
 

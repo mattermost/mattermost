@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {roundItemHeight} from './item_height';
+
 type TrackedItemCallback = (changedHeight: number) => void;
 type TrackedItemData = {element: Element; callback: TrackedItemCallback};
 type TrackedItemsMap = Map<string, TrackedItemData>;
@@ -41,7 +43,7 @@ export class ListItemSizeObserver {
                 return;
             }
 
-            const changedHeight = Math.ceil(resizeEntry.borderBoxSize[0].blockSize);
+            const changedHeight = roundItemHeight(resizeEntry.borderBoxSize[0].blockSize);
             itemData.callback(changedHeight);
         });
     };

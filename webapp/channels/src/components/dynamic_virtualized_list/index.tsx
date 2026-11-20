@@ -6,6 +6,7 @@
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent, type JSX} from 'react';
 
+import {roundItemHeight} from './item_height';
 import ListItem from './list_item';
 
 const atBottomMargin = 10;
@@ -435,7 +436,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // Rows are rendered in reverse order and only rendered items are list items, the rest are spacers
         for (let i = 0; i < rows.length; i++) {
             if (rows[i].getAttribute('role') === 'listitem') {
-                sizes.set(itemData[itemData.length - 1 - i], Math.ceil(rows[i].getBoundingClientRect().height));
+                sizes.set(itemData[itemData.length - 1 - i], roundItemHeight(rows[i].getBoundingClientRect().height));
             }
         }
         return sizes;

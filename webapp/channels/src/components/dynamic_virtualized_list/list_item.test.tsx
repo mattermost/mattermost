@@ -82,6 +82,21 @@ describe('ListItem', () => {
         expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 120, false);
     });
 
+    test('does not round floating point noise from a scaled display up to an extra pixel', () => {
+        const mockOnHeightChange = jest.fn();
+
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 23.0000019} as DOMRect);
+
+        render(
+            <ListItem
+                {...defaultProps}
+                onHeightChange={mockOnHeightChange}
+            />,
+        );
+
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 23, false);
+    });
+
     test('handles zero height gracefully', () => {
         const mockOnHeightChange = jest.fn();
 
