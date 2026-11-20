@@ -311,6 +311,20 @@ describe('DynamicVirtualizedList', () => {
 
             expect(scroller.scrollTop).toBe(660);
         });
+
+        test('does not compensate when several rows shrink before they are observed', () => {
+            const {scroller} = renderList({correctScrollToBottom: false});
+
+            rowHeights['item-8'] = 20;
+            rowHeights['item-7'] = 20;
+            scroller.scrollTop = totalHeight() - LIST_HEIGHT;
+            expect(scroller.scrollTop).toBe(580);
+
+            resizeRow('item-8', 20);
+            resizeRow('item-7', 20);
+
+            expect(scroller.scrollTop).toBe(580);
+        });
     });
 
     test('compensates for a row that changed height before an update to the items is rendered', () => {

@@ -224,7 +224,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             previousScrollTop: element.scrollTop,
             previousScrollHeight: element.scrollHeight,
             renderedItemSizes: itemDataChanged ? this._getRenderedItemSizes(prevProps.itemData) : undefined,
-            wasAtBottom: this.props.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin,
+            wasAtBottom: prevProps.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin,
         };
     }
 
@@ -617,11 +617,13 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
-        // When a row shrinks while scrolled to the bottom, the browser has already clamped scrollTop to the new maximum
-        const shrink = Math.max(0, oldSize - newSize);
-        const wasAtBottom =
+        // When rows shrink while scrolled to the bottom, the browser has already clamped scrollTop to the new maximum
+        const shrunk = newSize < oldSize;
+        const clampedToBottom = shrunk && element.scrollHeight - this.props.height - element.scrollTop <= 1;
+        const wasAtBottom = clampedToBottom || (
             this.props.height + element.scrollTop >=
-            this._listMetaData.totalMeasuredSize - shrink - atBottomMargin;
+            this._listMetaData.totalMeasuredSize - atBottomMargin
+        );
 
         if (
             (wasAtBottom || this._keepScrollToBottom) &&
@@ -676,7 +678,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // Rows are in normal flow and overflow-anchor is disabled, so when an already measured row above
         // the viewport resizes (e.g. an image finishes loading), the visible rows have to be held in place.
         // Rows measured for the first time are skipped since prepended rows are compensated for separately.
-        if (oldSize && index > visibleStartIndex && !(shrink && wasAtBottom)) {
+        if (oldSize && index > visibleStartIndex && !(shrunk && wasAtBottom)) {
             element.scrollTop += newSize - oldSize;
         }
     };
