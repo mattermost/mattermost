@@ -7683,6 +7683,34 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
+  "admin.health_dashboard.export.button": {
+    "defaultMessage": "Export",
+    "description": "Secondary menu button in the summary header of the System Console Site health page, next to Re-run checks, that opens the menu of ways to export the health findings."
+  },
+  "admin.health_dashboard.export.error": {
+    "defaultMessage": "The health findings could not be exported. Try again.",
+    "description": "Error banner on the System Console Site health page shown when downloading or printing the health findings export fails."
+  },
+  "admin.health_dashboard.export.exporting": {
+    "defaultMessage": "Exporting…",
+    "description": "Label of the Export menu button on the System Console Site health page while the export is being fetched from the server."
+  },
+  "admin.health_dashboard.export.html": {
+    "defaultMessage": "Download HTML",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a self-contained HTML report file."
+  },
+  "admin.health_dashboard.export.markdown": {
+    "defaultMessage": "Download Markdown",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a Markdown file."
+  },
+  "admin.health_dashboard.export.menu_label": {
+    "defaultMessage": "Export health findings",
+    "description": "Accessible label of the Export menu on the System Console Site health page."
+  },
+  "admin.health_dashboard.export.print": {
+    "defaultMessage": "Print / Save as PDF",
+    "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
+  },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
     "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
@@ -29625,7 +29653,7 @@
   },
   "product_rail.ariaLabel": {
     "defaultMessage": "Product navigation",
-    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels and products such as Boards and Playbooks."
   },
   "product_rail.boards": {
     "defaultMessage": "Boards",
@@ -29635,21 +29663,57 @@
     "defaultMessage": "Channels",
     "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
   },
+  "product_rail.itemMenu.label": {
+    "defaultMessage": "Product options",
+    "description": "Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail."
+  },
+  "product_rail.itemMenu.pin": {
+    "defaultMessage": "Pin",
+    "description": "Item in the right-click menu of an unpinned product, shown in the product navigation rail only while it is open. It pins the product back on the rail, out of the More menu."
+  },
+  "product_rail.itemMenu.unpin": {
+    "defaultMessage": "Unpin",
+    "description": "Item in the right-click menu of a product, such as Boards or Playbooks, in the product navigation rail. It takes the product off the rail and into the More menu at the end of it."
+  },
+  "product_rail.more": {
+    "defaultMessage": "More",
+    "description": "Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.label": {
+    "defaultMessage": "More products",
+    "description": "Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.labelWithMentions": {
+    "defaultMessage": "More products, {count, plural, one {# mention} other {# mentions}}",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have mentions. {count} is their total, shown in a badge on it."
+  },
+  "product_rail.moreMenu.labelWithUnreads": {
+    "defaultMessage": "More products, unread activity",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have unread activity but no mentions, shown as a dot on it."
+  },
+  "product_rail.moreMenu.pin": {
+    "defaultMessage": "Pin {name}",
+    "description": "Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail."
+  },
+  "product_rail.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the product navigation rail, shown while the team sidebar is hidden. It brings the team sidebar back."
+  },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
   },
+  "product_rail.teamMenu.buttonLabelWithMentions": {
+    "defaultMessage": "Switch teams, {count, plural, one {# mention} other {# mentions}} in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have mentions. {count} is their total, shown in a badge on the button."
+  },
+  "product_rail.teamMenu.buttonLabelWithUnreads": {
+    "defaultMessage": "Switch teams, unread messages in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have unread messages but no mentions, shown as a dot on the button."
+  },
   "product_rail.teamMenu.menuLabel": {
     "defaultMessage": "Teams",
     "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
-  },
-  "product_rail.teamMenu.showTeamSidebar": {
-    "defaultMessage": "Show team sidebar",
-    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
-  },
-  "product_rail.threads": {
-    "defaultMessage": "Threads",
-    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
   },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",
