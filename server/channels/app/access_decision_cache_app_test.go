@@ -601,6 +601,148 @@ func TestAccessDecisionCachePeerSessionAttributeRefresh(t *testing.T) {
 	})
 }
 
+// A policy bakes in the ranks and hierarchy of the options it names, but which options a change
+// touched is never looked at: any change to a rank or graph field's options drops every decision.
+// Each case changes only options a policy naming Secret, or Air, would not name.
+func TestAccessDecisionCacheRankAndHierarchyChanges(t *testing.T) {
+	setup := func(t *testing.T) (*accessDecisionCacheHarness, string) {
+		t.Helper()
+		h := setupAccessDecisionCacheTest(t)
+		h.acs.On("OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything).Return()
+		decides(h.acs, true)
+
+		h.th.ConfigStore.SetReadOnlyFF(false)
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldRank = true
+			cfg.FeatureFlags.PropertyFieldGraph = true
+		})
+
+		group, appErr := h.th.App.GetPropertyGroup(h.th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		return h, group.ID
+	}
+
+	createField := func(t *testing.T, h *accessDecisionCacheHarness, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		created, appErr := h.th.App.CreatePropertyField(h.th.Context, field, false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	clearanceOptions := []any{
+		map[string]any{"name": "Unclassified", "rank": 1},
+		map[string]any{"name": "Confidential", "rank": 2},
+		map[string]any{"name": "Secret", "rank": 3},
+	}
+
+	// reRank swaps the ranks of Unclassified and Confidential, leaving Secret where it was.
+	reRank := func(t *testing.T, h *accessDecisionCacheHarness, field *model.PropertyField) {
+		t.Helper()
+		options, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok)
+		swapped := map[string]int{"Unclassified": 2, "Confidential": 1, "Secret": 3}
+		reRanked := make([]any, 0, len(options))
+		for _, o := range options {
+			option := o.(map[string]any)
+			name := option["name"].(string)
+			reRanked = append(reRanked, map[string]any{"id": option["id"], "name": name, "rank": swapped[name]})
+		}
+		field.Attrs[model.PropertyFieldAttributeOptions] = reRanked
+		_, _, appErr := h.th.App.UpdatePropertyFields(h.th.Context, field.GroupID, []*model.PropertyField{field}, false, "")
+		require.Nil(t, appErr)
+	}
+
+	// requireReEvaluated caches a decision, runs change, and checks the PDP is asked again and
+	// told about the field the policy reads.
+	requireReEvaluated := func(t *testing.T, h *accessDecisionCacheHarness, policyFieldID string, change func()) {
+		t.Helper()
+		require.True(t, h.check(t))
+		require.True(t, h.check(t))
+		require.Equal(t, 1, h.evaluations(), "cached before the change")
+
+		change()
+
+		h.acs.AssertCalled(t, "OnPropertyFieldOptionsChanged", mock.Anything, policyFieldID)
+		require.True(t, h.check(t))
+		require.Equal(t, 2, h.evaluations(), "asked again after the change")
+	}
+
+	t.Run("re-ranking options the policy doesn't name", func(t *testing.T) {
+		h, groupID := setup(t)
+		clearance := createField(t, h, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "clearance_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: clearanceOptions},
+		})
+
+		requireReEvaluated(t, h, clearance.ID, func() { reRank(t, h, clearance) })
+	})
+
+	t.Run("re-ranking options the policy doesn't name on the template the field links to", func(t *testing.T) {
+		h, groupID := setup(t)
+		memberLevel := model.PermissionLevelMember
+		template := createField(t, h, &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "clearance_template_" + model.NewId(),
+			Type:              model.PropertyFieldTypeRank,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			PermissionOptions: &memberLevel,
+			Attrs:             model.StringInterface{model.PropertyFieldAttributeOptions: clearanceOptions},
+		})
+		clearance := createField(t, h, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "clearance_" + model.NewId(),
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &template.ID,
+		})
+
+		requireReEvaluated(t, h, clearance.ID, func() { reRank(t, h, template) })
+	})
+
+	t.Run("re-parenting an option outside the subtree the policy names", func(t *testing.T) {
+		h, groupID := setup(t)
+		memberLevel := model.PermissionLevelMember
+		template := createField(t, h, &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "programs_template_" + model.NewId(),
+			Type:              model.PropertyFieldTypeGraph,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			PermissionOptions: &memberLevel,
+		})
+		programs := createField(t, h, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "programs_" + model.NewId(),
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &template.ID,
+		})
+
+		created, appErr := h.th.App.CreatePropertyFieldOptions(h.th.Context, groupID, template.ID, []*model.PropertyFieldOption{
+			{Name: "Air"}, {Name: "Fighter"}, {Name: "Sea"}, {Name: "Submarine"},
+		}, "")
+		require.Nil(t, appErr)
+		require.Len(t, created, 4)
+		fighter, submarine := created[1], created[3]
+		_, _, appErr = h.th.App.UpdatePropertyFieldOptions(h.th.Context, groupID, template.ID, []*model.PropertyFieldOption{
+			{ID: fighter.ID, Name: fighter.Name, Parents: &[]string{"Air"}},
+		}, "")
+		require.Nil(t, appErr)
+
+		requireReEvaluated(t, h, programs.ID, func() {
+			_, _, appErr := h.th.App.UpdatePropertyFieldOptions(h.th.Context, groupID, template.ID, []*model.PropertyFieldOption{
+				{ID: submarine.ID, Name: submarine.Name, Parents: &[]string{"Sea"}},
+			}, "")
+			require.Nil(t, appErr)
+		})
+	})
+}
+
 func TestAccessDecisionCachePrepareSkipsCachedChannels(t *testing.T) {
 	h := setupAccessDecisionCacheTest(t)
 	decides(h.acs, false)
