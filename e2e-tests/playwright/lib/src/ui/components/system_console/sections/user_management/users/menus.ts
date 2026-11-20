@@ -92,9 +92,13 @@ export class FilterPopover {
      */
     async searchInTeamMenu(teamDisplayName: string) {
         await expect(this.teamMenuInput).toBeVisible();
+        const results = this.container
+            .page()
+            .waitForResponse(
+                (resp) => resp.url().includes('/api/v4/teams/search') && resp.request().method() === 'POST',
+            );
         await this.teamMenuInput.fill(teamDisplayName);
-        // Wait a bit for async search results to appear
-        await this.container.page().waitForTimeout(500);
+        await results;
     }
 
     /**

@@ -35,7 +35,7 @@ export default class SystemProperties {
 
     async goto() {
         await this.page.goto(USER_ATTRIBUTES_URL);
-        await this.page.waitForLoadState('networkidle');
+        await this.toBeVisible();
     }
 
     // ── Attribute row accessors ─────────────────────────────────────────
