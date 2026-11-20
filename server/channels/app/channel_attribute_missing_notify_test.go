@@ -75,9 +75,14 @@ func newAttributesTeamAndMember(t *testing.T, th *TestHelper) (*model.Team, *mod
 }
 
 // administeredChannel creates a channel whose creator, and so channel admin, is
-// user. Call it before the required field exists, so creating it sends nothing.
+// user. The flag is off while it does, because creating it queues a background
+// notice that could otherwise run after the test adds a required field and post
+// a message the test didn't ask for.
 func administeredChannel(t *testing.T, th *TestHelper, team *model.Team, user *model.User, channelType model.ChannelType, displayName string) *model.Channel {
 	t.Helper()
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = true })
+
 	id := model.NewId()
 	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: displayName,
@@ -475,11 +480,11 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		team, member := newAttributesTeamAndMember(t, th)
 		channel := th.CreateChannel(t, team)
 		th.AddUserToChannel(t, member, channel)
-		_, err := th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
-		require.NoError(t, err)
+		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		require.Nil(t, appErr)
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, err = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
+		_, err := th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.NoError(t, err)
 		_, err = th.App.UpdateChannelMemberRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
 		require.NoError(t, err)
@@ -494,11 +499,11 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		team, member := newAttributesTeamAndMember(t, th)
 		channel := th.CreateChannel(t, team)
 		th.AddUserToChannel(t, member, channel)
-		_, err := th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
-		require.NoError(t, err)
+		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		require.Nil(t, appErr)
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, err = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, false)
+		_, err := th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, false)
 		require.NoError(t, err)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -665,6 +670,43 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		require.NoError(t, err)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
+	})
+
+	t.Run("a member-level field sends nothing when the scheme takes manage_channel_roles from channel admins", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		team, member := newAttributesTeamAndMember(t, th)
+
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+		scheme := th.SetupTeamScheme(t)
+		th.RemovePermissionFromRole(t, model.PermissionManageChannelRoles.Id, scheme.DefaultChannelAdminRole)
+		team.SchemeId = &scheme.Id
+		_, appErr = th.App.UpdateTeamScheme(team)
+		require.Nil(t, appErr)
+
+		channel := th.CreateChannel(t, team)
+		th.AddUserToChannel(t, member, channel)
+		createMissingAttributesField(t, th, "Member Level", true, model.PermissionLevelMember)
+
+		_, err := th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
+		require.NoError(t, err)
+
+		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
+	})
+
+	t.Run("a write allowed only by a grant or an unlisted tier is not offered", func(t *testing.T) {
+		assert.True(t, channelAttributeWriteTierShownInUI(PropertyPermissionBasis{Allowed: true, Tier: model.PermissionLevelAdmin}))
+		assert.True(t, channelAttributeWriteTierShownInUI(PropertyPermissionBasis{Allowed: true, Tier: model.PermissionLevelMember}))
+		assert.True(t, channelAttributeWriteTierShownInUI(PropertyPermissionBasis{Allowed: true, Tier: model.PermissionLevelSysadmin}))
+		assert.False(t, channelAttributeWriteTierShownInUI(PropertyPermissionBasis{Allowed: true, GrantID: model.NewId()}))
+		assert.False(t, channelAttributeWriteTierShownInUI(PropertyPermissionBasis{Allowed: true, Tier: model.PermissionLevelCreator}))
+		assert.False(t, channelAttributeWriteTierShownInUI(PropertyPermissionBasis{Allowed: true, Tier: model.PermissionLevelEveryone}))
+	})
+
+	t.Run("line breaks in team and attribute names cannot start a new block", func(t *testing.T) {
+		assert.Equal(t, "Ops  # Heading", escapeChannelAttributeMarkdownPlainText("Ops\n\n# Heading"))
+		assert.Equal(t, "a b", escapeChannelAttributeMarkdownPlainText("a\r\nb"))
 	})
 
 	t.Run("creating a channel as a non-system-admin sends nothing for sysadmin-level fields", func(t *testing.T) {

@@ -537,13 +537,33 @@ describe('ChannelAttributesSettings', () => {
             expect(onMissing).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
         });
 
-        test('a failed value fetch never reports a missing required field or shows an error', async () => {
+        test('a failed value fetch reports the required check as failed', async () => {
+            const {Client4} = jest.requireMock('mattermost-redux/client');
+            Client4.getPropertyValues.mockRejectedValueOnce(new Error('network'));
+            const onFailed = jest.fn();
+            const state: Record<string, unknown> = requiredState;
+
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [requiredField()]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(requiredField(), undefined)]);
+            renderWithContext(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={jest.fn()}
+                    onRequiredCheckFailedChange={onFailed}
+                />,
+                state,
+            );
+
+            await waitFor(() => expect(onFailed).toHaveBeenLastCalledWith(true));
+        });
+
+        test('a failed value fetch never reports a missing required field or shows an error, and locks the editor', async () => {
             const {Client4} = jest.requireMock('mattermost-redux/client');
             Client4.getPropertyValues.mockRejectedValueOnce(new Error('network'));
 
             const {onMissing} = setup(requiredField(), undefined);
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeEnabled());
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
             expect(Client4.getPropertyValues).toHaveBeenCalled();
             expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
             expect(onMissing).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));

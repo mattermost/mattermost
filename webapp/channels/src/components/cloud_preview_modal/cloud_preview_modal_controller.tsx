@@ -27,9 +27,6 @@ import './cloud_preview_modal.scss';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
 
-// Teams without their own slides get this use case's slides.
-const DEFAULT_USE_CASE = 'mission-ops';
-
 // Lazy load the controller component and content data together
 const PreviewModalController = makeAsyncComponent(
     'PreviewModalController',
@@ -56,8 +53,7 @@ const CloudPreviewModal: React.FC = () => {
     const {data: dynamicModalContent, loading: contentLoading} = useGetCloudPreviewModalContent();
 
     const filteredContentByUseCase = React.useCallback((content: PreviewModalContentData[]) => {
-        const forTeam = content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
-        return forTeam.length > 0 ? forTeam : content.filter((content) => content.useCase === DEFAULT_USE_CASE);
+        return content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
     }, [team?.name]);
 
     useEffect(() => {
@@ -113,13 +109,13 @@ const CloudPreviewModal: React.FC = () => {
         return null;
     }
 
-    // Show FAB only if modal has been shown before and modal is not currently open
-    const shouldShowFAB = hasModalBeenShown && !showModal;
-
     // Only render the controller if we pass the license checks
     // Use dynamic content if available and not empty, fallback to hardcoded content
     const contentToUse = (dynamicModalContent && dynamicModalContent.length > 0) ? dynamicModalContent : modalContent;
     const contentData = team?.name ? filteredContentByUseCase(contentToUse) : [];
+
+    // Show FAB only if modal has been shown before, modal is not currently open, and there is content to reopen
+    const shouldShowFAB = hasModalBeenShown && !showModal && contentData.length > 0;
 
     // Show loading state while fetching dynamic content
     if (contentLoading) {

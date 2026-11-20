@@ -6963,6 +6963,11 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Too many resources in one access control evaluation; the limit is {{.Max}}.",
+    "description": "API error (400) returned to a plugin when a batch access control evaluation asks for decisions on more distinct resource IDs than the server allows in one call. {{.Max}} is the maximum number of resource IDs."
+  },
+  {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
     "translation": "Access control could not be evaluated for this resource.",
     "description": "API error (503) returned to a plugin when the Access Control / Policy Enforcement Point is not available to decide whether the requested resource may be accessed. The underlying reason is carried in the untranslated error detail."
@@ -8815,6 +8820,21 @@
     "id": "app.emoji.get_list.internal_error",
     "translation": "Unable to get the emoji.",
     "description": "API error returned when listing custom emojis fails."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "As written: {{.Value}}",
+    "description": "Subtle line on the core mm:time entity card repeating the timestamp token as the author wrote it."
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Timestamp",
+    "description": "Title shown on the core mm:time entity card when a reader opens a recognized timestamp."
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}",
+    "description": "Primary line on the core mm:time entity card showing the value converted to UTC."
   },
   {
     "id": "app.export.channel_requires_team.error",
@@ -15766,6 +15786,26 @@
     "id": "health.rule.oauth_probe_failed.title",
     "translation": "OAuth/OIDC provider connectivity probe failed",
     "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Open server and email signup are enabled while email verification is off, so anyone who can reach this server can create an account with a made-up email address and join open teams. If open signup is intended, mute this finding.",
+    "description": "Health dashboard finding detail when anyone can create an account with an email address they don't have to verify."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Open server and email signup are enabled while email verification is off. TeamSettings.RestrictCreationToDomains limits signup to some domains, but Mattermost only checks that the address ends in an allowed domain, not that the person owns it. Anyone who can reach this server can sign up under an allowed domain and appear to be a colleague. If open signup is intended, mute this finding.",
+    "description": "Health dashboard finding detail when anyone can create an account with an unverified email address and the signup domain restriction can therefore be bypassed. 'TeamSettings.RestrictCreationToDomains' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Set EmailSettings.RequireEmailVerification to true. Confirm that SMTP works first: existing users who never verified their email address must verify it at their next login. If you don't want open signup, set TeamSettings.EnableOpenServer to false; users can still join through team invite links, so email verification is still recommended. To limit signup to your organization, set TeamSettings.RestrictCreationToDomains together with email verification; without verification it can be bypassed.",
+    "description": "Health dashboard fix-it step when anyone can create an account with an unverified email address. 'EmailSettings.RequireEmailVerification', 'TeamSettings.EnableOpenServer', 'TeamSettings.RestrictCreationToDomains' and 'SMTP' are config or product names, and 'true' and 'false' are setting values; do not translate them."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Anyone can sign up with an unverified email address",
+    "description": "Health dashboard finding title when open server and email signup are enabled while email verification is off."
   },
   {
     "id": "health.rule.plugin_health_off.message",

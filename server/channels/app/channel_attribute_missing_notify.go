@@ -237,6 +237,12 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 
 	var entries []missingChannelAttributesForAdmin
 	for _, channel := range applicable {
+		// The Add values button only shows for someone who can manage the
+		// channel's roles, so don't send anyone else to look for it.
+		if canManage, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionManageChannelRoles); !canManage {
+			continue
+		}
+
 		missing, err := a.missingRequiredFieldsOf(rctx, groupID, required, channel)
 		if err != nil {
 			rctx.Logger().Warn("Failed to check a channel for missing required channel attributes",
@@ -250,8 +256,8 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 				continue
 			}
 			canRead := a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueRead, channel.Id).Allowed
-			canWrite := a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueWrite, channel.Id).Allowed
-			if canRead && canWrite {
+			write := a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueWrite, channel.Id)
+			if canRead && write.Allowed && channelAttributeWriteTierShownInUI(write) {
 				fixable = append(fixable, field)
 			}
 		}
@@ -412,7 +418,24 @@ func (a *App) missingRequiredAttributesChannelList(rctx request.CTX, userID, gro
 // placed in running text stays plain text.
 func escapeChannelAttributeMarkdownPlainText(text string) string {
 	return strings.NewReplacer(
+		"\r\n", " ", "\r", " ", "\n", " ",
 		`\`, `\\`, "`", "\\`", `*`, `\*`, `_`, `\_`, `~`, `\~`,
 		`[`, `\[`, `]`, `\]`, `(`, `\(`, `)`, `\)`, `<`, `\<`, `>`, `\>`, `!`, `\!`,
 	).Replace(text)
+}
+
+// channelAttributeWriteTierShownInUI reports whether the web app would offer an
+// editor for a write the server allowed. The app only reads the sysadmin, admin
+// and member tiers, so a write allowed by a grant or another tier would send the
+// recipient to a button they never see.
+func channelAttributeWriteTierShownInUI(basis PropertyPermissionBasis) bool {
+	if basis.GrantID != "" {
+		return false
+	}
+	switch basis.Tier {
+	case model.PermissionLevelSysadmin, model.PermissionLevelAdmin, model.PermissionLevelMember:
+		return true
+	default:
+		return false
+	}
 }

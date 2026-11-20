@@ -115,7 +115,7 @@ import type {
     PluginsResponse,
     PluginStatus,
 } from '@mattermost/types/plugins';
-import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
+import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, EntityCard} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {ChannelAttributeComplianceSummary, ChannelAttributeNotifyResult, ChannelsMissingAttributeValueList, NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
@@ -4936,6 +4936,20 @@ export default class Client4 {
                 `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
             ),
         };
+    };
+
+    getEntityCard = (typeId: string, value: string, postId?: string, occurrence?: string) => {
+        const params = new URLSearchParams({type_id: typeId, value});
+        if (postId) {
+            params.set('post_id', postId);
+        }
+        if (occurrence) {
+            params.set('id', occurrence);
+        }
+        return this.doFetch<EntityCard>(
+            `${this.getBaseRoute()}/entities/card?${params.toString()}`,
+            {method: 'get'},
+        );
     };
 
     getCallsChannelState = (channelId: string) => {

@@ -43,6 +43,7 @@ jest.mock('./channel_members', () => () => <div>{'ChannelMembers'}</div>);
 type MockAttributesProps = {
     onChange: (values: Record<string, string | null>) => void;
     onMissingRequiredChange?: (missing: Array<{fieldId: string; label: string; cleared: boolean}>) => void;
+    onRequiredCheckFailedChange?: (failed: boolean) => void;
 };
 jest.mock('./channel_attributes_settings', () => (props: MockAttributesProps) => (
     <>
@@ -71,6 +72,7 @@ jest.mock('./channel_attributes_settings', () => (props: MockAttributesProps) =>
         >
             {'FillRequiredAttribute'}
         </button>
+        <button onClick={() => props.onRequiredCheckFailedChange?.(true)}>{'FailRequiredCheck'}</button>
     </>
 ));
 
@@ -389,6 +391,27 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
 
             await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
             expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id);
+        });
+
+        test('holds back unarchive while the required-value check has failed', async () => {
+            const {unarchiveChannel} = renderDetails({...testChannel, delete_at: 1});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'FailRequiredCheck'}));
+
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(unarchiveChannel).not.toHaveBeenCalled();
+        });
+
+        test('a failed required-value check does not hold back edits on an active channel', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'FailRequiredCheck'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalled());
         });
 
         test('archiving then unarchiving before saving drops the attribute edits the section no longer shows', async () => {

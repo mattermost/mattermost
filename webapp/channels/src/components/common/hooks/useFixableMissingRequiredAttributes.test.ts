@@ -121,6 +121,17 @@ describe('useFixableMissingRequiredAttributes', () => {
         expect(result.current.firstFieldId).toBeUndefined();
     });
 
+    test('a plain member never fetches the channel values', () => {
+        mockChannelPermissions = {read_channel: true, manage_channel_roles: false};
+        const state = makeState();
+        state.entities!.properties!.loadedValueTargets = {};
+        const {result} = renderHookWithContext(() => useFixableMissingRequiredAttributes(CHANNEL_ID), state);
+
+        expect(result.current.fields).toEqual([]);
+        expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
+        expect(mockGetPropertyValues).not.toHaveBeenCalled();
+    });
+
     test('a channel admin does not get a sysadmin-level field', () => {
         useFields([field('program', {permission_values: 'sysadmin'})]);
         const {result} = renderHookWithContext(() => useFixableMissingRequiredAttributes(CHANNEL_ID), makeState());

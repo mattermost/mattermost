@@ -761,6 +761,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetTypesByIDs(rctx, ids)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetTypesByIDs", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
 	start := time.Now()
 
