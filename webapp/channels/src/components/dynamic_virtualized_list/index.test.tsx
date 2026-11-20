@@ -291,6 +291,21 @@ describe('DynamicVirtualizedList', () => {
         expect(scroller.scrollTop).toBe(690);
     });
 
+    test('compensates for a row that resized before an update to the items and back to its measured height in it', () => {
+        const {scroller, setItemData} = renderList();
+        userScrollTo(scroller, 440);
+
+        // item-9 grows from 140px to 180px before it's observed, then loses its extra height as the topmost row in the
+        // update, so it's back at its measured size and the size observer has nothing to report. The parent only
+        // compensates for the 40px it lost in the update.
+        rowHeights['item-9'] = 140;
+        setItemData([...currentItemData, 'item-10']);
+        expect(scroller.scrollTop).toBe(480);
+
+        resizeRow('item-9', 250);
+        expect(scroller.scrollTop).toBe(590);
+    });
+
     test('keeps the visible rows in place when older items are rendered while scrolling up', async () => {
         const {scroller, setItemData} = renderList();
         userScrollTo(scroller, 440);

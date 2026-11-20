@@ -78,10 +78,15 @@ interface ListMetadata {
     atBottom: boolean;
 }
 
+interface RenderedRow {
+    height: number;
+    startsAboveViewport: boolean;
+}
+
 interface DynamicVirtualizedListSnapshot {
     previousScrollTop: number;
     previousScrollHeight: number;
-    renderedItemSizes?: Map<string, number>;
+    renderedRows?: Map<string, RenderedRow>;
     wasAtBottom: boolean;
 }
 
@@ -231,7 +236,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         return {
             previousScrollTop: element.scrollTop,
             previousScrollHeight: element.scrollHeight,
-            renderedItemSizes: itemDataChanged ? this._getRenderedItemSizes(prevProps.itemData) : undefined,
+            renderedRows: itemDataChanged ? this._getRenderedRows(prevProps.itemData, this._getScrollTopBeforeResize(element)) : undefined,
             wasAtBottom: prevProps.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin,
         };
     }
@@ -272,8 +277,8 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
 
         this._commitHook();
         if (prevProps.itemData !== this.props.itemData) {
-            if (snapshot?.renderedItemSizes) {
-                this._applyResizesFromDataChange(snapshot.renderedItemSizes, snapshot.wasAtBottom);
+            if (snapshot?.renderedRows) {
+                this._applyResizesFromDataChange(snapshot.renderedRows, snapshot.wasAtBottom);
             }
             this._dataChange();
         }
@@ -432,51 +437,72 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
     };
 
-    _getRenderedItemSizes = (itemData: string[]) => {
-        const sizes = new Map<string, number>();
+    _getRenderedRows = (itemData: string[], scrollTop: number) => {
+        const renderedRows = new Map<string, RenderedRow>();
         const rows = this._innerRef?.children;
         if (!rows || rows.length !== itemData.length) {
-            return sizes;
+            return renderedRows;
         }
+
+        const {itemOffsetMap} = this._listMetaData;
 
         // Rows are rendered in reverse order and only rendered items are list items, the rest are spacers
         for (let i = 0; i < rows.length; i++) {
             if (rows[i].getAttribute('role') === 'listitem') {
-                sizes.set(itemData[itemData.length - 1 - i], rows[i].getBoundingClientRect().height);
+                const key = itemData[itemData.length - 1 - i];
+                const offset = itemOffsetMap[key];
+                renderedRows.set(key, {
+                    height: rows[i].getBoundingClientRect().height,
+                    startsAboveViewport: offset !== undefined && offset < scrollTop,
+                });
             }
         }
-        return sizes;
+        return renderedRows;
     };
 
     // Rows can resize in the same commit that changes the data (e.g. a post losing its header when older posts are
-    // prepended). That resize is already included in the scroll position compensation done for the data change, so it
-    // is recorded here to keep _handleNewMeasurements from compensating for it a second time.
-    _applyResizesFromDataChange = (sizesBeforeChange: Map<string, number>, wasAtBottom: boolean) => {
+    // prepended). That resize is already included in the scroll position compensation done for the data change, so
+    // the row's final size is recorded here to keep _handleNewMeasurements from compensating for it a second time.
+    // A resize from before the commit that wasn't observed yet isn't part of that compensation, and since the
+    // observer may never report it once the row is back at its measured size, it's compensated for here.
+    _applyResizesFromDataChange = (rowsBeforeChange: Map<string, RenderedRow>, wasAtBottom: boolean) => {
         const {itemSizeMap} = this._listMetaData;
-        const sizesAfterChange = this._getRenderedItemSizes(this.props.itemData);
+        const rowsAfterChange = this._getRenderedRows(this.props.itemData, 0);
         let resized = false;
+        let unobservedResizeAbove = 0;
 
-        for (const [key, exactSizeAfterChange] of sizesAfterChange) {
-            const exactSizeBeforeChange = sizesBeforeChange.get(key);
+        for (const [key, rowAfterChange] of rowsAfterChange) {
+            const rowBeforeChange = rowsBeforeChange.get(key);
             const measuredSize = itemSizeMap[key];
-            if (exactSizeBeforeChange === undefined || !measuredSize || exactSizeAfterChange === exactSizeBeforeChange) {
+            if (!rowBeforeChange || !measuredSize || rowAfterChange.height === rowBeforeChange.height) {
                 continue;
             }
 
-            const exactMeasuredSize = this._exactItemSizeMap[key] ?? measuredSize;
-            this._exactItemSizeMap[key] = exactMeasuredSize + (exactSizeAfterChange - exactSizeBeforeChange);
+            if (rowBeforeChange.startsAboveViewport) {
+                unobservedResizeAbove += rowBeforeChange.height - (this._exactItemSizeMap[key] ?? measuredSize);
+            }
 
-            const sizeChange = roundItemHeight(exactSizeAfterChange) - roundItemHeight(exactSizeBeforeChange);
-            if (sizeChange !== 0) {
-                itemSizeMap[key] = measuredSize + sizeChange;
+            this._exactItemSizeMap[key] = rowAfterChange.height;
+
+            const sizeAfterChange = roundItemHeight(rowAfterChange.height);
+            if (sizeAfterChange !== measuredSize) {
+                itemSizeMap[key] = sizeAfterChange;
                 resized = true;
             }
         }
 
         this._generateOffsetMeasurements();
 
-        if (resized && wasAtBottom && this.props.correctScrollToBottom) {
-            this.scrollToItem(0, 'end');
+        if (wasAtBottom && this.props.correctScrollToBottom) {
+            if (resized || unobservedResizeAbove) {
+                this.scrollToItem(0, 'end');
+            }
+            return;
+        }
+
+        const element = this._outerRef;
+        if (unobservedResizeAbove && element) {
+            this._compensateResizeAbove(element, this._getScrollTopBeforeResize(element), unobservedResizeAbove);
         }
     };
 
@@ -694,14 +720,18 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // the viewport resizes (e.g. an image finishes loading), the visible rows have to be held in place.
         // Rows measured for the first time are skipped since prepended rows are compensated for separately.
         if (oldSize && index > visibleStartIndex) {
-            const correction = (exactNewSize - exactOldSize) + this._resizeCorrectionRemainder;
-            const roundedCorrection = Math.round(correction);
-            this._resizeCorrectionRemainder = correction - roundedCorrection;
-
-            const scrollTop = Math.max(0, previousScrollTop + roundedCorrection);
-            element.scrollTop = scrollTop;
-            this._scrollTopAfterResizeCorrection = scrollTop;
+            this._compensateResizeAbove(element, previousScrollTop, exactNewSize - exactOldSize);
         }
+    };
+
+    _compensateResizeAbove = (element: HTMLDivElement, previousScrollTop: number, exactSizeChange: number) => {
+        const correction = exactSizeChange + this._resizeCorrectionRemainder;
+        const roundedCorrection = Math.round(correction);
+        this._resizeCorrectionRemainder = correction - roundedCorrection;
+
+        const scrollTop = Math.max(0, previousScrollTop + roundedCorrection);
+        element.scrollTop = scrollTop;
+        this._scrollTopAfterResizeCorrection = scrollTop;
     };
 
     // The browser clamps scrollTop when the content shrinks, before resizes are observed. In that case and when
