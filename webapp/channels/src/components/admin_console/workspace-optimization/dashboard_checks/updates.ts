@@ -85,19 +85,11 @@ export const fetchAndCompareVersion = async (
     return {type: '', description: '', status: ItemStatus.OK};
 };
 
-// The setting is omitted from the config for admins without read access to Site Configuration > Notices,
-// and the check can't be verified without it, so anything other than an explicit true counts as disabled.
-export const isLatestVersionCheckDisabled = (config: Partial<AdminConfig>) => config.ServiceSettings?.EnableSecurityFixAlert !== true;
-
 export const runUpdateChecks = async (
     config: Partial<AdminConfig>,
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
     options: Options,
 ) => {
-    if (isLatestVersionCheckDisabled(config)) {
-        return [];
-    }
-
     const checks = [
         testServerVersion,
     ];

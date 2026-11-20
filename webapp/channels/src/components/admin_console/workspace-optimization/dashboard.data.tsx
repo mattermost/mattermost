@@ -30,7 +30,7 @@ import {runConfigChecks} from './dashboard_checks/config';
 import {runDataPrivacyChecks} from './dashboard_checks/data_privacy';
 import {runEaseOfUseChecks} from './dashboard_checks/easy_management';
 import {runPerformanceChecks} from './dashboard_checks/performance';
-import {isLatestVersionCheckDisabled, runUpdateChecks} from './dashboard_checks/updates';
+import {runUpdateChecks} from './dashboard_checks/updates';
 
 import {daysToLicenseExpire, getIsStarterLicense, isEnterpriseLicense} from '../../../utils/license_utils';
 
@@ -63,7 +63,6 @@ const getUpdatesData = async (
         <Icon glyph={<ArrowUpBoldCircleOutlineIcon/>}/>
     ),
     items: await runUpdateChecks(config, formatMessage, options),
-    hide: isLatestVersionCheckDisabled(config),
 });
 
 const getConfigurationData = async (
@@ -225,7 +224,6 @@ const useMetricsData = (
     }), [isLicensed, isEnterprise, trialOrEnterpriseCtaConfig, isStarterLicense, isCloud, analytics, installedVersion]);
 
     useEffect(() => {
-        let isStale = false;
         setLoading(true);
         const refreshData = async () => {
             const data = {
@@ -241,16 +239,9 @@ const useMetricsData = (
         };
 
         refreshData().then((data) => {
-            if (isStale) {
-                return;
-            }
             setData(data);
             setLoading(false);
         });
-
-        return () => {
-            isStale = true;
-        };
     }, [config, formatMessage, options]);
 
     return {
