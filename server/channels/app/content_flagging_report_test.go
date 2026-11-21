@@ -683,36 +683,12 @@ func TestDecodePropertyInt64(t *testing.T) {
 	})
 }
 
-func TestNotifyReviewersOfFlaggedPostReportGeneration(t *testing.T) {
+func TestNotifyReviewersOfReportGeneration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	t.Run("does not panic when called for a non-flagged post", func(t *testing.T) {
-		appErr := setBaseConfig(th)
-		require.Nil(t, appErr)
-
-		// Use a random post id to exercise the best-effort error path. The function
-		// should swallow any errors and return without raising.
-		require.NotPanics(t, func() {
-			th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, model.NewId(), th.BasicUser.Id)
-		})
-	})
-
-	t.Run("does not panic when generator user does not exist", func(t *testing.T) {
-		appErr := setBaseConfig(th)
-		require.Nil(t, appErr)
-
-		post := setupFlaggedPost(t, th)
-
-		require.NotPanics(t, func() {
-			th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, model.NewId())
-		})
-	})
-}
-
-func TestNotifyReviewersOfPostExposureReportGeneration(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	const fileName = "flagged-post-report.zip"
+	const checksum = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 
 	reviewerMessages := func(t *testing.T, postID string) []string {
 		t.Helper()
@@ -738,37 +714,43 @@ func TestNotifyReviewersOfPostExposureReportGeneration(t *testing.T) {
 		return messages
 	}
 
-	t.Run("posts an exposure-specific message distinct from the flagged post report message", func(t *testing.T) {
+	expectedMessage := func(headline string) string {
+		return headline + "\n\nFile: `" + fileName + "`\n\nSHA-256: `" + checksum + "`"
+	}
+
+	t.Run("posts the flagged post report file name and checksum to reviewers", func(t *testing.T) {
 		appErr := setBaseConfig(th)
 		require.Nil(t, appErr)
 
 		post := setupFlaggedPost(t, th)
 
-		th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, post.Id, th.BasicUser.Id)
+		err := th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, th.BasicUser.Id, fileName, checksum)
+		require.NoError(t, err)
 
 		messages := reviewerMessages(t, post.Id)
-		require.Contains(t, messages, "@"+th.BasicUser.Username+" downloaded an exposure report for the quarantined message.")
-		require.NotContains(t, messages, "@"+th.BasicUser.Username+" generated a report for the quarantined message.")
+		require.Contains(t, messages, expectedMessage("@"+th.BasicUser.Username+" generated a report for the quarantined message."))
 	})
 
-	t.Run("leaves the flagged post report wording unchanged", func(t *testing.T) {
+	t.Run("posts the exposure report file name and checksum to reviewers", func(t *testing.T) {
 		appErr := setBaseConfig(th)
 		require.Nil(t, appErr)
 
 		post := setupFlaggedPost(t, th)
 
-		th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, th.BasicUser.Id)
+		err := th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, post.Id, th.BasicUser.Id, fileName, checksum)
+		require.NoError(t, err)
 
 		messages := reviewerMessages(t, post.Id)
-		require.Contains(t, messages, "@"+th.BasicUser.Username+" generated a report for the quarantined message.")
+		require.Contains(t, messages, expectedMessage("@"+th.BasicUser.Username+" downloaded an exposure report for the quarantined message."))
 	})
 
-	t.Run("does not panic for a non-flagged post", func(t *testing.T) {
+	t.Run("returns an error when the generating user does not exist", func(t *testing.T) {
 		appErr := setBaseConfig(th)
 		require.Nil(t, appErr)
 
-		require.NotPanics(t, func() {
-			th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, model.NewId(), th.BasicUser.Id)
-		})
+		post := setupFlaggedPost(t, th)
+
+		err := th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, model.NewId(), fileName, checksum)
+		require.Error(t, err)
 	})
 }

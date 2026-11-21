@@ -2841,6 +2841,11 @@
     "description": "API error (500) returned to a content reviewer when the post exposure report CSV could not be serialized for download. Short error detail, not a title."
   },
   {
+    "id": "api.data_spillage.report.hash.app_error",
+    "translation": "Failed to compute the checksum of the flagged post report file.",
+    "description": "API error when the SHA-256 checksum of the generated flagged post report cannot be computed before download; admin/reviewer audience."
+  },
+  {
     "id": "api.data_spillage.report.open.app_error",
     "translation": "Failed to open the generated flagged post report file.",
     "description": "API error when the generated report file of flagged posts cannot be opened for download; admin/reviewer audience."
@@ -8131,6 +8136,11 @@
     "description": "Internal API error when saving the metadata (property values) attached to a newly flagged post fails."
   },
   {
+    "id": "app.data_spillage.exposure.checksum_notification",
+    "translation": "@{{.Username}} downloaded an exposure report for the quarantined message.\n\nFile: `{{.FileName}}`\n\nSHA-256: `{{.Checksum}}`",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer downloads an exposure report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
+  },
+  {
     "id": "app.data_spillage.exposure.column.email",
     "translation": "Email",
     "description": "Column header in the post exposure report CSV that content reviewers download for a flagged post. Column holds each listed user's email address. Keep it short — it is a spreadsheet header, not a sentence."
@@ -8374,6 +8384,11 @@
     "id": "app.data_spillage.report.attachments_omitted.notification",
     "translation": "The report you generated did not include the quarantined message's file attachments, because you do not comply with the channel's file download policy.",
     "description": "Message posted by the system bot to a content reviewer in the flagged-content review thread after they generated a report on a quarantined message whose attachments were left out."
+  },
+  {
+    "id": "app.data_spillage.report.checksum_notification",
+    "translation": "@{{.Username}} generated a report for the quarantined message.\n\nFile: `{{.FileName}}`\n\nSHA-256: `{{.Checksum}}`",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer generates a flagged post report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
   },
   {
     "id": "app.data_spillage.report.cleared",
@@ -8625,6 +8640,26 @@
     "id": "app.data_spillage.report.zip_create.app_error",
     "translation": "Failed to create an entry in the flagged post report archive.",
     "description": "Internal API error when adding a new entry to the flagged-post report zip archive fails."
+  },
+  {
+    "id": "app.data_spillage.reviewer_message.assigned",
+    "translation": "@{{.ReviewerUsername}} was assigned as a reviewer by @{{.AssignedByUsername}}",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer is assigned to a quarantined message. Keep the @ before both placeholders."
+  },
+  {
+    "id": "app.data_spillage.reviewer_message.removed",
+    "translation": "The quarantined message was removed by @{{.Username}}",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer removes a quarantined message. Keep the @ before {{.Username}}."
+  },
+  {
+    "id": "app.data_spillage.reviewer_message.retained",
+    "translation": "The quarantined message was retained by @{{.Username}}",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer keeps a quarantined message. Keep the @ before {{.Username}}."
+  },
+  {
+    "id": "app.data_spillage.reviewer_message.with_comment",
+    "translation": "With comment:\n\n> {{.Comment}}",
+    "description": "Appended to a reviewer's keep or remove message when they left a comment. {{.Comment}} is the reviewer's own text. Keep the blank line and the leading '> ' (a Markdown quote) unchanged."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
