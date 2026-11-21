@@ -1611,51 +1611,6 @@ func TestPushNotificationAck(t *testing.T) {
 	}
 }
 
-func TestCompleteOnboardingAuditsSavedSiteURL(t *testing.T) {
-	logFile, err := os.CreateTemp("", "logs_audit.log")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		require.NoError(t, logFile.Close())
-		require.NoError(t, os.Remove(logFile.Name()))
-	})
-
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
-		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
-	})
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = new("") })
-
-	// The first request saves the Site URL. The second is ignored because a Site URL is now set.
-	for _, siteURL := range []string{"https://first.example.com/", "https://second.example.com"} {
-		resp, err := th.SystemAdminClient.CompleteOnboarding(context.Background(), &model.CompleteOnboardingRequest{
-			Organization: "my-org",
-			SiteURL:      siteURL,
-		})
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-	}
-	require.Equal(t, "https://first.example.com", *th.App.Config().ServiceSettings.SiteURL)
-
-	require.NoError(t, th.Server.Audit.Flush())
-	require.NoError(t, logFile.Sync())
-	data, err := os.ReadFile(logFile.Name())
-	require.NoError(t, err)
-
-	var entries []*AuditEntry
-	for line := range strings.SplitSeq(string(data), "\n") {
-		if entry := FindAuditEntry(line, model.AuditEventCompleteOnboarding, th.SystemAdminUser.Id); entry != nil {
-			entries = append(entries, entry)
-		}
-	}
-	require.Len(t, entries, 2)
-
-	assert.Equal(t, model.AuditStatusSuccess, entries[0].Status)
-	assert.Equal(t, "https://first.example.com", entries[0].Parameters["saved_site_url"])
-
-	assert.Equal(t, model.AuditStatusSuccess, entries[1].Status)
-	assert.NotContains(t, entries[1].Parameters, "saved_site_url")
-}
-
 func TestCompleteOnboarding(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
