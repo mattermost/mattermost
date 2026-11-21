@@ -37,6 +37,33 @@ export const RESULTS_DIR = path.join(GENERATED_DIR, 'test-results');
 export const PLAYWRIGHT_DIR = path.join(REPO_DIR, 'e2e-tests', 'playwright');
 export const CONFIG_PATH = path.join(PROTO_DIR, 'playwright.config.ts');
 
+export const SESSIONS_DIR = path.join(PROTO_DIR, 'sessions');
+
+/** Charter session selected with `--session=<name>` (CLI) or PILOT_SESSION; '' for the default pilot. */
+export function sessionName(): string {
+    const name = process.env.PILOT_SESSION ?? '';
+    if (name && (!/^[a-z0-9-]+$/.test(name) || !fs.existsSync(path.join(SESSIONS_DIR, name, 'charter.json')))) {
+        throw new Error(`Unknown session "${name}": expected explorer-proto/sessions/<name>/charter.json.`);
+    }
+    return name;
+}
+
+export function sessionGeneratedDir(name: string): string {
+    return path.join(SESSIONS_DIR, name, 'generated');
+}
+
 export function outDir(): string {
-    return path.resolve(process.env.EXPLORER_OUT_DIR || GENERATED_DIR);
+    const session = sessionName();
+    return path.resolve(process.env.EXPLORER_OUT_DIR || (session ? sessionGeneratedDir(session) : GENERATED_DIR));
+}
+
+/** Playwright JSON reports and test results; git-ignored in both locations. */
+export function reportsDir(): string {
+    const session = sessionName();
+    return session ? path.join(sessionGeneratedDir(session), 'reports') : REPORTS_DIR;
+}
+
+export function resultsDir(): string {
+    const session = sessionName();
+    return session ? path.join(sessionGeneratedDir(session), 'test-results') : RESULTS_DIR;
 }

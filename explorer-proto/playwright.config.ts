@@ -11,9 +11,12 @@ import {defineConfig} from '@playwright/test';
 import baseConfig from '../e2e-tests/playwright/playwright.config';
 
 import {explorerMode} from './src/modes.ts';
-import {REPORTS_DIR, RESULTS_DIR, SRC_DIR, outDir} from './src/paths.ts';
+import {SRC_DIR, outDir, reportsDir, resultsDir, sessionName} from './src/paths.ts';
 
 const mode = explorerMode();
+// PILOT_SESSION=<name> (set by `cli.ts --session=<name>`) selects the charter session explorer and its
+// generated dir; without it every mode behaves exactly as before.
+const session = sessionName();
 const chrome = baseConfig.projects?.find((p) => p.name === 'chrome');
 if (!chrome) {
     throw new Error('The repo Playwright config no longer defines a "chrome" project.');
@@ -21,7 +24,7 @@ if (!chrome) {
 
 const testLocation = {
     replay: {testDir: outDir(), testMatch: '*.spec.ts', testIgnore: '**/runs/**'},
-    explore: {testDir: SRC_DIR, testMatch: 'explore.pw.ts'},
+    explore: {testDir: SRC_DIR, testMatch: session ? 'explore_session.pw.ts' : 'explore.pw.ts'},
     'guard-check': {testDir: SRC_DIR, testMatch: 'guard_check.pw.ts'},
     'guard-race': {testDir: SRC_DIR, testMatch: 'guard_race.pw.ts'},
     'probe-absence': {testDir: SRC_DIR, testMatch: 'absence_probe.pw.ts'},
@@ -36,7 +39,7 @@ export default defineConfig({
     retries: 0,
     workers: 1,
     fullyParallel: false,
-    outputDir: path.join(RESULTS_DIR, mode),
+    outputDir: path.join(resultsDir(), mode),
     ...testLocation,
     use: {
         ...baseConfig.use,
@@ -46,5 +49,5 @@ export default defineConfig({
         serviceWorkers: 'block',
     },
     projects: [{name: 'chrome', use: {...chrome.use, serviceWorkers: 'block'}}],
-    reporter: [['list'], ['json', {outputFile: path.join(REPORTS_DIR, `${mode}.json`)}]],
+    reporter: [['list'], ['json', {outputFile: path.join(reportsDir(), `${mode}.json`)}]],
 });

@@ -14,5 +14,5 @@
         "resolveJsonModule": true,
         "skipLibCheck": true
     },
-    "include": ["./**/*.ts", "../playwright.config.ts", "../generated/*.spec.ts"]
+    "include": ["./**/*.ts", "../playwright.config.ts", "../generated/*.spec.ts", "../sessions/*/generated/*.spec.ts"]
 }
