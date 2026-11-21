@@ -43,6 +43,9 @@ const (
 	webConnViewRestrictionsTime    = 1000 * 30      // 30 seconds
 	deadQueueSize                  = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 	websocketSuppressWarnThreshold = time.Minute
+	// webConnTakeoverTimeout bounds closing a connection being resumed, and must stay well
+	// under the cluster's response timeout since another node may be waiting on it.
+	webConnTakeoverTimeout = 2 * time.Second
 )
 
 const (
@@ -334,6 +337,18 @@ func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
 	<-wc.pumpFinished
+}
+
+// closeWithin closes the WebConn, reporting whether its pumps finished and it was
+// unregistered from the hub within the timeout.
+func (wc *WebConn) closeWithin(timeout time.Duration) bool {
+	wc.WebSocket.Close()
+	select {
+	case <-wc.pumpFinished:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
 }
 
 // GetSessionExpiresAt returns the time at which the session expires.
