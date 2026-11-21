@@ -23,6 +23,7 @@ import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getChannelAttributeFields, getChannelBannerFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
+import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import {CLASSIFICATIONS_CHANNEL_FIELD_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {hasAttributeToken, renderBannerTemplate} from 'components/channel_attributes/banner_template';
@@ -226,7 +227,11 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         if (designated) {
             const classificationIsBannerDesignated = designatedFields.some((field) => field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
 
-            if (channelBannerInfo?.attribute_banner_disabled) {
+            // A required attribute mandates the banner, overriding any opt-out the
+            // channel saved before the attribute became required.
+            const bannerRequired = designatedFields.some(isPropertyFieldRequired);
+
+            if (channelBannerInfo?.attribute_banner_disabled && !bannerRequired) {
                 return {...noBanner, classificationIsBannerDesignated};
             }
 
@@ -256,7 +261,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             let bannerText: string;
             if (authoredText) {
                 bannerText = renderBannerTemplate(authoredText, templateAttributes);
-            } else if (channelBannerInfo?.enabled === false && typeof authoredText === 'string') {
+            } else if (channelBannerInfo?.enabled === false && typeof authoredText === 'string' && !bannerRequired) {
                 // Empty string + explicitly disabled banner = intentional authored suppression.
                 return {...noBanner, classificationIsBannerDesignated};
             } else if (contributions.length === 0) {
