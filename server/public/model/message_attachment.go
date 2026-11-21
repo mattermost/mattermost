@@ -33,7 +33,7 @@ type MessageAttachment struct {
 	ThumbURL   string                    `json:"thumb_url"`
 	Footer     string                    `json:"footer"`
 	FooterIcon string                    `json:"footer_icon"`
-	Timestamp  any                       `json:"ts"` // This is either a string or an int64
+	Timestamp  any                       `json:"ts"` // This is either a string, int64, or float64
 	Actions    []*PostAction             `json:"actions,omitempty"`
 }
 
@@ -90,13 +90,13 @@ func (s *MessageAttachment) IsValid() error {
 		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid footer icon URL"))
 	}
 
-	// Validate timestamp is either string or int64
+	// Validate timestamp is either string, int64, or float64
 	if s.Timestamp != nil {
 		switch s.Timestamp.(type) {
-		case string, int64:
+		case string, int64, float64:
 			// Valid types
 		default:
-			multiErr = multierror.Append(multiErr, fmt.Errorf("timestamp must be either a string or int64"))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("timestamp must be either a string, int64, or float64"))
 		}
 	}
 
