@@ -12,7 +12,7 @@ import type {Page} from '@playwright/test';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, newTestPassword, test, closeChannelSettings} from '@mattermost/playwright-lib';
 
 const PROGRAM_OPTIONS = [
     {name: 'Artemis', color: '#FF8800'},
@@ -132,9 +132,10 @@ async function createChannelAccessRule(
 
 async function openAccessControlSettings(channelsPage: ChannelsPage) {
     const channelSettings = await channelsPage.openChannelSettings();
-    const accessControlTab = channelSettings.container.getByRole('tab', {name: /Membership Policy/i});
+    const accessControlTab = channelSettings.tabs.tab('access_rules').locator;
     await expect(accessControlTab).toBeVisible({timeout: 10000});
     await accessControlTab.click();
+    await expect(accessControlTab).toHaveAttribute('aria-selected', 'true');
 
     return channelSettings;
 }
@@ -153,6 +154,10 @@ async function testAccessRuleAndVerifyUser(page: Page, username: string) {
 
     await modal.getByRole('textbox', {name: /Search users/i}).fill(username);
     await expect(modal.getByText(`@${username}`)).toBeVisible({timeout: 10000});
+
+    // The results dialog sits on top of Channel Settings and blocks its close button, so close it here.
+    await modal.getByRole('button', {name: 'Close'}).first().click();
+    await expect(modal).not.toBeVisible();
 }
 
 test.describe('Channel Settings → Membership Policy', () => {
@@ -210,13 +215,13 @@ test.describe('Channel Settings → Membership Policy', () => {
 
         const excludingRuleSettings = await openAccessControlSettings(channelsPage);
         await verifyTestAccessRuleDisabled(page);
-        await excludingRuleSettings.close();
+        await closeChannelSettings(excludingRuleSettings);
 
         await createChannelAccessRule(adminClient, channel, twoValueOrExpression);
 
         const includingRuleSettings = await openAccessControlSettings(channelsPage);
         await testAccessRuleAndVerifyUser(page, alice.username);
 
-        await includingRuleSettings.close();
+        await closeChannelSettings(includingRuleSettings);
     });
 });

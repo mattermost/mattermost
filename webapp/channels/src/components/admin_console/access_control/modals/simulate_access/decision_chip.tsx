@@ -72,6 +72,9 @@ const DENY_BLAME_PRIORITY: string[] = [
 type Props = {
     decision: PolicySimulationActionDecision | undefined;
     pending?: boolean;
+
+    // The row or details entry the chip sits in; the chip is `<testIdScope>.decision:<state>--text`.
+    testIdScope: string;
 };
 
 /**
@@ -94,14 +97,14 @@ type Props = {
  *   - DENY → red "Denied · {source}" where source maps to one of the
  *     blame-source labels above.
  */
-export default function DecisionChip({decision, pending}: Props): JSX.Element {
+export default function DecisionChip({decision, pending, testIdScope}: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
     if (pending || !decision) {
         return (
             <span
                 className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--pending'
-                data-testid='simulate-access-row-chip-pending'
+                data-testid={`${testIdScope}.decision:pending--text`}
             >
                 <FormattedMessage
                     id='admin.access_control.simulate_access.chip.pending'
@@ -124,7 +127,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
             return (
                 <span
                     className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                    data-testid='simulate-access-row-chip-not-applicable-rule'
+                    data-testid={`${testIdScope}.decision:not_applicable_rule--text`}
                 >
                     <MinusCircleOutlineIcon
                         size={ICON_SIZE}
@@ -143,7 +146,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
             return (
                 <span
                     className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                    data-testid='simulate-access-row-chip-not-applicable'
+                    data-testid={`${testIdScope}.decision:not_applicable--text`}
                 >
                     <MinusCircleOutlineIcon
                         size={ICON_SIZE}
@@ -158,7 +161,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
             return (
                 <span
                     className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                    data-testid='simulate-access-row-chip-no-session-data'
+                    data-testid={`${testIdScope}.decision:no_session_data--text`}
                 >
                     <MinusCircleOutlineIcon
                         size={ICON_SIZE}
@@ -178,7 +181,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
             return (
                 <span
                     className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--allow-saved'
-                    data-testid='simulate-access-row-chip-allow-saved'
+                    data-testid={`${testIdScope}.decision:allow_saved--text`}
                 >
                     <CheckCircleIcon
                         size={ICON_SIZE}
@@ -196,7 +199,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         return (
             <span
                 className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--allow'
-                data-testid='simulate-access-row-chip-allow'
+                data-testid={`${testIdScope}.decision:allow--text`}
             >
                 <CheckCircleIcon
                     size={ICON_SIZE}
@@ -219,7 +222,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         return (
             <span
                 className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                data-testid='simulate-access-row-chip-not-applicable-rule'
+                data-testid={`${testIdScope}.decision:not_applicable_rule--text`}
             >
                 <MinusCircleOutlineIcon
                     size={ICON_SIZE}
@@ -234,7 +237,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         return (
             <span
                 className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                data-testid='simulate-access-row-chip-no-session-data'
+                data-testid={`${testIdScope}.decision:no_session_data--text`}
             >
                 <MinusCircleOutlineIcon
                     size={ICON_SIZE}
@@ -249,7 +252,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         return (
             <span
                 className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
-                data-testid='simulate-access-row-chip-not-applicable'
+                data-testid={`${testIdScope}.decision:not_applicable--text`}
             >
                 <MinusCircleOutlineIcon
                     size={ICON_SIZE}
@@ -270,14 +273,12 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
     // strips their `expression` and `evaluation_tree`, and surfacing
     // the rule/policy name here would leak metadata the author
     // shouldn't see at this scope.
-    const blameTooltip = blame && SAME_SCOPE_BLAME_SOURCES.has(blame.source) ?
-        (blame.rule_name || blame.policy_name || '') :
-        '';
+    const blameTooltip = blame && SAME_SCOPE_BLAME_SOURCES.has(blame.source) ? (blame.rule_name || blame.policy_name || '') : '';
 
     return (
         <span
             className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--deny'
-            data-testid='simulate-access-row-chip-deny'
+            data-testid={`${testIdScope}.decision:deny--text`}
             title={blameTooltip}
         >
             <CloseCircleIcon

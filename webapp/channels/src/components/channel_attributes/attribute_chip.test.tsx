@@ -29,7 +29,7 @@ describe('AttributeChip', () => {
         );
 
         // A chip announcing only "AURORA" says nothing about what it describes.
-        expect(screen.getByTestId('attributeChip')).toHaveTextContent('Program: AURORA');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveTextContent('Program: AURORA');
     });
 
     test('omits the announced label when one is already visible beside the chip', () => {
@@ -41,8 +41,8 @@ describe('AttributeChip', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeChip')).toHaveTextContent('AURORA');
-        expect(screen.getByTestId('attributeChip')).not.toHaveTextContent('Program:');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveTextContent('AURORA');
+        expect(screen.getByTestId('channel_attributes.chip')).not.toHaveTextContent('Program:');
     });
 
     test('derives a contrasting foreground from the configured background', () => {
@@ -53,7 +53,7 @@ describe('AttributeChip', () => {
                 color='#000000'
             />,
         );
-        expect(screen.getByTestId('attributeChip')).toHaveStyle({backgroundColor: '#000000', color: '#ffffff'});
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveStyle({backgroundColor: '#000000', color: '#ffffff'});
 
         rerender(
             <AttributeChip
@@ -62,7 +62,7 @@ describe('AttributeChip', () => {
                 color='#ffffff'
             />,
         );
-        expect(screen.getByTestId('attributeChip')).toHaveStyle({backgroundColor: '#ffffff', color: '#000000'});
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveStyle({backgroundColor: '#ffffff', color: '#000000'});
     });
 
     test('falls back to the neutral treatment without a colour', () => {
@@ -73,7 +73,7 @@ describe('AttributeChip', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--neutral');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveClass('AttributeChip--neutral');
     });
 
     test('falls back to the neutral treatment for a malformed colour', () => {
@@ -86,7 +86,7 @@ describe('AttributeChip', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--neutral');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveClass('AttributeChip--neutral');
     });
 
     test('falls back to the neutral treatment for a six-character non-hex colour', () => {
@@ -100,7 +100,7 @@ describe('AttributeChip', () => {
             />,
         );
 
-        const chip = screen.getByTestId('attributeChip');
+        const chip = screen.getByTestId('channel_attributes.chip');
         expect(chip).toHaveClass('AttributeChip--neutral');
         expect(chip).not.toHaveStyle({color: '#ffffff'});
     });
@@ -119,7 +119,7 @@ describe('AttributeChip', () => {
             </AttributeChip>,
         );
 
-        const chip = screen.getByTestId('attributeChip');
+        const chip = screen.getByTestId('channel_attributes.chip');
         const remove = screen.getByRole('button', {name: 'Clear Severity'});
         expect(chip).toContainElement(remove);
         expect(chip).toHaveClass('AttributeChip--dismissible');
@@ -138,8 +138,8 @@ describe('AttributeChip', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--medium');
-        expect(screen.getByTestId('attributeChip')).not.toHaveClass('AttributeChip--dismissible');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveClass('AttributeChip--medium');
+        expect(screen.getByTestId('channel_attributes.chip')).not.toHaveClass('AttributeChip--dismissible');
 
         rerender(
             <AttributeChip
@@ -155,8 +155,8 @@ describe('AttributeChip', () => {
             </AttributeChip>,
         );
 
-        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--medium');
-        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--dismissible');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveClass('AttributeChip--medium');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveClass('AttributeChip--dismissible');
     });
 
     test('truncates long values on the value span so the remove control stays visible', () => {
@@ -174,7 +174,7 @@ describe('AttributeChip', () => {
             </AttributeChip>,
         );
 
-        const chip = screen.getByTestId('attributeChip');
+        const chip = screen.getByTestId('channel_attributes.chip');
         const value = chip.querySelector('.AttributeChip__value');
         expect(value).toHaveTextContent(longValue);
         expect(chip).toContainElement(screen.getByRole('button', {name: 'Remove Potato'}));

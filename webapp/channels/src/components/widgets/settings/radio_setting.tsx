@@ -23,6 +23,11 @@ type Props = {
     labelPosition?: 'before' | 'after';
     isOptional?: boolean;
     disabled?: boolean;
+
+    testIdScope?: string;
+
+    /** The row's own testid when it isn't the scope (a keyed row). */
+    testId?: string;
 };
 
 const RadioSetting = ({
@@ -37,6 +42,8 @@ const RadioSetting = ({
     labelPosition = 'after',
     isOptional = false,
     disabled,
+    testIdScope,
+    testId,
 }: Props) => {
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
         onChange(id, e.target.value);
@@ -56,6 +63,8 @@ const RadioSetting = ({
             inputClassName={`inline-choice-setting ${inputClassName}`.trim()}
             helpText={helpText}
             inputId={id}
+            testIdScope={testIdScope}
+            testId={testId}
         >
             <div className='inline-choice-setting__options'>
                 {
@@ -67,6 +76,7 @@ const RadioSetting = ({
                         return (
                             <Radio
                                 key={option}
+                                data-testid={testIdScope ? `${testIdScope}.option:${option}--radio` : undefined}
                                 className={radioClassName}
                                 value={option}
                                 name={id}
@@ -85,6 +95,7 @@ const RadioSetting = ({
                     type='button'
                     emphasis='quaternary'
                     size='small'
+                    data-testid={testIdScope ? `${testIdScope}.clear--button` : undefined}
                     className='radio-setting__clear'
                     onClick={handleClear}
                 >

@@ -6,6 +6,16 @@ export {test, expect, PlaywrightExtended} from './test_fixture';
 // The generated page objects (src/ui/generated, from surface/webapp.surface.json) and their runtime. Specs reach page
 // objects through `App`; every generated class is under `generated`.
 export {Api, App, Msg} from './ui/generated';
+export {
+    clearBannerText,
+    closeChannelSettings,
+    insertBannerToken,
+    removeBannerToken,
+    typeBannerText,
+    openChannelSettingsConfigurationTab,
+    openChannelSettingsInfoTab,
+    type ChannelSettings,
+} from './ui/flows/channel_settings';
 export * from './ui/generated/sets';
 export * as generated from './ui/generated';
 export {
@@ -186,7 +196,6 @@ export {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
-    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
     DeletePostModal,

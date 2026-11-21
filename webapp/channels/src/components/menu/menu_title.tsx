@@ -10,16 +10,23 @@ import styled from 'styled-components';
 export interface Props {
     children: ReactNode;
     role?: string;
+
+    /** The title's testid path: it renders `<testId>--separator` with `role="separator"`, else `<testId>`. */
+    testId?: string;
 }
 
 export function MenuTitle(props: Props) {
     const {
         children,
         role,
+        testId,
     } = props;
 
     return (
-        <Title role={role}>
+        <Title
+            role={role}
+            data-testid={testId && role === 'separator' ? `${testId}--separator` : testId}
+        >
             {children}
         </Title>
     );

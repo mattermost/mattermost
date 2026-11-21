@@ -15,6 +15,9 @@ interface Props
     'disableNextPage'
     > {
     isLoading?: boolean;
+
+    // The pager's path: `.previous--button`, `.next--button`.
+    testIdScope?: string;
 }
 
 export function Pagination(props: Props) {
@@ -26,6 +29,8 @@ export function Pagination(props: Props) {
             disablePrevious={props.disablePrevPage}
             disableNext={props.disableNextPage}
             isLoading={props.isLoading}
+            previousButtonTestId={props.testIdScope ? `${props.testIdScope}.previous--button` : undefined}
+            nextButtonTestId={props.testIdScope ? `${props.testIdScope}.next--button` : undefined}
         />
     );
 }

@@ -486,7 +486,7 @@ function updateChannelHeader(text: string) {
         type(text);
 
     // # Save changes
-    cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+    cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
     // * Verify changes are saved
     cy.get('.SaveChangesPanel').should('contain', 'Settings saved');

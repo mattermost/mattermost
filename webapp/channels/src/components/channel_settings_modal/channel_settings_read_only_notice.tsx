@@ -18,6 +18,7 @@ import AlertBanner from 'components/alert_banner';
 export default function ChannelSettingsReadOnlyNotice() {
     return (
         <AlertBanner
+            testId='channel_settings_modal.read_only_notice'
             mode='info'
             variant='app'
             className='ChannelSettingsModal__readOnlyNotice'

@@ -91,7 +91,7 @@ describe('Search channels', () => {
         cy.findAllByTestId('channel-display-name').should('have.length', 1);
 
         // # Click the x in the search input.
-        cy.findByTestId('clear-search').click();
+        cy.findByTestId('data_grid.search.clear--button').click();
 
         // * Check that the search input text is cleared.
         cy.get('@searchInput').should('be.visible').and('have.text', '');

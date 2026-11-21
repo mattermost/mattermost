@@ -54,8 +54,13 @@ export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> &
     count?: number;
 };
 
-type MenuButtonProps = {
+export type MenuButtonProps = {
     id: string;
+
+    /** The trigger's testid path; the menu adds the role (`<testId>--button`). */
+    testId?: string;
+
+    /** The trigger's whole testid, for a trigger whose testid has no path yet. */
     dataTestId?: string;
     'aria-label'?: string;
     'aria-describedby'?: string;
@@ -85,7 +90,7 @@ type MenuButtonTooltipProps = {
     disabled?: boolean;
 };
 
-type MenuProps = {
+export type MenuProps = {
 
     /**
      * ID is mandatory as it is used in mobileWebview to open modal equivalent to menu
@@ -94,6 +99,9 @@ type MenuProps = {
     'aria-label'?: string;
     className?: string;
     'aria-labelledby'?: string;
+
+    /** The menu's own scope (its list), when its items' testids don't already name it. */
+    testId?: string;
 
     /**
      * @warning Make the styling of your components such a way that they don't need this handler
@@ -433,7 +441,7 @@ export function Menu(props: Props) {
             <MenuButtonComponent
                 ref={setMenuButton}
                 id={props.menuButton.id}
-                data-testid={props.menuButton.dataTestId}
+                data-testid={props.menuButton.testId ? `${props.menuButton.testId}--button` : props.menuButton.dataTestId}
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
@@ -559,6 +567,7 @@ export function Menu(props: Props) {
                         {props.menuHeader}
                         <MuiMenuList
                             id={props.menu.id}
+                            data-testid={props.menu.testId}
                             aria-label={props.menu?.['aria-label']}
                             aria-labelledby={props.menu['aria-labelledby']}
                             className={props.menu.className}

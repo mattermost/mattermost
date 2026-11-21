@@ -144,10 +144,10 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Test Channel');
 
         // Check that the purpose field has the correct value.
-        expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('Testing purpose');
+        expect(screen.getByTestId('channel_settings_modal.info.purpose--textbox')).toHaveValue('Testing purpose');
 
         // Check that the header field has the correct value.
-        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header');
+        expect(screen.getByTestId('channel_settings_modal.info.header--textbox')).toHaveValue('Initial header');
 
         // Check that the public channel button is selected.
         expect(screen.getByRole('button', {name: /Public Channel/}).classList.contains('selected')).toBe(true);
@@ -207,12 +207,12 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.type(nameInput, 'Updated Channel Name');
 
             // Change the channel purpose.
-            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            const purposeInput = screen.getByTestId('channel_settings_modal.info.purpose--textbox');
             await userEvent.clear(purposeInput);
             await userEvent.type(purposeInput, 'Updated purpose');
 
             // Change the channel header.
-            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            const headerInput = screen.getByTestId('channel_settings_modal.info.header--textbox');
             await userEvent.clear(headerInput);
             await userEvent.type(headerInput, 'Updated header');
         });
@@ -246,7 +246,7 @@ describe('ChannelSettingsInfoTab', () => {
         // DMs do not render the channel name field.
         expect(screen.queryByRole('textbox', {name: 'Channel name'})).not.toBeInTheDocument();
 
-        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        const headerInput = screen.getByTestId('channel_settings_modal.info.header--textbox');
         await userEvent.clear(headerInput);
         await userEvent.type(headerInput, 'Updated DM header');
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -271,12 +271,12 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.type(nameInput, '  Channel Name With Whitespace  ');
 
             // Change the channel purpose with whitespace
-            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            const purposeInput = screen.getByTestId('channel_settings_modal.info.purpose--textbox');
             await userEvent.clear(purposeInput);
             await userEvent.type(purposeInput, '  Purpose with whitespace  ');
 
             // Change the channel header with whitespace
-            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            const headerInput = screen.getByTestId('channel_settings_modal.info.header--textbox');
             await userEvent.clear(headerInput);
             await userEvent.type(headerInput, '  Header with whitespace  ');
         });
@@ -300,8 +300,8 @@ describe('ChannelSettingsInfoTab', () => {
 
         // The inputs should now have the trimmed values
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Channel Name With Whitespace');
-        expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('Purpose with whitespace');
-        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Header with whitespace');
+        expect(screen.getByTestId('channel_settings_modal.info.purpose--textbox')).toHaveValue('Purpose with whitespace');
+        expect(screen.getByTestId('channel_settings_modal.info.header--textbox')).toHaveValue('Header with whitespace');
     });
 
     it('detects removing stored whitespace and saves the trimmed value', async () => {
@@ -317,7 +317,7 @@ describe('ChannelSettingsInfoTab', () => {
         );
 
         // The untidy stored text opens the form cleanly.
-        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        const headerInput = screen.getByTestId('channel_settings_modal.info.header--textbox');
         expect(headerInput).toHaveValue('Initial header   ');
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
@@ -457,7 +457,7 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Wrap the interaction in act to handle state updates properly
         await act(async () => {
-            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            const purposeInput = screen.getByTestId('channel_settings_modal.info.purpose--textbox');
             await userEvent.clear(purposeInput);
             await userEvent.type(purposeInput, longPurpose);
         });
@@ -483,7 +483,7 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Wrap the interaction in act to handle state updates properly
         await act(async () => {
-            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            const headerInput = screen.getByTestId('channel_settings_modal.info.header--textbox');
             await userEvent.clear(headerInput);
             await userEvent.type(headerInput, longHeader);
         });
@@ -528,8 +528,8 @@ describe('ChannelSettingsInfoTab', () => {
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         const [purposePreviewToggle, headerPreviewToggle] = screen.getAllByTestId('mock-show-format');
-        const purposeWrapper = screen.getByTestId('channel_settings_purpose_textbox').closest('.textarea-wrapper');
-        const headerWrapper = screen.getByTestId('channel_settings_header_textbox').closest('.textarea-wrapper');
+        const purposeWrapper = screen.getByTestId('channel_settings_modal.info.purpose--textbox').closest('.textarea-wrapper');
+        const headerWrapper = screen.getByTestId('channel_settings_modal.info.header--textbox').closest('.textarea-wrapper');
 
         expect(purposeWrapper).not.toHaveClass('textarea-wrapper-preview');
         expect(headerWrapper).not.toHaveClass('textarea-wrapper-preview');
@@ -745,7 +745,7 @@ describe('ChannelSettingsInfoTab', () => {
     describe('Discoverable toggle', () => {
         it('does not render on a public channel even when the feature flag is on', () => {
             renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>, stateWithDiscoverableFlag);
-            expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.info.discoverable--switch')).not.toBeInTheDocument();
         });
 
         it('does not render when the feature flag is off, even on a private channel', () => {
@@ -755,7 +755,7 @@ describe('ChannelSettingsInfoTab', () => {
                     setAreThereUnsavedChanges={jest.fn()}
                 />,
             );
-            expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.info.discoverable--switch')).not.toBeInTheDocument();
         });
 
         it('renders on a private channel when the feature flag is on', () => {
@@ -766,8 +766,8 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
                 stateWithDiscoverableFlag,
             );
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeInTheDocument();
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings_modal.info.discoverable--switch')).toBeInTheDocument();
+            expect(screen.getByTestId('channel_settings_modal.info.discoverable--switch')).not.toBeChecked();
         });
 
         it('reflects the channel\'s existing discoverable value on mount', () => {
@@ -779,7 +779,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
                 stateWithDiscoverableFlag,
             );
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeChecked();
+            expect(screen.getByTestId('channel_settings_modal.info.discoverable--switch')).toBeChecked();
         });
 
         it('disables the toggle when the user lacks manage_private_channel_discoverability', () => {
@@ -791,7 +791,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
                 stateWithDiscoverableFlag,
             );
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeDisabled();
+            expect(screen.getByTestId('channel_settings_modal.info.discoverable--switch')).toBeDisabled();
             expect(screen.getByText(/Only channel admins can change this/)).toBeInTheDocument();
         });
 
@@ -808,7 +808,7 @@ describe('ChannelSettingsInfoTab', () => {
             );
 
             await act(async () => {
-                await userEvent.click(screen.getByTestId('channel-settings-discoverable-toggle'));
+                await userEvent.click(screen.getByTestId('channel_settings_modal.info.discoverable--switch'));
             });
             await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -835,7 +835,7 @@ describe('ChannelSettingsInfoTab', () => {
             // the discoverable toggle alone. The patch should NOT include
             // discoverable — only fields that changed.
             await act(async () => {
-                const headerInput = screen.getByTestId('channel_settings_header_textbox');
+                const headerInput = screen.getByTestId('channel_settings_modal.info.header--textbox');
                 await userEvent.clear(headerInput);
                 await userEvent.type(headerInput, 'New header text');
             });
@@ -869,7 +869,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
             );
 
-            expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+            expect(screen.getByTestId('channel_settings_modal.info.url.label--text')).toHaveTextContent('town-square');
             expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
             expect(screen.getByText('The URL of the default channel cannot be changed.')).toBeVisible();
         });
@@ -895,7 +895,7 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('town-square-id', {display_name: 'Company Wide'});
-            expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+            expect(screen.getByTestId('channel_settings_modal.info.url.label--text')).toHaveTextContent('town-square');
         });
 
         it('should keep the default channel URL locked when the user also lacks manage permission', () => {
@@ -922,7 +922,7 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Edit'}));
 
             await act(async () => {
-                const urlInput = screen.getByTestId('channelURLInput');
+                const urlInput = screen.getByTestId('channel_settings_modal.info.url.value--textbox');
                 await userEvent.clear(urlInput);
                 await userEvent.type(urlInput, 'renamed-channel');
             });
@@ -1025,7 +1025,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
             );
 
-            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            const purposeInput = screen.getByTestId('channel_settings_modal.info.purpose--textbox');
             await userEvent.clear(purposeInput);
             await userEvent.type(purposeInput, 'A brand new purpose');
 
@@ -1047,7 +1047,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
             );
 
-            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            const purposeInput = screen.getByTestId('channel_settings_modal.info.purpose--textbox');
             await userEvent.clear(purposeInput);
             await userEvent.type(purposeInput, 'A brand new purpose');
 

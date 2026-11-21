@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, closeChannelSettings, openChannelSettingsInfoTab, Api, settle} from '@mattermost/playwright-lib';
 
 async function enableChannelCategorySorting(adminClient: any) {
     await adminClient.patchConfig({
@@ -39,15 +39,12 @@ test.describe('Channel Category Sorting', () => {
             await channelsPage.toBeVisible();
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.openInfoTab();
+            await openChannelSettingsInfoTab(channelSettingsModal);
 
             // * Verify the default category selector is not rendered
-            const defaultCategorySelector = channelSettingsModal.container
-                .locator('.CategorySelector')
-                .filter({hasText: 'Choose a default category (optional)'});
-            await expect(defaultCategorySelector).toHaveCount(0);
+            await expect(channelSettingsModal.info.defaultCategory.container).not.toBeVisible();
 
-            await channelSettingsModal.close();
+            await closeChannelSettings(channelSettingsModal);
         },
     );
 
@@ -81,11 +78,13 @@ test.describe('Channel Category Sorting', () => {
             await defaultCategoryControl.click();
 
             const input = defaultCategorySection.getByRole('combobox');
+            await expect(input).toBeVisible();
             await input.fill('Flight Ops');
 
             const createOption = page.getByRole('option', {name: 'Create new category: Flight Ops'});
             await expect(createOption).toBeVisible();
             await createOption.click();
+            await expect(createOption).not.toBeVisible();
 
             await newChannelModal.create();
             await channelsPage.toBeVisible();
@@ -109,7 +108,7 @@ test.describe('Channel Category Sorting', () => {
         await adminClient.addToTeam(team.id, adminUser.id);
 
         // # Log in and navigate to town-square
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+        const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
@@ -120,27 +119,25 @@ test.describe('Channel Category Sorting', () => {
 
         // # Open channel settings and navigate to info tab
         const channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+        const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
         // * Verify the default category selector is visible
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+        const defaultCategorySection = info.defaultCategory.container;
         await expect(defaultCategorySection).toContainText('Choose a default category (optional)');
 
         // # Click the selector, type a new category name, and select "Create new category"
-        const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
-        await defaultCategoryControl.click();
+        await info.defaultCategory.controlButton.click();
+        await expect(info.defaultCategory.inputCombobox).toBeVisible();
+        await info.defaultCategory.inputCombobox.fill('Operations');
 
-        const input = defaultCategorySection.getByRole('combobox');
-        await input.fill('Operations');
-
-        const createOption = page.getByRole('option', {name: 'Create new category: Operations'});
-        await expect(createOption).toBeVisible();
-        await createOption.click();
+        await expect(info.defaultCategory.createOption).toBeVisible();
+        await info.defaultCategory.createOption.select();
+        await expect(channelSettingsModal.savePanel.saveButton).toBeVisible();
 
         // # Save and close
-        await channelSettingsModal.save();
-        await pw.wait(pw.duration.two_sec);
-        await channelSettingsModal.close();
+        await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+        await expect(channelSettingsModal.savePanel.saveButton).not.toBeVisible();
+        await closeChannelSettings(channelSettingsModal);
 
         // * Verify the default category appears in the sidebar with the channel under it
         const sidebar = channelsPage.sidebarLeft.container;
@@ -181,33 +178,32 @@ test.describe('Channel Category Sorting', () => {
 
         // # Open channel settings and click the clear button on the default category selector
         let channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+        const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+        const defaultCategorySection = info.defaultCategory.container;
         await expect(defaultCategorySection).toContainText('Removable');
 
-        const clearButton = defaultCategorySection.locator('.CategorySelector__clear-indicator');
+        const clearButton = info.defaultCategory.clearButton;
         await expect(clearButton).toBeVisible();
         await clearButton.click();
-        await pw.wait(pw.duration.half_sec);
 
         // * Verify the clear button is gone (no value selected)
         await expect(clearButton).not.toBeVisible();
 
         // # Save and close
-        await channelSettingsModal.save();
-        await pw.wait(pw.duration.two_sec);
-        await channelSettingsModal.close();
+        await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+        await expect(channelSettingsModal.savePanel.saveButton).not.toBeVisible();
+        await closeChannelSettings(channelSettingsModal);
 
         // # Reopen channel settings to verify the cleared value persisted
         channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+        const reopenedInfo = await openChannelSettingsInfoTab(channelSettingsModal);
 
         // * Verify the default category selector shows the placeholder (value is cleared)
-        const reopenedDefaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+        const reopenedDefaultCategorySection = reopenedInfo.defaultCategory.container;
         await expect(reopenedDefaultCategorySection).toContainText('Choose a default category (optional)');
 
-        await channelSettingsModal.close();
+        await closeChannelSettings(channelSettingsModal);
     });
 
     /**
