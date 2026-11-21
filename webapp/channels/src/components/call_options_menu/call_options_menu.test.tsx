@@ -36,14 +36,21 @@ const phoneField = (id: string, name: string, attrs: Partial<UserPropertyField['
 
 const dsnField = phoneField('dsn', 'DSN');
 
-const makeCallButton = (withPhoneAction = true) => ({
+const makeCallButton = (withPhoneAction = true, extra: Partial<CallButtonAction> = {}) => ({
     id: 'call_button',
     pluginId: 'com.mattermost.calls',
     button: <button>{'Plugin call button'}</button>,
     dropdownButton: <span>{'Plugin dropdown button'}</span>,
     action: jest.fn(),
     phoneAction: withPhoneAction ? jest.fn() : undefined,
+    ...extra,
 } as unknown as CallButtonAction);
+
+const makeStartMenuCallButton = (withPhoneAction = true, extra: Partial<CallButtonAction> = {}) => makeCallButton(withPhoneAction, {
+    copyCallLinkAction: jest.fn(),
+    callSettingsAction: jest.fn(),
+    ...extra,
+});
 
 const makeState = (opts: {callButtons: CallButtonAction[]; dialing?: boolean; sessions?: object}) => ({
     'plugins-com.mattermost.calls': {
@@ -233,5 +240,162 @@ describe('channel header call button', () => {
 
         expect(screen.queryByRole('button', {name: 'Call options'})).not.toBeInTheDocument();
         expect(screen.getByText('Call')).toBeInTheDocument();
+    });
+});
+
+const inCallSessions = {[dmChannel.id]: {session1: {user_id: currentUserId}}};
+
+const renderOptions = {pluginReducers: ['plugins-com.mattermost.calls']};
+
+describe.each([
+    ['channel header', (callButton: CallButtonAction, state: ReturnType<typeof makeState>, hide = jest.fn()) => ({
+        hide,
+        ...renderWithContext(
+            <CallButton
+                pluginCallComponents={[callButton]}
+                currentChannel={dmChannel}
+                channelMember={channelMember}
+                sidebarOpen={false}
+            />,
+            state,
+            renderOptions,
+        ),
+    })],
+    ['profile popover', (_callButton: CallButtonAction, state: ReturnType<typeof makeState>, hide = jest.fn()) => ({
+        hide,
+        ...renderWithContext(
+            <ProfilePopoverCallButtonWrapper
+                userId={userId}
+                currentUserId={currentUserId}
+                fullname='Leonard Riley'
+                username='leonard'
+                hide={hide}
+            />,
+            state,
+            renderOptions,
+        ),
+    })],
+])('Start call menu in the %s', (surface, renderButton) => {
+    const openMenu = () => userEvent.click(screen.getByRole('button', {name: 'Start call'}));
+    const menuItemNames = () => screen.getAllByRole('menuitem').map((item) => item.textContent);
+
+    test('without phone numbers, offers a call, the call link and call settings, with no group headings', async () => {
+        const callButton = makeStartMenuCallButton(false);
+        renderButton(callButton, makeState({callButtons: [callButton]}));
+
+        await openMenu();
+
+        expect(menuItemNames()).toEqual(['Start call', 'Copy call link', 'Call settings']);
+        expect(screen.getAllByRole('separator')).toHaveLength(1);
+        expect(screen.queryByText('Mattermost call')).not.toBeInTheDocument();
+        expect(screen.queryByText('Phone call')).not.toBeInTheDocument();
+        expect(callButton.action).not.toHaveBeenCalled();
+    });
+
+    test('with phone numbers, groups the Mattermost call and phone call rows under headings', async () => {
+        const callButton = makeStartMenuCallButton();
+        renderButton(callButton, makeState({callButtons: [callButton]}));
+
+        await openMenu();
+
+        expect(menuItemNames()).toEqual(['Start call', 'Copy call link', 'Call DSN312-555-0174', 'Call settings']);
+        expect(screen.getByText('Mattermost call')).toBeInTheDocument();
+        expect(screen.getByText('Phone call')).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Start call'})).toHaveAccessibleDescription('Mattermost call');
+        expect(screen.getByRole('menuitem', {name: /Call DSN/})).toHaveAccessibleDescription('Phone call');
+    });
+
+    test('runs each action through the plugin', async () => {
+        const callButton = makeStartMenuCallButton();
+        const {hide} = renderButton(callButton, makeState({callButtons: [callButton]}));
+
+        await openMenu();
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Copy call link'}));
+        await waitFor(() => expect(callButton.copyCallLinkAction).toHaveBeenCalledWith({userId, channel: dmChannel}));
+
+        await openMenu();
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Call settings'}));
+        await waitFor(() => expect(callButton.callSettingsAction).toHaveBeenCalled());
+
+        await openMenu();
+        await userEvent.click(screen.getByRole('menuitem', {name: /Call DSN/}));
+        await waitFor(() => expect(callButton.phoneAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
+
+        await openMenu();
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Start call'}));
+        await waitFor(() => expect(callButton.action).toHaveBeenCalledWith(dmChannel, channelMember));
+
+        if (surface === 'profile popover') {
+            expect(hide).toHaveBeenCalledTimes(4);
+        }
+    });
+
+    test('leaves out the rows for actions the plugin does not pass', async () => {
+        const callButton = makeStartMenuCallButton(false, {copyCallLinkAction: undefined});
+        renderButton(callButton, makeState({callButtons: [callButton]}));
+
+        await openMenu();
+
+        expect(menuItemNames()).toEqual(['Start call', 'Call settings']);
+    });
+
+    test('works from the keyboard and returns focus to the button on Escape', async () => {
+        const callButton = makeStartMenuCallButton();
+        renderButton(callButton, makeState({callButtons: [callButton]}));
+        const button = screen.getByRole('button', {name: 'Start call'});
+        expect(button).toHaveAttribute('aria-haspopup', 'true');
+        expect(button).toHaveAttribute('aria-expanded', 'false');
+
+        button.focus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(button).toHaveAttribute('aria-expanded', 'true');
+        await waitFor(() => expect(screen.getByRole('menuitem', {name: 'Start call'})).toHaveFocus());
+        await userEvent.keyboard('{ArrowDown}');
+        expect(screen.getByRole('menuitem', {name: 'Copy call link'})).toHaveFocus();
+        await userEvent.keyboard('{End}');
+        expect(screen.getByRole('menuitem', {name: 'Call settings'})).toHaveFocus();
+        await userEvent.keyboard('{Home}');
+        expect(screen.getByRole('menuitem', {name: 'Start call'})).toHaveFocus();
+
+        await userEvent.keyboard('{Escape}');
+        await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+        expect(button).toHaveFocus();
+    });
+
+    test('shows the pressed In call button, with no menu, during a call', async () => {
+        const callButton = makeStartMenuCallButton();
+        renderButton(callButton, makeState({callButtons: [callButton], sessions: inCallSessions}));
+
+        const button = screen.getByRole('button', {name: 'In call'});
+        expect(button).toHaveAttribute('aria-pressed', 'true');
+        expect(button).not.toHaveAttribute('aria-haspopup');
+        expect(screen.queryByRole('button', {name: 'Start call'})).not.toBeInTheDocument();
+
+        await userEvent.click(button);
+
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        expect(callButton.action).not.toHaveBeenCalled();
+    });
+
+    test('prefers the plugin\'s own in-call state over sessions', () => {
+        const ringing = makeStartMenuCallButton(false, {isInCall: () => true});
+        const {unmount} = renderButton(ringing, makeState({callButtons: [ringing]}));
+        expect(screen.getByRole('button', {name: 'In call'})).toBeInTheDocument();
+        unmount();
+
+        const notInCall = makeStartMenuCallButton(false, {isInCall: () => false});
+        renderButton(notInCall, makeState({callButtons: [notInCall], sessions: inCallSessions}));
+        expect(screen.getByRole('button', {name: 'Start call'})).toBeInTheDocument();
+    });
+
+    test('moves focus to the In call button when a call starts while the Start call button has focus', async () => {
+        const callButton = makeStartMenuCallButton(false);
+        const {updateStoreState} = renderButton(callButton, makeState({callButtons: [callButton]}));
+        screen.getByRole('button', {name: 'Start call'}).focus();
+
+        updateStoreState(makeState({callButtons: [callButton], sessions: inCallSessions}));
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'In call'})).toHaveFocus());
     });
 });

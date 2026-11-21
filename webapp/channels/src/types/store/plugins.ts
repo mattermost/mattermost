@@ -267,11 +267,19 @@ export type PhoneCallRequest = {
     fieldId: string;
 };
 
+export type CallLinkTarget = {
+    userId: string;
+    channel?: Channel;
+};
+
 export type CallButtonAction = PluginComponent & {
     button: React.ReactNode;
     dropdownButton: React.ReactNode;
     action: (channel?: Channel | null, member?: ChannelMembership) => void;
     phoneAction?: (call: PhoneCallRequest) => void;
+    copyCallLinkAction?: (target: CallLinkTarget) => void;
+    callSettingsAction?: () => void;
+    isInCall?: (state: GlobalState, channelId: string) => boolean;
 };
 
 export type MobileChannelHeaderButtonAction = PluginComponent & {

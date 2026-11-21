@@ -147,7 +147,7 @@ export function WithTooltip({
         ],
     });
 
-    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, prefersReducedMotion() ? REDUCED_MOTION_TRANSITION_STYLE_PROPS : TRANSITION_STYLE_PROPS);
 
     const hover = useHover(floatingContext, {
         restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
@@ -218,3 +218,12 @@ const TRANSITION_STYLE_PROPS = {
     },
     initial: OverlayTransitionStyles.START,
 };
+
+const REDUCED_MOTION_TRANSITION_STYLE_PROPS = {
+    ...TRANSITION_STYLE_PROPS,
+    duration: 0,
+};
+
+function prefersReducedMotion() {
+    return typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+}

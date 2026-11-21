@@ -1,5 +1,33 @@
 // The profile popover's overlay sits above menus, so its call menu has to sit above the overlay
 // or clicks on the menu land on the overlay and close the popover instead.
-.MuiPopover-root:has(#profilePopoverCallOptionsMenu) {
+.MuiPopover-root:has(#profilePopoverCallOptionsMenu),
+.MuiPopover-root:has(#profilePopoverStartCallMenu) {
     z-index: calc(var(--z-index-popover) + 1);
+}
+
+.DMCallButton {
+    display: inline-flex;
+}
+
+// Compass IconButton is square; this one holds a phone and a chevron.
+button.StartCallMenuButton {
+    width: auto;
+
+    &[aria-expanded='true'] .StartCallMenuButton__chevron {
+        transform: rotate(180deg);
+    }
+}
+
+.StartCallMenuButton__chevron {
+    margin-left: 2px;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: transform 150ms ease-in-out;
+    }
+}
+
+// green-600 keeps at least 3:1 contrast against the header on light and dark themes.
+.InCallButton__icon {
+    display: inline-flex;
+    color: var(--color-green-600);
 }
