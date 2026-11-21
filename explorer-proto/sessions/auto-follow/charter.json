@@ -1,0 +1,303 @@
+{
+  "schema": "explorer-journey-charter/v1",
+  "qualifies": true,
+  "qualifies_reason": "No Cypress or Playwright test turns on the per-channel thread auto-follow preference, and none asserts that a thread started by someone else then appears in a non-participant's followed-thread list (UI or REST). The journey still qualifies. The requested negative control does not work on 12.1.0 (see negative_controls). Evidence: explorer-proto/sessions/auto-follow/QA-NOTES.md.",
+  "journey_id": "channels.notifications:auto-follow-new-threads",
+  "feature_id": ["discovery.notifications", "messages.threads"],
+  "lane": "Browser",
+  "target_release": {
+    "server": "mattermost/mattermost-enterprise-edition:12.1.0 (licensed; explorer-proto/infra/docker-compose.yml)",
+    "source_tag": "v12.1.0",
+    "license_dependency": "None asserted. The code paths read for this journey have no license check: the modal section (webapp channel_notifications_modal.tsx:438-453) and the server auto-follow block (server/channels/app/notification.go:251-287). The doc page carries a PlanAvailability 'all-commercial' badge (manage-your-channel-specific-notifications.mdx:8), but the pilot asserts no licensed behavior."
+  },
+  "goal": "I want to follow every new thread my teammates start in the Incidents channel without having to follow each one by hand, so that new threads show up in my threads list and I can open one and read the replies.",
+  "consequence": "If this breaks, replies in new incident threads never reach Bea's followed-thread list. She misses the update while the teammate assumes she saw it.",
+  "actors": [
+    {"id": "bea", "persona": "Bea, regular team member who is on call and wants every new incident thread in her threads list", "role": "member", "ui": true},
+    {"id": "abe", "persona": "Abe, regular team member who starts an incident thread. His posts are a REST teammate event, not a UI journey", "role": "member", "ui": false}
+  ],
+  "fixture": {
+    "owner": "One declaration consumed by both the runner's fixture factory and the spec emitter. Created through the REST API by the lib default admin (PW_ADMIN_USERNAME), except the Bea-scoped calls marked 'as bea'.",
+    "fresh_per_replay": "Every replay of every candidate path starts from a newly created fixture: new team, new users, new channels and new preferences. Fixtures are never reused or reset, because the saved preference and the event's posts persist on the server across browser contexts.",
+    "slug_rule": "One fresh lowercase alphanumeric slug per fixture (the lib's pw.random.id(), 7 characters), used only in team name, channel names, usernames and emails. It never appears in display names, first or last names, or message text, so every accessible name and expected string below stays fixed.",
+    "server_preconditions": {
+      "how": "Read-only: GET /api/v4/config as admin before creating the fixture (route api4/config.go:35). The fixture never patches config. Abort as a setup failure if a value differs.",
+      "expect": {
+        "ServiceSettings.ThreadAutoFollow": true,
+        "ServiceSettings.CollapsedThreads": "always_on or default_on",
+        "TeamSettings.LockTeammateNameDisplay": false
+      },
+      "source": "Defaults ThreadAutoFollow=true and CollapsedThreads=always_on (server/public/model/config.go:1011-1016). LockTeammateNameDisplay must be false so Bea's name_format preference applies (mattermost-redux selectors/entities/preferences.ts:98-111). explorer-proto/infra/docker-compose.yml sets no MM_ override for any of these keys."
+    },
+    "team": {
+      "name_template": "team-{slug}",
+      "type": "O",
+      "display_name": "Assigned by the lib's createNewTeam (pw.initSetup default). Not asserted anywhere."
+    },
+    "actors": [
+      {
+        "id": "bea",
+        "first_name": "Bea",
+        "last_name": "Okafor",
+        "username_template": "bea{slug}",
+        "email_template": "bea{slug}@sample.mattermost.com",
+        "password": "Generated per fixture by the lib (newTestPassword). Kept in memory only, never printed, logged or written to a trace.",
+        "roles": "system_user; team_user in the fixture team",
+        "team_member": true
+      },
+      {
+        "id": "abe",
+        "first_name": "Abe",
+        "last_name": "Lindqvist",
+        "username_template": "abe{slug}",
+        "email_template": "abe{slug}@sample.mattermost.com",
+        "password": "Generated per fixture by the lib. Kept in memory only.",
+        "roles": "system_user; team_user in the fixture team",
+        "team_member": true
+      }
+    ],
+    "channels": [
+      {"key": "incidents", "name_template": "incidents-{slug}", "display_name": "Incidents", "type": "public", "api_type": "O", "members": ["bea", "abe"], "seeded_posts": "None. Only the system join/add posts the server creates when members are added. No user post exists before the event."},
+      {"key": "lounge", "name_template": "lounge-{slug}", "display_name": "Lounge", "type": "public", "api_type": "O", "members": ["bea", "abe"], "seeded_posts": "None. This channel exists only to show that the preference is per channel."}
+    ],
+    "channel_member_notify_props": "Untouched. Both of Bea's memberships keep the server default channel_auto_follow_threads 'off' (server/public/model/channel_member.go:302-310). The read-back must show that neither is 'on' before the session starts.",
+    "preferences": [
+      {"actor": "bea", "category": "display_settings", "name": "collapsed_reply_threads", "value": "on", "why": "Insurance: keeps Collapsed Reply Threads on for Bea even if the server default were default_on (preferences.ts:243-284)."},
+      {"actor": "bea", "category": "display_settings", "name": "name_format", "value": "full_name", "why": "Makes the author in followed-thread rows the fixed full name instead of the slugged username (thread_item/index.ts:35; user_utils.ts displayUsername :25-46)."},
+      {"actor": "bea", "category": "tutorial_step", "name": "{actor.bea.id}", "value": "999", "why": "Onboarding overlay off (same keys as e2e-tests/playwright/lib/src/server/user.ts:31-39 and explorer-proto/infra/scripts/api.mjs:76-82)."},
+      {"actor": "bea", "category": "crt_thread_pane_step", "name": "{actor.bea.id}", "value": "999", "why": "Same lib key set. v12.1.0 webapp has no reader for it; it is kept only for parity."},
+      {"actor": "bea", "category": "onboarding_task_list", "name": "onboarding_task_list_show", "value": "false", "why": "Task list overlay off."},
+      {"actor": "bea", "category": "onboarding_task_list", "name": "onboarding_task_list_open", "value": "false", "why": "Task list overlay off."}
+    ],
+    "viewed_last": "After every membership and preference write, as bea: POST /api/v4/channels/members/me/view with {channel_id, prev_channel_id: ''} for lounge, then for incidents. Afterwards both channels must have msg_count and mention_count 0, so neither sidebar link name carries the ' unread' suffix (sidebar_channel_link.tsx:133-156). No post or membership change may follow the view calls.",
+    "fixed_strings": {
+      "root": "Pilot incident 42: database failover started",
+      "reply": "Failover complete, replicas healthy"
+    },
+    "endpoints_v12_1_0": {
+      "create_team": "POST /api/v4/teams (api4/team.go:31)",
+      "create_user": "POST /api/v4/users (api4/user.go:30)",
+      "patch_user_names": "PUT /api/v4/users/{user_id}/patch with {first_name, last_name} (api4/user.go:47)",
+      "add_team_member": "POST /api/v4/teams/{team_id}/members (api4/team.go:56)",
+      "create_channel": "POST /api/v4/channels with {team_id, name, display_name, type: 'O'} (api4/channel.go:57)",
+      "add_channel_member": "POST /api/v4/channels/{channel_id}/members (api4/channel.go:115)",
+      "save_preferences": "PUT /api/v4/users/{user_id}/preferences as bea (api4/preference.go:18)",
+      "view_channel": "POST /api/v4/channels/members/me/view as bea (api4/channel.go:62)",
+      "read_channel_member": "GET /api/v4/channels/{channel_id}/members/{user_id} (api4/channel.go:118)",
+      "ui_writes_notify_props_via": "PUT /api/v4/channels/{channel_id}/members/{user_id}/notify_props (api4/channel.go:122). This is observed as a result only; the runner never calls it.",
+      "user_login": "POST /api/v4/users/login, used by abe's own REST client (api4/user.go:69)",
+      "create_post": "POST /api/v4/posts with {channel_id, message[, root_id]} (api4/post.go:25)",
+      "read_post": "GET /api/v4/posts/{post_id} (api4/post.go:26); GET /api/v4/posts/{post_id}/thread (api4/post.go:31)",
+      "read_followed_threads": "GET /api/v4/users/{user_id}/teams/{team_id}/threads (api4/user.go:111, handler :3981; store filter ThreadMemberships.Following = true, sqlstore/thread_store.go:311)"
+    },
+    "read_back": "Before the session starts: (1) both channels list bea and abe as members; (2) neither of Bea's memberships has channel_auto_follow_threads 'on'; (3) Bea's six preferences above are stored; (4) the incidents channel has no post of type '' (user post); (5) GET .../threads for Bea in the team returns zero threads. Any mismatch is a setup failure."
+  },
+  "start": {
+    "actor": "bea",
+    "start_path": "/{team.name}/channels/town-square",
+    "sign_in": "Framework login for bea (TestBrowser.login -> loginByAPI) inside the guarded context. The fixture never visits the incidents channel through the UI.",
+    "why_this_path": "pw.initSetup() returns townSquareUrl = /{team}/channels/town-square (e2e-tests/playwright/lib/src/server/init.ts:58-59,79-80). channelsPage.goto() without arguments loads '/', whose landing depends on the server's redirect, so the explicit path is the deterministic default. At start Bea has never opened incidents or lounge in the UI."
+  },
+  "action_rules": {
+    "scope_note": "General policy for any journey in the channel notifications and message-threading feature area. It names no control that a particular journey needs.",
+    "roles_in_play": ["button", "link", "menuitem", "menuitemcheckbox", "menuitemradio", "checkbox", "radio", "switch", "tab"],
+    "roles_excluded": {
+      "roles": ["textbox", "searchbox", "combobox", "listbox", "option", "slider", "spinbutton"],
+      "why": "These need typed or continuous input, which the runner does not produce."
+    },
+    "key_actions": {
+      "allowed": ["Escape"],
+      "why": "Escape only dismisses an open menu, popover or dialog. No other key action is in play."
+    },
+    "regions_in_play": [
+      "Left sidebar: team sidebar navigation, its channel and view links, and its category and channel controls with their menus",
+      "Channel header, with its menus and submenus",
+      "Right-hand panels opened in-app",
+      "Modal dialogs: see modal_policy",
+      "Center pane of any in-app view under /{team.name}/: the channel post list and its per-post controls, list views, and their detail panes. The message composer is excluded"
+    ],
+    "regions_excluded": [
+      {"region": "Global header: product switcher, global search, recent mentions, saved items, account and status menu, global settings, help", "why": "These are workspace-wide surfaces outside channel-scoped journeys. The account menu holds sign-out. Global settings can switch off account-wide display preferences that the fixture sets as preconditions."},
+      {"region": "Message composer: text box, formatting toolbar, emoji, attachment, priority, schedule and send controls", "why": "Content authoring is not part of the actor's journeys here because typing is out of scope. Without typed text these controls only open formatting popovers, and they roughly double the branching of every channel view."}
+    ],
+    "excluded_name_patterns": {
+      "match": "Case-insensitive, whole word, on the accessible name.",
+      "patterns": [
+        {"pattern": "\\bdelete\\b|\\bremove\\b|\\barchive\\b|\\bunarchive\\b|\\bdeactivate\\b", "why": "Destructive or irreversible changes to shared objects."},
+        {"pattern": "\\bleave\\b", "why": "Ends membership, which removes the actor from the fixture."},
+        {"pattern": "\\blog ?out\\b|\\bsign ?out\\b", "why": "Ends the session."},
+        {"pattern": "\\bhelp\\b|\\breport\\b", "why": "Help opens documentation (often off-origin). Report opens a moderation flow."},
+        {"pattern": "\\bnew window\\b|\\bpop ?out\\b", "why": "Opens a separate browsing context that the runner does not observe."},
+        {"pattern": "\\bcopy\\b|\\bdownload\\b|\\bexport\\b", "why": "Writes to the clipboard or the file system, outside the observed app state."},
+        {"pattern": "\\bedit\\b|\\brename\\b|\\bconvert\\b", "why": "Changes names, content or channel type that fixture-derived names depend on."},
+        {"pattern": "^(follow|following|unfollow)$|\\bmark as unread\\b", "why": "Per-item subscription and read-state toggles change subscription state directly (marking a thread unread also follows it: Cypress following_spec.ts:96). A path that uses them would make a preference-driven outcome self-fulfilling, so no notification or message-threading journey may use them."}
+      ]
+    },
+    "origin_rule": "Exclude any link whose resolved href is outside the app origin, or that has target=_blank. The exact-origin guard aborts off-origin traffic anyway.",
+    "path_scope_rule": "If an action leaves the /{team.name}/ path prefix (another team, team creation, the System Console, another product), the runner records the resulting state and does not expand it.",
+    "uniqueness": "A candidate is actuated only by exact role plus exact accessible name, and only if that pair resolves to exactly one visible, enabled element at click time: within the topmost open dialog when one is open, otherwise on the page. Ambiguous (more than one) or missing candidates are skipped and recorded with the reason. Never fall back to a partial name, an index or a CSS locator.",
+    "modal_policy": "While a modal dialog is open, only controls inside the topmost dialog are candidates, and every actuation inside it counts as an action. The dialog can be left with Escape or with the dialog's own close or cancel control. The same exclusions apply inside dialogs.",
+    "enumeration": "Candidates come only from the live accessibility snapshot of the current state, after the rules above. They are never taken from this charter, a prior trace or a reference path."
+  },
+  "goal_terms": {
+    "derive_from": "goal",
+    "stopwords": ["i", "want", "to", "the", "a", "an", "my", "me", "so", "that", "and", "or", "of", "in", "on", "for", "by", "it", "one", "each", "every", "without", "having", "can", "up", "show", "new"]
+  },
+  "checkpoints": [
+    {
+      "id": "C1",
+      "kind": "rest",
+      "description": "Bea's per-channel thread auto-follow preference is on for incidents and not on for lounge.",
+      "predicate": {
+        "poll": "Read as admin after every action and at the end of the session.",
+        "all": [
+          {"request": "GET /api/v4/channels/{channel.incidents.id}/members/{actor.bea.id}", "field": "notify_props.channel_auto_follow_threads", "equals": "on"},
+          {"request": "GET /api/v4/channels/{channel.lounge.id}/members/{actor.bea.id}", "field": "notify_props.channel_auto_follow_threads", "not_equals": "on", "absent_counts_as": "off"}
+        ]
+      },
+      "source": "Doc: manage-your-channel-specific-notifications.mdx:15 (Auto-follow all new threads) and :22 (per-channel entry, web). Source: modal checkbox value and change handler (channel_notifications_modal.tsx:286-288, test id autoFollowThreads in utils.tsx:39-42); prop name and values (model/channel_member.go:25-27, validated :241-243, :298-300); default off (:302-310). Seed: both memberships start not 'on'."
+    },
+    {
+      "id": "C2",
+      "kind": "rest",
+      "description": "Abe's root and reply exist in incidents, the reply is in the root's thread, and neither post mentions Bea.",
+      "predicate": {
+        "all": [
+          {"request": "GET /api/v4/posts/{event.E1.root_id}", "expect": {"channel_id": "{channel.incidents.id}", "user_id": "{actor.abe.id}", "root_id": "", "message": "{fixture.fixed_strings.root}"}},
+          {"request": "GET /api/v4/posts/{event.E1.reply_id}", "expect": {"channel_id": "{channel.incidents.id}", "user_id": "{actor.abe.id}", "root_id": "{event.E1.root_id}", "message": "{fixture.fixed_strings.reply}"}},
+          {"request": "GET /api/v4/posts/{event.E1.root_id}/thread", "expect": {"order_length": 2}},
+          {"no_mention": "Neither message contains '@', Bea's username or 'Bea'."}
+        ]
+      },
+      "source": "Seed: fixed_strings. Source: the auto-follow block runs only for a reply (post.RootId != '') when ThreadAutoFollow is on (notification.go:251). Members whose channel_auto_follow_threads is 'on' and who are not already followers become thread participants (:281-287). The block is skipped in DMs (:281) and respects an explicit unfollow (:306-318). Without a mention, Bea can follow only through this branch."
+    },
+    {
+      "id": "C3",
+      "kind": "ui",
+      "description": "Bea's followed-thread list shows the thread Abe started, with its root text.",
+      "predicate": {
+        "observed_after": "E1 completed (C2 true)",
+        "url_path_matches": "^/{team.name}/threads(/[A-Za-z0-9]+)?$",
+        "snapshot": {
+          "all": [
+            {"role": "tab", "name": "Followed threads", "match": "exact", "selected": true, "count": 1},
+            {"role": "tabpanel", "contains": {"role": "link", "name": "Thread by Abe Lindqvist", "match": "exact", "count": 1, "subtree_text_contains": "{fixture.fixed_strings.root}"}},
+            {"text": "No followed threads yet", "count": 0}
+          ]
+        },
+        "accessible_name_note": "In v12.1.0 a thread row is role=link with aria-label 'Thread by {author}' (thread_item.tsx:214-218; en.json threading.threadItem.ariaLabel). The aria-label overrides content, so the root text is NOT in the row's accessible name. It is rendered as text inside the row's preview (thread_item.tsx:280-297), so the predicate checks the row's subtree text. The author is Abe's full name because of Bea's name_format preference. The list container is role=tabpanel, id threads-list, data-testid threads_list (thread_list.tsx:262-267). 'Followed threads' is role=tab inside a role=tablist labelled 'Filter visible threads' (thread_list.tsx:196-216, useTabs :295, roles :333-343). The Header widget defaults to level 0, so it is NOT a heading element (widgets/header/header.tsx:19-35).",
+        "report_live": "Source-derived, not live-verified. In every state whose URL path matches, the run must REPORT: the exact live name and attributes of every role=tab node; the live name of every role=link node inside the tabpanel; and how the snapshot renders the row's subtree (whether the root text appears as child text of the link). If the snapshot does not expose child text under a link that has an aria-label, the emitter must stop and report it. It must not weaken the predicate."
+      },
+      "source": "Doc: mdx:72 ('access all threads you're following'). Source: heading text 'Followed threads' and empty state 'No followed threads yet' (v12.1.0 webapp/channels/src/i18n/en.json globalThreads.heading :23783, globalThreads.noThreads.title :23791); route /:team/threads/:threadIdentifier? (global_threads_link.tsx:42, :83); list content comes from the following-only thread list (thread_store.go:311). Seed: root text and Abe's full name."
+    },
+    {
+      "id": "C4",
+      "kind": "ui",
+      "description": "With that thread opened in the followed-thread view, Bea sees the reply.",
+      "predicate": {
+        "observed_after": "E1 completed (C2 true)",
+        "url_path_equals": "/{team.name}/threads/{event.E1.root_id}",
+        "snapshot": {
+          "all": [
+            {"role": "heading", "level": 3, "name_contains": "Thread", "count": 1},
+            {"text_contains": "{fixture.fixed_strings.reply}", "count_at_least": 1},
+            {"text_contains": "{fixture.fixed_strings.root}", "count_at_least": 1}
+          ]
+        },
+        "accessible_name_note": "The thread pane header is an h3 holding the text 'Thread' and a button with the channel display name (thread_pane.tsx:120-134). The reply is rendered by the thread viewer inside the pane (global_threads.tsx:196-205). With Collapsed Reply Threads on, the channel view does not render replies, so the reply text identifies a thread view. The URL path ties it to this pane.",
+        "report_live": "REPORT the live h3 name (expected to start with 'Thread', followed by 'Incidents') and the live name of the pane's follow toggle (expected 'Following', en.json threading.following). Both are reported for evidence only and are not asserted."
+      },
+      "source": "Doc: mdx:72. Source: thread_pane.tsx:110-162; route global_threads.tsx:52, :98-101. Seed: reply text."
+    },
+    {
+      "id": "FINAL",
+      "kind": "rest",
+      "description": "Independently of the UI, Bea's followed-thread list for the team contains Abe's root.",
+      "predicate": {
+        "request": "GET /api/v4/users/{actor.bea.id}/teams/{team.id}/threads, sent with Bea's own REST session",
+        "expect": {
+          "threads[].id": {"contains": "{event.E1.root_id}"},
+          "thread[id={event.E1.root_id}].post.channel_id": "{channel.incidents.id}",
+          "thread[id={event.E1.root_id}].reply_count": 1
+        }
+      },
+      "source": "Source: route api4/user.go:111, handler :3981-4065; the store lists only ThreadMemberships.Following = true (thread_store.go:311). Server unit test TestChannelAutoFollowThreads (notification_test.go:3244, Following asserted at :3282) covers the same branch at app level, without UI or REST."
+    }
+  ],
+  "events": [
+    {
+      "id": "E1",
+      "trigger": {"checkpoint": "C1", "when": "the first time C1 is true in a replay"},
+      "actor": "abe",
+      "via": "abe's own REST client (password login), never Abe's UI and never the admin",
+      "action": "post_thread",
+      "params": {"channel": "incidents", "root": "{fixture.fixed_strings.root}", "reply": "{fixture.fixed_strings.reply}"},
+      "ordering": "root then reply",
+      "requests": [
+        "POST /api/v4/posts {channel_id: {channel.incidents.id}, message: root}; expect 201, store id as event.E1.root_id",
+        "POST /api/v4/posts {channel_id: {channel.incidents.id}, message: reply, root_id: event.E1.root_id}; expect 201, store id as event.E1.reply_id"
+      ],
+      "constraints": "Posts go only to incidents. Message text is exactly as given, with no random suffix, no props and no mention. The event fires at most once per replay. The runner waits until C2 is true before taking the next action. Any non-201 response is an event failure, never a product finding.",
+      "result_checkpoint": "C2",
+      "disclosure": "Every report and emitted spec must state that this stimulus is posted over REST by Abe's client and not through Abe's UI."
+    }
+  ],
+  "success_criteria": {
+    "qualifies_when": "C1 AND C2 AND C3 AND C4 AND FINAL",
+    "ordering": "E1 fires only after C1 is first observed true. C3 and C4 count only if observed in a state reached after E1 completed. C1 must still hold at the end of the path (lounge still not 'on'). FINAL is read after the last UI action.",
+    "path_conditions": "Every action on the path follows action_rules: allowed role, allowed region, no excluded name pattern, exact name, unique at click time. The path must start at start.start_path on a fresh fixture. A replay counts only if it reproduces C1, C2, C3, C4 and FINAL on its own fresh fixture.",
+    "selection": "Among qualifying paths, the emitter picks the one with the fewest actions, then the lexicographically smallest action sequence (per step: accessible name, then role)."
+  },
+  "budget": {
+    "max_actions": 240,
+    "max_depth": 9,
+    "max_states": 200,
+    "max_replays": 260,
+    "wall_clock_seconds": 3600
+  },
+  "budget_semantics": "max_actions counts candidate actions executed as the final step of a replay (one expansion each). max_replays counts every fresh-fixture replay, including confirmation replays of a qualifying path. max_depth counts actions from start_path. max_states counts distinct states (URL path plus normalized snapshot). Running out of budget before success_criteria hold is a reported failure, never a pass.",
+  "negative_controls": [
+    {
+      "id": "server-thread-auto-follow-off",
+      "requested_change": "Admin: PUT /api/v4/config/patch with body {\"ServiceSettings\": {\"ThreadAutoFollow\": false}} (route api4/config.go:37, handler :279-410), and restore it to true afterwards.",
+      "feasibility": "INFEASIBLE on v12.1.0. patchConfig validates the merged config (api4/config.go:360 updatedCfg.IsValid() -> model/config.go:4568 ServiceSettings.isValid). That rejects ThreadAutoFollow=false whenever CollapsedThreads is not 'disabled' (model/config.go:5276-5277, HTTP 400, en.json 'ThreadAutoFollow must be true to enable CollapsedThreads'). With CollapsedThreads=always_on, the server keeps ThreadAutoFollow=true.",
+      "if_attempted": "Expect HTTP 400 and an unchanged config. The unchanged spec would then pass completely, which demonstrates nothing. A run that reaches the spec after a non-200 patch is a setup failure, not a control result.",
+      "paired_change_rejected": "Also setting CollapsedThreads='disabled' makes the patch valid, but it changes Bea's UI. The client then reports Collapsed Reply Threads as off (preferences.ts:275-284), which hides the threads sidebar link (global_threads_link.tsx:66) and the modal's auto-follow section (channel_notifications_modal.tsx:438). Bea's navigation would fail before C3, which breaks the 'navigation stays identical' requirement.",
+      "modal_visibility_with_flag_off": "The modal section depends only on isCollapsedThreadsEnabled (channel_notifications_modal/index.ts:21; modal :438). The client does not read ThreadAutoFollow for it. Had the patch been accepted, the checkbox would still show and could still be saved.",
+      "design_intent_if_feasible": {
+        "expected_failing": "C3: the UI assertion that the 'Followed threads' tabpanel holds the 'Thread by Abe Lindqvist' row with the root text. It is reached after Bea's whole navigation succeeded. FINAL would fail too, but the spec asserts it after C3.",
+        "expected_passing": ["C1", "E1 / C2", "Bea's navigation up to and including opening the followed-thread view"],
+        "why_single_condition": "ThreadAutoFollow gates only the server-side participant block for replies (notification.go:251). It is not read by the modal, the sidebar link or the thread list UI, so it would change only whether Bea becomes a follower.",
+        "demonstrates": "That the C3 assertion detects a missing server auto-follow behavior. It would not show that the product regresses in general."
+      },
+      "env_override_check": "explorer-proto/infra/docker-compose.yml sets no MM_SERVICESETTINGS_THREADAUTOFOLLOW or MM_SERVICESETTINGS_COLLAPSEDTHREADS.",
+      "status": "BLOCKED: needs a lead decision. No v12.1.0 setting that the admin API can reach isolates the auto-follow branch while Bea's navigation stays identical.",
+      "proposed_replacement_for_lead": "Server mutant: the same unchanged spec against a server built from v12.1.0 with only the channel auto-follow loop (notification.go:281-287) removed, using the same config and fixture factory. Expected: C3 fails, while C1, C2 and the navigation pass. Cost and caveat: it needs a server build and image outside this pilot's no-build constraint, and an open-source mutant also changes the edition unless it is built with enterprise. Not runnable until the lead approves."
+    }
+  ],
+  "dedupe": {
+    "key": "channels.notifications:auto-follow-new-threads",
+    "note": "Not equivalent to Cypress MM-T4417_1 (collapsed_reply_threads/channel_notifications_spec.ts:54): same dialog, but it never touches the auto-follow checkbox; the receiver authors the root (:124), so following comes from the author rule; final assertion is a desktop-notification spy (:136-139). Not MM-T4141_1/_3/_4 (following_spec.ts:56, :137, :172): follow by replying or by the manual footer toggle (assertions :133, :165, :200). Not MM-T4445 (global_threads_spec.ts:117): the logged-in user authored the root (:72), one ThreadItem at :135. Not Playwright MM-T568 (notifications/channel_mentions.spec.ts:9): same modal, ignore mentions, badge '3' at :40. Not threads/threads_list.spec.ts:9: the same user creates and replies. Not the modal page object (lib/src/ui/components/channels/channel_notification_preferences_modal.ts:17-21: Mute, Ignore and commit locators only). Not the server unit test TestChannelAutoFollowThreads (server/channels/app/notification_test.go:3244): app level, no UI, no REST list."
+  },
+  "constraints": [
+    "No screenshots, video or Playwright traces (explorer-proto/playwright.config.ts).",
+    "Loopback origin only, http://127.0.0.1:<port>, through the exact-origin guard. Service workers blocked.",
+    "Retries 0.",
+    "Zero LLM and zero vision. Decisions come only from live accessibility snapshots, action_rules, goal_terms and checkpoint predicates, scored by the engine's generic heuristic.",
+    "No feature flags and no per-spec server config. Server config is read only, never patched, except by an approved negative control run outside the spec.",
+    "A fresh fixture for every replay. Expected values come only from this charter, never from observed snapshots or the fixture factory's output (ids are bound as variables only).",
+    "Never print, log or store passwords, tokens, the license or session cookies. Traces hold no origin, port or ids."
+  ],
+  "known_risks": [
+    "Unread suffix: an unseen post renames a sidebar link to '<name> public channel unread' (sidebar_channel_link.tsx:152-154). The view calls must come last in the fixture. After E1 the root post makes incidents unread, so that link's name changes mid-session and the runner must re-enumerate names after the event.",
+    "Duplicate or near-duplicate names: the channel shows up as the sidebar link 'incidents public channel', the header button 'incidents channel menu', a channel tag in thread rows and a button in the thread-pane h3 ('Incidents'). Exact plus unique matching applies, and ambiguous candidates are skipped.",
+    "The dialog also contains mute and ignore-mentions checkboxes plus desktop and mobile radios. Branches may toggle them. Muting does not change the auto-follow branch, but it changes the channel's sidebar appearance.",
+    "Collapsed Reply Threads must actually be on for Bea (server precondition plus preference). Otherwise the auto-follow section and the threads sidebar link do not render.",
+    "WebSocket timing: the followed-thread list updates live after the reply, or on navigation through a fetch. The replay must use auto-waiting expects, not snapshot timing.",
+    "Search budget: the needed preference sits behind controls whose names share no word with the goal, so discovery there relies on novelty. The heuristic may also over-explore the followed-thread view (strong lexical overlap) before C1 holds.",
+    "Goal-wording bias: the goal shares words with the target checkbox label and the threads link. See QA-NOTES.md.",
+    "Thread row accessible name is 'Thread by <author>', not the root text. C3 depends on the snapshot exposing the row's child text, which the run must report.",
+    "System join/add posts exist in both channels from the membership calls, but they have no replies and no follow control.",
+    "First use of the explorer with a fixture factory, REST-triggered events, a heuristic search, REST checkpoints and modal dialogs. The current engine (src/charter.ts:14) accepts only explorer-session-charter/v1, so journey mode is new engine work."
+  ]
+}
