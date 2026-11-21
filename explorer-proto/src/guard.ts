@@ -9,6 +9,16 @@ export type GuardMode = 'exploration' | 'replay';
 type Channel = 'http' | 'redirect' | 'websocket';
 
 const MAX_REDIRECT_HOPS = 5;
+const CLOSE_DRAIN_MS = 2000;
+
+// Messages Playwright raises when a context is torn down under a running handler. They are benign only
+// while the session is closing; anywhere else they are violations.
+const TEARDOWN_ERRORS = [
+    'Fetch response has been disposed',
+    'Request context disposed',
+    'Target page, context or browser has been closed',
+    'Route is already handled',
+];
 
 /** Port-free description of why a URL is outside the allowed origin. */
 export function classifyTarget(url: string, allowedOrigin: string): string {
@@ -58,9 +68,25 @@ export class GuardLedger {
     readonly mode: GuardMode;
     readonly blocked: LedgerEntry[] = [];
     readonly violations: string[] = [];
+    readonly inFlight = new Set<Promise<void>>();
+    closing = false;
+    teardownAborted = 0;
 
     constructor(mode: GuardMode) {
         this.mode = mode;
+    }
+
+    handlerError(error: unknown) {
+        const message = String(error instanceof Error ? error.message : error).split('\n')[0];
+        this.violations.push(
+            `${this.mode}: route handler error: ${message.replace(/https?:\/\/[^\s/]+/g, '<origin>')}`,
+        );
+    }
+
+    /** Errors are benign only when the session is closing and the message is a known teardown message. */
+    isTeardownError(error: unknown): boolean {
+        const message = String(error instanceof Error ? error.message : error);
+        return this.closing && TEARDOWN_ERRORS.some((m) => message.includes(m));
     }
 
     block(channel: Channel, target: string, resourceType: string) {
@@ -98,12 +124,27 @@ function redirectTarget(response: APIResponse, from: string): string | null {
  * Redirect hops are not passed to route handlers, so a same-origin 3xx is only handed back to the
  * browser after every later hop has been fetched here and found to stay on the allowed origin.
  */
+/** Once the session is closing no new fulfil is admitted: the request is aborted and counted instead. */
+async function refuseWhileClosing(route: Route, ledger: GuardLedger): Promise<boolean> {
+    if (!ledger.closing) {
+        return false;
+    }
+    ledger.teardownAborted++;
+    await route.abort('aborted');
+    return true;
+}
+
 async function guardAllowedRequest(route: Route, context: BrowserContext, allowedOrigin: string, ledger: GuardLedger) {
     const request = route.request();
+    if (await refuseWhileClosing(route, ledger)) {
+        return;
+    }
     const response = await route.fetch({maxRedirects: 0});
     let next = redirectTarget(response, request.url());
     if (!next) {
-        await route.fulfill({response});
+        if (!(await refuseWhileClosing(route, ledger))) {
+            await route.fulfill({response});
+        }
         return;
     }
 
@@ -120,7 +161,29 @@ async function guardAllowedRequest(route: Route, context: BrowserContext, allowe
         await hopResponse.dispose();
         next = following;
     }
-    await route.fulfill({response});
+    if (!(await refuseWhileClosing(route, ledger))) {
+        await route.fulfill({response});
+    }
+}
+
+async function handleRoute(route: Route, context: BrowserContext, allowedOrigin: string, ledger: GuardLedger) {
+    const request = route.request();
+    const url = request.url();
+    if (url.startsWith('data:') || url.startsWith('blob:')) {
+        if (isAllowedHttpUrl(url, allowedOrigin)) {
+            await route.fallback();
+        } else {
+            ledger.block('http', 'other-origin-blob', request.resourceType());
+            await route.abort('blockedbyclient');
+        }
+        return;
+    }
+    if (!isAllowedHttpUrl(url, allowedOrigin)) {
+        ledger.block('http', classifyTarget(url, allowedOrigin), request.resourceType());
+        await route.abort('blockedbyclient');
+        return;
+    }
+    await guardAllowedRequest(route, context, allowedOrigin, ledger);
 }
 
 /** Must run on a context before it has any page, i.e. before any navigation can happen. */
@@ -129,31 +192,21 @@ export async function installGuard(context: BrowserContext, allowedOrigin: strin
         throw new Error('Guard must be installed before the context opens a page.');
     }
 
-    await context.route('**/*', async (route) => {
-        const request = route.request();
-        const url = request.url();
-        if (url.startsWith('data:') || url.startsWith('blob:')) {
-            if (isAllowedHttpUrl(url, allowedOrigin)) {
-                await route.fallback();
-            } else {
-                ledger.block('http', 'other-origin-blob', request.resourceType());
-                await route.abort('blockedbyclient');
+    // Every handler is tracked so teardown can wait for it; its errors are classified, never rethrown
+    // into Playwright, and anything that is not provably teardown-caused fails the session on close.
+    await context.route('**/*', (route) => {
+        const handled = handleRoute(route, context, allowedOrigin, ledger).catch(async (error) => {
+            if (ledger.isTeardownError(error)) {
+                ledger.teardownAborted++;
+                return;
             }
-            return;
-        }
-        if (!isAllowedHttpUrl(url, allowedOrigin)) {
-            ledger.block('http', classifyTarget(url, allowedOrigin), request.resourceType());
-            await route.abort('blockedbyclient');
-            return;
-        }
-        try {
-            await guardAllowedRequest(route, context, allowedOrigin, ledger);
-        } catch (error) {
-            // The page or context closed while the request was in flight.
-            if (!String(error).includes('closed')) {
-                throw error;
-            }
-        }
+            ledger.handlerError(error);
+            // Do not leave the request hanging; the violation above already fails the session.
+            await route.abort('failed').catch(() => undefined);
+        });
+        ledger.inFlight.add(handled);
+        handled.finally(() => ledger.inFlight.delete(handled));
+        return handled;
     });
 
     await context.routeWebSocket(
@@ -201,6 +254,27 @@ export function guardedBrowser(browser: Browser, allowedOrigin: string, ledger: 
             return typeof value === 'function' ? value.bind(target) : value;
         },
     });
+}
+
+async function settleHandlers(ledger: GuardLedger) {
+    let timer: NodeJS.Timeout | undefined;
+    const bound = new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, CLOSE_DRAIN_MS);
+    });
+    await Promise.race([Promise.allSettled([...ledger.inFlight]), bound]);
+    clearTimeout(timer);
+}
+
+/** Marks the session closing, lets in-flight handlers finish (bounded), closes, then lets late ones settle. */
+export async function closeWithGuard(ledger: GuardLedger, close: () => Promise<void>) {
+    ledger.closing = true;
+    await settleHandlers(ledger);
+    await close();
+    await settleHandlers(ledger);
+}
+
+export async function closeGuardedContext(context: BrowserContext, ledger: GuardLedger) {
+    await closeWithGuard(ledger, () => context.close());
 }
 
 /** Origins of every open page; used to fail a run whose final URL left the allowed origin. */

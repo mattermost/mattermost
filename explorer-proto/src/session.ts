@@ -5,7 +5,7 @@ import {TestBrowser, testConfig} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {GuardLedger, foreignPageOrigins, guardedBrowser} from './guard.ts';
+import {GuardLedger, closeWithGuard, foreignPageOrigins, guardedBrowser} from './guard.ts';
 import type {GuardMode} from './guard.ts';
 import {allowedOrigin, seededUser} from './manifest.ts';
 
@@ -44,7 +44,9 @@ export async function closeGuardedSession(session: Session) {
     const index = open.findIndex((entry) => entry.session === session);
     const [entry] = index >= 0 ? open.splice(index, 1) : [];
     const foreign = foreignPageOrigins(session.context, session.origin);
-    await entry?.testBrowser.close();
+    await closeWithGuard(session.ledger, async () => {
+        await entry?.testBrowser.close();
+    });
     const problems = [...session.ledger.violations, ...foreign.map((t) => `final page URL is ${t}`)];
     if (problems.length > 0) {
         throw new Error(`Network guard violations: ${problems.join('; ')}`);

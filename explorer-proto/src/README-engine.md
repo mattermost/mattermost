@@ -7,6 +7,7 @@ node explorer-proto/src/cli.ts explore      [--out=<dir>]   # bounded BFS -> <di
 node explorer-proto/src/cli.ts emit         [--out=<dir>]   # trace.json + scenarios.json -> <dir>/*.spec.ts, trace.md
 node explorer-proto/src/cli.ts replay       [--out=<dir>]   # runs the already-generated specs only (no explore/emit)
 node explorer-proto/src/cli.ts guard-check  [--out=<dir>]   # network guard proof -> <dir>/guard-report.md
+node explorer-proto/src/cli.ts guard-race   [--out=<dir>]   # teardown race regression (local server, no stack) -> <dir>/guard-race-report.md
 node explorer-proto/src/cli.ts probe-absence [--out=<dir>]  # absence-locator non-vacuity -> <dir>/absence-probe-<variant>.md
 ```
 
@@ -21,6 +22,11 @@ node explorer-proto/src/cli.ts probe-absence [--out=<dir>]  # absence-locator no
 - `playwright.config.ts` spreads `e2e-tests/playwright/playwright.config.ts`, keeps only the `chrome` project, skips the repo globalSetup, and selects the test dir by `EXPLORER_MODE` (`explore` and `guard-check` run `src/*.pw.ts`; `replay` runs `<dir>/*.spec.ts`).
 - `session.ts` `openGuardedSession(pw)` calls the framework's `TestBrowser.login(seeded user)` on a Browser wrapper (`guard.ts` `guardedBrowser`). The wrapper creates the context with `serviceWorkers: 'block'` and installs the guard before returning it, so the guard exists before `login()` opens its page; `login()` never navigates.
 - `guard.ts` allows exactly the manifest origin: `context.route('**/*')` aborts other origins, resolves 3xx responses itself (`route.fetch({maxRedirects: 0})`, every later hop checked) because Playwright does not route redirect hops, `context.routeWebSocket` closes WebSockets to any other origin, and a response/redirect-chain listener records escapes as violations that fail the session.
+- Handler lifecycle: every route handler promise is tracked. Closing a session marks the ledger `closing`, refuses new fulfils (abort, counted as `teardown_aborted`), waits for in-flight handlers (bounded 2 s), closes, then lets late handlers settle. A handler error is benign only while closing and only for `Fetch response has been disposed`, `Request context disposed`, `Target page, context or browser has been closed` or `Route is already handled`; any other handler error is a violation that fails `closeGuardedSession(s)`.
 - `explore.pw.ts`: roots and allowlist come from `scenarios.json`; every candidate action runs in a fresh guarded context that replays the path from the root. State key = pathname + normalized aria snapshot (`snapshot.ts`).
-- `absence_probe.pw.ts`: on the `no-archive` seed every declared absence locator must find its element (Unarchive needs `manage_team`, so it is reported UNCONFIRMED-BY-LIVE); on an archived seed each must find nothing.
+- `absence_probe.pw.ts`: on the `no-archive` seed every declared absence locator must find its element (Unarchive needs `manage_team`, which qa-user lacks, so the probe reports it as not shown present; its exact name is exercised by the coordinator's verify control with qa-user as team admin); on an archived seed each must find nothing.
 - `emit.ts`: actions and locators come from the trace; assertions come only from `scenarios.json` `expected_outcome`, checked against the observed snapshots (a disagreement stops the scenario). Matrix rows marked COVERED in `coverage.md` are skipped.
+
+## Storage state
+
+`TestBrowser.login` -> `loginByAPI` writes `<playwright root>/storage_state/<timestamp>_<user>_<password>.json` (`e2e-tests/playwright/lib/src/browser_context.ts:177,184`). The directory name is hard-coded and the root comes from walking up `process.cwd()` (`lib/src/util.ts:118-156`); there is no env var or option to relocate it, so pilot runs write to the git-ignored `e2e-tests/playwright/storage_state/` like every other spec. Cleanup is the coordinator's runner's job.

@@ -23,6 +23,7 @@ const testLocation = {
     replay: {testDir: outDir(), testMatch: '*.spec.ts', testIgnore: '**/runs/**'},
     explore: {testDir: SRC_DIR, testMatch: 'explore.pw.ts'},
     'guard-check': {testDir: SRC_DIR, testMatch: 'guard_check.pw.ts'},
+    'guard-race': {testDir: SRC_DIR, testMatch: 'guard_race.pw.ts'},
     'probe-absence': {testDir: SRC_DIR, testMatch: 'absence_probe.pw.ts'},
 }[mode];
 

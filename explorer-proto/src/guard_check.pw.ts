@@ -9,7 +9,14 @@ import path from 'node:path';
 import type {BrowserContext, Page} from '@playwright/test';
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {GuardLedger, classifyTarget, foreignPageOrigins, guardedBrowser, summarize} from './guard.ts';
+import {
+    GuardLedger,
+    classifyTarget,
+    closeGuardedContext,
+    foreignPageOrigins,
+    guardedBrowser,
+    summarize,
+} from './guard.ts';
 import {allowedOrigin} from './manifest.ts';
 import {outDir} from './paths.ts';
 import {closeGuardedSession, closeGuardedSessions, openGuardedSession} from './session.ts';
@@ -186,8 +193,10 @@ for (const mode of ['exploration', 'replay'] as const) {
             `- second server hits: http ${second.hits.http.length}, websocket upgrades ${second.hits.upgrades.length}`,
         );
         report.push(`- violations: ${ledger.violations.length}`);
-        report.push(...Object.entries(ledger.summary()).map(([k, n]) => `- blocked ${k}: ${n}`), '');
+        report.push(...Object.entries(ledger.summary()).map(([k, n]) => `- blocked ${k}: ${n}`));
         await closeGuardedSession(session);
+        report.push(`- violations after close: ${ledger.violations.length}`);
+        report.push(`- teardown_aborted (benign, teardown-caused): ${ledger.teardownAborted}`, '');
     });
 }
 
@@ -251,13 +260,15 @@ test(
         expect(second.hits.http).toEqual([]);
         expect(ledger.violations).toEqual([]);
         expect(foreignPageOrigins(context, standIn.origin)).toEqual([]);
-        await context.close();
+        await closeGuardedContext(context, ledger);
+        expect(ledger.violations).toEqual([]);
 
         report.push('## redirects (guardedBrowser with a local stand-in allowed origin)', '');
         report.push(...Object.entries(results).map(([k, v]) => `- ${k}: ${v}`));
         report.push(
             `- second server hits while guarded: ${second.hits.http.length}`,
             `- violations: ${ledger.violations.length}`,
+            `- teardown_aborted (benign, teardown-caused): ${ledger.teardownAborted}`,
         );
         report.push(...Object.entries(summarize(ledger.blocked)).map(([k, n]) => `- blocked ${k}: ${n}`), '');
     },
