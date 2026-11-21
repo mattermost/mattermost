@@ -180,7 +180,7 @@ describe('components/PostMarkdown', () => {
 
         expect(screen.getByText('No', {exact: false})).toBeInTheDocument();
         expect(groupMention).toBeInTheDocument();
-        expect(groupMention).toHaveAttribute('data-mention', 'group');
+        expect(groupMention.closest('[data-mention]')).toHaveAttribute('data-mention', 'group');
 
         expect(groupMention).not.toHaveClass('mention-link');
 
