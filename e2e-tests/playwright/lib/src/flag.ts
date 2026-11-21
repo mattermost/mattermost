@@ -21,17 +21,6 @@ export async function shouldHaveCallsEnabled(enabled = true) {
     expect(matched, matched ? '' : `Calls expect "${enabled}" but actual "${callsEnabled}"`).toBeTruthy();
 }
 
-export async function shouldHaveFeatureFlag(name: string, value: string | boolean) {
-    const {adminClient} = await getAdminClient();
-    const config = await adminClient.getConfig();
-
-    const matched = config.FeatureFlags[name] === value;
-    expect(
-        matched,
-        matched ? '' : `FeatureFlags["${name}'] expect "${value}" but actual "${config.FeatureFlags[name]}"`,
-    ).toBeTruthy();
-}
-
 export async function shouldRunInLinux() {
     const platform = os.platform();
     expect(platform, 'Run in Linux or Playwright docker image only').toBe('linux');

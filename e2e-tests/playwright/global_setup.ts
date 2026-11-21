@@ -10,6 +10,7 @@ import {
     startStack,
     stopStack,
     testConfig,
+    verifySplitMockSyncAfterBoot,
     withStackLock,
 } from '@mattermost/playwright-lib';
 
@@ -25,6 +26,7 @@ async function globalSetup() {
         const setUpServer = async () => {
             await startStack();
             await baseGlobalSetup();
+            await verifySplitMockSyncAfterBoot();
         };
         await (testConfig.useTestContainers ? withStackLock('set up the server', setUpServer) : setUpServer());
     } catch (error: unknown) {

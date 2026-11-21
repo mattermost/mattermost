@@ -1,0 +1,13 @@
+# Stand-in for the Split.io services the Mattermost server syncs feature flags from (see server.mjs).
+# No npm dependencies: server.mjs only uses Node's standard library, and openssl creates a throwaway
+# CA and certificate for the split.io hostnames when the container starts.
+FROM node:24-alpine
+
+RUN apk add --no-cache openssl
+
+WORKDIR /split-mock
+
+COPY server.mjs entrypoint.sh ./
+
+EXPOSE 443 4000
+CMD ["sh", "entrypoint.sh"]
