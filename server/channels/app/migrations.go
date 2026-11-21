@@ -1612,6 +1612,7 @@ func (s *Server) doAppMigrations() {
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		// NewServer already ran this unless post-initialization was skipped.
 		{"Import Marker Properties Setup", s.doSetupImportMarkerProperties},
 		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
 		{"Session Attributes Minimum Duration Migration", s.doSessionAttributesMinDurationMigration},

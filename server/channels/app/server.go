@@ -695,6 +695,12 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	// Import workers mark the accounts they create, so the marker field must be
+	// known before any worker can claim a job.
+	if err = s.doSetupImportMarkerProperties(); err != nil {
+		return nil, err
+	}
+
 	if s.runEssentialJobs {
 		s.runJobs()
 	}
