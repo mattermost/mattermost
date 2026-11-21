@@ -1,0 +1,352 @@
+[
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L01-glyph-prefixed-names-vacuous-absence",
+        "observation": "A live accessible name can start with an icon-font glyph, so an exact-name absence check passes whether or not the element exists. The Add People absence check in the second pilot spec could never detect presence until it matched by substring. The glyph is present on one image and absent on another.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/coverage.md"
+            },
+            {
+                "kind": "spec",
+                "ref": "explorer-proto/generated/pilot_02_mx_21.spec.ts"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/generated/absence-probe-no-archive.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/infra/INTERFACE.md"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Before an absence assertion on an exact name, run a live-name probe on a seed where the element must exist and record the probe id; otherwise match by substring or regex. Re-run the probe on every target image.",
+            "target_file": "explorer-proto/v2/agents/roles/qa-lead.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L02-soft-assertions-exceed-test-timeout",
+        "observation": "Each expect.soft that fails waits the 10 second expect timeout, so eight of them can exceed the 60 second test timeout. The run then ends in a location-less test timeout instead of failing at the named assertions. The swap-purpose-header control left the gate for this reason.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/README.md"
+            },
+            {
+                "kind": "spec",
+                "ref": "explorer-proto/generated/pilot_01_mx_05.spec.ts"
+            },
+            {
+                "kind": "spec",
+                "ref": "explorer-proto/v2/gates/fixtures/specs/conformed_pilot_01.spec.ts.txt"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/gates/README.md"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "When drafting or reviewing an emitted spec, compute worst case as soft assertion count times the expect timeout plus the longest hard wait, compare it with the test timeout, give each soft assertion a short explicit timeout, and put a hard assertion between soft groups.",
+            "target_file": "explorer-proto/v2/agents/roles/engine-owner.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L03-new-post-adds-unread-suffix",
+        "observation": "Any new post makes the channel unread for the viewer and appends the word unread to the sidebar link name, so an exact-name click then times out. A channel purpose patch posts a system message and triggers it. Replays are sensitive to unread state.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/coverage.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/README.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/infra/scripts/verify_seed.mjs"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "After every write that can post a message, mark the affected channels viewed again in the seed order and read back zero unread and zero mentions before the replay starts. A timeout on an exact-name click after a write is a setup defect, not a product finding.",
+            "target_file": "explorer-proto/v2/agents/roles/infra-owner.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L04-config-validation-blocks-negative-control",
+        "observation": "The server validates configuration patches. Turning ThreadAutoFollow off while collapsed threads stay on is refused with a 400, so the planned negative control could not run. Pairing it with a second change altered the user's navigation, which broke the control's premise. The control had to be reported blocked.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/sessions/auto-follow/QA-NOTES.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/sessions/auto-follow/charter.json"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/v2/orchestrator/lib/controls.mjs"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "When designing a negative control, read the server's validation of the setting and confirm the patch is accepted before the control is planned. If it is refused, record the control as blocked with the reason, keep it in the denominator, and send a replacement to the lead.",
+            "target_file": "explorer-proto/v2/agents/roles/qa-lead.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L05-route-in-charter-or-notes-makes-discovery-trivial",
+        "observation": "A charter or QA notes that describe the route make discovery trivial and defeat the measurement. The session charters carried an allowlist of controls, and one set of notes listed the candidate actions of the start states and the states that satisfy the predicate. The leakage checker only sees what it is given.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/sessions/bookmarks/QA-NOTES.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/bakeoff/PREREGISTRATION.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/v2/bakeoff/leakage_check.mjs"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/sessions/auto-follow/QA-NOTES.md"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Keep numbers only (depth, actions, states) in notes a discovery run could read, never action names or satisfying states. Run the leakage checker over the charter and over any note handed to a runner, and keep the minimum-depth estimate with the lead.",
+            "target_file": "explorer-proto/v2/agents/roles/qa-lead.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L06-snapshot-normalisation-must-be-seed-stable",
+        "observation": "State keys and findings must be identical across fresh seeds. Ids inside permalinks, seeded post timing, fixture slugs, unread and mention badges and presence text all differ between stacks and split one logical state into many unless they are normalised. A re-seeded stack changed the shape of ids inside a finding's evidence.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/oracles/README.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/src/README-engine.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/journey_search.ts"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Before trusting a state key, run the discovery normaliser over snapshots from two freshly seeded stacks and compare the sanitized traces byte for byte. Any difference is a normalisation defect to fix, not a new state.",
+            "target_file": "explorer-proto/v2/agents/roles/engine-owner.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L07-each-replay-needs-a-fresh-fixture",
+        "observation": "Every replay must start from a freshly created and seeded fixture, with retries off and a single worker. Reusing or resetting a stack between replays hides setup and ordering defects, and a stability count over copied or reused runs proves nothing.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/bakeoff/PREREGISTRATION.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/gates/README.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/journey_fixture.ts"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "For each replay record that the fixture was created in that replay (new team, users, channels, preferences) and keep the reports distinct. A verifier re-runs the replays itself and does not accept a count copied from a builder's report.",
+            "target_file": "explorer-proto/v2/agents/roles/independent-verifier.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L08-phantom-mention-badge-from-skipped-viewed-last",
+        "observation": "A phantom mention badge appeared in a replay when the viewed-last step was silently skipped: a UI flag was read from the wrong object, so a fixture step that should have run did not. A skipped fixture step must fail setup instead of passing unnoticed.",
+        "evidence": [
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/journey_fixture.ts"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/sessions/auto-follow/charter.json"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/src/README-engine.md"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Read back message and mention counts for the acting user after the viewed-last step and fail setup when either is not zero. Read each flag from the object that owns it, and never let a conditional skip a fixture step without a recorded reason.",
+            "target_file": "explorer-proto/v2/agents/roles/engine-owner.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L09-guard-fulfilment-blocks-websocket",
+        "observation": "Under the exact-origin guard, which answers every document itself, Chromium refused the app's WebSocket with net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS. Real-time updates were dead and every guarded run carried findings that were harness artifacts. The oracles package added a browser flag as a workaround and left the decision to the engine owner.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/oracles/README.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/v2/oracles/playwright.config.ts"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/guard.ts"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "At the start of a guarded run confirm that the app's WebSocket connects and receives a frame. If it does not, classify every WebSocket finding as a harness artifact and state which browser flag was used, until the engine owner decides how the guard serves documents.",
+            "target_file": "explorer-proto/v2/agents/roles/triage.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L10-containment-for-plain-specs-cannot-filter-ports",
+        "observation": "A plain repo-native spec builds its own browser context, so the explorer's guard cannot be injected. Host-resolver rules block external hosts and every name except the literal loopback address, but they cannot filter by port, so a second loopback origin on another port stays reachable. The containment report states this residual gap.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/sessions/auto-follow/generated/guard-journey-report.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/src/README-engine.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/journey_containment.ts"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Report the residual port gap with every plain-spec result and do not claim full containment. Count the containment evidence as engine-only until the producing run attests the spec and config it ran with.",
+            "target_file": "explorer-proto/v2/agents/roles/independent-verifier.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L11-coverage-index-recall-is-low",
+        "observation": "The coverage index found 15 percent of the expected tests at rank 1 and 30 percent at rank 8, and 63 percent of candidates had at least one expected test within the top 8. A quiet duplicate gate is weak evidence that nobody tests a journey, so the gate is advisory and a reviewer must search on their own.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/index/eval/RESULTS.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/index/README.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/sessions/bookmarks/QA-NOTES.md"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Every select decision records the reviewer's own text search (patterns and paths) beside the gate verdict. A no_close_match is reported as no match found, not as no coverage.",
+            "target_file": "explorer-proto/v2/agents/roles/coverage-reviewer.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L12-discovery-heuristics-need-a-reported-search-budget",
+        "observation": "Discovery needed generic additions beyond lexical overlap: a bonus when a menu or dialog is open, fatigue for controls already used, and a trajectory signature in the state key. Each changes how fast a path is found, so a result is only comparable when the heuristic terms and the budget used are reported with it.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/src/README-engine.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/journey_score.ts"
+            },
+            {
+                "kind": "trace",
+                "ref": "explorer-proto/sessions/auto-follow/generated/trace.md"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Every discovery result reports the heuristic terms in force and the budget actually used: actions, replays, states, depth and wall clock. A budget-out is a reported failure and nothing is emitted.",
+            "target_file": "explorer-proto/v2/agents/roles/engine-owner.md"
+        },
+        "status": "proposed",
+        "applied": false
+    },
+    {
+        "schema": "explorer-lesson/v2",
+        "id": "L13-polluted-server-changes-channel-intro",
+        "observation": "Replays on a polluted server, one that earlier runs had written to, change the channel introduction shown at the top of a channel, so snapshots differ from those of a fresh seed. A result from a reused server cannot be compared with one from a fresh server.",
+        "evidence": [
+            {
+                "kind": "report",
+                "ref": "explorer-proto/v2/bakeoff/PREREGISTRATION.md"
+            },
+            {
+                "kind": "report",
+                "ref": "explorer-proto/README.md"
+            },
+            {
+                "kind": "source",
+                "ref": "explorer-proto/src/journey_fixture.ts"
+            }
+        ],
+        "proposed_check": {
+            "kind": "fixture_check",
+            "description": "Start every replay from a freshly created stack or a fresh fixture on a clean server, and record which one was used. A replay on a server that earlier runs wrote to is reported as polluted, never as a pass or a product finding.",
+            "target_file": "explorer-proto/v2/agents/roles/infra-owner.md"
+        },
+        "status": "proposed",
+        "applied": false
+    }
+]

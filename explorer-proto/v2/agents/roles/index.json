@@ -1,0 +1,147 @@
+{
+    "schema": "explorer-agent-roles/v1",
+    "description": "Machine-readable side of the role files. task_roles are the role names the orchestrator writes into agent-task.json; roles with no task role are work-package roles that have no orchestrator task. Globs match task input paths (repo-relative, forward slashes).",
+    "forbidden_result_keys": [
+        "approver",
+        "approved_by",
+        "approval",
+        "override",
+        "overrides",
+        "gate_override",
+        "skip_gate",
+        "waive",
+        "waiver",
+        "threshold",
+        "thresholds",
+        "policy"
+    ],
+    "deny_input_globs_all": ["**/.env", "**/.env.*", "**/storage_state/**", "**/infra/.run/**", "**/*.pem", "**/*.key"],
+    "sections": [
+        "Purpose",
+        "Inputs",
+        "Outputs",
+        "Allowed tools",
+        "Forbidden actions",
+        "Checklist",
+        "Failure modes seen in earlier pilots",
+        "What you must NOT see"
+    ],
+    "roles": [
+        {
+            "id": "coverage-reviewer",
+            "file": "coverage-reviewer.md",
+            "task_roles": ["duplicate-reviewer"],
+            "result_schemas": ["agent#review"],
+            "holds_sealed_route": false,
+            "deny_input_globs": [
+                "**/sealed*",
+                "**/reference-route*",
+                "explorer-proto/v2/bakeoff/**",
+                "**/agent-result*.json",
+                "**/agent-calls.jsonl",
+                "**/*report*.md"
+            ]
+        },
+        {
+            "id": "qa-lead",
+            "file": "qa-lead.md",
+            "task_roles": [],
+            "result_schemas": ["charter"],
+            "holds_sealed_route": false,
+            "deny_input_globs": [
+                "**/sealed*",
+                "**/reference-route*",
+                "explorer-proto/v2/bakeoff/inputs/**",
+                "explorer-proto/**/generated/trace.*",
+                "**/*trace.json"
+            ]
+        },
+        {
+            "id": "journey-selector",
+            "file": "journey-selector.md",
+            "task_roles": ["charter-proposer"],
+            "result_schemas": ["agent#select"],
+            "holds_sealed_route": false,
+            "deny_input_globs": [
+                "**/sealed*",
+                "**/reference-route*",
+                "**/QA-NOTES*",
+                "explorer-proto/sessions/**",
+                "explorer-proto/generated/**",
+                "explorer-proto/scenarios.json",
+                "explorer-proto/coverage.md",
+                "explorer-proto/v2/bakeoff/**",
+                "**/deny_labels.json",
+                "**/*trace.json",
+                "**/*trace.md"
+            ]
+        },
+        {
+            "id": "triage",
+            "file": "triage.md",
+            "task_roles": ["finding-triager"],
+            "result_schemas": ["agent#triage"],
+            "holds_sealed_route": false,
+            "deny_input_globs": [
+                "**/.work/**",
+                "**/.state/**",
+                "**/*.png",
+                "**/*.jpg",
+                "**/*.webm",
+                "**/*.zip",
+                "**/repro-set.json",
+                "explorer-proto/v2/bakeoff/**"
+            ]
+        },
+        {
+            "id": "independent-verifier",
+            "file": "independent-verifier.md",
+            "task_roles": ["verifier"],
+            "result_schemas": ["agent#verify"],
+            "holds_sealed_route": true,
+            "deny_input_globs": [
+                "**/builder-report*",
+                "**/handoff*",
+                "**/*self-assessment*",
+                "**/agent-result*.json",
+                "**/agent-calls.jsonl"
+            ]
+        },
+        {
+            "id": "engine-owner",
+            "file": "engine-owner.md",
+            "task_roles": [],
+            "result_schemas": [],
+            "holds_sealed_route": false,
+            "deny_input_globs": [
+                "**/sealed*",
+                "**/reference-route*",
+                "**/QA-NOTES*",
+                "explorer-proto/v2/bakeoff/inputs/**",
+                "explorer-proto/v2/bakeoff/rules.json"
+            ]
+        },
+        {
+            "id": "infra-owner",
+            "file": "infra-owner.md",
+            "task_roles": [],
+            "result_schemas": [],
+            "holds_sealed_route": false,
+            "deny_input_globs": ["**/sealed*", "**/reference-route*", "explorer-proto/v2/bakeoff/rules.json"]
+        },
+        {
+            "id": "lessons-proposer",
+            "file": "lessons-proposer.md",
+            "task_roles": ["lesson-proposer"],
+            "result_schemas": ["agent#lessons"],
+            "holds_sealed_route": false,
+            "deny_input_globs": [
+                "**/sealed*",
+                "**/reference-route*",
+                "**/.work/**",
+                "explorer-proto/v2/gates/approvals.json",
+                "explorer-proto/v2/bakeoff/**"
+            ]
+        }
+    ]
+}
