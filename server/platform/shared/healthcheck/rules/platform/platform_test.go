@@ -129,6 +129,8 @@ func TestRegistered(t *testing.T) {
 	}{
 		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityInfo, healthcheck.SurfaceInternal, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable", false, false},
 		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "RateLimitSettings.MemoryStoreSize", false, false},
+		{developerModeOn, "DEVELOPER_MODE_ON", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.EnableDeveloper", false, false},
+		{testingModeOn, "TESTING_MODE_ON", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.EnableTesting", false, false},
 		{filestoreLocalInCluster, "FILESTORE_LOCAL_IN_CLUSTER", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.Directory", false, false},
 		{filestoreS3NoBucket, "FILESTORE_S3_NO_BUCKET", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3Bucket", false, false},
 		{filestoreS3SSLOff, "FILESTORE_S3_SSL_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3SSL", false, false},
