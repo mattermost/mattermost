@@ -638,7 +638,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             const {originalPolicyIds} = this.state;
             const parentLinksChanged = parentPolicyIds.length !== originalPolicyIds.length || parentPolicyIds.some((id) => !originalPolicyIds.includes(id));
 
-            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies || autoSyncChanged || parentLinksChanged)) {
+            // Toggling enforcement off doesn't save the hidden rules section, but parents
+            // unlinked before the toggle must still be dropped: save them against the stored rules.
+            const linksOnly = !policyEnforced && parentLinksChanged && this.hasPersistedAbacPolicy();
+            const savedExpression = linksOnly ? this.state.teamRulesOriginalExpression : teamRulesExpression;
+            const savedAutoSync = linksOnly ? this.state.teamRulesOriginalAutoSync : teamRulesAutoSync;
+
+            if (!saveNeeded && !isEmptyAbacState && (linksOnly || (policyEnforced && (teamRulesHaveChanges || hasParentPolicies || autoSyncChanged || parentLinksChanged)))) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
                         id: teamID,
@@ -647,7 +653,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         revision: 1,
                         created_at: Date.now(),
                         imports: parentPolicyIds,
-                        rules: buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression, autoAddModeForToggle(teamRulesAutoSync)),
+                        rules: linksOnly ? teamRulesExistingRules : buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression, autoAddModeForToggle(teamRulesAutoSync)),
                     };
 
                     const policyResult = await actions.saveTeamAccessPolicy(teamPolicy);
@@ -667,14 +673,14 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         // enforced save (custom rules or a parent policy) must fire a job
                         // even with auto-add off or non-qualifying members linger; public
                         // teams no-op.
-                        if (hasTeamRules || hasParentPolicies || teamRulesAutoSync) {
+                        if (savedExpression.trim() || hasParentPolicies || savedAutoSync) {
                             await actions.createAccessControlTeamSyncJob({policy_id: teamID});
                         }
 
                         this.setState({
-                            teamRulesOriginalExpression: teamRulesExpression,
-                            teamRulesOriginalAutoSync: teamRulesAutoSync,
-                            teamRulesHaveChanges: false,
+                            teamRulesOriginalExpression: savedExpression,
+                            teamRulesOriginalAutoSync: savedAutoSync,
+                            teamRulesHaveChanges: linksOnly && teamRulesHaveChanges,
                             originalPolicyIds: linkError ? savedPolicyIds : parentPolicyIds,
                         });
                     }

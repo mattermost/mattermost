@@ -711,6 +711,56 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
     });
 
+    test('removing the last policy then toggling enforcement off still unlinks it against the stored rule', async () => {
+        const storedRules = [{actions: ['membership'], expression: 'user.attributes.office == "Home"'}];
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {id: '123', type: 'team', imports: ['parent1'], rules: storedRules, active: false},
+                enforced: true,
+            },
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const deleteAccessControlPolicy = jest.fn().mockResolvedValue({data: {}});
+        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
+        const saveTeamAccessPolicy = savePolicyAsSubmitted();
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                deleteAccessControlPolicy,
+                unassignTeamsFromAccessControlPolicy,
+                saveTeamAccessPolicy,
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+        await userEvent.click(document.getElementById('confirmModalButton')!);
+        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        expect(screen.getByTestId('policy-enforce-toggle-button')).not.toBeChecked();
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                id: '123',
+                imports: [],
+                rules: storedRules,
+            }));
+        });
+        expect(deleteAccessControlPolicy).not.toHaveBeenCalled();
+        expect(unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
+    });
+
     test('clearing the only custom rule with no policy disables ABAC and saves without the apply modal', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {
