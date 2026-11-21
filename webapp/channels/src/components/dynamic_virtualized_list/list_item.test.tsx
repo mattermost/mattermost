@@ -19,6 +19,7 @@ jest.mock('./list_item_size_observer', () => {
 });
 
 import ListItem from './list_item';
+import {ListItemSizeObserver} from './list_item_size_observer';
 
 describe('ListItem', () => {
     const defaultProps = {
@@ -30,6 +31,12 @@ describe('ListItem', () => {
         onHeightChange: jest.fn(),
         onUnmount: jest.fn(),
     };
+
+    let boundingClientRectSpy: jest.SpyInstance | undefined;
+
+    afterEach(() => {
+        boundingClientRectSpy?.mockRestore();
+    });
 
     test('renders the item content correctly', () => {
         render(<ListItem {...defaultProps}/>);
@@ -49,10 +56,7 @@ describe('ListItem', () => {
     test('calls onHeightChange on mount with initial height', () => {
         const mockOnHeightChange = jest.fn();
 
-        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-            configurable: true,
-            value: 120,
-        });
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 120} as DOMRect);
 
         render(
             <ListItem
@@ -61,16 +65,13 @@ describe('ListItem', () => {
             />,
         );
 
-        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 120, false);
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 120, false, 120);
     });
 
-    test('handles zero offsetHeight gracefully', () => {
+    test('rounds a fractional initial height up like the size observer does and passes the exact height', () => {
         const mockOnHeightChange = jest.fn();
 
-        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-            configurable: true,
-            value: 0,
-        });
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 119.4} as DOMRect);
 
         render(
             <ListItem
@@ -79,6 +80,57 @@ describe('ListItem', () => {
             />,
         );
 
-        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 0, false);
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 120, false, 119.4);
+    });
+
+    test('does not round floating point noise from a scaled display up to an extra pixel', () => {
+        const mockOnHeightChange = jest.fn();
+
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 23.0000019} as DOMRect);
+
+        render(
+            <ListItem
+                {...defaultProps}
+                onHeightChange={mockOnHeightChange}
+            />,
+        );
+
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 23, false, 23.0000019);
+    });
+
+    test('handles zero height gracefully', () => {
+        const mockOnHeightChange = jest.fn();
+
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 0} as DOMRect);
+
+        render(
+            <ListItem
+                {...defaultProps}
+                onHeightChange={mockOnHeightChange}
+            />,
+        );
+
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 0, false, 0);
+    });
+
+    test('rounds observed heights up and passes the exact height', () => {
+        const mockOnHeightChange = jest.fn();
+
+        render(
+            <ListItem
+                {...defaultProps}
+                onHeightChange={mockOnHeightChange}
+            />,
+        );
+
+        const observe = ListItemSizeObserver.getInstance().observe as unknown as jest.Mock;
+        const sizeObserverCallback = observe.mock.calls[observe.mock.calls.length - 1][2] as (height: number) => void;
+        mockOnHeightChange.mockClear();
+
+        sizeObserverCallback(99.4);
+        expect(mockOnHeightChange).not.toHaveBeenCalled();
+
+        sizeObserverCallback(150.3);
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 151, expect.any(Boolean), 150.3);
     });
 });

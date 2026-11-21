@@ -4,6 +4,7 @@
 import type {ReactNode} from 'react';
 import React, {memo, useLayoutEffect, useRef} from 'react';
 
+import {roundItemHeight} from './item_height';
 import {ListItemSizeObserver} from './list_item_size_observer';
 
 const listItemSizeObserver = ListItemSizeObserver.getInstance();
@@ -14,7 +15,9 @@ export interface Props {
     index: number;
     height: number;
     width?: number; // Its optional since it may not be available when the parent component is mounted
-    onHeightChange: (itemId: string, height: number, forceScrollCorrection: boolean) => void;
+
+    // height is rounded up to a whole pixel, exactHeight is the unrounded height of the row
+    onHeightChange: (itemId: string, height: number, forceScrollCorrection: boolean, exactHeight: number) => void;
     onUnmount: (itemId: string, index: number) => void;
 }
 
@@ -38,19 +41,21 @@ const ListItem = (props: Props) => {
         indexRef.current = props.index;
     }, [props.itemId, props.height, props.width, props.index]);
 
-    // This effect is used to measure the height of the row as soon as the component mounts
+    // This effect is used to measure the height of the row as soon as the component mounts.
+    // It has to round the same way as the size observer, otherwise the first observed size would differ by a pixel.
     useLayoutEffect(() => {
-        const newHeight = Math.ceil(rowRef?.current?.offsetHeight ?? 0);
-        props.onHeightChange(props.itemId, newHeight, false);
+        const exactHeight = rowRef.current?.getBoundingClientRect().height ?? 0;
+        props.onHeightChange(props.itemId, roundItemHeight(exactHeight), false, exactHeight);
     }, [props.itemId]);
 
     // This effects adds the observer which calls height change callback
     useLayoutEffect(() => {
-        function itemRowSizeObserverCallback(changedHeight: number) {
+        function itemRowSizeObserverCallback(exactHeight: number) {
             if (!rowRef.current) {
                 return;
             }
 
+            const changedHeight = roundItemHeight(exactHeight);
             if (changedHeight !== heightRef.current) {
             // If width of container has changed then scroll bar position will be out of sync
             // so we need to force a scroll correction
@@ -58,7 +63,7 @@ const ListItem = (props: Props) => {
 
                 heightRef.current = changedHeight;
 
-                props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
+                props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection, exactHeight);
             }
         }
 

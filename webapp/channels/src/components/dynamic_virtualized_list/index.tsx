@@ -6,6 +6,7 @@
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent, type JSX} from 'react';
 
+import {roundItemHeight} from './item_height';
 import ListItem from './list_item';
 
 const atBottomMargin = 10;
@@ -77,9 +78,16 @@ interface ListMetadata {
     atBottom: boolean;
 }
 
+interface RenderedRow {
+    height: number;
+    startsAboveViewport: boolean;
+}
+
 interface DynamicVirtualizedListSnapshot {
     previousScrollTop: number;
     previousScrollHeight: number;
+    renderedRows?: Map<string, RenderedRow>;
+    wasAtBottom: boolean;
 }
 
 export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedListProps, State> {
@@ -97,6 +105,13 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     private _scrollByCorrection: number | null = null;
     private _keepScrollPosition = false;
     private _keepScrollToBottom = false;
+    private _scrollTopAfterResizeCorrection: number | null = null;
+
+    // Unrounded row heights and the part of the resize corrections that couldn't be applied to the whole pixel
+    // scroll position yet. Rows can have fractional heights (e.g. images scaled to the list width), so compensating
+    // with the rounded up sizes would be off by up to a pixel per resize, and that adds up over several resizes.
+    private _exactItemSizeMap: Partial<Record<string, number>> = {};
+    private _resizeCorrectionRemainder = 0;
     private _mountingCorrections = 0;
     private _correctedInstances = 0;
 
@@ -206,21 +221,24 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         prevProps: DynamicVirtualizedListProps,
         prevState: State,
     ): DynamicVirtualizedListSnapshot | null {
-        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
-            prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
-        ) {
-            const element = this._outerRef;
-
-            if (element) {
-                const previousScrollTop = element.scrollTop;
-                const previousScrollHeight = element.scrollHeight;
-                return {
-                    previousScrollTop,
-                    previousScrollHeight,
-                };
-            }
+        const element = this._outerRef;
+        if (!element) {
+            return null;
         }
-        return null;
+
+        const localOlderPostsToRenderChanged = prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
+            prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1];
+        const itemDataChanged = prevProps.itemData !== this.props.itemData && prevState.scrolledToInitIndex;
+        if (!localOlderPostsToRenderChanged && !itemDataChanged) {
+            return null;
+        }
+
+        return {
+            previousScrollTop: element.scrollTop,
+            previousScrollHeight: element.scrollHeight,
+            renderedRows: itemDataChanged ? this._getRenderedRows(prevProps.itemData, this._getScrollTopBeforeResize(element)) : undefined,
+            wasAtBottom: prevProps.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin,
+        };
     }
 
     componentDidUpdate(
@@ -259,6 +277,9 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
 
         this._commitHook();
         if (prevProps.itemData !== this.props.itemData) {
+            if (snapshot?.renderedRows) {
+                this._applyResizesFromDataChange(snapshot.renderedRows, snapshot.wasAtBottom);
+            }
             this._dataChange();
         }
 
@@ -416,6 +437,75 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
     };
 
+    _getRenderedRows = (itemData: string[], scrollTop: number) => {
+        const renderedRows = new Map<string, RenderedRow>();
+        const rows = this._innerRef?.children;
+        if (!rows || rows.length !== itemData.length) {
+            return renderedRows;
+        }
+
+        const {itemOffsetMap} = this._listMetaData;
+
+        // Rows are rendered in reverse order and only rendered items are list items, the rest are spacers
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].getAttribute('role') === 'listitem') {
+                const key = itemData[itemData.length - 1 - i];
+                const offset = itemOffsetMap[key];
+                renderedRows.set(key, {
+                    height: rows[i].getBoundingClientRect().height,
+                    startsAboveViewport: offset !== undefined && offset < scrollTop,
+                });
+            }
+        }
+        return renderedRows;
+    };
+
+    // Rows can resize in the same commit that changes the data (e.g. a post losing its header when older posts are
+    // prepended). That resize is already included in the scroll position compensation done for the data change, so
+    // the row's final size is recorded here to keep _handleNewMeasurements from compensating for it a second time.
+    // A resize from before the commit that wasn't observed yet isn't part of that compensation, and since the
+    // observer may never report it once the row is back at its measured size, it's compensated for here.
+    _applyResizesFromDataChange = (rowsBeforeChange: Map<string, RenderedRow>, wasAtBottom: boolean) => {
+        const {itemSizeMap} = this._listMetaData;
+        const rowsAfterChange = this._getRenderedRows(this.props.itemData, 0);
+        let resized = false;
+        let unobservedResizeAbove = 0;
+
+        for (const [key, rowAfterChange] of rowsAfterChange) {
+            const rowBeforeChange = rowsBeforeChange.get(key);
+            const measuredSize = itemSizeMap[key];
+            if (!rowBeforeChange || !measuredSize || rowAfterChange.height === rowBeforeChange.height) {
+                continue;
+            }
+
+            if (rowBeforeChange.startsAboveViewport) {
+                unobservedResizeAbove += rowBeforeChange.height - (this._exactItemSizeMap[key] ?? measuredSize);
+            }
+
+            this._exactItemSizeMap[key] = rowAfterChange.height;
+
+            const sizeAfterChange = roundItemHeight(rowAfterChange.height);
+            if (sizeAfterChange !== measuredSize) {
+                itemSizeMap[key] = sizeAfterChange;
+                resized = true;
+            }
+        }
+
+        this._generateOffsetMeasurements();
+
+        if (wasAtBottom && this.props.correctScrollToBottom) {
+            if (resized || unobservedResizeAbove) {
+                this.scrollToItem(0, 'end');
+            }
+            return;
+        }
+
+        const element = this._outerRef;
+        if (unobservedResizeAbove && element) {
+            this._compensateResizeAbove(element, this._getScrollTopBeforeResize(element), unobservedResizeAbove);
+        }
+    };
+
     _heightChange = (prevHeight: number, prevOffset: number) => {
         const wasAtBottom =
             prevOffset + prevHeight >=
@@ -543,7 +633,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
     };
 
-    _handleNewMeasurements = (key: string, newSize: number, forceScrollCorrection: boolean) => {
+    _handleNewMeasurements = (key: string, newSize: number, forceScrollCorrection: boolean, exactNewSize = newSize) => {
         const {itemSizeMap} = this._listMetaData;
         const {itemData} = this.props;
         const index = itemData.findIndex((item) => item === key);
@@ -553,6 +643,8 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // Handle this edge case to prevent NaN values from breaking styles.
         // Slow scrolling back over these skipped rows will adjust their sizes.
         const oldSize = itemSizeMap[key] || 0;
+        const exactOldSize = this._exactItemSizeMap[key] ?? oldSize;
+        this._exactItemSizeMap[key] = exactNewSize;
         if (oldSize === newSize) {
             return;
         }
@@ -569,8 +661,9 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
+        const previousScrollTop = this._getScrollTopBeforeResize(element);
         const wasAtBottom =
-            this.props.height + element.scrollTop >=
+            this.props.height + previousScrollTop >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
 
         if (
@@ -620,7 +713,41 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
+        const [, , visibleStartIndex] = this._getRangeToRender(previousScrollTop);
         this._generateOffsetMeasurements();
+
+        // Rows are in normal flow and overflow-anchor is disabled, so when an already measured row above
+        // the viewport resizes (e.g. an image finishes loading), the visible rows have to be held in place.
+        // Rows measured for the first time are skipped since prepended rows are compensated for separately.
+        if (oldSize && index > visibleStartIndex) {
+            this._compensateResizeAbove(element, previousScrollTop, exactNewSize - exactOldSize);
+        }
+    };
+
+    _compensateResizeAbove = (element: HTMLDivElement, previousScrollTop: number, exactSizeChange: number) => {
+        const correction = exactSizeChange + this._resizeCorrectionRemainder;
+        const roundedCorrection = Math.round(correction);
+        this._resizeCorrectionRemainder = correction - roundedCorrection;
+
+        const scrollTop = Math.max(0, previousScrollTop + roundedCorrection);
+        element.scrollTop = scrollTop;
+        this._scrollTopAfterResizeCorrection = scrollTop;
+    };
+
+    // The browser clamps scrollTop when the content shrinks, before resizes are observed. In that case and when
+    // an earlier correction hasn't been reported by a scroll event yet, element.scrollTop is not the position the
+    // user was at before the resize.
+    _getScrollTopBeforeResize = (element: HTMLDivElement) => {
+        if (this._scrollTopAfterResizeCorrection !== null) {
+            return this._scrollTopAfterResizeCorrection;
+        }
+
+        const clampedToBottom = element.scrollHeight - this.props.height - element.scrollTop <= 1;
+        if (clampedToBottom && this.state.scrollOffset > element.scrollTop) {
+            return this.state.scrollOffset;
+        }
+
+        return element.scrollTop;
     };
 
     _onItemRowUnmount = (itemId: string, index: number) => {
@@ -632,6 +759,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         if (!doesItemExist) {
             delete this._listMetaData.itemSizeMap[itemId];
             delete this._listMetaData.itemOffsetMap[itemId];
+            delete this._exactItemSizeMap[itemId];
             const element = this._outerRef;
             if (!element) {
                 return;
@@ -656,6 +784,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
         const {scrollTop, scrollHeight} = event.currentTarget;
+        this._scrollTopAfterResizeCorrection = null;
         if (this._scrollCorrectionInProgress) {
             if (this.state.scrollUpdateWasRequested) {
                 this.setState(() => ({
