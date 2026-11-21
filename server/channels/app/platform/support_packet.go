@@ -403,8 +403,6 @@ type networkProbe struct {
 	// record, if set, stores further results once run has returned, and returns an error that fails
 	// the section. It runs on the collecting goroutine, so it can read what run left in its closure.
 	record func() error
-	// skipReason, if set, is stored as the error of a disabled probe, to say why it did not run.
-	skipReason string
 }
 
 // networkProbes returns the enabled probes, and marks the disabled ones in d.
@@ -413,7 +411,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	var probes []networkProbe
 	add := func(enabled bool, probe networkProbe) {
 		if !enabled {
-			*probe.status, *probe.errMsg = model.StatusDisabled, probe.skipReason
+			*probe.status = model.StatusDisabled
 			return
 		}
 		probes = append(probes, probe)
@@ -460,20 +458,13 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 
 	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
 	mailCfg := supportPacketSMTPConfig(cfg)
-	emailInUse := model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
+	add(model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
 		model.SafeDereference(cfg.EmailSettings.RequireEmailVerification) ||
 		model.SafeDereference(cfg.ServiceSettings.EnableEmailInvitations) ||
 		model.SafeDereference(cfg.EmailSettings.EnableSignInWithEmail) ||
-		model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername)
-	// A probe of an SMTP server that was never set up would only report the default port refusing connections.
-	var smtpSkipReason string
-	if emailInUse && !cfg.EmailSettings.IsSMTPConfigured() {
-		smtpSkipReason = smtpNotConfiguredReason(&cfg.EmailSettings)
-	}
-	add(emailInUse && smtpSkipReason == "", networkProbe{
+		model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername), networkProbe{
 		name: "smtp", section: model.SectionSMTPProbe, status: &d.Notifications.Email.Status, errMsg: &d.Notifications.Email.Error,
-		run:        func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
-		skipReason: smtpSkipReason,
+		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
 	})
 
 	for _, provider := range []struct {
@@ -567,13 +558,6 @@ func startNetworkProbes(ctx context.Context, probes []networkProbe, fail func(mo
 			}
 		}
 	}
-}
-
-func smtpNotConfiguredReason(settings *model.EmailSettings) string {
-	if model.SafeDereference(settings.SMTPServer) == "" {
-		return "not configured (SMTP server is empty)"
-	}
-	return fmt.Sprintf("not configured (SMTP server is still the default %s:%s)", model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort)
 }
 
 func supportPacketSMTPConfig(cfg *model.Config) *mail.SMTPConfig {

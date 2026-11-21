@@ -1728,32 +1728,21 @@ func TestNetworkProbesSMTP(t *testing.T) {
 		return d.Notifications.Email.Status, d.Notifications.Email.Error, probed
 	}
 
-	t.Run("skips the default server and records why", func(t *testing.T) {
+	// A development mail server such as Inbucket listens on the default localhost:10025, so it is probed too.
+	t.Run("probes the default server", func(t *testing.T) {
 		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, true)
-
-		assert.False(t, probed)
-		assert.Equal(t, model.StatusDisabled, status)
-		assert.Equal(t, "not configured (SMTP server is still the default localhost:10025)", errMsg)
-	})
-
-	t.Run("skips without a reason when no email feature is on", func(t *testing.T) {
-		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, false)
-
-		assert.False(t, probed)
-		assert.Equal(t, model.StatusDisabled, status)
-		assert.Empty(t, errMsg)
-	})
-
-	t.Run("probes a local relay on another port", func(t *testing.T) {
-		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, "25", true)
 
 		assert.True(t, probed)
 		assert.Empty(t, status)
 		assert.Empty(t, errMsg)
 	})
 
-	t.Run("names an empty server", func(t *testing.T) {
-		assert.Equal(t, "not configured (SMTP server is empty)", smtpNotConfiguredReason(&model.EmailSettings{SMTPServer: new("")}))
+	t.Run("skips when no email feature is on", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, false)
+
+		assert.False(t, probed)
+		assert.Equal(t, model.StatusDisabled, status)
+		assert.Empty(t, errMsg)
 	})
 }
 

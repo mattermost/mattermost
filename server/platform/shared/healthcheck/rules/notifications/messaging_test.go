@@ -207,7 +207,18 @@ func leaderWithEmail(status, smtpErr string) *healthcheck.NodeSnapshot {
 func TestSMTPNotConfigured(t *testing.T) {
 	t.Parallel()
 
-	firing := messagingWant{state: healthcheck.StateFiring, messageID: "health.rule.smtp_not_configured.message"}
+	messageID := "health.rule.smtp_not_configured.message"
+	refusedErr := "dial tcp [::1]:10025: connect: connection refused"
+	firing := messagingWant{state: healthcheck.StateFiring, messageID: messageID}
+	probeFailedWant := messagingWant{
+		state:     healthcheck.StateFiring,
+		messageID: messageID,
+		details:   map[string]string{"nodes": "app-1", "error": refusedErr},
+	}
+	notCollected := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
+	defaultServer := func(enabled bool, nodes ...*healthcheck.NodeSnapshot) *healthcheck.Snapshot {
+		return smtpSnapshot(enabled, new(model.EmailSMTPDefaultServer), new(model.EmailSMTPDefaultPort), nodes...)
+	}
 
 	testCases := []struct {
 		name     string
@@ -215,26 +226,37 @@ func TestSMTPNotConfigured(t *testing.T) {
 		want     messagingWant
 	}{
 		{name: "config section absent", snapshot: &healthcheck.Snapshot{}, want: configUnknownWant},
-		{name: "default server and port", snapshot: smtpSnapshot(true, new("localhost"), new("10025")), want: firing},
+		{name: "default server refuses the probe", snapshot: defaultServer(true, leaderWithEmail(model.StatusFail, refusedErr)), want: probeFailedWant},
+		{name: "default server answers the probe", snapshot: defaultServer(true, leaderWithEmail(model.StatusOk, "")), want: resolvedWant},
+		{name: "default server not probed", snapshot: defaultServer(true), want: notCollected},
+		{
+			name: "default server refuses on one node only",
+			snapshot: defaultServer(true,
+				leaderWithEmail(model.StatusFail, refusedErr),
+				nodeWithEmail("app-2", model.StatusOk, "")),
+			want: probeFailedWant,
+		},
 		{name: "empty server", snapshot: smtpSnapshot(true, new(""), new("10025")), want: firing},
 		{name: "server unset", snapshot: smtpSnapshot(true, nil, new("10025")), want: configUnknownWant},
-		{name: "localhost relay on port 25", snapshot: smtpSnapshot(true, new("localhost"), new("25")), want: resolvedWant},
-		{name: "remote server", snapshot: smtpSnapshot(true, new("smtp.example.com"), new("587")), want: resolvedWant},
-		{name: "email features off", snapshot: smtpSnapshot(false, new("localhost"), new("10025")), want: resolvedWant},
+		{
+			name:     "localhost relay on port 25",
+			snapshot: smtpSnapshot(true, new("localhost"), new("25"), leaderWithEmail(model.StatusFail, "dial tcp: connection refused")),
+			want:     resolvedWant,
+		},
+		{
+			name:     "ignores a failed probe of a configured server",
+			snapshot: smtpSnapshot(true, new("smtp.example.com"), new("587"), leaderWithEmail(model.StatusFail, "dial tcp: connection refused")),
+			want:     resolvedWant,
+		},
+		{name: "email features off", snapshot: defaultServer(false, leaderWithEmail(model.StatusFail, refusedErr)), want: resolvedWant},
 		{
 			name: "only username sign-in uses email",
 			snapshot: func() *healthcheck.Snapshot {
-				s := smtpSnapshot(false, new("localhost"), new("10025"))
+				s := defaultServer(false, leaderWithEmail(model.StatusFail, refusedErr))
 				s.Config.Config.EmailSettings.EnableSignInWithUsername = new(true)
 				return s
 			}(),
-			want: firing,
-		},
-		{
-			name: "ignores a failed probe of a configured server",
-			snapshot: smtpSnapshot(true, new("smtp.example.com"), new("587"),
-				leaderWithEmail(model.StatusFail, "dial tcp: connection refused")),
-			want: resolvedWant,
+			want: probeFailedWant,
 		},
 	}
 
@@ -256,22 +278,22 @@ func TestSMTPNotConfiguredAndUnreachableNeverFireTogether(t *testing.T) {
 		notConfigured, unreachable healthcheck.State
 	}{
 		{
-			name:   "default server probed by an older node",
+			name:   "default server refuses the probe",
 			server: "localhost", port: "10025",
 			probe:         leaderWithEmail(model.StatusFail, "dial tcp [::1]:10025: connect: connection refused"),
 			notConfigured: healthcheck.StateFiring, unreachable: healthcheck.StateResolved,
 		},
 		{
-			name:   "empty server probed by an older node",
+			name:   "empty server fails the probe",
 			server: "", port: "10025",
 			probe:         leaderWithEmail(model.StatusFail, "dial tcp: missing address"),
 			notConfigured: healthcheck.StateFiring, unreachable: healthcheck.StateResolved,
 		},
 		{
-			name:   "default server skipped by the probe",
+			name:   "default server answered by a development mail server",
 			server: "localhost", port: "10025",
-			probe:         leaderWithEmail(model.StatusDisabled, "not configured (SMTP server is still the default localhost:10025)"),
-			notConfigured: healthcheck.StateFiring, unreachable: healthcheck.StateResolved,
+			probe:         leaderWithEmail(model.StatusOk, ""),
+			notConfigured: healthcheck.StateResolved, unreachable: healthcheck.StateResolved,
 		},
 		{
 			name:   "configured server that fails",

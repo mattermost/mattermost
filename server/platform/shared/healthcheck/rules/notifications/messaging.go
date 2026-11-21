@@ -63,7 +63,7 @@ var smtpNotConfigured = healthcheck.Rule{
 		ConsolePath:   smtpConsolePath,
 	},
 	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
+	Volatility: healthcheck.VolatilityProbe,
 	Subject:    "EmailSettings.SMTPServer",
 	Eval:       healthcheck.Gate(smtpInUse, healthcheck.ReasonConfigUnavailable, evalSMTPNotConfigured),
 }
@@ -145,8 +145,8 @@ func smtpConfigured(s *healthcheck.Snapshot) (configured, ok bool) {
 	return cfg.EmailSettings.IsSMTPConfigured(), true
 }
 
-// smtpInUseAndConfigured keeps SMTP_UNREACHABLE quiet where SMTP_NOT_CONFIGURED fires, even when an older
-// node still probed the default server.
+// smtpInUseAndConfigured leaves a failed probe of the default server to SMTP_NOT_CONFIGURED, so the two
+// findings never fire together.
 func smtpInUseAndConfigured(s *healthcheck.Snapshot) (enabled, ok bool) {
 	if inUse, ok := smtpInUse(s); !ok || !inUse {
 		return false, ok
@@ -154,6 +154,8 @@ func smtpInUseAndConfigured(s *healthcheck.Snapshot) (enabled, ok bool) {
 	return smtpConfigured(s)
 }
 
+// evalSMTPNotConfigured fires for an empty SMTP server. For the default localhost:10025 it fires only when the
+// probe failed, since a development mail server such as Inbucket listens there and works.
 func evalSMTPNotConfigured(s *healthcheck.Snapshot) healthcheck.Result {
 	configured, ok := smtpConfigured(s)
 	switch {
@@ -161,9 +163,13 @@ func evalSMTPNotConfigured(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case configured:
 		return healthcheck.Resolved()
-	default:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.smtp_not_configured.message"))
 	}
+
+	messageID := healthcheck.TranslationId("health.rule.smtp_not_configured.message")
+	if cfg, _ := s.ConfigRoot(); *cfg.EmailSettings.SMTPServer == "" {
+		return healthcheck.Firing(messageID)
+	}
+	return probes.Eval(s, smtpProbe, messageID, messageID)
 }
 
 func evalSMTPUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
@@ -172,7 +178,7 @@ func evalSMTPUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
 		healthcheck.TranslationId("health.rule.smtp_unreachable.message.partial"))
 }
 
-// A disabled status means the node does not use SMTP or has none configured, so it counts as passing.
+// A disabled status means the node does not use SMTP, so it counts as passing.
 func smtpProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
 	diag, ok := n.SectionDiag(model.SectionSMTPProbe)
 	if !ok {

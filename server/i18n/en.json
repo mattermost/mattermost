@@ -16069,12 +16069,12 @@
   {
     "id": "health.rule.smtp_not_configured.message",
     "translation": "Email isn't configured, so password reset, invitation, email verification and notification emails won't be delivered.",
-    "description": "Health dashboard finding detail when email features are on but the SMTP server was never set up (it is empty or still the default localhost:10025)."
+    "description": "Health dashboard finding detail when email features are on but the SMTP server was never set up (it is empty, or still the default localhost:10025 and nothing answered there)."
   },
   {
     "id": "health.rule.smtp_not_configured.remediation",
-    "translation": "Configure an SMTP server in the System Console, or turn off the email features you don't use: email notifications, email invitations, email verification, and sign-in with email or username. If you deliberately run a mail server on localhost:10025, mute this finding.",
-    "description": "Health dashboard fix-it step when the SMTP server was never set up; localhost:10025 is the default SMTP server and port and should not be translated."
+    "translation": "Configure an SMTP server in the System Console, or turn off the email features you don't use: email notifications, email invitations, email verification, and sign-in with email or username.",
+    "description": "Health dashboard fix-it step when the SMTP server was never set up."
   },
   {
     "id": "health.rule.smtp_not_configured.title",
