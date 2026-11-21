@@ -28,8 +28,7 @@
     }
 }
 
-// green-600 keeps at least 3:1 contrast against the header on light and dark themes.
 .InCallButton__icon {
     display: inline-flex;
-    color: var(--color-green-600);
+    color: var(--online-indicator);
 }

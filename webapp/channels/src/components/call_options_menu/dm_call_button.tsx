@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import type {RefObject} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
+import type {FocusEvent, RefObject} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -44,7 +44,7 @@ const DMCallButton = ({
     const containerRef = useRef<HTMLSpanElement>(null);
     const inCall = useIsInCall(callButton, dmChannel?.id);
     const phones = usePhoneCallOptions(userId, Boolean(callButton.phoneAction) && !inCall);
-    useKeepFocusOnCallButton(containerRef, menuId, inCall);
+    const focusHandlers = useKeepFocusOnCallButton(containerRef, inCall);
 
     function handleStartCall() {
         onSelect?.();
@@ -72,11 +72,24 @@ const DMCallButton = ({
         callButton.callSettingsAction();
     }
 
-    let button;
     if (inCall) {
-        button = <InCallButton id={buttonId}/>;
-    } else {
-        button = (
+        return (
+            <span
+                ref={containerRef}
+                className='DMCallButton'
+                {...focusHandlers}
+            >
+                <InCallButton id={buttonId}/>
+            </span>
+        );
+    }
+
+    return (
+        <span
+            ref={containerRef}
+            className='DMCallButton'
+            {...focusHandlers}
+        >
             <StartCallMenu
                 menuId={menuId}
                 buttonId={buttonId}
@@ -89,15 +102,6 @@ const DMCallButton = ({
                 onCopyCallLink={handleCopyCallLink}
                 onOpenCallSettings={handleOpenCallSettings}
             />
-        );
-    }
-
-    return (
-        <span
-            ref={containerRef}
-            className='DMCallButton'
-        >
-            {button}
         </span>
     );
 };
@@ -105,18 +109,10 @@ const DMCallButton = ({
 /**
  * Moves focus to the new button when the Start call menu and the In call button swap while the old button, or the
  * menu it opened, had focus. Without this, focus falls back to the page when the focused button is removed.
+ * React focus events bubble through portals, so focus inside the menu reaches the container too.
  */
-function useKeepFocusOnCallButton(containerRef: RefObject<HTMLElement | null>, menuId: string, inCall: boolean) {
-    const ownsFocus = useRef(false);
-
-    useEffect(() => {
-        const handleFocusIn = (event: FocusEvent) => {
-            const target = event.target;
-            ownsFocus.current = target instanceof Element && Boolean(containerRef.current?.contains(target) || target.closest(`#${menuId}`));
-        };
-        document.addEventListener('focusin', handleFocusIn);
-        return () => document.removeEventListener('focusin', handleFocusIn);
-    }, [containerRef, menuId]);
+function useKeepFocusOnCallButton(containerRef: RefObject<HTMLElement | null>, inCall: boolean) {
+    const hadFocus = useRef(false);
 
     const prevInCall = useRef(inCall);
     useLayoutEffect(() => {
@@ -126,10 +122,22 @@ function useKeepFocusOnCallButton(containerRef: RefObject<HTMLElement | null>, m
         prevInCall.current = inCall;
 
         const active = document.activeElement;
-        if (ownsFocus.current && (!active || active === document.body)) {
+        if (hadFocus.current && (!active || active === document.body)) {
             containerRef.current?.querySelector<HTMLElement>('button')?.focus();
         }
     }, [containerRef, inCall]);
+
+    return {
+        onFocus: () => {
+            hadFocus.current = true;
+        },
+        onBlur: (event: FocusEvent<HTMLElement>) => {
+            // relatedTarget is null when the focused button is removed, which is when focus needs to come back.
+            if (event.relatedTarget) {
+                hadFocus.current = false;
+            }
+        },
+    };
 }
 
 export default DMCallButton;

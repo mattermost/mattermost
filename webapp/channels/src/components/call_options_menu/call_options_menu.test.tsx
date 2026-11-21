@@ -398,4 +398,31 @@ describe.each([
 
         await waitFor(() => expect(screen.getByRole('button', {name: 'In call'})).toHaveFocus());
     });
+
+    test('moves focus to the In call button when a call starts while the menu has focus', async () => {
+        const callButton = makeStartMenuCallButton(false);
+        const {updateStoreState} = renderButton(callButton, makeState({callButtons: [callButton]}));
+        screen.getByRole('button', {name: 'Start call'}).focus();
+        await userEvent.keyboard('{Enter}');
+        await waitFor(() => expect(screen.getByRole('menuitem', {name: 'Start call'})).toHaveFocus());
+
+        updateStoreState(makeState({callButtons: [callButton], sessions: inCallSessions}));
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'In call'})).toHaveFocus());
+    });
+
+    test('leaves focus alone when a call starts while focus is elsewhere', async () => {
+        const callButton = makeStartMenuCallButton(false);
+        const {updateStoreState} = renderButton(callButton, makeState({callButtons: [callButton]}));
+        const elsewhere = document.createElement('button');
+        document.body.appendChild(elsewhere);
+        screen.getByRole('button', {name: 'Start call'}).focus();
+        elsewhere.focus();
+
+        updateStoreState(makeState({callButtons: [callButton], sessions: inCallSessions}));
+
+        await screen.findByRole('button', {name: 'In call'});
+        expect(elsewhere).toHaveFocus();
+        elsewhere.remove();
+    });
 });
