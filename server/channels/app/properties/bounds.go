@@ -37,12 +37,16 @@ type BoundsHook struct {
 	// A nil resolver refuses every write to a post field that carries a parent
 	// rule.
 	postChannelResolver PostChannelResolver
+	// valueAudit receives a record for each value write a bounds rule or
+	// mutability refuses, or would refuse without Enterprise Advanced. Without
+	// it nothing is audited.
+	valueAudit *PropertyValueAuditHook
 }
 
 var _ PropertyHook = (*BoundsHook)(nil)
 
-func NewBoundsHook(ps *PropertyService, enabled PropertyFieldBoundsProvider, postChannelResolver PostChannelResolver) *BoundsHook {
-	return &BoundsHook{propertyService: ps, enabled: enabled, postChannelResolver: postChannelResolver}
+func NewBoundsHook(ps *PropertyService, enabled PropertyFieldBoundsProvider, postChannelResolver PostChannelResolver, valueAudit *PropertyValueAuditHook) *BoundsHook {
+	return &BoundsHook{propertyService: ps, enabled: enabled, postChannelResolver: postChannelResolver, valueAudit: valueAudit}
 }
 
 // isGroupV3 reports whether groupID names a v3 group. A group ID that fails to
@@ -149,15 +153,13 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 }
 
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once, unless the PropertyFieldBounds and PropertyFieldPermissionsV3
-// flags are both on. Rules and locks already on the field ride along, and
-// removing them is always allowed. Unstated bounds (nil) and mutability ("") add
-// nothing; the update path fills them in from the stored field.
+// becomes write_once. Unless the PropertyFieldBounds and PropertyFieldPermissionsV3
+// flags are both on it is refused whatever the license; with them on it is refused
+// unless the server is licensed for Enterprise Advanced. Rules and locks already
+// on the field ride along, and removing them is always allowed. Unstated bounds
+// (nil) and mutability ("") add nothing; the update path fills them in from the
+// stored field.
 func (h *BoundsHook) validateBoundsChange(field, existing *model.PropertyField) error {
-	if h.propertyFieldBoundsEnabled() {
-		return nil
-	}
-
 	var prevBounds model.PropertyBounds
 	prevMutability := model.PropertyFieldMutabilityMutable
 	if existing != nil {
@@ -165,15 +167,27 @@ func (h *BoundsHook) validateBoundsChange(field, existing *model.PropertyField) 
 		prevMutability = existing.Mutability.OrMutable()
 	}
 
+	var adding string
 	for _, rule := range field.Bounds {
 		if !slices.Contains(prevBounds, rule) {
-			details := fmt.Sprintf("field %s: cannot add the bounds rule %s %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, rule.Operator, rule.Reference)
-			return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
+			adding = fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
+			break
 		}
 	}
-	if field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
-		details := fmt.Sprintf("field %s: cannot make the field %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, field.Mutability)
+	if adding == "" && field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
+		adding = fmt.Sprintf("make the field %s", field.Mutability)
+	}
+	if adding == "" {
+		return nil
+	}
+
+	if !h.propertyFieldBoundsEnabled() {
+		details := fmt.Sprintf("field %s: cannot %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, adding)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
+	}
+	if !h.propertyService.boundsEnforced() {
+		details := fmt.Sprintf("field %s: cannot %s without an Enterprise Advanced license", field.ID, adding)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_license.app_error", nil, details, http.StatusNotImplemented)
 	}
 	return nil
 }
