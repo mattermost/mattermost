@@ -288,6 +288,10 @@ reproduction and restored pass with who produced each, the assertion location, w
 stage, and every stage's status with the stage-0 attempts. A row reads `verified` only when the orchestrator produced it;
 the independent reproduction counts only because both the dispatch and the collection went through it.
 
+**Page snapshot.** In this engine the guarded session's page is not a Playwright-managed page, and Playwright's
+`error-context.md` holds the page snapshot as a bare ```yaml block under the error details (no "Page snapshot" heading).
+The trace takes that block; a control run whose `error-context.md` yields no bookmark-bar part fails stage 2.
+
 **Test seams.** `PILOT_INFRA_DIR` points the orchestrator at a directory laid out like `explorer-proto/infra` (the
 scripts, the bookmark helper and `.run/seed-manifest.json`); `PILOT_REPLAY_CMD` and `PILOT_REPLAY_REPORT` replace the
 engine's replay command and its report path. The selftest uses them with `selftest_fake_infra.mjs`; a real run sets none.
@@ -362,6 +366,11 @@ inconsistent verifier results, spec hash mismatch); the dry run end to end, no-o
 invalid and stale results, leakage rejection, duplicate rejection and review routing, verdict constraints, the lesson
 gate, budgets, the static spec check, the gate registry, the secret scan against a synthetic value, the control judge on
 synthetic reports, adopted oracle runs, `cmd:` providers, and the metrics shape.
+
+Run live once on the pinned 12.1.0 stack for the bookmarks session: stage 0 with the session, a `--resume` that reused it
+(every stage-0 file keeps its sha256, the manifest keeps its `session` key, the fixture fingerprint is equal), the
+baseline, the control with its restore, and the dispatch with the stack stopped (exit 20). Collection of a real
+independent result was rehearsed on a copy of that run directory with a synthetic result, not with a verifier.
 
 Not verified by the selftest (nothing here runs Docker): every live path. That is stage 0's `gate.sh` and `up.sh` calls and the
 parsing of their output, the oracle runner invocation, the engine `explore` and `emit` calls and the emitted-spec path
