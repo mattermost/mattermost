@@ -30,20 +30,25 @@ func New(api common.LogAPI) Logger {
 
 func (l *defaultLogger) With(logContext LogContext) Logger {
 	newLogger := *l
-	if len(newLogger.logContext) == 0 {
-		newLogger.logContext = map[string]any{}
-	}
+	newLogger.logContext = cloneContext(l.logContext)
 	maps.Copy(newLogger.logContext, logContext)
 	return &newLogger
 }
 
 func (l *defaultLogger) WithError(err error) Logger {
 	newLogger := *l
-	if len(newLogger.logContext) == 0 {
-		newLogger.logContext = map[string]any{}
-	}
+	newLogger.logContext = cloneContext(l.logContext)
 	newLogger.logContext[ErrorKey] = err.Error()
 	return &newLogger
+}
+
+// cloneContext returns a copy, so derived loggers never write into the parent map
+// that other goroutines can read or write at the same time.
+func cloneContext(c LogContext) LogContext {
+	if c == nil {
+		return LogContext{}
+	}
+	return maps.Clone(c)
 }
 
 func (l *defaultLogger) Context() LogContext {
