@@ -3,13 +3,15 @@
 
 import {demoPluginId, demoPluginUrl, getPluginStatus, test, expect} from '@mattermost/playwright-lib';
 
+import {sendDemoSlashCommand} from './demo_plugin/helpers';
+
 test('should install and enable demo plugin from URL', async ({pw}) => {
     // # Create and navigate to channels page
-    const {adminClient, user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {adminClient, user, team} = await pw.initSetup();
+    const {app} = await pw.testBrowser.login(user);
 
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Enable public links before installing plugin
     await adminClient.patchConfig({
@@ -57,13 +59,15 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
     // # Dismiss overlay again if it reappeared after plugin activation.
     // No fixed wait needed — postMessage's fill/click actions auto-wait for the
     // input to become interactable once the overlay clears.
-    await channelsPage.page.keyboard.press('Escape');
+    await app.page.keyboard.press('Escape');
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Execute slash command
-    await channelsPage.postMessage('/demo_plugin true');
+    await sendDemoSlashCommand(app, '/demo_plugin true');
 
     // * Verify the response post
-    const post = await channelsPage.getLastPost();
-    await post.toBeVisible();
-    await post.toContainText('enabled');
+    await expect(async () => {
+        const lastId = (await app.center.postList.postList.keys()).at(-1)!;
+        await expect(app.center.postList.post({id: lastId})).toContainText('enabled');
+    }).toPass();
 });

@@ -11,20 +11,15 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Demo Plugin channel
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /dialog command
-    const dialog = channelsPage.page.getByRole('dialog');
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/dialog');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const dialog = app.page.getByRole('dialog');
+    await sendDemoSlashCommand(app, '/dialog');
     await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Test Title"
@@ -32,25 +27,34 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
     // # Fill required fields
     // Display Name already has default "default text" — overwrite
-    await dialog.getByTestId('realnameinput').fill('Test Input');
+    await app.appsForm.field('realname').valueTextbox.fill('Test Input');
+    await expect(app.appsForm.field('realname').valueTextbox).toHaveValue('Test Input');
 
     // Email and Password are required
-    await dialog.getByTestId('someemailemail').fill('test@example.com');
-    await dialog.getByTestId('somepasswordpassword').fill('testpassword123');
+    await app.appsForm.field('someemail').valueTextbox.fill('test@example.com');
+    await expect(app.appsForm.field('someemail').valueTextbox).toHaveValue('test@example.com');
+    await app.appsForm.field('somepassword').valueTextbox.fill('testpassword123');
+    await expect(app.appsForm.field('somepassword').valueTextbox).toHaveValue('testpassword123');
 
     // Number is required
-    await dialog.getByTestId('somenumbernumber').fill('42');
+    await app.appsForm.field('somenumber').numberSpinButton.fill('42');
+    await expect(app.appsForm.field('somenumber').numberSpinButton).toHaveValue('42');
 
     // Option Selector — required, no default (3rd combobox: User Selector, Channel Selector, Option Selector)
     await dialog.getByRole('combobox').nth(2).click();
-    await channelsPage.page.getByRole('option', {name: 'Option1'}).click();
+    await expect(app.page.getByRole('option', {name: 'Option1'})).toBeVisible();
+    await app.page.getByRole('option', {name: 'Option1'}).click();
+    await expect(app.page.getByRole('option', {name: 'Option1'})).not.toBeVisible();
 
     // Required checkboxes
     await dialog.getByRole('checkbox', {name: 'Agree to the terms of service'}).check();
+    await expect(dialog.getByRole('checkbox', {name: 'Agree to the terms of service'})).toBeChecked();
     await dialog.getByRole('checkbox', {name: 'Agree to the annoying terms of service'}).check();
+    await expect(dialog.getByRole('checkbox', {name: 'Agree to the annoying terms of service'})).toBeChecked();
 
     // Radio Option Selector — required
     await dialog.getByRole('radio', {name: 'Option1'}).click();
+    await expect(dialog.getByRole('radio', {name: 'Option1'})).toBeChecked();
 
     // # Submit the dialog
     await dialog.getByRole('button', {name: 'Submit'}).click();
@@ -58,9 +62,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // * Verify the dialog closed and the submit post appears in the channel
     // Note: "Interative" is a typo in the demo plugin — not a test error
     await expect(dialog).not.toBeVisible();
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'submitted an Interative Dialog'}),
-    ).toBeVisible();
+    await expect(await app.center.postList.postList.itemWith({text: 'submitted an Interative Dialog'})).toBeVisible();
 });
 
 test('should post cancellation notification when /dialog is cancelled', async ({pw}) => {
@@ -69,20 +71,15 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Demo Plugin channel
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /dialog command
-    const dialog = channelsPage.page.getByRole('dialog');
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/dialog');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const dialog = app.page.getByRole('dialog');
+    await sendDemoSlashCommand(app, '/dialog');
     await expect(dialog).toBeVisible();
 
     // * Verify dialog opens
@@ -96,9 +93,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     // * Verify the dialog closed and the cancellation post appears in the channel
     // Note: "Interative" is a typo in the demo plugin — not a test error
     await expect(dialog).not.toBeVisible();
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'canceled an Interative Dialog'}),
-    ).toBeVisible();
+    await expect(await app.center.postList.postList.itemWith({text: 'canceled an Interative Dialog'})).toBeVisible();
 });
 
 test('should show validation errors when required fields are submitted empty', async ({pw}) => {
@@ -107,33 +102,31 @@ test('should show validation errors when required fields are submitted empty', a
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Demo Plugin channel
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /dialog command
-    const dialog = channelsPage.page.getByRole('dialog');
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/dialog');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const dialog = app.page.getByRole('dialog');
+    await sendDemoSlashCommand(app, '/dialog');
     await expect(dialog).toBeVisible();
 
     // * Verify dialog opens
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // # Clear the Number field and submit
-    await dialog.getByTestId('somenumbernumber').clear();
+    await app.appsForm.field('somenumber').numberSpinButton.clear();
     await dialog.getByRole('button', {name: 'Submit'}).click();
 
     // * Verify dialog stays open with validation errors
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText('Please fix all field errors', {exact: true})).toBeVisible();
-    await expect(dialog.getByTestId('somenumber').getByText('This field is required.', {exact: true})).toBeVisible();
+    // The field's validation message has no part of its own: it is read by its text inside the field's region.
+    await expect(
+        app.appsForm.field('somenumber').container.locator.getByText('This field is required.', {exact: true}),
+    ).toBeVisible();
 });
 
 test('should show general error and keep dialog open on /dialog error submit', async ({pw}) => {
@@ -142,20 +135,15 @@ test('should show general error and keep dialog open on /dialog error submit', a
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Town Square
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /dialog error command
-    const dialog = channelsPage.page.getByRole('dialog');
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/dialog error');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const dialog = app.page.getByRole('dialog');
+    await sendDemoSlashCommand(app, '/dialog error');
     await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Simple Dialog Test"
@@ -179,20 +167,15 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Town Square
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /dialog error-no-elements command
-    const dialog = channelsPage.page.getByRole('dialog');
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const dialog = app.page.getByRole('dialog');
+    await sendDemoSlashCommand(app, '/dialog error-no-elements');
     await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Sample Confirmation Dialog" and no form fields

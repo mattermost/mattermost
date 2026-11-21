@@ -39,19 +39,19 @@ test('/reset_password accessibility tab support', async ({pw, page}) => {
 
     // * Should move focus to about link after tab
     await app.passwordReset.sendButton.press('Tab');
-    await expect(app.public.footer.link('about')).toBeFocused();
+    await expect(app.public.templateFooter.link('about')).toBeFocused();
 
     // * Should move focus to privacy policy link after tab
-    await app.public.footer.link('about').press('Tab');
-    await expect(app.public.footer.link('privacy')).toBeFocused();
+    await app.public.templateFooter.link('about').press('Tab');
+    await expect(app.public.templateFooter.link('privacy')).toBeFocused();
 
     // * Should move focus to terms link after tab
-    await app.public.footer.link('privacy').press('Tab');
-    await expect(app.public.footer.link('terms')).toBeFocused();
+    await app.public.templateFooter.link('privacy').press('Tab');
+    await expect(app.public.templateFooter.link('terms')).toBeFocused();
 
     // * Should move focus to help link after tab
-    await app.public.footer.link('terms').press('Tab');
-    await expect(app.public.footer.link('help')).toBeFocused();
+    await app.public.templateFooter.link('terms').press('Tab');
+    await expect(app.public.templateFooter.link('help')).toBeFocused();
 
     // # Move focus to email input
     await app.passwordReset.email.container.focus();
@@ -59,5 +59,5 @@ test('/reset_password accessibility tab support', async ({pw, page}) => {
 
     // * Should move focus to back button after shift+tab
     await app.passwordReset.email.container.press('Shift+Tab');
-    await expect(app.public.header.backLink).toBeFocused();
+    await expect(app.passwordReset.backLink).toBeFocused();
 });

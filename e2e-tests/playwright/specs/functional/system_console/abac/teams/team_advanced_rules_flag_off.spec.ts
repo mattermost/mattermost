@@ -13,16 +13,14 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {createPrivateTeam} from '../../../channels/team_settings/helpers';
 
-import {openTeamConfig} from './helpers';
+import {cleanUpCreated, openTeamConfig} from './helpers';
 
 test.describe('ABAC - Team Advanced membership rules (flag off)', {tag: ['@abac', '@team_membership']}, () => {
     const createdTeamIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        for (const id of createdTeamIds.splice(0)) {
-            await adminClient.deleteTeam(id).catch(() => {});
-        }
+        await cleanUpCreated(adminClient, {teamIds: createdTeamIds.splice(0)});
     });
 
     test('MM-71104-T15c the ABAC section is hidden when the team membership flag is off', async ({pw}) => {
@@ -39,10 +37,10 @@ test.describe('ABAC - Team Advanced membership rules (flag off)', {tag: ['@abac'
         const team = await createPrivateTeam(adminClient, pw.random.id());
         createdTeamIds.push(team.id);
 
-        const {page, app} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
         await openTeamConfig(app, team.display_name);
 
-        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveCount(0);
-        await expect(page.locator('#team_level_access_rules')).toHaveCount(0);
+        await expect(app.admin.team.policyEnforce.container).toHaveCount(0);
+        await expect(app.admin.team.accessRules.container).toHaveCount(0);
     });
 });

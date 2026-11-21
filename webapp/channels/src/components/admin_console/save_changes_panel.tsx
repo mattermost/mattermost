@@ -80,7 +80,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             )}
             <div
                 className='error-message'
-                data-testid={testId ? `${testId}.error--text` : 'saveChangesPanel-errorMessage'}
+                data-testid={testId ? `${testId}.error--text` : undefined}
             >
                 {serverError}
             </div>

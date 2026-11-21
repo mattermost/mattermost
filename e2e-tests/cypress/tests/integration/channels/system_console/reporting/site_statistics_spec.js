@@ -41,7 +41,7 @@ describe('System Console > Site Statistics', () => {
         cy.visit('/admin_console');
 
         // # Go to system analytics
-        cy.findByTestId('reporting.system_analytics', {timeout: TIMEOUTS.ONE_MIN}).click();
+        cy.findByTestId('admin.sidebar.category.section:system_analytics--listitem', {timeout: TIMEOUTS.ONE_MIN}).findByTestId('admin.sidebar.category.section.title--link').click();
         cy.wait(TIMEOUTS.ONE_SEC);
 
         // # Get the number text and turn them into numbers

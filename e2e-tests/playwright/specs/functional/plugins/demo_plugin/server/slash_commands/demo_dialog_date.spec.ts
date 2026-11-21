@@ -11,20 +11,15 @@ test('should open /dialog date and post submit confirmation after selecting date
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Town Square
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /dialog date command
-    const dialog = channelsPage.page.getByRole('dialog');
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/dialog date');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const dialog = app.page.getByRole('dialog');
+    await sendDemoSlashCommand(app, '/dialog date');
     await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Date & DateTime Test Dialog"
@@ -38,9 +33,10 @@ test('should open /dialog date and post submit confirmation after selecting date
 
     // # Select a date using the Meeting Date picker
     await dialog.getByRole('button', {name: /Select a meeting date/i}).click();
-    await expect(channelsPage.page.getByRole('grid')).toBeVisible();
+    await expect(app.page.getByRole('grid')).toBeVisible();
     // Click day 20 — reliably available in any month
-    await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
+    await app.page.getByRole('grid').getByText('20', {exact: true}).click();
+    await expect(app.page.getByRole('grid')).not.toBeVisible();
 
     // # Select a date and time using the Meeting Date & Time picker.
     // The datetime field renders via DateTimeInput which wraps its date part in
@@ -50,8 +46,9 @@ test('should open /dialog date and post submit confirmation after selecting date
     // role="button" div, whose name includes a CSS icon-font glyph that browsers
     // include in accname but which is invisible to textContent inspection.
     await dialog.locator('.dateTime__date').getByRole('button').click();
-    await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-    await channelsPage.page.getByRole('grid').getByText('22', {exact: true}).click();
+    await expect(app.page.getByRole('grid')).toBeVisible();
+    await app.page.getByRole('grid').getByText('22', {exact: true}).click();
+    await expect(app.page.getByRole('grid')).not.toBeVisible();
 
     // Select a time from the time picker.  The time button carries aria-label="Time"
     // (set explicitly in DateTimeInput), so the name-based locator is reliable here.
@@ -59,14 +56,14 @@ test('should open /dialog date and post submit confirmation after selecting date
         .getByRole('button', {name: /Time|Select a time/i})
         .first()
         .click();
-    await channelsPage.page.getByRole('menuitem', {name: '3:00 PM'}).click();
+    await expect(app.page.getByRole('menuitem', {name: '3:00 PM'})).toBeVisible();
+    await app.page.getByRole('menuitem', {name: '3:00 PM'}).click();
+    await expect(app.page.getByRole('menuitem', {name: '3:00 PM'})).not.toBeVisible();
 
     // # Submit — button is labelled "Create Event"
     await dialog.getByRole('button', {name: 'Create Event'}).click();
 
     // * Verify the dialog closes and submit post appears in the channel
     await expect(dialog).not.toBeVisible();
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'submitted a Date Dialog'}),
-    ).toBeVisible();
+    await expect(await app.center.postList.postList.itemWith({text: 'submitted a Date Dialog'})).toBeVisible();
 });

@@ -30,14 +30,9 @@ export async function enableAPIUserDeletion(client: Client4) {
 }
 
 export async function ensureDepartmentAttribute(client: Client4): Promise<{id: string; name: string}> {
-    let fields: any[] = [];
-    try {
-        fields = await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields`, {
-            method: 'GET',
-        });
-    } catch {
-        // May not exist yet
-    }
+    const fields: any[] = await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields`, {
+        method: 'GET',
+    });
     if (!fields.find((f: any) => f.name === 'Department')) {
         try {
             await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields`, {
@@ -201,6 +196,22 @@ export async function setUserAttribute(adminClient: Client4, userId: string, fie
  * gate elapses will refresh the view and pick up the new attribute values.
  * Default timeout 45s = 30s gate + 15s headroom.
  */
+async function usersMatching(adminClient: Client4, expression: string): Promise<Set<string>> {
+    const response: any = await (adminClient as any).doFetch(
+        `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
+        {
+            method: 'post',
+            body: JSON.stringify({
+                expression,
+                term: '',
+                after: '',
+                limit: 1000,
+            }),
+        },
+    );
+    return new Set<string>((response?.users || []).map((u: any) => u.id));
+}
+
 export async function waitForAttributeViewToInclude(
     adminClient: Client4,
     expression: string,
@@ -208,31 +219,19 @@ export async function waitForAttributeViewToInclude(
     timeoutMs = 45_000,
     pollIntervalMs = 1_000,
 ): Promise<void> {
-    const deadline = Date.now() + timeoutMs;
-    let lastSeen = new Set<string>();
-    while (Date.now() < deadline) {
-        const response: any = await (adminClient as any).doFetch(
-            `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
-            {
-                method: 'post',
-                body: JSON.stringify({
-                    expression,
-                    term: '',
-                    after: '',
-                    limit: 1000,
-                }),
+    await expect
+        .poll(
+            async () => {
+                const matching = await usersMatching(adminClient, expression);
+                return expectedUserIds.filter((id) => !matching.has(id));
             },
-        );
-        lastSeen = new Set<string>((response?.users || []).map((u: any) => u.id));
-        if (expectedUserIds.every((id) => lastSeen.has(id))) {
-            return;
-        }
-        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-    }
-    const missing = expectedUserIds.filter((id) => !lastSeen.has(id));
-    throw new Error(
-        `UserAttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
-    );
+            {
+                timeout: timeoutMs,
+                intervals: [pollIntervalMs],
+                message: `UserAttributeView should include the users for expression "${expression}"`,
+            },
+        )
+        .toEqual([]);
 }
 
 export async function waitForAttributeViewToExclude(
@@ -242,31 +241,19 @@ export async function waitForAttributeViewToExclude(
     timeoutMs = 45_000,
     pollIntervalMs = 1_000,
 ): Promise<void> {
-    const deadline = Date.now() + timeoutMs;
-    let lastSeen = new Set<string>();
-    while (Date.now() < deadline) {
-        const response: any = await (adminClient as any).doFetch(
-            `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
-            {
-                method: 'post',
-                body: JSON.stringify({
-                    expression,
-                    term: '',
-                    after: '',
-                    limit: 1000,
-                }),
+    await expect
+        .poll(
+            async () => {
+                const matching = await usersMatching(adminClient, expression);
+                return excludedUserIds.filter((id) => matching.has(id));
             },
-        );
-        lastSeen = new Set<string>((response?.users || []).map((u: any) => u.id));
-        if (excludedUserIds.every((id) => !lastSeen.has(id))) {
-            return;
-        }
-        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-    }
-    const stillPresent = excludedUserIds.filter((id) => lastSeen.has(id));
-    throw new Error(
-        `UserAttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
-    );
+            {
+                timeout: timeoutMs,
+                intervals: [pollIntervalMs],
+                message: `UserAttributeView should no longer include the users for expression "${expression}"`,
+            },
+        )
+        .toEqual([]);
 }
 
 export async function createPrivateChannel(client: Client4, teamId: string) {
@@ -317,18 +304,13 @@ export async function createTeamAdmin(adminClient: Client4, teamId: string) {
 }
 
 /**
- * Adds an attribute rule row in the policy editor and fills in a value.
+ * Adds an attribute rule row in the channel settings access rules editor and fills in a value.
  * Handles the auto-opening attribute selector menu.
  */
 export async function addAttributeRule(container: Locator, page: Page, value: string, attributeName = 'Department') {
     await expect(container).toBeVisible();
-    const app = new App(page);
-    const channelRules = app.channelSettingsModal.accessRules.rules;
-    const teamRules = app.admin.team.accessRules.rules;
-    await expect(async () => {
-        expect((await channelRules.addButton.isVisible()) || (await teamRules.addButton.isVisible())).toBe(true);
-    }).toPass();
-    const rules = (await channelRules.addButton.isVisible()) ? channelRules : teamRules;
+    const rules = new App(page).channelSettingsModal.accessRules.rules;
+    await expect(rules.addButton).toBeVisible();
     const row = rules.row((await rules.rowList.keys()).length);
     await expect(rules.addButton).toBeEnabled();
     await rules.addButton.click();
@@ -384,6 +366,18 @@ export async function assignTeamToParentPolicy(client: Client4, policyId: string
 
 export async function getTeamAccessControlPolicy(client: Client4, teamId: string) {
     return (client as any).doFetch(`${client.getBaseRoute()}/teams/${teamId}/access_control/policy`, {method: 'GET'});
+}
+
+/** The team's access control policy, or undefined when it has none (the server answers 404); any other failure throws. */
+export async function getTeamAccessControlPolicyIfPresent(client: Client4, teamId: string) {
+    try {
+        return await getTeamAccessControlPolicy(client, teamId);
+    } catch (error) {
+        if ((error as {status_code?: number}).status_code === 404) {
+            return undefined;
+        }
+        throw error;
+    }
 }
 
 /**

@@ -266,6 +266,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             </Modal.Header>
             <Modal.Body>
                 <Input
+                    testId='start_trial_modal.name'
                     className={'name_input'}
                     name='name'
                     type='text'
@@ -276,6 +277,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     placeholder={formatMessage({id: 'start_trial_form.name', defaultMessage: 'Name'})}
                 />
                 <Input
+                    testId='start_trial_modal.email'
                     className={'email_input'}
                     onBlur={(e) => handleValidateBusinessEmail(e.target.value)}
                     name='email'
@@ -288,6 +290,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     customMessage={businessEmailError}
                 />
                 <Input
+                    testId='start_trial_modal.company'
                     className={'company_name_input'}
                     name='company_name'
                     type='text'
@@ -298,6 +301,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     placeholder={formatMessage({id: 'start_trial_form.company_name', defaultMessage: 'Company Name'})}
                 />
                 <DropdownInput
+                    testId='start_trial_modal.company_size'
                     className={'company_size_dropdown'}
                     onChange={(e) => {
                         setOrgSize(e.value as OrgSize);
@@ -310,6 +314,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 />
                 <div className='countries-section'>
                     <CountrySelector
+                        testId='start_trial_modal.country'
                         onChange={(e) => setCountry(e.value)}
                         value={country}
                     />

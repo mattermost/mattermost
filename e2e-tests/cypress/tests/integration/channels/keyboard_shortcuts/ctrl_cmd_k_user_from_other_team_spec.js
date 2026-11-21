@@ -59,7 +59,14 @@ describe('Keyboard Shortcuts', () => {
         cy.findByRole('combobox', {name: 'quick switch input'}).type(this.otherUser.username);
 
         // # Select other user from the list
-        cy.findByTestId(this.otherUser.username).should('not.exist');
+        // The testid uses a channel id; match the scoped row by its visible username.
+        cy.findByTestId((testId, element) => {
+            const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+            const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+            return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+                (visibleUsername === `@${this.otherUser.username}` || (!visibleUsername &&
+                    (visibleName === this.otherUser.username || Boolean(visibleName?.startsWith(`${this.otherUser.username} (`)))));
+        }).should('not.exist');
     });
 
     it('MM-T1228_3 CTRL/CMD+K - Open DM with user belonging to both teams / with ANY', function() {
@@ -107,8 +114,22 @@ function verifyUserIsFoundAndDMOpensOnClick(user) {
     cy.findByRole('combobox', {name: 'quick switch input'}).type(user.username);
 
     // # Select other user from the list
-    cy.findByTestId(user.username).should('be.visible');
-    cy.findByTestId(user.username).click();
+    // The testid uses a channel id; match the scoped row by its visible username.
+    cy.findByTestId((testId, element) => {
+        const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+        const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+        return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+            (visibleUsername === `@${user.username}` || (!visibleUsername &&
+                (visibleName === user.username || Boolean(visibleName?.startsWith(`${user.username} (`)))));
+    }).should('be.visible');
+    // The testid uses a channel id; match the scoped row by its visible username.
+    cy.findByTestId((testId, element) => {
+        const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+        const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+        return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+            (visibleUsername === `@${user.username}` || (!visibleUsername &&
+                (visibleName === user.username || Boolean(visibleName?.startsWith(`${user.username} (`)))));
+    }).click();
 
     // * Other user name is visible in header
     cy.get('#channelHeaderTitle').should('contain', user.username);

@@ -6,7 +6,17 @@
  * @reference MM-69100
  */
 
-import {Api, settle, expect, newTestPassword, test, duration, Msg} from '@mattermost/playwright-lib';
+import {
+    Api,
+    settle,
+    deleteAccessControlPolicyIfPresent,
+    expect,
+    ignoreMissing,
+    newTestPassword,
+    test,
+    duration,
+    Msg,
+} from '@mattermost/playwright-lib';
 
 import {
     enableTeamMembershipABACConfig,
@@ -19,6 +29,7 @@ import {
     waitForAttributeViewToExclude,
     addRule,
     getTeamAccessControlPolicy,
+    getTeamAccessControlPolicyIfPresent,
     createParentMembershipPolicy,
     assignTeamToParentPolicy,
 } from './helpers';
@@ -31,16 +42,14 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        const base = adminClient.getBaseRoute();
-        const headers = {Authorization: `Bearer ${adminClient.getToken()}`};
         for (const id of createdPolicyIds.splice(0)) {
-            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
+            await deleteAccessControlPolicyIfPresent(adminClient, id);
         }
         for (const id of createdTeamIds.splice(0)) {
-            await adminClient.deleteTeam(id).catch(() => {});
+            await ignoreMissing(() => adminClient.deleteTeam(id));
         }
         for (const id of createdUserIds.splice(0)) {
-            await adminClient.updateUserActive(id, false).catch(() => {});
+            await ignoreMissing(() => adminClient.updateUserActive(id, false));
         }
     });
 
@@ -163,12 +172,9 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         await expect(selfExclusion).not.toBeVisible();
 
         // * Policy unchanged via API
-        try {
-            const policyResult: any = await getTeamAccessControlPolicy(adminClient, team.id);
-            expect(JSON.stringify(policyResult ?? {})).not.toContain('"Engineering"');
-        } catch {
-            // No policy exists — self-exclusion correctly blocked the save
-        }
+        // No policy at all is fine: self-exclusion blocked the save.
+        const policyResult = await getTeamAccessControlPolicyIfPresent(adminClient, team.id);
+        expect(JSON.stringify(policyResult ?? {})).not.toContain('"Engineering"');
 
         await closeTeamSettings(teamSettings);
     });

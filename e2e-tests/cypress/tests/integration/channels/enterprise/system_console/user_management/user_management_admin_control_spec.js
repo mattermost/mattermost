@@ -126,7 +126,7 @@ describe('User Management', () => {
         });
 
         // # Click on edit for the role
-        cy.findByTestId(`${role}_edit`).click();
+        cy.findByTestId(`admin.roles.row:${role}--row`).findByTestId('admin.roles.row.edit--link').click();
 
         cy.get('button#systemRolePermissionDropdownuser_management_users').click();
         cy.get('div.PermissionSectionDropdownOptions_label').filter(`:contains("${writeAccess ? 'Can edit' : 'Read only'}")`).should('have.text', writeAccess ? 'Can edit' : 'Read only').click();

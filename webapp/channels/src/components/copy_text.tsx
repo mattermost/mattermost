@@ -39,7 +39,7 @@ const CopyText = ({
     return (
         <WithTooltip title={label}>
             <IconButton
-                data-testid={testId ? `${testId}--button` : 'copyText'}
+                data-testid={testId ? `${testId}--button` : undefined}
                 size='x-small'
                 className='ml-2'
                 icon={<Icon glyph={<ContentCopyIcon/>}/>}

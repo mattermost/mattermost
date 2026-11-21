@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
+import {fireEvent, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, {useState} from 'react';
 
@@ -37,6 +37,7 @@ const Host = ({onChange}: {onChange: (next: string) => void}) => {
 
     return (
         <BannerTextEditor
+            testId='fixture.banner_editor'
             value={value}
             attributes={ATTRIBUTES}
             onChange={(next) => {
@@ -86,33 +87,35 @@ describe('BannerTextEditor', () => {
     test('tints a chip whose attribute has no value on this channel, and only that one', () => {
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{classification}} · {{program}} · {{deleted}}'
                 attributes={[attribute('classification', '', 'Classification'), attribute('program', 'AURORA', 'Program')]}
                 onChange={jest.fn()}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditorChip-classification')).toHaveClass('BannerTextEditor__chip--unset');
-        expect(screen.getByTestId('bannerTextEditorChip-program')).not.toHaveClass('BannerTextEditor__chip--unset');
+        expect(screen.getByTestId('fixture.banner_editor.token:0')).toHaveClass('BannerTextEditor__chip--unset');
+        expect(screen.getByTestId('fixture.banner_editor.token:1')).not.toHaveClass('BannerTextEditor__chip--unset');
 
         // An attribute that no longer exists can never get a value, so it is not flagged.
-        expect(screen.getByTestId('bannerTextEditorChip-deleted')).not.toHaveClass('BannerTextEditor__chip--unset');
+        expect(screen.getByTestId('fixture.banner_editor.token:2')).not.toHaveClass('BannerTextEditor__chip--unset');
     });
 
     test('explains an unset chip on hover without changing the text it saves', async () => {
         const onChange = jest.fn();
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{classification}}'
                 attributes={[attribute('classification', '', 'Classification')]}
                 onChange={onChange}
             />,
         );
 
-        await userEvent.hover(screen.getByTestId('bannerTextEditorChip-classification'));
+        await userEvent.hover(screen.getByTestId('fixture.banner_editor.token:0'));
         expect(await screen.findByText(/has no value set and won't render in the banner/)).toBeInTheDocument();
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         editor.appendChild(document.createTextNode(' - Team'));
         fireEvent.input(editor);
 
@@ -122,41 +125,44 @@ describe('BannerTextEditor', () => {
     test('renders a token as a chip labelled with the display name, not the machine name', () => {
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{classification}} - Team'
                 attributes={ATTRIBUTES}
                 onChange={jest.fn()}
             />,
         );
 
-        const chip = screen.getByTestId('bannerTextEditorChip-classification');
+        const chip = screen.getByTestId('fixture.banner_editor.token:0');
         expect(chip).toHaveTextContent('Classification');
-        expect(screen.getByTestId('bannerTextEditor')).toHaveTextContent('- Team');
-        expect(screen.getByTestId('bannerTextEditor')).not.toHaveTextContent('{{classification}}');
+        expect(screen.getByTestId('fixture.banner_editor--textbox')).toHaveTextContent('- Team');
+        expect(screen.getByTestId('fixture.banner_editor--textbox')).not.toHaveTextContent('{{classification}}');
     });
 
     test('labels a token whose attribute is gone with its machine name rather than blank', () => {
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{deleted_field}}'
                 attributes={ATTRIBUTES}
                 onChange={jest.fn()}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditorChip-deleted_field')).toHaveTextContent('deleted_field');
+        expect(screen.getByTestId('fixture.banner_editor.token:0')).toHaveTextContent('deleted_field');
     });
 
     test('serializes typed text back into the template, chips included', () => {
         const onChange = jest.fn();
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{classification}}'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         editor.appendChild(document.createTextNode(' - Team'));
         fireEvent.input(editor);
 
@@ -167,13 +173,14 @@ describe('BannerTextEditor', () => {
         const onChange = jest.fn();
         const {rerender} = renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='this is my tex'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         const textNode = editor.firstChild as Text;
 
         // What the browser does when a character is typed mid-string.
@@ -185,13 +192,14 @@ describe('BannerTextEditor', () => {
         // caret lives in: replacing it collapses the selection to the start.
         rerender(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='this is my texT'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditor').firstChild).toBe(textNode);
+        expect(screen.getByTestId('fixture.banner_editor--textbox').firstChild).toBe(textNode);
         expect(textNode.nodeValue).toBe('this is my texT');
     });
 
@@ -199,37 +207,40 @@ describe('BannerTextEditor', () => {
         const onChange = jest.fn();
         const {rerender} = renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='original'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         expect(editor).toHaveTextContent('original');
 
         rerender(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='reset elsewhere'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditor')).toHaveTextContent('reset elsewhere');
+        expect(screen.getByTestId('fixture.banner_editor--textbox')).toHaveTextContent('reset elsewhere');
     });
 
     test('removes a token when its chip is dismissed, keeping the surrounding text', async () => {
         const onChange = jest.fn();
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{classification}} - {{program}} Team'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        await userEvent.click(screen.getByTestId('bannerTextEditorChipRemove-program'));
+        await userEvent.click(within(screen.getByTestId('fixture.banner_editor.token:1')).getByTestId('fixture.banner_editor.token.remove--button'));
 
         expect(onChange).toHaveBeenCalledWith('{{classification}} -  Team');
     });
@@ -238,13 +249,14 @@ describe('BannerTextEditor', () => {
         const onChange = jest.fn();
         const {rerender} = renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='keep focus here'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         editor.focus();
         expect(editor).toHaveFocus();
 
@@ -252,19 +264,21 @@ describe('BannerTextEditor', () => {
         // the body and the app's type-anywhere handler diverts typing to the message box.
         rerender(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='changed elsewhere'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditor')).toHaveFocus();
+        expect(screen.getByTestId('fixture.banner_editor--textbox')).toHaveFocus();
     });
 
     test('does not steal focus when the editor was not focused', () => {
         const onChange = jest.fn();
         const {rerender} = renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='untouched'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
@@ -273,18 +287,20 @@ describe('BannerTextEditor', () => {
 
         rerender(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='changed elsewhere'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditor')).not.toHaveFocus();
+        expect(screen.getByTestId('fixture.banner_editor--textbox')).not.toHaveFocus();
     });
 
     test('offers no remove control while disabled', () => {
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{program}}'
                 attributes={ATTRIBUTES}
                 onChange={jest.fn()}
@@ -292,34 +308,36 @@ describe('BannerTextEditor', () => {
             />,
         );
 
-        expect(screen.queryByTestId('bannerTextEditorChipRemove-program')).not.toBeInTheDocument();
-        expect(screen.getByTestId('bannerTextEditor')).toHaveAttribute('contenteditable', 'false');
+        expect(within(screen.getByTestId('fixture.banner_editor.token:0')).queryByTestId('fixture.banner_editor.token.remove--button')).not.toBeInTheDocument();
+        expect(screen.getByTestId('fixture.banner_editor--textbox')).toHaveAttribute('contenteditable', 'false');
     });
 
     test('offers a remove control on every chip', () => {
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='{{classification}} · {{program}}'
                 attributes={ATTRIBUTES}
                 onChange={jest.fn()}
             />,
         );
 
-        expect(screen.getByTestId('bannerTextEditorChipRemove-classification')).toBeInTheDocument();
-        expect(screen.getByTestId('bannerTextEditorChipRemove-program')).toBeInTheDocument();
+        expect(within(screen.getByTestId('fixture.banner_editor.token:0')).getByTestId('fixture.banner_editor.token.remove--button')).toBeInTheDocument();
+        expect(within(screen.getByTestId('fixture.banner_editor.token:1')).getByTestId('fixture.banner_editor.token.remove--button')).toBeInTheDocument();
     });
 
     test('keeps the banner to one line', () => {
         const onChange = jest.fn();
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='SECRET'
                 attributes={ATTRIBUTES}
                 onChange={onChange}
             />,
         );
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         const prevented = !fireEvent.keyDown(editor, {key: 'Enter'});
 
         expect(prevented).toBe(true);
@@ -328,6 +346,7 @@ describe('BannerTextEditor', () => {
     test('stops typing past the maximum length', () => {
         renderWithContext(
             <BannerTextEditor
+                testId='fixture.banner_editor'
                 value='SECRET'
                 attributes={ATTRIBUTES}
                 onChange={jest.fn()}
@@ -335,7 +354,7 @@ describe('BannerTextEditor', () => {
             />,
         );
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         expect(!fireEvent.keyDown(editor, {key: 'a'})).toBe(true);
 
         // Editing keys stay live, or the field could not be corrected once full.
@@ -352,7 +371,7 @@ describe('BannerTextEditor', () => {
         await userEvent.click(screen.getByTestId('insertClassification'));
         expect(onChange).toHaveBeenLastCalledWith('{{classification}}');
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         editor.appendChild(document.createTextNode(' \u00b7 '));
         putCaretAtEnd(editor);
         fireEvent.input(editor);
@@ -361,14 +380,14 @@ describe('BannerTextEditor', () => {
         await userEvent.click(screen.getByTestId('insertProgram'));
 
         expect(onChange).toHaveBeenLastCalledWith('{{classification}} \u00b7 {{program}}');
-        expect(screen.getAllByTestId(/^bannerTextEditorChip-/)).toHaveLength(2);
+        expect(screen.getAllByTestId(/^fixture\.banner_editor\.token:\d+$/)).toHaveLength(2);
     });
 
     test('inserts at the caret rather than the end when the caret sits mid-text', async () => {
         const onChange = jest.fn();
         renderWithContext(<Host onChange={onChange}/>);
 
-        const editor = screen.getByTestId('bannerTextEditor');
+        const editor = screen.getByTestId('fixture.banner_editor--textbox');
         editor.appendChild(document.createTextNode('AB'));
 
         const range = document.createRange();

@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import type {Page} from '@playwright/test';
 
-import {expect} from '@mattermost/playwright-lib';
+import {Api, expect, settle, type App} from '@mattermost/playwright-lib';
 
 const assetPath = path.resolve(__dirname, '../../../../asset');
 
@@ -58,22 +58,27 @@ export async function uploadFileViaYourComputer(
     const fileChooserPromise = page.waitForEvent('filechooser');
     await attachmentButton.click();
     await page.getByText('Your computer').click();
+    await expect(page.getByText('Your computer')).not.toBeVisible();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(filePath);
     await uploadResponsePromise;
 }
 
 /**
- * Run `send` (typically fill slash command + click Send) while waiting for
- * POST /api/v4/commands/execute so the server finishes the slash handler before assertions.
+ * Types a slash command into the center composer and sends it, waiting for POST /api/v4/commands/execute
+ * so the server finishes the slash handler before assertions.
  */
-export async function sendDemoSlashCommand(page: Page, send: () => Promise<void>) {
-    // Accept any response status (including 5xx) so the 45 s timeout does not fire when the
-    // plugin is transiently inactive and the server returns HTTP 500.  The caller is responsible
-    // for detecting a failed command (e.g. via a retry loop or explicit status check).
-    const responsePromise = page.waitForResponse(
-        (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
-        {timeout: 45_000},
-    );
-    await Promise.all([send(), responsePromise]);
+export async function sendDemoSlashCommand(app: App, command: string) {
+    const input = app.center.postCreate.message.container;
+    await input.fill(command);
+    await expect(input).toHaveValue(command);
+    await settle(app.center.postCreate.sendButton, {wait: Api.ExecuteCommand}).click();
+}
+
+/**
+ * The last center post whose text contains `text`. The demo plugin's ephemeral and interactive posts change their
+ * content in place, so they are found again by what they say, not by a key: a scoped locator with that reason.
+ */
+export function centerPostWithText(app: App, text: string) {
+    return app.center.postList.container.locator.getByRole('listitem').filter({hasText: text}).last();
 }

@@ -13,6 +13,7 @@ describe('components/widgets/settings/TextSetting', () => {
         render(
             <TextSetting
                 id='string.id'
+                testIdScope='fixture.text_setting'
                 label='some label'
                 value='some value'
                 onChange={onChange}
@@ -21,7 +22,7 @@ describe('components/widgets/settings/TextSetting', () => {
 
         expect(screen.getByText('some label')).toBeInTheDocument();
 
-        const input = screen.getByTestId('string.idinput');
+        const input = screen.getByTestId('fixture.text_setting.value--textbox');
         expect(input).toBeInTheDocument();
         expect(input).toHaveValue('some value');
         expect(input).toHaveAttribute('type', 'text');
@@ -33,6 +34,7 @@ describe('components/widgets/settings/TextSetting', () => {
         render(
             <TextSetting
                 id='string.id'
+                testIdScope='fixture.text_setting'
                 label='some label'
                 value='some value'
                 type='textarea'
@@ -42,7 +44,7 @@ describe('components/widgets/settings/TextSetting', () => {
 
         expect(screen.getByText('some label')).toBeInTheDocument();
 
-        const textarea = screen.getByTestId('string.idinput');
+        const textarea = screen.getByTestId('fixture.text_setting.value--textbox');
         expect(textarea).toBeInTheDocument();
         expect(textarea.tagName).toBe('TEXTAREA');
         expect(textarea).toHaveValue('some value');
@@ -54,13 +56,14 @@ describe('components/widgets/settings/TextSetting', () => {
         render(
             <TextSetting
                 id='string.id'
+                testIdScope='fixture.text_setting'
                 label='some label'
                 value='some value'
                 onChange={onChange}
             />,
         );
 
-        const input = screen.getByTestId('string.idinput');
+        const input = screen.getByTestId('fixture.text_setting.value--textbox');
 
         // Type a single character to trigger onChange
         await userEvent.type(input, 'x');
@@ -77,6 +80,7 @@ describe('components/widgets/settings/TextSetting', () => {
             return (
                 <TextSetting
                     id='number.id'
+                    testIdScope='fixture.text_setting'
                     label='some label'
                     type='number'
                     value={value}
@@ -90,7 +94,7 @@ describe('components/widgets/settings/TextSetting', () => {
 
         render(<StatefulNumberSetting/>);
 
-        const input = screen.getByTestId('number.idnumber');
+        const input = screen.getByTestId('fixture.text_setting.number--spinbutton');
         await userEvent.clear(input);
         await userEvent.type(input, '-1');
 

@@ -135,18 +135,18 @@ const ColorInput = ({
                 onKeyDown={onKeyDown}
                 maxLength={7}
                 disabled={isDisabled}
-                data-testid={testIdScope ? `${testIdScope}.value--textbox` : 'color-inputColorValue'}
+                data-testid={testIdScope ? `${testIdScope}.value--textbox` : undefined}
             />
             <span
                 id={`${id}-squareColorIcon`}
                 className={`input-group-addon color-pad${isDisabled ? ' color-pad--disabled' : ''}`}
                 onClick={isDisabled ? undefined : togglePicker}
-                data-testid={testIdScope ? `${testIdScope}.toggle` : 'color-togglerButton'}
+                data-testid={testIdScope ? `${testIdScope}.toggle` : undefined}
             >
                 <i
                     id={`${id}-squareColorIconValue`}
                     className='color-icon'
-                    data-testid={testIdScope ? `${testIdScope}.swatch` : 'color-icon'}
+                    data-testid={testIdScope ? `${testIdScope}.swatch` : undefined}
                     style={{
                         backgroundColor: valueFromState,
                     }}
@@ -156,7 +156,7 @@ const ColorInput = ({
                 <div
                     className='color-popover'
                     id={`${id}-ChromePickerModal`}
-                    data-testid={testIdScope ? `${testIdScope}.picker` : 'color-popover'}
+                    data-testid={testIdScope ? `${testIdScope}.picker` : undefined}
                 >
                     <ChromePicker
                         color={valueFromState}

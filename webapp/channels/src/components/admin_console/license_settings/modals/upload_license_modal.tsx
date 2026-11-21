@@ -194,6 +194,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                 <div className='content-footer'>
                     <div className='btn-upload-wrapper'>
                         <LoadingWrapper
+                            testId='admin.upload_license.upload.loading'
                             loading={true}
                             text={defineMessage({id: 'admin.license.modal.validating', defaultMessage: 'Validating'})}
                         >

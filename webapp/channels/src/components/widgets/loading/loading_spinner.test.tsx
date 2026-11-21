@@ -59,10 +59,10 @@ describe('components/widgets/loadingLoadingSpinner', () => {
 
     test('showing spinner without text', () => {
         renderWithContext(
-            <LoadingSpinner/>,
+            <LoadingSpinner testId='fixture.loading'/>,
         );
 
-        expect(screen.getByTestId('loadingSpinner')).toBeVisible();
+        expect(screen.getByTestId('fixture.loading')).toBeVisible();
     });
 
     test('renders the Compass spinner by default', () => {

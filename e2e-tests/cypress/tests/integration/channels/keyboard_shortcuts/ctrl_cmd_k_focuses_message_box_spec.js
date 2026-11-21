@@ -48,13 +48,13 @@ describe('Keyboard Shortcuts', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // * Confirm the first matching public channel is selected
-        cy.get('#suggestionList').findByTestId(firstChannel.name).should('be.visible').and('have.class', 'suggestion--selected');
+        cy.get('#suggestionList').findByTestId(`quick_switch_modal.suggestions.suggestion:${firstChannel.id}--option`).should('be.visible').and('have.class', 'suggestion--selected');
 
         // # Press down arrow
         cy.get('body').type('{downarrow}');
 
         // * Confirm the second matching public channel is selected
-        cy.get('#suggestionList').findByTestId(secondChannel.name).should('be.visible').and('have.class', 'suggestion--selected');
+        cy.get('#suggestionList').findByTestId(`quick_switch_modal.suggestions.suggestion:${secondChannel.id}--option`).should('be.visible').and('have.class', 'suggestion--selected');
 
         // # Press ENTER
         cy.get('body').type('{enter}');

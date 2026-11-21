@@ -28,7 +28,7 @@ export type Props = {
     autoFocus?: boolean;
     multiple?: boolean;
 
-    /** The row's parts render under it (`${testIdScope}.value--textbox`, `.number--spinbutton` for numbers); without it the input keeps its id based testid. */
+    /** The row's parts render under it (`${testIdScope}.value--textbox`, `.number--spinbutton` for numbers); without it the input renders no test id. */
     testIdScope?: string;
 
     /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
@@ -57,7 +57,7 @@ function TextSetting(props: Props) {
         input = (
             <textarea
                 id={props.id}
-                data-testid={props.testIdScope ? `${props.testIdScope}.value--textbox` : `${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
+                data-testid={props.testIdScope ? `${props.testIdScope}.value--textbox` : undefined}
                 className='form-control'
                 autoFocus={props.autoFocus}
                 dir='auto'
@@ -73,8 +73,7 @@ function TextSetting(props: Props) {
     } else {
         const inputType = INPUT_TYPES.includes(type) ? type : 'text';
 
-        // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-        let testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
+        let testId;
         if (props.testIdScope) {
             testId = inputType === 'number' ? `${props.testIdScope}.number--spinbutton` : `${props.testIdScope}.value--textbox`;
         }

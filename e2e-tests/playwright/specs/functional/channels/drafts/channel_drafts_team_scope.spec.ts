@@ -73,8 +73,8 @@ test('MM-T4410 Channel Drafts are scoped to current active team', {tag: '@messag
     await expect(app.drafts.saved.draftList).toHaveKeyCount(1);
     await expect(app.drafts.tabs.draftsCountText).toHaveText('1');
     const team2DraftPost = app.drafts.saved.draft(0);
-    await expect(team2DraftPost.postHeader).toContainText('In:');
-    await expect(team2DraftPost.postHeader).toContainText('Off-Topic');
+    await expect(team2DraftPost.header.container).toContainText('In:');
+    await expect(team2DraftPost.header.container).toContainText('Off-Topic');
     await expect(team2DraftPost.body).toContainText(team2Draft);
 
     // # Switch back to Team1
@@ -94,8 +94,8 @@ test('MM-T4410 Channel Drafts are scoped to current active team', {tag: '@messag
     await expect(app.drafts.saved.draftList).toHaveKeyCount(1);
     await expect(app.drafts.tabs.draftsCountText).toHaveText('1');
     const team1DraftPost = app.drafts.saved.draft(0);
-    await expect(team1DraftPost.postHeader).toContainText('In:');
-    await expect(team1DraftPost.postHeader).toContainText('Town Square');
+    await expect(team1DraftPost.header.container).toContainText('In:');
+    await expect(team1DraftPost.header.container).toContainText('Town Square');
     await expect(team1DraftPost.body).toContainText(team1Draft);
     await expect(team1DraftPost).not.toContainText(team2Draft);
 });

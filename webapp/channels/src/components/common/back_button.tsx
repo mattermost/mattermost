@@ -29,11 +29,10 @@ const BackButton = ({url = '/', className, onClick, testId}: Props): JSX.Element
 
     return (
         <div
-            data-testid={testId ? undefined : 'signup-header'}
             className={classNames('signup-header', className)}
         >
             <Link
-                data-testid={testId ? `${testId}--link` : 'back_button'}
+                data-testid={testId ? `${testId}--link` : undefined}
                 onClick={onClick}
                 to={url}
             >

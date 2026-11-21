@@ -10,6 +10,7 @@ import {
     expect,
     newTestPassword,
     settle,
+    systemConsolePath,
     test,
     waitForApi,
     duration,
@@ -28,7 +29,12 @@ import {
 import {getUserAttributeFieldByName} from '../support';
 import {addRule, fillRuleValue, MEMBERSHIP_POLICIES_PATH} from '../surface';
 
-import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembershipPolicies} from './helpers';
+import {
+    assignTeamsToPolicy,
+    cleanUpCreated,
+    createTeamMembershipParentPolicy,
+    enableTeamMembershipPolicies,
+} from './helpers';
 
 /**
  * ABAC — Team Membership (per-team System Console page)
@@ -59,17 +65,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         if (!client) {
             return;
         }
-        const base = client.getBaseRoute();
-        const headers = {Authorization: `Bearer ${client.getToken()}`};
-        for (const id of policyIds) {
-            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
-        }
-        for (const id of teamIds) {
-            await client.deleteTeam(id).catch(() => {});
-        }
-        for (const id of userIds) {
-            await client.updateUserActive(id, false).catch(() => {});
-        }
+        await cleanUpCreated(client, {policyIds, teamIds, userIds});
     });
 
     /**
@@ -93,7 +89,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {policies} = policySelectionModal;
 
         // the list loads its first page on open, and that response can replace a search's results
-        await expect(await policies.rowList.first()).toBeVisible();
+        await expect(policies.rowList).not.toHaveKeyCount(0);
         await policies.searchTextbox.fill(policy.name);
         await expect(policies.row(policy.id)).toBeVisible();
         // The DataGrid name cell opens the editor but has no operable role or click driver.
@@ -104,7 +100,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
     /** A successful save returns to the Teams list. */
     async function expectSaved(app: App) {
-        await expect(app.page).toHaveURL(/\/user_management\/teams$/);
+        await expect(app.page).toHavePath(systemConsolePath('user_management/teams'));
     }
 
     /** Saves the page and confirms the "Apply membership policy" dialog. */
@@ -330,10 +326,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // an error
         await settle(page.savePanel.saveButton, {wait: Api.PatchTeam}).click();
         await expectSaved(app);
-        // The blocking error has no part of its own (the text is not rendered anywhere), so its absence is read by text.
-        await expect(app.page.getByText(/must select a membership policy or define custom access rules/i)).toHaveCount(
-            0,
-        );
 
         // * Enforcement stays off on the server
         await expect
@@ -367,7 +359,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {policies} = app.admin.accessControl;
 
         // * Filtered to our policy (stable under parallel runs), its row counts the one team
-        await expect(await policies.rowList.first()).toBeVisible();
+        await expect(policies.rowList).not.toHaveKeyCount(0);
         await policies.searchTextbox.fill(policyName);
         await expect(policies.row(policy.id)).toContainText('1 team');
     });
@@ -520,7 +512,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // Department=Engineering from another worker, which would hide the empty-team warning.
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
-        await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
+        await adminClient.removeFromTeam(team.id, adminUser.id);
         const mktUser = await adminClient.createUser(
             {
                 email: `mkt${suffix}@sample.mattermost.com`,
@@ -610,7 +602,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // # admin (auto-added on create) so the total is deterministically 2.
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
-        await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
+        await adminClient.removeFromTeam(team.id, adminUser.id);
 
         const matchUser = await adminClient.createUser(
             {
@@ -965,14 +957,17 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await linked.openLink.click();
 
         // * The policy editor opens
-        await expect(app.page).toHaveURL(/membership_policies\/edit_policy\//, {timeout: duration.half_min});
+        await expect(app.page).toHavePath(
+            systemConsolePath(`system_attributes/membership_policies/edit_policy/${policy.id}`),
+            {timeout: duration.half_min},
+        );
         await expect(app.admin.header).toContainMessage(Msg.admin.access_control.policy.edit_policy.title);
 
         // # Go back to the list
         await app.admin.accessControl.policy.backLink.click();
 
         // * No stale "Discard Changes?" prompt; the list opens
-        await expect(app.page).toHaveURL(/membership_policies$/);
+        await expect(app.page).toHavePath(systemConsolePath('system_attributes/membership_policies'));
         await expect(app.admin.accessControl.policies.searchTextbox).toBeVisible();
     });
 

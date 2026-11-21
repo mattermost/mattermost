@@ -129,7 +129,7 @@ describe('System Console > Site Statistics', () => {
 
                     cy.dbRefreshPostStats().then(() => {
                         // * Find site statistics and click it
-                        cy.findByTestId('reporting.system_analytics', {timeout: TIMEOUTS.ONE_MIN}).click();
+                        cy.findByTestId('admin.sidebar.category.section:system_analytics--listitem', {timeout: TIMEOUTS.ONE_MIN}).findByTestId('admin.sidebar.category.section.title--link').click();
 
                         // * Expand the details
                         cy.findByTestId('admin.statistics.details', {timeout: TIMEOUTS.ONE_MIN}).click();

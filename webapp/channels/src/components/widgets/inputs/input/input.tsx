@@ -290,7 +290,7 @@ const Input = React.forwardRef((
                     Input_fieldset___error: hasError || customInputLabel?.type === 'error',
                     Input_fieldset___legend: showLegend,
                 })}
-                data-testid={testId ? `${testId}.field` : 'input-wrapper'}
+                data-testid={testId ? `${testId}.field` : undefined}
             >
                 {useLegend && (
                     <label

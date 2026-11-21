@@ -58,7 +58,6 @@ export default function menuItem(Component: React.ComponentType<any>) {
                         text={textProp}
                         ariaLabel={text?.toString()}
                         id={id + '-button'}
-                        scoped={Boolean(testId || slotTestId)}
                         {...props}
                     />
                 </li>

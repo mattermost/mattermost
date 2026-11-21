@@ -85,7 +85,7 @@ describe('System Console > User Management > Deactivation', () => {
             cy.get('#quickSwitchInput').type(other.username).wait(TIMEOUTS.HALF_SEC);
 
             // * Verify user is marked as deactivated
-            cy.get('[data-testid="' + other.username + '"]').contains('Deactivated');
+            cy.contains('[data-testid^="quick_switch_modal.suggestions.suggestion:"]', other.username).should('contain', 'Deactivated');
 
             // # Close Channel Switcher
             cy.uiClose();

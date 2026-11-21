@@ -476,7 +476,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             }
 
             // # Pick the middle-ranked option
-            await attribute.valueChoiceCombobox.choose('ALPHA');
+            await attribute.valueChoiceCombobox.choose(/^ALPHA,/);
             await expect(attribute.valueChoiceCombobox).toHaveValue('ALPHA');
 
             // * The closed field shows it with its badge, and Create is enabled

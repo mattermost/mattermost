@@ -22,6 +22,7 @@ import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
+    testId?: string;
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder: MessageDescriptor;
@@ -100,7 +101,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
     if (loadingAudienceMatch) {
         oauthMessage = (
             <span>
-                <LoadingSpinner/>
+                <LoadingSpinner testId={props.testId}/>
             </span>
         );
     } else if (matchedConnection) {

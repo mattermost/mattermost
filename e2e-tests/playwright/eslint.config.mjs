@@ -102,17 +102,37 @@ export default [
             },
         },
         rules: {
-            'test-surface/e2e-observe-actions': 'warn',
-            'test-surface/e2e-no-floating-actions': 'warn',
+            'test-surface/e2e-observe-actions': 'error',
+            'test-surface/e2e-no-floating-actions': 'error',
             'test-surface/e2e-disable-reason': 'error',
-            'test-surface/e2e-no-locator-action': 'warn',
+            'test-surface/e2e-no-locator-action': 'error',
         },
     },
 
     // Specs reach elements through the generated page objects, not literal selectors, and keep to patterns that say what
-    // a test does: no branching on page state, no swallowed errors, no sleeps, no URL text, no positions.
+    // a test does: no branching on page state, no swallowed errors, no sleeps, no URL text. A line that must break one of
+    // these says why, with a reason on the disable. Positional picks (`.first()`, `.last()`, `.nth()`) stay warnings until
+    // the page objects can name every item they are used for.
     {
         files: ['specs/**/*.ts'],
+        rules: {
+            'test-surface/e2e-no-literal-locators': 'error',
+            'test-surface/e2e-no-probes': 'error',
+            'test-surface/e2e-no-conditional-logic': 'error',
+            'test-surface/e2e-no-swallowed-catch': 'error',
+            'test-surface/e2e-no-sleeps': 'error',
+            'test-surface/e2e-no-soft-assertions': 'error',
+            'test-surface/e2e-no-url-assertions': 'error',
+            'test-surface/e2e-no-positional-picks': 'warn',
+            '@typescript-eslint/await-thenable': 'error',
+            '@typescript-eslint/no-non-null-assertion': 'error',
+        },
+    },
+
+    // Plugin specs test UI that a plugin renders, not the webapp, so their elements cannot take the webapp's test ids
+    // and the scanner does not cover them. They stay warnings.
+    {
+        files: ['specs/functional/plugins/**/*.ts', 'specs/functional/system_console/plugins/**/*.ts'],
         rules: {
             'test-surface/e2e-no-literal-locators': 'warn',
             'test-surface/e2e-no-probes': 'warn',
@@ -121,7 +141,6 @@ export default [
             'test-surface/e2e-no-sleeps': 'warn',
             'test-surface/e2e-no-soft-assertions': 'warn',
             'test-surface/e2e-no-url-assertions': 'warn',
-            'test-surface/e2e-no-positional-picks': 'warn',
             '@typescript-eslint/await-thenable': 'warn',
             '@typescript-eslint/no-non-null-assertion': 'warn',
         },

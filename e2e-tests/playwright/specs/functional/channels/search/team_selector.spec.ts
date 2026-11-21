@@ -14,7 +14,7 @@ async function openSearch(app: App) {
 async function search(app: App, term: string) {
     await app.searchBox.inputSearchbox.fill(term);
     await app.searchBox.inputSearchbox.press('Enter');
-    await expect(app.search.results).toBeVisible();
+    await expect(app.search.panel).toBeVisible();
 }
 
 /** Switches to a team and leaves it from the team menu. */
@@ -264,8 +264,8 @@ test('MM-T5803 search results narrow to the selected team and update after leavi
     await search(app, 'pineapple');
 
     // * Verify both teams' messages show up
-    await expect(app.search.results).toContainText(messageInFirstTeam);
-    await expect(app.search.results).toContainText(messageInSecondTeam);
+    await expect(app.search.panel).toContainText(messageInFirstTeam);
+    await expect(app.search.panel).toContainText(messageInSecondTeam);
 
     // # Reopen the search composer and narrow its team selector to the second team specifically
     // (changing the team via the results panel's own selector updates state but does not refresh
@@ -279,8 +279,8 @@ test('MM-T5803 search results narrow to the selected team and update after leavi
     await app.searchBox.inputSearchbox.press('Enter');
 
     // * Verify only the second team's message shows
-    await expect(app.search.results).toContainText(messageInSecondTeam);
-    await expect(app.search.results).not.toContainText(messageInFirstTeam);
+    await expect(app.search.panel).toContainText(messageInSecondTeam);
+    await expect(app.search.panel).not.toContainText(messageInFirstTeam);
 
     // # Leave the second team and re-run the same search
     await leaveTeam(app, secondTeam);
@@ -289,6 +289,6 @@ test('MM-T5803 search results narrow to the selected team and update after leavi
     await search(app, 'pineapple');
 
     // * Verify only the first team's message shows now that the second team was left
-    await expect(app.search.results).toContainText(messageInFirstTeam);
-    await expect(app.search.results).not.toContainText(messageInSecondTeam);
+    await expect(app.search.panel).toContainText(messageInFirstTeam);
+    await expect(app.search.panel).not.toContainText(messageInSecondTeam);
 });

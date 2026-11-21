@@ -18,10 +18,12 @@ import {
     App,
     expect,
     getRandomId,
+    ignoreMissing,
     newTestPassword,
     duration,
     setCelExpression,
     settle,
+    systemConsolePath,
     waitForApi,
 } from '@mattermost/playwright-lib';
 
@@ -76,15 +78,11 @@ export async function assertAccessControlAutocompleteContains(
 }
 
 export async function enableUserManagedAttributes(client: Client4): Promise<void> {
-    try {
-        await client.patchConfig({
-            AccessControlSettings: {
-                EnableUserManagedAttributes: true,
-            },
-        } as any);
-    } catch {
-        // console.warn('Failed to enable EnableUserManagedAttributes:', _error.message || String(_error));
-    }
+    await client.patchConfig({
+        AccessControlSettings: {
+            EnableUserManagedAttributes: true,
+        },
+    } as any);
 }
 
 /**
@@ -94,18 +92,10 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
     const attributesToCreate = attributeNames || ['Department'];
     await enableUserManagedAttributes(client);
 
-    let existingAttributes: any[] = [];
-    try {
-        existingAttributes = await (client as any).doFetch(
-            `${client.getBaseRoute()}/custom_profile_attributes/fields`,
-            {method: 'GET'},
-        );
-    } catch {
-        // console.warn(`Failed to fetch existing attributes:`, _error.message);
-    }
+    const existingAttributes = await client.getCustomProfileAttributeFields();
 
     for (const attrName of attributesToCreate) {
-        const exists = existingAttributes.some((attr: any) => attr.name === attrName);
+        const exists = existingAttributes.some((attr) => attr.name === attrName);
 
         if (!exists) {
             try {
@@ -116,7 +106,10 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
         }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // The policy editor reads its attributes from this autocomplete, which can trail a field just created
+    await expect
+        .poll(async () => (await client.getAccessControlFields('', 100)).map((field) => field.name))
+        .toEqual(expect.arrayContaining(attributesToCreate));
 }
 
 /**
@@ -236,24 +229,22 @@ export async function testAccessRule(
     const totalMatches = initial.total;
     const matchingUsernames = await readMatchingUsernames(initial);
     await expect(users.searchTextbox).toHaveValue('');
-    let latestTerm = '';
-    let latestResult = initial;
+
+    // The dialog opens unfiltered, with `initial` listed; a search that repeats the term in the box sends no request
+    let shownTerm = '';
+    let shownResult = initial;
 
     async function search(term: string): Promise<string[]> {
-        if ((await users.searchTextbox.value()) === term) {
-            if (latestTerm !== term) {
-                throw new Error(`Access-rule search changed without a matching result: ${term}`);
-            }
-            return readMatchingUsernames(latestResult, term);
+        if (shownTerm !== term) {
+            const [result] = await Promise.all([
+                waitForApi(page, Api.TestAccessControlPolicyExpression),
+                users.searchTextbox.fill(term),
+            ]);
+            await expect(users.searchTextbox).toHaveValue(term);
+            shownTerm = term;
+            shownResult = result;
         }
-        const [result] = await Promise.all([
-            waitForApi(page, Api.TestAccessControlPolicyExpression),
-            users.searchTextbox.fill(term),
-        ]);
-        await expect(users.searchTextbox).toHaveValue(term);
-        latestTerm = term;
-        latestResult = result;
-        return readMatchingUsernames(result, term);
+        return readMatchingUsernames(shownResult, term);
     }
 
     if (options.searchForUser) {
@@ -262,17 +253,15 @@ export async function testAccessRule(
 
     let expectedUsersMatch = true;
     for (const username of options.expectedMatchingUsers ?? []) {
-        if (!(await search(username)).includes(username)) {
-            expectedUsersMatch = false;
-        }
+        const found = await search(username);
+        expectedUsersMatch = expectedUsersMatch && found.includes(username);
         await search('');
     }
 
     let unexpectedUsersMatch = false;
     for (const username of options.expectedNonMatchingUsers ?? []) {
-        if ((await search(username)).includes(username)) {
-            unexpectedUsersMatch = true;
-        }
+        const found = await search(username);
+        unexpectedUsersMatch = unexpectedUsersMatch || found.includes(username);
         await search('');
     }
 
@@ -368,18 +357,12 @@ export async function waitForLatestSyncJob(
         .poll(
             async () => {
                 await page.reload();
-                await page.waitForLoadState('networkidle');
                 const jobs = new App(page).admin.jobs.table('access_control_sync');
                 const [latestJobId] = await jobs.jobList.keys();
                 if (!latestJobId) {
                     return 'no_jobs';
                 }
-                const latestJobRow = jobs.job(latestJobId).container.locator;
-                if (!(await latestJobRow.isVisible({timeout: duration.four_sec}).catch(() => false))) {
-                    return 'no_jobs';
-                }
-                // JobTable renders status in its first cell, which has no generated status part.
-                const status = (await latestJobRow.locator('td').first().textContent()) ?? '';
+                const status = await jobs.job(latestJobId).statusText.text();
                 const s = status.trim().toLowerCase();
                 if (s === 'error' || s === 'failed') {
                     throw new Error(`Sync job failed with status: ${status.trim()}`);
@@ -442,67 +425,49 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string, ti
         .toBe('success');
 }
 
+/** One search for the policy named `policyName`; the closest match when none is named exactly, null when none comes back. */
+async function searchPolicyId(client: Client4, policyName: string): Promise<string | null> {
+    // Extract the base name without the random ID suffix for search
+    // e.g., "Auto-Add Policy 48b0141" -> "Auto-Add Policy"
+    const baseNameMatch = policyName.match(/^(.+?)\s+[a-z0-9]+$/i);
+    const searchTerm = baseNameMatch ? baseNameMatch[1] : policyName;
+
+    const result = await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/search`, {
+        method: 'POST',
+        body: JSON.stringify({
+            term: searchTerm,
+        }),
+    });
+    const policies: any[] = result?.policies || [];
+    const policy =
+        policies.find((p) => p.name === policyName) ?? policies.find((p) => p.name.includes(searchTerm)) ?? policies[0];
+    return policy?.id ?? null;
+}
+
 /**
- * Get policy ID by name using search API (with retry)
+ * Get policy ID by name using the search API. With `retries` above one, polls (two seconds apart, up to that many
+ * searches) until the policy is listed and fails when it never is; with one, searches once and returns null when the
+ * policy is not listed.
  */
 export async function getPolicyIdByName(
     client: Client4,
     policyName: string,
     retries: number = 3,
 ): Promise<string | null> {
-    const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
-
-    // Extract the base name without the random ID suffix for search
-    // e.g., "Auto-Add Policy 48b0141" -> "Auto-Add Policy"
-    const baseNameMatch = policyName.match(/^(.+?)\s+[a-z0-9]+$/i);
-    const searchTerm = baseNameMatch ? baseNameMatch[1] : policyName;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            // Use the search API
-            const result = await (client as any).doFetch(searchUrl, {
-                method: 'POST',
-                body: JSON.stringify({
-                    term: searchTerm,
-                }),
-            });
-
-            const policies = result?.policies || [];
-
-            if (policies.length > 0) {
-                // Try exact match first
-                let policy = policies.find((p: any) => p.name === policyName);
-
-                // If no exact match, try partial match
-                if (!policy) {
-                    policy = policies.find((p: any) => p.name.includes(searchTerm));
-                }
-
-                // If still no match, just take the first result
-                if (!policy && policies.length > 0) {
-                    policy = policies[0];
-                }
-
-                if (policy) {
-                    return policy.id;
-                }
-                // Wait before retrying
-                if (attempt < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                }
-            } else if (attempt < retries) {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-            }
-        } catch {
-            // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));
-
-            if (attempt < retries) {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-            }
-        }
+    if (retries <= 1) {
+        return searchPolicyId(client, policyName);
     }
-
-    return null;
+    let id: string | null = null;
+    await expect
+        .poll(
+            async () => {
+                id = await searchPolicyId(client, policyName);
+                return id;
+            },
+            {timeout: retries * 2000, intervals: [2000], message: `policy ${policyName} was not listed by the search`},
+        )
+        .not.toBeNull();
+    return id;
 }
 
 /**
@@ -552,13 +517,6 @@ export async function createPermissionPolicy(
 
     await openEditor();
 
-    // Older fields can leave the mode switch disabled; recreate them and reopen the form before retrying.
-    if (await policy.switchModeButton.isDisabled()) {
-        if (options.adminClient) {
-            await ensureUserAttributes(options.adminClient);
-        }
-        await openEditor();
-    }
     await expect(policy.switchModeButton).toBeEnabled();
     await setCelExpression(app, policy, options.celExpression);
 
@@ -590,7 +548,7 @@ export async function createPermissionPolicy(
     } else {
         await settle(app.admin.saveButton, {wait: Api.CreateAccessControlPolicy}).click();
     }
-    await expect(page).toHaveURL(/\/admin_console\/system_attributes\/permission_policies$/);
+    await expect(page).toHavePath(systemConsolePath('system_attributes/permission_policies'));
     await expect(list.addButton).toBeVisible();
 }
 
@@ -649,24 +607,23 @@ export async function updatePermissionPolicyExpression(
 }
 
 export async function deletePermissionPolicyByName(client: Client4, policyName: string): Promise<void> {
-    try {
-        const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
-        const result = await (client as any).doFetch(searchUrl, {
-            method: 'POST',
-            body: JSON.stringify({term: policyName, type: 'permission'}),
-        });
+    const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
+    const result = await (client as any).doFetch(searchUrl, {
+        method: 'POST',
+        body: JSON.stringify({term: policyName, type: 'permission'}),
+    });
 
-        // Response may be the array directly or wrapped in {policies: [...]}
-        const policies: any[] = Array.isArray(result) ? result : result?.policies || [];
-        const match = policies.find((p: any) => p.name === policyName && p.type === 'permission');
+    // Response may be the array directly or wrapped in {policies: [...]}
+    const policies: any[] = Array.isArray(result) ? result : result?.policies || [];
+    const match = policies.find((p: any) => p.name === policyName && p.type === 'permission');
 
-        if (match?.id) {
-            await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${match.id}`, {
+    if (match?.id) {
+        // A policy that is already gone is fine
+        await ignoreMissing(() =>
+            (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${match.id}`, {
                 method: 'DELETE',
-            });
-        }
-    } catch {
-        // Policy may not exist or deletion may have already occurred — safe to ignore
+            }),
+        );
     }
 }
 
@@ -712,13 +669,12 @@ export async function cleanupAllPermissionPolicies(client: Client4): Promise<voi
         await Promise.all(
             policies.map(async (policy: any) => {
                 if (policy?.id) {
-                    try {
-                        await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policy.id}`, {
+                    // A policy that is already gone is fine
+                    await ignoreMissing(() =>
+                        (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policy.id}`, {
                             method: 'DELETE',
-                        });
-                    } catch {
-                        // ignore individual delete failures
-                    }
+                        }),
+                    );
                 }
             }),
         );

@@ -168,7 +168,7 @@ export const QuickInput = React.memo(({
             {showClearButton && (
                 <WithTooltip title={clearableTooltipText || defaultClearableTooltipText}>
                     <button
-                        data-testid={clearTestId ? `${clearTestId}--button` : 'input-clear'}
+                        data-testid={clearTestId ? `${clearTestId}--button` : undefined}
                         className={classNames(clearClassName, 'input-clear visible')}
                         onClick={onClear}
                     >

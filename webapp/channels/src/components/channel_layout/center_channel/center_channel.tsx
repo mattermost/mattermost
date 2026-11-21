@@ -18,21 +18,21 @@ const MobileChannelHeader = makeAsyncComponent('MobileChannelHeader', lazy(() =>
 const GlobalThreads = makeAsyncComponent('GlobalThreads', lazy(() => import('components/threading/global_threads')),
     (
         <div className='app__content'>
-            <LoadingScreen/>
+            <LoadingScreen testId='threads.lazy_loading'/>
         </div>
     ),
 );
 const Drafts = makeAsyncComponent('Drafts', lazy(() => import('components/drafts')),
     (
         <div className='app__content'>
-            <LoadingScreen/>
+            <LoadingScreen testId='drafts.loading'/>
         </div>
     ),
 );
 const Recaps = makeAsyncComponent('Recaps', lazy(() => import('components/recaps')),
     (
         <div className='app__content'>
-            <LoadingScreen/>
+            <LoadingScreen testId='recaps.loading'/>
         </div>
     ),
 );

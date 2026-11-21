@@ -167,7 +167,7 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
         );
     });
 
-    return loading || !sectionPanels ? <LoadingScreen/> : (
+    return loading || !sectionPanels ? <LoadingScreen testId='admin.workspace_optimization.loading'/> : (
         <div className='WorkspaceOptimizationDashboard wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage

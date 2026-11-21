@@ -66,7 +66,7 @@ const SaveButton: React.FC<Props> = ({
     return (
         <Button
             type='submit'
-            data-testid={testId ? `${testId}--button` : 'saveSetting'}
+            data-testid={testId ? `${testId}--button` : undefined}
             id='saveSetting'
             emphasis={emphasis}
             size={mapSize(size)}

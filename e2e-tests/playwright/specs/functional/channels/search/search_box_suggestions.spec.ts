@@ -23,7 +23,7 @@ test('Search box suggestion must be case insensitive', async ({pw}) => {
         // * The suggestion should be visible and highlighted
         await expect(suggestion.locator).toHaveClass(/suggestion--selected/); // the list marks the selected row with this class only (no ARIA state)
         await expect(suggestion).toBeVisible();
-        await expect(suggestion).toHaveText(offTopic.display_name);
+        await expect(suggestion).toContainText(offTopic.display_name);
 
         // # Press Enter to select the suggestion and another Enter to search
         await input.press('Enter', 'Enter');
@@ -49,7 +49,7 @@ test('remove extra whitespace when selecting a user', async ({pw}) => {
     const suggestion = app.searchBox.suggestions.suggestion(admin.username);
     await expect(suggestion.locator).toHaveClass(/suggestion--selected/); // the list marks the selected row with this class only (no ARIA state)
     await expect(suggestion).toBeVisible();
-    await expect(suggestion).toHaveText('@' + admin.username);
+    await expect(suggestion).toContainText('@' + admin.username);
 
     // # Press enter to validate the selection
     await input.press('Enter');

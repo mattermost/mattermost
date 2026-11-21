@@ -33,6 +33,13 @@
         "keyFields": {
             "allow": [
                 {
+                    "entity": "Props",
+                    "module": "components/admin_console/group_settings/group_row",
+                    "field": "primary_key",
+                    "value": "ldap_group",
+                    "reason": "An LDAP group row is identified by its directory primary_key, the same stable identifier passed to selection and link/unlink actions; the display name can change."
+                },
+                {
                     "entity": "ListingTableRow",
                     "field": "id",
                     "value": "attribute",
@@ -354,12 +361,28 @@
                     "reason": "A system role section or permission is identified by the permission name its definition declares."
                 }
             ]
-        }
+        },
+        "strictPaths": ["channels/src/", "platform/"]
     },
     "keyValues": [{"function": "timeKey", "module": "components/datetime_input/datetime_input"}],
     "pageParams": {
         "team": {"entity": "Team", "field": "name", "module": "@mattermost/types/teams"},
         "identifier": {"as": "channel", "entity": "Channel", "field": "name", "module": "@mattermost/types/channels"}
+    },
+    "staleReferences": {
+        "roots": ["../../specs", "../../upgrade-specs"],
+        "allow": [
+            {
+                "testid": "TeamSettings.EnableManagedChannelCategoriestrue",
+                "file": "functional/channels/categories/managed_categories.spec.ts",
+                "reason": "the spec is a test.fixme documenting a known issue on master: the System Console does not render a Managed Channel Categories setting (its admin UI is incomplete), so no test id exists for it and the spec names the one the setting would render."
+            },
+            {
+                "testid": "e2e-route-${postAuthTestPluginId}",
+                "file": "functional/plugins/pre_auth_webapp_plugins.spec.ts",
+                "reason": "the marker the test webapp plugin renders on its own route, outside the webapp the scan reads."
+            }
+        ]
     },
     "pageNames": {
         "ChannelIdentifierRouter": "ChannelsPage",

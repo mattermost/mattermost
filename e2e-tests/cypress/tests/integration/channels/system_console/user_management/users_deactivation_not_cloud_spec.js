@@ -29,7 +29,7 @@ describe('System Console > User Management > Deactivation', () => {
 
     it('MM-T947 When deactivating users in the System Console, email address should not disappear', () => {
         // # Go to User management / Users tab
-        cy.findByTestId('user_management.system_users').should('be.visible').click();
+        cy.findByTestId('admin.sidebar.category.section:system_users--listitem').findByTestId('admin.sidebar.category.section.title--link').should('be.visible').click();
 
         // # Search the newly created user in the search box
         cy.findByPlaceholderText('Search users').should('be.visible').clear().type(testUser.email).wait(TIMEOUTS.HALF_SEC);

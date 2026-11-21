@@ -9,6 +9,7 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 const baseProps = {
+    testIdScope: 'fixture.channel_name',
     value: 'Test Channel',
     name: 'channel-name',
     placeholder: 'Enter channel name',
@@ -44,7 +45,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
             makeState('false'),
         );
 
-        expect(screen.getByTestId('urlInputLabel')).toBeVisible();
+        expect(screen.getByTestId('fixture.channel_name.url.label--text')).toBeVisible();
     });
 
     test('should show URL editor when UseAnonymousURLs is false and editing an existing channel', () => {
@@ -56,7 +57,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
             makeState('false'),
         );
 
-        expect(screen.getByTestId('urlInputLabel')).toBeVisible();
+        expect(screen.getByTestId('fixture.channel_name.url.label--text')).toBeVisible();
     });
 
     test('should not show URL editor when UseAnonymousURLs is true and creating a new channel', () => {
@@ -65,7 +66,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
             makeState('true'),
         );
 
-        expect(screen.queryByTestId('urlInputLabel')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.channel_name.url.label--text')).not.toBeInTheDocument();
     });
 
     test('should show URL editor when UseAnonymousURLs is true and editing an existing channel', () => {
@@ -77,7 +78,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
             makeState('true'),
         );
 
-        expect(screen.getByTestId('urlInputLabel')).toBeVisible();
+        expect(screen.getByTestId('fixture.channel_name.url.label--text')).toBeVisible();
     });
 });
 
@@ -103,9 +104,9 @@ describe('ChannelNameFormField - default channel URL', () => {
             makeState('false'),
         );
 
-        expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+        expect(screen.getByTestId('fixture.channel_name.url.label--text')).toHaveTextContent('town-square');
         expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
-        expect(screen.queryByTestId('channelURLInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.channel_name.url.value--textbox')).not.toBeInTheDocument();
         expect(screen.getByText('The URL of the default channel cannot be changed.')).toBeVisible();
     });
 
@@ -119,7 +120,7 @@ describe('ChannelNameFormField - default channel URL', () => {
         );
 
         expect(screen.getByRole('alert')).toHaveTextContent('URL is already taken');
-        expect(screen.queryByTestId('channelURLInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.channel_name.url.value--textbox')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
     });
 
@@ -133,9 +134,9 @@ describe('ChannelNameFormField - default channel URL', () => {
         );
 
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toBeDisabled();
-        expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('test-channel');
+        expect(screen.getByTestId('fixture.channel_name.url.label--text')).toHaveTextContent('test-channel');
         expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
-        expect(screen.queryByTestId('channelURLInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.channel_name.url.value--textbox')).not.toBeInTheDocument();
         expect(screen.queryByText('The URL of the default channel cannot be changed.')).not.toBeInTheDocument();
     });
 
@@ -154,7 +155,7 @@ describe('ChannelNameFormField - default channel URL', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Edit'}));
 
-        const urlInput = screen.getByTestId('channelURLInput');
+        const urlInput = screen.getByTestId('fixture.channel_name.url.value--textbox');
         expect(urlInput).toHaveValue('test-channel');
 
         await userEvent.type(urlInput, '-renamed');

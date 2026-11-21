@@ -2,16 +2,27 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
+import type {Team} from '@mattermost/types/teams';
 
-import {duration, expect, systemConsolePath, test, type App} from '@mattermost/playwright-lib';
+import {
+    Api,
+    duration,
+    expect,
+    Msg,
+    settle,
+    systemConsolePath,
+    test,
+    waitForApi,
+    type App,
+} from '@mattermost/playwright-lib';
 
 import {createPrivateTeam, getTeamAutoAddMode} from '../../../channels/team_settings/helpers';
 
 import {
     assignTeamsToPolicy,
+    cleanUpCreated,
     createTeamMembershipParentPolicy,
     enableTeamMembershipPolicies,
-    openTeamConfig,
 } from './helpers';
 
 /**
@@ -26,12 +37,6 @@ import {
  * these tests assert the console management UI and the resulting server state
  * (team.policy_enforced) only.
  */
-/** The team form's rules have no declared ancestor; locate its body, the page's one content wrapper. */
-function teamContent(app: App) {
-    // The content wrapper has no test id.
-    return app.page.locator('.admin-console__content');
-}
-
 test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membership']}, () => {
     // Each test cleans up the policies, teams, and users it creates, even on
     // failure. initSetup's team/users are owned by the framework and left alone.
@@ -49,18 +54,30 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         if (!client) {
             return;
         }
-        const base = client.getBaseRoute();
-        const headers = {Authorization: `Bearer ${client.getToken()}`};
-        for (const id of policyIds) {
-            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
-        }
-        for (const id of teamIds) {
-            await client.deleteTeam(id).catch(() => {});
-        }
-        for (const id of userIds) {
-            await client.updateUserActive(id, false).catch(() => {});
-        }
+        await cleanUpCreated(client, {policyIds, teamIds, userIds});
     });
+
+    /**
+     * Opens a team's page in the System Console and waits for its membership policy to load: the page fetches it on
+     * mount, and a response landing after the toggle is switched on would switch it back off.
+     */
+    async function openTeamConfig(app: App, team: Team) {
+        await Promise.all([
+            waitForApi(app.page, Api.GetTeamAccessControlPolicy, {params: {team_id: team.id}}),
+            app.page.goto(systemConsolePath(`user_management/teams/${team.id}`)),
+        ]);
+        await expect(app.admin.team.policyEnforce.container).toBeVisible();
+        return app.admin.team;
+    }
+
+    /** Whether a team sync job for this team was created since `since`. */
+    async function teamSyncJobSince(client: Client4, team: {id: string}, since: number) {
+        const jobs: any[] = await (client as any).doFetch(
+            `${client.getBaseRoute()}/jobs/type/access_control_team_sync`,
+            {method: 'GET'},
+        );
+        return jobs.some((j: any) => j.data?.policy_id === team.id && j.create_at >= since);
+    }
 
     /**
      * @objective Clicking "Sync now" in the Team-specific membership rules panel of the
@@ -84,47 +101,24 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
 
         const {app} = await pw.testBrowser.login(adminUser);
-        const {page} = app;
-        const policyFetchDoneT17 = page
-            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {
-                timeout: duration.half_min,
-            })
-            .catch(() => {});
-        await openTeamConfig(app, team.display_name);
-        await policyFetchDoneT17;
-
-        // The generated surface has no member for the rules editor's internal controls.
-        const rulesPanel = teamContent(app).locator('#team_level_access_rules');
-        await expect(rulesPanel).toBeVisible();
-
-        // The sync footer has no generated parts; inspect its status and link within the rules panel.
-        const syncFooter = rulesPanel.locator('.SyncStatusFooter');
-        await expect(syncFooter).toBeVisible();
-        // The sync footer has no generated parts; inspect its status and link within the rules panel.
-        await expect(syncFooter.locator('.SyncStatusFooter__link')).toBeVisible();
+        const page = await openTeamConfig(app, team);
+        const {syncStatus} = page.accessRules;
+        await expect(page.accessRules).toBeVisible();
+        await expect(syncStatus).toBeVisible();
+        await expect(syncStatus.syncNowButton).toBeVisible();
 
         const testStartTime = Date.now();
 
         // # Click "Sync now" inside the Team-specific membership rules panel
-        // The sync footer has no generated parts; inspect its status and link within the rules panel.
-        await syncFooter.locator('.SyncStatusFooter__link').click();
+        await syncStatus.syncNowButton.click();
 
         // * A new team sync job scoped to this team is enqueued
         await expect
-            .poll(
-                async () => {
-                    const jobs: any[] = await (adminClient as any).doFetch(
-                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
-                        {method: 'GET'},
-                    );
-                    return jobs.some((j: any) => j.data?.policy_id === team.id && j.create_at >= testStartTime);
-                },
-                {
-                    timeout: duration.half_min,
-                    intervals: [500, 1000, 2000, 3000],
-                    message: 'clicking Sync now in Team Details should enqueue a team sync job for this team',
-                },
-            )
+            .poll(async () => teamSyncJobSince(adminClient, team, testStartTime), {
+                timeout: duration.half_min,
+                intervals: [500, 1000, 2000, 3000],
+                message: 'clicking Sync now in Team Details should enqueue a team sync job for this team',
+            })
             .toBe(true);
     });
 
@@ -153,24 +147,14 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
 
         const {app} = await pw.testBrowser.login(adminUser);
-        const {page} = app;
+        await app.page.goto(systemConsolePath('user_management/teams'));
+        const {teams} = app.admin;
 
-        await page.goto(systemConsolePath('user_management/teams'));
-        await page.waitForLoadState('networkidle');
-
-        // Wait on the debounced server-side search rather than a fixed sleep.
-        const searchDone = page
-            .waitForResponse((resp) => resp.url().includes('/teams/search'), {timeout: duration.half_min})
-            .catch(() => {});
-        const search = app.admin.teams.searchTextbox;
-        await search.fill(team.display_name);
-        await expect(search).toHaveValue(team.display_name);
-        await searchDone;
+        // # Search for the team
+        await settle(teams.searchTextbox, {wait: Api.SearchTeams}).fill(team.display_name);
 
         // * The governed team's Management cell reads "Attribute Based", not "Invite Only"
-        const management = app.admin.teams.row(team.id).managementText.locator;
-        await expect(management).toBeVisible();
-        await expect(management).toHaveText('Attribute Based');
+        await expect(teams.row(team.id).cell('management')).toHaveText('Attribute Based');
     });
 
     /**
@@ -192,41 +176,33 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
 
         const {app} = await pw.testBrowser.login(adminUser);
-        const {page} = app;
-        const policyFetchDoneT19 = page
-            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {
-                timeout: duration.half_min,
-            })
-            .catch(() => {});
-        await openTeamConfig(app, team.display_name);
-        await policyFetchDoneT19;
-
-        // The linked-policy panel and name have no generated parts; inspect them within this team form.
-        const policyPanel = teamContent(app).locator('#team_access_control_with_policy');
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
-        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({
-            timeout: duration.half_min,
-        });
+        const page = await openTeamConfig(app, team);
+        const linked = page.accessPolicy.policy(policy);
+        await expect(linked.nameText).toHaveText(policyName, {timeout: duration.half_min});
 
         // # Stage a team-page edit so the navigation-block flag is set, then open the
         // # linked policy in the editor (a plain link that never resets that flag).
         // The auto-add checkbox is reachable because the team is governed by a parent policy.
-        await app.admin.team.autoAddMembersCheckbox.check();
-        await expect(app.admin.team.autoAddMembersCheckbox).toBeChecked();
-        await policyPanel.getByLabel('Go to the policy').click();
+        await page.autoAddMembersCheckbox.check();
+        await expect(page.autoAddMembersCheckbox).toBeChecked();
+        await linked.openLink.click();
 
         // * The policy editor loads
-        await expect(page).toHaveURL(/membership_policies\/edit_policy\//, {timeout: duration.half_min});
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
-        await expect(app.admin.header.locator.getByText('Edit Membership Policy')).toBeVisible();
+        await expect(app.page).toHavePath(
+            systemConsolePath(`system_attributes/membership_policies/edit_policy/${policy.id}`),
+            {
+                timeout: duration.half_min,
+            },
+        );
+        await expect(app.admin.header).toContainMessage(Msg.admin.access_control.policy.edit_policy.title);
 
         // # Navigate back via the editor's back arrow
-        // The admin back link has no generated part; its icon class is scoped to the declared header.
-        await app.admin.header.locator.locator('.fa.fa-angle-left.back').click();
+        await app.admin.accessControl.policy.backLink.click();
 
         // * No spurious discard prompt, and we land on the Membership Policies list
-        await expect(page.getByText('Discard Changes?')).toHaveCount(0);
-        await expect(page).toHaveURL(/membership_policies$/);
+        await expect(app.discardChangesModal).toHaveCount(0);
+        await expect(app.page).toHavePath(systemConsolePath('system_attributes/membership_policies'));
+        await expect(app.admin.accessControl.policies.searchTextbox).toBeVisible();
     });
 
     /**
@@ -251,36 +227,25 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
 
         const {app} = await pw.testBrowser.login(adminUser);
-        const {page} = app;
-        const policyFetchDoneT21 = page
-            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {
-                timeout: duration.half_min,
-            })
-            .catch(() => {});
-        await openTeamConfig(app, team.display_name);
-        await policyFetchDoneT21;
-
-        // The linked-policy panel and name have no generated parts; inspect them within this team form.
-        const policyPanel = teamContent(app).locator('#team_access_control_with_policy');
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
-        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({
-            timeout: duration.half_min,
-        });
+        const page = await openTeamConfig(app, team);
+        const {accessPolicy} = page;
+        await expect(accessPolicy.policy(policy).nameText).toHaveText(policyName, {timeout: duration.half_min});
 
         // * The header row has Policy Name and Actions, but no Auto-add column
-        const header = policyPanel.locator('.team-policy-list__header');
-        await expect(header.getByText('Policy Name')).toBeVisible();
-        await expect(header.getByText('Actions')).toBeVisible();
-        await expect(header.getByText('Auto-add', {exact: true})).toHaveCount(0);
+        await expect(accessPolicy.header).toContainMessage(
+            Msg.admin.team_settings.team_detail.access_control_policy_name,
+        );
+        await expect(accessPolicy.header).toContainMessage(
+            Msg.admin.team_settings.team_detail.access_control_policy_actions,
+        );
+        await expect(accessPolicy.header).not.toContainText('Auto-add');
 
-        // * No per-policy auto-add checkbox lives in the policy list rows
-        await expect(policyPanel.locator('.team-policy-list input[type="checkbox"]')).toHaveCount(0);
+        // * No per-policy auto-add checkbox lives in the policy panel
+        // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the absence of any checkbox role in the policy list is the thing under test, and a control that is not there has no test id
+        await expect(accessPolicy.container.locator.getByRole('checkbox')).toHaveCount(0);
 
         // * The rules section carries the renamed title
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
-        await expect(
-            teamContent(app).locator('#team_level_access_rules').getByText('Team-specific membership rules'),
-        ).toBeVisible();
+        await expect(page.accessRules.titleText).toHaveMessage(Msg.admin.team_settings.team_detail.rules.title);
     });
 
     /**
@@ -304,20 +269,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
 
         const {app} = await pw.testBrowser.login(adminUser);
-        const {page} = app;
-        const policyFetchDoneT22 = page
-            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {
-                timeout: duration.half_min,
-            })
-            .catch(() => {});
-        await openTeamConfig(app, team.display_name);
-        await policyFetchDoneT22;
+        const page = await openTeamConfig(app, team);
+        await expect(page.accessRules).toBeVisible();
 
-        // The generated surface has no member for the rules editor's internal controls.
-        const rulesPanel = teamContent(app).locator('#team_level_access_rules');
-        await expect(rulesPanel).toBeVisible();
-
-        const autoAddCheckbox = app.admin.team.autoAddMembersCheckbox;
+        const autoAddCheckbox = page.autoAddMembersCheckbox;
 
         // * Enabled purely because a parent policy governs the team (no custom expression),
         // * and off to start.
@@ -328,11 +283,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // # so the save raises the confirmation previewing the impact (UX spec §4.4).
         await autoAddCheckbox.check();
         await expect(autoAddCheckbox).toBeChecked();
-        await app.admin.team.savePanel.saveButton.click();
-        const confirmModal = app.admin.team.saveConfirmModal;
+        await page.savePanel.saveButton.click();
+        const confirmModal = page.saveConfirmModal;
         await expect(confirmModal).toBeVisible({timeout: duration.half_min});
         await expect(confirmModal.confirmButton).toHaveText(/Apply/);
-        await confirmModal.confirmButton.click();
+        await settle(confirmModal.confirmButton, {wait: Api.CreateAccessControlPolicy}).click();
         await expect(confirmModal).not.toBeVisible();
 
         // * The team child policy's membership rule now carries the auto-add mode

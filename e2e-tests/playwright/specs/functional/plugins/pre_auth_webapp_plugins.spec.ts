@@ -5,6 +5,7 @@ import type {Page} from '@playwright/test';
 
 import {
     expectLoginHeading,
+    Api,
     App,
     ensureTestWebappPlugins,
     expect,
@@ -13,6 +14,7 @@ import {
     postAuthTestPluginId,
     preAuthTestPluginId,
     removeTestWebappPlugins,
+    settle,
     test,
     testWebappPluginMarkerTestId,
     testWebappPluginRoute,
@@ -207,13 +209,13 @@ test.describe('Pre-auth webapp plugins', () => {
     test('loads all plugins on a full page load with a session', {tag: '@plugins'}, async ({pw}) => {
         // # Install the test plugins with the restriction on
         await ensureTestWebappPlugins();
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
         await setRestriction(true);
 
         // # Log in by API and open the app
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // * Verify both plugins initialized
         await expect(pluginMarker(page, preAuthTestPluginId)).toBeAttached();
@@ -240,11 +242,13 @@ test.describe('Pre-auth webapp plugins', () => {
             await app.loginPage.goto();
             await expectLoginForm(app);
             await logIn(app, user.username, user.password);
-            await pw.channelsPage.toBeVisible();
+            await expect(app.center.postCreate.message.container).toBeVisible();
             await expect(pluginMarker(page, postAuthTestPluginId)).toBeAttached();
 
             // # Log out, which reloads the app on the login page without a session
-            await pw.channelsPage.logout();
+            await app.globalHeader.openAccountMenuButton.click();
+            await expect(app.globalHeader.accountMenu.logOutMenuItem).toBeVisible();
+            await settle(app.globalHeader.accountMenu.logOutMenuItem, {wait: Api.Logout}).click();
             await expectLoginForm(app);
 
             // * Verify only the pre-auth plugin is loaded on the reloaded login page
@@ -254,7 +258,7 @@ test.describe('Pre-auth webapp plugins', () => {
             // # Log in as the second user
             await markWindow(page);
             await logIn(app, otherUser.username, otherUser.password);
-            await pw.channelsPage.toBeVisible();
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify both plugins are loaded and the page did not reload
             await expect(pluginMarker(page, preAuthTestPluginId)).toBeAttached();
