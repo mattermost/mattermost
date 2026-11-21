@@ -78,12 +78,14 @@ func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) (string, e
 	}
 
 	cfg.ServiceSettings.SiteURL = &siteURL
-	if _, _, appErr := a.SaveConfig(cfg, true); appErr != nil {
+	_, newCfg, appErr := a.SaveConfig(cfg, true)
+	if appErr != nil {
 		rctx.Logger().Warn("Failed to save the Site URL during onboarding", mlog.Err(appErr))
 		return "", nil
 	}
 
-	return siteURL, nil
+	// A ConfigurationWillBeSaved plugin hook can replace the config, so return what was saved.
+	return *newCfg.ServiceSettings.SiteURL, nil
 }
 
 // CompleteOnboarding saves the onboarding choices and starts the plugin installs. It returns the
