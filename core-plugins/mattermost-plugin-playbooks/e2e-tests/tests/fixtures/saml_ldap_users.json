@@ -1,0 +1,42 @@
+{
+    "user1": {
+        "username": "e2etest.one",
+        "password": "Password1",
+        "email": "e2etest.one@mmtest.com",
+        "firstname": "TestSaml",
+        "lastname": "OneSaml",
+        "ldapfirstname": "TestLDAP",
+        "ldaplastname": "OneLDAP",
+        "keycloakId": ""
+    },
+    "user2": {
+        "username": "e2etest.two",
+        "password": "Password1",
+        "email": "e2etest.two@mmtest.com",
+        "firstname": "TestSaml",
+        "lastname": "TwoSaml",
+        "ldapfirstname": "TestLDAP",
+        "ldaplastname": "TwoLDAP",
+        "keycloakId": ""
+    },
+    "user3": {
+        "username": "e2etest.three.saml",
+        "password": "Password1",
+        "email": "e2etest.three@mmtest.com",
+        "firstname": "FirstSaml",
+        "lastname": "ThreeSaml",
+        "ldapfirstname": "TestLDAP",
+        "ldaplastname": "ThreeLDAP",
+        "keycloakId": ""
+    },
+    "user4": {
+        "username": "e2etest.four",
+        "password": "Password1",
+        "email": "e2etest.four@mmtest.com",
+        "firstname": "TestSaml",
+        "lastname": "FourSaml",
+        "ldapfirstname": "TestLDAP",
+        "ldaplastname": "FourLDAP",
+        "keycloakId": ""
+    }
+}

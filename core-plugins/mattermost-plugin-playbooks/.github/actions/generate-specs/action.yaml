@@ -1,0 +1,31 @@
+# Copyright 2022 Mattermost, Inc.
+name: "generate-specs"
+description: This action used to split cypress integration tests based on the parallelism provided
+
+inputs:
+  directory:
+    description: The directory of the test suite
+    required: true
+  search_path:
+    description: The path to look for from within the directory
+    required: true
+  parallelism:
+    description: The parallelism for the tests
+    required: true
+outputs:
+  specs:
+    description: The specs generated for the strategy
+    value: ${{ steps.generate-specs.outputs.specs }}
+runs:
+  using: "composite"
+  steps:
+    - name: ci/generate-specs
+      id: generate-specs
+      env:
+        PARALLELISM: ${{ inputs.parallelism }}
+        SEARCH_PATH: ${{ inputs.search_path }}
+        DIRECTORY: ${{ inputs.directory }}
+      run: |
+        go run ${{ github.action_path }}/split-tests.go > output.json
+        echo "specs=$(cat output.json)" >> $GITHUB_OUTPUT
+      shell: bash

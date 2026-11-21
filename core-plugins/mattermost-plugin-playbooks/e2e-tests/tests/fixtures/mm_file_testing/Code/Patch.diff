@@ -1,0 +1,10 @@
+--- hello.c	2014-10-07 18:17:49.000000000 +0530
++++ hello_new.c	2014-10-07 18:17:54.000000000 +0530
+@@ -1,5 +1,6 @@
+ #include <stdio.h>
+ 
+-int main() {
++int main(int argc, char *argv[]) {
+ 	printf("Hello World\n");
++	return 0;
+ }

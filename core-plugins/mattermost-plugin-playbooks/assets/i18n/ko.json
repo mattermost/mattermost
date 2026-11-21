@@ -1,0 +1,202 @@
+[
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "오늘 마감"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "실행 완료"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "실행 완료 확인"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "여기 - @{{.Name}}이 [{{.RunName}}]({{.RunURL}})에 대한 상태 업데이트를 요청했습니다. \n"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "만료 {{.Count}}일 전"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "어제 마감"
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "할당된 작업"
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "할당된 작업이 0개입니다."
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "플레이북"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "실행 이름"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "실행 시작"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "플레이북 실행하기"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "설명"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "이름"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "작업 추가"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "새 작업 추가"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "플레이북 실행"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "실행 타임라인에 추가"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "요약"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "마지막 업데이트 이후 변경 사항"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "실행 완료"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "최대 64자"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "타임라인에 표시되는 짧은 요약"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "실행 타임라인에 추가"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "또한 실행을 완료로 표시합니다."
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} disabled the status updates for [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} is a run participant and wants join this channel. Any member of the channel can invite them.\n"
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**소유자** {{.Username}}"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "현재 진행 중인 실행이 0건입니다."
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "모든 작업을 보려면 `/플레이북 할 일`을 사용하세요."
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "다음 업데이트 알림"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "업데이트 상태"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "상태 업데이트"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "명령을 실행할 수 없습니다."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "연체 상태 업데이트"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "연체된 런이 0개입니다."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "진행 중 실행"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "other": "Due in {{.Count}} day"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "other": "You have {{.Count}} assigned task:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "other": "You have {{.Count}} assigned task that is now due:"
+        }
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "other": "There is **{{.Count}} outstanding task**. Are you sure you want to finish the run *{{.RunName}}* for all participants?"
+        }
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "other": "Provide an update to the stakeholders. This post will be broadcasted to {{.Count}} channel."
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "other": "You have {{.Count}} run currently in progress:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "other": "You have **{{.Count}} assigned task due after today**."
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "other": "You have {{.Count}} run overdue for a status update:"
+        }
+    }
+]
