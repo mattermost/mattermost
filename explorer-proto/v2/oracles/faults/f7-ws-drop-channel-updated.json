@@ -1,0 +1,15 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC F7: every channel_updated WebSocket event is dropped and later seq numbers are renumbered so the client sees no gap.",
+    "enabled": true,
+    "rules": [
+        {
+            "id": "f7-ws-drop",
+            "kind": "ws_drop",
+            "match": {"path": "/api/v4/websocket"},
+            "event": "channel_updated",
+            "renumber_seq": true
+        }
+    ]
+}

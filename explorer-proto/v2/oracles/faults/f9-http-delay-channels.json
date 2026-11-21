@@ -1,0 +1,14 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC F9: the channels list response is delayed 3 s. A latency fault: no oracle targets it.",
+    "enabled": true,
+    "rules": [
+        {
+            "id": "f9-delay",
+            "kind": "http_delay",
+            "match": {"method": "GET", "path": "/api/v4/users/me/channels"},
+            "delay_ms": 3000
+        }
+    ]
+}

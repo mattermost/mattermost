@@ -1,0 +1,49 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC fault injection, default OFF. Flip enabled to true to activate these illustrative rules.",
+    "enabled": false,
+    "rules": [
+        {
+            "id": "example-drop-field",
+            "kind": "json_drop_field",
+            "match": {"method": "GET", "path": "/api/v4/users/me/channels"},
+            "field": "display_name"
+        },
+        {
+            "id": "example-rename-field",
+            "kind": "json_rename_field",
+            "match": {"method": "GET", "path": "/api/v4/channels/*"},
+            "field": "purpose",
+            "to": "purpose_renamed"
+        },
+        {
+            "id": "example-500-after-2",
+            "kind": "http_error_after",
+            "match": {"method": "GET", "path": "/api/v4/channels/*/posts"},
+            "after_hits": 2,
+            "status": 500
+        },
+        {
+            "id": "example-delay",
+            "kind": "http_delay",
+            "match": {"method": "GET", "path": "/api/v4/channels/*/stats"},
+            "delay_ms": 3000
+        },
+        {
+            "id": "example-ws-delay",
+            "kind": "ws_delay",
+            "match": {"path": "/api/v4/websocket"},
+            "event": "channel_updated",
+            "delay_ms": 6000,
+            "preserve_order": true
+        },
+        {
+            "id": "example-ws-drop",
+            "kind": "ws_drop",
+            "match": {"path": "/api/v4/websocket"},
+            "event": "typing",
+            "renumber_seq": true
+        }
+    ]
+}

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><title>ws fixture</title></head>
+<body>
+<h1>WebSocket fixture</h1>
+<script>
+    const mode = new URLSearchParams(location.search).get('mode');
+    const target = mode === 'deny' ? '/ws-deny' : mode === 'close' ? '/ws-close' : '/api/v4/websocket';
+    const socket = new WebSocket(`ws://${location.host}${target}`);
+    window.fixtureSocketEvents = [];
+    socket.onmessage = (m) => window.fixtureSocketEvents.push(JSON.parse(m.data).event);
+    if (mode === 'navigate') {
+        socket.onopen = () => setTimeout(() => (location.href = '/blank.html'), 200);
+    }
+</script>
+</body></html>

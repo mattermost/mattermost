@@ -1,0 +1,2 @@
+{"oracle":"O-A11Y","class":"dangling-aria-reference","path":"/qa-team/channels/qa-sandbox","evidence":"aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])","count":1,"first_action":0}
+{"oracle":"O-A11Y","class":"dangling-aria-reference","path":"/qa-team/channels/qa-sandbox","evidence":"aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])","count":1,"first_action":2}

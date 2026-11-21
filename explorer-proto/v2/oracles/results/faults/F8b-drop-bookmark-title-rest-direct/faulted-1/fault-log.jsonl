@@ -1,0 +1,4 @@
+{"label":"SYNTHETIC-INJECTED","seq":1,"rule":"f8-drop-bookmark-title","kind":"json_drop_field","method":"GET","path":"/api/v4/channels/<id>/bookmarks","detail":"dropped field=display_name"}
+{"label":"SYNTHETIC-INJECTED","seq":2,"rule":"f8-drop-bookmark-title","kind":"json_drop_field","method":"GET","path":"/api/v4/channels/<id>/bookmarks","detail":"dropped field=display_name"}
+{"label":"SYNTHETIC-INJECTED","seq":3,"rule":"f8-drop-bookmark-title","kind":"json_drop_field","method":"GET","path":"/api/v4/channels/<id>/bookmarks","detail":"dropped field=display_name"}
+{"label":"SYNTHETIC-INJECTED","seq":4,"rule":"f8-drop-bookmark-title","kind":"json_drop_field","method":"GET","path":"/api/v4/channels/<id>/bookmarks","detail":"dropped field=display_name"}

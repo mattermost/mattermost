@@ -1,0 +1,16 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC F3: every channel_updated WebSocket event is held for 6 s (later events queue behind it).",
+    "enabled": true,
+    "rules": [
+        {
+            "id": "f3-ws-delay",
+            "kind": "ws_delay",
+            "match": {"path": "/api/v4/websocket"},
+            "event": "channel_updated",
+            "delay_ms": 6000,
+            "preserve_order": true
+        }
+    ]
+}

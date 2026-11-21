@@ -1,0 +1,14 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC F1: display_name removed from the channels list response the sidebar is built from.",
+    "enabled": true,
+    "rules": [
+        {
+            "id": "f1-drop-display-name",
+            "kind": "json_drop_field",
+            "match": {"method": "GET", "path": "/api/v4/users/me/channels"},
+            "field": "display_name"
+        }
+    ]
+}

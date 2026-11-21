@@ -1,0 +1,36 @@
+{
+  "traversal": "T2-info-panel",
+  "label": "clean",
+  "scenario": null,
+  "actions": [
+    "click button \"View Info\"",
+    "click button \"Close Info\"",
+    "click sidebar link \"release planning public channel\"",
+    "click button \"View Info\"",
+    "click button \"Close Info\"",
+    "navigate to the archived channel by URL",
+    "click button \"View Info\"",
+    "click button \"Close Info\""
+  ],
+  "findings": 7,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 6
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 18
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 6,
+      "pass": 6
+    }
+  },
+  "websocket": {
+    "opened": 2,
+    "frames_received": 11
+  },
+  "guard_blocked": {}
+}

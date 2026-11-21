@@ -1,0 +1,28 @@
+{
+  "traversal": "T1-sidebar-channels",
+  "label": "faulted-2",
+  "scenario": "F1-drop-channel-display-name",
+  "actions": [
+    "click sidebar link \"release planning public channel\""
+  ],
+  "findings": 4,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": "locator.click: Timeout 8000ms exceeded.",
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 2
+    },
+    "channel-display-name-vs-rest": {
+      "mismatch": 4
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 2
+    }
+  },
+  "websocket": {
+    "opened": 1,
+    "frames_received": 5
+  },
+  "guard_blocked": {}
+}

@@ -1,0 +1,7 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC-fault layer enabled with ZERO rules: the control that proves the proxy itself is transparent.",
+    "enabled": true,
+    "rules": []
+}

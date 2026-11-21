@@ -1,0 +1,30 @@
+{
+  "traversal": "T5-drafts",
+  "label": "clean",
+  "scenario": null,
+  "actions": [
+    "navigate to Drafts by URL",
+    "click sidebar link \"qa sandbox public channel\""
+  ],
+  "findings": 1,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 2,
+      "not-applicable": 1
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 6
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 3
+    }
+  },
+  "websocket": {
+    "opened": 2,
+    "frames_received": 12
+  },
+  "guard_blocked": {}
+}

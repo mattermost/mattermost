@@ -1,0 +1,18 @@
+{
+    "schema": "explorer-oracle-hints/v1",
+    "note": "Hints for the lead only. measure.mjs prints them next to findings; nothing here suppresses a finding (allowlist.json is the only suppression file and is empty).",
+    "entries": [
+        {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "evidence_regex": "^aria-labelledby on <a id=CENTER_time_.*references missing id \"<n>\"",
+            "reason": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+        },
+        {
+            "oracle": "O-A11Y",
+            "class": "duplicate-landmark",
+            "evidence_regex": "region landmarks share the name \"scrollable content\"",
+            "reason": "stable; sidebar and Info panel reuse one region label; low-severity accessibility smell; triage, then allowlist or report"
+        }
+    ]
+}

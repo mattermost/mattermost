@@ -1,0 +1,14 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC F8: display_name removed from every bookmark in the bookmarks list response.",
+    "enabled": true,
+    "rules": [
+        {
+            "id": "f8-drop-bookmark-title",
+            "kind": "json_drop_field",
+            "match": {"method": "GET", "path": "/api/v4/channels/*/bookmarks"},
+            "field": "display_name"
+        }
+    ]
+}

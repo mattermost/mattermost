@@ -1,0 +1,33 @@
+{
+  "traversal": "X1-create-channel-dialog-enter",
+  "label": "clean",
+  "scenario": null,
+  "actions": [
+    "click button \"Browse or create channels\"",
+    "click menu item \"Create new channel\"",
+    "press Enter in the empty \"Channel name\" field while \"Create channel\" is disabled",
+    "press Escape (close the dialog)"
+  ],
+  "findings": 2,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 2,
+      "not-applicable": 3
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 4,
+      "not-applicable": 3
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 5
+    }
+  },
+  "websocket": {
+    "opened": 1,
+    "frames_received": 5
+  },
+  "guard_blocked": {}
+}

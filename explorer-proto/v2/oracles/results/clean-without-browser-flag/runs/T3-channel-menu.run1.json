@@ -1,0 +1,34 @@
+{
+  "traversal": "T3-channel-menu",
+  "label": "clean",
+  "scenario": null,
+  "actions": [
+    "click button \"qa sandbox channel menu\"",
+    "press Escape (close channel menu)",
+    "click sidebar link \"release planning public channel\"",
+    "click button \"release planning channel menu\"",
+    "press Escape (close channel menu)"
+  ],
+  "findings": 5,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 4,
+      "not-applicable": 2
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 8,
+      "not-applicable": 2
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 6
+    }
+  },
+  "websocket": {
+    "opened": 1,
+    "frames_received": 0
+  },
+  "guard_blocked": {}
+}

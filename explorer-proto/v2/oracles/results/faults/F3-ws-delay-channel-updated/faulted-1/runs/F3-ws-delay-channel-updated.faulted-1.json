@@ -1,0 +1,32 @@
+{
+  "traversal": "W-header-update",
+  "label": "faulted-1",
+  "scenario": "F3-ws-delay-channel-updated",
+  "actions": [
+    "click button \"View Info\"",
+    "admin changes the channel header through REST",
+    "admin restores the channel header through REST"
+  ],
+  "findings": 4,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 4
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 8
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 1,
+      "pass": 5,
+      "mismatch": 1
+    }
+  },
+  "websocket": {
+    "opened": 1,
+    "frames_received": 5
+  },
+  "guard_blocked": {}
+}

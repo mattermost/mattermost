@@ -1,0 +1,23 @@
+{
+    "schema": "explorer-oracle-check/v1",
+    "id": "channel-display-name-vs-rest",
+    "description": "The sidebar label of every non-archived seeded channel equals display_name from GET /api/v4/channels/{id}.",
+    "needs_typing": false,
+    "subjects": {"from": "manifest.channels", "as": "channel", "where": {"archived": false}},
+    "applies_when": {
+        "url_path_regex": "^/[^/]+/(channels|threads|drafts)",
+        "visible": {"role": "application", "name": "channel sidebar region"}
+    },
+    "ui": {
+        "locator": {
+            "css": "a[href$=\"/channels/{channel.name}\"]",
+            "within": {"role": "application", "name": "channel sidebar region"}
+        },
+        "read": "text",
+        "normalize": ["strip-private-use", "collapse-whitespace", "trim"],
+        "required": true
+    },
+    "rest": {"method": "GET", "path": "/api/v4/channels/{channel.id}", "field": "display_name"},
+    "rule": {"op": "equals"},
+    "settle_ms": 2500
+}

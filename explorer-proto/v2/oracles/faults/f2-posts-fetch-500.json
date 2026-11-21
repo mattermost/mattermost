@@ -1,0 +1,22 @@
+{
+    "schema": "explorer-oracle-faults/v1",
+    "synthetic": true,
+    "description": "SYNTHETIC F2: every posts fetch returns HTTP 500.",
+    "enabled": true,
+    "rules": [
+        {
+            "id": "f2-posts-500",
+            "kind": "http_error_after",
+            "match": {"method": "GET", "path": "/api/v4/channels/*/posts"},
+            "after_hits": 0,
+            "status": 500
+        },
+        {
+            "id": "f2-posts-unread-500",
+            "kind": "http_error_after",
+            "match": {"method": "GET", "path": "/api/v4/users/*/channels/*/posts/unread"},
+            "after_hits": 0,
+            "status": 500
+        }
+    ]
+}

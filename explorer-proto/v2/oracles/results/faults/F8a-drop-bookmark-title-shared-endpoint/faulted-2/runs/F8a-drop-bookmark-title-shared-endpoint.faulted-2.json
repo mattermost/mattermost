@@ -1,0 +1,33 @@
+{
+  "traversal": "T1-sidebar-channels",
+  "label": "faulted-2",
+  "scenario": "F8a-drop-bookmark-title-shared-endpoint",
+  "actions": [
+    "click sidebar link \"release planning public channel\"",
+    "click sidebar link \"qa sandbox public channel\"",
+    "click sidebar link \"off-topic public channel\"",
+    "click sidebar link \"town square public channel\"",
+    "navigate to the archived channel by URL",
+    "click sidebar link \"qa sandbox public channel\""
+  ],
+  "findings": 8,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "pass": 4
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 14
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 7
+    }
+  },
+  "websocket": {
+    "opened": 2,
+    "frames_received": 15
+  },
+  "guard_blocked": {}
+}

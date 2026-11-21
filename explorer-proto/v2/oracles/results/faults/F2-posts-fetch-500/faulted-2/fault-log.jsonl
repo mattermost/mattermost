@@ -1,0 +1,9 @@
+{"label":"SYNTHETIC-INJECTED","seq":1,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":2,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":3,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":4,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":5,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":6,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":7,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":8,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}
+{"label":"SYNTHETIC-INJECTED","seq":9,"rule":"f2-posts-unread-500","kind":"http_error_after","method":"GET","path":"/api/v4/users/<id>/channels/<id>/posts/unread","detail":"status=500 after_hits=0"}

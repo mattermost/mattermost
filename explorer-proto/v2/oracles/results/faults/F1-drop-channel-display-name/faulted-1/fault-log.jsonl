@@ -1,0 +1,1 @@
+{"label":"SYNTHETIC-INJECTED","seq":1,"rule":"f1-drop-display-name","kind":"json_drop_field","method":"GET","path":"/api/v4/users/me/channels","detail":"dropped field=display_name"}

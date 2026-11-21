@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "target": "es2022",
+        "lib": ["esnext", "dom"],
+        "types": ["node"],
+        "typeRoots": ["../../../e2e-tests/playwright/node_modules/@types"],
+        "strict": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true
+    },
+    "include": ["./*.ts", "./lib/*.ts", "./faults/*.ts"]
+}

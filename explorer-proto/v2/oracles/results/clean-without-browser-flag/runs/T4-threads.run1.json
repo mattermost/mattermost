@@ -1,0 +1,30 @@
+{
+  "traversal": "T4-threads",
+  "label": "clean",
+  "scenario": null,
+  "actions": [
+    "click sidebar link \"Threads\"",
+    "click sidebar link \"qa sandbox public channel\""
+  ],
+  "findings": 5,
+  "suppressed_by_allowlist": {},
+  "oracle_errors": [],
+  "traversal_error": null,
+  "checks": {
+    "bookmark-titles-vs-rest": {
+      "vacuous": 2,
+      "not-applicable": 1
+    },
+    "channel-display-name-vs-rest": {
+      "pass": 6
+    },
+    "channel-purpose-header-vs-rest": {
+      "not-applicable": 3
+    }
+  },
+  "websocket": {
+    "opened": 1,
+    "frames_received": 0
+  },
+  "guard_blocked": {}
+}

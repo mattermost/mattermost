@@ -1,0 +1,2 @@
+{"oracle":"O-MODAL","class":"enter-submits-while-disabled","path":"/modal.html","evidence":"Enter in the field dispatched POST /api/submit while the confirm button was disabled","count":1,"first_action":1}
+{"oracle":"O-NET","class":"http-5xx","path":"/api/submit","evidence":"POST /api/submit -> 500","count":1,"first_action":1}

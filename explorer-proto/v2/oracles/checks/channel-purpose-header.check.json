@@ -1,0 +1,22 @@
+{
+    "schema": "explorer-oracle-check/v1",
+    "id": "channel-purpose-header-vs-rest",
+    "description": "With the Info panel open on a seeded channel, the panel text contains purpose and header from GET /api/v4/channels/{id}.",
+    "needs_typing": false,
+    "subjects": {"from": "manifest.channels", "as": "channel", "match_current_path": "url_path"},
+    "applies_when": {"visible": {"role": "region", "name": "Info", "exact": true}},
+    "ui": {
+        "locator": {"role": "region", "name": "Info", "exact": true},
+        "read": "text",
+        "normalize": ["strip-private-use", "collapse-whitespace", "trim"],
+        "required": true
+    },
+    "rest": {
+        "method": "GET",
+        "path": "/api/v4/channels/{channel.id}",
+        "field": ["purpose", "header"],
+        "normalize": ["collapse-whitespace", "trim"]
+    },
+    "rule": {"op": "contains"},
+    "settle_ms": 2500
+}

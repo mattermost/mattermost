@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><title>a11y good fixture</title></head>
+<body>
+<header><h1>Good fixture</h1></header>
+<nav aria-label="Main"><a href="/a">A</a></nav>
+<nav aria-label="Secondary"><a href="/b">B</a></nav>
+<main>
+    <button aria-label="Close panel"><svg width="8" height="8"></svg></button>
+    <a href="/somewhere">Somewhere</a>
+    <p id="hint">A hint</p>
+    <input aria-label="Field" aria-describedby="hint">
+    <div role="dialog" aria-labelledby="dlg-title"><h2 id="dlg-title">Named dialog</h2><button>Close</button></div>
+    <div aria-labelledby="hidden-label" style="display: none">invisible, ignored</div>
+</main>
+</body></html>

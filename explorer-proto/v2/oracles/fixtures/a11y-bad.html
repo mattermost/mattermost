@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><title>a11y bad fixture</title></head>
+<body>
+<header><h1>Bad fixture</h1></header>
+<nav aria-label="Main"><a href="/a">A</a></nav>
+<nav aria-label="Main"><a href="/b">B</a></nav>
+<main>
+    <button id="icon-only"><svg width="8" height="8"></svg></button>
+    <a href="/nowhere"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""></a>
+    <div aria-labelledby="ghost-label-id">labelled by a ghost</div>
+    <p id="hint">A hint</p>
+    <input aria-label="Field" aria-describedby="hint ghost-hint-id">
+    <div role="dialog" id="unnamed-dialog"><h2>Anonymous dialog</h2><button>Close</button></div>
+    <div role="dialog" aria-labelledby="gone-title"><button>Dismiss</button></div>
+</main>
+</body></html>

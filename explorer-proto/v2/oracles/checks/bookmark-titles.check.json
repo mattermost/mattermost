@@ -1,0 +1,26 @@
+{
+    "schema": "explorer-oracle-check/v1",
+    "id": "bookmark-titles-vs-rest",
+    "description": "On a seeded channel, the bookmark bar titles equal display_name of every bookmark from GET /api/v4/channels/{id}/bookmarks (vacuous, and reported as such, when the channel has none).",
+    "needs_typing": false,
+    "subjects": {
+        "from": "manifest.channels",
+        "as": "channel",
+        "where": {"archived": false},
+        "match_current_path": "url_path"
+    },
+    "applies_when": {"visible": {"role": "banner", "name": "channel header region"}},
+    "ui": {
+        "locator": {"css": "[data-testid=\"channel-bookmarks-container\"] [data-testid^=\"bookmark-item-\"]"},
+        "read": "text-all",
+        "normalize": ["strip-private-use", "collapse-whitespace", "trim"]
+    },
+    "rest": {
+        "method": "GET",
+        "path": "/api/v4/channels/{channel.id}/bookmarks",
+        "field": "[].display_name",
+        "normalize": ["collapse-whitespace", "trim"]
+    },
+    "rule": {"op": "equals-list"},
+    "settle_ms": 2500
+}

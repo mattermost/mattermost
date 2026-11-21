@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><title>modal fixture</title></head>
+<body>
+<h1>Modal fixture</h1>
+<div role="dialog" aria-labelledby="dlg-title" id="dlg">
+    <h2 id="dlg-title">Create thing</h2>
+    <form id="form" novalidate>
+        <label for="name">Name</label>
+        <input id="name" autocomplete="off">
+        <div id="feedback" role="alert" hidden></div>
+        <button type="button" id="cancel">Cancel</button>
+        <button type="submit" id="confirm" disabled>Create</button>
+    </form>
+</div>
+<script>
+    const params = new URLSearchParams(location.search);
+    const variant = params.get('variant') || 'good';
+    const endpoint = params.get('ok') ? '/api/submit-ok' : '/api/submit';
+    const dialog = document.getElementById('dlg');
+    const input = document.getElementById('name');
+    const confirmButton = document.getElementById('confirm');
+    const feedback = document.getElementById('feedback');
+
+    const poll = params.get('poll');
+    if (poll) {
+        setInterval(() => fetch(poll, {method: 'POST', body: '{}'}), 100);
+    }
+
+    input.addEventListener('input', () => {
+        confirmButton.disabled = input.value.trim() === '';
+    });
+
+    async function submit() {
+        const response = await fetch(endpoint, {method: 'POST', body: JSON.stringify({name: input.value})});
+        if (response.ok) {
+            dialog.remove();
+        } else if (variant === 'silent-fail') {
+            dialog.remove();
+        } else if (variant === 'stay-open') {
+            // keeps the dialog open but shows nothing
+        } else {
+            feedback.textContent = `Could not create: the server answered ${response.status}`;
+            feedback.hidden = false;
+        }
+    }
+
+    document.getElementById('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        submit();
+    });
+    if (variant === 'enter-bug') {
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submit();
+            }
+        });
+    }
+</script>
+</body></html>

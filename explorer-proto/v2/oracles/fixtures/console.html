@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><title>console fixture</title></head>
+<body>
+<h1>Console fixture</h1>
+<script>
+    console.log('fixture log noise');
+    console.warn('fixture warning noise');
+    console.error('fixture console error one');
+    console.error('fixture benign message 7');
+    setTimeout(() => {
+        throw new Error('fixture uncaught exception');
+    }, 50);
+</script>
+</body></html>

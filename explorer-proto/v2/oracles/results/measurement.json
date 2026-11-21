@@ -1,0 +1,857 @@
+{
+  "schema": "explorer-oracle-measurement/v1",
+  "image": "mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7",
+  "commit": "1fb59ef11945ab296b7039e9cbffec395693dabc",
+  "is_licensed": "PASS",
+  "browser_flag_lna_workaround": "on",
+  "repeat": 3,
+  "labels": {
+    "traversals": "MEASUREMENT SCRIPTS, NOT DISCOVERY",
+    "faults": "SYNTHETIC / INJECTED"
+  },
+  "clean": {
+    "traversals": [
+      {
+        "id": "T1-sidebar-channels",
+        "title": "visit the sidebar channels",
+        "actions": 6,
+        "findings": [
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/legacy-roadmap",
+            "evidence": "aria-labelledby on <a id=CENTER_time_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 5,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/legacy-roadmap",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 5,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/off-topic",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 3,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              2,
+              2,
+              2
+            ],
+            "first_action": 0,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 2,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/release-planning",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 1,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/town-square",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 4,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          }
+        ],
+        "byte_identical_across_repeats": true,
+        "identical_ignoring_count_across_repeats": true
+      },
+      {
+        "id": "T2-info-panel",
+        "title": "open and close the Info panel",
+        "actions": 8,
+        "findings": [
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/legacy-roadmap",
+            "evidence": "aria-labelledby on <a id=CENTER_time_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              3,
+              3,
+              3
+            ],
+            "first_action": 6,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/legacy-roadmap",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              3,
+              3,
+              3
+            ],
+            "first_action": 6,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              3,
+              3,
+              3
+            ],
+            "first_action": 0,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/release-planning",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              3,
+              3,
+              3
+            ],
+            "first_action": 3,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "duplicate-landmark",
+            "path": "/qa-team/channels/legacy-roadmap",
+            "evidence": "2 region landmarks share the name \"scrollable content\"",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 7,
+            "benign_candidate": "stable; sidebar and Info panel reuse one region label; low-severity accessibility smell; triage, then allowlist or report"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "duplicate-landmark",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "2 region landmarks share the name \"scrollable content\"",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 1,
+            "benign_candidate": "stable; sidebar and Info panel reuse one region label; low-severity accessibility smell; triage, then allowlist or report"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "duplicate-landmark",
+            "path": "/qa-team/channels/release-planning",
+            "evidence": "2 region landmarks share the name \"scrollable content\"",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 4,
+            "benign_candidate": "stable; sidebar and Info panel reuse one region label; low-severity accessibility smell; triage, then allowlist or report"
+          }
+        ],
+        "byte_identical_across_repeats": true,
+        "identical_ignoring_count_across_repeats": true
+      },
+      {
+        "id": "T3-channel-menu",
+        "title": "open the channel menu",
+        "actions": 5,
+        "findings": [
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              3,
+              3,
+              3
+            ],
+            "first_action": 0,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/release-planning",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              3,
+              3,
+              3
+            ],
+            "first_action": 3,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          }
+        ],
+        "byte_identical_across_repeats": true,
+        "identical_ignoring_count_across_repeats": true
+      },
+      {
+        "id": "T4-threads",
+        "title": "open Threads",
+        "actions": 2,
+        "findings": [
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 0,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              1,
+              1,
+              1
+            ],
+            "first_action": 2,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          }
+        ],
+        "byte_identical_across_repeats": true,
+        "identical_ignoring_count_across_repeats": true
+      },
+      {
+        "id": "T5-drafts",
+        "title": "open Drafts",
+        "actions": 2,
+        "findings": [
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              2,
+              2,
+              2
+            ],
+            "first_action": 0,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          }
+        ],
+        "byte_identical_across_repeats": true,
+        "identical_ignoring_count_across_repeats": true
+      }
+    ],
+    "extra_probes": [
+      {
+        "id": "X1-create-channel-dialog-enter",
+        "title": "open the Create-channel dialog and press Enter in the empty name field (no typing)",
+        "actions": 4,
+        "findings": [
+          {
+            "oracle": "O-A11Y",
+            "class": "dangling-aria-reference",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              5,
+              5,
+              5
+            ],
+            "first_action": 0,
+            "benign_candidate": "stable on every post permalink; same class as MM-71785; a live probe showed hovering adds a different aria-describedby and never creates the id; triage once, then allowlist so it stops repeating"
+          },
+          {
+            "oracle": "O-A11Y",
+            "class": "empty-accessible-name",
+            "path": "/qa-team/channels/qa-sandbox",
+            "evidence": "combobox has an empty accessible name in dialog \"Create a new channel\"",
+            "runs_present": 3,
+            "of_runs": 3,
+            "counts": [
+              2,
+              2,
+              2
+            ],
+            "first_action": 2,
+            "benign_candidate": null
+          }
+        ],
+        "byte_identical_across_repeats": true,
+        "identical_ignoring_count_across_repeats": true
+      }
+    ],
+    "stats": {
+      "runs": 18,
+      "oracle_errors": 0,
+      "runs_with_guard_blocked_requests": 0,
+      "websocket_opened_in_every_run": true,
+      "check_results": {
+        "bookmark-titles-vs-rest": {
+          "vacuous": 60,
+          "not-applicable": 21
+        },
+        "channel-display-name-vs-rest": {
+          "pass": 168,
+          "not-applicable": 15
+        },
+        "channel-purpose-header-vs-rest": {
+          "not-applicable": 90,
+          "pass": 18
+        }
+      }
+    },
+    "spawn_ok": true
+  },
+  "no_lna_workaround": {
+    "findings": [
+      {
+        "oracle": "O-CONSOLE",
+        "class": "console-error",
+        "evidence": "WebSocket connection to '<origin>/api/v4/websocket?connection_id=&sequence_number=0&posted_ack=true&disconnect_err_code=1006' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS",
+        "count": 1,
+        "traversals": 1
+      },
+      {
+        "oracle": "O-CONSOLE",
+        "class": "console-error",
+        "evidence": "WebSocket connection to '<origin>/api/v4/websocket?connection_id=&sequence_number=0&posted_ack=true' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS",
+        "count": 9,
+        "traversals": 9
+      },
+      {
+        "oracle": "O-NET",
+        "class": "ws-close",
+        "evidence": "WebSocket closed while the page stayed open",
+        "count": 9,
+        "traversals": 7
+      },
+      {
+        "oracle": "O-NET",
+        "class": "ws-error",
+        "evidence": "WebSocket error: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS",
+        "count": 10,
+        "traversals": 7
+      }
+    ],
+    "websocket_usable": false
+  },
+  "faults": [
+    {
+      "id": "F1-drop-channel-display-name",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "display_name removed from the channels list response (sidebar name vs REST)",
+      "mechanism": "proxy",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "O-UIREST / ui-rest-mismatch",
+      "trigger_action": 0,
+      "detected": true,
+      "first_detection_action": 0,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": "locator.click: Timeout 8000ms exceeded.",
+      "matching_findings": [
+        {
+          "oracle": "O-UIREST",
+          "class": "ui-rest-mismatch",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "check channel-display-name-vs-rest [qa-sandbox]: ui \"<absent>\" vs rest display_name \"QA Sandbox\" (equals)",
+          "count": 2,
+          "first_action": 0
+        },
+        {
+          "oracle": "O-UIREST",
+          "class": "ui-rest-mismatch",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "check channel-display-name-vs-rest [release-planning]: ui \"<absent>\" vs rest display_name \"Release Planning\" (equals)",
+          "count": 2,
+          "first_action": 0
+        }
+      ],
+      "collateral_new_findings": [
+        {
+          "oracle": "O-CONSOLE",
+          "class": "uncaught-exception",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "TypeError: Cannot read properties of undefined (reading 'localeCompare')",
+          "count": 1,
+          "first_action": 0
+        }
+      ],
+      "control_findings": 7,
+      "fault_activations": {
+        "f1-drop-display-name": 1
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "F2-posts-fetch-500",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "HTTP 500 on every posts fetch",
+      "mechanism": "proxy",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "O-NET / http-5xx",
+      "trigger_action": 0,
+      "detected": true,
+      "first_detection_action": 0,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-NET",
+          "class": "http-5xx",
+          "path": "/api/v4/users/<id>/channels/<id>/posts/unread?collapsedThreads&collapsedThreadsExtended&limit_after&limit_before&skipFetchThreads",
+          "evidence": "GET /api/v4/users/<id>/channels/<id>/posts/unread -> 500",
+          "count": 9,
+          "first_action": 0
+        }
+      ],
+      "collateral_new_findings": [],
+      "control_findings": 7,
+      "fault_activations": {
+        "f2-posts-unread-500": 9
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "F3-ws-delay-channel-updated",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "channel_updated WebSocket event delayed 6 s (UI stale after a REST change)",
+      "mechanism": "proxy",
+      "traversal": "W-header-update",
+      "expected_oracle": "O-UIREST / ui-rest-mismatch",
+      "trigger_action": 2,
+      "detected": true,
+      "first_detection_action": 2,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-UIREST",
+          "class": "ui-rest-mismatch",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "check channel-purpose-header-vs-rest [qa-sandbox.header]: ui text does not contain rest header \"Measurement header marker\" (ui text starts \"InfoQA Sandbox Favorite Mute Add People Copy Link QA Sandbox\")",
+          "count": 1,
+          "first_action": 2
+        }
+      ],
+      "collateral_new_findings": [
+        {
+          "oracle": "O-A11Y",
+          "class": "dangling-aria-reference",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "aria-labelledby on <a id=CENTER_time_user-activity-<id>_<id>> references missing id \"<n>\" (inside div[data-testid=postContent])",
+          "count": 4,
+          "first_action": 0
+        }
+      ],
+      "control_findings": 4,
+      "fault_activations": {
+        "f3-ws-delay": 2
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "S4-aria-dangling-reference",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "aria-labelledby with a dangling id injected by a DOM mutation script (oracle self-test, MM-71785 class)",
+      "mechanism": "page-script",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "O-A11Y / dangling-aria-reference",
+      "trigger_action": 0,
+      "detected": true,
+      "first_detection_action": 0,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-A11Y",
+          "class": "dangling-aria-reference",
+          "path": "/qa-team/channels/legacy-roadmap",
+          "evidence": "aria-labelledby on <body> references missing id \"synthetic-missing-label-id\" (inside document)",
+          "count": 1,
+          "first_action": 5
+        },
+        {
+          "oracle": "O-A11Y",
+          "class": "dangling-aria-reference",
+          "path": "/qa-team/channels/off-topic",
+          "evidence": "aria-labelledby on <body> references missing id \"synthetic-missing-label-id\" (inside document)",
+          "count": 1,
+          "first_action": 3
+        },
+        {
+          "oracle": "O-A11Y",
+          "class": "dangling-aria-reference",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "aria-labelledby on <body> references missing id \"synthetic-missing-label-id\" (inside document)",
+          "count": 3,
+          "first_action": 0
+        },
+        {
+          "oracle": "O-A11Y",
+          "class": "dangling-aria-reference",
+          "path": "/qa-team/channels/release-planning",
+          "evidence": "aria-labelledby on <body> references missing id \"synthetic-missing-label-id\" (inside document)",
+          "count": 1,
+          "first_action": 1
+        },
+        {
+          "oracle": "O-A11Y",
+          "class": "dangling-aria-reference",
+          "path": "/qa-team/channels/town-square",
+          "evidence": "aria-labelledby on <body> references missing id \"synthetic-missing-label-id\" (inside document)",
+          "count": 1,
+          "first_action": 4
+        }
+      ],
+      "collateral_new_findings": [],
+      "control_findings": 6,
+      "fault_activations": null,
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "S5-console-error",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "console.error injected by a page script at action 2 (oracle self-test)",
+      "mechanism": "page-script",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "O-CONSOLE / console-error",
+      "trigger_action": 2,
+      "detected": true,
+      "first_detection_action": 2,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-CONSOLE",
+          "class": "console-error",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "SYNTHETIC injected console error",
+          "count": 1,
+          "first_action": 2
+        }
+      ],
+      "collateral_new_findings": [],
+      "control_findings": 6,
+      "fault_activations": null,
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "S6-modal-enter-while-disabled",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "dialog whose Enter key submits while the confirm button is disabled (local static fixture, oracle self-test)",
+      "mechanism": "fixture",
+      "traversal": "fixture",
+      "expected_oracle": "O-MODAL / enter-submits-while-disabled",
+      "trigger_action": 1,
+      "detected": true,
+      "first_detection_action": 1,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-MODAL",
+          "class": "enter-submits-while-disabled",
+          "path": "/modal.html",
+          "evidence": "Enter in the field dispatched POST /api/submit while the confirm button was disabled",
+          "count": 1,
+          "first_action": 1
+        }
+      ],
+      "collateral_new_findings": [
+        {
+          "oracle": "O-NET",
+          "class": "http-5xx",
+          "path": "/api/submit",
+          "evidence": "POST /api/submit -> 500",
+          "count": 1,
+          "first_action": 1
+        }
+      ],
+      "control_findings": 0,
+      "fault_activations": null,
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "F7-ws-drop-channel-updated",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "channel_updated WebSocket event dropped without a sequence gap (UI stale after a REST change)",
+      "mechanism": "proxy",
+      "traversal": "W-header-update",
+      "expected_oracle": "O-UIREST / ui-rest-mismatch",
+      "trigger_action": 2,
+      "detected": true,
+      "first_detection_action": 2,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-UIREST",
+          "class": "ui-rest-mismatch",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "check channel-purpose-header-vs-rest [qa-sandbox.header]: ui text does not contain rest header \"Measurement header marker\" (ui text starts \"InfoQA Sandbox Favorite Mute Add People Copy Link QA Sandbox\")",
+          "count": 1,
+          "first_action": 2
+        }
+      ],
+      "collateral_new_findings": [],
+      "control_findings": 4,
+      "fault_activations": {
+        "f7-ws-drop": 2
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "F9-http-delay-channels",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "channels list response delayed 3 s (latency; no oracle is designed for slowness, so a miss is the expected outcome)",
+      "mechanism": "proxy",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "any oracle (none designed for this)",
+      "trigger_action": 0,
+      "detected": false,
+      "first_detection_action": null,
+      "time_to_detect_actions": null,
+      "traversal_error_under_fault": null,
+      "matching_findings": [],
+      "collateral_new_findings": [],
+      "control_findings": 6,
+      "fault_activations": {
+        "f9-delay": 2
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "F8b-drop-bookmark-title-rest-direct",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "display_name removed from the bookmarks response, oracle reads REST directly from the unfaulted server (bookmark bar title vs REST; bookmarks session seed)",
+      "mechanism": "proxy",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "O-UIREST / ui-rest-mismatch",
+      "trigger_action": 0,
+      "detected": true,
+      "first_detection_action": 0,
+      "time_to_detect_actions": 0,
+      "traversal_error_under_fault": null,
+      "matching_findings": [
+        {
+          "oracle": "O-UIREST",
+          "class": "ui-rest-mismatch",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "check bookmark-titles-vs-rest [qa-sandbox]: ui [\"\"] vs rest [].display_name [\"Sandbox runbook delta 2c71\"] (equals-list)",
+          "count": 3,
+          "first_action": 0
+        },
+        {
+          "oracle": "O-UIREST",
+          "class": "ui-rest-mismatch",
+          "path": "/qa-team/channels/release-planning",
+          "evidence": "check bookmark-titles-vs-rest [release-planning]: ui [\"\"] vs rest [].display_name [\"Release brief echo 5b90\"] (equals-list)",
+          "count": 1,
+          "first_action": 1
+        }
+      ],
+      "collateral_new_findings": [
+        {
+          "oracle": "O-A11Y",
+          "class": "empty-accessible-name",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "link has an empty accessible name -> <origin>/qa-team/channels/qa-sandbox [children: img]",
+          "count": 3,
+          "first_action": 0
+        },
+        {
+          "oracle": "O-A11Y",
+          "class": "empty-accessible-name",
+          "path": "/qa-team/channels/release-planning",
+          "evidence": "link has an empty accessible name -> <origin>/qa-team/channels/release-planning [children: img]",
+          "count": 1,
+          "first_action": 1
+        }
+      ],
+      "control_findings": 6,
+      "fault_activations": {
+        "f8-drop-bookmark-title": 4
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    },
+    {
+      "id": "F8a-drop-bookmark-title-shared-endpoint",
+      "label": "INJECTED (SYNTHETIC)",
+      "title": "display_name removed from the bookmarks response while the oracle reads the same endpoint through the same fault layer (bookmarks session seed; expected blind spot)",
+      "mechanism": "proxy",
+      "traversal": "T1-sidebar-channels",
+      "expected_oracle": "O-UIREST / ui-rest-mismatch",
+      "trigger_action": 0,
+      "detected": false,
+      "first_detection_action": null,
+      "time_to_detect_actions": null,
+      "traversal_error_under_fault": null,
+      "matching_findings": [],
+      "collateral_new_findings": [
+        {
+          "oracle": "O-A11Y",
+          "class": "empty-accessible-name",
+          "path": "/qa-team/channels/qa-sandbox",
+          "evidence": "link has an empty accessible name -> <origin>/qa-team/channels/qa-sandbox [children: img]",
+          "count": 3,
+          "first_action": 0
+        },
+        {
+          "oracle": "O-A11Y",
+          "class": "empty-accessible-name",
+          "path": "/qa-team/channels/release-planning",
+          "evidence": "link has an empty accessible name -> <origin>/qa-team/channels/release-planning [children: img]",
+          "count": 1,
+          "first_action": 1
+        }
+      ],
+      "control_findings": 6,
+      "fault_activations": {
+        "f8-drop-bookmark-title": 8
+      },
+      "fault_activated": true,
+      "spawns_ok": true,
+      "byte_identical_across_two_runs": true,
+      "identical_ignoring_count_across_two_runs": true
+    }
+  ],
+  "determinism": {
+    "clean_all_identical": true,
+    "clean_not_identical": [],
+    "clean_all_identical_ignoring_count": true,
+    "faults_all_identical": true,
+    "faults_not_identical": [],
+    "faults_all_identical_ignoring_count": true,
+    "faults_not_identical_ignoring_count": []
+  }
+}

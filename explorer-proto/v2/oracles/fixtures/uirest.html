@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><title>ui vs rest fixture</title></head>
+<body>
+<h1>UI vs REST fixture</h1>
+<nav aria-label="Channels">
+    <a href="/team/channels/chan-one" id="one">Chan One</a>
+    <a href="/team/channels/chan-two" id="two">Chan Two</a>
+</nav>
+<script>
+    const mode = new URLSearchParams(location.search).get('mode');
+    const one = document.getElementById('one');
+    if (mode === 'mismatch') {
+        one.textContent = 'Chan Uno';
+    } else if (mode === 'late') {
+        one.textContent = 'Chan Uno';
+        setTimeout(() => (one.textContent = 'Chan One'), 900);
+    } else if (mode === 'missing') {
+        one.remove();
+    }
+</script>
+</body></html>
