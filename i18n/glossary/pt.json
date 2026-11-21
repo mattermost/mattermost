@@ -167,15 +167,15 @@
     "note": "Established status label (userAccountMenu.awayMenuItem.label). Lowercase 'ausente' inside sentences."
   },
   "online": {
-    "target": "Online",
+    "target": "On-line",
     "note": "Kept as 'Online' in the existing catalog (webapp and server)."
   },
   "offline": {
-    "target": "Offline",
+    "target": "Off-line",
     "note": "Kept as 'Offline' in the existing server catalog. 'desligado' is used only for a disconnected server."
   },
   "out of office": {
-    "target": "Fora do escritório"
+    "target": "Ausente do escritório"
   },
   "guest": {
     "target": "convidado",
@@ -273,12 +273,12 @@
     "note": "Plural 'palavras de ativação' (add_outgoing_webhook.triggerWords). A few strings have 'palavra de ativar'/'palavra de ação'; prefer 'palavra de ativação'."
   },
   "plugin": {
-    "target": "plugin",
+    "target": "plug-in",
     "note": "Masculine: o plugin, plural plugins. Kept in English (150+ occurrences); never 'extensão'."
   },
   "bot": {
-    "target": "bot",
-    "note": "Masculine: o bot. Majority keeps 'bot' (19 vs 2 'robô'). Bot account = 'conta de bot'."
+    "target": "robô",
+    "note": "Masculine: o robô. Majority keeps 'bot' (19 vs 2 'robô'). Bot account = 'conta de robô'."
   },
   "role": {
     "target": "função",
@@ -378,11 +378,11 @@
     "note": "Masculine: o agente, plural agentes. 'AI agent' = 'agente de IA'."
   },
   "burn-on-read": {
-    "target": "destruir após leitura",
-    "note": "Message type: 'mensagem de destruição após leitura'; label 'DESTRUIR APÓS LEITURA'. Not rendered in the existing catalog yet."
+    "target": "destruir depois de ler",
+    "note": "Message type: 'mensagem de destruição depois de ler'; label 'DESTRUIR DEPOIS DE LER'. Not rendered in the existing catalog yet."
   },
   "magic link": {
-    "target": "ligação mágica",
+    "target": "hiperligação mágica",
     "note": "Feminine. 'link' is 'ligação'/'hiperligação' in this catalog (never 'link')."
   },
   "personal access token": {
@@ -406,7 +406,7 @@
     "note": "Bare 'group' = grupo."
   },
   "permalink": {
-    "target": "permalink",
+    "target": "ligação permanente",
     "note": "Kept in English in the existing catalog (8 occurrences). Masculine: o permalink."
   },
   "profile": {
@@ -424,7 +424,7 @@
     "note": "Established in webapp and server ('nome a exibir'). Not 'nome de exibição'."
   },
   "collapsed reply threads": {
-    "target": "Tópicos de resposta recolhidos",
+    "target": "Tópicos de resposta ocultados",
     "note": "Feature name; the Threads view itself is 'Tópicos'."
   },
   "auto-translation": {
@@ -468,7 +468,7 @@
     "note": "Masculine: o servidor, plural servidores."
   },
   "health dashboard": {
-    "target": "Saúde do site",
+    "target": "painel de saúde",
     "note": "Same as the page title ('Site health'); feminine, capitalized as a page name: 'a Saúde do site'."
   },
   "health finding": {
@@ -476,7 +476,7 @@
     "note": "Feminine; plural 'ocorrências'. Where the dashboard context is not clear (server errors), use 'ocorrência da Saúde do site'."
   },
   "Agents plugin": {
-    "target": "plugin Agents",
+    "target": "plug-in de Agents",
     "note": "Masculine: 'o plugin Agents', 'no plugin Agents'. 'Agents' stays English."
   },
   "Hosted Push Notification Service": {
