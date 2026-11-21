@@ -7,60 +7,14 @@ import path from 'node:path';
 import * as prettier from 'prettier';
 
 import {COVERAGE_PATH, PLAYWRIGHT_DIR, SRC_DIR} from './paths.ts';
+import {SCOPE, absenceLocator, matchesName, parseStatement, unconfirmedLabel} from './assertions.ts';
+import type {AbsenceAssertion, Assertion} from './assertions.ts';
 import {parseStep, readScenarios, startPath} from './scenarios.ts';
 import type {Scenario} from './scenarios.ts';
 import {describe, parseSnapshot, printable, roleNameCounts, stripGlyphs, walk} from './snapshot.ts';
 import type {RoleName, SnapNode} from './snapshot.ts';
 import {readTrace, writeTrace} from './trace.ts';
 import type {EmissionRecord, Trace, TraceState, TraceTransition} from './trace.ts';
-
-/** One declared assertion parsed from scenarios.json expected_outcome. `scoped` = inside region "Info". */
-type Assertion =
-    | {kind: 'url'; path: string}
-    | {kind: 'visible'; role: string; name: string; scoped: boolean}
-    | {kind: 'textVisible'; text: string}
-    | {kind: 'count0'; role: string; name: string}
-    | {kind: 'contains'; text: string; negated: boolean};
-
-const SCOPE = {role: 'region', name: 'Info'};
-const ROLE_LOCATOR = /getByRole\('(\w+)', \{name: '([^']+)', exact: true\}\) (is (?:still )?visible|has count 0)/g;
-
-/** Parses one declared statement; throws on anything it does not understand rather than guessing. */
-export function parseStatement(statement: string): Assertion[] {
-    const scoped = /^(?:that )?region\b/.test(statement);
-    const out: Assertion[] = [];
-    const url = /^page URL pathname is (\/\S+)/.exec(statement);
-    if (url) {
-        out.push({kind: 'url', path: url[1]});
-    }
-    if (/^region '([^']+)' is visible/.test(statement)) {
-        const name = /^region '([^']+)'/.exec(statement)![1];
-        out.push({kind: 'visible', role: 'region', name, scoped: false});
-    }
-    for (const m of statement.matchAll(ROLE_LOCATOR)) {
-        const [, role, name, verb] = m;
-        if (verb === 'has count 0') {
-            out.push({kind: 'count0', role, name});
-        } else {
-            const isScope = role === SCOPE.role && name === SCOPE.name;
-            out.push({kind: 'visible', role, name, scoped: scoped && !isScope});
-        }
-    }
-    for (const m of statement.matchAll(/getByText\('([^']+)', \{exact: true\}\) is visible/g)) {
-        out.push({kind: 'textVisible', text: m[1]});
-    }
-    for (const m of statement.matchAll(/(not\.)?toContainText '([^']+)'((?: and (?:not\.toContainText )?'[^']+')*)/g)) {
-        const negated = Boolean(m[1]);
-        out.push({kind: 'contains', text: m[2], negated});
-        for (const more of m[3].matchAll(/ and (not\.toContainText )?'([^']+)'/g)) {
-            out.push({kind: 'contains', text: more[2], negated: negated || Boolean(more[1])});
-        }
-    }
-    if (out.length === 0) {
-        throw new Error(`Unparsed declared statement: ${statement}`);
-    }
-    return out;
-}
 
 function q(text: string): string {
     return `'${text.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
@@ -82,7 +36,9 @@ function assertionCode(a: Assertion): string {
         case 'textVisible':
             return `await expect(info.getByText(${q(a.text)}, {exact: true})).toBeVisible();`;
         case 'count0':
-            return `await expect(${roleLocator('info', a.role, a.name)}).toHaveCount(0);`;
+            return a.match === 'contains'
+                ? `await expect(info.getByRole(${q(a.role)}, {name: /${a.name}/})).toHaveCount(0);`
+                : `await expect(${roleLocator('info', a.role, a.name)}).toHaveCount(0);`;
         case 'contains':
             return `await expect.soft(info)${a.negated ? '.not' : ''}.toContainText(${q(a.text)});`;
     }
@@ -105,15 +61,22 @@ function textOf(nodes: SnapNode[]): string {
     return lines.join('\n');
 }
 
-function countIn(nodes: SnapNode[], rn: RoleName): number {
-    return roleNameCounts(nodes).find((x) => x.role === rn.role && x.name === rn.name)?.count ?? 0;
+function countIn(nodes: SnapNode[], rn: RoleName, match: AbsenceAssertion['match'] = 'exact'): number {
+    return roleNameCounts(nodes)
+        .filter((x) => x.role === rn.role && matchesName(x.name, {name: rn.name, match}))
+        .reduce((sum, x) => sum + x.count, 0);
 }
 
 /**
  * Checks a declared assertion against the snapshot the explorer observed at that checkpoint.
  * Returns a problem (stop the scenario) or a note. Never feeds an observed value back into the spec.
  */
-function checkAgainstLive(a: Assertion, state: TraceState, trace: Trace): {problem?: string; note?: string} {
+function checkAgainstLive(
+    s: Scenario,
+    a: Assertion,
+    state: TraceState,
+    trace: Trace,
+): {problem?: string; note?: string} {
     const nodes = parseSnapshot(state.snapshot);
     const region = subtree(nodes, SCOPE.role, SCOPE.name);
     const where = `state ${state.id}`;
@@ -142,19 +105,23 @@ function checkAgainstLive(a: Assertion, state: TraceState, trace: Trace): {probl
                 ? {note: `text ${q(a.text)} observed in region "Info" in ${where}`}
                 : {problem: `text ${q(a.text)} declared visible but not observed in region "Info" in ${where}`};
         case 'count0': {
-            if (countIn(region, a) > 0) {
-                return {problem: `${describe(a)} declared absent but observed in region "Info" in ${where}`};
+            const label = `${describe(a)} (${a.match} name)`;
+            if (countIn(region, a, a.match) > 0) {
+                return {problem: `${label} declared absent but observed in region "Info" in ${where}`};
             }
-            const elsewhere = trace.states.filter((s) => countIn(parseSnapshot(s.snapshot), a) > 0).map((s) => s.id);
+            const elsewhere = trace.states
+                .filter((st) => countIn(parseSnapshot(st.snapshot), a, a.match) > 0)
+                .map((st) => st.id);
             if (elsewhere.length > 0) {
-                return {note: `${describe(a)} absent in ${where}; name confirmed live in ${elsewhere.join(', ')}`};
+                return {note: `${label} absent in ${where}; locator matches live elements in ${elsewhere.join(', ')}`};
             }
-            const near = nearMatch(a, trace);
-            return {
-                note: near
-                    ? `WARNING ${describe(a)} never observed exactly in any explored state${near}; this count-0 assertion may pass vacuously`
-                    : `${describe(a)} absent in ${where}; never observed in any explored state, name not confirmed live`,
-            };
+            const near = a.match === 'exact' ? nearMatch(a, trace) : '';
+            if (near) {
+                return {
+                    note: `WARNING ${label} never observed in any explored state${near}; this count-0 assertion may pass vacuously`,
+                };
+            }
+            return {note: `${unconfirmedLabel(absenceLocator(s, a))}: ${label} never present in any explored state`};
         }
         case 'contains': {
             const present = textOf(region).includes(a.text);
@@ -292,12 +259,29 @@ function plan(s: Scenario, trace: Trace): Plan | EmissionRecord {
                     return record;
                 }
                 for (const a of assertions) {
-                    const {problem, note} = checkAgainstLive(a, state, trace);
+                    let problem: string | undefined;
+                    let note: string | undefined;
+                    try {
+                        const locator = a.kind === 'count0' ? absenceLocator(s, a) : undefined;
+                        ({problem, note} = checkAgainstLive(s, a, state, trace));
+                        if (locator?.name_match === 'contains') {
+                            lines.push(
+                                '// Substring name on purpose: the live name carries an icon glyph prefix, so an exact name could not detect presence.',
+                            );
+                        }
+                    } catch (error) {
+                        problem = String((error as Error).message);
+                    }
                     if (problem) {
                         record.reasons.push(`STOP: scenarios.json differs from the live UI: ${problem}`);
                         return record;
                     }
                     record.locatorChecks.push(note!);
+                    if (note!.startsWith('UNCONFIRMED-BY-LIVE')) {
+                        lines.push(
+                            `// ${note!.slice(0, note!.indexOf('): ') + 1)}: never present in any explored state.`,
+                        );
+                    }
                     const warn = note!.startsWith('WARNING') ? ' WARNING: name not confirmed live, see trace.md' : '';
                     lines.push(`${assertionCode(a)} // declared (scenarios.json ${s.id})${warn}`);
                 }

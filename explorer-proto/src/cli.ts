@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check> [--out=<dir>] [-- <playwright args>]
+// Usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|probe-absence> [--out=<dir>] [-- <playwright args>]
 import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 
@@ -48,9 +48,11 @@ async function main(): Promise<number> {
             return playwright('replay');
         case 'guard-check':
             return playwright('guard-check');
+        case 'probe-absence':
+            return playwright('probe-absence');
         default:
             process.stderr.write(
-                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check> [--out=<dir>]\n',
+                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|probe-absence> [--out=<dir>]\n',
             );
             return 2;
     }

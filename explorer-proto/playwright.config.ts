@@ -23,6 +23,7 @@ const testLocation = {
     replay: {testDir: outDir(), testMatch: '*.spec.ts', testIgnore: '**/runs/**'},
     explore: {testDir: SRC_DIR, testMatch: 'explore.pw.ts'},
     'guard-check': {testDir: SRC_DIR, testMatch: 'guard_check.pw.ts'},
+    'probe-absence': {testDir: SRC_DIR, testMatch: 'absence_probe.pw.ts'},
 }[mode];
 
 // The repo globalSetup is skipped: it would create a default team and reset plugins on the shared

@@ -7,7 +7,13 @@ import {SCENARIOS_PATH} from './paths.ts';
 import {compareRoleName} from './snapshot.ts';
 import type {RoleName} from './snapshot.ts';
 
-export type Control = RoleName & {exact: boolean; why?: string};
+export type Control = RoleName & {
+    exact: boolean;
+    why?: string;
+    name_match?: 'exact' | 'contains';
+    name_match_note?: string;
+    source_ref?: string;
+};
 
 export type Scenario = {
     id: string;

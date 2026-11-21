@@ -44,7 +44,8 @@ const WEEKDAYS = 'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday';
 
 /** Volatile text: server ids, clock times, dates and relative days. Roles, names and state flags are kept. */
 const VOLATILE: Array<[RegExp, string]> = [
-    [/\b[a-z0-9]{26}\b/g, '<id>'],
+    // Lookarounds, not \b: ids are joined by '_' in permalinks, and '_' is a word character.
+    [/(?<![a-z0-9])[a-z0-9]{26}(?![a-z0-9])/g, '<id>'],
     [/\b\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AP]M)?\b/g, '<time>'],
     [new RegExp(`\\b(?:${MONTHS}) \\d{1,2}(?:, \\d{4})?\\b`, 'g'), '<date>'],
     [new RegExp(`\\b(?:${WEEKDAYS})\\b`, 'g'), '<weekday>'],
@@ -136,9 +137,29 @@ function serialize(nodes: SnapNode[], depth = 0): string[] {
     return nodes.flatMap((n) => [`${'  '.repeat(depth)}- ${n.line}`, ...serialize(n.children, depth + 1)]);
 }
 
-/** Drops tooltips and unread separators, scrubs volatile text, and re-serializes deterministically. */
+function hasPermalinkTime(node: SnapNode): boolean {
+    return node.children.some((c) => /^link "<time>"/.test(c.line) || hasPermalinkTime(c));
+}
+
+/**
+ * Posts (list items carrying a permalink time) and the live "At <time> ... wrote" summary are dropped:
+ * Mattermost groups the seeded system messages by timing, so they differ between otherwise identical seeds.
+ */
+function dropPosts(nodes: SnapNode[]): SnapNode[] {
+    return nodes.map((n) => {
+        if (n.role !== 'main') {
+            return {...n, children: dropPosts(n.children)};
+        }
+        const children = n.children
+            .filter((c) => !/^text: At <time>/.test(c.line))
+            .map((c) => (c.role === 'list' ? {...c, children: c.children.filter((li) => !hasPermalinkTime(li))} : c));
+        return {...n, children};
+    });
+}
+
+/** Drops tooltips, unread separators and posts, scrubs volatile text, and re-serializes deterministically. */
 export function normalizeSnapshot(yaml: string): string {
-    return serialize(filterNodes(parseSnapshot(yaml))).join('\n');
+    return serialize(dropPosts(filterNodes(parseSnapshot(yaml)))).join('\n');
 }
 
 export function stateKey(pathname: string, normalized: string): string {
