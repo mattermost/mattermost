@@ -100,6 +100,10 @@ type ImportReport struct {
 	// as an existing account on the destination, with the action the import took.
 	UnmatchedUsers unmatchedUsers
 
+	// RunMarker is the hash of the import's run ID that a scoped import leaves on
+	// the accounts it creates until it completes. Empty disables the markers.
+	RunMarker string
+
 	// missingTeams memoizes team names confirmed absent on the destination during a
 	// scoped import. getTeamsByNames consults it so a team referenced by many users
 	// isn't re-resolved against the store once per user. Teams are imported before

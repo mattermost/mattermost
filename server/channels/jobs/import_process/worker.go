@@ -184,6 +184,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			ImportedUsers:          model.ImportedUsersPosture(job.Data["imported_users"]),
 			ResumeFromLine:         resumeFromLine,
 			OnCheckpoint:           onCheckpoint,
+			RunID:                  importFileName,
 		}
 		lineNumber, report, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {

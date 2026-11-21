@@ -6,6 +6,8 @@ package app
 import (
 	"archive/zip"
 	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -251,7 +253,15 @@ func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attach
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *imports.ImportReport, *model.AppError) {
 	report := &imports.ImportReport{}
+	if !dryRun && opts.RunID != "" {
+		sum := sha256.Sum256([]byte(opts.RunID))
+		report.RunMarker = hex.EncodeToString(sum[:])
+	}
+
 	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ImportedUsers, opts.ResumeFromLine, opts.OnCheckpoint, report)
+	if err == nil && report.RunMarker != "" {
+		a.clearImportMarkers(rctx, report.RunMarker)
+	}
 	return lineNumber, report, err
 }
 
@@ -399,7 +409,9 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		// Skip post/direct_post lines already processed before the checkpoint.
 		// Non-post segments (roles, teams, channels, users, bots) are always
 		// re-processed to ensure consistent state — remap rebuilt, teams/channels
-		// exist, etc. This is safe because all non-post operations are idempotent.
+		// exist, etc. Non-post operations are idempotent, except that a scoped
+		// import treats a username match as a collision; the accounts this file
+		// already created are recognized by their run marker instead.
 		if resumeFromLine > 0 && lineNumber <= resumeFromLine &&
 			(line.Type == "post" || line.Type == "direct_post") {
 			continue

@@ -363,6 +363,46 @@ func createdUserAction(createDeactivated bool) imports.UnmatchedUserAction {
 	return imports.UnmatchedUserCreatedActive
 }
 
+// hasImportMarker reports whether an earlier, unfinished attempt at this import
+// file created the account. A failed lookup counts as no: the account is then
+// treated as a username collision.
+func (a *App) hasImportMarker(rctx request.CTX, userID string, report *imports.ImportReport) bool {
+	if report == nil || report.RunMarker == "" || a.ch.importMarkerFieldID == "" {
+		return false
+	}
+	matches, err := a.Srv().propertyService.ImportMarkerMatches(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, userID, report.RunMarker)
+	if err != nil {
+		rctx.Logger().Warn("Failed to read import marker; treating the account as an existing one", mlog.String("user_id", userID), mlog.Err(err))
+		return false
+	}
+	return matches
+}
+
+// setImportMarker marks an account this import created so that a retry of the
+// same file recognizes it. A failure only costs the retry that recognition.
+func (a *App) setImportMarker(rctx request.CTX, userID string, report *imports.ImportReport) {
+	if report == nil || report.RunMarker == "" || a.ch.importMarkerFieldID == "" {
+		return
+	}
+	if err := a.Srv().propertyService.SetImportMarker(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, userID, report.RunMarker); err != nil {
+		rctx.Logger().Warn("Failed to mark account as created by this import; a retry will treat it as an existing account", mlog.String("user_id", userID), mlog.Err(err))
+	}
+}
+
+// clearImportMarkers removes the markers of a completed import, after which its
+// accounts are treated like any other existing account.
+func (a *App) clearImportMarkers(rctx request.CTX, runMarker string) {
+	if a.ch.importMarkerFieldID == "" {
+		return
+	}
+	cleared, err := a.Srv().propertyService.ClearImportMarkers(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, runMarker)
+	if err != nil {
+		rctx.Logger().Error("Failed to clear import markers; a later import of a file with the same name will continue setting up these accounts", mlog.Int("cleared", cleared), mlog.Err(err))
+		return
+	}
+	rctx.Logger().Info("Cleared import markers", mlog.Int("cleared", cleared))
+}
+
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
@@ -490,7 +530,20 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
-	if deactivateMissingUsers && user.Id != "" && !matchedByAuthData {
+	if deactivateMissingUsers && user.Id != "" && !matchedByAuthData &&
+		user.Email == strings.ToLower(*data.Email) && a.hasImportMarker(rctx, user.Id, report) {
+		// An earlier attempt at this same import file created the account and
+		// didn't complete, so this run carries on setting it up.
+		rctx.Logger().Info("Scoped import: continuing setup of an account an earlier attempt at this import created",
+			mlog.String("username", *data.Username))
+		if report != nil {
+			report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				Username: *data.Username,
+				Reason:   "username_not_found",
+				Action:   createdUserAction(user.DeleteAt != 0),
+			})
+		}
+	} else if deactivateMissingUsers && user.Id != "" && !matchedByAuthData {
 		// A username is not an identity across instances, so in a scoped import an
 		// account matched only by username may belong to someone else. Attribute the
 		// source user's content and memberships to it, as the username-collision path
@@ -707,6 +760,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	if user.Id == "" {
 		if createDeactivated {
 			user.SetProp(model.UserPropsKeyImportedInactive, "true")
+			// A delete_at the source supplied is kept: someone deactivated well
+			// before the migration keeps their original date.
+			if user.DeleteAt == 0 {
+				user.DeleteAt = model.GetMillis()
+			}
 		}
 		if savedUser, err = a.ch.srv.userService.CreateUser(rctx, user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
@@ -772,6 +830,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			}
 		}
 
+		if deactivateMissingUsers {
+			a.setImportMarker(rctx, savedUser.Id, report)
+		}
+
 		// The shell account now exists, so it's safe to record the unmatched user. Doing
 		// this before CreateUser would leave a false created_* entry when a non-fatal
 		// email/username collision prevented the shell from being created.
@@ -789,16 +851,6 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			rctx.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
-		}
-
-		if createDeactivated && savedUser.DeleteAt == 0 {
-			// UpdateActive always stamps DeleteAt to the current time, which would
-			// clobber a legitimate historical DeleteAt the source already supplied
-			// (e.g. a user who was deactivated well before the migration). Only
-			// call it when the account isn't already deactivated.
-			if _, appErr := a.UpdateActive(rctx, savedUser, false); appErr != nil {
-				return appErr
-			}
 		}
 	} else {
 		var appErr *model.AppError
@@ -1107,6 +1159,9 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 		}
 		bot = &model.Bot{}
 		hasBotChanged = true
+	} else if deactivateMissingUsers && a.hasImportMarker(rctx, bot.UserId, report) {
+		rctx.Logger().Info("Scoped import: continuing setup of a bot an earlier attempt at this import created",
+			mlog.String("bot_username", *data.Username))
 	} else if deactivateMissingUsers {
 		// As with users, a username is not an identity across instances, so in a
 		// scoped import an existing bot is used for attribution only.
@@ -1232,6 +1287,8 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 				}
 			}
+		} else if deactivateMissingUsers {
+			a.setImportMarker(rctx, savedBot.UserId, report)
 		}
 	} else if hasBotChanged {
 		var err error
