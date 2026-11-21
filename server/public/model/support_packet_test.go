@@ -4,7 +4,15 @@
 package model
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"errors"
+	"math/big"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -122,4 +130,96 @@ func TestSupportPacketLicenseIsMattermostEntry(t *testing.T) {
 	assert.True(t, (&SupportPacketLicense{SkuShortName: LicenseShortSkuMattermostEntry}).IsMattermostEntry())
 	assert.False(t, (&SupportPacketLicense{SkuShortName: LicenseShortSkuEnterprise}).IsMattermostEntry())
 	assert.False(t, (*SupportPacketLicense)(nil).IsMattermostEntry())
+}
+
+func newTestX509Certificate(t *testing.T, subject, issuer pkix.Name, notAfter time.Time) *x509.Certificate {
+	t.Helper()
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      subject,
+		NotBefore:    notAfter.Add(-24 * time.Hour),
+		NotAfter:     notAfter,
+	}
+	parent := &x509.Certificate{SerialNumber: big.NewInt(2), Subject: issuer}
+	der, err := x509.CreateCertificate(rand.Reader, template, parent, &key.PublicKey, key)
+	require.NoError(t, err)
+	cert, err := x509.ParseCertificate(der)
+	require.NoError(t, err)
+	return cert
+}
+
+func TestNewSupportPacketCertificate(t *testing.T) {
+	t.Parallel()
+
+	notAfter := time.Date(2026, 11, 28, 9, 14, 2, 0, time.FixedZone("CET", 3600))
+
+	t.Run("names the certificate by common names", func(t *testing.T) {
+		cert := newTestX509Certificate(t, pkix.Name{CommonName: "chat.example.com", Organization: []string{"Example"}}, pkix.Name{CommonName: "R11", Organization: []string{"Let's Encrypt"}}, notAfter)
+
+		assert.Equal(t, &SupportPacketCertificate{
+			CommonName: "chat.example.com",
+			Issuer:     "R11",
+			NotAfter:   time.Date(2026, 11, 28, 8, 14, 2, 0, time.UTC),
+		}, NewSupportPacketCertificate(cert, nil))
+	})
+
+	t.Run("reports the expiry in UTC", func(t *testing.T) {
+		got := NewSupportPacketCertificate(&x509.Certificate{NotAfter: notAfter}, nil)
+
+		assert.Equal(t, time.UTC, got.NotAfter.Location())
+		assert.True(t, got.NotAfter.Equal(notAfter))
+	})
+
+	t.Run("falls back to the distinguished name without a common name", func(t *testing.T) {
+		cert := newTestX509Certificate(t, pkix.Name{Organization: []string{"Example"}}, pkix.Name{Organization: []string{"Example CA"}}, notAfter)
+
+		got := NewSupportPacketCertificate(cert, nil)
+		assert.Equal(t, "O=Example", got.CommonName)
+		assert.Equal(t, "O=Example CA", got.Issuer)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		assert.Equal(t, &SupportPacketCertificate{Error: "x509: malformed certificate"}, NewSupportPacketCertificate(nil, errors.New("x509: malformed certificate")))
+	})
+
+	t.Run("nothing to report", func(t *testing.T) {
+		assert.Nil(t, NewSupportPacketCertificate(nil, nil))
+	})
+}
+
+func TestSupportPacketCertificateYAML(t *testing.T) {
+	t.Parallel()
+
+	cert := newTestX509Certificate(t, pkix.Name{CommonName: "chat.example.com"}, pkix.Name{CommonName: "R11"}, time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC))
+	var diagnostics SupportPacketDiagnostics
+	diagnostics.TLS.Certificate = NewSupportPacketCertificate(cert, nil)
+	diagnostics.LDAP.ClientCertificate = NewSupportPacketCertificate(nil, errors.New(`failed to read certificate "ldap-public.crt": not found`))
+
+	data, err := yaml.Marshal(&diagnostics)
+	require.NoError(t, err)
+
+	body := string(data)
+	assert.Contains(t, body, `tls:
+  certificate:
+    common_name: chat.example.com
+    issuer: R11
+    not_after: 2026-11-28T09:14:02Z
+`)
+	assert.Contains(t, body, `  client_certificate:
+    error: "failed to read certificate \"ldap-public.crt\": not found"
+`)
+	assert.NotContains(t, body, "server_certificate")
+	assert.NotContains(t, body, "idp_certificate")
+	assert.NotContains(t, body, "sp_certificate")
+
+	var roundTrip SupportPacketDiagnostics
+	err = yaml.Unmarshal(data, &roundTrip)
+	require.NoError(t, err)
+	assert.Equal(t, diagnostics.TLS.Certificate, roundTrip.TLS.Certificate)
+	assert.Equal(t, diagnostics.LDAP.ClientCertificate, roundTrip.LDAP.ClientCertificate)
+	assert.Nil(t, roundTrip.LDAP.ServerCertificate)
+	assert.Nil(t, roundTrip.SAML.IdpCertificate)
 }

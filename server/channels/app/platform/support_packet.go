@@ -369,7 +369,8 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
 	if samlDiagnostic := ps.SamlDiagnostic(); samlDiagnostic != nil && model.SafeDereference(ps.Config().SamlSettings.Enable) {
-		if err = samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings); err != nil {
+		d.SAML.IdpCertificate, d.SAML.SPCertificate, err = samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings)
+		if err != nil {
 			d.SAML.Status = model.StatusFail
 			d.SAML.Error = err.Error()
 		} else {
@@ -377,6 +378,18 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 	} else {
 		d.SAML.Status = model.StatusDisabled
+	}
+
+	/* TLS */
+	// The listener reads its TLS settings only at startup, so the config only decides whether a missing certificate is an error.
+	if cert := ps.tlsCertificate.Load(); cert != nil {
+		d.TLS.Certificate = model.NewSupportPacketCertificate(cert, nil)
+	} else if serviceSettings := ps.Config().ServiceSettings; model.SafeDereference(serviceSettings.ConnectionSecurity) == model.ConnSecurityTLS {
+		certErr := errors.New("the HTTPS listener has not loaded a certificate; TLS settings apply after a restart")
+		if model.SafeDereference(serviceSettings.UseLetsEncrypt) {
+			certErr = errors.New("the HTTPS listener has not served a Let's Encrypt certificate yet; TLS settings apply after a restart")
+		}
+		d.TLS.Certificate = model.NewSupportPacketCertificate(nil, certErr)
 	}
 
 	/* Elastic Search */
@@ -428,10 +441,13 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	ldap := ps.LdapDiagnostic()
 	var serverName, serverVersion string
 	var vendorErr error
+	var serverCert, clientCert *model.SupportPacketCertificate
 	add(ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)), networkProbe{
 		name: "ldap", section: model.SectionLDAPProbe, status: &d.LDAP.Status, errMsg: &d.LDAP.Error,
 		run: func(context.Context) error {
-			if appErr := ldap.RunTest(rctx); appErr != nil {
+			var appErr *model.AppError
+			serverCert, clientCert, appErr = ldap.RunSupportPacketTest(rctx)
+			if appErr != nil {
 				return appErr
 			}
 			// Only if the LDAP test was successful, try to get the LDAP server info
@@ -439,6 +455,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 			return nil
 		},
 		record: func() error {
+			d.LDAP.ServerCertificate, d.LDAP.ClientCertificate = serverCert, clientCert
 			d.LDAP.ServerName = cmp.Or(serverName, unknownDataPoint)
 			d.LDAP.ServerVersion = cmp.Or(serverVersion, unknownDataPoint)
 			return errors.Wrap(vendorErr, "error while getting LDAP vendor info")

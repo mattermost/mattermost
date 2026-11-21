@@ -29,6 +29,7 @@ const (
 	SectionSMTPProbe        NodeSection = "smtp_probe"
 	SectionOAuthProbes      NodeSection = "oauth_probes"
 	SectionPushProbe        NodeSection = "push_probe"
+	SectionTLS              NodeSection = "tls"
 
 	SectionStats   WorkspaceSection = "stats"
 	SectionJobs    WorkspaceSection = "jobs"
@@ -60,6 +61,7 @@ func AllNodeSections() []NodeSection {
 		SectionSMTPProbe,
 		SectionOAuthProbes,
 		SectionPushProbe,
+		SectionTLS,
 	}
 }
 

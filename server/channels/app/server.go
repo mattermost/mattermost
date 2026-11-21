@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/idna"
 
@@ -1069,6 +1071,20 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
+// recordServedCertificate passes the leaf of each certificate getCertificate serves to record. autocert
+// swaps in renewed certificates without a restart, so this follows renewals. ACME challenge certificates
+// are skipped, using autocert's own test: the only offered protocol is acme-tls/1.
+func recordServedCertificate(getCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error), record func(*x509.Certificate)) func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+		cert, err := getCertificate(hello)
+		challenge := len(hello.SupportedProtos) == 1 && hello.SupportedProtos[0] == acme.ALPNProto
+		if err == nil && cert != nil && cert.Leaf != nil && !challenge {
+			record(cert.Leaf)
+		}
+		return cert, err
+	}
+}
+
 func (s *Server) newLetsEncryptManager() *autocert.Manager {
 	return &autocert.Manager{
 		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
@@ -1350,19 +1366,21 @@ func (s *Server) Start() error {
 				tlsConfig.CipherSuites = cipherSuites
 			}
 
-			certFile := ""
-			keyFile := ""
-
 			if *s.platform.Config().ServiceSettings.UseLetsEncrypt {
-				tlsConfig.GetCertificate = m.GetCertificate
+				tlsConfig.GetCertificate = recordServedCertificate(m.GetCertificate, s.platform.SetTLSCertificate)
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 			} else {
-				certFile = *s.platform.Config().ServiceSettings.TLSCertFile
-				keyFile = *s.platform.Config().ServiceSettings.TLSKeyFile
+				// Loaded here rather than by ServeTLS so that the Support Packet can report the certificate being served.
+				var cert tls.Certificate
+				cert, err = tls.LoadX509KeyPair(*s.platform.Config().ServiceSettings.TLSCertFile, *s.platform.Config().ServiceSettings.TLSKeyFile)
+				tlsConfig.Certificates = []tls.Certificate{cert}
+				s.platform.SetTLSCertificate(cert.Leaf)
 			}
 
-			s.Server.TLSConfig = tlsConfig
-			err = s.Server.ServeTLS(listener, certFile, keyFile)
+			if err == nil {
+				s.Server.TLSConfig = tlsConfig
+				err = s.Server.ServeTLS(listener, "", "")
+			}
 		} else {
 			err = s.Server.Serve(listener)
 		}
