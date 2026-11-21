@@ -1804,3 +1804,24 @@ func TestCheckHasNilFields(t *testing.T) {
 		require.True(t, res)
 	})
 }
+
+func TestSetServerBusy_RequiresManageSystem(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const secs = 30
+
+	t.Run("regular user cannot mark server busy", func(t *testing.T) {
+		resp, err := th.Client.SetServerBusy(context.Background(), secs)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy")
+	})
+
+	t.Run("system admin can mark server busy", func(t *testing.T) {
+		_, err := th.SystemAdminClient.SetServerBusy(context.Background(), secs)
+		require.NoError(t, err)
+		require.True(t, th.App.Srv().Platform().Busy.IsBusy(), "server should be marked busy")
+		th.App.Srv().Platform().Busy.Clear()
+	})
+}
