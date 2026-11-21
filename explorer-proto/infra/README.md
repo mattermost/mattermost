@@ -17,9 +17,16 @@ explorer-proto/infra/scripts/gate.sh --down   # teardown only (stack, volumes, c
 explorer-proto/infra/scripts/up.sh            # stack + forwarder + seed (default variant), prints the base URL
 explorer-proto/infra/scripts/up.sh --variant=swap-purpose-header   # PILOT-01 negative control
 explorer-proto/infra/scripts/up.sh --variant=no-archive            # PILOT-02 negative control
+explorer-proto/infra/scripts/up.sh --session=bookmarks             # default seed + one link bookmark per channel (licensed server)
 explorer-proto/infra/scripts/down.sh          # idempotent teardown: forwarder, stack + volumes, canary, manifest
 node explorer-proto/infra/scripts/verify_seed.mjs [--variant=...]  # admin API read-back of the seed
+node explorer-proto/infra/scripts/verify_seed.mjs --session=bookmarks   # + bookmark read-back
+node explorer-proto/infra/scripts/verify_seed.mjs --session=none        # + both channels have zero bookmarks
+node explorer-proto/infra/scripts/bookmark_ctl.mjs patch --channel=release-planning --title='<title>'  # owner PATCH, PASS/FAIL
+node explorer-proto/infra/scripts/bookmark_ctl.mjs read --channel=<name>                             # display_name list
 ```
+
+Without `--session`, `up.sh` and `seed.mjs` run exactly the original seed and call no bookmark endpoint.
 
 `MM_LICENSE` must be exported in the invoking shell; Compose passes it through by name only. The Mattermost
 container runs with `MM_SERVICEENVIRONMENT=test` (approved for the pilot) because the license is test-signed.
@@ -31,7 +38,8 @@ See `INTERFACE.md` for the seed, variants and the `.run/seed-manifest.json` sche
 - `forwarder.mjs`: built-ins-only TCP pipe `127.0.0.1:${PILOT_PORT:-8065}` → Mattermost container IP `:8065` (HTTP and WebSocket). Refuses non-loopback binds, logs no payloads, exits on SIGTERM.
 - `scripts/leak_scan.mjs`: in-memory scan of stdin or paths for `MM_LICENSE` (full value and overlapping 24-char substrings). Prints only `PASS`/`FAIL` and a count. Exit 0/1, 2 if unset.
 - `scripts/probe.mjs`: ping, DB status, WebSocket handshake and license probes; prints nothing, exit code only.
-- `scripts/seed.mjs`, `scripts/verify_seed.mjs`, `scripts/api.mjs`: API seed from `../scenarios.json`, read-back, shared client.
+- `scripts/seed.mjs`, `scripts/verify_seed.mjs`, `scripts/api.mjs`: API seed from `../scenarios.json` (plus `../sessions/bookmarks/charter.json` with `--session=bookmarks`), read-back, shared client.
+- `scripts/bookmark_ctl.mjs`: owner-only bookmark title PATCH and a title-only read for the bookmarks session (see `INTERFACE.md`).
 - `.run/` (git-ignored): forwarder pid/log, gate output, `seed-manifest.json`.
 
 ## What the gate proves

@@ -7,6 +7,7 @@ const SCRIPTS_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const INFRA_DIR = path.resolve(SCRIPTS_DIR, '..');
 export const SCENARIOS_PATH = path.resolve(INFRA_DIR, '..', 'scenarios.json');
 export const MANIFEST_PATH = path.join(INFRA_DIR, '.run', 'seed-manifest.json');
+export const BOOKMARKS_CHARTER_PATH = path.resolve(INFRA_DIR, '..', 'sessions', 'bookmarks', 'charter.json');
 
 export const BASE_URL = (process.env.PW_BASE_URL || 'http://127.0.0.1:8065').replace(/\/+$/, '');
 export const ADMIN = {
@@ -29,6 +30,46 @@ export function parseVariant(argv) {
         throw new Error(`unknown variant "${variant}" (expected one of: ${VARIANTS.join(', ')})`);
     }
     return variant;
+}
+
+// Returns null when --session is absent, so callers keep their default behaviour.
+export function parseSession(argv, allowed) {
+    const arg = argv.find((a) => a.startsWith('--session='));
+    if (!arg) {
+        return null;
+    }
+    const session = arg.slice('--session='.length);
+    if (!allowed.includes(session)) {
+        throw new Error(`unknown session "${session}" (expected one of: ${allowed.join(', ')})`);
+    }
+    return session;
+}
+
+export function parseFlag(argv, name) {
+    const arg = argv.find((a) => a.startsWith(`--${name}=`));
+    return arg ? arg.slice(name.length + 3) : null;
+}
+
+// Bookmarks from the session charter's fixture_setup. link_url is built at seed time from BASE_URL.
+export function bookmarkSpecs(teamName) {
+    const charter = JSON.parse(fs.readFileSync(BOOKMARKS_CHARTER_PATH, 'utf8'));
+    const list = charter.fixture_setup?.bookmarks;
+    if (!Array.isArray(list) || list.length === 0) {
+        throw new Error('bookmarks charter: fixture_setup.bookmarks missing');
+    }
+    return list.map((b) => {
+        const urlPath = `/${teamName}/channels/${b.channel}`;
+        if (typeof b.channel !== 'string' || typeof b.display_name !== 'string' || !b.display_name) {
+            throw new Error('bookmarks charter: bookmark needs channel and display_name');
+        }
+        if (b.type !== 'link' || b.link_url !== `<manifest base_url>${urlPath}`) {
+            throw new Error(`bookmarks charter: ${b.channel} must be a link to its own channel path`);
+        }
+        if (!/^none\b/.test(b.emoji || 'none') || !/^none\b/.test(b.image_url || 'none')) {
+            throw new Error(`bookmarks charter: ${b.channel} must declare no emoji and no image_url`);
+        }
+        return {channel: b.channel, display_name: b.display_name, type: 'link', url_path: urlPath, link_url: `${BASE_URL}${urlPath}`};
+    });
 }
 
 // Same four preferences as lib/src/server/user.ts setDefaultOnboardingPreferences.
@@ -100,7 +141,8 @@ export class Api {
     }
 
     // Returns {status, body}; throws on unexpected status with only method, path, status and server error id.
-    async req(method, urlPath, body, {ok = [200, 201], allow = []} = {}) {
+    // anyStatus: never throw on status; the caller judges it.
+    async req(method, urlPath, body, {ok = [200, 201], allow = [], anyStatus = false} = {}) {
         const headers = {'X-Requested-With': 'XMLHttpRequest'};
         if (this.token) {
             headers.Authorization = `Bearer ${this.token}`;
@@ -120,10 +162,33 @@ export class Api {
         } catch {
             parsed = null;
         }
-        if (!ok.includes(res.status) && !allow.includes(res.status)) {
+        if (!anyStatus && !ok.includes(res.status) && !allow.includes(res.status)) {
             throw new Error(`${method} ${urlPath} -> ${res.status} ${parsed?.id || ''}`.trim());
         }
         return {status: res.status, body: parsed, headers: res.headers};
+    }
+}
+
+// Bookmark API errors never echo response bodies; 501 means the server has no license.
+export function bookmarkSetupFailure(what, status) {
+    const hint = status === 501 ? ' (501: server not licensed)' : '';
+    return new Error(`setup failure: licence/bookmarks: ${what} -> HTTP ${status}${hint}`);
+}
+
+// Non-deleted bookmarks of a channel (GET /channels/{id}/bookmarks), or a setup failure.
+export async function listBookmarks(api, channelId, label) {
+    const res = await api.req('GET', `/channels/${channelId}/bookmarks`, undefined, {anyStatus: true});
+    if (res.status !== 200 || !Array.isArray(res.body)) {
+        throw bookmarkSetupFailure(`GET bookmarks of ${label}`, res.status);
+    }
+    return res.body.filter((b) => b && b.delete_at === 0);
+}
+
+export function readManifest() {
+    try {
+        return JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+    } catch {
+        return null;
     }
 }
 

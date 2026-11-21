@@ -1,9 +1,25 @@
 #!/usr/bin/env node
 // Reads the seeded state back through the admin API and compares it with scenarios.json for the variant.
-//   node verify_seed.mjs [--variant=...]     prints one PASS/FAIL line per check, exit 1 on any FAIL
+//   node verify_seed.mjs [--variant=...] [--session=bookmarks|none]
+// Prints one PASS/FAIL line per check, exit 1 on any FAIL. --session=bookmarks adds the charter bookmark
+// checks; --session=none adds a check that qa-sandbox and release-planning hold zero bookmarks.
 import fs from 'node:fs';
 
-import {MANIFEST_PATH, adminApi, expectedState, login, onboardingPreferences, parseVariant} from './api.mjs';
+import {
+    Api,
+    BASE_URL,
+    MANIFEST_PATH,
+    adminApi,
+    bookmarkSpecs,
+    expectedState,
+    listBookmarks,
+    login,
+    onboardingPreferences,
+    parseSession,
+    parseVariant,
+} from './api.mjs';
+
+const BOOKMARK_CHANNELS = ['qa-sandbox', 'release-planning'];
 
 let failures = 0;
 function check(ok, desc) {
@@ -13,11 +29,78 @@ function check(ok, desc) {
     }
 }
 
+// Returns the non-deleted bookmarks, or null (after a FAIL line) when the list call fails.
+async function bookmarksOrFail(api, channelId, label, who) {
+    try {
+        return await listBookmarks(api, channelId, label);
+    } catch (err) {
+        check(false, `${who} can list bookmarks of ${label} (${err.message})`);
+        return null;
+    }
+}
+
+async function verifyBookmarks(admin, want, team, user, manifest) {
+    const adminId = (await admin.req('GET', '/users/me')).body?.id;
+    const userSession = await login(want.user.username, want.user.password);
+    const asUser = userSession ? new Api(userSession.token) : null;
+    const origin = new URL(BASE_URL).origin;
+
+    for (const spec of bookmarkSpecs(want.team.name)) {
+        const ch = await admin.req('GET', `/teams/${team?.id}/channels/name/${spec.channel}`, undefined, {allow: [404]});
+        const channelId = ch.body?.id;
+        const list = await bookmarksOrFail(admin, channelId, spec.channel, 'admin');
+        if (!list) {
+            continue;
+        }
+        check(list.length === 1, `${spec.channel} has exactly one non-deleted bookmark (got ${list.length})`);
+        const b = (list.length === 1 ? list[0] : list.find((x) => x.display_name === spec.display_name)) || {};
+        check(list.length === 1 && b.display_name === spec.display_name, `${spec.channel} bookmark display_name = "${spec.display_name}"`);
+        check(b.type === 'link', `${spec.channel} bookmark type = "link"`);
+        check(!b.emoji && !b.image_url && !b.file_id, `${spec.channel} bookmark has no emoji, image_url or file`);
+        let url = null;
+        try {
+            url = new URL(b.link_url);
+        } catch {
+            url = null;
+        }
+        check(url !== null && url.origin === origin && url.pathname === spec.url_path && !url.search && !url.hash,
+            `${spec.channel} bookmark link_url origin = manifest base_url origin, path = ${spec.url_path}`);
+        check(Boolean(adminId) && b.owner_id === adminId, `${spec.channel} bookmark owned by the seeding admin`);
+        const m = manifest?.session?.bookmarks?.[spec.channel];
+        check(m?.id === b.id && m.display_name === b.display_name && m.type === b.type && m.link_url === b.link_url,
+            `manifest session.bookmarks["${spec.channel}"] matches the read-back bookmark`);
+
+        const cm = await admin.req('GET', `/channels/${channelId}/members/${user?.id}`, undefined, {allow: [403, 404]});
+        const roles = cm.body?.roles?.split(' ') || [];
+        check(cm.status === 200 && roles.includes('channel_user') && !roles.includes('channel_admin') && !cm.body.scheme_admin,
+            `${want.user.username} is a regular member of ${spec.channel} (channel roles "${cm.body?.roles}")`);
+        const seen = asUser ? await bookmarksOrFail(asUser, channelId, spec.channel, want.user.username) : null;
+        if (seen) {
+            check(seen.length === 1 && seen[0].id === b.id, `${want.user.username} can list ${spec.channel} bookmarks and sees the same single bookmark`);
+        } else if (!asUser) {
+            check(false, `${want.user.username} logs in to list bookmarks`);
+        }
+    }
+    check(manifest?.session?.name === 'bookmarks', 'manifest session.name = "bookmarks"');
+}
+
+async function verifyNoBookmarks(admin, team) {
+    for (const name of BOOKMARK_CHANNELS) {
+        const ch = await admin.req('GET', `/teams/${team?.id}/channels/name/${name}`, undefined, {allow: [404]});
+        const list = await bookmarksOrFail(admin, ch.body?.id, name, 'admin');
+        if (list) {
+            check(list.length === 0, `${name} has zero bookmarks (got ${list.length})`);
+        }
+    }
+}
+
 async function main() {
-    const variant = parseVariant(process.argv.slice(2));
+    const argv = process.argv.slice(2);
+    const variant = parseVariant(argv);
+    const session = parseSession(argv, ['bookmarks', 'none']);
     const want = expectedState(variant);
     const admin = await adminApi();
-    process.stdout.write(`seed read-back, variant=${variant}\n`);
+    process.stdout.write(`seed read-back, variant=${variant}${session ? `, session=${session}` : ''}\n`);
 
     const team = await admin.req('GET', `/teams/name/${want.team.name}`, undefined, {allow: [404]});
     check(team.status === 200 && team.body.display_name === want.team.display_name && team.body.type === want.team.type,
@@ -68,6 +151,12 @@ async function main() {
         manifest.team?.id === team.body?.id && manifest.user?.id === user.body?.id &&
         want.channels.every((s) => manifest.channels?.[s.name]?.purpose === s.purpose && manifest.channels[s.name].archived === s.archived);
     check(manifestOk, '.run/seed-manifest.json matches the read-back state');
+
+    if (session === 'bookmarks') {
+        await verifyBookmarks(admin, want, team.body, user.body, manifest);
+    } else if (session === 'none') {
+        await verifyNoBookmarks(admin, team.body);
+    }
 
     process.stdout.write(`seed read-back: ${failures === 0 ? 'PASS' : `FAIL (${failures})`}\n`);
     return failures === 0;
