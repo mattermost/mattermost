@@ -14,55 +14,96 @@ business assertions come only from `scenarios.json`. No LLM, no vision model, no
 From the repository root:
 
 ```bash
-explorer-proto/run-pilot.sh          # = demo
-explorer-proto/run-pilot.sh verify
-explorer-proto/run-pilot.sh down     # teardown only
+explorer-proto/run-pilot.sh                 # = demo
+explorer-proto/run-pilot.sh verify          # release gate; --repeat=N or PILOT_REPEAT (default 10)
+explorer-proto/run-pilot.sh repeat [N]      # replay the committed generated/ specs N times (default 30)
+explorer-proto/run-pilot.sh down            # teardown only
 explorer-proto/run-pilot.sh help
 ```
 
-`demo` runs these steps, prints a banner for each one and ends with a PASS/FAIL checklist. Any failure exits non-zero.
-Teardown (`infra/scripts/down.sh`) always runs from an exit trap and keeps the images.
+Every command prints a banner per step and ends with a PASS/FAIL table and a final `DEMO:`, `VERIFY:` or `REPEAT:`
+line. The exit code is 0 only if every row passed. Steps never route their status through `|| true`. The exit trap
+always runs three things: the storage-state cleanup, a filename leak scan, and the teardown
+(`infra/scripts/down.sh`, which keeps the images).
 
-1. **Preflight:** prints `git rev-parse HEAD`. Checks that Docker is linux/amd64, that `MM_LICENSE` is exported (by
-   name only), that both images are present by digest, that Node can strip TypeScript, that `@playwright/test` is
-   1.62.1 and `chromium-1234` is installed. Creates the git-ignored symlink
-   `explorer-proto/node_modules -> ../e2e-tests/playwright/node_modules` if it is missing.
-2. **Gate and seed:** `infra/scripts/gate.sh --keep` runs the isolation and license gate. The script prints only
-   `IsLicensed === 'true': PASS|FAIL` and the gate verdict. A FAIL is a setup failure and stops the run before any
-   pilot step. Then `infra/scripts/up.sh --variant=default` seeds the stack.
-3. **Explore and emit:** `node explorer-proto/src/cli.ts explore` and then `emit`, both with
-   `--out=explorer-proto/infra/.run/pilot/<run>/out`. That directory is git-ignored. `generated/runs/` cannot be used
-   because the replay config ignores `**/runs/**`.
-4. **Replay:** runs the generated specs only, each in a fresh guarded context. Both specs must pass.
-5. **Guard check:** `cli.ts guard-check`.
-6. **Leak scan:** `infra/scripts/leak_scan.mjs` scans the scratch output, `generated/reports`,
-   `generated/test-results`, the `infra/.run` logs, the committed `generated/` and sources, this README,
-   `docker compose logs`, `git diff --cached` and `git diff HEAD -- explorer-proto`. It prints PASS/FAIL only.
+### demo
 
-`verify` runs these steps in order:
+| Step | What it does |
+| --- | --- |
+| (a) preflight | Prints `git rev-parse HEAD`. Checks that Docker is linux/amd64, that `MM_LICENSE` is exported (name only), that both images are present by digest, that Node strips TypeScript and that `@playwright/test` is 1.62.1. Checks both browser builds in the Playwright cache (`PLAYWRIGHT_BROWSERS_PATH`, else `~/.cache/ms-playwright`). A missing build is a setup failure, and nothing is downloaded. Creates the git-ignored symlink `explorer-proto/node_modules -> ../e2e-tests/playwright/node_modules` if it is missing. |
+| (b) gate + seed | `infra/scripts/gate.sh --keep` runs the isolation and license gate. Only `IsLicensed === 'true': PASS/FAIL` and the gate verdict are printed. An unlicensed server, or any gate failure, is a setup failure that stops the run before any pilot step. Then `infra/scripts/up.sh --variant=default` seeds the stack. |
+| (c) explore + emit | `node explorer-proto/src/cli.ts explore` and then `emit`, with `--out=explorer-proto/infra/.run/pilot/<run>/out` (git-ignored). `generated/runs/` cannot be used because the replay config ignores `**/runs/**`. |
+| (d) replay | Runs the generated specs only, each test in a fresh guarded context. Both must pass. |
+| (e) guard-check | `cli.ts guard-check`. |
+| (f) probe-absence | Shown as SKIP in demo. It runs in `verify`. |
+| (g) leak scan | See [Secrets](#secrets). |
+| (h) teardown | Runs from the exit trap. |
 
-1. It runs `demo` twice, as `run-1` and `run-2`, each with its own stack.
-2. It runs `diff -r` on the generated specs of the two runs, which must be byte-identical, and also compares
-   `trace.json` and `trace.md`.
-3. It records the md5 of the `run-2` specs.
-4. Negative controls replay the `run-2` specs without regenerating them:
-   - Seed `swap-purpose-header`. PILOT-01 must fail, and only at the seed-bound purpose/header text assertions,
-     including both `Release purpose/header bravo-91d2` lines. PILOT-02 must pass.
-   - Seed `no-archive`. PILOT-02 must fail, and only at the `This channel is archived.` assertion. PILOT-01 must pass.
-5. It runs `probe-absence` on `no-archive` and on `default`, then `guard-check` and a final leak scan.
-6. It checks that the spec md5 values are unchanged.
+**Browser binaries.** The `chrome` project in the repo config is headless with `browserName: 'chromium'` and no
+`channel`, so Playwright launches `chromium_headless_shell-1234` (`chrome-headless-shell`). `chromium-1234` is used
+only for headed runs (`PW_HEADLESS=false`). Preflight requires both.
 
-A control that does not fail, or that fails at a different assertion, is a verification FAIL. The final table lists
-the failing assertion lines. Each line is the spec source line at the error location in the Playwright JSON report,
-so it contains no ports or URLs. Logs and reports for every step are written to `infra/.run/pilot/`.
+### verify
+
+1. **Demo run 1.** If it fails, verify stops.
+2. **Demo run 2.** Then `diff -r` of the two runs' specs, `trace.md` and `trace.json`, which must be byte-identical.
+3. **Repeated replay.** The run-2 specs are replayed N times on the default seed (Playwright `--repeat-each`), and all
+   2·N executions must pass. The report shows `X/Y passed`.
+4. **Negative controls.** These replay the run-2 specs only, with no re-explore and no re-emit. The md5 of both spec
+   files must be the same before and after. Each control is a **seed or role change that keeps navigation intact**.
+   The two API controls are applied by small built-ins-only Node blocks inside `run-pilot.sh`, through the loopback
+   forwarder. They take the admin from `PW_ADMIN_USERNAME` / `PW_ADMIN_PASSWORD` (lib defaults) and the base URL and
+   ids from `infra/.run/seed-manifest.json`. They never print tokens or passwords.
+
+   | Control | Change | Required result |
+   | --- | --- | --- |
+   | `release-purpose-changed` | Admin `PUT /api/v4/channels/{id}/patch` changes only the `release-planning` purpose. Then qa-user logs in and marks `release-planning` and `qa-sandbox` viewed again: the patch posts a system message, and the sidebar link name would otherwise gain ` unread`. Afterwards the declared purpose is restored (from `scenarios.json`, cross-checked against the manifest) and both channels are re-viewed. | PILOT-01 fails only at `expect.soft(info).toContainText('Release purpose bravo-91d2')`. The URL, region `Info` visible and `Close Info` assertions are not among the failures. PILOT-02 passes. |
+   | `team-admin` | Admin `PUT /api/v4/teams/{team_id}/members/{user_id}/schemeRoles` with `scheme_admin: true, scheme_user: true`. Restored with `scheme_admin: false` and read back: the roles contain `team_user` and not `team_admin`. | PILOT-02 fails only at `expect(info.getByRole('button', {name: 'Unarchive', exact: true})).toHaveCount(0)` with `Received: 1`. PILOT-01 passes. |
+   | `no-archive` | Gate plus `up.sh --variant=no-archive`, which keeps `legacy-roadmap` active. The default seed is restored the same way afterwards. | PILOT-02 fails only at `expect(info.getByText('This channel is archived.', {exact: true})).toBeVisible()`. It is a hard assertion, so the later checks do not run. PILOT-01 passes. |
+
+   **Restore checks.** After the two API controls, `infra/scripts/verify_seed.mjs` reads the default seed back, and a
+   replay on that same restored stack must pass both tests. After the default seed is re-applied following
+   `no-archive`, both tests must pass again.
+5. **Probes and guards.** `probe-absence` runs on `no-archive` and on `default`, followed by `guard-check`,
+   `guard-race` (a teardown-race regression check on a local server) and a leak scan.
+
+**The judge.** It is strict and reads the Playwright JSON report. A control passes only if all of these hold:
+
+- The named test failed with result status `failed`, and the other test passed.
+- Its errors are exactly the expected assertion. An error matches only on its code-frame call text, the first line
+  of the message and the expected strings (`Expected substring: …`, `Received: 1`), never on line numbers.
+
+The judge rejects:
+
+- Any other failure.
+- `Test timeout`.
+- Hook, fixture or `Network guard violations` errors.
+- A closed page.
+- The statuses `timedOut` and `interrupted`.
+- Report-level errors.
+
+For each control it prints the failing test, the failing expect call and the first line of the message. These
+controls verify the declared assertions against **seed/role changes, not product regressions**.
+
+**Exploratory only.** The `swap-purpose-header` seed variant (`infra/scripts/up.sh --variant=swap-purpose-header`) is
+not part of the gate. With it, six soft text assertions each wait the 10 s expect timeout, which together with setup
+exceeds the 60 s test timeout. The run then ends in a location-less test timeout instead of failing at named
+assertions.
+
+### repeat
+
+`repeat [N]` runs preflight, gate and seed, then replays the committed `generated/` specs N times with
+`--repeat-each`. It requires all 2·N executions to pass and the spec md5 values to stay unchanged, then runs a leak
+scan. It never regenerates the specs.
 
 ## Prerequisites
 
 - `MM_LICENSE` exported in the invoking shell. The license is test-signed.
 - Docker with a linux/amd64 server and Compose v2.
 - Both images pulled. Nothing in the pilot pulls them (`--pull never`).
-- The locked Playwright workspace: `e2e-tests/playwright/node_modules` with `@playwright/test` 1.62.1 and the
-  `chromium-1234` browser. The pilot runs no `npm install` and no `playwright install`.
+- The locked Playwright workspace: `e2e-tests/playwright/node_modules` with `@playwright/test` 1.62.1, and
+  `chromium_headless_shell-1234` plus `chromium-1234` in the Playwright cache. The pilot runs no `npm install` and no
+  `playwright install`.
 - Node 24, which runs `src/cli.ts` with built-in type stripping.
 
 ## Pinned references
@@ -72,24 +113,32 @@ so it contains no ports or URLs. Logs and reports for every step are written to 
 | Checkout | printed at run time by preflight (`git rev-parse HEAD`); not pinned here |
 | Mattermost | `mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7` (linux/amd64) |
 | PostgreSQL | `postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5` |
-| Playwright | `@playwright/test` 1.62.1, browser `chromium-1234` |
+| Playwright | `@playwright/test` 1.62.1; launched browser `chromium_headless_shell-1234`; `chromium-1234` for headed runs |
+
+**Licensed Enterprise setup:**
+
+- The server is licensed through `MM_LICENSE`, which Compose passes through by name only.
+- `IsLicensed === 'true'` is required. An unlicensed server is a setup failure, never a different-edition run.
+- `MM_SERVICEENVIRONMENT=test` is set on the pilot Mattermost container only, as approved by the user, because the
+  license is test-signed.
+- Neither scenario asserts a licensed feature.
 
 ## Layout and ownership
 
 | Path | Owner | Contents |
 | --- | --- | --- |
-| `infra/` | infra | Compose stack, loopback forwarder, isolation and license gate, seed and variants, leak scanner, teardown. See `infra/README.md` and `infra/INTERFACE.md`. |
-| `src/`, `playwright.config.ts` | engine | Explorer, emitter, replay, network guard, guard check and absence probe. See `src/README-engine.md`. |
-| `generated/` | engine output | Committed reference specs, `trace.json`, `trace.md` and guard/probe reports. `reports/`, `test-results/` and `runs/` are git-ignored. |
+| `infra/` | infra | Compose stack, loopback forwarder, isolation and license gate, seed and variants, seed read-back, leak scanner, teardown. See `infra/README.md` and `infra/INTERFACE.md`. |
+| `src/`, `playwright.config.ts` | engine | Explorer, emitter, replay, network guard, guard check, guard race check and absence probe. See `src/README-engine.md`. |
+| `generated/` | engine output | Committed reference specs, `trace.json`, `trace.md` and guard/race/probe reports. `reports/`, `test-results/` and `runs/` are git-ignored. |
 | `coverage.md`, `scenarios.json` | QA design | Coverage ledger and matrix, and the declared scenarios, allowlists, fixtures, assertions and controls. |
-| `run-pilot.sh`, `README.md` | coordinator | One-command wiring, exit codes and this document. |
+| `run-pilot.sh`, `README.md` | coordinator | One-command wiring, controls, judge, exit codes and this document. |
 
 There is no `explorer-proto/package.json`, on purpose: adding one would change module and ESLint resolution.
 
 ## Network model
 
 - **Stack:** Compose project `explorer-pilot` uses one network, `pilot_internal`, with `internal: true`. Nothing
-  publishes ports (no `ports:`). Postgres runs on tmpfs, and the server's outbound features are disabled.
+  publishes ports. Postgres runs on tmpfs, and the server's outbound features are disabled.
 - **Forwarder:** the worker reaches Mattermost only through `infra/forwarder.mjs`. It is a built-ins-only TCP pipe
   from `127.0.0.1` to the Mattermost container IP, carries HTTP and WebSocket, refuses non-loopback binds and logs no
   payloads.
@@ -99,11 +148,10 @@ There is no `explorer-proto/package.json`, on purpose: adding one would change m
   - Mattermost reports database status OK.
   - Through the forwarder, an HTTP ping succeeds and a WebSocket upgrade returns 101. The forwarder binds only to
     loopback and refuses `0.0.0.0`.
-  - A boundary canary on a separate local bridge is reachable from that bridge and unreachable from the Postgres
-    container.
+  - A boundary canary is reachable from its own bridge and unreachable from the Postgres container.
   - `IsLicensed === 'true'`, and the leak scans pass.
-- **INFERRED:** the boundary of the Mattermost container itself. It is distroless and is not exec'd. It shares the only
-  internal network with the tested Postgres container.
+- **INFERRED:** the egress boundary of the Mattermost container itself. It is distroless and is not exec'd. It shares
+  the only internal network with the tested Postgres container.
 
 ## Exact-origin guard
 
@@ -115,6 +163,7 @@ the first navigation. The guard allows exactly the manifest origin (scheme, host
   every hop.
 - `context.routeWebSocket` closes WebSockets to any other origin.
 - A listener records any escape as a violation, and a violation fails the session.
+- Route handlers are tracked through teardown. Only a narrow set of teardown-caused errors counts as benign.
 
 `guard-check` proves the guard in both exploration and replay mode:
 
@@ -123,12 +172,29 @@ the first navigation. The guard allows exactly the manifest origin (scheme, host
 - `register()` resolves, but no service-worker script is ever requested.
 - Redirects to another origin are blocked, and same-origin redirects are kept.
 
+`guard-race` repeats session teardown under in-flight requests and requires zero unexpected handler errors.
+
 ## Secrets
 
 `MM_LICENSE` reaches the server only by inheritance. Compose lists the variable name, and the engine CLI removes it
 from the Playwright process env. `run-pilot.sh` never enables `set -x`, never echoes the environment, and checks the
-license by name only. The value must never be printed, written to a file, hashed or measured. Leak checks use only
-`infra/scripts/leak_scan.mjs`, which works in memory and prints PASS/FAIL.
+license by name only. The value must never be printed, written to a file, hashed or measured.
+
+`infra/scripts/leak_scan.mjs` works in memory and prints PASS/FAIL only. The leak scan (g) runs it over:
+
+- the scratch output, `generated/reports`, `generated/test-results` and the `infra/.run` logs
+- the committed `generated/` and sources, `run-pilot.sh` and this README
+- `docker compose logs`, `git diff --cached` and `git diff HEAD -- explorer-proto`
+- the **names** in `e2e-tests/playwright/storage_state`, piped on stdin (`ls -A`)
+
+The names are scanned again after the storage-state cleanup.
+
+**Storage state.** The framework's `TestBrowser.login` writes
+`e2e-tests/playwright/storage_state/<timestamp>_<login>_<password>.json`, and that location is hard-coded
+(`lib/src/browser_context.ts:177,184`). Each run records the existing entry names in memory at the start. On exit,
+including after a failure, it deletes only entries that are new and whose name carries the seeded login id, read from
+the seed manifest. Pre-existing entries and other users' entries are never touched, and the script never creates the
+directory. Only counts are reported (created, deleted, remaining pre-existing); names are never printed.
 
 These commands would expose the license. Never run them:
 
@@ -149,17 +215,35 @@ These commands would expose the license. Never run them:
   derived from an observed snapshot or from the seed manifest.
 - Rows marked COVERED in `coverage.md` are not emitted.
 
+## Unarchive evidence
+
+`Unarchive` needs `manage_team`, which `qa-user` lacks. The explorer therefore never observes the button, and the
+emitter labels the locator UNCONFIRMED-BY-LIVE. The absence probe also reports that it cannot be shown present on
+`no-archive`.
+
+The `team-admin` control makes `qa-user` a team admin for one replay. It requires PILOT-02 to fail at the Unarchive
+count-0 assertion with `Received: 1`.
+
+- **What this establishes:** the exact locator `getByRole('button', {name: 'Unarchive', exact: true})` detects the
+  live 12.1.0 button.
+- **What it does not establish:** anything about the Unarchive flow for a team admin (MX-22 stays open), or that a real
+  permission-gating regression would be caught.
+
 ## Known limits
 
-- **Unarchive is UNCONFIRMED-BY-LIVE.** The button needs `manage_team`, which `qa-user` lacks, so its exact name comes
-  from source (`channel_info_rhs.tsx`). The absence probe confirms every other absence locator against the
-  `no-archive` seed.
-- **Redirect blocking is tested on a local stand-in.** The guard check uses two local HTTP servers, not Mattermost,
-  because the pilot UI has no cross-origin redirect.
-- **`MM_SERVICEENVIRONMENT=test`** is set on the pilot Mattermost container only, as approved by the user, because the
-  license is test-signed.
-- **The state key ignores post content.** Snapshot normalization drops posts and the live post summary, so states that
-  differ only in posts are merged.
+- The egress isolation of the Mattermost container is INFERRED, not tested.
+- Chromium egress is guarded at the application level only (`src/guard.ts`). There is no host firewall.
+- **Redirect blocking is tested on a local stand-in.** It uses a local origin and a second local server, not a real
+  external host.
+- **The state key ignores post content.** Snapshot normalization drops posts, so states that differ only in posts are
+  merged.
+- **Replay is sensitive to unread state.** An unseen post adds ` unread` to the sidebar link name, and the exact-name
+  click then times out. The seed's final view calls and the re-view step in `release-purpose-changed` guard against
+  this.
+- **`MM_SERVICEENVIRONMENT=test`** is set on the pilot container only, as approved by the user.
+- Only the 12.1.0 release image was run. Behaviour on master 12.2.0 is not verified.
+- **The negative controls cover seed and role changes only.** They verify the assertions against those changes, not
+  against product regressions.
 
 ## Out of scope
 
