@@ -1,0 +1,87 @@
+name: Release Docs - Release Docs PR
+
+# One draft docs PR with the parts code can calculate: the server releases table, the ESR
+# chart (with the next ESR), the next two releases on the Release Lifecycle chart, ESR/PostgreSQL
+# rows, Desktop compatibility and the deploy pages' version strings, plus marked placeholders for
+# the sections a person writes. Every Release Day is the due date of the release's vX.Y.0
+# milestone; one with no due date is a TODO in the PR, never a guess.
+#
+# Important Upgrade Notes and Deprecated Features are filled from the confirmed breaking changes:
+# the PR numbers in the hidden marker <!-- release-automation:confirmed-breaking: 39012,39088 -->
+# that mattermost/release-automation writes into this PR's description (the workflow keeps it
+# when it rewrites the description). Each is worded from its changelog bullets in Upgrade Impact
+# and API Changes; Claude drafts one only for a PR with no such bullet, and the PR lists it for
+# review. Without the marker both pages keep their placeholders, and
+# release-docs-release-pr-check.yml fails from T-2.
+#
+# Opens at RC-1, the same point as the changelog PR (generate-changelog.yml): when vX.Y.0-rc1 is
+# tagged on release-X.Y. A tag that isn't on release-X.Y is skipped. It also runs every weekday
+# for the release between its RC-1 and its final vX.Y.0 tag (the rule generate-changelog.yml uses,
+# from changelog_release.py), in case the tag event was missed and to pick up a marker written
+# since; the task updates the PR it already opened, so those runs change nothing otherwise. It can
+# also be run by hand.
+#
+# It also reruns when the confirmed-breaking marker in the PR's description changes: on an edit to
+# the description of the release docs PR itself (branch release-agent/vX.Y.0/release-docs in this
+# repo, into master). The resolve step compares the marker before and after the edit and derives
+# the version from the branch name; any other edit, including the task's own rewrites of the
+# description (which keep the marker), skips the run. release-automation writes the marker with a
+# GitHub App token, whose edits start workflows (GITHUB_TOKEN's would not). PRs from forks never run.
+# See release-docs-task.yml.
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.0-rc1'
+  schedule:
+    # Weekdays. Skips itself when no release is between its vX.Y.0-rc1 and vX.Y.0 tags.
+    - cron: '43 14 * * 1-5'
+  pull_request:
+    types: [edited]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+jobs:
+  release-docs:
+    # A push runs only when it created the vX.Y.0-rc1 tag; the task checks it is on release-X.Y.
+    # A PR edit runs only for the release docs PR itself; the task checks the marker changed.
+    if: >-
+      (github.event_name != 'push' || github.event.created) &&
+      (github.event_name != 'pull_request' || (
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.base.ref == 'master' &&
+        startsWith(github.event.pull_request.head.ref, 'release-agent/') &&
+        endsWith(github.event.pull_request.head.ref, '/release-docs')))
+    # One group for the tag event, the weekday run, marker edits and manual runs, so two of them
+    # never race to open the same PR. queue: max keeps every waiting run, so a no-op description
+    # edit can't replace a pending tag, weekday or manual run. On the job, not the workflow, so
+    # edits to other PRs (skipped above) never enter the group.
+    concurrency:
+      group: release-docs-release-docs
+      cancel-in-progress: false
+      queue: max
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: release-docs
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)

@@ -1,0 +1,276 @@
+[
+  {
+    "id": "gfycat_deprecation_7.8",
+    "conditions": {
+      "audience": "sysadmin",
+      "instanceType": "onprem",
+      "serverVersion": ["<=7.8.9"]
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "In-product GIF picker will be temporarily unavailable",
+        "description": "Due to GFYCAT shutting down on September 1, 2023, the in-product picker will not work until a Mattermost fix is shipped in v9.0, [supported 8.x versions, and ESR versions](https://docs.mattermost.com/upgrade/release-lifecycle.html). If GIFs are important to your instance, please consider upgrading your Mattermost instance to these versions as soon as it is available.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/gif_picker.png",
+        "actionText": "Learn more",
+        "actionParam": "https://forum.mattermost.com/t/gfycat-is-going-away-what-does-it-mean-for-mattermost-users/16751"
+      }
+    }
+  },
+  {
+    "id": "gif_deprecation_7.9_7.10",
+    "conditions": {
+      "audience": "sysadmin",
+      "instanceType": "onprem",
+      "serverVersion": [">= 7.9 <= 7.10"]
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "In-product GIF picker will be temporarily unavailable",
+        "description": "Due to GFYCAT shutting down on September 1, 2023, the in-product picker will not work until a Mattermost fix is shipped in v9.0, [supported 8.x versions, and ESR versions](https://docs.mattermost.com/upgrade/release-lifecycle.html). If GIFs are important to your instance, please consider upgrading your Mattermost instance to these versions as soon as it is available.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/gif_picker.png",
+        "actionText": "Learn more",
+        "actionParam": "https://forum.mattermost.com/t/gfycat-is-going-away-what-does-it-mean-for-mattermost-users/16751"
+      }
+    }
+  },
+  {
+    "id": "gfycat_deprecation_8.0",
+    "conditions": {
+      "audience": "sysadmin",
+      "instanceType": "onprem",
+      "serverVersion": [">= 8.0.0 <=8.0.1"]
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "In-product GIF picker will be temporarily unavailable",
+        "description": "Due to GFYCAT shutting down on September 1, 2023, the in-product picker will not work until a Mattermost fix is shipped in v9.0, [supported 8.x versions, and ESR versions](https://docs.mattermost.com/upgrade/release-lifecycle.html). If GIFs are important to your instance, please consider upgrading your Mattermost instance to these versions as soon as it is available.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/gif_picker.png",
+        "actionText": "Learn more",
+        "actionParam": "https://forum.mattermost.com/t/gfycat-is-going-away-what-does-it-mean-for-mattermost-users/16751"
+      }
+    }
+  },
+  {
+    "id": "gfycat_deprecation_8.1",
+    "conditions": {
+      "audience": "sysadmin",
+      "instanceType": "onprem",
+      "serverVersion": ["8.1.0"]
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "In-product GIF picker will be temporarily unavailable",
+        "description": "Due to GFYCAT shutting down on September 1, 2023, the in-product picker will not work until a Mattermost fix is shipped in v9.0, [supported 8.x versions, and ESR versions](https://docs.mattermost.com/upgrade/release-lifecycle.html). If GIFs are important to your instance, please consider upgrading your Mattermost instance to these versions as soon as it is available.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/gif_picker.png",
+        "actionText": "Learn more",
+        "actionParam": "https://forum.mattermost.com/t/gfycat-is-going-away-what-does-it-mean-for-mattermost-users/16751"
+      }
+    }
+  },
+  {
+    "id": "patch_upgrade_11_7_12",
+    "conditions": {
+      "audience": "sysadmin",
+      "clientType": "all",
+      "serverVersion": [">= 11.7.0 <=11.7.11"],
+      "instanceType": "onprem",
+      "displayDate": ">= 2026-10-12T00:00:00Z"
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Mattermost 11.7.12 is now available",
+        "description": "Mattermost v11.7.12 Extended Support Release contains Low to Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+        "actionText": "Learn more",
+        "actionParam": "https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html"
+      }
+    }
+  },
+  {
+    "id": "server_upgrade_v11.11",
+    "conditions": {
+      "audience": "sysadmin",
+      "clientType": "all",
+      "serverVersion": ["<11.11"],
+      "instanceType": "onprem",
+      "displayDate": ">= 2026-09-16T00:00:00Z"
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Mattermost 11.11 is here!",
+        "description": "Mattermost v11.11 contains multiple new quality of life improvements, including [Data Spillage: Exposure Radius Report](https://docs.mattermost.com/administration-guide/manage/admin/content-flagging). [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) only takes a few minutes.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+        "actionText": "Learn more",
+        "actionParam": "https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html"
+      }
+    }
+  },
+  {
+    "id": "patch_upgrade_10_11_23",
+    "conditions": {
+      "audience": "sysadmin",
+      "clientType": "all",
+      "serverVersion": [">= 10.11.0 <=10.11.22"],
+      "instanceType": "onprem",
+      "displayDate": ">= 2026-08-13T00:00:00Z"
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Mattermost 10.11.23 is now available",
+        "description": "Mattermost v10.11.23 Extended Support Release contains Low to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+        "actionText": "Learn more",
+        "actionParam": "https://docs.mattermost.com/product-overview/mattermost-v10-changelog.html"
+      }
+    }
+  },
+  {
+    "id": "crt-admin-disabled",
+    "conditions": {
+      "audience": "sysadmin",
+      "clientType": "all",
+      "serverVersion": [">=7.0"],
+      "displayDate": ">= 2022-06-16T00:00:00Z",
+      "serverConfig": { "ServiceSettings.CollapsedThreads": "disabled" }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Threaded Discussions are here, now in general availability!",
+        "description": "Experience a better way to communicate in threads that keeps your channels and conversations organized.\n\nYou can now enable Threaded Discussions by default for all users in **System Console** > **Posts** > **Threaded Discussions**.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/crt.gif",
+        "actionText": "Learn more",
+        "actionParam": "https://support.mattermost.com/hc/en-us/articles/6880701948564"
+      }
+    }
+  },
+  {
+    "id": "crt-admin-default_off",
+    "conditions": {
+      "audience": "sysadmin",
+      "clientType": "all",
+      "serverVersion": [">=7.0"],
+      "displayDate": ">= 2022-06-16T00:00:00Z",
+      "serverConfig": { "ServiceSettings.CollapsedThreads": "default_off" }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Now enable Threaded Discussions by default for all users!",
+        "description": "You can now enable Threaded Discussions by default for all users in **System Console** > **Posts** > **Threaded Discussions**.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/crt.gif",
+        "actionText": "Learn more",
+        "actionParam": "https://support.mattermost.com/hc/en-us/articles/6880701948564"
+      }
+    }
+  },
+  {
+    "id": "crt-user-default-on",
+    "conditions": {
+      "audience": "all",
+      "clientType": "all",
+      "serverVersion": [">=7.0"],
+      "displayDate": ">= 2022-06-16T00:00:00Z",
+      "serverConfig": { "ServiceSettings.CollapsedThreads": "default_on" }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Experience a better way to communicate in threads",
+        "description": "Welcome to Threaded Discussions! You can now find, follow, and resume conversations more easily, and keep discussion threads focused.\n\nYou can always disable it in **Settings** > **Display** > **Threaded Discussions**",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/crt.gif",
+        "actionText": "Learn more",
+        "actionParam": "https://docs.mattermost.com/channels/organize-conversations.html"
+      }
+    }
+  },
+  {
+    "id": "crt-user-always-on",
+    "conditions": {
+      "audience": "all",
+      "clientType": "all",
+      "serverVersion": [">=7.0"],
+      "displayDate": ">= 2022-06-16T00:00:00Z",
+      "serverConfig": { "ServiceSettings.CollapsedThreads": "always_on" }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Experience a better way to communicate in threads",
+        "description": "Welcome to Threaded Discussions! You can now find, follow, and resume conversations more easily, and keep discussion threads focused.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/crt.gif",
+        "actionText": "Learn more",
+        "actionParam": "https://docs.mattermost.com/channels/organize-conversations.html"
+      }
+    }
+  },
+  {
+    "id": "bleve_deprecation",
+    "conditions": {
+      "audience": "sysadmin",
+      "serverVersion": ["<11.0"],
+      "serverConfig": { "BleveSettings.EnableSearching": true, "SqlSettings.DisableDatabaseSearch": true }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Transitioning from Bleve Search in Mattermost v11",
+        "description": "Experimental search functionality using [Bleve](https://docs.mattermost.com/administration-guide/configure/bleve-search.html) will be deprecated in Mattermost v11.0. We recommend configuring ``DisableDatabaseSearch`` to ``false`` before upgrading to avoid search issues. See more details in this [forum post](https://forum.mattermost.com/t/transitioning-from-bleve-search-in-mattermost-v11/22982).",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+        "actionText": "Learn more",
+        "actionParam": "https://forum.mattermost.com/t/transitioning-from-bleve-search-in-mattermost-v11/22982"
+      }
+    }
+  },
+  {
+    "id": "certificate_deprecation",
+    "conditions": {
+      "audience": "sysadmin",
+      "serverVersion": ["<11.0"],
+      "serverConfig": { "ExperimentalSettings.ClientSideCertEnable": true }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Transitioning from certificate-based authentication in Mattermost v11",
+        "description": "Experimental [certificate-based authentication](https://docs.mattermost.com/administration-guide/onboard/certificate-based-authentication.html) will be deprecated in Mattermost v11.0. We recommend configuring ``ExperimentalSettings.ClientSideCertEnable`` to ``false`` before upgrading to be able to start the server.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+        "actionText": "Learn more",
+        "actionParam": "https://docs.mattermost.com/product-overview/deprecated-features.html"
+      }
+    }
+  },
+  {
+    "id": "unsupported-server-v5.37",
+    "conditions": {
+      "audience": "sysadmin",
+      "clientType": "all",
+      "instanceType": "onprem",
+      "serverVersion": ["<7.1"]
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "Your Mattermost server version is unsupported. Upgrading is required",
+        "description": "You are on an unsupported Mattermost server version and it’s time to upgrade! [Read here](https://mattermost.com/blog/why-to-upgrade-mattermost-server/?utm_source=inapp-self-hosted&utm_medium=popup&utm_campaign=notification-why-upgrade-blog&utm_id=nov-notifications&utm_content=notification-why-upgrade-blog) on how we have improved server performance for Mattermost users, as well as why upgrading your Mattermost server ensures that you’re getting the latest new features, security fixes, and bug fixes.",
+        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+        "actionText": "Upgrade Now",
+        "actionParam": "https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html?utm_source=inapp-self-hosted&utm_medium=popup&utm_campaign=notification-upgrade&utm_id=nov-notifications&utm_content=notification-upgrade"
+      }
+    }
+  },
+  {
+    "id": "atmoscamo-deprecation-v12",
+    "conditions": {
+      "audience": "sysadmin",
+      "instanceType": "onprem",
+      "serverVersion": ["<12.0"],
+      "serverConfig": {
+        "ImageProxySettings.ImageProxyType": "atmos/camo"
+      }
+    },
+    "localizedMessages": {
+      "en": {
+        "title": "atmos/camo image proxy support ending in v12.0",
+        "description": "Starting with **Mattermost v12.0 (October 2026)**, `atmos/camo` will no longer be supported as an image proxy. The `atmos/camo` project will be archived and will no longer be maintained.\n\nIf your `config.json` still has `ImageProxySettings.ImageProxyType` set to `atmos/camo`, your server will log a configuration error on startup and fail to start once you upgrade to v12.0. The `RemoteImageProxyURL` and `RemoteImageProxyOptions` settings will also be removed and ignored.\n\n**Before upgrading**, update your configuration:\n- Switch to the built-in **local** image proxy (set `ImageProxySettings.ImageProxyType` to `local`) — no external service required, and it includes SVG content blocking and security response headers.\n- Or disable the image proxy entirely (set `ImageProxySettings.Enable` to `false`) if you don't need it.",
+        "image": "",
+        "action": "url",
+        "actionText": "Read the migration guide",
+        "actionParam": "https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-atmos-camo-is-no-longer-supported-as-an-image-proxy/25980"
+      }
+    }
+  }
+]

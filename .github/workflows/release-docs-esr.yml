@@ -1,0 +1,56 @@
+name: Release Docs - ESR
+
+# ESR comms in public repos. Three months before an ESR goes out of support, and the day it does
+# (or the next working day, Monday to Friday): one draft docs PR for the ESR support snippets,
+# the release policy chart and legend, and the upgrade page. Three months before, also a draft PR
+# in mattermost/mattermost-mobile making the new ESR the minimum supported server (as
+# mattermost-mobile#9954 did). Support ends are calculated from the server releases table and
+# CHANGELOG_ESR_VERSIONS; the desktop ESRs come from DESKTOP_ESR_VERSIONS. Each weekday run works
+# out whether today is an ESR comms day and does nothing otherwise. Dry run by default
+# (PHASE3_MODE); reruns update the PRs they opened. See release-docs-task.yml for settings.
+#
+# By hand, leave the version empty to do today's work, or give the ESR (e.g. v11.7) and the
+# stage to run it now.
+
+on:
+  schedule:
+    - cron: '41 12 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The ESR going out of support, e.g. v11.7. Empty: today''s work.'
+        required: false
+        type: string
+      esr_stage:
+        description: 'before (three months before support ends) or ended'
+        required: false
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+concurrency:
+  group: release-docs-esr
+  cancel-in-progress: false
+
+jobs:
+  esr-comms:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: esr-comms
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+      esr_stage: ${{ inputs.esr_stage }}
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)

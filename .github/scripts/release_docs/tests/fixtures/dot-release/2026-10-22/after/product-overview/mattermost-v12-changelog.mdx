@@ -1,0 +1,43 @@
+---
+title: "v12 Changelog"
+---
+import Inc0_common_esr_support_upgrade from './common-esr-support-upgrade.mdx';
+
+<Important>
+
+<Inc0_common_esr_support_upgrade />
+
+</Important>
+<Note>
+
+Platform and OS scope reflects reported and tested environments and may not represent all affected configurations.
+
+</Note>
+
+## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
+
+- **12.0.1, released 2026-10-22**
+  - Mattermost v12.0.1 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Go runtime was updated from 1.26.7 to 1.26.10.
+  - Pre-packaged Dataminr plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v3.0.0).
+  - Added the ``EnforceLogPathRoot`` feature flag, disabled by default. When enabled, the server refuses to start, and a configuration save is rejected, if a log or audit file path resolves outside the logging root (``MM_LOG_PATH``, or the default logs directory). Validation now also covers ``LogSettings.FileLocation`` and ``ExperimentalAuditSettings.FileName``.
+  - Fixed an issue where a v12 server failed to start when ``SupportEmail``, ``FeedbackEmail``, or ``ReplyToAddress`` held a list of addresses or a value that was not an email address. Such values are now reduced to their first valid address or cleared, and a warning is logged.
+  - Fixed an issue where ``mattermost db`` commands reported configuration validation errors as untranslated message IDs.
+  - Mattermost v12.0.1 contains no database or functional changes.
+- **12.0.0, released 2026-10-16**
+  - Original 12.0.0 release.
+
+## Plugin names (replay fixture only)
+
+ - Pre-packaged Calls plugin version [v1.12.5](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.5).
+ - Pre-packaged Dataminr plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v2.0.0).
+ - Pre-packaged GitLab plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v2.0.0).
+ - Pre-packaged Zoom plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v2.0.0).
+ - Pre-packaged GitHub plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v3.0.0).
+ - Pre-packaged Legal Hold plugin version [v1.1.6](https://github.com/mattermost/mattermost-plugin-legal-hold/releases/tag/v1.1.6).
+ - Pre-packaged Playbooks plugin version [v2.12.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.12.1).
+ - Pre-packaged MS Calendar plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v2.0.0).
+ - Pre-packaged MS Teams Meetings plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-msteams-meetings/releases/tag/v3.0.0).
+ - Pre-packaged Boards plugin version [v10.0.0](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v10.0.0).
+ - Pre-packaged Agents plugin version [2.9.0](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.9.0).
+ - Pre-packaged Jira plugin version [v5.0.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v5.0.0).

@@ -1,0 +1,82 @@
+name: Release Docs - Dot Release
+
+# The dot release docs (vX.Y.Z with Z > 0), replacing the dot-release-docs skill: deploy
+# page download links, the server releases row, the changelog entry and the version archive
+# entries. Dot releases shipped together share one draft PR on
+# release-agent/dot-release-docs/<first version>; a later version is added to the open one.
+# Runs when the delivery pipeline publishes the vX.Y.Z GitHub release as a pre-release, and
+# again when it stops being one, to drop "Do Not Merge/Awaiting Next Release".
+#
+# PRs listed in the hidden marker <!-- release-automation:security: 38479,38048 --> in the PR's
+# description are security fixes, as if they had a Security label: kept with a vague bullet to
+# confirm even with an opt-out label. mattermost/release-automation writes the marker after the PR
+# is opened (with a GitHub App token, whose edits start workflows; GITHUB_TOKEN's would not), so an
+# edit to the description of the dot release docs PR itself (branch
+# release-agent/dot-release-docs/vX.Y.Z in this repo, into master) reruns the task when it changed
+# that marker. The resolve step compares the marker before and after the edit and derives the
+# version from the branch name; any other edit, including the task's own rewrites of the
+# description (which keep the marker), skips the run. PRs from forks never run.
+# See release-docs-task.yml for modes and settings, and release_docs/dot_release.py.
+
+on:
+  release:
+    types: [published, released]
+  pull_request:
+    types: [edited]
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: 'Dot release versions, e.g. v12.1.1, v11.7.15'
+        required: true
+        type: string
+      severity:
+        description: 'Security severity per version, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium" (or one value for all; none for no security fixes). Empty writes <SEVERITY>.'
+        required: false
+        default: ''
+        type: string
+      release_date:
+        description: 'Release date (YYYY-MM-DD) for every version. Empty uses each tag''s commit date.'
+        required: false
+        default: ''
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+jobs:
+  dot-release-docs:
+    # A PR edit runs only for the dot release docs PR itself; the task checks the marker changed.
+    if: >-
+      github.event_name != 'pull_request' || (
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.base.ref == 'master' &&
+        startsWith(github.event.pull_request.head.ref, 'release-agent/dot-release-docs/'))
+    # One run at a time, so dot releases published together land in the same PR. queue: max keeps
+    # every waiting run: by default a newer run (such as a no-op description edit) would replace
+    # the one pending, which could be a release event. (A release event also picks up the other
+    # recent dot releases.) On the job, not the workflow, so edits to other PRs (skipped above)
+    # never enter the group.
+    concurrency:
+      group: release-docs-dot-release
+      cancel-in-progress: false
+      queue: max
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: dot-release-docs
+      version: ${{ inputs.versions }}
+      mode: ${{ inputs.mode }}
+      severity: ${{ inputs.severity }}
+      release_date: ${{ inputs.release_date }}
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)
