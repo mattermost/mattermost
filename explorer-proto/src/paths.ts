@@ -35,6 +35,7 @@ export const GENERATED_DIR = path.join(PROTO_DIR, 'generated');
 export const REPORTS_DIR = path.join(GENERATED_DIR, 'reports');
 export const RESULTS_DIR = path.join(GENERATED_DIR, 'test-results');
 export const PLAYWRIGHT_DIR = path.join(REPO_DIR, 'e2e-tests', 'playwright');
+export const PLAYWRIGHT_SPECS_DIR = path.join(PLAYWRIGHT_DIR, 'specs');
 export const CONFIG_PATH = path.join(PROTO_DIR, 'playwright.config.ts');
 
 export const SESSIONS_DIR = path.join(PROTO_DIR, 'sessions');
@@ -48,22 +49,31 @@ export function sessionName(): string {
     return name;
 }
 
+/** Journey selected with `--journey=<name>` (CLI) or PILOT_JOURNEY; '' when not a journey command. */
+export function journeyName(): string {
+    const name = process.env.PILOT_JOURNEY ?? '';
+    if (name && (!/^[a-z0-9-]+$/.test(name) || !fs.existsSync(path.join(SESSIONS_DIR, name, 'charter.json')))) {
+        throw new Error(`Unknown journey "${name}": expected explorer-proto/sessions/<name>/charter.json.`);
+    }
+    return name;
+}
+
 export function sessionGeneratedDir(name: string): string {
     return path.join(SESSIONS_DIR, name, 'generated');
 }
 
 export function outDir(): string {
-    const session = sessionName();
-    return path.resolve(process.env.EXPLORER_OUT_DIR || (session ? sessionGeneratedDir(session) : GENERATED_DIR));
+    const scoped = sessionName() || journeyName();
+    return path.resolve(process.env.EXPLORER_OUT_DIR || (scoped ? sessionGeneratedDir(scoped) : GENERATED_DIR));
 }
 
 /** Playwright JSON reports and test results; git-ignored in both locations. */
 export function reportsDir(): string {
-    const session = sessionName();
-    return session ? path.join(sessionGeneratedDir(session), 'reports') : REPORTS_DIR;
+    const scoped = sessionName() || journeyName();
+    return scoped ? path.join(sessionGeneratedDir(scoped), 'reports') : REPORTS_DIR;
 }
 
 export function resultsDir(): string {
-    const session = sessionName();
-    return session ? path.join(sessionGeneratedDir(session), 'test-results') : RESULTS_DIR;
+    const scoped = sessionName() || journeyName();
+    return scoped ? path.join(sessionGeneratedDir(scoped), 'test-results') : RESULTS_DIR;
 }

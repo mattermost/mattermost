@@ -44,6 +44,132 @@ node explorer-proto/src/cli.ts replay  --session=bookmarks [--out=<dir>]   # run
 - **Emission** (`emit_session.ts`): one spec named after the dedupe key. Steps come from the selected state's recorded transitions (each must start at the previous state, be an allowlisted unique candidate there, and keep the document); assertions come only from the charter, positives before absence checks, all hard `expect` with a `// declared (charter <feature> <expect id>)` marker. Presence checks use exact names scoped to the predicate's test id; absence checks use the substring locator page-wide. The emitter stops on a non-exact presence name, a missing or duplicate expectation id, a live name that contains or glyph-strips to a declared title without equalling it, a stale trace (allowlist, budget or start differ from the charter), guard violations, or a step it would have to invent. A dedupe key marked COVERED in `coverage.md` emits nothing.
 - **Licence:** the bookmark bar is licence-gated, but the session spec does not call `pw.skipIfNoLicense()`. For a charter whose server must be licensed, an unlicensed server is a setup failure (`up.sh --session` fails first); a skip would report it as not-failed. Without a licence the declared bar assertions fail, and the session replay judge also treats any skipped test as FAIL.
 
+## Journey mode (`explorer-journey-charter/v1`)
+
+A second charter schema, `explorer-journey-charter/v1`, drives a heuristic best-first discovery over **fresh
+fixtures**. The existing session mode, every command, and all committed outputs are unchanged and byte-identical.
+
+```bash
+explorer-proto/infra/scripts/up.sh                                   # default seed (the journey ignores it)
+node explorer-proto/src/cli.ts explore --journey=auto-follow [--out=<dir>]   # best-first search -> <dir>/trace.json, trace.md, stats.json
+node explorer-proto/src/cli.ts emit    --journey=auto-follow [--out=<dir>]   # trace + charter -> ONE repo-native spec under e2e-tests/playwright/specs/
+node explorer-proto/src/cli.ts replay  --journey=auto-follow                 # runs the emitted repo-native spec through the thin config with containment
+node explorer-proto/src/cli.ts guard-journey [--out=<dir>]                   # proves the repo-native-spec containment (and its residual gap)
+```
+
+Default `<dir>` is `sessions/<name>/generated`. The journey name maps to `sessions/<name>/charter.json`.
+
+### Fresh fixture per replay (`journey_fixture.ts`)
+
+Every replay (including confirmation replays) builds a brand-new team, users, channels, memberships, preferences
+and viewed-last state through the repo lib's admin and per-user REST clients, exactly as `charter.fixture`
+declares (slug from `pw.random.id()`, fixed display names, fixed strings). `server_preconditions` is a read-only
+`GET /api/v4/config` (never patched; a difference aborts as a **setup failure**, never a finding). The read-backs
+(memberships, auto-follow not `on`, preferences stored, no user post, zero followed threads) and `mention/msg = 0`
+are asserted; any mismatch is a setup failure. Bea signs in with `TestBrowser.login` inside the guarded context.
+
+### REST checkpoints & events (`journey_rest.ts`)
+
+Checkpoint and event REST calls execute the charter's literal `/api/v4/...` paths (templates resolved) with the
+actor's bearer token (admin, or the named actor's own session when the predicate says "own REST session"). Supported
+predicate forms: `field` `equals`/`not_equals` with `absent_counts_as`; `expect` maps (including `order_length`);
+`no_mention`; and the FINAL `threads[].id contains` / `thread[id=..].<field>` matchers. A clause that names an id
+not yet bound (e.g. an event id before the event fired) counts as not-yet-true, never an error. An event fires at
+most once, when its trigger checkpoint first holds; the runner then waits (bounded) until the result checkpoint
+holds before the next action. UI checkpoints (`journey_ui.ts`) evaluate snapshot predicates
+(`url_path_matches`/`equals`, role+name exact, `selected`, counts, tabpanel containment with `subtree_text_contains`,
+text/`text_contains`). The aria snapshot **does** expose child text under an aria-labelled link in 1.62.1, so C3's
+row text is read from the snapshot; a scoped DOM `textContent`/`getByText` fallback is used only when the snapshot
+misses it, and the method used is reported. If the snapshot cannot expose the row text, the emitter stops.
+
+### Action rules (`journey_actions.ts`)
+
+Candidates come only from the live accessibility snapshot, filtered by `charter.action_rules`: `roles_in_play`
+(others ignored), `excluded_name_patterns` (case-insensitive regex on the accessible name), the `origin_rule` (a
+link whose resolved href is off-origin is skipped), uniqueness (exact role+name resolving to exactly one visible,
+enabled element at click time — within the topmost dialog when a modal is open), `modal_policy` (while a dialog is
+open only its controls are candidates), and `key_actions` (Escape only, offered when a menu or dialog is open).
+Every skipped candidate is recorded with the rule that skipped it. A candidate whose accessible name embeds a
+fixture-specific token (slug, team/channel name, username) is dropped as non-replayable.
+
+**Region mapping (generic).** `charter.action_rules` names regions in prose; only the two *excluded* regions are
+positively identified from landmarks, and everything else is in play. v12.1.0 uses role `application` for several
+regions, so the map is by landmark role **and** accessible name: `dialog`/`alertdialog` → modal (in play; scoped by
+`modal_policy`); a landmark whose name contains "message input"/"composer" → the message composer (EXCLUDED); role
+`form` → the messaging-help form (EXCLUDED); a `banner` whose name contains "channel header" → channel header (in
+play); any other `banner` → the global header (EXCLUDED); a name containing "channel sidebar"/"channel navigator" →
+left sidebar (in play); role `main` → the center pane (in play). A landmark matching none of these is reported and
+kept in play (conservative), and the regions seen per state are logged.
+
+### Heuristic best-first search (`journey_search.ts`, `journey_score.ts`)
+
+Bounded best-first over fresh-fixture replays. Each replay re-creates a fixture, signs Bea in, walks the path from
+the start, firing the event and polling checkpoints after each action, and enumerates candidates only at the
+terminal (new) state. The child priority is journey-independent and references only the goal terms, the parent
+state's observed checkpoint progress, novelty, and depth:
+
+```
+score(child) = 100*fullCheckpoints + 50*firedEvents + 60*containerOpen + 1*partialClauses + 12*novelty + 6*lexical - 1*depth
+effective(child, at selection) = score(child) - 15*(prior actuations of this exact role+name anywhere)
+```
+
+- **fullCheckpoints / firedEvents**: checkpoints fully satisfied, and events fired, through the parent state.
+- **partialClauses**: individually-satisfied checkpoint clauses (tiny weight, so a structurally-true clause — e.g.
+  an always-present tab or absent empty-state text — cannot create a moat around a view).
+- **containerOpen**: 1 when a menu or dialog is open at the parent (`modal_policy`: drill through its controls).
+- **novelty**: 1 when the parent was a new URL path or a new normalized snapshot, else 0.
+- **lexical**: count of distinct `goal_terms` (the goal minus `charter.goal_terms.stopwords`, lowercased and with a
+  trailing ing/ed/es/s stripped) present in the candidate's accessible name (same stemming).
+- **depth**: actions from the start.
+- **fatigue** (applied at selection time): subtracts per prior actuation of the same (role, name) anywhere, an
+  exploration term that stops the search re-toggling one control across a modal's combinations.
+
+Ties break by higher effective score, then (name, role) lexicographic, then shorter path. None of these terms
+reference a control label, a step word, or anything from QA-NOTES / the sealed route.
+
+**State key & dedupe.** `pathname` (with the fixture slug and other fixture tokens substituted to placeholders, so
+fresh fixtures dedupe) **plus a trajectory signature** (which checkpoints/events have fired) **plus** the normalized
+snapshot. The trajectory signature is essential: saving the preference (C1) or the teammate event (C2) does not
+change the channel snapshot, so without it the post-change state would collapse into the pre-change one and the
+journey could never be continued. The journey normalizer extends the shared `normalizeSnapshot` only for its own
+state keys (it never touches the shared function or the committed pilot/session outputs): it substitutes the
+origin and fixture tokens, and scrubs volatile sidebar badges (" N mention(s)", " unread") and the account-menu
+presence indicator ("Status is …").
+
+**Budget** (`charter.budget`): `max_actions` (expansion replays), `max_depth`, `max_states`, `max_replays`
+(including confirmation replays), `wall_clock_seconds`. A path qualifies only when `success_criteria` hold in order,
+reproduced on a fresh fixture by a confirmation replay; among confirmed paths the selection is fewest actions then
+lexicographically smallest. If none qualifies within budget, nothing is emitted and `trace.md` reports where it
+stopped, the best remaining frontier, and the checkpoint progress reached.
+
+### Emission (`emit_journey.ts`)
+
+One repo-native spec under `e2e-tests/playwright/specs/functional/channels/notifications/` (beside the existing
+channel-notification specs; same modal family as `channel_mentions.spec.ts`), named from the charter `journey_id`.
+It imports `{expect, test}` from `@mattermost/playwright-lib`, uses only repo fixtures/helpers (`pw.getAdminClient`,
+`adminClient`/`userClient`, `pw.makeClient`, `pw.testBrowser.login`, `pw.random`, `pw.newTestPassword`), creates all
+its own prerequisites exactly as `charter.fixture` declares (so it runs without the explorer and without a seeded
+database), reads `server_preconditions` read-only and fails with a clear message if violated, contains the
+discovered UI actions as exact role+name locators from the recorded path (no sleeps; auto-waiting expects only),
+posts the teammate event over Abe's own REST client at the trigger point (with the required disclosure comment), and
+asserts C1 (REST), C2 (REST), C3 (UI), C4 (UI) and FINAL (REST) with the charter literals, each labelled
+`// declared (charter <id>)`. It uses hard `expect` only and no `pw.skipIfNoLicense()` (the journey is not
+licence-gated). The emitter **stops** (writes nothing) when no path qualified, when the snapshot cannot expose the
+C3 row text, when a declared expectation id is missing, or when it would have to invent a step; a stop is reported.
+
+### Network containment for the repo-native spec (`journey_containment.ts`)
+
+The emitted spec uses plain repo fixtures (`pw.testBrowser.login` → `browser.newContext`), so the explorer's
+application-level guard cannot be imported into it, and config `use` context options (serviceWorkers, route
+handlers) never reach that context. The strongest config-only lever is a Chromium launch argument applied to the
+whole browser in `replay-journey` mode: `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1`. That blocks any
+external host and the name `localhost` for HTTP and WebSocket. **Residual gap (stated plainly):** a second
+`127.0.0.1` origin on a different port is *not* blocked, because host-resolver rules cannot filter by port and the
+unmodified spec's context cannot be intercepted without editing the lib or the spec. `guard-journey` proves exactly
+this: external host blocked, `localhost` blocked, the allowed origin works, and the second-port origin reachable.
+`serviceWorkers: 'block'` is also set in `use` (covers fixture contexts only; off-origin SW scripts fail to resolve
+anyway). Screenshot, video and trace stay `off`, including on failing runs.
+
 ## Storage state
 
 `TestBrowser.login` -> `loginByAPI` writes `<playwright root>/storage_state/<timestamp>_<user>_<password>.json` (`e2e-tests/playwright/lib/src/browser_context.ts:177,184`). The directory name is hard-coded and the root comes from walking up `process.cwd()` (`lib/src/util.ts:118-156`); there is no env var or option to relocate it, so pilot runs write to the git-ignored `e2e-tests/playwright/storage_state/` like every other spec. Cleanup is the coordinator's runner's job.

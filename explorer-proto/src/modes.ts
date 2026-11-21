@@ -1,7 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export const EXPLORER_MODES = ['replay', 'explore', 'guard-check', 'guard-race', 'probe-absence'] as const;
+export const EXPLORER_MODES = [
+    'replay',
+    'explore',
+    'guard-check',
+    'guard-race',
+    'probe-absence',
+    'explore-journey',
+    'replay-journey',
+    'guard-journey',
+] as const;
 export type ExplorerMode = (typeof EXPLORER_MODES)[number];
 
 export function explorerMode(): ExplorerMode {

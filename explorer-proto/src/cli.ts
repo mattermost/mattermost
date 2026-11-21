@@ -7,8 +7,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {emit} from './emit.ts';
+import {emitJourney} from './emit_journey.ts';
 import {emitSession} from './emit_session.ts';
-import {CONFIG_PATH, PLAYWRIGHT_DIR, PROTO_DIR, outDir, reportsDir, sessionName} from './paths.ts';
+import {CONFIG_PATH, PLAYWRIGHT_DIR, PROTO_DIR, journeyName, outDir, reportsDir, sessionName} from './paths.ts';
 
 const [command, ...rest] = process.argv.slice(2);
 const separator = rest.indexOf('--');
@@ -23,7 +24,13 @@ delete process.env.PILOT_SESSION;
 if (sessionArg) {
     process.env.PILOT_SESSION = sessionArg.slice('--session='.length);
 }
+const journeyArg = own.find((a) => a.startsWith('--journey='));
+delete process.env.PILOT_JOURNEY;
+if (journeyArg) {
+    process.env.PILOT_JOURNEY = journeyArg.slice('--journey='.length);
+}
 const SESSION_COMMANDS = ['explore', 'emit', 'replay'];
+const JOURNEY_COMMANDS = ['explore', 'emit', 'replay', 'guard-journey'];
 
 function playwright(mode: string): number {
     // The license never needs to reach Playwright or the browser.
@@ -35,27 +42,44 @@ function playwright(mode: string): number {
     return result.status ?? 1;
 }
 
-/** Session replay passes only if at least one test ran and every test passed; a skip is not a pass. */
-function judgeSessionReplay(status: number): number {
-    const report = path.join(reportsDir(), 'replay.json');
+/** Replay passes only if at least one test ran and every test passed; a skip is not a pass. */
+function judgeReplay(status: number, reportName: string, label: string): number {
+    const report = path.join(reportsDir(), `${reportName}.json`);
     const stats = JSON.parse(fs.readFileSync(report, 'utf-8')).stats as Record<string, number>;
     const verdict = status === 0 && stats.expected > 0 && !stats.unexpected && !stats.skipped && !stats.flaky;
     process.stdout.write(
-        `session replay: ${verdict ? 'PASS' : 'FAIL'} (${stats.expected} passed, ${stats.unexpected} failed, ${stats.skipped} skipped, ${stats.flaky} flaky)\n`,
+        `${label}: ${verdict ? 'PASS' : 'FAIL'} (${stats.expected} passed, ${stats.unexpected} failed, ${stats.skipped} skipped, ${stats.flaky} flaky)\n`,
     );
     return verdict ? 0 : 1;
 }
 
 async function main(): Promise<number> {
     const session = sessionName();
+    const journey = journeyName();
     if (session && !SESSION_COMMANDS.includes(command)) {
         process.stderr.write(`--session is only supported for ${SESSION_COMMANDS.join(', ')}\n`);
         return 2;
     }
+    if (journey && !JOURNEY_COMMANDS.includes(command)) {
+        process.stderr.write(`--journey is only supported for ${JOURNEY_COMMANDS.join(', ')}\n`);
+        return 2;
+    }
+    if (journey && session) {
+        process.stderr.write('--journey and --session are mutually exclusive\n');
+        return 2;
+    }
     switch (command) {
         case 'explore':
-            return playwright('explore');
+            return playwright(journey ? 'explore-journey' : 'explore');
         case 'emit': {
+            if (journey) {
+                const e = await emitJourney(journey);
+                process.stdout.write(`${journey}: ${e.status}${e.file ? ` -> ${e.file}` : ''}\n`);
+                for (const line of [...e.reasons, ...e.steps.map((s) => `step: ${s}`)]) {
+                    process.stdout.write(`  ${line}\n`);
+                }
+                return e.status === 'emitted' ? 0 : 1;
+            }
             if (session) {
                 const e = await emitSession(session, outDir());
                 process.stdout.write(`${session}: ${e.status}${e.file ? ` -> ${e.file}` : ''}\n`);
@@ -77,16 +101,21 @@ async function main(): Promise<number> {
             return records.some((r) => r.status === 'stopped') ? 1 : 0;
         }
         case 'replay':
-            return session ? judgeSessionReplay(playwright('replay')) : playwright('replay');
+            if (journey) {
+                return judgeReplay(playwright('replay-journey'), 'replay-journey', 'journey replay');
+            }
+            return session ? judgeReplay(playwright('replay'), 'replay', 'session replay') : playwright('replay');
         case 'guard-check':
             return playwright('guard-check');
         case 'guard-race':
             return playwright('guard-race');
+        case 'guard-journey':
+            return playwright('guard-journey');
         case 'probe-absence':
             return playwright('probe-absence');
         default:
             process.stderr.write(
-                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|probe-absence> [--session=<name>] [--out=<dir>]\n',
+                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|probe-absence> [--session=<name>|--journey=<name>] [--out=<dir>]\n',
             );
             return 2;
     }

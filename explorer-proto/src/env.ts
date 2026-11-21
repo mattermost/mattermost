@@ -8,7 +8,7 @@ if (process.env.PW_USE_TESTCONTAINERS) {
     throw new Error('PW_USE_TESTCONTAINERS must stay unset: the pilot runs against the external infra stack.');
 }
 
-// guard-race runs against its own local server only, so it needs no seeded stack.
-if (process.env.EXPLORER_MODE !== 'guard-race') {
+// guard-race and guard-journey run against their own local servers only, so they need no seeded stack.
+if (process.env.EXPLORER_MODE !== 'guard-race' && process.env.EXPLORER_MODE !== 'guard-journey') {
     process.env.PW_BASE_URL = baseUrl();
 }

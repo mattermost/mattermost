@@ -14,11 +14,16 @@ type Session = Awaited<ReturnType<TestBrowser['login']>> & {ledger: GuardLedger;
 const open: Array<{testBrowser: TestBrowser; session: Session}> = [];
 
 /**
- * Signs in the seeded member through the framework's TestBrowser.login (loginByAPI writes the
- * storage state) on a Browser wrapper that creates the context with serviceWorkers 'block' and
- * the network guard already installed. login() itself opens a page but never navigates.
+ * Signs the given user in through the framework's TestBrowser.login (loginByAPI writes the storage
+ * state) on a Browser wrapper that creates the context with serviceWorkers 'block' and the network
+ * guard already installed. login() itself opens a page but never navigates. With no user, the seeded
+ * pilot member is used.
  */
-export async function openGuardedSession(pw: PlaywrightExtended, mode: GuardMode = 'replay'): Promise<Session> {
+export async function openGuardedSessionAs(
+    pw: PlaywrightExtended,
+    user: {id: string; username: string; password: string; email?: string; roles?: string},
+    mode: GuardMode = 'replay',
+): Promise<Session> {
     const origin = allowedOrigin();
     if (new URL(testConfig.baseURL).origin !== origin || testConfig.internalBaseURL !== testConfig.baseURL) {
         throw new Error('testConfig.baseURL must equal the seed manifest base URL (set PW_BASE_URL).');
@@ -29,7 +34,7 @@ export async function openGuardedSession(pw: PlaywrightExtended, mode: GuardMode
 
     const ledger = new GuardLedger(mode);
     const testBrowser = new TestBrowser(guardedBrowser(pw.testBrowser.browser, origin, ledger));
-    const login = await testBrowser.login(seededUser() as unknown as UserProfile);
+    const login = await testBrowser.login(user as unknown as UserProfile);
     if (login.page.url() !== 'about:blank') {
         throw new Error('A page navigated before the guarded session was handed out.');
     }
@@ -37,6 +42,10 @@ export async function openGuardedSession(pw: PlaywrightExtended, mode: GuardMode
     const session = {...login, ledger, origin};
     open.push({testBrowser, session});
     return session;
+}
+
+export async function openGuardedSession(pw: PlaywrightExtended, mode: GuardMode = 'replay'): Promise<Session> {
+    return openGuardedSessionAs(pw, seededUser(), mode);
 }
 
 /** Closes one session; fails if anything reached another origin or a page ended up off-origin. */
