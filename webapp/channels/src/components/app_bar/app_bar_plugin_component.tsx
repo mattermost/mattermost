@@ -11,6 +11,7 @@ import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux
 
 import {getActiveRhsComponent} from 'selectors/rhs';
 
+import {useAllowedImageURL} from 'components/external_image/allowed_image';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 
 import {suitePluginIds} from 'utils/constants';
@@ -42,7 +43,9 @@ const AppBarPluginComponent = ({
 
     const [imageLoadState, setImageLoadState] = useState<ImageLoadState>(ImageLoadState.LOADING);
 
-    const iconUrl = 'iconUrl' in component ? component.iconUrl : undefined;
+    const rawIconUrl = 'iconUrl' in component ? component.iconUrl : undefined;
+    const iconUrl = useAllowedImageURL(rawIconUrl);
+    const isBlockedExternalIcon = Boolean(rawIconUrl) && !iconUrl;
     const icon = 'icon' in component ? component.icon : undefined;
     const dropdownText = 'dropdownText' in component ? component.dropdownText : undefined;
     const rhsComponentId = 'rhsComponentId' in component ? component.rhsComponentId : undefined;
@@ -86,7 +89,7 @@ const AppBarPluginComponent = ({
                 tabIndex={0}
                 className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
             >
-                {icon}
+                {isBlockedExternalIcon && !icon ? <PluginIcon className='icon__plugin'/> : icon}
             </div>
         );
     }

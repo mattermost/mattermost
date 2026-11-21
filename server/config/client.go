@@ -347,6 +347,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
+	props["BlockExternalImages"] = strconv.FormatBool(*c.ServiceSettings.BlockExternalImages)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 	props["AppsPluginEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable && c.PluginSettings.PluginStates[model.PluginIdApps] != nil && c.PluginSettings.PluginStates[model.PluginIdApps].Enable)

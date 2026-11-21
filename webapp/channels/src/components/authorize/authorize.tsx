@@ -12,6 +12,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {allowOAuth2} from 'actions/admin_actions';
 
+import AllowedImage from 'components/external_image/allowed_image';
 import FormError from 'components/form_error';
 
 import icon50 from 'images/icon50x50.png';
@@ -98,13 +99,6 @@ export default class Authorize extends React.PureComponent<Props, State> {
             return null;
         }
 
-        let icon;
-        if (app.icon_url) {
-            icon = app.icon_url;
-        } else {
-            icon = icon50;
-        }
-
         let error;
         if (this.state.error) {
             error = (
@@ -119,12 +113,16 @@ export default class Authorize extends React.PureComponent<Props, State> {
                 <div className='prompt'>
                     <div className='prompt__heading'>
                         <div className='prompt__app-icon'>
-                            <img
-                                alt={'prompt icon'}
-                                src={icon}
-                                width='50'
-                                height='50'
-                            />
+                            <AllowedImage src={app.icon_url}>
+                                {(allowedIcon) => (
+                                    <img
+                                        alt={'prompt icon'}
+                                        src={allowedIcon || icon50}
+                                        width='50'
+                                        height='50'
+                                    />
+                                )}
+                            </AllowedImage>
                         </div>
                         <div className='text'>
                             <FormattedMessage

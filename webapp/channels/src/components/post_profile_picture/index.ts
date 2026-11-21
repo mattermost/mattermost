@@ -9,9 +9,9 @@ import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {Preferences} from 'utils/constants';
+import {getPostOverrideIconURL} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -27,15 +27,13 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const user = getUser(state, ownProps.userId);
     const enablePostIconOverride = config.EnablePostIconOverride === 'true';
     const availabilityStatusOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
-    const overrideIconUrl = enablePostIconOverride && ensureString(ownProps.post?.props?.override_icon_url);
-    let overwriteIcon;
-    if (overrideIconUrl) {
-        overwriteIcon = Client4.getAbsoluteUrl(overrideIconUrl);
-    }
+    const overrideIconURL = getPostOverrideIconURL(ownProps.post, config, enablePostIconOverride);
+    const overwriteIcon = overrideIconURL ? Client4.getAbsoluteUrl(overrideIconURL) : undefined;
 
     return {
         availabilityStatusOnPosts,
-        enablePostIconOverride: config.EnablePostIconOverride === 'true',
+        enablePostIconOverride,
+        overrideIconURL,
         overwriteIcon,
         hasImageProxy: config.HasImageProxy === 'true',
         status: getStatusForUserId(state, ownProps.userId),

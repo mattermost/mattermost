@@ -4,9 +4,11 @@
 import React from 'react';
 import type {JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
@@ -15,7 +17,7 @@ import UserProfile from 'components/user_profile';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Tag from 'components/widgets/tag/tag';
 
-import {fromAutoResponder, hasAiGeneratedMetadata, isFromWebhook} from 'utils/post_utils';
+import {fromAutoResponder, getPostOverrideIconURL, hasAiGeneratedMetadata, isFromWebhook} from 'utils/post_utils';
 
 type Props = {
     post: Post;
@@ -31,6 +33,7 @@ type Props = {
 
 const PostUserProfile = (props: Props): JSX.Element | null => {
     const intl = useIntl();
+    const config = useSelector(getConfig);
     const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames, location} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
@@ -100,8 +103,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
         if (isFromWebhook(post)) {
             const propOverrideName = ensureString(post.props.override_username);
             const overwriteName = propOverrideName && enablePostUsernameOverride ? propOverrideName : undefined;
-            const propOverrideIcon = ensureString(post.props.override_icon_url);
-            const overwriteIcon = propOverrideIcon || undefined;
+            const overwriteIcon = getPostOverrideIconURL(post, config);
             userProfile = (
                 <UserProfile
                     userId={post.user_id}

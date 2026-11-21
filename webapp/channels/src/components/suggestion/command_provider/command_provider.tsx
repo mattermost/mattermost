@@ -15,6 +15,7 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import globalStore from 'stores/redux_store';
 
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
+import {useAllowedImageURL} from 'components/external_image/allowed_image';
 
 import {Constants} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
@@ -35,6 +36,7 @@ const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR
 
 const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
     const {id, item} = props;
+    const allowedIconData = useAllowedImageURL(item.IconData);
 
     let symbolSpan = <span>{'/'}</span>;
     switch (item.IconData) {
@@ -53,14 +55,17 @@ const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Autoco
         break;
     }
     let icon = <div className='slash-command__icon'>{symbolSpan}</div>;
-    if (item.IconData && ![EXECUTE_CURRENT_COMMAND_ITEM_ID, COMMAND_SUGGESTION_ERROR, OPEN_COMMAND_IN_MODAL_ITEM_ID].includes(item.IconData)) {
+    if (
+        allowedIconData &&
+        ![EXECUTE_CURRENT_COMMAND_ITEM_ID, COMMAND_SUGGESTION_ERROR, OPEN_COMMAND_IN_MODAL_ITEM_ID].includes(allowedIconData)
+    ) {
         icon = (
             <div
                 className='slash-command__icon'
                 style={{backgroundColor: 'transparent'}}
             >
                 <img
-                    src={item.IconData}
+                    src={allowedIconData}
                     alt=''
                 />
             </div>

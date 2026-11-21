@@ -9,11 +9,12 @@
 
 import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {BlockRenderer} from 'components/block_renderer';
 import {getPostInteractiveIntegrationFormat, translatePostProps} from 'components/block_renderer/translation';
@@ -30,6 +31,7 @@ type Props = {
 const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
+    const config = useSelector(getConfig);
     const [actionError, setActionError] = useState<string | null>(null);
 
     const postProps = post.props as Record<string, unknown> | undefined;
@@ -70,7 +72,10 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
         }
     }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie, intl]);
 
-    const blocks = translatePostProps(post.props as Record<string, unknown>, intl);
+    const blocks = translatePostProps(post.props as Record<string, unknown>, intl, {
+        blockExternalImages: config.BlockExternalImages === 'true',
+        siteURL: config.SiteURL || '',
+    });
     if (!blocks || blocks.length === 0) {
         return null;
     }

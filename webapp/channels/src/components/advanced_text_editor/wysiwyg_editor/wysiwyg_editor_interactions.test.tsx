@@ -5,6 +5,8 @@ import {act} from '@testing-library/react';
 import type {Editor} from '@tiptap/react';
 import React, {useState} from 'react';
 
+import {GeneralTypes} from 'mattermost-redux/action_types';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {postMessageOnKeyPress} from 'utils/post_utils';
 
@@ -460,5 +462,92 @@ describe('WysiwygEditor interactions', () => {
 
             expect(serializeToMarkdown(editor)).toBe('Hey there');
         });
+    });
+
+    test('switches open editor image node views from blocked placeholder to img when BlockExternalImages config updates in Redux without remounting', () => {
+        const ref = React.createRef<WysiwygEditorHandle>();
+        const {container, store} = renderWithContext(
+            <WysiwygEditor
+                ref={ref}
+                {...baseProps}
+                value='hello ![ext](https://evil.example/a.png)'
+                channelId='c1'
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const editor = ref.current!.getEditor()!;
+        expect(container.querySelector('[data-blocked-image="true"]')).toHaveTextContent('ext');
+        expect(container.querySelector('img[src="https://evil.example/a.png"]')).toBeNull();
+
+        act(() => {
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    BlockExternalImages: 'false',
+                },
+            });
+        });
+
+        expect(ref.current!.getEditor()).toBe(editor);
+        expect(container.querySelector('[data-blocked-image="true"]')).toBeNull();
+        expect(container.querySelector('img[src="https://evil.example/a.png"]')).not.toBeNull();
+    });
+
+    test('applies updated BlockExternalImages policy before setContent when value and config change in the same render', () => {
+        const ref = React.createRef<WysiwygEditorHandle>();
+        const {container, rerender, store} = renderWithContext(
+            <WysiwygEditor
+                ref={ref}
+                {...baseProps}
+                value='hello'
+                channelId='c1'
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const setAttributeSpy = jest.spyOn(HTMLImageElement.prototype, 'setAttribute');
+        try {
+            act(() => {
+                store.dispatch({
+                    type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                    data: {
+                        BlockExternalImages: 'true',
+                    },
+                });
+                rerender(
+                    <WysiwygEditor
+                        ref={ref}
+                        {...baseProps}
+                        value='hello ![ext](https://evil.example/a.png)'
+                        channelId='c1'
+                    />,
+                );
+            });
+
+            expect(setAttributeSpy).not.toHaveBeenCalledWith('src', 'https://evil.example/a.png');
+            expect(container.querySelector('[data-blocked-image="true"]')).toHaveTextContent('ext');
+            expect(container.querySelector('img[src="https://evil.example/a.png"]')).toBeNull();
+        } finally {
+            setAttributeSpy.mockRestore();
+        }
     });
 });

@@ -428,6 +428,7 @@ type ServiceSettings struct {
 	EnablePostIconOverride                 *bool    `access:"integrations_integration_management"`
 	GoogleDeveloperKey                     *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableLinkPreviews                     *bool    `access:"site_posts"`
+	BlockExternalImages                    *bool    `access:"site_posts"`
 	EnablePermalinkPreviews                *bool    `access:"site_posts"`
 	RestrictLinkPreviews                   *string  `access:"site_posts"`
 	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
@@ -577,6 +578,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = new(true)
+	}
+
+	if s.BlockExternalImages == nil {
+		s.BlockExternalImages = new(false)
 	}
 
 	if s.EnablePermalinkPreviews == nil {

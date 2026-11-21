@@ -189,5 +189,88 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             expectRhsToBeOpen();
             expect(appBarActionWithRhs.action).toHaveBeenCalledWith();
         });
+
+        test('should fall back to default plugin icon when BlockExternalImages is true and iconUrl is external', () => {
+            const externalAction: AppBarAction = {
+                ...appBarActionWithRhs,
+                iconUrl: 'https://evil.example/icon.svg',
+            };
+            const state = mergeObjects(inChannelState, {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'http://localhost:8065',
+                        },
+                    },
+                },
+            });
+
+            renderAppBarIcon(externalAction, state);
+
+            expect(screen.queryByRole('img', {name: pluginId})).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Plugin Icon')).toBeInTheDocument();
+        });
+
+        test('should keep focusable button wrapper when BlockExternalImages is true and external iconUrl has no icon', () => {
+            const externalAction: AppBarAction = {
+                ...appBarActionWithRhs,
+                iconUrl: 'https://evil.example/icon.svg',
+            };
+            const state = mergeObjects(inChannelState, {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'http://localhost:8065',
+                        },
+                    },
+                },
+            });
+
+            renderAppBarIcon(externalAction, state);
+
+            const button = screen.getByRole('button');
+            expect(button).toHaveAttribute('tabIndex', '0');
+            expect(button).toContainElement(screen.getByLabelText('Plugin Icon'));
+        });
+
+        test('should render img when BlockExternalImages is true and iconUrl is internal', () => {
+            const state = mergeObjects(inChannelState, {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'http://localhost:8065',
+                        },
+                    },
+                },
+            });
+
+            renderAppBarIcon(appBarActionWithRhs, state);
+
+            expect(screen.getByRole('img', {name: pluginId})).toHaveAttribute('src', appBarActionWithRhs.iconUrl);
+        });
+
+        test('should render external iconUrl when BlockExternalImages is false', () => {
+            const externalAction: AppBarAction = {
+                ...appBarActionWithRhs,
+                iconUrl: 'https://evil.example/icon.svg',
+            };
+            const state = mergeObjects(inChannelState, {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            SiteURL: 'http://localhost:8065',
+                        },
+                    },
+                },
+            });
+
+            renderAppBarIcon(externalAction, state);
+
+            expect(screen.getByRole('img', {name: pluginId})).toHaveAttribute('src', 'https://evil.example/icon.svg');
+        });
     });
 });

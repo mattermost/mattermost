@@ -403,4 +403,118 @@ describe('components/MarkdownImage', () => {
         expect(container.querySelector('.markdown-image-expand__expand-button')).toBeInTheDocument();
         expect(container.querySelector('.markdown-image-expand--expanded')).not.toBeInTheDocument();
     });
+
+    test('should render external link fallback when external images are blocked', () => {
+        const props = {
+            ...baseProps,
+            alt: 'diagram',
+            src: 'https://external.example.com/pic.png',
+            imageIsLink: false,
+        };
+        renderWithContext(
+            <MarkdownImage {...props}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const link = screen.getByRole('link', {name: 'diagram'});
+        expect(link).toHaveAttribute('href', 'https://external.example.com/pic.png');
+        expect(screen.queryByRole('img', {hidden: true})).not.toBeInTheDocument();
+    });
+
+    test('should use unwrapped proxy URL as link text when alt is empty and external images are blocked', () => {
+        const props = {
+            ...baseProps,
+            alt: '',
+            src: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Fpic.png',
+            imageIsLink: false,
+        };
+        renderWithContext(
+            <MarkdownImage {...props}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const link = screen.getByRole('link', {name: 'https://external.example.com/pic.png'});
+        expect(link).toHaveAttribute('href', 'https://external.example.com/pic.png');
+    });
+
+    test('should render plain text instead of nested anchor when imageIsLink is true and external images are blocked', () => {
+        const props = {
+            ...baseProps,
+            alt: 'badge',
+            src: 'https://external.example.com/badge.png',
+            imageIsLink: true,
+        };
+        renderWithContext(
+            <MarkdownImage {...props}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByText('badge')).toBeInTheDocument();
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        expect(screen.queryByRole('img', {hidden: true})).not.toBeInTheDocument();
+    });
+
+    test('should preserve pre-PR ExternalLink fallback for proxied SVG when BlockExternalImages is false and EnableSVGs is false', () => {
+        const proxiedSvgUrl = 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Flogo.svg';
+        const props = {
+            ...baseProps,
+            alt: '',
+            src: proxiedSvgUrl,
+            imageMetadata: {
+                format: 'svg',
+                height: 0,
+                width: 0,
+                frameCount: 0,
+            },
+            imageIsLink: false,
+        };
+        const {container} = renderWithContext(
+            <MarkdownImage {...props}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            EnableSVGs: 'false',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const link = container.querySelector('a');
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute('href', proxiedSvgUrl);
+        expect(link).toHaveAttribute('title', 'test title');
+        expect(link).toHaveTextContent('');
+        expect(screen.queryByRole('img', {hidden: true})).not.toBeInTheDocument();
+    });
 });

@@ -13,8 +13,10 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
     return {
+        blockExternalImages: config.BlockExternalImages === 'true',
         enableSVGs: config.EnableSVGs === 'true',
         hasImageProxy: config.HasImageProxy === 'true',
+        siteURL: config.SiteURL || '',
     };
 }
 

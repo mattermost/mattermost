@@ -21,6 +21,7 @@ export type ClientConfig = {
     BannerColor: string;
     BannerText: string;
     BannerTextColor: string;
+    BlockExternalImages?: string;
     BuildDate: string;
     BuildEnterpriseReady: string;
     BuildHash: string;
@@ -360,6 +361,7 @@ export type ServiceSettings = {
     EnablePostUsernameOverride: boolean;
     EnablePostIconOverride: boolean;
     EnableLinkPreviews: boolean;
+    BlockExternalImages: boolean;
     EnablePermalinkPreviews: boolean;
     RestrictLinkPreviews: string;
     EnableTesting: boolean;

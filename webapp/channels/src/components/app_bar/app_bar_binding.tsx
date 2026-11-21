@@ -14,6 +14,8 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} from 'actions/apps';
 
+import {useAllowedImageURL} from 'components/external_image/allowed_image';
+
 import {createCallContext} from 'utils/apps';
 
 import type {DoAppCallResult} from 'types/apps';
@@ -34,6 +36,7 @@ const AppBarBinding = (props: BindingComponentProps) => {
 
     const channelId = useSelector(getCurrentChannelId);
     const teamId = useSelector(getCurrentTeamId);
+    const iconUrl = useAllowedImageURL(binding.icon);
 
     const submitAppCall = async () => {
         const context = createCallContext(
@@ -93,7 +96,7 @@ const AppBarBinding = (props: BindingComponentProps) => {
                 onClick={submitAppCall}
             >
                 <div className={'app-bar__icon-inner'}>
-                    <img src={binding.icon}/>
+                    {iconUrl && <img src={iconUrl}/>}
                 </div>
             </div>
         </WithTooltip>

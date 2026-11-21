@@ -1684,3 +1684,64 @@ describe('shouldShowActionsMenu', () => {
         expect(PostUtils.shouldShowActionsMenu(baseState, borPost)).toBe(false);
     });
 });
+
+describe('PostUtils.getPostOverrideIconURL', () => {
+    const externalIconPost = TestHelper.getPostMock({
+        props: {
+            from_webhook: 'true',
+            override_icon_url: 'https://evil.example/icon.png',
+        },
+    });
+
+    const internalIconPost = TestHelper.getPostMock({
+        props: {
+            from_webhook: 'true',
+            override_icon_url: 'https://mm.example.com/api/v4/files/abc',
+        },
+    });
+
+    test('returns undefined when post is undefined', () => {
+        expect(PostUtils.getPostOverrideIconURL(undefined, {EnablePostIconOverride: 'true'})).toBeUndefined();
+    });
+
+    test('returns undefined when EnablePostIconOverride is not true and no override parameter is given', () => {
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost, {EnablePostIconOverride: 'false'})).toBeUndefined();
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost, {})).toBeUndefined();
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost)).toBeUndefined();
+    });
+
+    test('respects explicit enablePostIconOverride argument', () => {
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost, {EnablePostIconOverride: 'false', BlockExternalImages: 'false'}, true)).toBe('https://evil.example/icon.png');
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost, {EnablePostIconOverride: 'true', BlockExternalImages: 'false'}, false)).toBeUndefined();
+    });
+
+    test('returns undefined when override_icon_url is missing, empty, or non-string', () => {
+        expect(PostUtils.getPostOverrideIconURL(TestHelper.getPostMock({props: {}}), {EnablePostIconOverride: 'true'})).toBeUndefined();
+        expect(PostUtils.getPostOverrideIconURL(TestHelper.getPostMock({props: {override_icon_url: ''}}), {EnablePostIconOverride: 'true'})).toBeUndefined();
+        expect(PostUtils.getPostOverrideIconURL(TestHelper.getPostMock({props: {override_icon_url: 123}}), {EnablePostIconOverride: 'true'})).toBeUndefined();
+    });
+
+    test('returns undefined for external override_icon_url when BlockExternalImages is true', () => {
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost, {
+            EnablePostIconOverride: 'true',
+            BlockExternalImages: 'true',
+            SiteURL: 'https://mm.example.com',
+        })).toBeUndefined();
+    });
+
+    test('returns internal override_icon_url when BlockExternalImages is true', () => {
+        expect(PostUtils.getPostOverrideIconURL(internalIconPost, {
+            EnablePostIconOverride: 'true',
+            BlockExternalImages: 'true',
+            SiteURL: 'https://mm.example.com',
+        })).toBe('https://mm.example.com/api/v4/files/abc');
+    });
+
+    test('returns external override_icon_url when BlockExternalImages is false', () => {
+        expect(PostUtils.getPostOverrideIconURL(externalIconPost, {
+            EnablePostIconOverride: 'true',
+            BlockExternalImages: 'false',
+            SiteURL: 'https://mm.example.com',
+        })).toBe('https://evil.example/icon.png');
+    });
+});

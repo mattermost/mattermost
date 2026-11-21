@@ -136,4 +136,70 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             expect(screen.getByText('error')).toBeInTheDocument();
         });
     });
+
+    test('falls back to default icon when BlockExternalImages is true and app.icon_url is external', async () => {
+        const actions = {
+            ...requiredProps.actions,
+            getOAuthAppInfo: jest.fn().mockResolvedValue({
+                data: {
+                    id: '1234abcd',
+                    name: 'Test App',
+                    icon_url: 'https://evil.example/icon.png',
+                },
+            }),
+        };
+        renderWithContext(
+            <Authorize
+                {...requiredProps}
+                actions={actions}
+                location={{search: 'client_id=1234abcd'}}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const img = await screen.findByAltText('prompt icon');
+        expect(img.getAttribute('src')).not.toBe('https://evil.example/icon.png');
+    });
+
+    test('keeps external app.icon_url when BlockExternalImages is false', async () => {
+        const actions = {
+            ...requiredProps.actions,
+            getOAuthAppInfo: jest.fn().mockResolvedValue({
+                data: {
+                    id: '1234abcd',
+                    name: 'Test App',
+                    icon_url: 'https://evil.example/icon.png',
+                },
+            }),
+        };
+        renderWithContext(
+            <Authorize
+                {...requiredProps}
+                actions={actions}
+                location={{search: 'client_id=1234abcd'}}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const img = await screen.findByAltText('prompt icon');
+        expect(img).toHaveAttribute('src', 'https://evil.example/icon.png');
+    });
 });

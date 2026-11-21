@@ -9,6 +9,7 @@ import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import CopyText from 'components/copy_text';
+import AllowedImage from 'components/external_image/allowed_image';
 import FormError from 'components/form_error';
 
 import DeleteIntegrationLink from '../delete_integration_link';
@@ -259,17 +260,18 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             );
         }
 
-        let icon;
-        if (oauthApp.icon_url) {
-            icon = (
-                <div className='integration__icon integration-list__icon'>
-                    <img
-                        alt={'get app screenshot'}
-                        src={oauthApp.icon_url}
-                    />
-                </div>
-            );
-        }
+        const icon = oauthApp.icon_url ? (
+            <AllowedImage src={oauthApp.icon_url}>
+                {(allowedIcon) => (allowedIcon ? (
+                    <div className='integration__icon integration-list__icon'>
+                        <img
+                            alt={'get app screenshot'}
+                            src={allowedIcon}
+                        />
+                    </div>
+                ) : null)}
+            </AllowedImage>
+        ) : undefined;
 
         let actions;
         if (!this.props.fromApp) {

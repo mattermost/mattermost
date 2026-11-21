@@ -32,6 +32,7 @@
         "EnablePostIconOverride": null,
         "GoogleDeveloperKey": null,
         "EnableLinkPreviews": null,
+        "BlockExternalImages": null,
         "EnablePermalinkPreviews": null,
         "RestrictLinkPreviews": null,
         "EnableTesting": null,

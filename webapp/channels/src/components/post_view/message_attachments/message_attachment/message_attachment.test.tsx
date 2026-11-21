@@ -7,6 +7,7 @@ import type {PostAction} from '@mattermost/types/integration_actions';
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 
+import ExternalImage from 'components/external_image';
 import MessageAttachment from 'components/post_view/message_attachments/message_attachment/message_attachment';
 
 import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
@@ -375,5 +376,183 @@ describe('components/post_view/MessageAttachment', () => {
         await waitFor(() => {
             expect(screen.getByText('Action failed to execute')).toBeInTheDocument();
         });
+    });
+
+    test('should render external link fallbacks for blocked attachment image and thumb and omit blocked icons', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementation((props: any) => <RealExternalImage {...props}/>);
+        const blockedState = {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'true',
+                        SiteURL: 'https://chat.example.com',
+                    },
+                },
+            },
+        };
+        const blockedAttachment = {
+            ...attachment,
+            author_name: 'Jane Doe',
+            author_icon: 'https://external.example.com/author.png',
+            footer: 'Footer text',
+            footer_icon: 'https://external.example.com/footer.png',
+            image_url: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Fimg.png',
+            thumb_url: 'https://external.example.com/thumb.png',
+        };
+        let container: HTMLElement;
+        try {
+            ({container} = renderWithContext(
+                <MessageAttachment
+                    {...baseProps}
+                    attachment={blockedAttachment}
+                />,
+                blockedState,
+            ));
+        } finally {
+            jest.mocked(ExternalImage).mockImplementation((props: any) => <>{props.children(props.src)}</>);
+        }
+
+        expect(container.querySelector('.attachment__author-icon')).not.toBeInTheDocument();
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+        expect(container.querySelector('.attachment__footer-icon')).not.toBeInTheDocument();
+        expect(screen.getByText('Footer text')).toBeInTheDocument();
+
+        const imgLink = screen.getByRole('link', {name: 'https://external.example.com/img.png'});
+        expect(imgLink).toHaveAttribute('href', 'https://external.example.com/img.png');
+        expect(imgLink).toHaveAttribute('title', 'https://external.example.com/img.png');
+
+        const thumbLink = screen.getByRole('link', {name: 'https://external.example.com/thumb.png'});
+        expect(thumbLink).toHaveAttribute('href', 'https://external.example.com/thumb.png');
+        expect(thumbLink).toHaveAttribute('title', 'https://external.example.com/thumb.png');
+    });
+
+    test('should omit author link wrapper when author_icon is the only author field and is blocked', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementation((props: any) => <RealExternalImage {...props}/>);
+        const blockedState = {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'true',
+                        SiteURL: 'https://chat.example.com',
+                    },
+                },
+            },
+        };
+        const iconOnlyAttachment = {
+            ...attachment,
+            author_name: '',
+            author_icon: 'https://external.example.com/author.png',
+            author_link: 'https://external.example.com/profile',
+            text: 'Body text',
+        };
+        let container: HTMLElement;
+        try {
+            ({container} = renderWithContext(
+                <MessageAttachment
+                    {...baseProps}
+                    attachment={iconOnlyAttachment}
+                />,
+                blockedState,
+            ));
+        } finally {
+            jest.mocked(ExternalImage).mockImplementation((props: any) => <>{props.children(props.src)}</>);
+        }
+
+        expect(container.querySelector('.attachment__author-icon')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', {name: ''})).not.toBeInTheDocument();
+        expect(container.querySelector('a[href="https://external.example.com/profile"]')).not.toBeInTheDocument();
+    });
+
+    test('omits empty attachment card when blocked author_icon is the only content', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementation((props: any) => <RealExternalImage {...props}/>);
+        const blockedState = {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'true',
+                        SiteURL: 'https://chat.example.com',
+                    },
+                },
+            },
+        };
+        const soloAuthorIconAttachment = {
+            author_icon: 'https://external.example.com/author.png',
+        } as unknown as MessageAttachmentType;
+        let container: HTMLElement;
+        try {
+            ({container} = renderWithContext(
+                <MessageAttachment
+                    {...baseProps}
+                    attachment={soloAuthorIconAttachment}
+                />,
+                blockedState,
+            ));
+        } finally {
+            jest.mocked(ExternalImage).mockImplementation((props: any) => <>{props.children(props.src)}</>);
+        }
+
+        expect(container.querySelector('.attachment__content')).not.toBeInTheDocument();
+        expect(container.querySelector('.attachment__author-icon')).not.toBeInTheDocument();
+    });
+
+    test('should render SizeAwareImage with empty src for proxied SVG image_url and thumb_url when BlockExternalImages is false and EnableSVGs is false', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementation((props: any) => <RealExternalImage {...props}/>);
+        const SizeAwareImageMock = jest.requireMock('components/size_aware_image');
+        SizeAwareImageMock.mockClear();
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].startsWith('An empty string ("") was passed to the ')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        const svgImageUrl = 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Fimg.svg';
+        const svgThumbUrl = 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Fthumb.svg';
+        const svgAttachment = {
+            ...attachment,
+            image_url: svgImageUrl,
+            thumb_url: svgThumbUrl,
+        };
+        try {
+            renderWithContext(
+                <MessageAttachment
+                    {...baseProps}
+                    attachment={svgAttachment}
+                    imagesMetadata={{
+                        [svgImageUrl]: {format: 'svg', height: 200, width: 200, frameCount: 0},
+                        [svgThumbUrl]: {format: 'svg', height: 200, width: 200, frameCount: 0},
+                    }}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'false',
+                                EnableSVGs: 'false',
+                                SiteURL: 'https://chat.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+        } finally {
+            console.error = origError;
+            jest.mocked(ExternalImage).mockImplementation((props: any) => <>{props.children(props.src)}</>);
+        }
+
+        expect(screen.queryByRole('link', {name: 'https://external.example.com/img.svg'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', {name: 'https://external.example.com/thumb.svg'})).not.toBeInTheDocument();
+        const images = screen.getAllByTestId('size-aware-image-mock');
+        expect(images).toHaveLength(2);
+        images.forEach((img) => {
+            expect(img).not.toHaveAttribute('src');
+        });
+        expect(SizeAwareImageMock).toHaveBeenCalledTimes(2);
+        expect(SizeAwareImageMock.mock.calls.map((call: any) => call[0].src)).toEqual(['', '']);
     });
 });

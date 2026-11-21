@@ -76,7 +76,7 @@ describe('ExternalImage', () => {
 
         const {container} = render(<ExternalImage {...props}/>);
 
-        expect(props.children).toHaveBeenCalledWith('');
+        expect(props.children).toHaveBeenCalledWith('', 'svg');
         expect(container.querySelector('img')).not.toBeInTheDocument();
     });
 
@@ -89,6 +89,90 @@ describe('ExternalImage', () => {
         const {container} = render(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(Client4.getBaseRoute() + '/image?url=' + encodeURIComponent(props.src));
+        expect(container.querySelector('img')).toBeInTheDocument();
+    });
+
+    test('should blank external image when blockExternalImages is enabled', () => {
+        const props = {
+            ...baseProps,
+            blockExternalImages: true,
+            siteURL: 'https://chat.example.com',
+            src: 'https://external.example.com/image.png',
+        };
+
+        const {container} = render(<ExternalImage {...props}/>);
+
+        expect(props.children).toHaveBeenCalledWith('', 'external');
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
+    test('should blank image proxy URL when blockExternalImages is enabled', () => {
+        const props = {
+            ...baseProps,
+            blockExternalImages: true,
+            siteURL: 'https://chat.example.com',
+            src: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Fimage.png',
+        };
+
+        const {container} = render(<ExternalImage {...props}/>);
+
+        expect(props.children).toHaveBeenCalledWith('', 'external');
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
+    test('should report external blockReason when both blockExternalImages and SVG blocking apply', () => {
+        const props = {
+            ...baseProps,
+            blockExternalImages: true,
+            enableSVGs: false,
+            imageMetadata: {
+                format: 'svg',
+                frameCount: 0,
+                height: 0,
+                width: 0,
+            },
+            siteURL: 'https://chat.example.com',
+            src: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Flogo.svg',
+        };
+
+        const {container} = render(<ExternalImage {...props}/>);
+
+        expect(props.children).toHaveBeenCalledWith('', 'external');
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
+    test('should report svg blockReason for proxied SVG when blockExternalImages is disabled and enableSVGs is false', () => {
+        const props = {
+            ...baseProps,
+            blockExternalImages: false,
+            enableSVGs: false,
+            imageMetadata: {
+                format: 'svg',
+                frameCount: 0,
+                height: 0,
+                width: 0,
+            },
+            siteURL: 'https://chat.example.com',
+            src: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Flogo.svg',
+        };
+
+        const {container} = render(<ExternalImage {...props}/>);
+
+        expect(props.children).toHaveBeenCalledWith('', 'svg');
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
+    test('should render internal image when blockExternalImages is enabled', () => {
+        const props = {
+            ...baseProps,
+            blockExternalImages: true,
+            siteURL: 'https://chat.example.com',
+            src: 'https://chat.example.com/api/v4/files/abc/preview',
+        };
+
+        const {container} = render(<ExternalImage {...props}/>);
+
+        expect(props.children).toHaveBeenCalledWith(props.src);
         expect(container.querySelector('img')).toBeInTheDocument();
     });
 });

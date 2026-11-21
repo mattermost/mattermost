@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
@@ -23,6 +25,8 @@ type Props = {
 };
 
 export default function PreviewPostAvatar({post, user, enablePostIconOverride, hasImageProxy}: Props) {
+    const config = useSelector(getConfig);
+
     const isBot = Boolean(user && user.is_bot);
     const isSystemMessage = post ? PostUtils.isSystemMessage(post) : false;
     const fromWebhook = post ? PostUtils.isFromWebhook(post) : false;
@@ -30,18 +34,18 @@ export default function PreviewPostAvatar({post, user, enablePostIconOverride, h
 
     const src = useMemo(() => {
         const postProps = post?.props;
-        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
         const useUserIcon = ensureString(postProps?.use_user_icon);
 
         if (!fromAutoResponder && fromWebhook && !useUserIcon && enablePostIconOverride) {
-            if (postIconOverrideURL && postIconOverrideURL !== '') {
+            const postIconOverrideURL = PostUtils.getPostOverrideIconURL(post, config, Boolean(enablePostIconOverride));
+            if (postIconOverrideURL) {
                 return PostUtils.getImageSrc(postIconOverrideURL, hasImageProxy);
             }
             return Constants.DEFAULT_WEBHOOK_LOGO;
         }
 
         return imageURLForUser(user?.id ?? '');
-    }, [enablePostIconOverride, fromAutoResponder, fromWebhook, hasImageProxy, post?.props, user?.id]);
+    }, [config, enablePostIconOverride, fromAutoResponder, fromWebhook, hasImageProxy, post, user?.id]);
 
     let avatar = (
         <Avatar

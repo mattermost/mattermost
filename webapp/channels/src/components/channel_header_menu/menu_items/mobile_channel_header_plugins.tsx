@@ -15,7 +15,9 @@ import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForChannel} from 'actions/apps';
 import {getChannelMobileHeaderPluginButtons} from 'selectors/plugins';
 
+import AllowedImage from 'components/external_image/allowed_image';
 import * as Menu from 'components/menu';
+import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
 
 import {createCallContext} from 'utils/apps';
 
@@ -53,12 +55,18 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
                     onClick={handleAppButtonClick}
                 >
                     <span className='icon navbar-plugin-button'>
-                        <img
-                            alt=''
-                            src={binding.icon}
-                            width='16'
-                            height='16'
-                        />
+                        <AllowedImage src={binding.icon}>
+                            {(iconUrl) => (iconUrl ? (
+                                <img
+                                    alt=''
+                                    src={iconUrl}
+                                    width='16'
+                                    height='16'
+                                />
+                            ) : (
+                                <PluginChannelHeaderIcon/>
+                            ))}
+                        </AllowedImage>
                     </span>
                 </button>
             </li>

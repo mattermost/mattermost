@@ -7,6 +7,7 @@ import React, {type JSX} from 'react';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
+import AllowedImage from 'components/external_image/allowed_image';
 import ExternalLink from 'components/external_link';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 import Tag from 'components/widgets/tag/tag';
@@ -95,16 +96,16 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
 
     render(): JSX.Element {
         const {labels = null} = this.props;
-        let icon;
-        if (this.props.iconSource) {
-            icon = (
-                <div className='icon__plugin icon__plugin--background'>
-                    <img src={this.props.iconSource}/>
-                </div>
-            );
-        } else {
-            icon = <PluginIcon className='icon__plugin icon__plugin--background'/>;
-        }
+        const defaultIcon = <PluginIcon className='icon__plugin icon__plugin--background'/>;
+        const icon = this.props.iconSource ? (
+            <AllowedImage src={this.props.iconSource}>
+                {(allowedIcon) => (allowedIcon ? (
+                    <div className='icon__plugin icon__plugin--background'>
+                        <img src={allowedIcon}/>
+                    </div>
+                ) : defaultIcon)}
+            </AllowedImage>
+        ) : defaultIcon;
 
         const labelComponents = labels?.map((label) => (
             <Label

@@ -32,7 +32,7 @@ import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
-import {canEditPost as canEditPostRedux} from 'mattermost-redux/utils/post_utils';
+import {canEditPost as canEditPostRedux, ensureString} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getEmojiMap} from 'selectors/emojis';
@@ -43,6 +43,7 @@ import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
+import {isExternalImageBlocked} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -99,7 +100,7 @@ export function getImageSrc(src: string, hasImageProxy = false): string {
     }
 
     // Don't proxy base64-encoded images
-    if (src.startsWith('data:image/')) {
+    if (src.toLowerCase().startsWith('data:image/')) {
         return src;
     }
 
@@ -110,6 +111,23 @@ export function getImageSrc(src: string, hasImageProxy = false): string {
     }
 
     return src;
+}
+
+export function getPostOverrideIconURL(
+    post: Post | undefined,
+    config?: Partial<ClientConfig>,
+    enablePostIconOverride = config?.EnablePostIconOverride === 'true',
+): string | undefined {
+    if (!post || !enablePostIconOverride) {
+        return undefined;
+    }
+
+    const overrideIconURL = ensureString(post.props?.override_icon_url);
+    if (!overrideIconURL || isExternalImageBlocked(overrideIconURL, config)) {
+        return undefined;
+    }
+
+    return overrideIconURL;
 }
 
 export function canDeletePost(state: GlobalState, post: Post, channel?: Channel): boolean {

@@ -36,5 +36,77 @@ describe('components/MarketplaceItemApp', () => {
             await userEvent.click(screen.getByText('Install'));
             expect(props.actions.installApp).toHaveBeenCalledWith('id');
         });
+
+        test('falls back to default PluginIcon when BlockExternalImages is true and iconURL is external', () => {
+            const props = {
+                ...baseProps,
+                iconURL: 'https://external.example.com/app-icon.png',
+            };
+
+            const {container} = renderWithContext(
+                <MarketplaceItemApp {...props}/>,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'true',
+                                SiteURL: 'https://chat.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(container.querySelector('img[src="https://external.example.com/app-icon.png"]')).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Plugin Icon')).toBeInTheDocument();
+        });
+
+        test('renders internal iconURL when BlockExternalImages is true', () => {
+            const props = {
+                ...baseProps,
+                iconURL: 'https://chat.example.com/static/app-icon.png',
+            };
+
+            const {container} = renderWithContext(
+                <MarketplaceItemApp {...props}/>,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'true',
+                                SiteURL: 'https://chat.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(container.querySelector('img[src="https://chat.example.com/static/app-icon.png"]')).toBeInTheDocument();
+            expect(screen.queryByLabelText('Plugin Icon')).not.toBeInTheDocument();
+        });
+
+        test('renders external iconURL when BlockExternalImages is false', () => {
+            const props = {
+                ...baseProps,
+                iconURL: 'https://external.example.com/app-icon.png',
+            };
+
+            const {container} = renderWithContext(
+                <MarketplaceItemApp {...props}/>,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'false',
+                                SiteURL: 'https://chat.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(container.querySelector('img[src="https://external.example.com/app-icon.png"]')).toBeInTheDocument();
+            expect(screen.queryByLabelText('Plugin Icon')).not.toBeInTheDocument();
+        });
     });
 });

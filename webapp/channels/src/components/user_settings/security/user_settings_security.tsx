@@ -17,6 +17,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
+import AllowedImage from 'components/external_image/allowed_image';
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -916,10 +917,14 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 </div>
                             </div>
                             <div className='col-sm-2 pull-right'>
-                                <img
-                                    alt={app.name}
-                                    src={app.icon_url || icon50}
-                                />
+                                <AllowedImage src={app.icon_url}>
+                                    {(allowedIcon) => (
+                                        <img
+                                            alt={app.name}
+                                            src={allowedIcon || icon50}
+                                        />
+                                    )}
+                                </AllowedImage>
                             </div>
                             <br/>
                         </div>

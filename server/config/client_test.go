@@ -796,6 +796,30 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"block external images default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"BlockExternalImages": "false",
+			},
+			nil,
+		},
+		{
+			"block external images enabled",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					BlockExternalImages: new(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"BlockExternalImages": "true",
+			},
+			nil,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -850,6 +874,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 		telemetryID    string
 		license        *model.License
 		expectedFields map[string]string
+		absentFields   []string
 	}{
 		{
 			"unlicensed",
@@ -876,6 +901,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"WebsocketPort":                    "80",
 				"WebsocketSecurePort":              "443",
 			},
+			nil,
 		},
 		{
 			"password settings",
@@ -897,6 +923,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"PasswordRequireNumber":    "true",
 				"PasswordRequireSymbol":    "false",
 			},
+			nil,
 		},
 		{
 			"Feature Flags",
@@ -912,6 +939,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"FeatureFlagTestFeature":    "myvalue",
 				"FeatureFlagPostAttributes": "true",
 			},
+			nil,
 		},
 		{
 			"limited config mobile watermark uses experimental settings",
@@ -928,6 +956,31 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalEnableWatermark": "true",
 			},
+			nil,
+		},
+		{
+			"limited config includes BlockExternalImages default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"BlockExternalImages": "false",
+			},
+			nil,
+		},
+		{
+			"limited config includes BlockExternalImages",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					BlockExternalImages: new(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"BlockExternalImages": "true",
+			},
+			nil,
 		},
 	}
 
@@ -946,6 +999,10 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
 					assert.Equal(t, expectedValue, actualValue)
 				}
+			}
+			for _, absentField := range testCase.absentFields {
+				_, ok := configMap[absentField]
+				assert.False(t, ok, fmt.Sprintf("config should not contain %v", absentField))
 			}
 		})
 	}

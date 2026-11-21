@@ -22,6 +22,8 @@ import (
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -50,8 +52,9 @@ var ErrImageTooLarge = Error{errors.New("imageproxy.LocalBackend: image exceeds 
 var maxImageSize int64 = 1024 * 1024 * 50 // 50 MiB, matching app.MaxMetadataImageSize
 
 type LocalBackend struct {
-	client  *http.Client
-	baseURL *url.URL
+	client        *http.Client
+	baseURL       *url.URL
+	configService configservice.ConfigService
 }
 
 // URLError reports a malformed URL error.
@@ -71,11 +74,34 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 	}
 
 	client := proxy.HTTPService.MakeClient(false)
-
-	return &LocalBackend{
-		client:  client,
-		baseURL: baseURL,
+	backend := &LocalBackend{
+		client:        client,
+		baseURL:       baseURL,
+		configService: proxy.ConfigService,
 	}
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return fmt.Errorf("stopped after %d redirects", len(via))
+		}
+		if backend.isExternalImageBlocked(req.URL.String()) {
+			return fmt.Errorf("redirect target %q is blocked by external image policy", req.URL.Redacted())
+		}
+		return nil
+	}
+
+	return backend
+}
+
+func (backend *LocalBackend) isExternalImageBlocked(targetURL string) bool {
+	if backend.configService == nil {
+		return false
+	}
+	cfg := backend.configService.Config()
+	if cfg == nil || !model.SafeDereference(cfg.ServiceSettings.BlockExternalImages) {
+		return false
+	}
+	siteURL := model.SafeDereference(cfg.ServiceSettings.SiteURL)
+	return model.IsExternalImageURL(targetURL, siteURL)
 }
 
 type contentTypeRecorder struct {
@@ -160,6 +186,11 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 	proxyReq, err := newProxyRequest(req, backend.baseURL)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("invalid request URL: %v", err), http.StatusBadRequest)
+		return false
+	}
+
+	if backend.isExternalImageBlocked(proxyReq.String()) {
+		http.Error(w, msgNotAllowed, http.StatusForbidden)
 		return false
 	}
 

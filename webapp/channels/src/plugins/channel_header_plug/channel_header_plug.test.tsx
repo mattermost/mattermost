@@ -112,4 +112,103 @@ describe('plugins/ChannelHeaderPlug', () => {
 
         expect(container).toBeEmptyDOMElement();
     });
+
+    test('blocks external app binding icon when BlockExternalImages is true and renders internal/unblocked icons', () => {
+        const externalBinding = {
+            app_id: 'app1',
+            location: 'channel_header_1',
+            label: 'App 1',
+            icon: 'https://evil.example/icon.png',
+        };
+        const internalBinding = {
+            app_id: 'app2',
+            location: 'channel_header_2',
+            label: 'App 2',
+            icon: 'https://mm.example.com/static/icon.png',
+        };
+
+        const {container, unmount} = renderWithContext(
+            <ChannelHeaderPlug
+                {...baseProps}
+                appsEnabled={true}
+                appBindings={[externalBinding, internalBinding]}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('img[src="https://evil.example/icon.png"]')).toBeNull();
+        const blockedButton = container.querySelector('#app1_channel_header_1');
+        expect(blockedButton).not.toBeNull();
+        expect(blockedButton!.querySelector('.icon--standard svg')).not.toBeNull();
+        expect(container.querySelector('img[src="https://mm.example.com/static/icon.png"]')).not.toBeNull();
+        unmount();
+
+        const {container: unblockedContainer} = renderWithContext(
+            <ChannelHeaderPlug
+                {...baseProps}
+                appsEnabled={true}
+                appBindings={[externalBinding]}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(unblockedContainer.querySelector('img[src="https://evil.example/icon.png"]')).not.toBeNull();
+    });
+
+    test('blocks external app binding icons in dropdown when BlockExternalImages is true and renders internal icons', () => {
+        const appBindings = [
+            {
+                app_id: 'external_app',
+                location: 'channel_header_external',
+                label: 'External App',
+                icon: 'https://evil.example/dropdown-icon.png',
+            },
+            ...Array.from({length: maxComponentsBeforeDropdown}, (_, idx) => ({
+                app_id: `internal_app_${idx}`,
+                location: `channel_header_${idx}`,
+                label: `Internal App ${idx}`,
+                icon: `https://mm.example.com/static/icon_${idx}.png`,
+            })),
+        ];
+
+        const {container} = renderWithContext(
+            <ChannelHeaderPlug
+                {...baseProps}
+                appsEnabled={true}
+                appBindings={appBindings}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByRole('button', {name: appBindings.length.toString()})).toBeVisible();
+        expect(container.querySelector('img[src="https://evil.example/dropdown-icon.png"]')).toBeNull();
+        expect(container.querySelector('img[src="https://mm.example.com/static/icon_0.png"]')).not.toBeNull();
+    });
 });

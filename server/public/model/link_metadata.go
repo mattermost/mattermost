@@ -10,6 +10,7 @@ import (
 	"hash/fnv"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -121,6 +122,122 @@ func IsSVGImageURL(imageURL string) bool {
 	}
 	path := strings.ToLower(parsed.Path)
 	return strings.HasSuffix(path, ".svg") || strings.HasSuffix(path, ".svgz")
+}
+
+// IsExternalImageURL reports whether rawURL points to an image outside siteURL.
+// Relative URLs, same-origin URLs under siteURL's path, and data:image/ URIs are
+// internal; image proxy paths (/api/v4/image), protocol-relative URLs, and malformed
+// or non-HTTP(S) URLs are external.
+func IsExternalImageURL(rawURL, siteURL string) bool {
+	if rawURL == "" || rawURL != strings.TrimSpace(rawURL) {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(rawURL), "data:image/") {
+		return false
+	}
+
+	relPath, internal := resolveInternalImagePath(rawURL, siteURL)
+	if !internal {
+		return true
+	}
+	return isImageProxyRelPath(relPath)
+}
+
+// IsImageProxyURL reports whether rawURL resolves to the server's /api/v4/image proxy endpoint.
+func IsImageProxyURL(rawURL, siteURL string) bool {
+	relPath, internal := resolveInternalImagePath(rawURL, siteURL)
+	return internal && isImageProxyRelPath(relPath)
+}
+
+func resolveInternalImagePath(rawURL, siteURL string) (string, bool) {
+	if rawURL == "" || rawURL != strings.TrimSpace(rawURL) {
+		return "", false
+	}
+	// Reject backslashes and ASCII control whitespace that browsers normalize into host delimiters.
+	if strings.ContainsAny(rawURL, "\\\t\r\n") {
+		return "", false
+	}
+	if strings.HasPrefix(rawURL, "//") {
+		return "", false
+	}
+
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return "", false
+	}
+
+	trimmedSiteURL := strings.TrimSpace(siteURL)
+	if trimmedSiteURL == "" {
+		if parsed.Scheme != "" || parsed.Host != "" || parsed.Opaque != "" {
+			return "", false
+		}
+		return path.Clean("/" + parsed.Path), true
+	}
+
+	parsedSite, err := url.Parse(trimmedSiteURL)
+	if err != nil {
+		return "", false
+	}
+	siteScheme := strings.ToLower(parsedSite.Scheme)
+	if (siteScheme != "http" && siteScheme != "https") || parsedSite.Hostname() == "" {
+		return "", false
+	}
+
+	siteBase := *parsedSite
+	if siteBase.Path != "" && !strings.HasSuffix(siteBase.Path, "/") {
+		siteBase.Path += "/"
+	}
+	resolved := siteBase.ResolveReference(parsed)
+	if resolved.User != nil {
+		return "", false
+	}
+	resolvedScheme := strings.ToLower(resolved.Scheme)
+	if resolvedScheme != siteScheme {
+		return "", false
+	}
+	if !strings.EqualFold(resolved.Hostname(), parsedSite.Hostname()) {
+		return "", false
+	}
+	if normalizedPort(resolvedScheme, resolved.Port()) != normalizedPort(siteScheme, parsedSite.Port()) {
+		return "", false
+	}
+
+	cleanPath := path.Clean("/" + resolved.Path)
+	sitePath := normalizeSitePath(parsedSite.Path)
+	if sitePath != "" && cleanPath != sitePath && !strings.HasPrefix(cleanPath, sitePath+"/") {
+		return "", false
+	}
+
+	return strings.TrimPrefix(cleanPath, sitePath), true
+}
+
+func isImageProxyRelPath(relPath string) bool {
+	return relPath == "/api/v4/image" || strings.HasPrefix(relPath, "/api/v4/image/")
+}
+
+func normalizeSitePath(p string) string {
+	if p == "" {
+		return ""
+	}
+	cleaned := path.Clean("/" + p)
+	if cleaned == "/" {
+		return ""
+	}
+	return strings.TrimSuffix(cleaned, "/")
+}
+
+func normalizedPort(scheme, port string) string {
+	if port != "" {
+		return port
+	}
+	switch scheme {
+	case "http":
+		return "80"
+	case "https":
+		return "443"
+	default:
+		return ""
+	}
 }
 
 func (o *LinkMetadata) PreSave() {

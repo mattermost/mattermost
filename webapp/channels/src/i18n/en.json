@@ -3995,6 +3995,14 @@
     "defaultMessage": "Mattermost Apps Download Page Link:",
     "description": "Admin console field label on the Customization page for the Mattermost apps download page URL."
   },
+  "admin.customization.blockExternalImagesDesc": {
+    "defaultMessage": "When enabled, images not hosted on the SiteURL are blocked from loading and shown as clickable links instead. Email notifications and mobile apps are not yet covered by this setting.",
+    "description": "Admin console help text for the Block external images toggle on the Posts page; 'SiteURL' is a Mattermost configuration setting name."
+  },
+  "admin.customization.blockExternalImagesTitle": {
+    "defaultMessage": "Block external images:",
+    "description": "Admin console setting label (toggle) on the Posts page for blocking external images in messages and previews."
+  },
   "admin.customization.clientSideUserIds": {
     "defaultMessage": "Client side user ids:",
     "description": "Admin console setting name for a comma-separated list of user IDs to track for client-side performance metrics; ends with a colon."

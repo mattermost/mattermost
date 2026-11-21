@@ -12,13 +12,12 @@ import type {FileInfo} from '@mattermost/types/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import RenderEmoji from 'components/emoji/render_emoji';
+import {useAllowedImageURL} from 'components/external_image/allowed_image';
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {trimmedEmojiName} from 'utils/emoji_utils';
 import {getImageSrc} from 'utils/post_utils';
-
-import type {GlobalState} from 'types/store';
 
 type Props = {
     type: ChannelBookmark['type'];
@@ -42,7 +41,8 @@ const BookmarkIcon = ({
         icon = <ProductBoardsIcon size={size}/>;
     }
     const emojiName = emoji && trimmedEmojiName(emoji);
-    const hasImageProxy = useSelector((state: GlobalState) => getConfig(state).HasImageProxy === 'true');
+    const hasImageProxy = useSelector(getConfig).HasImageProxy === 'true';
+    const effectiveImageUrl = useAllowedImageURL(imageUrl);
 
     if (emojiName) {
         icon = (
@@ -51,10 +51,10 @@ const BookmarkIcon = ({
                 size={size}
             />
         );
-    } else if (imageUrl) {
+    } else if (effectiveImageUrl) {
         icon = (
             <BookmarkIconImg
-                src={getImageSrc(imageUrl, hasImageProxy)}
+                src={getImageSrc(effectiveImageUrl, hasImageProxy)}
                 size={size}
                 draggable={false}
             />
@@ -71,7 +71,7 @@ const BookmarkIcon = ({
     let iconKind = `${type}-fallback`;
     if (emojiName) {
         iconKind = 'emoji';
-    } else if (imageUrl) {
+    } else if (effectiveImageUrl) {
         iconKind = 'favicon';
     } else if (fileInfo) {
         iconKind = 'file-thumbnail';

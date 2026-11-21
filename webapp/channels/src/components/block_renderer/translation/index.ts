@@ -16,6 +16,7 @@ import type {MmBlock} from '@mattermost/types/mm_blocks';
 
 import {translateAdaptiveCards} from './adaptive_cards';
 import {translateAttachments} from './attachments';
+import type {TranslateAttachmentsOptions} from './attachments';
 import {translateBlockKit} from './block_kit';
 import {applyBlockTranslationLimits} from './limits';
 import {translateMMBlocks} from './mm_block';
@@ -69,7 +70,7 @@ export function hasInteractiveMessageProps(props: Record<string, unknown> | unde
  * Detects the format present in the post props and returns normalised `MmBlock[]`,
  * or null if no supported interactive content is found.
  */
-export function translatePostProps(props: Record<string, unknown>, intl: IntlShape): MmBlock[] | null {
+export function translatePostProps(props: Record<string, unknown>, intl: IntlShape, options?: TranslateAttachmentsOptions): MmBlock[] | null {
     try {
         let blocks: MmBlock[];
         if (Array.isArray(props.mm_blocks) && props.mm_blocks.length > 0) {
@@ -79,7 +80,7 @@ export function translatePostProps(props: Record<string, unknown>, intl: IntlSha
         } else if (Array.isArray(props.cards) && props.cards.length > 0) {
             blocks = translateAdaptiveCards(props.cards);
         } else if (Array.isArray(props.attachments) && props.attachments.length > 0) {
-            blocks = translateAttachments(props.attachments, intl);
+            blocks = translateAttachments(props.attachments, intl, options);
         } else {
             return null;
         }

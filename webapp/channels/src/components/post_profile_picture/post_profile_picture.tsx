@@ -20,6 +20,7 @@ type Props = {
     compactDisplay?: boolean;
     enablePostIconOverride: boolean;
     hasImageProxy: boolean;
+    overrideIconURL?: string;
     post: Post;
     status?: string;
     user: UserProfile;
@@ -53,9 +54,8 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
     };
 
     getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
-        const {enablePostIconOverride, hasImageProxy, post} = this.props;
+        const {enablePostIconOverride, hasImageProxy, overrideIconURL, post} = this.props;
         const postProps = post.props;
-        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
         const useUserIcon = ensureString(postProps?.use_user_icon);
 
         if (this.props.compactDisplay) {
@@ -63,8 +63,8 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         }
 
         if (!fromAutoResponder && fromWebhook && !useUserIcon && enablePostIconOverride) {
-            if (postIconOverrideURL && postIconOverrideURL !== '') {
-                return PostUtils.getImageSrc(postIconOverrideURL, hasImageProxy);
+            if (overrideIconURL) {
+                return PostUtils.getImageSrc(overrideIconURL, hasImageProxy);
             }
 
             return Constants.DEFAULT_WEBHOOK_LOGO;

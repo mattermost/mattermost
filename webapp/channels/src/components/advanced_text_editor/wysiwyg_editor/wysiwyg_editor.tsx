@@ -34,7 +34,7 @@ import {useLatest} from 'hooks/useLatest';
 import {formatQuote} from 'utils/quote';
 import {canHighlight} from 'utils/syntax_highlighting';
 
-import WysiwygImage from './wysiwyg_image';
+import WysiwygImage, {updateWysiwygImageConfig} from './wysiwyg_image';
 import {insertMarkdown, parseMarkdownContent, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
@@ -237,7 +237,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     // swap would desync the paste and update handlers from the actual editor.
     const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
-    const hasImageProxy = useSelector(getConfig).HasImageProxy === 'true';
+    const config = useSelector(getConfig);
+    const hasImageProxy = config.HasImageProxy === 'true';
+    const blockExternalImages = config.BlockExternalImages === 'true';
+    const siteURL = config.SiteURL || '';
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
 
@@ -320,7 +323,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         TableRow,
         TableCell,
         TableHeader,
-        WysiwygImage.configure({hasImageProxy}),
+        WysiwygImage.configure({
+            hasImageProxy,
+            blockExternalImages,
+            siteURL,
+        }),
         WysiwygMention,
         OrderedListMarkerWidth,
         EmojiDecorations,
@@ -720,19 +727,27 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         syncedRef.current = {value, channelId, rootId};
         onChangeRef.current = onChange;
 
+        updateWysiwygImageConfig(editor, {hasImageProxy, blockExternalImages, siteURL});
+
         if (jsonMode) {
             editor.commands.setContent(parseJsonModeContent(value).content, {emitUpdate: false});
         } else {
             editor.commands.setContent(value, {contentType: 'markdown', emitUpdate: false});
         }
         moveCursorToEnd(editor);
-    }, [value, channelId, rootId, onChange, editor, jsonMode, debouncedFlushPendingChange, flushPendingChange]);
+    }, [value, channelId, rootId, onChange, editor, jsonMode, debouncedFlushPendingChange, flushPendingChange, hasImageProxy, blockExternalImages, siteURL]);
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
             editor.setEditable(!disabled && !readOnly, false);
         }
     }, [disabled, readOnly, editor]);
+
+    useEffect(() => {
+        if (editor && !editor.isDestroyed) {
+            updateWysiwygImageConfig(editor, {hasImageProxy, blockExternalImages, siteURL});
+        }
+    }, [hasImageProxy, blockExternalImages, siteURL, editor]);
 
     return (
         <div className={`WysiwygEditor${disabled && !readOnly ? ' WysiwygEditor--disabled' : ''}`}>

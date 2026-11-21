@@ -14,9 +14,18 @@ import type {
 } from '@mattermost/types/mm_blocks';
 import {ensureString} from '@mattermost/types/utilities';
 
-import {isUrlSafe} from 'utils/url';
+import {isExternalImageURL, isUrlSafe} from 'utils/url';
 
 import {parseMmButtonStyle} from '../utils/button';
+
+export type TranslateAttachmentsOptions = {
+    blockExternalImages?: boolean;
+    siteURL?: string;
+};
+
+function isBlockedIcon(iconUrl: string, options?: TranslateAttachmentsOptions): boolean {
+    return Boolean(options?.blockExternalImages) && isExternalImageURL(iconUrl, options?.siteURL ?? '');
+}
 
 const AUTHOR_ICON_MAX_PX = 20;
 const FOOTER_ICON_MAX_PX = 16;
@@ -30,7 +39,7 @@ type ParsedAttachmentField = {
     short: boolean;
 };
 
-export function translateAttachments(attachments: unknown[], intl: IntlShape): MmBlock[] {
+export function translateAttachments(attachments: unknown[], intl: IntlShape, options?: TranslateAttachmentsOptions): MmBlock[] {
     const result: MmBlock[] = [];
     for (const attachment of attachments) {
         if (typeof attachment !== 'object' || attachment === null) {
@@ -51,6 +60,7 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
             ensureString(a.author_name),
             ensureString(a.author_link),
             ensureString(a.author_icon),
+            options,
         );
         if (authorBlock) {
             items.push(authorBlock);
@@ -93,7 +103,7 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
         if (footer.trim()) {
             const footerIconUrl = ensureString(a.footer_icon);
             const footerPieces: MmBlock[] = [];
-            if (footerIconUrl) {
+            if (footerIconUrl && !isBlockedIcon(footerIconUrl, options)) {
                 footerPieces.push({
                     type: 'image',
                     url: footerIconUrl,
@@ -170,9 +180,10 @@ function buildAttachmentAuthorBlocks(
     authorName: string | undefined,
     authorLink: string | undefined,
     authorIcon: string | undefined,
+    options?: TranslateAttachmentsOptions,
 ): MmBlock | null {
     const blocks: MmBlock[] = [];
-    if (authorIcon) {
+    if (authorIcon && !isBlockedIcon(authorIcon, options)) {
         blocks.push({
             type: 'image',
             url: authorIcon,

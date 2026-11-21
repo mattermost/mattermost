@@ -10,6 +10,7 @@ import type {
 } from '@mattermost/types/posts';
 
 import ExternalImage from 'components/external_image';
+import BlockedImageLink from 'components/external_image/blocked_image_link';
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
@@ -63,7 +64,12 @@ const PostImage = ({
                 src={link}
                 imageMetadata={imageMetadata}
             >
-                {(safeLink) => (
+                {(safeLink, blockReason) => (!safeLink && blockReason === 'external' ? (
+                    <BlockedImageLink
+                        src={link}
+                        location='post_image'
+                    />
+                ) : (
                     <>
                         <SizeAwareImage
                             className='img-div attachment__image cursor--pointer'
@@ -73,7 +79,7 @@ const PostImage = ({
                             onClick={showModal}
                         />
                     </>
-                )}
+                ))}
             </ExternalImage>
         </div>
     );

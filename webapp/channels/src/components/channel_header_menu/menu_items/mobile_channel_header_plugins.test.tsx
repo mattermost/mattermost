@@ -366,4 +366,84 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         const button = screen.queryByRole('button');
         expect(button).toBeNull();
     });
+
+    describe('app binding icon with BlockExternalImages', () => {
+        const makeBindingIconState = (blockExternalImages: string, icon: string) => ({
+            ...bindingState,
+            entities: {
+                ...bindingState.entities,
+                apps: {
+                    main: {
+                        bindings: [
+                            {
+                                ...bindingState.entities.apps.main.bindings[0],
+                                bindings: [
+                                    {
+                                        ...bindingState.entities.apps.main.bindings[0].bindings[0],
+                                        icon,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+                general: {
+                    ...bindingState.entities.general,
+                    config: {
+                        ...bindingState.entities.general.config,
+                        BlockExternalImages: blockExternalImages,
+                        SiteURL: 'https://mm.example.com',
+                    },
+                },
+            },
+        });
+
+        test('renders fallback icon instead of external app binding icon when BlockExternalImages is true', () => {
+            const {container} = renderWithContext(
+                <WithTestMenuContext>
+                    <MobileChannelHeaderPlugins
+                        channel={channel}
+                        isDropdown={false}
+                    />
+                </WithTestMenuContext>,
+                makeBindingIconState('true', 'https://evil.example/icon.png'),
+            );
+
+            const button = screen.getByRole('button');
+            expect(button).toBeInTheDocument();
+            expect(container.querySelector('img')).toBeNull();
+            expect(button.querySelector('svg')).not.toBeNull();
+            expect(screen.getByRole('img', {name: 'Plugins'})).toBeInTheDocument();
+        });
+
+        test('renders external app binding icon when BlockExternalImages is false', () => {
+            const {container} = renderWithContext(
+                <WithTestMenuContext>
+                    <MobileChannelHeaderPlugins
+                        channel={channel}
+                        isDropdown={false}
+                    />
+                </WithTestMenuContext>,
+                makeBindingIconState('false', 'https://evil.example/icon.png'),
+            );
+
+            expect(screen.getByRole('button')).toBeInTheDocument();
+            expect(container.querySelector('img[src="https://evil.example/icon.png"]')).not.toBeNull();
+        });
+
+        test('renders internal app binding icon when BlockExternalImages is true', () => {
+            const {container} = renderWithContext(
+                <WithTestMenuContext>
+                    <MobileChannelHeaderPlugins
+                        channel={channel}
+                        isDropdown={false}
+                    />
+                </WithTestMenuContext>,
+                makeBindingIconState('true', 'https://mm.example.com/static/icon.png'),
+            );
+
+            expect(screen.getByRole('button')).toBeInTheDocument();
+            expect(container.querySelector('img[src="https://mm.example.com/static/icon.png"]')).not.toBeNull();
+        });
+    });
 });
