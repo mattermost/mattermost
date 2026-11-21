@@ -27,9 +27,10 @@ type SendButtonProps = {
     disabled: boolean;
     channelId: string;
     repeatDisabledReason?: RepeatDisabledReason;
+    schedulingBlockedReason?: string;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, schedulingBlockedReason}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
@@ -91,6 +92,7 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: S
                     onSelect={handleSubmit}
                     channelId={channelId}
                     repeatDisabledReason={repeatDisabledReason}
+                    blockedReason={schedulingBlockedReason}
                 />
             }
         </div>

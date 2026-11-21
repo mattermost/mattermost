@@ -3574,12 +3574,13 @@ Inspect workspace health findings.
 
 <Note>
 
-Server-backed commands require a Mattermost Entry, Professional, Enterprise, or Enterprise Advanced license and the `HealthDashboard` feature flag, which is enabled by default from Mattermost v12.3. If either requirement isn't met, these server-backed commands fail. `mmctl health check --packet` evaluates a Support Packet locally and doesn't require either one.
+Server-backed commands require a Mattermost Entry, Professional, Enterprise, or Enterprise Advanced license and the `HealthDashboard` feature flag, which is enabled by default from Mattermost v12.3. If either requirement isn't met, these server-backed commands fail. `mmctl health check --packet` and `mmctl health export --packet` evaluate a Support Packet locally and don't require either one.
 
 </Note>
 
 > Child Commands  
 > - [mmctl health check](#mmctl-health-check) - Report current health findings
+> - [mmctl health export](#mmctl-health-export) - Export health findings as an HTML or Markdown report
 > - [mmctl health run](#mmctl-health-run) - Run the health check now and report its findings
 
 **Options**
@@ -3616,6 +3617,49 @@ mmctl health check --packet mm_support_packet.zip
 -h, --help               help for check
 --include-muted          Include muted findings
 --include-resolved       Include resolved findings
+--packet string          Path to a Support Packet zip to evaluate without a server
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+### mmctl health export
+
+**Description**
+
+Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with -o or --output. The report includes resolved and muted findings. --json can't be used with this command.
+
+With --packet, evaluate a Support Packet on this machine instead. No server connection is needed.
+
+**Format**
+
+``` sh
+mmctl health export <html|md> [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl health export html --output health-report.html
+mmctl health export md --packet mm_support_packet.zip
+```
+
+**Options**
+
+``` sh
+-h, --help               help for export
+-o, --output string      File to write the report to, instead of stdout
 --packet string          Path to a Support Packet zip to evaluate without a server
 ```
 

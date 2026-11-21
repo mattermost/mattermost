@@ -5587,6 +5587,18 @@ export default class Client4 {
         );
     };
 
+    exportHealthFindings = async (format: 'html' | 'md'): Promise<{content: string; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<string>(
+            `${this.getHealthFindingsRoute()}/export${buildQueryString({format})}`,
+            {method: 'get'},
+        );
+
+        return {
+            content: data,
+            filename: extractFilenameFromContentDisposition(headers.get('Content-Disposition'), `site-health.${format}`),
+        };
+    };
+
     getFlaggedPostReportUrl = (postId: string) => {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };

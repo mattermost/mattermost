@@ -141,11 +141,17 @@ export const Preferences = {
     RECOMMENDED_NEXT_STEPS: 'recommended_next_steps',
     TEAMS_ORDER: 'teams_order',
 
-    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu.
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu (by default, it has).
     HIDE_TEAM_SIDEBAR: 'hide_team_sidebar',
 
     // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail's Channels view also lists boards.
     SHOW_BOARDS_IN_CHANNELS: 'show_boards_in_channels',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: a JSON array of the product rail items the user moved into its More menu.
+    PRODUCT_RAIL_HIDDEN_ITEMS: 'product_rail_hidden_items',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: a JSON array of product rail item ids in the order the user dragged them into.
+    PRODUCT_RAIL_ORDER: 'product_rail_order',
     CLOUD_UPGRADE_BANNER: 'cloud_upgrade_banner',
     CLOUD_TRIAL_BANNER: 'cloud_trial_banner',
     START_TRIAL_MODAL: 'start_trial_modal',

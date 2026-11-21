@@ -1,0 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// A text value's chip is capped so two chips and the `+N` badge fit on one
+// line in the thread sidebar; the label ellipsises and the hover card has the
+// rest.
+.PostAttributeChip--text {
+    max-width: 160px;
+}
+
+.PostAttributeChip {
+    // `UserProfileComponent` and the timestamp bring their own type styles;
+    // inside a chip they take the chip's.
+    .user-popover,
+    .TimestampPropertyRenderer,
+    .TimestampPropertyRenderer time {
+        display: inline;
+        padding: 0;
+        color: inherit;
+        font: inherit;
+        letter-spacing: inherit;
+    }
+}

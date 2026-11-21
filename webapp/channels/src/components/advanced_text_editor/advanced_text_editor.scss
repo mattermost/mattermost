@@ -16,6 +16,22 @@
     }
 }
 
+// The staged post attributes, above the bordered box: the editor's own side
+// padding, so the chips' left edge lines up with the box's.
+.AdvancedTextEditor__attributes {
+    width: 100%;
+    padding: 0 24px;
+    margin: 0 auto;
+
+    .sidebar--right & {
+        padding-top: 12px;
+
+        + .AdvancedTextEditor {
+            padding-top: 0;
+        }
+    }
+}
+
 .AdvancedTextEditor {
     &__ctr {
         form {
@@ -208,6 +224,12 @@
 
 @media screen and (max-width: 768px) {
     #post-create {
+        // The box goes full width here, so the chips line up with the text
+        // inside it rather than with an edge that is no longer inset.
+        .AdvancedTextEditor__attributes {
+            padding: 0 16px;
+        }
+
         .AdvancedTextEditor {
             padding: 0;
 

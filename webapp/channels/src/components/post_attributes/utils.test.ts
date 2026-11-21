@@ -13,6 +13,7 @@ import {
     hasValueControl,
     isChipVisible,
     isFieldValueVisible,
+    splitComposerAttributes,
     useAddableAttributes,
     useModalAttributes,
 } from './utils';
@@ -97,11 +98,24 @@ describe('chipCount', () => {
         expect(chipCount(makeField(), makeValue('WITHDRAWN'))).toBe(0);
     });
 
-    // A field that defines no options has had nothing deleted — its choices simply
-    // live somewhere the field cannot see, as content flagging's `reporting_reason`
-    // keeps them in server config. The stored string is the content, so it counts.
-    it('counts a set value on a field that defines no options', () => {
-        expect(chipCount(makeField({attrs: {options: []}}), makeValue('Classification mismatch'))).toBe(1);
+    // A post attribute keeps its options on the field, so a field with none left
+    // had every option deleted: the stored id names nothing and spends no slot.
+    // After a reload the server leaves the empty list out altogether, so both
+    // shapes have to count nothing.
+    it.each([
+        ['an empty options list', {options: []}],
+        ['no options list', {}],
+    ])('counts nothing on a field with %s', (_, attrs) => {
+        expect(chipCount({...makeField(), attrs}, makeValue('opt_secret'))).toBe(0);
+    });
+
+    // A field with too many options to send arrives with none and the marker
+    // set: its value is drawn as stored, so it spends its slots.
+    it('counts the stored entries of a field whose options the server withheld', () => {
+        const attrs = {options_omitted: true, options_count: 1500};
+
+        expect(chipCount({...makeField(), attrs}, makeValue('opt_secret'))).toBe(1);
+        expect(chipCount({...makeField({type: 'multiselect'}), attrs}, makeValue(['opt_a', 'opt_b']))).toBe(2);
     });
 
     it('counts only the resolvable entries of a multiselect', () => {
@@ -677,6 +691,55 @@ describe('useAddableAttributes', () => {
         rerender();
 
         expect(result.current).toBe(first);
+    });
+});
+
+// The composer is a post being written, so `visibility` plays no part in it:
+// only what the user has taken into the post earns a chip, and everything else
+// the user could fill in is offered.
+describe('composer attributes', () => {
+    const always = makeField({id: 'always', name: 'always', attrs: {visibility: 'always'}});
+    const whenSet = makeField({id: 'when_set', name: 'when_set', attrs: {visibility: 'when_set'}});
+    const hidden = makeField({id: 'hidden', name: 'hidden', attrs: {visibility: 'hidden'}});
+    const fields = [always, whenSet, hidden];
+
+    const chipIds = (values: Array<PropertyValue<unknown>>, added: ReadonlySet<string>) =>
+        splitComposerAttributes(fields, values, added).chips.map(({field}) => field.id);
+    const addableIds = (values: Array<PropertyValue<unknown>>, added: ReadonlySet<string>) =>
+        splitComposerAttributes(fields, values, added).addable.map((field) => field.id);
+
+    it('draws no chip for any field before the user has picked one, `always` included', () => {
+        expect(chipIds(NO_VALUES, ADDED_NONE)).toEqual([]);
+    });
+
+    it('draws a chip for a picked field, with no value, whatever its visibility', () => {
+        expect(chipIds(NO_VALUES, new Set(['always', 'hidden']))).toEqual(['always', 'hidden']);
+    });
+
+    it('draws a chip for a field with a staged value', () => {
+        expect(chipIds([makeValue('SECRET', 'when_set')], ADDED_NONE)).toEqual(['when_set']);
+    });
+
+    it('offers every field before anything is picked, `always` included', () => {
+        expect(addableIds(NO_VALUES, ADDED_NONE)).toEqual(['always', 'when_set', 'hidden']);
+    });
+
+    it('stops offering a field once it is picked or has a value', () => {
+        expect(addableIds([makeValue('SECRET', 'when_set')], new Set(['always']))).toEqual(['hidden']);
+    });
+
+    it('draws picked chips in the order they were picked, not in field order', () => {
+        expect(chipIds(NO_VALUES, new Set(['hidden', 'always']))).toEqual(['hidden', 'always']);
+    });
+
+    it('draws a field with a value that was never picked before the picked ones', () => {
+        expect(chipIds([makeValue('SECRET', 'when_set')], new Set(['hidden', 'always']))).toEqual(['when_set', 'hidden', 'always']);
+    });
+
+    it('carries the staged value on the chip', () => {
+        const value = makeValue('SECRET', 'when_set');
+
+        expect(splitComposerAttributes(fields, [value], ADDED_NONE).chips).toEqual([{field: whenSet, value}]);
     });
 });
 
