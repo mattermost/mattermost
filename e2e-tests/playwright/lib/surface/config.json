@@ -1,0 +1,53 @@
+{
+    "root": "../../../../webapp",
+    "tsconfig": "../../../../webapp/channels/tsconfig.json",
+    "pathOverrides": {
+        "@mattermost/types/*": ["../platform/types/src/*"],
+        "@mattermost/client": ["../platform/client/src/index.ts"],
+        "@mattermost/client/*": ["../platform/client/src/*"],
+        "@mattermost/components": ["../platform/components/src/index.tsx"],
+        "@mattermost/shared/*": ["../platform/shared/src/*"]
+    },
+    "include": ["../../../../webapp/channels/src", "../../../../webapp/platform"],
+    "entityTypeDirs": ["../../../../webapp/platform/types/src"],
+    "client": {
+        "file": "../../../../webapp/platform/client/src/client4.ts",
+        "className": "Client4",
+        "urlVersion": "/api/v4"
+    },
+    "openapiDir": "../../../../api/v4/source",
+    "i18n": "../../../../webapp/channels/src/i18n/en.json",
+    "entries": [
+        "../../../../webapp/channels/src/root.tsx",
+        "../../../../webapp/channels/src/components/app",
+        "../../../../webapp/channels/src/stores/redux_store",
+        "../../../../webapp/channels/src/module_registry"
+    ],
+    "output": {
+        "report": "webapp.surface.json",
+        "generated": "../src/ui/generated",
+        "runtime": "../src/aria",
+        "reports": "reports"
+    },
+    "pageNames": {
+        "ChannelIdentifierRouter": "ChannelsPage",
+        "GlobalThreads": "ThreadsPage"
+    },
+    "lookupPortals": [
+        {
+            "from": "react-bootstrap",
+            "name": "Modal",
+            "reason": "The library Modal content is rendered in a document portal."
+        },
+        {
+            "from": "@mui/material/Popover",
+            "name": "default",
+            "reason": "The library component renders its content in a document portal."
+        },
+        {
+            "from": "@floating-ui/react",
+            "name": "FloatingPortal",
+            "reason": "The library FloatingPortal content is rendered in a document portal."
+        }
+    ]
+}

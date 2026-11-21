@@ -23,6 +23,14 @@ const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
 export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/classification_markings';
 
+/** Lets a cleanup call fail only because what it cleans does not exist (404, or 405 for an unregistered route). */
+function rethrowUnlessMissing(error: unknown) {
+    const status = (error as {status_code?: number}).status_code;
+    if (status !== 404 && status !== 405) {
+        throw error;
+    }
+}
+
 /**
  * Removes the classification property field and its linked system field if present
  * (clean slate for E2E). Linked field is deleted first to avoid deletion-protection errors.
@@ -37,8 +45,9 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
         for (const f of channelFields.filter((f) => f.name === 'classification' && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
         }
-    } catch {
-        // May not exist; ignore.
+    } catch (error) {
+        // The routes (feature off) or the group may not exist; any other failure is real.
+        rethrowUnlessMissing(error);
     }
 
     // Clean up both the current 'system' object type and the legacy 'user' object type
@@ -55,8 +64,9 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
             for (const f of matchingLinkedFields) {
                 await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, f.id);
             }
-        } catch {
-            // Linked field may not exist; ignore.
+        } catch (error) {
+            // The routes (feature off) or the group may not exist; any other failure is real.
+            rethrowUnlessMissing(error);
         }
     }
     try {
@@ -65,8 +75,9 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
         for (const f of matchingFields) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, f.id);
         }
-    } catch {
-        // Property routes may be unavailable when the feature flag is off; ignore.
+    } catch (error) {
+        // Property routes are not registered when the feature flag is off (404); any other failure is real.
+        rethrowUnlessMissing(error);
     }
 }
 

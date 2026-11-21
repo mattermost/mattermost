@@ -1,0 +1,69 @@
+name: Test Surface Scan
+on:
+  push:
+    branches:
+      - master
+      - release-*
+    paths:
+      - "webapp/**"
+      - "e2e-tests/playwright/test-surface/**"
+      - "e2e-tests/playwright/lib/surface/**"
+      # the stale-reference check reads the Playwright tests the config names as its roots
+      - "e2e-tests/playwright/specs/**"
+      - "e2e-tests/playwright/upgrade-specs/**"
+      - "api/v4/source/**"
+      - ".github/workflows/test-surface-scan.yml"
+  pull_request:
+    paths:
+      - "webapp/**"
+      - "e2e-tests/playwright/test-surface/**"
+      - "e2e-tests/playwright/lib/surface/**"
+      # the stale-reference check reads the Playwright tests the config names as its roots
+      - "e2e-tests/playwright/specs/**"
+      - "e2e-tests/playwright/upgrade-specs/**"
+      - "api/v4/source/**"
+      - ".github/workflows/test-surface-scan.yml"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  check-surface-report:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: e2e-tests/playwright/lib
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/webapp-setup
+        # the scan loads the webapp's own TypeScript and reads its sources, platform packages included
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      - name: ci/playwright-install
+        working-directory: e2e-tests/playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+      - name: ci/scan
+        # scans the webapp with lib/surface/config.json: errors fail (a test lookup under the stale-reference roots that
+        # matches no rendered testid among them), and so does a committed report that differs
+        run: |
+          if ! npm run scan:check; then
+            echo "::error file=e2e-tests/playwright/lib/surface/webapp.surface.json::The scan has errors (including test lookups of testids the app no longer renders), or the committed surface report doesn't match the webapp. Run 'npm run scan' in e2e-tests/playwright/lib, fix any errors it prints, and commit lib/surface/webapp.surface.json."
+            exit 1
+          fi
+      - name: ci/generate-and-compile
+        # the page objects generated from the report must compile against the runtime
+        run: |
+          npm run tsc

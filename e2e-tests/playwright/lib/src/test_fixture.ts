@@ -108,7 +108,9 @@ import {
 } from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
-export {expect} from './expect';
+// Playwright's expect with the subpath matchers, drivers, scopes and keyed lists accepted wherever a locator is, and
+// the ARIA, catalog-message and list matchers
+export {expect} from './aria/matchers';
 
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;

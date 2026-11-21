@@ -14,9 +14,9 @@ import type {
 } from '@playwright/test';
 
 import type {ExtendedFixtures} from '@mattermost/playwright-lib';
-import {duration, test as base} from '@mattermost/playwright-lib';
+import {duration, expect, test as base} from '@mattermost/playwright-lib';
 
-export {expect} from '@mattermost/playwright-lib';
+export {expect};
 
 // The server-side AI bridge mock is process-global: every test resets it and consumes from one shared
 // FIFO completion queue, so AI bridge tests running concurrently (PW_WORKERS > 1) clobber each other.
@@ -36,22 +36,29 @@ const LOCK_PATH = path.join(os.tmpdir(), 'mm-e2e-ai-bridge-mock.lock');
 const RETRY_INTERVAL_MS = duration.half_sec;
 const LOCK_ACQUIRE_BUDGET_MS = duration.four_min;
 
-function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function acquireAIBridgeLock(): Promise<() => Promise<void>> {
-    let handle: Awaited<ReturnType<typeof fs.open>>;
-    for (;;) {
-        try {
-            handle = await fs.open(LOCK_PATH, 'wx');
-            break;
-        } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-                throw error;
-            }
-            await sleep(RETRY_INTERVAL_MS);
-        }
+    let handle: Awaited<ReturnType<typeof fs.open>> | undefined;
+
+    // Each attempt is one atomic create; only "already held" (EEXIST) means keep waiting.
+    await expect
+        .poll(
+            async () => {
+                try {
+                    handle = await fs.open(LOCK_PATH, 'wx');
+                } catch (error) {
+                    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+                        throw error;
+                    }
+                }
+                return handle !== undefined;
+            },
+            {intervals: [RETRY_INTERVAL_MS], timeout: LOCK_ACQUIRE_BUDGET_MS},
+        )
+        .toBe(true);
+
+    const held = handle;
+    if (!held) {
+        throw new Error('AI bridge lock was not acquired');
     }
 
     let released = false;
@@ -60,8 +67,8 @@ async function acquireAIBridgeLock(): Promise<() => Promise<void>> {
             return;
         }
         released = true;
-        await handle.close().catch(() => {});
         await fs.rm(LOCK_PATH, {force: true});
+        await held.close();
     };
 }
 

@@ -22,7 +22,7 @@
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {newTestPassword, getRandomId, type PlaywrightClient4} from '@mattermost/playwright-lib';
+import {expect, newTestPassword, getRandomId, type PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {assignChannelsToPolicy, deletePolicy, unassignChannelsFromPolicy} from '../team_settings/helpers';
 
@@ -72,7 +72,7 @@ async function doFetchOrThrow(client: Client4, url: string, init: RequestInit & 
         },
     });
     if (!response.ok) {
-        const text = await response.text().catch(() => '');
+        const text = await response.text();
         throw new Error(`${init.method} ${url} -> ${response.status}: ${text}`);
     }
     if (response.status === 204) {
@@ -179,6 +179,7 @@ export async function createPolicyAssignedToChannels(
         if (channelIds.length > 0) {
             try {
                 await unassignChannelsFromPolicy(client, policy.id, channelIds);
+                // eslint-disable-next-line test-surface/e2e-no-swallowed-catch -- teardown order: the channel cleanups may have run first and removed the child policies, so unassigning can fail while the parent still has to be deleted below
             } catch {
                 // Channels may already be gone (their cleanup tasks may have run
                 // first), in which case the child policies were auto-removed by
@@ -240,20 +241,27 @@ export async function waitForJobCompletion(
 ): Promise<any> {
     const timeoutMs = opts.timeoutMs ?? 60_000;
     const pollIntervalMs = opts.pollIntervalMs ?? 1_000;
-    const deadline = Date.now() + timeoutMs;
 
-    while (Date.now() < deadline) {
-        const job: any = await client.getJob(jobId);
-        if (job.status === 'success') {
-            return job;
-        }
-        if (job.status === 'error' || job.status === 'canceled') {
-            const detail = job?.data?.message ?? job?.message ?? job?.error ?? JSON.stringify(job?.data ?? job);
-            throw new Error(`Job ${jobId} finished with status ${job.status}: ${detail}`);
-        }
-        await new Promise((res) => setTimeout(res, pollIntervalMs));
+    let job: any;
+    await expect
+        .poll(
+            async () => {
+                job = await client.getJob(jobId);
+                return job.status;
+            },
+            {
+                message: `Job ${jobId} did not reach a terminal status within ${timeoutMs}ms`,
+                timeout: timeoutMs,
+                intervals: [pollIntervalMs],
+            },
+        )
+        .toMatch(/^(success|error|canceled)$/);
+
+    if (job.status !== 'success') {
+        const detail = job?.data?.message ?? job?.message ?? job?.error ?? JSON.stringify(job?.data ?? job);
+        throw new Error(`Job ${jobId} finished with status ${job.status}: ${detail}`);
     }
-    throw new Error(`Job ${jobId} did not reach a terminal status within ${timeoutMs}ms`);
+    return job;
 }
 
 /**
