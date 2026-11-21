@@ -6,17 +6,21 @@ import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
+import type {PropertyField} from '@mattermost/types/properties';
 
+import {PropertyTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
+import type {OnSubmitOptions} from 'actions/views/create_comment';
 import {quoteTextInDraft, removeDraft, updateDraft} from 'actions/views/drafts';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -1320,15 +1324,85 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     describe('post attributes button', () => {
-        const flagOn = mergeObjects(initialState, {
-            entities: {
-                general: {
-                    config: {
-                        FeatureFlagPostAttributes: 'true',
+        const attributesGroupId = 'post_attributes_group';
+        const attributeOptions = [{id: 'opt_secret', name: 'SECRET', color: 'red'}];
+
+        function makeAttributeField(overrides: Partial<PropertyField>): PropertyField {
+            return {
+                id: 'field_id',
+                group_id: attributesGroupId,
+                name: 'field',
+                type: 'select',
+                object_type: 'post',
+                target_type: 'system',
+                target_id: '',
+                attrs: {options: attributeOptions},
+                permission_values: 'member',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: 'current_user_id',
+                updated_by: 'current_user_id',
+                ...overrides,
+            };
+        }
+
+        // Neither field has a chip until the user picks it. `classification`
+        // is declared `always`, which makes no difference in the composer: it
+        // is offered by the picker like `priority`.
+        const priorityField = makeAttributeField({id: 'f_priority', name: 'priority', attrs: {options: attributeOptions, display_name: 'Priority', visibility: 'when_set'}});
+        const classificationField = makeAttributeField({id: 'f_classification', name: 'classification', attrs: {options: attributeOptions, display_name: 'Classification', visibility: 'always'}});
+
+        const spareField = makeAttributeField({id: 'f_spare', name: 'spare', attrs: {options: attributeOptions, display_name: 'Spare', visibility: 'when_set'}});
+
+        // A text field draws an input rather than a menu button, and builds its
+        // DOM id separately, so it needs its own case where ids could collide.
+        const referenceField = makeAttributeField({id: 'f_reference', name: 'reference', type: 'text', attrs: {display_name: 'Reference', visibility: 'always'}});
+
+        function withFields(fields: PropertyField[], flag = 'true') {
+            const byId = Object.fromEntries(fields.map((field) => [field.id, field]));
+
+            return mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagPostAttributes: flag,
+                        },
+                    },
+                    properties: {
+                        fields: {
+                            byId,
+                            byObjectType: {post: {[attributesGroupId]: byId}},
+                        },
+                        values: {byTargetId: {}, byFieldId: {}},
+                        groups: {
+                            byId: {[attributesGroupId]: {id: attributesGroupId, name: 'post_attributes'}},
+                            byName: {post_attributes: {id: attributesGroupId, name: 'post_attributes'}},
+                        },
                     },
                 },
-            },
-        });
+            });
+        }
+
+        // One field the user can still add, which is what puts the `+` on screen.
+        const flagOn = withFields([priorityField]);
+
+        // Picks a field from the `+` in a composer's action row. Both composers
+        // can be mounted at once, hence the index. An option field's chip opens
+        // its value menu; the first option is picked there, because closing it
+        // empty would un-stage the field, and the next step starts from a clean
+        // page.
+        async function pickFromActionRow(fieldName: string, composerIndex = 0) {
+            await userEvent.click(screen.getAllByTestId('post-attributes-composer-add')[composerIndex]);
+            await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
+            await waitFor(() => expect(screen.getAllByTestId(`post-attribute-chip-${fieldName}`)).toHaveLength(composerIndex + 1));
+
+            const firstOption = screen.queryAllByRole('menuitemradio')[0];
+            if (firstOption) {
+                await userEvent.click(firstOption);
+                await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+            }
+        }
 
         it('is absent with the feature flag off', () => {
             renderWithContext(
@@ -1339,6 +1413,29 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        // The editor never loads fields itself: `loadPostAttributeFields`, called by
+        // the channel view and the thread sidebar, does, and its flag gate is tested
+        // in `actions/post_attributes.test.ts`. This pins the editor's side: with
+        // the flag off it draws nothing even when fields are already in the store,
+        // and doesn't start a request of its own.
+        it('renders nothing with the flag off even when fields are in the store, and makes no field request of its own', () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields');
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField], 'false'),
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(getPropertyFields).not.toHaveBeenCalled();
+
+            getPropertyFields.mockRestore();
         });
 
         it('is present in the centre channel composer with the flag on', () => {
@@ -1389,6 +1486,231 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const formatting = screen.getByLabelText('formatting');
 
             expect(add.compareDocumentPosition(formatting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        it('opens the field picker, and picking a field stages its chip', async () => {
+            // A second field, so there is still something to add afterwards
+            // and the button is still on screen to be inspected.
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, spareField]),
+            );
+
+            const add = screen.getByTestId('post-attributes-composer-add');
+            expect(add).not.toHaveAttribute('aria-disabled');
+            expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
+
+            await userEvent.click(add);
+
+            expect(screen.getByRole('menu', {name: 'Add an attribute'})).toBeInTheDocument();
+            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+
+            // The picked field's chip arrives with its own menu already open.
+            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument());
+            expect(await screen.findByRole('menuitemradio', {name: /^SECRET/})).toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-composer-add')).not.toHaveAttribute('aria-disabled');
+        });
+
+        it('draws the chip row above the message box, outside its border', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, spareField]),
+            );
+
+            await pickFromActionRow('priority');
+
+            const row = screen.getByTestId('post-attributes-composer');
+            const box = document.querySelector('.AdvancedTextEditor__body') as HTMLElement;
+
+            expect(box).not.toContainElement(row);
+            expect(row.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(row.closest('.AdvancedTextEditor__attributes')).not.toBeNull();
+        });
+
+        it('offers the fields the inline add control offers', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, spareField, classificationField]),
+            );
+
+            // The inline control only exists once something is staged.
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            await pickFromActionRow('priority');
+
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            const fromButton = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('post-attributes-add'));
+            const fromInline = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+
+            // `classification` is declared `always` and is offered like the rest.
+            expect(fromButton).toEqual(['post-attribute-add-classification', 'post-attribute-add-spare']);
+            expect(fromInline).toEqual(fromButton);
+        });
+
+        it('is not rendered when the channel declares no attribute the user can add', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([]),
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        it('draws no chip for an `always` field until the user picks it, and stages nothing for it', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([classificationField]),
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument());
+
+            // Picked, but empty: the chip shows the field's name while its menu
+            // is open, and nothing is staged for it.
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('Classification');
+            expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
+
+            // Closed without a value, it goes again, as any picked option field does.
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+        });
+
+        it('stops rendering both add controls once the last field is picked', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField]),
+            );
+
+            // Nothing is staged, so there is no chip row and no inline control.
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+
+            await pickFromActionRow('priority');
+            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+
+            await pickFromActionRow('classification');
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+        });
+
+        it('adds each picked chip at the end of the row, after the ones already there', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField]),
+            );
+
+            // Field order is priority, classification; pick them the other way round.
+            await pickFromActionRow('classification');
+            await pickFromActionRow('priority');
+
+            const chipNames = screen.getAllByTestId(/^post-attribute-chip-/).map((chip) => chip.dataset.testid);
+            expect(chipNames).toEqual(['post-attribute-chip-classification', 'post-attribute-chip-priority']);
+        });
+
+        it('gives the two add controls their own ids and test ids', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField]),
+            );
+
+            await pickFromActionRow('priority');
+
+            const inline = screen.getByTestId('post-attributes-add');
+            const button = screen.getByTestId('post-attributes-composer-add');
+
+            expect(new Set([inline.id, button.id]).size).toBe(2);
+            expect(inline.id).not.toBe('');
+            expect(button.id).not.toBe('');
+            expect(inline.getAttribute('aria-controls')).not.toBe(button.getAttribute('aria-controls'));
+        });
+
+        it('keeps DOM ids unique with the centre channel and the thread composers side by side', async () => {
+            renderWithContext(
+                <>
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        location={Locations.RHS_COMMENT}
+                        rootId='root-post-id'
+                    />
+                </>,
+                withFields([priorityField, classificationField]),
+            );
+
+            // Both composers have their add controls, and the same field is picked in each.
+            expect(screen.getAllByTestId('post-attributes-composer-add')).toHaveLength(2);
+
+            await pickFromActionRow('classification', 0);
+            await pickFromActionRow('classification', 1);
+
+            expect(screen.getAllByTestId('post-attribute-trigger-classification')).toHaveLength(2);
+
+            const ids = Array.from(document.querySelectorAll('[id^="postAttribute"]')).map((element) => element.id);
+
+            expect(ids.length).toBeGreaterThanOrEqual(6);
+            expect(new Set(ids).size).toBe(ids.length);
+        });
+
+        it('keeps a text field\'s input ids unique with the centre channel and the thread composers side by side', async () => {
+            renderWithContext(
+                <>
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        location={Locations.RHS_COMMENT}
+                        rootId='root-post-id'
+                    />
+                </>,
+                withFields([priorityField, referenceField]),
+            );
+
+            // The same text field is picked in both composers. A text chip is
+            // an input only while it is being edited, and picking in the
+            // thread composer moves focus out of the centre one, so the two
+            // inputs are read one after the other.
+            await pickFromActionRow('reference', 0);
+            const centreId = screen.getByTestId('post-attribute-input-reference').id;
+
+            await pickFromActionRow('reference', 1);
+            const inputs = screen.getAllByTestId('post-attribute-input-reference');
+            expect(inputs).toHaveLength(1);
+            const threadId = inputs[0].id;
+
+            expect(centreId).toMatch(/^postAttributeValueInput-f_reference/);
+            expect(threadId).toMatch(/^postAttributeValueInput-f_reference/);
+            expect(centreId).not.toBe(threadId);
+
+            const ids = Array.from(document.querySelectorAll('[id^="postAttribute"]')).map((element) => element.id);
+            expect(new Set(ids).size).toBe(ids.length);
         });
     });
 
@@ -1466,6 +1788,495 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
 
             expect(textbox).toHaveValue(valueBefore);
+        });
+    });
+
+    describe('staged post attributes', () => {
+        const groupId = 'post_attributes_group';
+        const options = [
+            {id: 'opt_secret', name: 'SECRET', color: 'red'},
+            {id: 'opt_unclassified', name: 'UNCLASSIFIED', color: 'green'},
+        ];
+
+        // System-scoped, so both channels in the state offer the same fields
+        // and a channel switch shows what was cleared rather than a field
+        // that simply does not apply.
+        function makeField(overrides: Partial<PropertyField>): PropertyField {
+            return {
+                id: 'field_id',
+                group_id: groupId,
+                name: 'field',
+                type: 'select',
+                object_type: 'post',
+                target_type: 'system',
+                target_id: '',
+                attrs: {options},
+                permission_values: 'member',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: currentUserId,
+                updated_by: currentUserId,
+                ...overrides,
+            };
+        }
+
+        const alwaysField = makeField({id: 'f_always', name: 'classification', attrs: {options, display_name: 'Classification', visibility: 'always'}});
+        const pickedField = makeField({id: 'f_picked', name: 'priority', attrs: {options, display_name: 'Priority', visibility: 'when_set'}});
+
+        const withAttributes = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPostAttributes: 'true',
+                    },
+                },
+                properties: {
+                    fields: {
+                        byId: {[alwaysField.id]: alwaysField, [pickedField.id]: pickedField},
+                        byObjectType: {post: {[groupId]: {[alwaysField.id]: alwaysField, [pickedField.id]: pickedField}}},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {
+                        byId: {[groupId]: {id: groupId, name: 'post_attributes'}},
+                        byName: {post_attributes: {id: groupId, name: 'post_attributes'}},
+                    },
+                },
+            },
+        });
+
+        // Earlier tests in this file leave `onSubmit` returning a promise
+        // they resolve by hand; these need it to settle on its own. By default
+        // it behaves like a created post, which runs `afterOptimisticSubmit`
+        // once the pending post is in the store.
+        beforeEach(() => {
+            mockedOnSubmit.mockImplementation(((_channelId: string, _rootId: string, _draft: unknown, submitOptions: OnSubmitOptions) => () => {
+                submitOptions.afterOptimisticSubmit?.();
+                return Promise.resolve({data: true});
+            }) as unknown as typeof onSubmit);
+        });
+
+        // `classification` is declared `always`, and is still only staged by
+        // picking it from the `+` in the action row, like any other field.
+        async function stageClassification() {
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
+            await userEvent.click(await screen.findByRole('menuitemradio', {name: /^SECRET/}));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET'));
+        }
+
+        // Stages a value on the `always` field, then picks the `when_set` field
+        // from the chip row's own picker, giving it a value too.
+        async function stageAttributes() {
+            await stageClassification();
+
+            await userEvent.click(screen.getByTestId('post-attributes-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+            await userEvent.click(await screen.findByRole('menuitemradio', {name: /^UNCLASSIFIED/}));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED'));
+        }
+
+        function expectNothingStaged() {
+            expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
+        }
+
+        it('sends the staged values and clears them with the message box', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: 'a message with attributes'}});
+
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.anything(),
+                expect.objectContaining({
+                    propertyValues: expect.arrayContaining([
+                        {field_id: 'f_always', value: 'opt_secret'},
+                        {field_id: 'f_picked', value: 'opt_unclassified'},
+                    ]),
+                }),
+                undefined,
+            );
+            expect(textbox).toHaveValue('');
+            expectNothingStaged();
+        });
+
+        // A field can stop applying while the post is being written: deleted, or
+        // its permission changed so this user may no longer set it. Its chip goes,
+        // and its value must go with it rather than ride on the post unseen for
+        // the server to refuse it.
+        it.each([
+            ['its field is deleted', {type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: pickedField.id}}],
+            ['the user may no longer set it', {type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [{...pickedField, permission_values: 'none'}]}}],
+        ])('does not send a staged value once %s', async (_, action) => {
+            const {store} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            act(() => {
+                store.dispatch(action);
+            });
+            await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument());
+
+            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.anything(),
+                expect.objectContaining({
+                    propertyValues: [{field_id: alwaysField.id, value: 'opt_secret'}],
+                }),
+                undefined,
+            );
+        });
+
+        it('keeps the staged values when the submit fails', async () => {
+            mockedOnSubmit.mockImplementationOnce((() => () => Promise.resolve({error: {message: 'failed', server_error_id: 'api.error'}})) as unknown as typeof onSubmit);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+        });
+
+        it('keeps the staged values when a slash command is submitted', async () => {
+            // A command or a `+:emoji:` reaction resolves without creating a
+            // post, so `afterOptimisticSubmit` never runs.
+            mockedOnSubmit.mockImplementationOnce((() => () => Promise.resolve({data: true})) as unknown as typeof onSubmit);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: '/echo hello'}});
+
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.objectContaining({message: '/echo hello'}),
+                expect.anything(),
+                undefined,
+            );
+            expect(textbox).toHaveValue('');
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+        });
+
+        it('keeps the staged values when a reaction is submitted', async () => {
+            // A `+:emoji:` message makes `onSubmit` add a reaction to the latest
+            // post and return, without creating a post, so it resolves without
+            // running `afterOptimisticSubmit` (the action's own test covers that).
+            mockedOnSubmit.mockImplementationOnce((() => () => Promise.resolve({data: {id: 'reaction_1'}})) as unknown as typeof onSubmit);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: '+:smile:'}});
+
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.objectContaining({message: '+:smile:'}),
+                expect.anything(),
+                undefined,
+            );
+            expect(textbox).toHaveValue('');
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+        });
+
+        it('does not count a staged value as draft content', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            // The message is typed and then cleared, so the draft changed and
+            // is flushed when leaving the channel. With only a staged value
+            // left it is empty, so it is removed, not saved.
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: 'x'}});
+            fireEvent.input(textbox, {target: {value: ''}});
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(mockedUpdateDraft).not.toHaveBeenCalled();
+            expect(mockedRemoveDraft).toHaveBeenCalled();
+        });
+
+        it('never writes the staged values into the saved draft', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(mockedUpdateDraft).toHaveBeenCalled();
+            const savedDraft = mockedUpdateDraft.mock.calls[0][1];
+            expect(savedDraft).toMatchObject({message: 'a message with attributes'});
+
+            // Nothing that came from the attributes may be in the draft: neither
+            // a property values key nor the staged field ids and option ids.
+            const serialized = JSON.stringify(savedDraft);
+            expect(serialized).not.toMatch(/propert/i);
+            expect(serialized).not.toContain('f_always');
+            expect(serialized).not.toContain('f_picked');
+            expect(serialized).not.toContain('opt_secret');
+            expect(serialized).not.toContain('opt_unclassified');
+        });
+
+        it('clears the staged values when the channel changes', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expectNothingStaged();
+        });
+
+        it('clears the staged values when the thread changes', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='thread_1'
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='thread_2'
+                />,
+            );
+
+            expectNothingStaged();
+        });
+
+        describe('scheduling', () => {
+            const withScheduling = mergeObjects(withAttributes, {
+                entities: {
+                    general: {
+                        config: {
+                            ScheduledPosts: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                        },
+                    },
+                },
+            });
+
+            it('disables only the schedule chevron while a value is staged, and re-enables it when the value is removed', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withScheduling,
+                );
+
+                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+                expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled();
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+
+                await stageClassification();
+
+                expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+
+                await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
+
+                await waitFor(() => expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled());
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+            });
+        });
+
+        // The server refuses a burn-on-read post with attributes, so the
+        // composer keeps the two apart, in both directions.
+        describe('burn-on-read', () => {
+            const withBurnOnRead = mergeObjects(withAttributes, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableBurnOnRead: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                            SkuShortName: 'advanced',
+                        },
+                    },
+                },
+            });
+
+            const burnOnReadButton = () => document.getElementById('burnOnReadButton') as HTMLElement;
+
+            it('disables burn-on-read while a chip is staged, says why, and enables it again when the chip is removed', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withBurnOnRead,
+                );
+
+                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+                expect(burnOnReadButton()).toBeEnabled();
+
+                await stageClassification();
+
+                expect(burnOnReadButton()).toBeDisabled();
+                await userEvent.hover(screen.getByTestId('burn-on-read-blocked'));
+
+                // Another control's tooltip may still be open from the click before.
+                expect((await screen.findByText('Messages with attributes can’t be burn-on-read')).closest('[role="tooltip"]')).not.toBeNull();
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+
+                await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
+
+                await waitFor(() => expect(burnOnReadButton()).toBeEnabled());
+                expect(screen.queryByTestId('burn-on-read-blocked')).not.toBeInTheDocument();
+            });
+
+            it('disables burn-on-read for a staged chip that has no value yet', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withBurnOnRead,
+                );
+
+                // The value menu opens on the pick; nothing is chosen yet.
+                await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+                await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+                await screen.findByRole('menuitemradio', {name: /^SECRET/});
+
+                expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument();
+                expect(burnOnReadButton()).toBeDisabled();
+            });
+
+            it('disables adding attributes while the message is burn-on-read, says why, and enables it again when turned off', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withBurnOnRead,
+                );
+
+                await userEvent.click(burnOnReadButton());
+
+                const add = screen.getByTestId('post-attributes-composer-add');
+                await waitFor(() => expect(add).toBeDisabled());
+
+                await userEvent.hover(screen.getByTestId('post-attributes-composer-add-blocked'));
+
+                // Another control's tooltip may still be open from the click before.
+                expect((await screen.findByText('Burn-on-read messages can’t have attributes')).closest('[role="tooltip"]')).not.toBeNull();
+
+                await userEvent.click(add);
+                expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+
+                await userEvent.click(burnOnReadButton());
+
+                await waitFor(() => expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled());
+                expect(screen.queryByTestId('post-attributes-composer-add-blocked')).not.toBeInTheDocument();
+            });
+
+            it('leaves adding attributes alone when burn-on-read is not available', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withAttributes,
+                );
+
+                expect(document.getElementById('burnOnReadButton')).toBeNull();
+                expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled();
+
+                await stageClassification();
+                expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+            });
         });
     });
 });

@@ -12,6 +12,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {openModal} from 'actions/views/modals';
 
 import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
+import DisabledReasonTooltip from 'components/common/disabled_reason_tooltip';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -26,9 +27,15 @@ type Props = {
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     repeatDisabledReason?: RepeatDisabledReason;
+
+    // When set, the chevron is disabled and this says why. Unlike `disabled`, which
+    // suppresses the tooltip along with the button, the reason stays visible: a natively
+    // disabled button receives no hover or focus events, so it is shown from a focusable
+    // wrapper around the button.
+    blockedReason?: string;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, blockedReason}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -56,7 +63,9 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
         }));
     }, [repeatDisabledReason, channelId, dispatch, onSelect]);
 
-    return (
+    const buttonDisabled = Boolean(disabled || blockedReason);
+
+    const menu = (
         <Menu.Container
             menuButtonTooltip={{
                 text: formatMessage({
@@ -67,9 +76,9 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             }}
             menuButton={{
                 id: 'button_send_post_options',
-                class: classNames('button_send_post_options', {disabled}),
+                class: classNames('button_send_post_options', {disabled: buttonDisabled}),
                 children: <ChevronDownIcon size={16}/>,
-                disabled,
+                disabled: buttonDisabled,
                 'aria-label': formatMessage({
                     id: 'create_post_button.option.schedule_message',
                     defaultMessage: 'Schedule message',
@@ -116,5 +125,18 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             />
 
         </Menu.Container>
+    );
+
+    if (!blockedReason) {
+        return menu;
+    }
+
+    return (
+        <DisabledReasonTooltip
+            reason={blockedReason}
+            className='send_post_options_blocked'
+        >
+            {menu}
+        </DisabledReasonTooltip>
     );
 }

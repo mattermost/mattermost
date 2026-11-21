@@ -245,6 +245,11 @@
     "description": "Admin console error when generating the Mattermost Service Provider metadata for SAML setup fails; 'Service Provider' is a SAML role term."
   },
   {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "The uploaded file doesn't match the stored Service Provider certificate or private key. Disable encryption to replace them one at a time.",
+    "description": "Admin console error when an uploaded SAML Service Provider certificate or private key doesn't belong to the other half of the key pair while SAML encryption is enabled; 'Service Provider' is a SAML role term."
+  },
+  {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server.",
     "description": "API error when a SAML operation is attempted but SAML 2.0 is not configured or supported on the server; admin-facing."
@@ -3034,6 +3039,11 @@
     "description": "API error when reading from the database whether the first admin has already visited the plugin Marketplace."
   },
   {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "The Site URL provided for onboarding is invalid. It must be an http or https URL without a path, such as https://chat.example.com.",
+    "description": "API error during self-hosted onboarding when the Site URL sent by the onboarding wizard is not an http or https URL made of only a scheme, host, and optional port."
+  },
+  {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Error no organization name provided for self hosted onboarding.",
     "description": "API error during self-hosted onboarding when the request omits the organization name."
@@ -3322,6 +3332,11 @@
     "id": "api.get_site_url_error",
     "translation": "Could not get the instance site url",
     "description": "API error when the server's own Site URL is not configured and cannot be determined; needed for shared channels / secure connection operations."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Unable to export the health report.",
+    "description": "API error when the server fails to render the Site health report that an admin is exporting as HTML or Markdown."
   },
   {
     "id": "api.health_finding.feature_disabled.app_error",
@@ -10937,6 +10952,11 @@
     "description": "Admin console error when deleting a plugin's bundle file from the file store fails."
   },
   {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded.",
+    "description": "Returned when installing or reattaching a plugin that uses the core server caller identity."
+  },
+  {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade.",
     "description": "Admin console error when restarting a plugin after upgrading it fails."
@@ -14726,6 +14746,213 @@
     "id": "health.reason.stats_unavailable",
     "translation": "Usage statistics unavailable.",
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Authentication",
+    "description": "Label of the authentication area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "High availability",
+    "description": "Label of the high availability cluster area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Compliance",
+    "description": "Label of the compliance area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Database",
+    "description": "Label of the database area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Jobs",
+    "description": "Label of the background jobs area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licensing",
+    "description": "Label of the licensing area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Notifications",
+    "description": "Label of the notifications area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platform",
+    "description": "Label of the platform (host and runtime) area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Search",
+    "description": "Label of the search area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Updates",
+    "description": "Label of the server version and updates area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} on {{.Node}}",
+    "description": "Title of a finding that applies to one server node in the shareable health report (Site health export and mmctl health check output); {{.Title}} is the finding title and {{.Node}} the node's hostname."
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Data collected",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output) for a one-off evaluation such as a Support Packet; followed by the date and time the evaluated data was collected, which can be long before the report was made."
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Unknown",
+    "description": "Shown after 'Data collected' in the shareable health report (Site health export and mmctl health check output) when a one-off evaluation, such as of a Support Packet, does not record when its data was collected."
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licensed to",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the name of the company the Mattermost license is issued to."
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Last evaluated",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the date and time the health checks last ran."
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Generated",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the date and time the report was generated."
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "License",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the license tier, such as Enterprise."
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Not evaluated yet",
+    "description": "Shown after 'Last evaluated' in the shareable health report (Site health export and mmctl health check output) when the health checks have never run."
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Server version",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the Mattermost server version."
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Site URL",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the server's Site URL."
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Evaluation appears to have stopped.",
+    "description": "Warning in the header of the shareable health report (Site health export and mmctl health check output) when the last evaluation is more than two hours old."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Open this setting in the System Console",
+    "description": "Link text in the shareable health report (Site health export and mmctl health check output) that opens the System Console page where the finding's setting is changed."
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Details",
+    "description": "Label of the collapsible block listing a finding's raw details in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Read the documentation",
+    "description": "Link text to a finding's documentation in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "How to fix it",
+    "description": "Label before a finding's remediation steps in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Summary",
+    "description": "Heading of the summary section of the shareable health report (Site health export and mmctl health check output), which counts the findings."
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Muted",
+    "description": "Heading of the section of the shareable health report (Site health export and mmctl health check output) listing findings an admin muted."
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Resolved",
+    "description": "Heading of the section of the shareable health report (Site health export and mmctl health check output) listing findings that are no longer firing."
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Could not evaluate",
+    "description": "Heading of the section of the shareable health report (Site health export and mmctl health check output) listing checks that could not run, each with the reason."
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Critical",
+    "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Info",
+    "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output); short for informational."
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Warning",
+    "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} critical",
+      "other": "{{.Count}} critical"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of critical findings."
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} info",
+      "other": "{{.Count}} info"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of informational findings."
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "No open findings.",
+    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the critical, warning, info and could-not-evaluate sections are all empty. Muted and resolved findings can still be listed below it."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "The first health check runs within an hour of enabling the feature.",
+    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never completed and there are no findings."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} could not be evaluated",
+      "other": "{{.Count}} could not be evaluated"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of checks that could not run."
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} warning",
+      "other": "{{.Count}} warnings"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of warning findings."
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Health report",
+    "description": "Title of the shareable health report (Site health export and mmctl health check output)."
   },
   {
     "id": "health.rule.audit_log_off.message",

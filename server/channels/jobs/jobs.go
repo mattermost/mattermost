@@ -172,8 +172,7 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens:
+		model.JobTypeExtractContent:
 		permission = model.PermissionReadJobs
 	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
 		permission = model.PermissionManageSystem

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/go-i18n/i18n/bundle"
 	"github.com/stretchr/testify/assert"
@@ -84,6 +85,10 @@ func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
+	_, _, resp, err = th.SystemAdminClient.ExportHealthFindings(context.Background(), "md")
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
 	stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{finding.Fingerprint})
 	require.NoError(t, err)
 	require.Len(t, stored, 1)
@@ -128,6 +133,10 @@ func TestHealthDashboardAccess(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		assert.Empty(t, healthCheckJobs(t, th))
+
+		_, _, resp, err = th.Client.ExportHealthFindings(context.Background(), "md")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("non-admin with the flag off", func(t *testing.T) {
@@ -175,6 +184,10 @@ func TestHealthDashboardAccess(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
+		_, _, resp, err = th.SystemAdminClient.ExportHealthFindings(context.Background(), "md")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
 		job, resp, err := th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -215,6 +228,12 @@ func TestHealthDashboardLocal(t *testing.T) {
 		got, _, err := th.LocalClient.GetJob(context.Background(), job.Id)
 		require.NoError(t, err)
 		assert.Equal(t, job.Id, got.Id)
+	})
+
+	t.Run("export is not routed", func(t *testing.T) {
+		_, _, resp, err := th.LocalClient.ExportHealthFindings(context.Background(), "md")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("mute is not routed", func(t *testing.T) {
@@ -403,6 +422,101 @@ func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
 	}
 }
 
+func TestExportHealthFindings(t *testing.T) {
+	th := setupHealthDashboard(t, true)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.SiteName = model.NewPointer("Acme Corp.")
+		cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	})
+
+	const timezone = "Pacific/Kiritimati"
+	location, err := time.LoadLocation(timezone)
+	require.NoError(t, err)
+	th.SystemAdminUser.Timezone = model.StringMap{"useAutomaticTimezone": "false", "manualTimezone": timezone}
+	_, appErr := th.App.UpdateUser(th.Context, th.SystemAdminUser, false)
+	require.Nil(t, appErr)
+
+	open := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+	muted := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceProduct)
+	resolved := newHealthFinding("PUSH_BAD_SCHEME", healthcheck.SurfaceProduct)
+	resolved.State = string(healthcheck.StateResolved)
+	internal := newHealthFinding("PUSH_PROXY_UNREACHABLE", healthcheck.SurfaceInternal)
+	storeHealthFindings(t, th, open, muted, resolved, internal)
+	require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(muted.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
+
+	for _, tc := range []struct {
+		format      string
+		contentType string
+	}{
+		{"html", "text/html; charset=utf-8"},
+		{"md", "text/markdown; charset=utf-8"},
+	} {
+		t.Run(tc.format, func(t *testing.T) {
+			before := time.Now().In(location)
+			data, filename, resp, err := th.SystemAdminClient.ExportHealthFindings(context.Background(), tc.format)
+			after := time.Now().In(location)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			assert.Equal(t, tc.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, "nosniff", resp.Header.Get("X-Content-Type-Options"))
+			assert.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+			assert.Contains(t, []string{
+				"mm_site_health_My_awesome_Company_" + before.Format("2006-01-02T15-04") + "." + tc.format,
+				"mm_site_health_My_awesome_Company_" + after.Format("2006-01-02T15-04") + "." + tc.format,
+			}, filename)
+			assert.Equal(t, `attachment; filename="`+filename+`"`, resp.Header.Get("Content-Disposition"))
+
+			report := string(data)
+			if tc.format == "html" {
+				assert.Contains(t, report, "<title>"+strings.TrimSuffix(filename, ".html")+"</title>", "printing suggests the export's name")
+			}
+			assert.NotContains(t, report, "Acme Corp")
+			assert.Contains(t, report, "https://chat.example.com/admin_console/environment/web_server")
+			assert.Contains(t, report, "My awesome Company")
+			assert.Contains(t, report, model.CurrentVersion)
+			assert.Contains(t, report, "SiteURL uses http:// (not https://)")
+			assert.NotContains(t, report, "Push notification server connection test failed")
+		})
+	}
+
+	t.Run("markdown sections and timezone", func(t *testing.T) {
+		data, _, _, err := th.SystemAdminClient.ExportHealthFindings(context.Background(), "md")
+		require.NoError(t, err)
+
+		report := string(data)
+		assert.Contains(t, report, " +14\n", "times are in the admin's timezone")
+		assert.Contains(t, report, "\n- **License:** Enterprise\n")
+		assert.Contains(t, report, "\n## Muted\n\n- **ServiceSettings.SiteURL is empty** `SITE_URL_EMPTY` (Warning)")
+		assert.Contains(t, report, "\n## Resolved\n\n- PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`\n")
+	})
+
+	t.Run("html declares the request's language", func(t *testing.T) {
+		for acceptLanguage, lang := range map[string]string{
+			"":               "en",
+			"fr":             "fr",
+			"pt-BR,pt;q=0.9": "pt-BR",
+			"sw":             "en",
+		} {
+			client := th.CreateClient()
+			client.SetToken(th.SystemAdminClient.AuthToken)
+			client.HTTPHeader = map[string]string{"Accept-Language": acceptLanguage}
+			data, _, resp, err := client.ExportHealthFindings(context.Background(), "html")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			assert.Contains(t, string(data), `<html lang="`+lang+`">`, "Accept-Language: %q", acceptLanguage)
+		}
+	})
+
+	t.Run("invalid format", func(t *testing.T) {
+		for _, format := range []string{"", "pdf"} {
+			_, _, resp, err := th.SystemAdminClient.ExportHealthFindings(context.Background(), format)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		}
+	})
+}
+
 func TestMuteHealthFinding(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 	finding := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
@@ -470,7 +584,7 @@ func TestMuteHealthFinding(t *testing.T) {
 	})
 }
 
-func TestMuteHealthFindingAudit(t *testing.T) {
+func TestHealthDashboardAudit(t *testing.T) {
 	logFile, err := os.CreateTemp("", "health_dashboard_audit.log")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -494,25 +608,37 @@ func TestMuteHealthFindingAudit(t *testing.T) {
 	resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
+	_, _, resp, err = th.SystemAdminClient.ExportHealthFindings(context.Background(), "html")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 
 	require.NoError(t, th.Server.Audit.Flush())
 	require.NoError(t, logFile.Sync())
 	data, err := os.ReadFile(logFile.Name())
 	require.NoError(t, err)
 
-	for _, event := range []string{model.AuditEventMuteHealthFinding, model.AuditEventUnmuteHealthFinding} {
+	findEntries := func(event string) []*AuditEntry {
 		var entries []*AuditEntry
 		for line := range strings.SplitSeq(string(data), "\n") {
 			if entry := FindAuditEntry(line, event, th.SystemAdminUser.Id); entry != nil {
 				entries = append(entries, entry)
 			}
 		}
+		return entries
+	}
 
+	for _, event := range []string{model.AuditEventMuteHealthFinding, model.AuditEventUnmuteHealthFinding} {
+		entries := findEntries(event)
 		require.Len(t, entries, 1, event)
 		assert.Equal(t, model.AuditStatusSuccess, entries[0].Status, event)
 		assert.Equal(t, finding.Fingerprint, entries[0].Parameters["fingerprint"], event)
 		assert.Equal(t, finding.Code, entries[0].Parameters["code"], event)
 	}
+
+	entries := findEntries(model.AuditEventExportHealthFindings)
+	require.Len(t, entries, 1)
+	assert.Equal(t, model.AuditStatusSuccess, entries[0].Status)
+	assert.Equal(t, "html", entries[0].Parameters["format"])
 }
 
 func TestHealthCheckPushURLRoundTrip(t *testing.T) {

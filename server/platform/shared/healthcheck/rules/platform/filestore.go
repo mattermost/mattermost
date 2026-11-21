@@ -5,10 +5,12 @@ package platform
 
 import (
 	"fmt"
+	"net"
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 )
 
@@ -150,16 +152,27 @@ func evalFilestoreS3NoBucket(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
+// An endpoint on this machine, such as a MinIO sidecar, keeps the traffic off the network.
 func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) healthcheck.Result {
 	ssl, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.FileSettings.AmazonS3SSL })
 	switch {
 	case !ok:
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
-	case !ssl:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_s3_ssl_off.message"))
-	default:
+	case ssl:
 		return healthcheck.Resolved()
 	}
+
+	endpoint, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.AmazonS3Endpoint })
+	if !ok {
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	}
+	if host, _, err := net.SplitHostPort(endpoint); err == nil {
+		endpoint = host
+	}
+	if hosts.IsLocal(endpoint) {
+		return healthcheck.Resolved()
+	}
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_s3_ssl_off.message"))
 }
 
 // Each threshold is a share of the volume capped at an absolute size, so large volumes are not

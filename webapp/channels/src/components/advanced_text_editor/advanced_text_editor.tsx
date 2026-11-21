@@ -43,6 +43,9 @@ import {
     DropOverlayIdCreatePost,
     DropOverlayIdEditPost, FileUploadOverlay,
 } from 'components/file_upload_overlay/file_upload_overlay';
+import PostAttributesComposer from 'components/post_attributes/post_attributes_composer';
+import {useComposerAttributes} from 'components/post_attributes/use_composer_attributes';
+import {useStagedPostAttributes} from 'components/post_attributes/use_staged_post_attributes';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -266,6 +269,12 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const stagedAttributes = useStagedPostAttributes();
+    const clearStagedAttributes = stagedAttributes.clear;
+
+    // Worked out once: the chips, the `+` in the action row and the add control
+    // after the chips all read the same fields and the same permission answer.
+    const composerAttributes = useComposerAttributes(channelId, stagedAttributes.values, stagedAttributes.added);
 
     const readOnlyChannel = !canPost || !writeAllowedByPolicy;
     const hasDraftMessage = Boolean(draft.message);
@@ -462,11 +471,27 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+
+    // The server refuses a burn-on-read post with attributes, every time, so
+    // the composer doesn't let the two meet: a staged chip disables
+    // burn-on-read, and burn-on-read disables adding attributes. Any chip, not
+    // only one with a value, since an empty text chip can still be filled in.
+    const burnOnReadBlockedReason = postAttributesEnabled && composerAttributes.chips.length > 0 ? formatMessage({
+        id: 'post_attributes.composer.cannot_burn_on_read',
+        defaultMessage: 'Messages with attributes can’t be burn-on-read',
+        description: 'Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written.',
+    }) : undefined;
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
         isBurnOnReadSendable: burnOnReadSendable,
-    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
+        hasBurnOnReadSet,
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false, burnOnReadBlockedReason);
+    const addAttributesBlockedReason = hasBurnOnReadSet ? formatMessage({
+        id: 'post_attributes.composer.cannot_add_burn_on_read',
+        defaultMessage: 'Burn-on-read messages can’t have attributes',
+        description: 'Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read.',
+    }) : undefined;
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -479,11 +504,12 @@ const AdvancedTextEditor = ({
         setShowPreview,
         handleDraftChange,
         prioritySubmitCheck,
-        undefined,
+        clearStagedAttributes,
         afterSubmit,
         undefined,
         isInEditMode,
         postId,
+        composerAttributes.values,
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
@@ -729,6 +755,12 @@ const AdvancedTextEditor = ({
         setServerError(null);
     }, [channelId, rootId]);
 
+    // Attribute values are composer state, not part of the draft, so
+    // switching channel or thread has to discard them explicitly.
+    useEffect(() => {
+        clearStagedAttributes();
+    }, [channelId, rootId, clearStagedAttributes]);
+
     // Register listener to store the draft when the page unloads
     useEffect(() => {
         const callback = () => handleDraftChange(draft, {instant: true, show: true});
@@ -760,12 +792,18 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
+    const schedulingBlockedReason = composerAttributes.values.length > 0 ? formatMessage({
+        id: 'post_attributes.composer.cannot_schedule',
+        defaultMessage: 'Messages with attributes can’t be scheduled',
+        description: 'Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written.',
+    }) : undefined;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
+            schedulingBlockedReason={schedulingBlockedReason}
         />
     );
 
@@ -929,6 +967,18 @@ const AdvancedTextEditor = ({
                     hideRemoteUserHour={showOooWarning}
                 />
             )}
+            {postAttributesEnabled && !isInEditMode && composerAttributes.chips.length > 0 && (
+                <div className='AdvancedTextEditor__attributes'>
+                    <PostAttributesComposer
+                        chips={composerAttributes.chips}
+                        addable={composerAttributes.addable}
+                        justAdded={stagedAttributes.justAdded}
+                        onAdd={stagedAttributes.add}
+                        onChange={stagedAttributes.change}
+                        onRemove={stagedAttributes.remove}
+                    />
+                </div>
+            )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
@@ -1034,7 +1084,13 @@ const AdvancedTextEditor = ({
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
-                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
+                                {postAttributesEnabled && !isInEditMode && (
+                                    <PostAttributesButton
+                                        fields={composerAttributes.addable}
+                                        onSelect={stagedAttributes.add}
+                                        disabledReason={addAttributesBlockedReason}
+                                    />
+                                )}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}
