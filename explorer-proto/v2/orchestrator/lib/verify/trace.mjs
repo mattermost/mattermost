@@ -13,6 +13,7 @@ import {UNSAFE_TEXT_PATTERN} from '../../../schemas/shared.mjs';
 import {REPO_ROOT} from '../common.mjs';
 
 const CHANNEL_SLUGS = /\b(?:qa-sandbox|release-planning|legacy-roadmap)\b/g;
+const CODE_FRAME_LINE = /^\s*(?:>\s*)?\d+ \|| \|\s*\^+\s*$/;
 const MAX_MESSAGE_LINES = 14;
 const MAX_SNAPSHOT_LINES = 40;
 
@@ -76,9 +77,9 @@ function errorContextPath(result, resultsRoot) {
     return null;
 }
 
-/** The page snapshot block of an error-context.md, as lines. */
+/** The page snapshot of an error-context.md (the yaml block; newer versions put a "Page snapshot" heading above it). */
 export function snapshotLines(markdown) {
-    const section = /# Page snapshot\s*```(?:yaml)?\n([\s\S]*?)\n```/.exec(markdown);
+    const section = /```yaml\n([\s\S]*?)\n```/.exec(markdown);
     return section ? section[1].split('\n') : [];
 }
 
@@ -120,6 +121,7 @@ export function failureEvidence({report, title, resultsRoot, titles}) {
     }
     const message = scrub(first.message ?? '')
         .split('\n')
+        .filter((line) => !CODE_FRAME_LINE.test(line))
         .slice(0, MAX_MESSAGE_LINES)
         .map((l) => l.trimEnd())
         .join('\n')

@@ -142,6 +142,19 @@ function dispatchContext({ctx, control, record, trace, setup, schema}) {
             writes: ['the one result file named in output.result_file', 'scratch files outside tracked paths'],
         },
         forbidden_actions: FORBIDDEN_ACTIONS,
+        result_notes: {
+            judge_fields:
+                'baseline_pass.judge, reproduced_failure.judge and restored.judge are the status printed by replay_judge.mjs (pass, fail or blocked): in pass mode for the baseline and the restored replay, in control-fail mode (context.judge.expectations.control_fail) for the reproduced failure.',
+            step_evidence_summary:
+                'One short entry per awaited expect in the spec, in order, up to and including the failing one: assertion.expected_step_count entries.',
+            clean_fixture_confirmed:
+                'true when you started your own stack with fixture.commands.up and verify_seed.mjs --session=bookmarks passed before the baseline replay.',
+            id_same:
+                'true when the bookmark id of the control channel is the same before the patch and after the restore. Compare in memory or by hash; never print an id.',
+            readback: 'true when bookmark_ctl read shows exactly the declared title after the restore.',
+            seed_check: 'true when verify_seed.mjs --session=bookmarks exits 0 after the restore.',
+            only_one_error: 'true when the failing test recorded exactly one error.',
+        },
         result_schema: inlineResultSchema(schema),
     };
 }

@@ -190,7 +190,11 @@ function replay() {
         fs.writeFileSync(
             context,
             [
-                '# Page snapshot',
+                '# Error details',
+                '',
+                '```',
+                'Error: expect(locator).toBeVisible() failed',
+                '```',
                 '',
                 '```yaml',
                 '- generic [ref=e1]:',
@@ -204,7 +208,7 @@ function replay() {
                 '',
             ].join('\n'),
         );
-        const message = `Error: expect(locator).toBeVisible() failed\n\nLocator: getByTestId('channel-bookmarks-container').getByRole('link', { name: 'Release brief echo 5b90', exact: true })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nPage: ${read(MANIFEST).base_url}/qa-team/channels/release-planning`;
+        const message = `Error: expect(locator).toBeVisible() failed\n\nLocator: getByTestId('channel-bookmarks-container').getByRole('link', { name: 'Release brief echo 5b90', exact: true })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nPage: ${read(MANIFEST).base_url}/qa-team/channels/release-planning\n\n  44 |         await expect(bookmarkBar).toBeVisible();\n> 45 |         await expect(bookmarkBar.getByRole('link')).toBeVisible();\n     |                                                      ^`;
         doc = report(
             {
                 expectedStatus: 'passed',

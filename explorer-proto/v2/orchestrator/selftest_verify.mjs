@@ -241,6 +241,7 @@ export async function verifySpecChecks({check, assert, newDir}) {
                 trace.bookmark_bar_snapshot.length >= 3 && trace.bookmark_bar_snapshot.every((l) => !/url/.test(l)),
                 'bar snapshot',
             );
+            assert(!/^\s*(?:>\s*)?\d+ \|/m.test(trace.message), 'the code frame must not be part of the trace message');
             const task = readJson(path.join(out, 'verify', 'agent-task.json'));
             assert(
                 task.role === 'independent-verifier' &&

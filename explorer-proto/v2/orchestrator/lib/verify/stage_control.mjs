@@ -143,6 +143,9 @@ export default {
         if (judge && located.line !== evidence?.line) {
             failures.push('the failure is not at the line the charter names');
         }
+        if (evidence && evidence.bookmark_bar.length === 0) {
+            failures.push('the error-context.md snapshot holds no bookmark-bar part');
+        }
         if (evidence && evidence.error_count !== 1) {
             failures.push(`${evidence.error_count} errors recorded, expected exactly 1`);
         }
