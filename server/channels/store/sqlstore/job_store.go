@@ -499,6 +499,43 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 	return jobs, nil
 }
 
+func (jss SqlJobStore) GetTypeSummaries(rctx request.CTX, since int64) ([]*store.JobTypeSummary, error) {
+	// Jobs has no index that serves this, so it scans the table. Job history is small since job cleanup is off by default.
+	const query = `
+		WITH latest AS (
+			SELECT DISTINCT ON (Type) Type, Id, Status, CreateAt, Data->>'error' AS Error
+			FROM Jobs
+			ORDER BY Type, CreateAt DESC, Id DESC
+		), agg AS (
+			SELECT Type,
+				MAX(CreateAt) FILTER (WHERE Status IN ('success', 'warning')) AS LastSuccessAt,
+				COUNT(*) FILTER (WHERE CreateAt >= $1) AS RunsCreated,
+				COUNT(*) FILTER (WHERE CreateAt >= $1 AND Status = 'error') AS RunsFailed
+			FROM Jobs
+			GROUP BY Type
+		)
+		SELECT latest.Type,
+			latest.Id AS LastRunId,
+			latest.Status AS LastRunStatus,
+			latest.CreateAt AS LastRunCreateAt,
+			COALESCE(latest.Error, '') AS LastRunError,
+			COALESCE(agg.LastSuccessAt, 0) AS LastSuccessAt,
+			agg.RunsCreated,
+			agg.RunsFailed
+		FROM latest JOIN agg USING (Type)
+		ORDER BY latest.Type`
+
+	ctx, cancel := jss.analyticsContext()
+	defer cancel()
+
+	summaries := []*store.JobTypeSummary{}
+	if err := jss.GetReplica().SelectContext(ctx, &summaries, query, since); err != nil {
+		return nil, errors.Wrap(err, "failed to get job type summaries")
+	}
+
+	return summaries, nil
+}
+
 func (jss SqlJobStore) Delete(id string) (string, error) {
 	query, args, err := jss.getQueryBuilder().
 		Delete("Jobs").

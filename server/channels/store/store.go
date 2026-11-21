@@ -921,6 +921,8 @@ type JobStore interface {
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
 	GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error)
+	// GetTypeSummaries returns one row per job type in the Jobs table. The run counts include only runs created at or after since.
+	GetTypeSummaries(rctx request.CTX, since int64) ([]*JobTypeSummary, error)
 	Delete(id string) (string, error)
 	Cleanup(expiryTime int64, batchSize int) error
 }
@@ -1587,6 +1589,18 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// JobTypeSummary describes the runs of one job type. LastRunError is the newest run's raw error.
+type JobTypeSummary struct {
+	Type            string
+	LastRunID       string
+	LastRunStatus   string
+	LastRunCreateAt int64
+	LastRunError    string
+	LastSuccessAt   int64
+	RunsCreated     int64
+	RunsFailed      int64
 }
 
 // ChannelJoinRequestStore persists user requests to join discoverable private

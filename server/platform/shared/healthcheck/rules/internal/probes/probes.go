@@ -5,7 +5,6 @@
 package probes
 
 import (
-	"regexp"
 	"slices"
 	"strings"
 
@@ -13,15 +12,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
-
 // Read returns one node's probe status and error. A status other than model.StatusOk or
 // model.StatusFail means the node has no usable result, which leaves it out of the count.
 type Read func(n *healthcheck.NodeSnapshot) (status, probeErr string)
 
 // MaskURLCredentials removes URL userinfo from probe errors before they become finding details.
 func MaskURLCredentials(s string) string {
-	return urlCredentials.ReplaceAllString(s, "${1}****@")
+	return healthcheck.MaskURLCredentials(s)
 }
 
 // Eval returns one cluster-wide result over every node that reports the probe. It fires with

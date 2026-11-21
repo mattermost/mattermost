@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/hashicorp/go-multierror"
@@ -17,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
@@ -28,7 +30,10 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 			return supportPacketStatsFile(a.getSupportPacketStats(rctx))
 		},
 		"jobs": func(rctx request.CTX) (*model.FileData, error) {
-			return supportPacketJobsFile(a.getSupportPacketJobList(rctx))
+			jobs, err := a.getSupportPacketJobList(rctx)
+			var summaryErr error
+			jobs.JobSummary, summaryErr = a.getSupportPacketJobSummary(rctx)
+			return supportPacketJobsFile(jobs, multierror.Append(err, summaryErr).ErrorOrNil())
 		},
 		"permissions": func(rctx request.CTX) (*model.FileData, error) {
 			return supportPacketPermissionsFile(a.getSupportPacketPermissionsInfo(rctx))
@@ -273,6 +278,31 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.SupportPacketJob
 	}
 
 	return &jobs, rErr.ErrorOrNil()
+}
+
+// jobSummaryWindow is the period SupportPacketJobTypeSummary.RunsCreated and RunsFailed count runs over.
+const jobSummaryWindow = 30 * 24 * time.Hour
+
+func (a *App) getSupportPacketJobSummary(rctx request.CTX) (map[string]*model.SupportPacketJobTypeSummary, error) {
+	rows, err := a.Srv().Store().Job().GetTypeSummaries(rctx, time.Now().Add(-jobSummaryWindow).UnixMilli())
+	if err != nil {
+		return nil, errors.Wrap(err, "error while getting the job summary")
+	}
+
+	summary := make(map[string]*model.SupportPacketJobTypeSummary, len(rows))
+	for _, row := range rows {
+		summary[row.Type] = &model.SupportPacketJobTypeSummary{
+			LastRunID:       row.LastRunID,
+			LastRunStatus:   row.LastRunStatus,
+			LastRunCreateAt: row.LastRunCreateAt,
+			LastRunError:    healthcheck.SanitizeJobError(row.LastRunError),
+			LastSuccessAt:   row.LastSuccessAt,
+			RunsCreated:     row.RunsCreated,
+			RunsFailed:      row.RunsFailed,
+		}
+	}
+
+	return summary, nil
 }
 
 func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.SupportPacketPermissionInfo, error) {

@@ -48,6 +48,9 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	snapshot.Jobs, err = a.getSupportPacketJobList(rctx)
 	sections[model.SectionJobs] = err
 
+	snapshot.Jobs.JobSummary, err = a.getSupportPacketJobSummary(rctx)
+	sections[model.SectionJobSummary] = err
+
 	snapshot.Plugins, err = a.getPluginsList(rctx)
 	sections[model.SectionPlugins] = err
 

@@ -64,6 +64,61 @@ func TestJobsForOutsideCollectedSetReturnsUnavailable(t *testing.T) {
 	require.Nil(t, jobs)
 }
 
+func TestJobSummaryFor(t *testing.T) {
+	t.Parallel()
+
+	refresh := &model.SupportPacketJobTypeSummary{LastRunStatus: model.JobStatusError, RunsFailed: 3}
+	newSnapshot := func() *Snapshot {
+		return &Snapshot{
+			Jobs: &model.SupportPacketJobList{
+				JobSummary: map[string]*model.SupportPacketJobTypeSummary{model.JobTypeRefreshMaterializedViews: refresh},
+			},
+			Sections: map[model.WorkspaceSection]error{model.SectionJobs: nil, model.SectionJobSummary: nil},
+		}
+	}
+
+	t.Run("a type with runs", func(t *testing.T) {
+		summary, ok := newSnapshot().JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		require.True(t, ok)
+		assert.Equal(t, refresh, summary)
+	})
+
+	t.Run("a type that never ran", func(t *testing.T) {
+		summary, ok := newSnapshot().JobSummaryFor(model.JobTypeLdapSync)
+		require.True(t, ok)
+		assert.Nil(t, summary)
+	})
+
+	t.Run("a failed summary leaves the job lists readable", func(t *testing.T) {
+		s := newSnapshot()
+		s.Sections[model.SectionJobSummary] = assert.AnError
+
+		_, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.False(t, ok)
+		_, ok = s.JobsFor(model.JobTypeLdapSync)
+		assert.True(t, ok)
+	})
+
+	t.Run("a failed job list leaves the summary readable", func(t *testing.T) {
+		s := newSnapshot()
+		s.Sections[model.SectionJobs] = assert.AnError
+
+		_, ok := s.JobsFor(model.JobTypeLdapSync)
+		assert.False(t, ok)
+		summary, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.True(t, ok)
+		assert.Equal(t, refresh, summary)
+	})
+
+	t.Run("summary not collected", func(t *testing.T) {
+		s := newSnapshot()
+		delete(s.Sections, model.SectionJobSummary)
+
+		_, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.False(t, ok)
+	})
+}
+
 func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	t.Parallel()
 
