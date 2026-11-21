@@ -29,6 +29,16 @@ describe('components/ChannelHeaderTitleGroup', () => {
         currentChannelId: 'channel_id',
     };
 
+    const channelsWithCurrentUser = {
+        channels: {
+            channel_id: {
+                id: 'channel_id',
+                display_name: 'not_guest_user, regular_user, third_user',
+            },
+        },
+        currentChannelId: 'channel_id',
+    };
+
     const users = {
         profiles: {
             user_id: {
@@ -104,5 +114,53 @@ describe('components/ChannelHeaderTitleGroup', () => {
             state,
         );
         expect(wrapper.queryAllByText('GUEST').length).toBe(0);
+    });
+
+    test('should separate the names with commas and omit the current user when the members have loaded', () => {
+        const state = {
+            entities: {
+                channels: channelsWithCurrentUser,
+                users,
+            },
+        };
+
+        const gmMembers = [
+            TestHelper.getUserMock({
+                id: 'user_id',
+                username: 'regular_user',
+                roles: 'system_user',
+            }),
+            TestHelper.getUserMock({
+                id: 'not_guest_id',
+                username: 'not_guest_user',
+                roles: 'system_user',
+            }),
+            TestHelper.getUserMock({
+                id: 'third_id',
+                username: 'third_user',
+                roles: 'system_user',
+            }),
+        ];
+
+        const wrapper = renderWithContext(
+            <ChannelHeaderTitleGroup gmMembers={gmMembers}/>,
+            state,
+        );
+        expect(wrapper.container).toHaveTextContent('not_guest_user, third_user');
+    });
+
+    test('should separate the names with commas and omit the current user before the members have loaded', () => {
+        const state = {
+            entities: {
+                channels: channelsWithCurrentUser,
+                users,
+            },
+        };
+
+        const wrapper = renderWithContext(
+            <ChannelHeaderTitleGroup/>,
+            state,
+        );
+        expect(wrapper.container).toHaveTextContent('not_guest_user, third_user');
     });
 });
