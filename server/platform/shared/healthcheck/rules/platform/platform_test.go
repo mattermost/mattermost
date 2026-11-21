@@ -143,6 +143,7 @@ func TestRegistered(t *testing.T) {
 		{pluginNotRunning, "PLUGIN_NOT_RUNNING", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityProbe, "PluginSettings.PluginStates", true, false},
 		{envUnsupportedOS, "ENV_UNSUPPORTED_OS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.OS", false, false},
 		{bindPrivilegedPort, "BIND_PRIVILEGED_PORT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.ListenAddress", false, false},
+		{tlsVerifyOutgoingOff, "TLS_VERIFY_OUTGOING_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.EnableInsecureOutgoingConnections", false, false},
 		{nodeFDExhaustion, "NODE_FD_EXHAUSTION", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.FileDescriptors", false, true},
 		{nodeContainerMemoryPressure, "NODE_CONTAINER_MEMORY_PRESSURE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerMemory", false, true},
 		{nodeContainerOOMKills, "NODE_CONTAINER_OOM_KILLS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerOOMKills", false, true},
