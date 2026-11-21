@@ -37,6 +37,11 @@ export type FakePost = {
     user_id: UserProfile['id'];
 };
 
+export type PendingChannelAttributeEdit = {
+    channelId: Channel['id'];
+    fieldId: string;
+};
+
 export type EntitySelection = {
     typeId: string;
     value: string;
@@ -69,6 +74,7 @@ export type RhsViewState = {
     isSidebarExpanded: boolean;
     isMenuOpen: boolean;
     editChannelMembers: boolean;
+    pendingChannelAttributeEdit: PendingChannelAttributeEdit | null;
     size: SidebarSize;
     shouldFocusRHS: boolean;
 };
