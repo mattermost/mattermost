@@ -344,18 +344,24 @@ def migration_note(name: str, sql: str) -> dict:
     return {"source": f"migration:{name}", "text": text, "fallback": f"Added database migration ``{name}``."}
 
 
-BENCHMARK_REPORT_URL = "https://raw.githubusercontent.com/mattermost/performance-reports/main/performance-comparisons/{version}/README.md"
-BENCHMARK_PAGE_URL = "https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/{version}"
-# The range the performance team treats as usual run-to-run variance.
+BENCHMARK_REPO = "mattermost/performance-reports"
+BENCHMARK_REPO_API = f"https://api.github.com/repos/{BENCHMARK_REPO}"
+BENCHMARK_REPORT_URL = "https://raw.githubusercontent.com/" + BENCHMARK_REPO + "/{branch}/performance-comparisons/{version}/README.md"
+BENCHMARK_PAGE_URL = "https://github.com/" + BENCHMARK_REPO + "/tree/{branch}/performance-comparisons/{version}"
+BENCHMARK_DEFAULT_BRANCH = "main"
+# The range the performance team treats as usual run-to-run variance. A delta outside it is
+# never written automatically: a person reads the report and writes the bullet.
 BENCHMARK_VARIANCE = 5.0
 
 
 def fetch_url(url: str) -> str | None:
-    """The body at ``url``, or None for a 404 (the report is not published yet)."""
+    """The body at ``url``, or None for a 404 (the report is not published yet). Anonymous:
+    the performance reports repository is public."""
     import urllib.error
     import urllib.request
+    request = urllib.request.Request(url, headers={"User-Agent": "mattermost-changelog-automation"})
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:
             return response.read().decode("utf-8")
     except urllib.error.HTTPError as err:
         if err.code == 404:
@@ -363,59 +369,120 @@ def fetch_url(url: str) -> str | None:
         raise
 
 
-def benchmark_delta(report: str) -> float | None:
-    """The supported-user delta from a performance comparison README, in percent.
+def benchmark_branch(fetch=fetch_url) -> str:
+    """The performance reports repository's default branch, read anonymously; ``main`` when
+    it can't be read."""
+    try:
+        branch = (json.loads(fetch(BENCHMARK_REPO_API) or "{}") or {}).get("default_branch")
+    except Exception:  # noqa: BLE001 - the usual branch is a good enough answer
+        branch = None
+    return branch if isinstance(branch, str) and re.fullmatch(r"[\w./-]+", branch) else BENCHMARK_DEFAULT_BRANCH
 
-    Read from the "Supported users in unbounded test" table: ``| 16533 | 15820 | \\-4.31% |``.
+
+def _table_cells(row: str) -> list[str]:
+    return [cell.strip().replace("\\", "") for cell in row.strip().strip("|").split("|")]
+
+
+def benchmark_delta_text(report: str) -> str | None:
+    """The Delta of the "Supported users in unbounded test" table, as written (``-0.18``),
+    without the escaping backslash or the percent sign; None when the table or its Delta
+    can't be read.
+
+    The table, in every report since v11.7::
+
+        | v12.0.1 | v12.1.0-rc2 | Delta   |
+        | ------- | ----------- | ------- |
+        | 16933   | 16903       | \\-0.18% |
     """
     section = re.search(r"(?ims)^#+\s*Supported users in unbounded test\s*$(.*?)(?=^#|\Z)", report or "")
     if not section:
         return None
-    for row in section.group(1).splitlines():
-        cells = [cell.strip().replace("\\", "") for cell in row.strip().strip("|").split("|")]
-        if len(cells) >= 3 and re.fullmatch(r"\d+", cells[0]) and re.fullmatch(r"\d+", cells[1]):
-            delta = re.fullmatch(r"([+-]?\d+(?:\.\d+)?)%", cells[2])
-            if delta:
-                return float(delta.group(1))
-            return round((int(cells[1]) - int(cells[0])) / int(cells[0]) * 100, 2)
-    return None
+    rows = [line for line in section.group(1).splitlines() if line.strip().startswith("|")]
+    if len(rows) < 3:
+        return None
+    header = [cell.lower() for cell in _table_cells(rows[0])]
+    if "delta" not in header or not re.fullmatch(r"[\s|:-]+", rows[1]):
+        return None
+    cells = _table_cells(rows[2])
+    column = header.index("delta")
+    if column >= len(cells):
+        return None
+    delta = re.fullmatch(r"([+-]?\d+(?:\.\d+)?)\s*%", cells[column])
+    return delta.group(1) if delta else None
 
 
-def benchmark_text(version: str, delta: float) -> str:
-    """The Performance bullet every recent changelog uses, for a supported-user delta."""
-    change = "no change" if delta == 0 else f"a {abs(delta):.2f}% {'increase' if delta > 0 else 'decrease'}"
-    link = f"[Performance Reports repository]({BENCHMARK_PAGE_URL.format(version=short_version(version))})"
-    if abs(delta) <= BENCHMARK_VARIANCE:
-        return (
-            f"Benchmarking test results showed no significant difference: {change} in the number of "
-            "supported users for the new release, which lies within the ``[-5%, +5%]`` prediction "
-            f"interval. View the full raw data and methodology in our {link}."
-        )
+def benchmark_delta(report: str) -> float | None:
+    """The supported-user delta of a performance comparison README, in percent."""
+    text = benchmark_delta_text(report)
+    return float(text) if text is not None else None
+
+
+def benchmark_text(version: str, delta: str, branch: str = BENCHMARK_DEFAULT_BRANCH) -> str:
+    """The playbook's Performance bullet for a delta within the prediction interval: the
+    number as the report writes it, without its sign, and "increase" or "decrease" from it."""
+    number = delta.lstrip("+-")
+    if float(delta) == 0:
+        change = "no change"
+    else:
+        change = f"a {number}% {'decrease' if delta.startswith('-') else 'increase'}"
+    link = f"[Performance Reports repository]({BENCHMARK_PAGE_URL.format(branch=branch, version=short_version(version))})"
     return (
-        f"Benchmarking test results showed {change} in the number of supported users for the new "
-        "release, outside the ``[-5%, +5%]`` prediction interval. View the full raw data and "
-        f"methodology in our {link}."
+        f"Benchmarking test results showed no significant difference: {change} in the number of "
+        "supported users for the new release, which lies within the ``[-5%, +5%]`` prediction "
+        f"interval. View the full raw data and methodology in our {link}."
     )
 
 
-def benchmark_notes(version: str, fetch=fetch_url) -> list[dict]:
-    """The benchmarking bullet, once the release's performance comparison is published.
+def benchmark(version: str, fetch=fetch_url) -> dict:
+    """The benchmarking bullet and the Benchmarking section's status, from the release's
+    performance comparison (``performance-comparisons/vX.Y/README.md``; only a vX.Y folder
+    is the release's, never ``esr-*`` or a range such as ``v9.11-v10.5``).
 
-    An unpublished report is picked up by the first run after it lands. The source key
-    is per release, so a later correction to the report is left to the reviewer.
+    ``{"notes": [the bullet] or [], "gap": {"section": "Benchmarking", "status", "detail", ...}}``.
+    No folder for the release yet: pending, as before. A Delta outside ``[-5%, +5%]``, or a
+    report whose table can't be read: no bullet, and the section is flagged for a person. The
+    section blocks publishing until it is ready. The source key is per release, so a later
+    correction to the report is left to the reviewer.
     """
-    url = BENCHMARK_REPORT_URL.format(version=short_version(version))
+    short = short_version(version)
+    branch = benchmark_branch(fetch)
+    url = BENCHMARK_REPORT_URL.format(branch=branch, version=short)
+    page = BENCHMARK_PAGE_URL.format(branch=branch, version=short)
+
+    def gap(status: str, detail: str) -> dict:
+        return {"section": "Benchmarking", "status": status, "detail": detail, "blocks_publish": status != "ready"}
+
     try:
         report = fetch(url)
     except Exception as err:  # noqa: BLE001 - a network failure must not block the changelog
         print(f"⚠️  Could not read the performance comparison at {url}: {err}")
-        return []
-    delta = benchmark_delta(report) if report else None
+        return {"notes": [], "gap": gap("not_yet_checked", f"the performance comparison for {short} couldn't be read; "
+                                                           "checked again next run")}
+    if report is None:
+        print(f"ℹ️  No performance comparison for {short} at {url} yet")
+        return {"notes": [], "gap": gap("not_yet_checked", f"no performance comparison published for {short} yet")}
+    delta = benchmark_delta_text(report)
     if delta is None:
-        print(f"ℹ️  No performance comparison with a supported-user delta at {url} yet")
-        return []
-    text = benchmark_text(version, delta)
-    return [{"source": f"benchmark:{short_version(version)}", "text": text, "fallback": text, "derived": True}]
+        print(f"⚠️  The performance comparison at {url} has no readable Delta in its supported users table")
+        return {"notes": [], "gap": gap("needs_review", f"the [{short} performance comparison]({page}) has no readable "
+                                        "Delta in its \"Supported users in unbounded test\" table; write the "
+                                        "Performance bullet (\"Benchmarking test results ...\") in the PR by hand, "
+                                        "which clears this for the AutoMerge label")}
+    if abs(float(delta)) > BENCHMARK_VARIANCE:
+        print(f"⚠️  The {short} supported-user delta, {delta}%, is outside [-5%, +5%]; not written")
+        return {"notes": [], "gap": gap("needs_review", f"the supported-user Delta in the [{short} performance "
+                                        f"comparison]({page}) is {delta}%, outside the [-5%, +5%] prediction "
+                                        "interval; write the Performance bullet (\"Benchmarking test results ...\") in the "
+                                        "PR by hand with the performance team, which clears this for the AutoMerge label")
+                | {"delta": delta}}
+    text = benchmark_text(version, delta, branch)
+    return {"notes": [{"source": f"benchmark:{short}", "text": text, "fallback": text, "derived": True}],
+            "gap": gap("ready", f"{delta}% from the [{short} performance comparison]({page})")}
+
+
+def benchmark_notes(version: str, fetch=fetch_url) -> list[dict]:
+    """The benchmarking bullet alone (see ``benchmark``)."""
+    return benchmark(version, fetch)["notes"]
 
 
 def derived_notes(base_ref: str, head_ref: str, show=git_show, added=git_added_files) -> list[dict]:

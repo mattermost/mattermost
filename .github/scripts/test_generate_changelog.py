@@ -427,8 +427,10 @@ class MainTest(unittest.TestCase):
         }
         self.saved_derived = gc.changelog_release.derived_notes
         self.saved_show = gc.changelog_release.git_show
-        self.saved_benchmark = gc.changelog_release.benchmark_notes
-        gc.changelog_release.benchmark_notes = lambda version: []
+        self.saved_benchmark = gc.changelog_release.benchmark
+        gc.changelog_release.benchmark = lambda version: {"notes": [], "gap": {
+            "section": "Benchmarking", "status": "not_yet_checked", "blocks_publish": True,
+            "detail": "no performance comparison published for v12.1 yet"}}
         self.saved_cut = gc.release_branch_cut
         gc.release_branch_cut = lambda ref: "2026-10-16T09:18:58Z"
         self.merged_since = {}
@@ -470,7 +472,7 @@ class MainTest(unittest.TestCase):
             setattr(gc, name, value)
         gc.changelog_release.derived_notes = self.saved_derived
         gc.changelog_release.git_show = self.saved_show
-        gc.changelog_release.benchmark_notes = self.saved_benchmark
+        gc.changelog_release.benchmark = self.saved_benchmark
         gc.release_branch_cut = self.saved_cut
         gc.merged_prs_since = self.saved_merged
         os.environ.clear()

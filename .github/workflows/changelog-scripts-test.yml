@@ -6,6 +6,9 @@ on:
       - '.github/scripts/generate_changelog.py'
       - '.github/scripts/check_config_changes_ci.py'
       - '.github/scripts/changelog_release.py'
+      - '.github/scripts/changelog_automation.py'
+      - '.github/scripts/test_changelog_automation.py'
+      - '.github/scripts/fixtures/**'
       - '.github/scripts/test_generate_changelog.py'
       - '.github/scripts/test_changelog_release.py'
       - '.github/workflows/generate-changelog.yml'
@@ -34,4 +37,4 @@ jobs:
 
       - name: Unit tests
         working-directory: .github/scripts
-        run: python3 -m unittest test_changelog_release test_generate_changelog -v
+        run: python3 -m unittest test_changelog_release test_generate_changelog test_changelog_automation -v
