@@ -17,6 +17,7 @@ type mockPluginAPI struct {
 	keyValues         map[string][]byte
 	failing           bool
 	failingWithPrefix string
+	refreshAttempts   int
 }
 
 func newMockPluginAPI(t *testing.T) *mockPluginAPI {
@@ -38,6 +39,14 @@ func (pluginAPI *mockPluginAPI) setFailingWithPrefix(prefix string) {
 	defer pluginAPI.lock.Unlock()
 
 	pluginAPI.failingWithPrefix = prefix
+}
+
+// refreshCount returns how many atomic writes expecting an existing value have been attempted.
+func (pluginAPI *mockPluginAPI) refreshCount() int {
+	pluginAPI.lock.Lock()
+	defer pluginAPI.lock.Unlock()
+
+	return pluginAPI.refreshAttempts
 }
 
 func (pluginAPI *mockPluginAPI) clear() {
@@ -105,6 +114,10 @@ func (pluginAPI *mockPluginAPI) KVList(page, count int) ([]string, *model.AppErr
 func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	pluginAPI.lock.Lock()
 	defer pluginAPI.lock.Unlock()
+
+	if options.Atomic && options.OldValue != nil {
+		pluginAPI.refreshAttempts++
+	}
 
 	if pluginAPI.failing {
 		return false, &model.AppError{Message: "fake error"}

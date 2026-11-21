@@ -81,6 +81,67 @@ func unlock(t *testing.T, m *Mutex, panics bool) {
 	}
 }
 
+func TestMutexRefresh(t *testing.T) {
+	t.Parallel()
+
+	const refreshInterval = 10 * time.Millisecond
+
+	newMutex := func(pluginAPI MutexPluginAPI) *Mutex {
+		m := mustNewMutex(pluginAPI, model.NewId())
+		m.refreshInterval = refreshInterval
+		return m
+	}
+
+	t.Run("refreshes while locked", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+		m := newMutex(mockPluginAPI)
+
+		locked, err := m.TryLock()
+		require.NoError(t, err)
+		require.True(t, locked)
+
+		assert.Eventually(t, func() bool { return mockPluginAPI.refreshCount() >= 3 }, 2*time.Second, refreshInterval)
+
+		unlock(t, m, false)
+		refreshes := mockPluginAPI.refreshCount()
+		assert.Never(t, func() bool { return mockPluginAPI.refreshCount() > refreshes }, 10*refreshInterval, refreshInterval)
+	})
+
+	t.Run("stops refreshing after a failed refresh", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+		m := newMutex(mockPluginAPI)
+
+		locked, err := m.TryLock()
+		require.NoError(t, err)
+		require.True(t, locked)
+
+		m.lock.Lock()
+		refreshDone := m.refreshDone
+		m.lock.Unlock()
+
+		refreshes := mockPluginAPI.refreshCount()
+		mockPluginAPI.setFailing(true)
+
+		// Wait for the refresh goroutine itself, since racing its counter would miss a
+		// failed refresh that happens before the count is read.
+		select {
+		case <-refreshDone:
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "failed to stop refreshing within 2 seconds")
+		}
+		require.Greater(t, mockPluginAPI.refreshCount(), refreshes, "expected at least one refresh attempt")
+
+		refreshes = mockPluginAPI.refreshCount()
+		assert.Never(t, func() bool { return mockPluginAPI.refreshCount() > refreshes }, 10*refreshInterval, refreshInterval)
+
+		unlock(t, m, false)
+	})
+}
+
 func TestMutex(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +268,76 @@ func TestMutex(t *testing.T) {
 
 		unlock(t, m2, false)
 		unlock(t, m1, false)
+	})
+
+	t.Run("try lock", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
+
+		locked, err := m.TryLock()
+		require.NoError(t, err)
+		assert.True(t, locked)
+
+		locked, err = m.TryLock()
+		require.NoError(t, err)
+		assert.False(t, locked)
+
+		unlock(t, m, false)
+
+		locked, err = m.TryLock()
+		require.NoError(t, err)
+		assert.True(t, locked)
+
+		unlock(t, m, false)
+	})
+
+	t.Run("try lock contended by another mutex", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+
+		key := makeKey()
+		m1 := mustNewMutex(mockPluginAPI, key)
+		m2 := mustNewMutex(mockPluginAPI, key)
+
+		lock(t, m1)
+
+		locked, err := m2.TryLock()
+		require.NoError(t, err)
+		assert.False(t, locked)
+		unlock(t, m2, true)
+
+		unlock(t, m1, false)
+
+		locked, err = m2.TryLock()
+		require.NoError(t, err)
+		assert.True(t, locked)
+		unlock(t, m2, false)
+	})
+
+	t.Run("failed try lock", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
+
+		mockPluginAPI.setFailing(true)
+
+		locked, err := m.TryLock()
+		require.Error(t, err)
+		assert.False(t, locked)
+		unlock(t, m, true)
+
+		mockPluginAPI.setFailing(false)
+
+		locked, err = m.TryLock()
+		require.NoError(t, err)
+		assert.True(t, locked)
+		unlock(t, m, false)
 	})
 
 	t.Run("with uncancelled context", func(t *testing.T) {

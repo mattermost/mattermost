@@ -42,6 +42,9 @@ type Mutex struct {
 	pluginAPI MutexPluginAPI
 	key       string
 
+	// refreshInterval is a field, rather than the package constant, so tests can shorten it.
+	refreshInterval time.Duration
+
 	// lock guards the variables used to manage the refresh task, and is not itself related to
 	// the cluster-wide lock.
 	lock        sync.Mutex
@@ -59,8 +62,9 @@ func NewMutex(pluginAPI MutexPluginAPI, key string) (*Mutex, error) {
 	}
 
 	return &Mutex{
-		pluginAPI: pluginAPI,
-		key:       key,
+		pluginAPI:       pluginAPI,
+		key:             key,
+		refreshInterval: refreshInterval,
 	}, nil
 }
 
@@ -73,18 +77,58 @@ func makeLockKey(key string) (string, error) {
 	return mutexPrefix + key, nil
 }
 
-// lock makes a single attempt to atomically lock the mutex, returning true only if successful.
-func (m *Mutex) tryLock() (bool, error) {
+// TryLock makes a single attempt to lock m without blocking, returning true only if successful.
+// If the mutex is already locked by any plugin instance, including the current one, TryLock
+// returns false and a nil error.
+//
+// A non-nil error means the attempt could not be made, and the mutex was not locked. The error
+// is also logged.
+//
+// The mutex is locked only if true and a nil error are returned.
+func (m *Mutex) TryLock() (bool, error) {
 	ok, err := m.pluginAPI.KVSetWithOptions(m.key, []byte{1}, model.PluginKVSetOptions{
 		Atomic:          true,
 		OldValue:        nil, // No existing key value.
 		ExpireInSeconds: int64(ttl / time.Second),
 	})
 	if err != nil {
+		m.pluginAPI.LogError("failed to lock mutex", "err", err, "lock_key", m.key)
 		return false, errors.Wrap(err, "failed to set mutex kv")
+	} else if !ok {
+		return false, nil
 	}
 
-	return ok, nil
+	m.startRefresh()
+
+	return true, nil
+}
+
+// startRefresh keeps a newly acquired lock from expiring until Unlock is called. If a refresh
+// fails, refreshing stops and the lock expires after its ttl, even though it is still held.
+func (m *Mutex) startRefresh() {
+	stop := make(chan bool)
+	done := make(chan bool)
+	go func() {
+		defer close(done)
+		t := time.NewTicker(m.refreshInterval)
+		for {
+			select {
+			case <-t.C:
+				err := m.refreshLock()
+				if err != nil {
+					m.pluginAPI.LogError("failed to refresh mutex", "err", err, "lock_key", m.key)
+					return
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	m.lock.Lock()
+	m.stopRefresh = stop
+	m.refreshDone = done
+	m.lock.Unlock()
 }
 
 // refreshLock rewrites the lock key value with a new expiry, returning true only if successful.
@@ -124,39 +168,11 @@ func (m *Mutex) LockWithContext(ctx context.Context) error {
 		case <-time.After(waitInterval):
 		}
 
-		locked, err := m.tryLock()
-		if err != nil {
-			m.pluginAPI.LogError("failed to lock mutex", "err", err, "lock_key", m.key)
-			waitInterval = nextWaitInterval(waitInterval, err)
-			continue
-		} else if !locked {
+		locked, err := m.TryLock()
+		if err != nil || !locked {
 			waitInterval = nextWaitInterval(waitInterval, err)
 			continue
 		}
-
-		stop := make(chan bool)
-		done := make(chan bool)
-		go func() {
-			defer close(done)
-			t := time.NewTicker(refreshInterval)
-			for {
-				select {
-				case <-t.C:
-					err := m.refreshLock()
-					if err != nil {
-						m.pluginAPI.LogError("failed to refresh mutex", "err", err, "lock_key", m.key)
-						return
-					}
-				case <-stop:
-					return
-				}
-			}
-		}()
-
-		m.lock.Lock()
-		m.stopRefresh = stop
-		m.refreshDone = done
-		m.lock.Unlock()
 
 		return nil
 	}
