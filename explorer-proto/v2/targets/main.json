@@ -1,0 +1,23 @@
+{
+    "schema": "explorer-target/v2",
+    "kind": "main",
+    "ref": "master",
+    "sha": "2d6c2852eaebf2e23336332b8feeacf9db0ea0e8",
+    "image": {
+        "ref": "mattermostdevelopment/mattermost-enterprise-edition:2d6c285_fc5e259",
+        "digest": "sha256:ed4bcaa423e09ddc8ddb229bc55c82178d7403299ce800d4a2b0ed79cf8b105c",
+        "platform": "linux/amd64",
+        "build_sha": "2d6c2852eaebf2e23336332b8feeacf9db0ea0e8"
+    },
+    "database_image": {
+        "ref": "postgres:15.20",
+        "digest": "sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5"
+    },
+    "server_version": "12.2.0",
+    "licence_check": "PASS",
+    "playwright_version": "1.62.1",
+    "browser_build": {
+        "name": "chromium_headless_shell",
+        "revision": "1234"
+    }
+}

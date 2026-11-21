@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Start the pilot stack and the loopback forwarder, then seed. Prints the base URL on success.
-#   up.sh [--variant=default|swap-purpose-header|no-archive] [--session=bookmarks] [--no-seed]
+#   up.sh [--variant=default|swap-purpose-header|no-archive] [--session=bookmarks] [--target=default|main] [--no-seed]
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
 SEED_ARGS=()
 SEED=true
 SESSION=""
+TARGET=""
 for arg in "$@"; do
     case "$arg" in
     --variant=*) SEED_ARGS+=("$arg") ;;
     --session=bookmarks) SESSION=bookmarks; SEED_ARGS+=("$arg") ;;
+    --target=*) TARGET="${arg#--target=}" ;;
     --no-seed) SEED=false ;;
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
     esac
@@ -21,6 +23,8 @@ if ! license_present; then
     exit 1
 fi
 
+[ -z "$TARGET" ] || apply_target "$TARGET" || exit $?
+verify_images || exit 1
 stack_up || { echo "stack failed to become ready" >&2; exit 1; }
 start_forwarder || { echo "forwarder failed to reach Mattermost" >&2; exit 1; }
 if [ -n "$SESSION" ]; then

@@ -3,6 +3,7 @@
 #   gate.sh          run every check, then tear everything down
 #   gate.sh --keep   run every check, leave stack + forwarder up (canary is always removed)
 #   gate.sh --down   tear down only
+#   --target=default|main (with run or --keep) selects the Mattermost image; the default is unchanged.
 # Each line is DIRECT (tested here) or INFERRED (reasoned from DIRECT results). Exit 1 on any FAIL.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -16,13 +17,20 @@ teardown() {
     stack_down
 }
 
-if [ "${1:-}" = "--down" ]; then
+KEEP=false
+DOWN_ONLY=false
+for arg in "$@"; do
+    case "$arg" in
+    --down) DOWN_ONLY=true ;;
+    --keep) KEEP=true ;;
+    --target=*) apply_target "${arg#--target=}" || exit $? ;;
+    esac
+done
+if [ "$DOWN_ONLY" = true ]; then
     teardown
     echo "teardown complete"
     exit 0
 fi
-KEEP=false
-[ "${1:-}" = "--keep" ] && KEEP=true
 
 mkdir -p "$RUN_DIR"
 : >"$GATE_LOG"
@@ -72,7 +80,7 @@ check DIRECT "docker server is linux/amd64" \
 
 # a. Start the stack
 teardown
-if stack_up; then
+if verify_images && stack_up; then
     record DIRECT PASS "stack up: postgres healthy and Mattermost /api/v4/system/ping OK (container IP, bounded wait)"
 else
     record DIRECT FAIL "stack up: postgres healthy and Mattermost /api/v4/system/ping OK (container IP, bounded wait)"

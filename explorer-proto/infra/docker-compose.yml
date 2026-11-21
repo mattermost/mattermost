@@ -23,8 +23,8 @@ services:
       - pilot_internal
 
   mattermost:
-    image: mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7
-    platform: linux/amd64
+    image: ${MATTERMOST_PILOT_IMAGE:-mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7}
+    platform: ${MATTERMOST_PLATFORM:-linux/amd64}
     container_name: explorer-pilot-mattermost
     depends_on:
       postgres:
