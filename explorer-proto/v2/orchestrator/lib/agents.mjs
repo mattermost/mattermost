@@ -171,16 +171,19 @@ function checkResult(ctx, spec, task, data) {
 async function invoke(ctx, provider, task, taskAbs, resultAbs) {
     const remainingMs = Math.max(0, ctx.remainingSeconds() * 1000);
     if (provider.kind === 'stub') {
+        let aborted = false;
         const call = (async () => {
             const result = await stubResult(task, ctx, provider.scenario);
-            fs.writeFileSync(resultAbs, JSON.stringify(result, null, 4));
+            if (!aborted) {
+                fs.writeFileSync(resultAbs, JSON.stringify(result, null, 4));
+            }
         })();
         let timer;
         const timeout = new Promise((_, reject) => {
-            timer = setTimeout(
-                () => reject(new BudgetExceeded('time_exceeded', 'agent call exceeded the stage time budget')),
-                remainingMs,
-            );
+            timer = setTimeout(() => {
+                aborted = true;
+                reject(new BudgetExceeded('time_exceeded', 'agent call exceeded the stage time budget'));
+            }, remainingMs);
         });
         try {
             await Promise.race([call, timeout]);

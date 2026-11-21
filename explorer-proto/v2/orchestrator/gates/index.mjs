@@ -29,6 +29,7 @@ import repeatReplay from './repeat_replay.mjs';
 import schemaValid from './schema_valid.mjs';
 import secretScan from './secret_scan.mjs';
 import specStatic from './spec_static.mjs';
+import strictSpec from './strict_spec.mjs';
 
 export const GATES = [
     schemaValid,
@@ -38,6 +39,7 @@ export const GATES = [
     discovery,
     emitted,
     specStatic,
+    strictSpec,
     secretScan,
     repeatReplay,
     mutationControl,

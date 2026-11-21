@@ -115,7 +115,9 @@ export function hashFiles(dir, files) {
 }
 
 export function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms).unref();
+    });
 }
 
 export function newId(prefix, ...parts) {

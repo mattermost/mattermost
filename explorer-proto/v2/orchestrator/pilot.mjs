@@ -53,6 +53,10 @@ async function runCommand(argv) {
     } catch (e) {
         return usageError(e.message);
     }
+    if (flags.help) {
+        process.stdout.write(USAGE);
+        return EXIT.OK;
+    }
     const resumeFile = (out) => path.join(out, 'run.json');
     let saved = {};
     if (flags.resume) {

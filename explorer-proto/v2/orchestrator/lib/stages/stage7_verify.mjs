@@ -13,6 +13,7 @@ import path from 'node:path';
 import {acceptedCharters, dirDigest} from './util.mjs';
 
 import {GATES} from '../../gates/index.mjs';
+import {BudgetExceeded} from '../budgets.mjs';
 import {readJson, slug} from '../common.mjs';
 import {buildVerdict, outcomeOf, overallOf} from '../verdicts.mjs';
 
@@ -98,7 +99,7 @@ async function runGates(ctx, item) {
         try {
             results.push({gate: gate.gate, ...(await gate.run(gctx))});
         } catch (e) {
-            if (e?.constructor?.name === 'BudgetExceeded') {
+            if (e instanceof BudgetExceeded) {
                 throw e;
             }
             results.push({gate: gate.gate, result: 'fail', evidence: [{kind: 'log', ref: item.file}]});

@@ -455,6 +455,11 @@ async function main() {
         fs.writeFileSync(approvedFile, JSON.stringify({...lesson, status: 'approved', approver: 'reviewer-one'}));
         const ok = pilot(['lesson', 'apply', approvedFile]);
         assert(ok.status === 0 && ok.stdout.startsWith('ELIGIBLE'), `an approved lesson is eligible: ${ok.stdout}`);
+        const botApproved = {...lesson, status: 'approved', approver: 'cursor-agent'};
+        assert(
+            assessLesson(botApproved).decision === 'refused_needs_human_approval',
+            'an automation handle is not a human approver',
+        );
         const fake = {...lesson, status: 'approved'};
         assert(!validate('lesson', fake).ok, 'approved without an approver is invalid');
         assert(
