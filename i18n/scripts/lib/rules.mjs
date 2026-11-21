@@ -23,7 +23,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const icu = await import(pathToFileURL(path.join(here, '../../../webapp/channels/scripts/icu_rules.mjs')).href);
 const SERVER_PLURALS = JSON.parse(fs.readFileSync(path.join(here, 'server_plurals.json'), 'utf8'));
 
-const {analyzeSource, checkMessage, isRightToLeft, HORIZONTAL_GLYPH} = icu;
+const {analyzeSource, checkMessage, HORIZONTAL_GLYPH} = icu;
+export const {isRightToLeft} = icu;
 
 // What CI reports as a warning, new work must not do at all, except an arrow in a
 // right-to-left locale, which can be the clearest way to write a sequence.
@@ -113,9 +114,11 @@ function addressFindings(value, locale, surface, style) {
 function softChecks(item, value, locale, surface, glossary, style) {
     const out = [];
     if (!isEnglish(locale) && flatten(value) === flatten(item.english)) {
-        // A name is capitalised; three ordinary words are a sentence nobody translated.
+        // A name is capitalised, and a quoted label can rightly stay in English;
+        // three other ordinary words are a sentence nobody translated.
         const words = translatableWords(item.english, surface, glossary);
-        const severity = words.filter((w) => w === w.toLowerCase()).length >= 3 ? 'error' : 'soft';
+        const ordinary = translatableWords(unquoted(item.english), surface, glossary).filter((w) => w === w.toLowerCase());
+        const severity = ordinary.length >= 3 ? 'error' : 'soft';
         if (words.length >= (isLatinScript(locale) ? 2 : 1)) {
             out.push(finding('identical-to-english', severity, `identical to the English, which has words to translate (${words.slice(0, 4).join(' ')})`));
         }
@@ -141,8 +144,7 @@ const ACTION = /\{\{(.*?)\}\}/g;
 const tokensOf = (text) => new Set([...text.matchAll(TOKEN)].map((m) => m[1]));
 const actionsOf = (text) => [...text.matchAll(ACTION)].
     map((m) => m[1].trim().replace(/\s+/g, ' ')).
-    filter((a) => !/^\.[A-Za-z0-9_]+$/.test(a)).
-    sort();
+    filter((a) => !/^\.[A-Za-z0-9_]+$/.test(a));
 
 function checkServer(item, value, locale) {
     const out = [];
@@ -169,11 +171,12 @@ function checkServer(item, value, locale) {
         }
     }
 
-    // {{if}}, {{else}} and {{end}} have to survive translation as they are, in
-    // every form, or the template either fails to parse or shows the wrong branch.
+    // {{if}}, {{else}} and {{end}} have to survive translation as they are and in
+    // the same order, which is what nests them, in every form, or the template
+    // either fails to parse or shows the wrong branch.
     const sourceActions = actionsOf(sourceForms[0]).join('\n');
     if (forms.some((f) => actionsOf(f).join('\n') !== sourceActions)) {
-        out.push(finding('template-action', 'error', `template actions differ from the source's: ${sourceActions ? sourceActions.split('\n').map((a) => `{{${a}}}`).join(' ') : 'none'}`));
+        out.push(finding('template-action', 'error', `template actions differ from the source's, in order: ${sourceActions ? sourceActions.split('\n').map((a) => `{{${a}}}`).join(' ') : 'none'}`));
     }
 
     if (typeof value === 'object') {
@@ -237,3 +240,22 @@ export function checkTranslation({item, value, locale, surface, glossary, style 
     out.push(...softChecks(item, value, locale, surface, glossary, style));
     return out;
 }
+
+/**
+ * Defects in an existing translation that a run may repair: a webapp plural
+ * missing a form its locale uses, and the wrong form of address.
+ */
+export function repairProblems({english, value, locale, surface, style}) {
+    const problems = [];
+    if (surface === 'webapp') {
+        try {
+            problems.push(...checkMessage(sourceFor(english), value, locale).filter((f) => f.rule === 'plural-category').map((f) => f.message));
+        } catch {
+            return [];
+        }
+    }
+    problems.push(...addressFindings(value, locale, surface, style).map((f) => f.message));
+    return problems;
+}
+
+export const serverPluralCategories = (locale) => SERVER_PLURALS[locale] || null;
