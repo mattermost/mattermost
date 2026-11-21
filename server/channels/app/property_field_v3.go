@@ -15,7 +15,7 @@ import (
 // ShapePropertyFieldForCaller returns a per-caller reduced copy of field's
 // Permissions, leaving the stored field untouched. serveV3 false means the
 // caller's group is still on the v2 payload, which has no place for
-// Permissions at all.
+// Permissions, Bounds or Mutability at all.
 func (a *App) ShapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool) *model.PropertyField {
 	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(rctx, session.UserId) })
 	return a.shapePropertyFieldForCaller(rctx, session, field, serveV3, make(map[string]*model.PropertyField), roles)
@@ -36,14 +36,22 @@ func (a *App) ShapePropertyFieldsForCaller(rctx request.CTX, session model.Sessi
 }
 
 func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool, templates map[string]*model.PropertyField, roles func() []string) *model.PropertyField {
-	if field == nil || field.Permissions == nil {
+	if field == nil {
 		return field
 	}
 
 	if !serveV3 {
-		projected := a.projectLegacyPermissions(rctx, field, templates)
-		projected.Permissions = nil
-		return projected
+		// projectLegacyPermissions returns field itself when it has no
+		// Permissions, so copy here rather than clear in place.
+		stripped := *a.projectLegacyPermissions(rctx, field, templates)
+		stripped.Permissions = nil
+		stripped.Bounds = nil
+		stripped.Mutability = ""
+		return &stripped
+	}
+
+	if field.Permissions == nil {
+		return field
 	}
 
 	copied := *field
