@@ -197,6 +197,50 @@ export async function assignAttributeOwner(
     });
 }
 
+/**
+ * Unarchives a channel that still lacks values for the given required fields.
+ *
+ * A person's unarchive must supply every required value they can set, so each
+ * field's value writes are locked for the restore and its permissions put back
+ * afterwards. Required is already on, so the field patches don't trip the
+ * required gate.
+ */
+export async function unarchiveWithoutRequiredValues(
+    adminClient: Client4,
+    channelId: string,
+    fields: PropertyField[],
+): Promise<void> {
+    type Permissions = {restrictions: {value: {write: string}}};
+    const saved: Array<{field: PropertyField; permissions: Permissions}> = [];
+    try {
+        for (const field of fields) {
+            const current = (
+                await adminClient.getPropertyFields(GROUP, field.object_type, {
+                    targetType: TARGET_TYPE,
+                    targetId: '',
+                } as Parameters<Client4['getPropertyFields']>[2])
+            ).find((f) => f.id === field.id);
+            const permissions = (current as unknown as {permissions?: Permissions} | undefined)?.permissions;
+            if (!permissions) {
+                throw new Error(`field ${field.name} has no permissions to lock`);
+            }
+            const locked = structuredClone(permissions);
+            locked.restrictions.value.write = 'none';
+            await adminClient.patchPropertyField(GROUP, field.object_type, field.id, {
+                permissions: locked,
+            } as Partial<PropertyField>);
+            saved.push({field, permissions});
+        }
+        await adminClient.unarchiveChannel(channelId);
+    } finally {
+        for (const {field, permissions} of saved) {
+            await adminClient.patchPropertyField(GROUP, field.object_type, field.id, {
+                permissions,
+            } as Partial<PropertyField>);
+        }
+    }
+}
+
 export async function createChannelForAttributes(
     adminClient: Client4,
     team: Team,

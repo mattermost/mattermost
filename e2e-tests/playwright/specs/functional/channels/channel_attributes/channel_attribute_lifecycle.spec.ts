@@ -16,6 +16,7 @@ import {
     optionId,
     purgeAttributes,
     setChannelValue,
+    unarchiveWithoutRequiredValues,
 } from './helpers';
 
 test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () => {
@@ -167,7 +168,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 required: true,
             });
             created.push(required);
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [required]);
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, channel.name);

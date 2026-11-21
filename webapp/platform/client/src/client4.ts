@@ -22,6 +22,7 @@ import type {
     ChannelMembership,
     ChannelModeration,
     ChannelModerationPatch,
+    ChannelPropertyValuePatchItems,
     ChannelStats,
     ChannelsWithTotalCount,
     ChannelUnread,
@@ -1853,10 +1854,10 @@ export default class Client4 {
         );
     };
 
-    unarchiveChannel = (channelId: string) => {
+    unarchiveChannel = (channelId: string, propertyValues?: ChannelPropertyValuePatchItems) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelRoute(channelId)}/restore`,
-            {method: 'post'},
+            {method: 'post', body: propertyValues?.length ? JSON.stringify({property_values: propertyValues}) : undefined},
         );
     };
 
@@ -1867,10 +1868,10 @@ export default class Client4 {
         );
     };
 
-    updateChannelPrivacy = (channelId: string, privacy: any) => {
+    updateChannelPrivacy = (channelId: string, privacy: any, propertyValues?: ChannelPropertyValuePatchItems) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelRoute(channelId)}/privacy`,
-            {method: 'put', body: JSON.stringify({privacy})},
+            {method: 'put', body: JSON.stringify(propertyValues?.length ? {privacy, property_values: propertyValues} : {privacy})},
         );
     };
 
@@ -5119,12 +5120,13 @@ export default class Client4 {
         );
     };
 
-    convertGroupMessageToPrivateChannel = (channelId: string, teamId: string, displayName: string, name: string) => {
+    convertGroupMessageToPrivateChannel = (channelId: string, teamId: string, displayName: string, name: string, propertyValues?: ChannelPropertyValuePatchItems) => {
         const body = {
             channel_id: channelId,
             team_id: teamId,
             display_name: displayName,
             name,
+            ...(propertyValues?.length ? {property_values: propertyValues} : {}),
         };
         return this.doFetchWithResponse<Channel>(
             `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,

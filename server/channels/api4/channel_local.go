@@ -71,9 +71,13 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
-	privacy, ok := props["privacy"].(string)
-	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
+	var req model.ChannelPrivacyUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("privacy", err)
+		return
+	}
+	privacy := req.Privacy
+	if model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate {
 		c.SetInvalidParam("privacy")
 		return
 	}
@@ -92,9 +96,14 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
 		return
 	}
+	wasPrivate := channel.Type == model.ChannelTypePrivate
 	channel.Type = model.ChannelType(privacy)
 
-	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, nil)
+	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, nil, app.UpdateChannelPrivacyOptions{
+		PropertyValues: req.PropertyValues,
+		ByPerson:       true,
+		WasPrivate:     wasPrivate,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -126,7 +135,16 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
-	channel, err = c.App.RestoreChannel(c.AppContext, channel, "")
+	req, decodeErr := decodeChannelRestoreRequest(r)
+	if decodeErr != nil {
+		c.SetInvalidParamWithErr("property_values", decodeErr)
+		return
+	}
+
+	channel, err = c.App.RestoreChannel(c.AppContext, channel, "", app.RestoreChannelOptions{
+		PropertyValues: req.PropertyValues,
+		ByPerson:       true,
+	})
 	if err != nil {
 		c.Err = err
 		return

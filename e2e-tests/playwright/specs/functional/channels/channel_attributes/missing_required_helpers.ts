@@ -7,6 +7,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {expect} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {DISPLAY_LABEL_HEADER, attributeName, createAttribute} from './helpers';
@@ -57,4 +58,27 @@ export async function setUpTeamMissingRequiredValue(
     const offTopic = await adminClient.getChannelByName(team.id, 'off-topic');
 
     return {field, creator, member, team, townSquare, offTopic};
+}
+
+// Backfilling a required field walks every channel on the server, which on a
+// shared dev database outlasts the default test timeout.
+export const REQUIRED_FIELD_TEST_TIMEOUT = 240_000;
+
+export const MISSING_REQUIRED_ERROR_ID = 'api.channel.create_channel.missing_required_attributes.app_error';
+
+/**
+ * Asserts the server refuses a channel change that lacks a required attribute
+ * value, with the 400 the conversion and restore endpoints share.
+ */
+export async function expectMissingRequiredRefusal(call: () => Promise<unknown>) {
+    let error: {status_code?: number; server_error_id?: string} | undefined;
+    try {
+        await call();
+    } catch (err) {
+        error = err as typeof error;
+    }
+
+    expect(error, 'expected the server to refuse the change without the required value').toBeDefined();
+    expect(error?.status_code).toBe(400);
+    expect(error?.server_error_id).toBe(MISSING_REQUIRED_ERROR_ID);
 }

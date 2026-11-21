@@ -20,6 +20,7 @@ import {
     purgeAttributes,
     readChannelValues,
     setChannelValue,
+    unarchiveWithoutRequiredValues,
     valueFor,
 } from './helpers';
 
@@ -323,7 +324,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 required: true,
             });
             created.push(marking);
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [marking]);
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
             await channelsPage.goto(team.name, channel.name);

@@ -67,6 +67,7 @@ export default class ChannelsPage {
     readonly leaveTeamModal;
     readonly archivedChannelMessage;
     readonly unarchiveChannelModal;
+    readonly convertGmModal;
     readonly switchProductMenu;
 
     readonly postContainer;
@@ -155,6 +156,7 @@ export default class ChannelsPage {
         this.postContainer = page.getByTestId('post-message-text');
         this.archivedChannelMessage = page.locator('#channelArchivedMessage');
         this.unarchiveChannelModal = new components.UnarchiveChannelModal(page.locator('#unarchiveChannelModal'));
+        this.convertGmModal = new components.ConvertGmModal(page.locator('#convert-gm-to-channel-modal'));
 
         // Search results
         this.searchResultsContainer = page.locator('#search-items-container');
@@ -323,6 +325,17 @@ export default class ChannelsPage {
         await this.unarchiveChannelModal.toBeVisible();
 
         return this.unarchiveChannelModal;
+    }
+
+    /**
+     * Opens the "Convert to Private Channel" dialog from a group message's header menu.
+     */
+    async openConvertGmModal() {
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.openConvertToPrivate();
+        await this.convertGmModal.toBeVisible();
+
+        return this.convertGmModal;
     }
 
     /**

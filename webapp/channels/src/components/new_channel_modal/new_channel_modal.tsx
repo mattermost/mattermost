@@ -13,14 +13,13 @@ import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
-import {isTextField, supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isChannelAttributesRequiredEnabled, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -40,8 +39,8 @@ import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
     CHANNEL_BANNER_MIN_CHARACTER_LIMIT,
 } from 'components/channel_settings_modal/channel_settings_configuration_tab';
-import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
+import useRequiredChannelAttributesToAsk from 'components/common/hooks/useRequiredChannelAttributesToAsk';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import type {TextboxElement} from 'components/textbox';
@@ -161,62 +160,13 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
 
     const classification = useClassificationMarkings();
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
-    const requiredAttributesEnforced = useSelector(isChannelAttributesRequiredEnabled);
 
-    const channelAttributes = useChannelAttributes();
+    const {fields: assignableAttributeFields, enabled: channelAttributesEnabled, loading: channelAttributesLoading} = useRequiredChannelAttributesToAsk({teamId: currentTeamId ?? ''});
 
     // Superseded by the generic section while the flag is on, so classification has
     // one control here rather than two.
-    const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
+    const canManageClassification = classification.available && isSystemAdmin && !channelAttributesEnabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
-
-    const classificationFieldId = classification.channelField?.id;
-
-    // While ChannelAttributes is on but ChannelAttributesRequired is off,
-    // the System Console hides the Required toggle for channel fields entirely,
-    // so there is no admin path left to freshly mark one required during that
-    // window. Classification is the one courtesy exception: it is still offered
-    // here unconditionally, so admins can keep classifying channels even though
-    // nothing enforces it — every other channel attribute stays hidden like normal.
-    const classificationOfferedUnconditionally = channelAttributes.enabled && !requiredAttributesEnforced && classification.available;
-
-    // Required attributes only (classification's exception above aside).
-    // Optional attributes, including an optional classification outside that
-    // exception, are added later from Channel Info.
-    //
-    // The setter tier cannot be evaluated without a channel, so this renders
-    // optimistically and the server stays authoritative. sysadmin is the exception:
-    // a required sysadmin-only attribute would disable Create for everyone else,
-    // which is a worse failure than an unset marking — the server skips the same
-    // tier for the same reason.
-    const assignableAttributeFields = useMemo(() => {
-        return channelAttributes.fields.
-            filter((field) => {
-                const isClassificationException = field.id === classificationFieldId && classificationOfferedUnconditionally;
-                if (!isClassificationException && (!requiredAttributesEnforced || !isPropertyFieldRequired(field))) {
-                    return false;
-                }
-                if (!supportsOptions(field) && !supportsHierarchy(field) && !isTextField(field)) {
-                    return false;
-                }
-                if (field.permission_values === 'none' || field.permission_values === undefined) {
-                    return false;
-                }
-                if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
-                    return false;
-                }
-                return true;
-            }).
-            map((field) => {
-                // Visually optional and never blocking: nothing enforces this
-                // value when ChannelAttributesRequired is off, so the required
-                // marker would be misleading.
-                if (field.id === classificationFieldId && classificationOfferedUnconditionally && isPropertyFieldRequired(field)) {
-                    return {...field, attrs: {...field.attrs, required: false}};
-                }
-                return field;
-            });
-    }, [channelAttributes.fields, classificationFieldId, classificationOfferedUnconditionally, isSystemAdmin, requiredAttributesEnforced]);
 
     const missingRequiredAttributes = useMemo(() => {
         return assignableAttributeFields.filter((field) => {
@@ -531,7 +481,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
 
     // Attribute definitions gate submission: until they load the form is missing
     // controls the user may still need to fill in.
-    const canSubmit = pluginCreateGate && !isSubmitting && !channelAttributes.loading;
+    const canSubmit = pluginCreateGate && !isSubmitting && !channelAttributesLoading;
 
     const canCreate = hasCompleteForm && hasNoErrors && canSubmit;
 

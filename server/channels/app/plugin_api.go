@@ -522,7 +522,7 @@ func (api *PluginAPI) RestoreChannel(channelID string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	_, err = api.app.RestoreChannel(api.ctx, channel, "")
+	_, err = api.app.RestoreChannel(api.ctx, channel, "", RestoreChannelOptions{})
 	return err
 }
 
