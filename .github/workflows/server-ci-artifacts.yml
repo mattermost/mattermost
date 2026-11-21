@@ -150,7 +150,12 @@ jobs:
         env:
           WORKFLOW_RUN_HEAD_SHA: ${{ inputs.head-sha }}
         run: |
-          echo "TAG=$(echo "${WORKFLOW_RUN_HEAD_SHA}" | cut -c1-7)" >> $GITHUB_OUTPUT
+          if [[ ! "${WORKFLOW_RUN_HEAD_SHA}" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+            echo "::error::Invalid head_sha: not a valid commit SHA"
+            exit 1
+          fi
+          TAG="${WORKFLOW_RUN_HEAD_SHA:0:7}"
+          printf 'TAG=%s\n' "${TAG}" >> "${GITHUB_OUTPUT}"
 
       - name: cd/docker-build-and-push
         id: docker
@@ -185,12 +190,8 @@ jobs:
     steps:
       - name: cd/setup-wizcli
         run: |
-          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          curl -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
           chmod +x wizcli
-          ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
-        env:
-          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
-          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
 
       - name: cd/download-container-image
         env:
@@ -201,8 +202,11 @@ jobs:
       - name: cd/scan-image
         env:
           DOCKER_TAG: ${{ needs.build-docker.outputs.TAG }}
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
         run: |
-          ./wizcli docker scan --image "mattermostdevelopment/mattermost-team-edition:${DOCKER_TAG}" --policy "$POLICY"
+          ./wizcli scan container-image "mattermostdevelopment/mattermost-team-edition:${DOCKER_TAG}" --policies "$POLICY"
+          ./wizcli tag "mattermostdevelopment/mattermost-team-edition:${DOCKER_TAG}"
 
   update-failure-final-status:
     permissions:
