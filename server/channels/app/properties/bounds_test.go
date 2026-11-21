@@ -19,7 +19,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3)
 
 	boundsEnabled := false
-	th.service.AddHook(NewBoundsHook(th.service, func() bool { return boundsEnabled }))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return boundsEnabled }, nil))
 
 	const disabledErrID = "app.property_field.bounds_disabled.app_error"
 	raiseOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
@@ -157,7 +157,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	})
 
 	t.Run("a nil provider is off", func(t *testing.T) {
-		hook := NewBoundsHook(th.service, nil)
+		hook := NewBoundsHook(th.service, nil, nil)
 		err := hook.validateBoundsChange(&model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil)
 		requireAppError(t, err, disabledErrID)
 	})
@@ -176,7 +176,7 @@ func TestBoundsHookFlag(t *testing.T) {
 
 	t.Run("a v2 group's field passes the hook untouched", func(t *testing.T) {
 		v2 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
-		hook := NewBoundsHook(th.service, func() bool { return false })
+		hook := NewBoundsHook(th.service, func() bool { return false }, nil)
 		field := newFieldIn(v2.ID, model.PropertyFieldTypeRank, func(f *model.PropertyField) {
 			f.Bounds = model.PropertyBounds{raiseOnly}
 			f.Mutability = model.PropertyFieldMutabilitySetOnCreate
@@ -188,7 +188,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	})
 
 	t.Run("a group that does not resolve fails the hook, never passes it", func(t *testing.T) {
-		hook := NewBoundsHook(th.service, func() bool { return true })
+		hook := NewBoundsHook(th.service, func() bool { return true }, nil)
 		field := newFieldIn(model.NewId(), model.PropertyFieldTypeRank, func(f *model.PropertyField) {})
 
 		got, err := hook.PreCreatePropertyField(rctx, field)
@@ -215,7 +215,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	})
 
 	t.Run("an update naming a field the group does not hold surfaces the lookup error", func(t *testing.T) {
-		hook := NewBoundsHook(th.service, func() bool { return true })
+		hook := NewBoundsHook(th.service, func() bool { return true }, nil)
 		ghost := newField(model.PropertyFieldTypeText, func(f *model.PropertyField) { f.ID = model.NewId() })
 
 		_, err := hook.PreUpdatePropertyField(rctx, group.ID, ghost)

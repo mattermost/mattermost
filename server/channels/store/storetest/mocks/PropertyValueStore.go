@@ -5,8 +5,11 @@
 package mocks
 
 import (
+	json "encoding/json"
+
 	model "github.com/mattermost/mattermost/server/public/model"
 	request "github.com/mattermost/mattermost/server/public/shared/request"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -122,6 +125,24 @@ func (_m *PropertyValueStore) DeleteForTarget(groupID string, targetType string,
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(groupID, targetType, targetID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteForTargetExceptFields provides a mock function with given fields: groupID, targetType, targetID, keepFieldIDs
+func (_m *PropertyValueStore) DeleteForTargetExceptFields(groupID string, targetType string, targetID string, keepFieldIDs []string) error {
+	ret := _m.Called(groupID, targetType, targetID, keepFieldIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteForTargetExceptFields")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, []string) error); ok {
+		r0 = rf(groupID, targetType, targetID, keepFieldIDs)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -279,6 +300,36 @@ func (_m *PropertyValueStore) Update(groupID string, values []*model.PropertyVal
 	return r0, r1
 }
 
+// UpdateIfUnchanged provides a mock function with given fields: groupID, values, read
+func (_m *PropertyValueStore) UpdateIfUnchanged(groupID string, values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+	ret := _m.Called(groupID, values, read)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateIfUnchanged")
+	}
+
+	var r0 []*model.PropertyValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyValue, map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error)); ok {
+		return rf(groupID, values, read)
+	}
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyValue, map[store.PropertyValueKey]json.RawMessage) []*model.PropertyValue); ok {
+		r0 = rf(groupID, values, read)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []*model.PropertyValue, map[store.PropertyValueKey]json.RawMessage) error); ok {
+		r1 = rf(groupID, values, read)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Upsert provides a mock function with given fields: values
 func (_m *PropertyValueStore) Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	ret := _m.Called(values)
@@ -302,6 +353,36 @@ func (_m *PropertyValueStore) Upsert(values []*model.PropertyValue) ([]*model.Pr
 
 	if rf, ok := ret.Get(1).(func([]*model.PropertyValue) error); ok {
 		r1 = rf(values)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertIfUnchanged provides a mock function with given fields: values, read
+func (_m *PropertyValueStore) UpsertIfUnchanged(values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+	ret := _m.Called(values, read)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertIfUnchanged")
+	}
+
+	var r0 []*model.PropertyValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.PropertyValue, map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error)); ok {
+		return rf(values, read)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.PropertyValue, map[store.PropertyValueKey]json.RawMessage) []*model.PropertyValue); ok {
+		r0 = rf(values, read)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.PropertyValue, map[store.PropertyValueKey]json.RawMessage) error); ok {
+		r1 = rf(values, read)
 	} else {
 		r1 = ret.Error(1)
 	}
