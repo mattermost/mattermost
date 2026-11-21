@@ -1,0 +1,8 @@
+{
+    "schema": "explorer-build-record/v1",
+    "repository": "mattermostdevelopment/mattermost-enterprise-edition",
+    "tag": "abcdef0_1234567",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "commit_sha": "abcdef0123456789abcdef0123456789abcdef01",
+    "source": "fixture"
+}

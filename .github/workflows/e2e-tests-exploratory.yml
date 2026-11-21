@@ -1,0 +1,159 @@
+---
+name: E2E Tests (exploratory, advisory)
+
+# ADVISORY: does not gate merges or releases; existing release checks remain authoritative.
+# Runs the v2 exploratory coordinator headlessly against one digest-pinned server image. Not a required check.
+# All logic lives in explorer-proto/v2/ci/ (see its README.md); the steps below only call those scripts.
+# workflow_dispatch needs this file on the default branch of the repository that runs it.
+on:
+  workflow_dispatch:
+    inputs:
+      target_kind:
+        description: "Target kind: main (a dev image of a master commit) or release (an official release image)"
+        type: choice
+        required: true
+        options:
+          - main
+          - release
+      image:
+        description: "Server image with its digest: <repository>:<tag>@sha256:<64 hex digits>. A tag without a digest is refused."
+        type: string
+        required: true
+      commit_sha:
+        description: "main: the full 40-character SHA the image was built from. release: the release tag (for example v12.1.0)."
+        type: string
+        required: true
+      test_source_ref:
+        description: "Optional full SHA of the test source revision. Accepted only when its Playwright pin and lock equal the coordinator revision's. Default: the coordinator revision."
+        type: string
+        required: false
+        default: ""
+      session:
+        description: "Session whose existing spec is verified"
+        type: choice
+        required: true
+        default: bookmarks
+        options:
+          - bookmarks
+      control:
+        description: "Verification control applied to the spec"
+        type: string
+        required: true
+        default: release-bookmark-title-changed
+      verifier:
+        description: "Verifier delivery mode (process: deterministic code, no model agent)"
+        type: choice
+        required: true
+        default: process
+        options:
+          - process
+      time_budget_minutes:
+        description: "Job time budget in minutes (15 to 90)"
+        type: number
+        required: true
+        default: 45
+
+permissions: {}
+
+concurrency:
+  group: e2e-exploratory-${{ inputs.image }}-${{ inputs.session }}
+  cancel-in-progress: false
+
+jobs:
+  explore:
+    name: exploratory-${{ inputs.target_kind }}-${{ inputs.session }}
+    # The label the other E2E workflows use. The Enterprise 12.1.0 and dev images are linux/amd64 only, as is this runner.
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.time_budget_minutes }}
+    permissions:
+      contents: read
+    env:
+      EXPLORER_CI_DIR: ${{ github.workspace }}/exploratory-ci
+    steps:
+      - name: ci/checkout-coordinator
+        id: checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: ci/check-inputs
+        id: inputs
+        env:
+          INPUT_TARGET_KIND: ${{ inputs.target_kind }}
+          INPUT_IMAGE: ${{ inputs.image }}
+          INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
+          INPUT_TEST_SOURCE_REF: ${{ inputs.test_source_ref }}
+          INPUT_SESSION: ${{ inputs.session }}
+          INPUT_CONTROL: ${{ inputs.control }}
+          INPUT_VERIFIER: ${{ inputs.verifier }}
+          INPUT_TIME_BUDGET_MINUTES: ${{ inputs.time_budget_minutes }}
+        run: node explorer-proto/v2/ci/ci_status.mjs run inputs -- node explorer-proto/v2/ci/check_inputs.mjs
+      - name: ci/checkout-test-source
+        if: ${{ inputs.test_source_ref != '' }}
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.test_source_ref }}
+          path: .test-source
+          fetch-depth: 1
+          sparse-checkout: |
+            e2e-tests/playwright/package.json
+            e2e-tests/playwright/package-lock.json
+          sparse-checkout-cone-mode: false
+      - name: ci/run-facts
+        run: node explorer-proto/v2/ci/ci_status.mjs run facts -- node explorer-proto/v2/ci/run_facts.mjs init
+      - name: ci/verify-target
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node explorer-proto/v2/ci/ci_status.mjs run provenance -- node explorer-proto/v2/ci/verify_target.mjs --from-inputs --repo-pin --online
+      # Node from .nvmrc and the webapp packages that the Playwright workspace links to; the cache is only restored.
+      - name: ci/setup-webapp-node-modules
+        timeout-minutes: 20
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      - name: ci/setup-playwright-workspace
+        timeout-minutes: 20
+        run: node explorer-proto/v2/ci/ci_status.mjs run setup -- bash explorer-proto/v2/ci/setup_workspace.sh
+      - name: ci/pull-images
+        timeout-minutes: 10
+        run: node explorer-proto/v2/ci/ci_status.mjs run images -- bash explorer-proto/v2/ci/pull_images.sh
+      - name: ci/assert-no-capture-config
+        run: node explorer-proto/v2/ci/ci_status.mjs run capture-config -- node explorer-proto/v2/ci/assert_no_capture.mjs
+      - name: ci/containment
+        timeout-minutes: 10
+        run: bash explorer-proto/v2/ci/containment.sh
+      # Only the two steps below and the leak scan receive the licence. Neither starts a model agent.
+      - name: ci/stack-gate
+        timeout-minutes: 20
+        env:
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+        run: bash explorer-proto/v2/ci/stack_gate.sh
+      - name: ci/coordinator
+        env:
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+        run: bash explorer-proto/v2/ci/run_coordinator.sh
+      - name: ci/teardown
+        if: ${{ always() && steps.checkout.outcome == 'success' }}
+        run: node explorer-proto/v2/ci/ci_status.mjs run teardown -- bash explorer-proto/infra/scripts/down.sh
+      - name: ci/export
+        id: export
+        if: ${{ always() && steps.checkout.outcome == 'success' }}
+        run: bash explorer-proto/v2/ci/export_run.sh
+      - name: ci/leak-scan
+        id: leak
+        if: ${{ always() && steps.checkout.outcome == 'success' }}
+        env:
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+        run: node explorer-proto/v2/ci/ci_status.mjs run --blocked-codes 2 leak-scan -- node explorer-proto/infra/scripts/leak_scan.mjs "${EXPLORER_CI_DIR}/export" "${EXPLORER_CI_DIR}/pilot-summary.md"
+      - name: ci/upload-export
+        if: ${{ always() && steps.export.outcome == 'success' && steps.leak.outcome == 'success' }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: ${{ steps.inputs.outputs.artifact_name }}
+          path: ${{ env.EXPLORER_CI_DIR }}/export
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: ci/final-summary
+        if: ${{ always() && steps.checkout.outcome == 'success' }}
+        run: node explorer-proto/v2/ci/final_summary.mjs --github-summary-file "$GITHUB_STEP_SUMMARY" --pilot-summary "${EXPLORER_CI_DIR}/pilot-summary.md"

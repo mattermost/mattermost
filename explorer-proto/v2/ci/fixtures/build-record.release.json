@@ -1,0 +1,9 @@
+{
+    "schema": "explorer-build-record/v1",
+    "repository": "mattermost/mattermost-enterprise-edition",
+    "tag": "11.4.0-rc3",
+    "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "commit_sha": "0123456789abcdef0123456789abcdef01234567",
+    "release_tag": "v11.4.0-rc3",
+    "source": "fixture"
+}
