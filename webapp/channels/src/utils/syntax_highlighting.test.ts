@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import hlJS from 'highlight.js/lib/core';
+import ini from 'highlight.js/lib/languages/ini';
 import javascript from 'highlight.js/lib/languages/javascript';
 import plaintext from 'highlight.js/lib/languages/plaintext';
 import swift from 'highlight.js/lib/languages/swift';
@@ -30,6 +31,14 @@ describe('utils/syntax_highlighting.tsx', () => {
         await highlight('js', '');
 
         expect(hlJS.registerLanguage).toHaveBeenCalledWith('javascript', javascript);
+    });
+
+    it('should register TOML using the ini grammar', async () => {
+        expect.assertions(1);
+
+        await highlight('toml', '');
+
+        expect(hlJS.registerLanguage).toHaveBeenCalledWith('toml', ini);
     });
 
     it('should register WebVTT format as plaintext', async () => {
