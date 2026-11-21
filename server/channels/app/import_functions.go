@@ -389,18 +389,54 @@ func (a *App) setImportMarker(rctx request.CTX, userID string, report *imports.I
 	}
 }
 
-// clearImportMarkers removes the markers of a completed import, after which its
-// accounts are treated like any other existing account.
-func (a *App) clearImportMarkers(rctx request.CTX, runMarker string) {
+// importMarkerCleanupKey names the system row that records a completed import
+// whose markers still have to be removed. The hash is truncated to fit the key.
+func importMarkerCleanupKey(runMarker string) string {
+	return "ImportMarkerCleanup_" + runMarker[:min(len(runMarker), 40)]
+}
+
+// importMarkerCleanupPending reports whether an earlier attempt at this import
+// completed its import work but didn't finish removing its markers.
+func (a *App) importMarkerCleanupPending(rctx request.CTX, runMarker string) (bool, *model.AppError) {
 	if a.ch.importMarkerFieldID == "" {
-		return
+		return false, nil
+	}
+	_, err := a.Srv().Store().System().GetByNameWithContext(store.RequestContextWithMaster(rctx), importMarkerCleanupKey(runMarker))
+	if err == nil {
+		return true, nil
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+		return false, nil
+	}
+	return false, model.NewAppError("BulkImport", "app.import.bulk_import.import_marker_cleanup_state.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+}
+
+// finishImportMarkers removes the markers of a completed import, after which
+// its accounts are treated like any other existing account. The pending row is
+// written first so that, if removal fails, a retry only finishes the removal
+// instead of setting the accounts up again.
+func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) *model.AppError {
+	if a.ch.importMarkerFieldID == "" {
+		return nil
+	}
+	newErr := func(err error) *model.AppError {
+		return model.NewAppError("BulkImport", "app.import.bulk_import.import_marker_cleanup.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	key := importMarkerCleanupKey(runMarker)
+	if err := a.Srv().Store().System().SaveOrUpdate(&model.System{Name: key, Value: "true"}); err != nil {
+		return newErr(err)
 	}
 	cleared, err := a.Srv().propertyService.ClearImportMarkers(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, runMarker)
 	if err != nil {
-		rctx.Logger().Error("Failed to clear import markers; a later import of a file with the same name will continue setting up these accounts", mlog.Int("cleared", cleared), mlog.Err(err))
-		return
+		rctx.Logger().Error("Failed to remove import markers; run the same import again to finish removing them", mlog.Int("cleared", cleared), mlog.Err(err))
+		return newErr(err)
 	}
-	rctx.Logger().Info("Cleared import markers", mlog.Int("cleared", cleared))
+	if _, err := a.Srv().Store().System().PermanentDeleteByName(key); err != nil {
+		return newErr(err)
+	}
+	rctx.Logger().Info("Removed import markers", mlog.Int("cleared", cleared))
+	return nil
 }
 
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, report *imports.ImportReport) *model.AppError {

@@ -55,6 +55,11 @@ const (
 	UnmatchedUserLinkedExisting UnmatchedUserAction = "linked_existing"
 )
 
+// ImportMarkerCleanupErrorID fails an import whose work completed but whose
+// markers couldn't all be removed. Its report is final; a retry only removes the
+// remaining markers.
+const ImportMarkerCleanupErrorID = "app.import.bulk_import.import_marker_cleanup.app_error"
+
 // UnmatchedUser is one entry in the scoped-import report: a user from the export who
 // was not found as an existing account on the destination server, plus what the
 // import did about it. This is the data behind the operator-facing "which users were

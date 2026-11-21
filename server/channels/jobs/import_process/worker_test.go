@@ -456,6 +456,37 @@ func TestMakeWorkerUnmatchedUsersReport(t *testing.T) {
 		require.Contains(t, string(content), "bob,,eng,off-topic,channel_not_found,membership_skipped")
 	})
 
+	t.Run("a failed marker cleanup still writes the report and fails the job", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_not_found", Action: imports.UnmatchedUserCreatedInactive,
+		})
+		app.bulkImportReport = report
+		app.bulkImportErr = model.NewAppError("BulkImport", imports.ImportMarkerCleanupErrorID, nil, "", 500)
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id:   model.NewId(),
+			Data: map[string]string{"import_file": zipPath, "local_mode": "true"},
+		}
+		claimed := *job
+		claimed.Status = model.JobStatusInProgress
+		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(&claimed, nil)
+
+		worker.DoJob(job)
+
+		require.Equal(t, "1", job.Data["unmatched_users_count"])
+		require.FileExists(t, job.Data["unmatched_users_report"])
+		mockStore.JobStore.AssertNotCalled(t, "UpdateStatus", job.Id, model.JobStatusSuccess)
+		require.False(t, app.removeFileCalled)
+	})
+
 	t.Run("no report file and no job data when all users matched", func(t *testing.T) {
 		jobServer, mockStore := makeTestJobServer(t)
 		expectJobDataUpdate(mockStore)

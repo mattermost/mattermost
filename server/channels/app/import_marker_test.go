@@ -53,6 +53,34 @@ func markerTestArchive(user imports.UserImportData) identityTestArchive {
 	}
 }
 
+func cleanupPending(t *testing.T, th *TestHelper, runMarker string) bool {
+	t.Helper()
+	require.NotEmpty(t, runMarker)
+	pending, appErr := th.App.importMarkerCleanupPending(th.Context, runMarker)
+	require.Nil(t, appErr)
+	return pending
+}
+
+// blockMarkerDeletion makes deleting userID's property values fail in the
+// database, so marker cleanup fails without a test seam in the app.
+func blockMarkerDeletion(t *testing.T, th *TestHelper, userID string) {
+	t.Helper()
+	require.True(t, model.IsValidId(userID))
+	_, err := th.SQLStore.GetMaster().Exec(`CREATE OR REPLACE FUNCTION test_block_marker_delete() RETURNS trigger AS $$
+		BEGIN RAISE EXCEPTION 'marker deletion blocked by test'; END $$ LANGUAGE plpgsql`)
+	require.NoError(t, err)
+	_, err = th.SQLStore.GetMaster().Exec(`CREATE TRIGGER test_block_marker_delete BEFORE DELETE ON PropertyValues
+		FOR EACH ROW WHEN (OLD.TargetID = '` + userID + `') EXECUTE FUNCTION test_block_marker_delete()`)
+	require.NoError(t, err)
+	t.Cleanup(func() { unblockMarkerDeletion(t, th) })
+}
+
+func unblockMarkerDeletion(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.SQLStore.GetMaster().Exec(`DROP TRIGGER IF EXISTS test_block_marker_delete ON PropertyValues`)
+	require.NoError(t, err)
+}
+
 func reportReasons(report *imports.ImportReport, username string) []string {
 	var reasons []string
 	for _, row := range report.UnmatchedUsers.All() {
@@ -140,6 +168,52 @@ func TestScopedImportRunMarker(t *testing.T) {
 		after, err := th.App.Srv().Store().User().Get(th.Context, before.Id)
 		require.NoError(t, err)
 		assert.Equal(t, before.FirstName, after.FirstName, "re-importing a completed file leaves the account unchanged")
+		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, *user.Username))
+		assert.False(t, cleanupPending(t, th, report.RunMarker))
+	})
+
+	t.Run("a failed marker cleanup fails the import and a retry only finishes the cleanup", func(t *testing.T) {
+		th := setupIdentityTest(t)
+		runID := model.NewId() + "_export.zip"
+
+		user := archiveUserFor("archive"+model.NewId()[:10], model.SystemUserRoleId)
+		archive := markerTestArchive(user)
+		archive.postMessage = "interrupted before this"
+		archive.postCreate = model.GetMillis()
+		_, appErr := runMarkerTestImport(t, th, &truncatedErrReader{data: firstNLines(archive.jsonl(t), 4)}, runID)
+		require.NotNil(t, appErr)
+		created, err := th.App.Srv().Store().User().GetByUsername(*user.Username)
+		require.NoError(t, err)
+		require.Len(t, importMarkers(t, th), 1)
+
+		blockMarkerDeletion(t, th, created.Id)
+		report, appErr := runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, imports.ImportMarkerCleanupErrorID, appErr.Id)
+		assert.Equal(t, []string{"username_not_found/" + string(imports.UnmatchedUserCreatedInactive)}, reportReasons(report, *user.Username), "the failed run still reports the work it completed")
+		require.Len(t, importMarkers(t, th), 1)
+		require.True(t, cleanupPending(t, th, report.RunMarker))
+
+		unblockMarkerDeletion(t, th)
+		edited, err := th.App.Srv().Store().User().Get(th.Context, created.Id)
+		require.NoError(t, err)
+		edited.FirstName = "EditedAfterImport"
+		_, appErr = th.App.UpdateUser(th.Context, edited, false)
+		require.Nil(t, appErr)
+
+		archive.user.FirstName = new("Changed")
+		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr)
+		assert.Empty(t, report.UnmatchedUsers.All(), "the cleanup-only retry imports nothing")
+		assert.Empty(t, importMarkers(t, th))
+		assert.False(t, cleanupPending(t, th, report.RunMarker))
+
+		after, err := th.App.Srv().Store().User().Get(th.Context, created.Id)
+		require.NoError(t, err)
+		assert.Equal(t, "EditedAfterImport", after.FirstName, "the cleanup-only retry must not update the account")
+
+		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr)
 		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, *user.Username))
 	})
 
