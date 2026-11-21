@@ -1,0 +1,71 @@
+{
+    "schema": "explorer-promotion-policy/v1",
+    "policy_version": 1,
+    "required_gates": [
+        {"id": "schema", "verdict_gate": "schema", "module": "explorer-proto/v2/schemas/validate.mjs"},
+        {"id": "leakage", "verdict_gate": "leakage", "module": "explorer-proto/v2/bakeoff/leakage_check.mjs"},
+        {"id": "duplicate_gate", "verdict_gate": "duplicate", "module": "explorer-proto/v2/index/coverage-check.mjs"},
+        {"id": "static_spec", "verdict_gate": "lint", "module": "explorer-proto/v2/gates/static_spec_check.mjs"},
+        {"id": "stability_20", "verdict_gate": "stability", "module": "explorer-proto/v2/gates/stability_gate.mjs"},
+        {
+            "id": "mutation_control",
+            "verdict_gate": "control_sensitivity",
+            "module": "explorer-proto/v2/gates/mutation_control.mjs"
+        },
+        {"id": "secrets_scan", "verdict_gate": "secret_scan", "module": "explorer-proto/infra/scripts/leak_scan.mjs"},
+        {
+            "id": "containment_evidence",
+            "verdict_gate": "guard",
+            "module": "explorer-proto/v2/gates/containment_evidence.mjs"
+        }
+    ],
+    "outcomes": {
+        "promote_pr": "Every required gate passes and no other gate in the verdict failed or is blocked.",
+        "quarantine": "Every required gate passes except that mutation_control is blocked, or stability_20 shows flakes within the flake budget. Nothing else may fail or be blocked.",
+        "reject": "Any required gate fails, any gate other than mutation_control is blocked or missing, the flake budget is exceeded, or the verdict is invalid."
+    },
+    "stability": {
+        "replays": 20,
+        "retries": 0
+    },
+    "flake_budget": {
+        "window_replays": 20,
+        "max_flaky_replays_for_quarantine": 1,
+        "above_budget": "reject",
+        "non_quarantinable_stability_rules": [
+            "duplicate_reports",
+            "hook_or_fixture_error",
+            "inconsistent_or_empty_tests",
+            "log_disposed",
+            "log_network_guard_violations",
+            "log_route_handler_error",
+            "log_test_timeout",
+            "timed_out",
+            "trace_nondeterminism"
+        ]
+    },
+    "blocked_gate_outcome": {
+        "mutation_control": "quarantine",
+        "any_other_gate": "reject",
+        "note": "A blocked gate is never a pass. A rejection for a blocked gate is retryable once the blocker is removed."
+    },
+    "quarantine": {
+        "tag": "@quarantine",
+        "owner_required": true,
+        "rerun_schedule": {
+            "field": "rerun_schedule",
+            "cadence": "daily",
+            "note": "A field carried on the quarantine record. No scheduler is implemented here."
+        },
+        "unquarantine_rule": {
+            "consecutive_clean_runs": 20,
+            "distinct_days": 3,
+            "enforcement": "policy value only; nothing in this directory schedules or counts runs"
+        }
+    },
+    "agent_verdict_override": {
+        "allowed": false,
+        "statement": "An agent verdict cannot override a gate failure. A gate result is whatever the gate module returned. A verdict that claims a better result than a supplied gate result is rejected, and the worse of the two always counts."
+    },
+    "change_control": "POLICY-CHANGE.md"
+}
