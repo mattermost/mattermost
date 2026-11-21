@@ -25,6 +25,9 @@ export function MenuTitle(props: Props) {
     );
 }
 
+// Keeps MUI from trying to focus a title, instead of the first item, when the menu opens.
+MenuTitle.muiSkipListHighlight = true;
+
 const Title = styled.h4`
     font-size: 12px;
     font-weight: 600;

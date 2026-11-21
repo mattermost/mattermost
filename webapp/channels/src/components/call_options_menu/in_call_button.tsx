@@ -21,21 +21,26 @@ type Props = {
  */
 const InCallButton = ({id}: Props) => {
     const {formatMessage} = useIntl();
-    const label = formatMessage({
-        id: 'start_call_menu.in_call',
-        defaultMessage: 'In call',
-        description: 'Accessible name and tooltip of the pressed call button in a DM channel header or profile popover while the user is ringing or in a call with that person.',
-    });
 
     return (
-        <WithTooltip title={label}>
+        <WithTooltip
+            title={formatMessage({
+                id: 'start_call_menu.in_call',
+                defaultMessage: 'In call',
+                description: 'Accessible name and tooltip of the pressed call button in a DM channel header or profile popover while the user is ringing or in a call with that person.',
+            })}
+        >
             <IconButton
                 id={id}
                 className='InCallButton'
                 size='small'
                 active={true}
                 aria-pressed={true}
-                aria-label={label}
+                aria-label={formatMessage({
+                    id: 'start_call_menu.in_call',
+                    defaultMessage: 'In call',
+                    description: 'Accessible name and tooltip of the pressed call button in a DM channel header or profile popover while the user is ringing or in a call with that person.',
+                })}
                 icon={(
                     <span className='InCallButton__icon'>
                         <Icon glyph={<PhoneInTalkIcon/>}/>

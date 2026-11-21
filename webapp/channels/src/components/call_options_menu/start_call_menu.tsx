@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
@@ -24,10 +23,12 @@ type Props = {
     buttonId: string;
     disabled?: boolean;
     phones: DialablePhone[];
+    showCopyCallLink: boolean;
+    showCallSettings: boolean;
     onStartCall: () => void;
     onPhoneCall: (phone: DialablePhone) => void;
-    onCopyCallLink?: () => void;
-    onOpenCallSettings?: () => void;
+    onCopyCallLink: () => void;
+    onOpenCallSettings: () => void;
 };
 
 /**
@@ -39,6 +40,8 @@ const StartCallMenu = ({
     buttonId,
     disabled,
     phones,
+    showCopyCallLink,
+    showCallSettings,
     onStartCall,
     onPhoneCall,
     onCopyCallLink,
@@ -70,19 +73,20 @@ const StartCallMenu = ({
             menu={{
                 id: menuId,
                 'aria-label': label,
-                className: 'startCallMenu',
             }}
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
         >
             {showHeadings && (
-                <GroupHeading id={mattermostHeadingId}>
-                    <FormattedMessage
-                        id='start_call_menu.mattermost_call'
-                        defaultMessage='Mattermost call'
-                        description='Heading of the Start call menu group with ways to call someone within Mattermost, shown when the menu also has a phone call group.'
-                    />
-                </GroupHeading>
+                <Menu.Title role='presentation'>
+                    <span id={mattermostHeadingId}>
+                        <FormattedMessage
+                            id='start_call_menu.mattermost_call'
+                            defaultMessage='Mattermost call'
+                            description='Heading of the Start call menu group with ways to call someone within Mattermost, shown when the menu also has a phone call group.'
+                        />
+                    </span>
+                </Menu.Title>
             )}
             <Menu.Item
                 id={`${menuId}-startCall`}
@@ -97,7 +101,7 @@ const StartCallMenu = ({
                 }
                 onClick={onStartCall}
             />
-            {onCopyCallLink && (
+            {showCopyCallLink && (
                 <Menu.Item
                     id={`${menuId}-copyCallLink`}
                     aria-describedby={mattermostDescribedBy}
@@ -114,13 +118,15 @@ const StartCallMenu = ({
             )}
             {showHeadings && <Menu.Separator/>}
             {showHeadings && (
-                <GroupHeading id={phoneHeadingId}>
-                    <FormattedMessage
-                        id='start_call_menu.phone_call'
-                        defaultMessage='Phone call'
-                        description='Heading of the Start call menu group listing the phone numbers the other person can be called on.'
-                    />
-                </GroupHeading>
+                <Menu.Title role='presentation'>
+                    <span id={phoneHeadingId}>
+                        <FormattedMessage
+                            id='start_call_menu.phone_call'
+                            defaultMessage='Phone call'
+                            description='Heading of the Start call menu group listing the phone numbers the other person can be called on.'
+                        />
+                    </span>
+                </Menu.Title>
             )}
             {phones.map((phone) => (
                 <Menu.Item
@@ -144,8 +150,8 @@ const StartCallMenu = ({
                     onClick={() => onPhoneCall(phone)}
                 />
             ))}
-            {onOpenCallSettings && <Menu.Separator/>}
-            {onOpenCallSettings && (
+            {showCallSettings && <Menu.Separator/>}
+            {showCallSettings && (
                 <Menu.Item
                     id={`${menuId}-callSettings`}
                     leadingElement={<CogOutlineIcon size={18}/>}
@@ -163,22 +169,13 @@ const StartCallMenu = ({
     );
 };
 
-const GroupHeading = ({id, children}: {id: string; children: ReactNode}) => (
-    <Menu.Title role='presentation'>
-        <span id={id}>{children}</span>
-    </Menu.Title>
-);
-
-// Keeps MUI from trying to focus the heading, instead of the first item, when the menu opens.
-GroupHeading.muiSkipListHighlight = true;
-
-const StartCallMenuButton = createMenuIconButtonTrigger({size: 'small', className: 'StartCallMenuButton'});
+const StartCallMenuButton = createMenuIconButtonTrigger({size: 'small', className: 'StartCallMenu__button'});
 
 const startCallMenuButtonIcons = (
     <>
         <Icon glyph={<PhoneIcon/>}/>
         <Icon
-            className='StartCallMenuButton__chevron'
+            className='StartCallMenu__chevron'
             size='12'
             glyph={<ChevronDownIcon/>}
         />

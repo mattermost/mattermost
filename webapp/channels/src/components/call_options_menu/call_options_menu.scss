@@ -9,16 +9,18 @@
     display: inline-flex;
 }
 
-// Compass IconButton is square; this one holds a phone and a chevron.
-button.StartCallMenuButton {
-    width: auto;
+.StartCallMenu__button {
+    // Compass IconButton is square; this one holds a phone and a chevron.
+    .DMCallButton & {
+        width: auto;
+    }
 
-    &[aria-expanded='true'] .StartCallMenuButton__chevron {
+    &[aria-expanded='true'] .StartCallMenu__chevron {
         transform: rotate(180deg);
     }
 }
 
-.StartCallMenuButton__chevron {
+.StartCallMenu__chevron {
     margin-left: 2px;
 
     @media (prefers-reduced-motion: no-preference) {

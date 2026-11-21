@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
+import type {RefObject} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -12,7 +13,6 @@ import StartCallMenu from './start_call_menu';
 import useIsInCall from './use_is_in_call';
 import usePhoneCallOptions from './use_phone_call_options';
 import type {DialablePhone} from './use_phone_call_options';
-import useRestoreFocusOnSwap from './use_restore_focus_on_swap';
 
 type Props = {
     menuId: string;
@@ -44,9 +44,7 @@ const DMCallButton = ({
     const containerRef = useRef<HTMLSpanElement>(null);
     const inCall = useIsInCall(callButton, dmChannel?.id);
     const phones = usePhoneCallOptions(userId, Boolean(callButton.phoneAction) && !inCall);
-    useRestoreFocusOnSwap(containerRef, menuId, inCall);
-
-    const {phoneAction, copyCallLinkAction, callSettingsAction} = callButton;
+    useKeepFocusOnCallButton(containerRef, menuId, inCall);
 
     function handleStartCall() {
         onSelect?.();
@@ -55,17 +53,43 @@ const DMCallButton = ({
 
     function handlePhoneCall(phone: DialablePhone) {
         onSelect?.();
-        phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
+        callButton.phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
     }
 
     function handleCopyCallLink() {
+        if (!callButton.copyCallLinkAction) {
+            return;
+        }
         onSelect?.();
-        copyCallLinkAction?.({userId, channel: dmChannel ?? undefined});
+        callButton.copyCallLinkAction({userId, channel: dmChannel ?? undefined});
     }
 
     function handleOpenCallSettings() {
+        if (!callButton.callSettingsAction) {
+            return;
+        }
         onSelect?.();
-        callSettingsAction?.();
+        callButton.callSettingsAction();
+    }
+
+    let button;
+    if (inCall) {
+        button = <InCallButton id={buttonId}/>;
+    } else {
+        button = (
+            <StartCallMenu
+                menuId={menuId}
+                buttonId={buttonId}
+                disabled={disabled}
+                phones={phones}
+                showCopyCallLink={Boolean(callButton.copyCallLinkAction)}
+                showCallSettings={Boolean(callButton.callSettingsAction)}
+                onStartCall={handleStartCall}
+                onPhoneCall={handlePhoneCall}
+                onCopyCallLink={handleCopyCallLink}
+                onOpenCallSettings={handleOpenCallSettings}
+            />
+        );
     }
 
     return (
@@ -73,22 +97,39 @@ const DMCallButton = ({
             ref={containerRef}
             className='DMCallButton'
         >
-            {inCall ? (
-                <InCallButton id={buttonId}/>
-            ) : (
-                <StartCallMenu
-                    menuId={menuId}
-                    buttonId={buttonId}
-                    disabled={disabled}
-                    phones={phones}
-                    onStartCall={handleStartCall}
-                    onPhoneCall={handlePhoneCall}
-                    onCopyCallLink={copyCallLinkAction ? handleCopyCallLink : undefined}
-                    onOpenCallSettings={callSettingsAction ? handleOpenCallSettings : undefined}
-                />
-            )}
+            {button}
         </span>
     );
 };
+
+/**
+ * Moves focus to the new button when the Start call menu and the In call button swap while the old button, or the
+ * menu it opened, had focus. Without this, focus falls back to the page when the focused button is removed.
+ */
+function useKeepFocusOnCallButton(containerRef: RefObject<HTMLElement | null>, menuId: string, inCall: boolean) {
+    const ownsFocus = useRef(false);
+
+    useEffect(() => {
+        const handleFocusIn = (event: FocusEvent) => {
+            const target = event.target;
+            ownsFocus.current = target instanceof Element && Boolean(containerRef.current?.contains(target) || target.closest(`#${menuId}`));
+        };
+        document.addEventListener('focusin', handleFocusIn);
+        return () => document.removeEventListener('focusin', handleFocusIn);
+    }, [containerRef, menuId]);
+
+    const prevInCall = useRef(inCall);
+    useLayoutEffect(() => {
+        if (prevInCall.current === inCall) {
+            return;
+        }
+        prevInCall.current = inCall;
+
+        const active = document.activeElement;
+        if (ownsFocus.current && (!active || active === document.body)) {
+            containerRef.current?.querySelector<HTMLElement>('button')?.focus();
+        }
+    }, [containerRef, inCall]);
+}
 
 export default DMCallButton;
