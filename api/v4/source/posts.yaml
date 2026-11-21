@@ -571,6 +571,14 @@
         from a channel, team, or all flagged posts by a user. Will only return
         posts from channels in which the user is member.
 
+
+        Posts are sorted newest first. To page through them, pass the ID of
+        the last post in each page as `before` while `has_next` is `true`.
+        Unlike `page`, `before` doesn't skip or repeat posts when posts are
+        saved or unsaved between requests. A page can hold fewer than
+        `per_page` posts before the end of the list, because posts the user
+        can no longer read are removed after the page is selected.
+
         ##### Permissions
 
         Must be user or have `manage_system` permission.
@@ -592,9 +600,24 @@
           description: Channel ID
           schema:
             type: string
+        - name: before
+          in: query
+          description: >
+            A post ID to select the flagged posts that follow it, newest first.
+            The post need not still be flagged, but it must still exist: a post
+            that was permanently deleted returns 404, and the list must be
+            reloaded from the start. Can't be combined with `page`.
+          schema:
+            type: string
         - name: page
           in: query
-          description: The page to select
+          deprecated: true
+          description: >
+            The page to select.
+
+
+            **Deprecated:** Use `before` instead. `page` will be removed in
+            v13.0.
           schema:
             type: integer
             default: 0
@@ -610,15 +633,15 @@
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PostList"
+                $ref: "#/components/schemas/PostList"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/files/info":
     get:
       tags:

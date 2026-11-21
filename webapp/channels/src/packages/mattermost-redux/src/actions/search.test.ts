@@ -3,10 +3,13 @@
 
 import nock from 'nock';
 
+import type {Post} from '@mattermost/types/posts';
 import type {SearchParameter} from '@mattermost/types/search';
 
+import {PostTypes, PreferenceTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/search';
 import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
@@ -23,6 +26,141 @@ describe('Actions.Search', () => {
 
     afterAll(() => {
         TestHelper.tearDown();
+    });
+
+    function flaggedPostsStore() {
+        const channelId = TestHelper.basicChannel!.id;
+        const userId = TestHelper.basicUser!.id;
+        return configureStore({
+            entities: {
+                channels: {
+                    channels: {[channelId]: TestHelper.basicChannel!},
+                    myMembers: {[channelId]: TestHelper.basicChannelMember!},
+                    membersInChannel: {[channelId]: {}},
+                },
+                users: {currentUserId: userId, statuses: {[userId]: 'online'}},
+            },
+        });
+    }
+
+    function mockFlaggedPage(before: string | undefined, order: Post[], hasNext: boolean, delay = 0) {
+        nock(Client4.getUsersRoute()).
+            get(`/${TestHelper.basicUser!.id}/posts/flagged`).
+            query((query) => query.before === before).
+            delay(delay).
+            reply(200, {order: order.map((p) => p.id), posts: Object.fromEntries(order.map((p) => [p.id, p])), has_next: hasNext});
+    }
+
+    function flaggedPost(id: string) {
+        return TestHelper.getPostMock({id, channel_id: TestHelper.basicChannel!.id, user_id: TestHelper.basicUser!.id});
+    }
+
+    it('getFlaggedPosts continues from the last post of the previous page', async () => {
+        const userId = TestHelper.basicUser!.id;
+        store = flaggedPostsStore();
+        const {dispatch, getState} = store;
+        const post1 = flaggedPost('post1');
+        const post2 = flaggedPost('post2');
+
+        nock(Client4.getUsersRoute()).
+            get(`/${userId}/posts/flagged`).
+            query((query) => query.before === undefined).
+            reply(200, {order: [post1.id], posts: {[post1.id]: post1}, has_next: true});
+
+        await dispatch(Actions.getFlaggedPosts());
+        expect(getState().entities.search.flaggedPaging).toEqual({before: post1.id, isEnd: false});
+
+        nock(Client4.getUsersRoute()).
+            get(`/${userId}/posts/flagged`).
+            query((query) => query.before === post1.id).
+            reply(200, {order: [post2.id], posts: {[post2.id]: post2}, has_next: false});
+
+        await dispatch(Actions.getFlaggedPosts(post1.id));
+        expect(getState().entities.search.flagged).toEqual([post1.id, post2.id]);
+        expect(getState().entities.search.flaggedPaging).toEqual({before: post2.id, isEnd: true});
+    });
+
+    it('getFlaggedPosts continues from a cursor post that was unsaved and removed', async () => {
+        store = flaggedPostsStore();
+        const {dispatch, getState} = store;
+        const post1 = flaggedPost('post1');
+        const post2 = flaggedPost('post2');
+
+        mockFlaggedPage(undefined, [post1], true);
+        await dispatch(Actions.getFlaggedPosts());
+
+        dispatch({
+            type: PreferenceTypes.DELETED_PREFERENCES,
+            data: [{user_id: TestHelper.basicUser!.id, category: Preferences.CATEGORY_FLAGGED_POST, name: post1.id, value: 'true'}],
+        });
+        dispatch({type: PostTypes.POST_REMOVED, data: post1});
+        expect(getState().entities.search.flagged).toEqual([]);
+
+        mockFlaggedPage(post1.id, [post2], false);
+        await dispatch(Actions.getFlaggedPosts(getState().entities.search.flaggedPaging.before));
+
+        expect(getState().entities.search.flagged).toEqual([post2.id]);
+        expect(getState().entities.search.flaggedPaging).toEqual({before: post2.id, isEnd: true});
+        expect(nock.isDone()).toBe(true);
+    });
+
+    describe('getFlaggedPosts reloading while a later page is in flight', () => {
+        async function race(reloadDelay: number, moreDelay: number) {
+            const post1 = flaggedPost('post1');
+            const post2 = flaggedPost('post2');
+            store = flaggedPostsStore();
+            mockFlaggedPage(undefined, [post1], true);
+            await store.dispatch(Actions.getFlaggedPosts());
+
+            mockFlaggedPage(post1.id, [post2], true, moreDelay);
+            mockFlaggedPage(undefined, [post1], true, reloadDelay);
+            await Promise.all([
+                store.dispatch(Actions.getFlaggedPosts(post1.id)),
+                store.dispatch(Actions.getFlaggedPosts()),
+            ]);
+            expect(nock.isDone()).toBe(true);
+            return store.getState().entities.search;
+        }
+
+        it('keeps the later page when the reload lands first', async () => {
+            const {flagged, flaggedPaging} = await race(0, 50);
+
+            expect(flagged).toEqual(['post1', 'post2']);
+            expect(flaggedPaging).toEqual({before: 'post2', isEnd: false});
+        });
+
+        it('restarts from the reload when it lands last', async () => {
+            const {flagged, flaggedPaging} = await race(50, 0);
+
+            expect(flagged).toEqual(['post1']);
+            expect(flaggedPaging).toEqual({before: 'post1', isEnd: false});
+        });
+    });
+
+    it('getMissingFlaggedPosts loads only the saved posts not already loaded', async () => {
+        const channelId = TestHelper.basicChannel!.id;
+        const userId = TestHelper.basicUser!.id;
+        store = configureStore({
+            entities: {
+                channels: {
+                    channels: {[channelId]: TestHelper.basicChannel!},
+                    myMembers: {[channelId]: TestHelper.basicChannelMember!},
+                    membersInChannel: {[channelId]: {}},
+                },
+                posts: {posts: {loaded: TestHelper.getPostMock({id: 'loaded'})}},
+                users: {currentUserId: userId, statuses: {[userId]: 'online'}},
+            },
+        });
+        const missing = TestHelper.getPostMock({id: 'missing', channel_id: channelId, user_id: userId});
+
+        nock(Client4.getPostsRoute()).
+            post('/ids', ['missing']).
+            reply(200, [missing]);
+
+        await store.dispatch(Actions.getMissingFlaggedPosts(['loaded', 'missing']));
+
+        expect(store.getState().entities.posts.posts.missing).toEqual(missing);
+        expect(nock.isDone()).toBe(true);
     });
 
     it('Perform Search', async () => {

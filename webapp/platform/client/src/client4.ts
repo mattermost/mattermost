@@ -2868,8 +2868,16 @@ export default class Client4 {
     };
 
     getFlaggedPosts = (userId: string, channelId = '', teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
-        return this.doFetch<PostList>(
+        return this.doFetch<PaginatedPostList>(
             `${this.getUserRoute(userId)}/posts/flagged${buildQueryString({channel_id: channelId, team_id: teamId, page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    /** Leave before empty for the first page, then pass the last post ID of each page while has_next is true. */
+    getFlaggedPostsBefore = (userId: string, before = '', perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<PaginatedPostList>(
+            `${this.getUserRoute(userId)}/posts/flagged${buildQueryString({before: before || undefined, per_page: perPage})}`,
             {method: 'get'},
         );
     };

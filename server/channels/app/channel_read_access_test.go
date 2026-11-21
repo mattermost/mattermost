@@ -17,6 +17,7 @@ import (
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -743,7 +744,7 @@ func TestGetFlaggedPostsFillsPagesPastDeniedChannels(t *testing.T) {
 			posts := createFlaggedPosts(t, h, 8)
 
 			// The store's own ordering, read before any access control service exists.
-			all, appErr := h.th.App.GetFlaggedPosts(h.rctx, h.th.BasicUser.Id, 0, 100)
+			all, appErr := h.th.App.GetFlaggedPosts(h.rctx, model.GetFlaggedPostsOptions{UserId: h.th.BasicUser.Id, PerPage: 100})
 			require.Nil(t, appErr)
 			require.Greater(t, len(all.Order), perPage+deniedIndex)
 
@@ -752,29 +753,54 @@ func TestGetFlaggedPostsFillsPagesPastDeniedChannels(t *testing.T) {
 			governed(mockACS)
 			deniesChannel(mockACS, all.Posts[deniedPostID].ChannelId)
 
-			seen := map[string]bool{}
-			firstPageLen := -1
-			for page := 0; page*perPage < len(all.Order); page++ {
-				got, appErr := h.th.App.GetFlaggedPosts(h.rctx, h.th.BasicUser.Id, page*perPage, perPage)
-				require.Nil(t, appErr)
-				if page == 0 {
-					firstPageLen = len(got.Order)
+			t.Run("page", func(t *testing.T) {
+				seen := map[string]bool{}
+				firstPageLen := -1
+				for page := 0; page*perPage < len(all.Order); page++ {
+					got, appErr := h.th.App.GetFlaggedPosts(h.rctx, model.GetFlaggedPostsOptions{UserId: h.th.BasicUser.Id, Page: page, PerPage: perPage})
+					require.Nil(t, appErr)
+					if page == 0 {
+						firstPageLen = len(got.Order)
+					}
+					for _, postID := range got.Order {
+						require.NotEqual(t, deniedPostID, postID, "a denied post must never be served")
+						seen[postID] = true
+					}
 				}
-				for _, postID := range got.Order {
-					require.NotEqual(t, deniedPostID, postID, "a denied post must never be served")
-					seen[postID] = true
-				}
-			}
 
-			require.Equal(t, perPage, firstPageLen,
-				"the first page must be topped up, or the client stops paginating here")
+				require.Equal(t, perPage, firstPageLen,
+					"the first page must be topped up, or the client stops paginating here")
 
-			for _, post := range posts {
-				if post.Id == deniedPostID {
-					continue
+				for _, post := range posts {
+					if post.Id == deniedPostID {
+						continue
+					}
+					require.True(t, seen[post.Id], "saved post %q was lost while paginating", post.Id)
 				}
-				require.True(t, seen[post.Id], "saved post %q was lost while paginating", post.Id)
-			}
+			})
+
+			t.Run("before", func(t *testing.T) {
+				var got []string
+				before := ""
+				for range len(all.Order) {
+					page, appErr := h.th.App.GetFlaggedPosts(h.rctx, model.GetFlaggedPostsOptions{UserId: h.th.BasicUser.Id, BeforePostId: before, PerPage: perPage})
+					require.Nil(t, appErr)
+					got = append(got, page.Order...)
+					if !model.SafeDereference(page.HasNext) || len(page.Order) == 0 {
+						break
+					}
+					assert.Len(t, page.Order, perPage, "a page with more to come must be topped up")
+					before = page.Order[len(page.Order)-1]
+				}
+
+				var want []string
+				for _, postID := range all.Order {
+					if postID != deniedPostID {
+						want = append(want, postID)
+					}
+				}
+				assert.Equal(t, want, got, "the cursor must serve every readable post once, in order")
+			})
 		})
 	}
 }
@@ -787,7 +813,7 @@ func TestGetFlaggedPostsGivesUpAfterMaxFillRounds(t *testing.T) {
 	createFlaggedPosts(t, h, allowedIndex+1)
 
 	// The store's own ordering, read before any access control service exists.
-	all, appErr := h.th.App.GetFlaggedPosts(h.rctx, h.th.BasicUser.Id, 0, 100)
+	all, appErr := h.th.App.GetFlaggedPosts(h.rctx, model.GetFlaggedPostsOptions{UserId: h.th.BasicUser.Id, PerPage: 100})
 	require.Nil(t, appErr)
 	require.Greater(t, len(all.Order), allowedIndex)
 
@@ -795,9 +821,10 @@ func TestGetFlaggedPostsGivesUpAfterMaxFillRounds(t *testing.T) {
 	governed(mockACS)
 	allowsOnlyChannel(mockACS, all.Posts[all.Order[allowedIndex]].ChannelId)
 
-	got, appErr := h.th.App.GetFlaggedPosts(h.rctx, h.th.BasicUser.Id, 0, 1)
+	got, appErr := h.th.App.GetFlaggedPosts(h.rctx, model.GetFlaggedPostsOptions{UserId: h.th.BasicUser.Id, PerPage: 1})
 	require.Nil(t, appErr)
 	require.Empty(t, got.Order, "the fill must give up at the cap rather than read on to the allowed post")
+	assert.True(t, model.SafeDereference(got.HasNext), "giving up must not report the end of the list")
 	// The memo evaluates a channel once per request, and every post is in a channel of
 	// its own, so each round costs one evaluation.
 	mockACS.AssertNumberOfCalls(t, "AccessEvaluation", putils.FetchUntilMaxRounds)

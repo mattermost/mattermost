@@ -13,6 +13,7 @@ import {showChannelFiles, showFlaggedPosts, showPinnedPosts, showSearchResults, 
 import {getIsRhsExpanded, getRhsState} from 'selectors/rhs';
 
 import useSearchResultsActions from 'components/common/hooks/use_search_results_actions';
+import SavedMessages from 'components/saved_messages/saved_messages';
 import SearchResults from 'components/search_results';
 
 import {getHistory} from 'utils/browser_history';
@@ -125,10 +126,15 @@ export default function RhsSearchPopout() {
         getHistory().replace(`${window.location.pathname}?${params.toString()}`);
     }, [searchActions]);
 
+    if (isFlaggedPosts) {
+        return (
+            <SavedMessages isSideBarExpanded={isRhsExpanded}/>
+        );
+    }
+
     return (
         <SearchResults
             isMentionSearch={isMentionSearch}
-            isFlaggedPosts={isFlaggedPosts}
             isPinnedPosts={isPinnedPosts}
             isChannelFiles={isChannelFiles}
             isSideBarExpanded={isRhsExpanded}
