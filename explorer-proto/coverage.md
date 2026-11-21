@@ -227,6 +227,7 @@ Full detail (allowlist, fixtures, assertions, negative controls, flake risks) is
 - **Expected, scoped to region `Info`:** `This channel is archived.` is visible. The counts of buttons `Unarchive`, `Add People`, `Edit`, `Notification Preferences` and `Channel Settings` are all 0. The panel contains `Legacy purpose charlie-4e8a` and `Legacy header charlie-4e8a`, and buttons `Members` and `Copy Link` are visible.
 - **Negative control:** skip the archive step. The notice is then missing, and Add People, Edit and Notification Preferences appear because `channel_user` has those permissions by default.
 - **Why it is a real gap:** only Jest unit tests with mocked props cover this; the nearest e2e test (CY-33) checks the header dropdown.
+- **Change 2026-11-21 (authorized by the coordinator, fix round 2):** the `Add People` absence check now matches the name by substring (`getByRole('button', {name: /Add People/})` inside region `Info`, `name_match: "contains"` in `scenarios.json`). Reason: the live 12.1.0 accessible name is `<icon glyph> Add People` (icon-font `<i>` without `aria-label`, `top_buttons.tsx:203` at `v12.1.0`), so the exact name could never detect presence and the count-0 check was vacuous. `Edit`, `Notification Preferences` and `Channel Settings` stay exact (names observed exactly in the live UI). `Unarchive` stays exact from source (no icon, no `aria-label`) but is UNCONFIRMED-BY-LIVE: it needs `manage_team`, which `qa-user` lacks.
 
 ## 6. Next three candidates beyond the pilot
 
