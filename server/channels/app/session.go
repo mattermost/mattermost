@@ -24,7 +24,21 @@ import (
 // maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
 const maxSessionsLimit = 500
 
+// CreateSession creates a session. It rejects a scope prop: scoped sessions can
+// only be made through CreateScopedSession.
 func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Session, *model.AppError) {
+	if session.IsScoped() {
+		return nil, model.NewAppError("CreateSession", "app.session.create.scope_prop.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	session, err := a.createSession(rctx, session)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	return session, nil
+}
+
+func (a *App) createSession(rctx request.CTX, session *model.Session) (*model.Session, error) {
 	if appErr := a.limitNumberOfSessions(rctx, session.UserId); appErr != nil {
 		return nil, appErr
 	}
@@ -429,7 +443,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 		return false
 	}
 
-	if session == nil || session.IsExpired() {
+	if session == nil || session.IsExpired() || session.IsScoped() {
 		return false
 	}
 

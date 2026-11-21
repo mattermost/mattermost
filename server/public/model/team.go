@@ -316,6 +316,17 @@ func (o *Team) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
+// IsOpenToAllUsers reports whether every user on the server can join the team
+// without an invite, as far as the team's own settings go. Teams that only some
+// users can join are excluded.
+func (o *Team) IsOpenToAllUsers() bool {
+	return o.AllowOpenInvite &&
+		o.DeleteAt == 0 &&
+		!o.IsGroupConstrained() &&
+		o.AllowedDomains == "" &&
+		!o.PolicyEnforced
+}
+
 // ShallowCopy returns a shallow copy of team.
 func (o *Team) ShallowCopy() *Team {
 	c := *o

@@ -154,8 +154,17 @@ func (ch *Channels) syncPluginsActiveState() {
 			}(plugin)
 		}
 		wg.Wait()
+
+		if len(disabledPlugins) > 0 {
+			ids := make([]string, 0, len(disabledPlugins))
+			for _, plugin := range disabledPlugins {
+				ids = append(ids, plugin.Manifest.Id)
+			}
+			ch.revokeScopedSessionsForPlugins(ids)
+		}
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
+		ch.revokeAllScopedSessions()
 	}
 
 	ch.notifyPluginStatusesChanged()
