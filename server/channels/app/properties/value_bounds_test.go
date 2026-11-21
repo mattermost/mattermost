@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"slices"
 	"sync"
 	"testing"
 
@@ -1288,6 +1289,397 @@ func TestBoundsHookValueGate(t *testing.T) {
 			assert.Nil(t, o.got, o.name)
 		}
 	})
+}
+
+func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	below := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	above := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceParent}}
+	self := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	team := th.CreateTeam(t)
+	const containedID = "app.property_value.bounds_contained_values.app_error"
+	const checkFailedID = "app.property_value.bounds_check_failed.app_error"
+	channelType := model.PropertyValueTargetTypeChannel
+
+	type fixture struct {
+		systemField, channelField, userField, postField *model.PropertyField
+		// createDirect adds a field linked to the template straight to the store, with no bounds.
+		createDirect func(objectType string) *model.PropertyField
+		// create adds a field through the service with the bounds passed, so one can be made after others.
+		create func(objectType string, bounds model.PropertyBounds) *model.PropertyField
+	}
+	// setupAll gives each subtest its own group, with each field holding the bounds passed for it.
+	setupAll := func(t *testing.T, channelBounds, userBounds, postBounds model.PropertyBounds) fixture {
+		t.Helper()
+		_, create, createDirect := boundsSetup(t, th, rctx)
+		f := fixture{
+			create:       create,
+			systemField:  create(model.PropertyFieldObjectTypeSystem, nil),
+			channelField: create(model.PropertyFieldObjectTypeChannel, channelBounds),
+			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
+			postField:    create(model.PropertyFieldObjectTypePost, postBounds),
+			createDirect: createDirect,
+		}
+		// The service is shared, so take the hook back off: a later subtest would otherwise run it too.
+		hooks := th.service.hooks
+		th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
+		t.Cleanup(func() { th.service.hooks = hooks })
+		return f
+	}
+	// setup leaves the channel and user fields without rules and gives the post field postBounds.
+	setup := func(t *testing.T, postBounds model.PropertyBounds) fixture {
+		t.Helper()
+		return setupAll(t, nil, nil, postBounds)
+	}
+	// seed writes straight to the store, past the hooks.
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
+		t.Helper()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: f.GroupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	// channel returns a channel holding optionID for the channel field; "" leaves it with no value.
+	channel := func(f fixture, optionID string) string {
+		t.Helper()
+		id := th.CreateChannel(t, team.Id).Id
+		if optionID != "" {
+			seed(f.channelField, channelType, id, `"`+optionID+`"`)
+		}
+		return id
+	}
+	post := func(f fixture, channelID, optionID string) string {
+		t.Helper()
+		p, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: model.NewId(), Message: "m " + model.NewId()})
+		require.NoError(t, err)
+		seed(f.postField, model.PropertyValueTargetTypePost, p.Id, `"`+optionID+`"`)
+		return p.Id
+	}
+	write := func(f fixture, channelID, raw string) error {
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: channelID, Value: json.RawMessage(raw)})
+		return err
+	}
+	stored := func(f fixture, channelID string) string {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetIDs: []string{channelID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+
+	t.Run("lowering a channel below a post is refused", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		mid := post(f, x, "optmid")
+		post(f, x, "optlow")
+
+		err := write(f, x, `"optlow"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, ": target "+x+": 1 contained values of field "+f.postField.ID+" out of bounds, e.g. "+mid)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+
+		require.NoError(t, write(f, x, `"opthigh"`))
+	})
+
+	t.Run("clearing is allowed", func(t *testing.T) {
+		f := setup(t, below)
+		x, y := channel(f, "optmid"), channel(f, "optmid")
+		post(f, x, "optmid")
+		post(f, y, "optmid")
+		require.NoError(t, write(f, x, `null`))
+
+		row, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetIDs: []string{y}, PerPage: 1})
+		require.NoError(t, err)
+		row[0].DeleteAt = model.GetMillis()
+		_, err = th.service.UpdatePropertyValue(rctx, f.channelField.GroupID, row[0])
+		require.NoError(t, err)
+	})
+
+	t.Run("setting a value where there was none is checked", func(t *testing.T) {
+		f := setup(t, below)
+		y := channel(f, "")
+		post(f, y, "opthigh")
+		requireAppErrorID(t, write(f, y, `"optmid"`), containedID, http.StatusConflict)
+		assert.Equal(t, "", stored(f, y))
+		require.NoError(t, write(f, y, `"opthigh"`))
+	})
+
+	t.Run("a deleted post doesn't block", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		gone := post(f, x, "opthigh")
+		require.NoError(t, th.dbStore.Post().Delete(rctx, gone, model.GetMillis(), model.NewId()))
+		require.NoError(t, write(f, x, `"optlow"`))
+	})
+
+	t.Run("an at_or_above post rule refuses raising", func(t *testing.T) {
+		f := setup(t, above)
+		x := channel(f, "optlow")
+		post(f, x, "optlow")
+		requireAppErrorID(t, write(f, x, `"optmid"`), containedID, http.StatusConflict)
+		require.NoError(t, write(f, x, `"optlow"`))
+	})
+
+	t.Run("a post field with no parent rule leaves the channel free", func(t *testing.T) {
+		for name, bounds := range map[string]model.PropertyBounds{"none": nil, "self only": self} {
+			f := setup(t, bounds)
+			x := channel(f, "optmid")
+			post(f, x, "opthigh")
+			require.NoError(t, write(f, x, `"optlow"`), name)
+		}
+	})
+
+	t.Run("re-saving the stored value is never refused", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "opthigh")
+		require.NoError(t, write(f, x, `"optmid"`))
+	})
+
+	t.Run("a refused batch writes nothing", func(t *testing.T) {
+		f := setup(t, below)
+		x, y := channel(f, "optmid"), channel(f, "optmid")
+		post(f, x, "optmid")
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: y, Value: json.RawMessage(`"opthigh"`)},
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optlow"`)},
+		})
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+		assert.Equal(t, `"optmid"`, stored(f, y))
+	})
+
+	t.Run("a value that can't be ranked is refused", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+		err := write(f, x, `"optmid2"`)
+		requireAppErrorID(t, err, checkFailedID, http.StatusConflict)
+		require.ErrorIs(t, err, errBoundsCheckFailed)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+	})
+
+	t.Run("a post value that can't be ranked counts as out of bounds", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "optgone")
+		requireAppErrorID(t, write(f, x, `"opthigh"`), containedID, http.StatusConflict)
+	})
+
+	t.Run("a refusal never names an option", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+		var appErr *model.AppError
+		require.ErrorAs(t, write(f, x, `"optlow"`), &appErr)
+		for _, secret := range []string{"optlow", "optmid", "opthigh"} {
+			assert.NotContains(t, appErr.Message, secret)
+			assert.NotContains(t, appErr.DetailedError, secret)
+			assert.NotContains(t, appErr.Error(), secret)
+		}
+	})
+
+	// systemWrite writes the server's value; "" clears it.
+	systemWrite := func(f fixture, raw string) error {
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{GroupID: f.systemField.GroupID, FieldID: f.systemField.ID, TargetType: model.PropertyValueTargetTypeSystem, TargetID: model.PropertyValueSystemTargetID, Value: json.RawMessage(raw)})
+		return err
+	}
+	seedSystem := func(f fixture, optionID string) {
+		t.Helper()
+		seed(f.systemField, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"`+optionID+`"`)
+	}
+	systemStored := func(f fixture) string {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: f.systemField.GroupID, FieldID: f.systemField.ID, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+
+	t.Run("lowering the server below a channel is refused", func(t *testing.T) {
+		f := setupAll(t, below, nil, nil)
+		seedSystem(f, "opthigh")
+		a := channel(f, "optmid")
+		channel(f, "optlow")
+
+		err := systemWrite(f, `"optlow"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, ": 1 contained values")
+		assert.Contains(t, appErr.DetailedError, "e.g. "+a)
+		assert.Equal(t, `"opthigh"`, systemStored(f))
+
+		require.NoError(t, systemWrite(f, `"optmid"`))
+		require.NoError(t, systemWrite(f, `null`))
+	})
+
+	t.Run("setting the server where there was none is checked", func(t *testing.T) {
+		f := setupAll(t, below, nil, nil)
+		channel(f, "opthigh")
+		requireAppErrorID(t, systemWrite(f, `"optmid"`), containedID, http.StatusConflict)
+		assert.Equal(t, "", systemStored(f))
+		require.NoError(t, systemWrite(f, `"opthigh"`))
+	})
+
+	t.Run("lowering the server below a user is refused", func(t *testing.T) {
+		f := setupAll(t, nil, below, nil)
+		seedSystem(f, "opthigh")
+		u := th.CreateUser(t)
+		seed(f.userField, model.PropertyValueTargetTypeUser, u.Id, `"opthigh"`)
+		err := systemWrite(f, `"optmid"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, "e.g. "+u.Id)
+	})
+
+	t.Run("posts in channels with no value are held to the server", func(t *testing.T) {
+		f := setupAll(t, below, nil, below)
+		seedSystem(f, "opthigh")
+		a, z := channel(f, "optmid"), channel(f, "")
+		post(f, a, "optmid")
+		zPost := post(f, z, "opthigh")
+
+		err := systemWrite(f, `"optmid"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, ": 1 contained values")
+		assert.Contains(t, appErr.DetailedError, "e.g. "+zPost)
+	})
+
+	t.Run("a channel field with no rule leaves its channels and posts free", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		seedSystem(f, "opthigh")
+		a, z := channel(f, "opthigh"), channel(f, "")
+		post(f, a, "opthigh")
+		post(f, z, "opthigh")
+		require.NoError(t, systemWrite(f, `"optlow"`))
+	})
+
+	t.Run("a post in a channel with a value is held to the channel, not the server", func(t *testing.T) {
+		f := setupAll(t, below, nil, below)
+		seedSystem(f, "opthigh")
+		a := channel(f, "optmid")
+		post(f, a, "opthigh")
+		require.NoError(t, systemWrite(f, `"optmid"`))
+	})
+
+	t.Run("re-saving the server's stored value is never refused", func(t *testing.T) {
+		f := setupAll(t, below, nil, nil)
+		seedSystem(f, "optmid")
+		channel(f, "opthigh")
+		require.NoError(t, systemWrite(f, `"optmid"`))
+	})
+
+	// searches counts the field searches whose object types are exactly types, in any order.
+	searches := func(c *fieldSearchRecorder, types ...string) int {
+		n := 0
+		for _, got := range c.objectTypes {
+			if slices.Equal(slices.Sorted(slices.Values(got)), slices.Sorted(slices.Values(types))) {
+				n++
+			}
+		}
+		return n
+	}
+	// record counts the field searches made from here on.
+	record := func(t *testing.T) *fieldSearchRecorder {
+		t.Helper()
+		c := &fieldSearchRecorder{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = c
+		t.Cleanup(func() { th.service.fieldStore = c.PropertyFieldStore })
+		return c
+	}
+
+	// withPostFields gives the fixture's template n more post fields, so n+1 in all.
+	withPostFields := func(f fixture, n int) {
+		t.Helper()
+		for range n {
+			f.createDirect(model.PropertyFieldObjectTypePost)
+		}
+	}
+
+	t.Run("a ruled child field past the first page is seen by the container check", func(t *testing.T) {
+		f := setupAll(t, nil, nil, nil)
+		withPostFields(f, 100)
+		f.postField = f.create(model.PropertyFieldObjectTypePost, below)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+		c := record(t)
+
+		requireAppErrorID(t, write(f, x, `"optlow"`), containedID, http.StatusConflict)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+		// Two searches prove a second page was read, even if CreateAt ties put the ruled field on page one.
+		assert.Equal(t, 2, searches(c, model.PropertyFieldObjectTypePost))
+	})
+
+	t.Run("more than a page of unruled child fields writes and deletes normally", func(t *testing.T) {
+		f := setupAll(t, nil, nil, nil)
+		withPostFields(f, 100)
+		x := channel(f, "optmid")
+
+		require.NoError(t, write(f, x, `"optlow"`))
+		require.NoError(t, th.service.DeletePropertyField(rctx, f.channelField.GroupID, f.channelField.ID))
+	})
+
+	t.Run("the delete guard sees a ruled child field past the first page", func(t *testing.T) {
+		f := setupAll(t, nil, nil, nil)
+		withPostFields(f, 100)
+		f.create(model.PropertyFieldObjectTypePost, below)
+
+		err := th.service.DeletePropertyField(rctx, f.channelField.GroupID, f.channelField.ID)
+		requireAppErrorID(t, err, "app.property_field.delete.parent_rule_dependents.app_error", http.StatusConflict)
+		_, err = th.service.GetPropertyField(rctx, f.channelField.GroupID, f.channelField.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("a batch of values of one field looks up its child fields once", func(t *testing.T) {
+		f := setup(t, below)
+		var batch []*model.PropertyValue
+		for range 3 {
+			x := channel(f, "")
+			post(f, x, "optlow")
+			batch = append(batch, &model.PropertyValue{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optmid"`)})
+		}
+		c := record(t)
+
+		_, err := th.service.UpsertPropertyValues(rctx, batch)
+		require.NoError(t, err)
+		assert.Equal(t, 1, searches(c, model.PropertyFieldObjectTypePost))
+	})
+
+	t.Run("a batch of values of several fields looks each one up once", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		a, b := channel(f, ""), channel(f, "")
+		batch := []*model.PropertyValue{
+			{GroupID: f.systemField.GroupID, FieldID: f.systemField.ID, TargetType: model.PropertyValueTargetTypeSystem, TargetID: model.PropertyValueSystemTargetID, Value: json.RawMessage(`"optmid"`)},
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: a, Value: json.RawMessage(`"optmid"`)},
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: b, Value: json.RawMessage(`"optmid"`)},
+		}
+		c := record(t)
+
+		_, err := th.service.UpsertPropertyValues(rctx, batch)
+		require.NoError(t, err)
+		assert.Equal(t, 1, searches(c, model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser))
+		assert.Equal(t, 1, searches(c, model.PropertyFieldObjectTypePost))
+	})
+}
+
+// fieldSearchRecorder records the object types of each SearchPropertyFields call.
+type fieldSearchRecorder struct {
+	store.PropertyFieldStore
+	objectTypes [][]string
+}
+
+func (c *fieldSearchRecorder) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	c.objectTypes = append(c.objectTypes, opts.ObjectTypes)
+	return c.PropertyFieldStore.SearchPropertyFields(rctx, opts)
 }
 
 func first(values []*model.PropertyValue) *model.PropertyValue {
