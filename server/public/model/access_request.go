@@ -70,6 +70,10 @@ type Subject struct {
 	// in the enterprise repo) so authors cannot ship a control whose
 	// production behaviour silently diverges from the simulator preview.
 	Session map[string]any `json:"session,omitempty"`
+	// SessionExpiresAt maps each key in Session to the epoch ms at which it goes stale (its
+	// refresh time plus TTL and grace period). Server-side only: the decision cache uses it to
+	// expire a decision when an attribute the decision read expires.
+	SessionExpiresAt map[string]int64 `json:"-"`
 	// Email is the subject's email address (model.User.Email), exposed to
 	// CEL policies as user.email. Populated by BuildAccessControlSubject.
 	Email string `json:"email,omitempty"`
@@ -241,6 +245,13 @@ const AccessDecisionReasonNoPolicy AccessDecisionReason = "no_policy"
 type AccessDecision struct {
 	Decision bool           `json:"decision"`
 	Context  map[string]any `json:"context,omitempty"`
+
+	// SessionAttributeRefs names the user.session.* attributes read by the rules that produced
+	// this decision. Nil when they read none. Server-side only.
+	SessionAttributeRefs []string `json:"-"`
+	// SessionAttributeRefsReported is true when the evaluator filled SessionAttributeRefs. When
+	// false, a caller must assume the decision may depend on any session attribute.
+	SessionAttributeRefsReported bool `json:"-"`
 }
 
 // NewNoPolicyAccessDecision returns the vacuous allow for a request no policy

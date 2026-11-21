@@ -2974,12 +2974,13 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
-	if appErr != nil {
-		return nil, appErr
+	attrs, expiresAt, err := a.getSessionAttributesWithExpiry(rctx, rctx.Session().Id)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	if attrs != nil {
 		subject.Session = attrs
+		subject.SessionExpiresAt = expiresAt
 	}
 	return subject, nil
 }

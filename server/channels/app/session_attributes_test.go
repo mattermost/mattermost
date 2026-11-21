@@ -10,11 +10,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
@@ -626,6 +628,61 @@ func TestFilterStaleSessionAttributes(t *testing.T) {
 	})
 }
 
+func TestFilterStaleSessionAttributesWithExpiry(t *testing.T) {
+	fieldName := staleAttributeFieldName
+	now := time.UnixMilli(1_700_000_000_000)
+
+	t.Run("reports when a kept attribute goes stale", func(t *testing.T) {
+		timestamp := now.UnixMilli() - 30_000
+		filtered, expiresAt := filterStaleSessionAttributesWithExpiry(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: timestamp},
+			staleAttributeFields(100, 60),
+			now,
+		)
+
+		assert.Equal(t, "value", filtered[fieldName])
+		assert.Equal(t, timestamp+160_000, expiresAt[fieldName], "refresh time plus TTL plus grace")
+	})
+
+	t.Run("reports nothing for a dropped attribute", func(t *testing.T) {
+		filtered, expiresAt := filterStaleSessionAttributesWithExpiry(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: now.UnixMilli() - 200_000},
+			staleAttributeFields(100, 60),
+			now,
+		)
+
+		assert.Nil(t, filtered)
+		assert.Nil(t, expiresAt)
+	})
+}
+
+func TestSessionAttributesVisiblyChanged(t *testing.T) {
+	fieldName := staleAttributeFieldName
+	fields := staleAttributeFields(100, 60)
+	now := int64(1_700_000_000_000)
+	live := map[string]int64{fieldName: now - 60_000}
+
+	t.Run("extending a live, unchanged value is not a change", func(t *testing.T) {
+		assert.False(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "a"}, map[string]any{fieldName: "a"}, live, fields, now))
+	})
+
+	t.Run("a different value is a change", func(t *testing.T) {
+		assert.True(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "b"}, map[string]any{fieldName: "a"}, live, fields, now))
+	})
+
+	t.Run("a new value is a change", func(t *testing.T) {
+		assert.True(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "a"}, nil, nil, fields, now))
+	})
+
+	t.Run("an unchanged value that had gone stale is a change", func(t *testing.T) {
+		stale := map[string]int64{fieldName: now - 161_000}
+		assert.True(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "a"}, map[string]any{fieldName: "a"}, stale, fields, now),
+			"decisions computed while it was missing never saw it")
+	})
+}
+
 func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	enableSessionAttributesCollection(t, th)
@@ -646,6 +703,26 @@ func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 
 	assert.Empty(t, sessionAttributeRawValues(t, th, session1.Id))
 	assert.Empty(t, sessionAttributeRawValues(t, th, session2.Id))
+}
+
+func TestBroadcastSessionAttributesSendType(t *testing.T) {
+	th := Setup(t)
+	cluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(cluster)
+
+	sendType := func(visiblyChanged bool) string {
+		t.Helper()
+		cluster.ClearMessages()
+		th.App.broadcastSessionAttributes(th.Context, model.NewId(), map[string]any{model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10"}, model.GetMillis(), visiblyChanged)
+		msgs := cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventUpdateSessionAttributes
+		})
+		require.Len(t, msgs, 1)
+		return msgs[0].SendType
+	}
+
+	assert.Equal(t, model.ClusterSendReliable, sendType(true), "a visible change must reach every node")
+	assert.Equal(t, model.ClusterSendBestEffort, sendType(false), "a routine refresh can be lost")
 }
 
 func TestClusterUpdateSessionAttributesHandler(t *testing.T) {

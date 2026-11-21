@@ -27,8 +27,16 @@ type recapAccessFixture struct {
 	denied map[string]bool
 }
 
+// deny changes the mocked policy's answer, so it drops the cached decisions just as a real
+// policy change would.
 func (f *recapAccessFixture) deny(channelID string) {
 	f.denied[channelID] = true
+	f.th.App.InvalidateAccessDecisionsForPolicyChange()
+}
+
+func (f *recapAccessFixture) allow(channelID string) {
+	delete(f.denied, channelID)
+	f.th.App.InvalidateAccessDecisionsForPolicyChange()
 }
 
 // setupRecapChannelAccess governs channel_read_access and refuses whatever the
@@ -296,7 +304,7 @@ func TestRecapChannelReadAccessFiltersStoredSummaries(t *testing.T) {
 
 	t.Run("every channel denied", func(t *testing.T) {
 		f.deny(allowed.Id)
-		t.Cleanup(func() { delete(f.denied, allowed.Id) })
+		t.Cleanup(func() { f.allow(allowed.Id) })
 
 		res, err := f.th.Client.DoAPIGet(context.Background(), "/recaps/"+recap.Id, "")
 		require.NoError(t, err, "the recap is still the user's own, so it is returned empty rather than refused")
