@@ -1728,7 +1728,9 @@ func TestNetworkProbesSMTP(t *testing.T) {
 		return d.Notifications.Email.Status, d.Notifications.Email.Error, probed
 	}
 
-	// A development mail server such as Inbucket listens on the default localhost:10025, so it is probed too.
+	// SMTP_NOT_CONFIGURED tells a server that never set up email (nothing on the default localhost:10025)
+	// from one running a development mail server there, such as Inbucket, only from this probe's result.
+	// Skipping the probe for the default server would make both SMTP findings resolve.
 	t.Run("probes the default server", func(t *testing.T) {
 		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, true)
 

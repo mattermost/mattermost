@@ -155,7 +155,9 @@ func smtpInUseAndConfigured(s *healthcheck.Snapshot) (enabled, ok bool) {
 }
 
 // evalSMTPNotConfigured fires for an empty SMTP server. For the default localhost:10025 it fires only when the
-// probe failed, since a development mail server such as Inbucket listens there and works.
+// probe failed, since a development mail server such as Inbucket listens there and works. This relies on the
+// Support Packet probing the default server (see networkProbes and TestNetworkProbesSMTP): a skipped probe
+// reports disabled, which reads as passing, so neither SMTP finding would fire.
 func evalSMTPNotConfigured(s *healthcheck.Snapshot) healthcheck.Result {
 	configured, ok := smtpConfigured(s)
 	switch {
