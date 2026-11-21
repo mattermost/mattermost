@@ -54,12 +54,6 @@ const StartCallMenu = ({
         description: 'Accessible name and tooltip of the icon-only call button in a DM channel header or profile popover, which opens a menu of ways to call the other person.',
     });
 
-    // Group headings only make sense when there is more than one group.
-    const showHeadings = phones.length > 0;
-    const mattermostHeadingId = `${menuId}-mattermostCallHeading`;
-    const phoneHeadingId = `${menuId}-phoneCallHeading`;
-    const mattermostDescribedBy = showHeadings ? mattermostHeadingId : undefined;
-
     return (
         <Menu.Container
             menuButton={{
@@ -77,20 +71,8 @@ const StartCallMenu = ({
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
         >
-            {showHeadings && (
-                <Menu.Title role='presentation'>
-                    <span id={mattermostHeadingId}>
-                        <FormattedMessage
-                            id='start_call_menu.mattermost_call'
-                            defaultMessage='Mattermost call'
-                            description='Heading of the Start call menu group with ways to call someone within Mattermost, shown when the menu also has a phone call group.'
-                        />
-                    </span>
-                </Menu.Title>
-            )}
             <Menu.Item
                 id={`${menuId}-startCall`}
-                aria-describedby={mattermostDescribedBy}
                 leadingElement={<PhoneIcon size={18}/>}
                 labels={
                     <FormattedMessage
@@ -104,35 +86,22 @@ const StartCallMenu = ({
             {showCopyCallLink && (
                 <Menu.Item
                     id={`${menuId}-copyCallLink`}
-                    aria-describedby={mattermostDescribedBy}
                     leadingElement={<LinkVariantIcon size={18}/>}
                     labels={
                         <FormattedMessage
                             id='start_call_menu.copy_call_link'
                             defaultMessage='Copy call link'
-                            description='Start call menu item that copies a link to a call with the other person, without starting the call.'
+                            description='Start call menu item, in channels, that copies a link to a call in the channel without starting the call.'
                         />
                     }
                     onClick={onCopyCallLink}
                 />
             )}
-            {showHeadings && <Menu.Separator/>}
-            {showHeadings && (
-                <Menu.Title role='presentation'>
-                    <span id={phoneHeadingId}>
-                        <FormattedMessage
-                            id='start_call_menu.phone_call'
-                            defaultMessage='Phone call'
-                            description='Heading of the Start call menu group listing the phone numbers the other person can be called on.'
-                        />
-                    </span>
-                </Menu.Title>
-            )}
+            {phones.length > 0 && <Menu.Separator/>}
             {phones.map((phone) => (
                 <Menu.Item
                     key={phone.fieldId}
                     id={`${menuId}-phone-${phone.fieldId}`}
-                    aria-describedby={phoneHeadingId}
                     leadingElement={<PhoneOutlineIcon size={18}/>}
                     labels={
                         <>

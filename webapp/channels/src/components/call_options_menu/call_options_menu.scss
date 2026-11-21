@@ -6,7 +6,27 @@
 }
 
 .DMCallButton {
+    position: relative;
     display: inline-flex;
+}
+
+.DMCallButton__toast {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + var(--spacing-xxs));
+    right: 0;
+    width: max-content;
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: DMCallButton__toastIn 150ms ease-out;
+    }
+}
+
+@keyframes DMCallButton__toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
 }
 
 .StartCallMenu__button {

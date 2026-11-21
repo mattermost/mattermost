@@ -9,9 +9,9 @@ import type {GlobalState} from 'types/store';
 import type {CallButtonAction} from 'types/store/plugins';
 
 // hasStartCallMenu reports whether the call plugin supports the Start call menu. Older plugins don't pass
-// any of its actions and keep the call button they had before.
+// any of its fields and keep the call button they had before.
 export function hasStartCallMenu(callButton?: CallButtonAction): boolean {
-    return Boolean(callButton?.copyCallLinkAction || callButton?.callSettingsAction);
+    return Boolean(callButton?.callSettingsAction || callButton?.isInCall || callButton?.getCallLink);
 }
 
 // isInCall prefers the plugin's own answer, which covers starting and ringing before anyone has joined.

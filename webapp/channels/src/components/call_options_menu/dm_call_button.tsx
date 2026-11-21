@@ -1,18 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useLayoutEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {FocusEvent, RefObject} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {isOpenChannel, isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
+
+import {copyToClipboard} from 'utils/utils';
+
 import type {CallButtonAction} from 'types/store/plugins';
 
+import CallLinkToast from './call_link_toast';
 import InCallButton from './in_call_button';
 import StartCallMenu from './start_call_menu';
 import useIsInCall from './use_is_in_call';
 import usePhoneCallOptions from './use_phone_call_options';
 import type {DialablePhone} from './use_phone_call_options';
+
+const CALL_LINK_TOAST_DURATION = 3000;
 
 type Props = {
     menuId: string;
@@ -46,6 +53,14 @@ const DMCallButton = ({
     const phones = usePhoneCallOptions(userId, Boolean(callButton.phoneAction) && !inCall);
     const focusHandlers = useKeepFocusOnCallButton(containerRef, inCall);
 
+    // Only public and private channels have call links; DMs and GMs don't.
+    const hasCallLink = Boolean(dmChannel && (isOpenChannel(dmChannel) || isPrivateChannel(dmChannel)));
+
+    // Whether the last Copy call link worked, while its toast shows.
+    const [callLinkCopied, setCallLinkCopied] = useState<boolean>();
+    const callLinkToastTimer = useRef<number | undefined>(undefined);
+    useEffect(() => () => window.clearTimeout(callLinkToastTimer.current), []);
+
     function handleStartCall() {
         onSelect?.();
         onStartCall();
@@ -56,12 +71,20 @@ const DMCallButton = ({
         callButton.phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
     }
 
-    function handleCopyCallLink() {
-        if (!callButton.copyCallLinkAction) {
+    async function handleCopyCallLink() {
+        if (!callButton.getCallLink || !dmChannel) {
             return;
         }
         onSelect?.();
-        callButton.copyCallLinkAction({userId, channel: dmChannel ?? undefined});
+        const copied = await copyToClipboard(callButton.getCallLink(dmChannel));
+        setCallLinkCopied(copied);
+        window.clearTimeout(callLinkToastTimer.current);
+        callLinkToastTimer.current = window.setTimeout(() => setCallLinkCopied(undefined), CALL_LINK_TOAST_DURATION);
+    }
+
+    function dismissCallLinkToast() {
+        window.clearTimeout(callLinkToastTimer.current);
+        setCallLinkCopied(undefined);
     }
 
     function handleOpenCallSettings() {
@@ -95,13 +118,19 @@ const DMCallButton = ({
                 buttonId={buttonId}
                 disabled={disabled}
                 phones={phones}
-                showCopyCallLink={Boolean(callButton.copyCallLinkAction)}
+                showCopyCallLink={hasCallLink && Boolean(callButton.getCallLink)}
                 showCallSettings={Boolean(callButton.callSettingsAction)}
                 onStartCall={handleStartCall}
                 onPhoneCall={handlePhoneCall}
                 onCopyCallLink={handleCopyCallLink}
                 onOpenCallSettings={handleOpenCallSettings}
             />
+            {callLinkCopied !== undefined && (
+                <CallLinkToast
+                    copied={callLinkCopied}
+                    onDismiss={dismissCallLinkToast}
+                />
+            )}
         </span>
     );
 };

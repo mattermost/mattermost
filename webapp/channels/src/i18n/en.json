@@ -32463,25 +32463,25 @@
     "defaultMessage": "Start call",
     "description": "Accessible name and tooltip of the icon-only call button in a DM channel header or profile popover, which opens a menu of ways to call the other person."
   },
+  "start_call_menu.call_link_copied": {
+    "defaultMessage": "Call link copied",
+    "description": "Toast under the call button after Copy call link put the link to join a call in the channel on the clipboard."
+  },
+  "start_call_menu.call_link_copy_failed": {
+    "defaultMessage": "Couldn't copy call link",
+    "description": "Toast under the call button when Copy call link could not put the link on the clipboard, for example because the browser blocked it."
+  },
   "start_call_menu.call_settings": {
     "defaultMessage": "Call settings",
     "description": "Last item of the Start call menu, which opens the Calls tab of the user settings."
   },
   "start_call_menu.copy_call_link": {
     "defaultMessage": "Copy call link",
-    "description": "Start call menu item that copies a link to a call with the other person, without starting the call."
+    "description": "Start call menu item, in channels, that copies a link to a call in the channel without starting the call."
   },
   "start_call_menu.in_call": {
     "defaultMessage": "In call",
     "description": "Accessible name and tooltip of the pressed call button in a DM channel header or profile popover while the user is ringing or in a call with that person."
-  },
-  "start_call_menu.mattermost_call": {
-    "defaultMessage": "Mattermost call",
-    "description": "Heading of the Start call menu group with ways to call someone within Mattermost, shown when the menu also has a phone call group."
-  },
-  "start_call_menu.phone_call": {
-    "defaultMessage": "Phone call",
-    "description": "Heading of the Start call menu group listing the phone numbers the other person can be called on."
   },
   "start_call_menu.start_call": {
     "defaultMessage": "Start call",

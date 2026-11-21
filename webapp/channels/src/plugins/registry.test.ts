@@ -412,9 +412,9 @@ describe('PluginRegistry — registerCallButtonAction', () => {
         const registry = new PluginRegistry('com.mattermost.calls');
         const action = jest.fn();
         const phoneAction = jest.fn();
-        const copyCallLinkAction = jest.fn();
         const callSettingsAction = jest.fn();
         const isInCall = jest.fn();
+        const getCallLink = jest.fn();
 
         registry.registerCallButtonAction({
             button: null,
@@ -423,17 +423,34 @@ describe('PluginRegistry — registerCallButtonAction', () => {
             icon: null,
             dropdownText: null,
             phoneAction,
-            copyCallLinkAction,
             callSettingsAction,
             isInCall,
+            getCallLink,
         });
 
         const [entry] = getCallButtons();
         expect(entry.action).toBe(action);
         expect(entry.phoneAction).toBe(phoneAction);
-        expect(entry.copyCallLinkAction).toBe(copyCallLinkAction);
         expect(entry.callSettingsAction).toBe(callSettingsAction);
         expect(entry.isInCall).toBe(isInCall);
+        expect(entry.getCallLink).toBe(getCallLink);
+    });
+
+    it('maps positional arguments in order, as the Calls plugin passes them', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const action = jest.fn();
+        const phoneAction = jest.fn();
+        const callSettingsAction = jest.fn();
+        const isInCall = jest.fn();
+        const getCallLink = jest.fn();
+
+        registry.registerCallButtonAction(null, null, action, null, null, phoneAction, callSettingsAction, isInCall, getCallLink);
+
+        const [entry] = getCallButtons();
+        expect(entry.phoneAction).toBe(phoneAction);
+        expect(entry.callSettingsAction).toBe(callSettingsAction);
+        expect(entry.isInCall).toBe(isInCall);
+        expect(entry.getCallLink).toBe(getCallLink);
     });
 
     it('leaves the new fields undefined for a plugin that registers positionally, as older plugins do', () => {
@@ -444,9 +461,9 @@ describe('PluginRegistry — registerCallButtonAction', () => {
 
         const [entry] = getCallButtons();
         expect(entry.action).toBe(action);
-        expect(entry.copyCallLinkAction).toBeUndefined();
         expect(entry.callSettingsAction).toBeUndefined();
         expect(entry.isInCall).toBeUndefined();
+        expect(entry.getCallLink).toBeUndefined();
     });
 });
 

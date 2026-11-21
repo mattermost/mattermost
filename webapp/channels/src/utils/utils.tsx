@@ -1404,12 +1404,12 @@ export function removePrefixFromLocalStorage(prefix: string) {
     }
 }
 
-export function copyToClipboard(data: string) {
+// copyToClipboard resolves to whether the copy worked; the browser can refuse it.
+export function copyToClipboard(data: string): Promise<boolean> {
     // Attempt to use the newer clipboard API when possible
     const clipboard = navigator.clipboard;
     if (clipboard) {
-        clipboard.writeText(data);
-        return;
+        return clipboard.writeText(data).then(() => true, () => false);
     }
 
     // creates a tiny temporary text area to copy text out of
@@ -1428,8 +1428,9 @@ export function copyToClipboard(data: string) {
     textArea.value = data;
     document.body.appendChild(textArea);
     textArea.select();
-    document.execCommand('copy');
+    const copied = document.execCommand('copy');
     document.body.removeChild(textArea);
+    return Promise.resolve(copied);
 }
 
 export function moveCursorToEnd(e: React.MouseEvent | React.FocusEvent) {

@@ -13,6 +13,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {CallButtonAction} from 'types/store/plugins';
 
+import DMCallButton from './dm_call_button';
 import {getDialablePhones} from './use_phone_call_options';
 
 const currentUserId = 'current_user';
@@ -47,7 +48,6 @@ const makeCallButton = (withPhoneAction = true, extra: Partial<CallButtonAction>
 } as unknown as CallButtonAction);
 
 const makeStartMenuCallButton = (withPhoneAction = true, extra: Partial<CallButtonAction> = {}) => makeCallButton(withPhoneAction, {
-    copyCallLinkAction: jest.fn(),
     callSettingsAction: jest.fn(),
     ...extra,
 });
@@ -279,39 +279,31 @@ describe.each([
     const openMenu = () => userEvent.click(screen.getByRole('button', {name: 'Start call'}));
     const menuItemNames = () => screen.getAllByRole('menuitem').map((item) => item.textContent);
 
-    test('without phone numbers, offers a call, the call link and call settings, with no group headings', async () => {
+    test('without phone numbers, offers a call and call settings, split by a separator', async () => {
         const callButton = makeStartMenuCallButton(false);
         renderButton(callButton, makeState({callButtons: [callButton]}));
 
         await openMenu();
 
-        expect(menuItemNames()).toEqual(['Start call', 'Copy call link', 'Call settings']);
+        expect(menuItemNames()).toEqual(['Start call', 'Call settings']);
         expect(screen.getAllByRole('separator')).toHaveLength(1);
-        expect(screen.queryByText('Mattermost call')).not.toBeInTheDocument();
-        expect(screen.queryByText('Phone call')).not.toBeInTheDocument();
         expect(callButton.action).not.toHaveBeenCalled();
     });
 
-    test('with phone numbers, groups the Mattermost call and phone call rows under headings', async () => {
+    test('with phone numbers, puts them between separators, with no headings', async () => {
         const callButton = makeStartMenuCallButton();
         renderButton(callButton, makeState({callButtons: [callButton]}));
 
         await openMenu();
 
-        expect(menuItemNames()).toEqual(['Start call', 'Copy call link', 'Call DSN312-555-0174', 'Call settings']);
-        expect(screen.getByText('Mattermost call')).toBeInTheDocument();
-        expect(screen.getByText('Phone call')).toBeInTheDocument();
-        expect(screen.getByRole('menuitem', {name: 'Start call'})).toHaveAccessibleDescription('Mattermost call');
-        expect(screen.getByRole('menuitem', {name: /Call DSN/})).toHaveAccessibleDescription('Phone call');
+        expect(menuItemNames()).toEqual(['Start call', 'Call DSN312-555-0174', 'Call settings']);
+        expect(screen.getAllByRole('separator')).toHaveLength(2);
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     });
 
     test('runs each action through the plugin', async () => {
         const callButton = makeStartMenuCallButton();
         const {hide} = renderButton(callButton, makeState({callButtons: [callButton]}));
-
-        await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Copy call link'}));
-        await waitFor(() => expect(callButton.copyCallLinkAction).toHaveBeenCalledWith({userId, channel: dmChannel}));
 
         await openMenu();
         await userEvent.click(screen.getByRole('menuitem', {name: 'Call settings'}));
@@ -326,17 +318,18 @@ describe.each([
         await waitFor(() => expect(callButton.action).toHaveBeenCalledWith(dmChannel, channelMember));
 
         if (surface === 'profile popover') {
-            expect(hide).toHaveBeenCalledTimes(4);
+            expect(hide).toHaveBeenCalledTimes(3);
         }
     });
 
-    test('leaves out the rows for actions the plugin does not pass', async () => {
-        const callButton = makeStartMenuCallButton(false, {copyCallLinkAction: undefined});
+    test('leaves out call settings when the plugin only passes isInCall', async () => {
+        const callButton = makeStartMenuCallButton(false, {callSettingsAction: undefined, isInCall: () => false});
         renderButton(callButton, makeState({callButtons: [callButton]}));
 
         await openMenu();
 
-        expect(menuItemNames()).toEqual(['Start call', 'Call settings']);
+        expect(menuItemNames()).toEqual(['Start call']);
+        expect(screen.queryByRole('separator')).not.toBeInTheDocument();
     });
 
     test('works from the keyboard and returns focus to the button on Escape', async () => {
@@ -352,7 +345,7 @@ describe.each([
         expect(button).toHaveAttribute('aria-expanded', 'true');
         await waitFor(() => expect(screen.getByRole('menuitem', {name: 'Start call'})).toHaveFocus());
         await userEvent.keyboard('{ArrowDown}');
-        expect(screen.getByRole('menuitem', {name: 'Copy call link'})).toHaveFocus();
+        expect(screen.getByRole('menuitem', {name: /Call DSN/})).toHaveFocus();
         await userEvent.keyboard('{End}');
         expect(screen.getByRole('menuitem', {name: 'Call settings'})).toHaveFocus();
         await userEvent.keyboard('{Home}');
@@ -424,5 +417,93 @@ describe.each([
         await screen.findByRole('button', {name: 'In call'});
         expect(elsewhere).toHaveFocus();
         elsewhere.remove();
+    });
+});
+
+describe('Copy call link', () => {
+    const privateChannel = TestHelper.getChannelMock({id: 'private_channel_id', name: 'private', type: 'P', delete_at: 0});
+    const groupChannel = TestHelper.getChannelMock({id: 'group_channel_id', name: 'group', type: 'G', delete_at: 0});
+
+    const renderChannelButton = (callButton: CallButtonAction, channel: typeof dmChannel) => renderWithContext(
+        <DMCallButton
+            menuId='startCallMenu'
+            buttonId='startCallMenuButton'
+            callButton={callButton}
+            userId=''
+            dmChannel={channel}
+            onStartCall={jest.fn()}
+        />,
+        makeState({callButtons: [callButton]}),
+        renderOptions,
+    );
+
+    const callLink = 'https://example.com/team/channels/town-square?join_call=true';
+    const mockClipboard = (writeText: jest.Mock) => Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+
+    afterEach(() => {
+        Object.defineProperty(navigator, 'clipboard', {value: undefined, configurable: true});
+    });
+
+    test.each([
+        ['public channel', openChannel],
+        ['private channel', privateChannel],
+    ])('is offered in a %s, copies the plugin\'s link, and confirms with a toast', async (_label, channel) => {
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        mockClipboard(writeText);
+        const callButton = makeStartMenuCallButton(false, {getCallLink: jest.fn(() => callLink)});
+        renderChannelButton(callButton, channel);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Start call'}));
+        expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Start call', 'Copy call link', 'Call settings']);
+
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Copy call link'}));
+
+        expect(await screen.findByRole('status')).toHaveTextContent('Call link copied');
+        expect(callButton.getCallLink).toHaveBeenCalledWith(channel);
+        expect(writeText).toHaveBeenCalledWith(callLink);
+    });
+
+    test('says so when the browser blocks the copy', async () => {
+        mockClipboard(jest.fn().mockRejectedValue(new Error('blocked')));
+        const callButton = makeStartMenuCallButton(false, {getCallLink: () => callLink});
+        renderChannelButton(callButton, openChannel);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Start call'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Copy call link'}));
+
+        expect(await screen.findByRole('status')).toHaveTextContent('Couldn\'t copy call link');
+    });
+
+    test('hides the toast after a few seconds', async () => {
+        mockClipboard(jest.fn().mockResolvedValue(undefined));
+        const callButton = makeStartMenuCallButton(false, {getCallLink: () => callLink});
+        renderChannelButton(callButton, openChannel);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Start call'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Copy call link'}));
+        await screen.findByRole('status');
+
+        await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument(), {timeout: 4000});
+    });
+
+    test.each([
+        ['DM', dmChannel],
+        ['GM', groupChannel],
+    ])('is not offered in a %s, which has no call links', async (_label, channel) => {
+        const callButton = makeStartMenuCallButton(false, {getCallLink: () => callLink});
+        renderChannelButton(callButton, channel);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Start call'}));
+
+        expect(screen.queryByRole('menuitem', {name: 'Copy call link'})).not.toBeInTheDocument();
+    });
+
+    test('is not offered when the plugin does not pass getCallLink', async () => {
+        const callButton = makeStartMenuCallButton(false);
+        renderChannelButton(callButton, openChannel);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Start call'}));
+
+        expect(screen.queryByRole('menuitem', {name: 'Copy call link'})).not.toBeInTheDocument();
     });
 });
