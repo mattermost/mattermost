@@ -93,4 +93,17 @@ type BulkImportOpts struct {
 	// handled separately from positive resume checkpoints.
 	// Nil means no checkpointing.
 	OnCheckpoint func(lineNumber int)
+
+	// RunID identifies the import file across retries. In a scoped import, the
+	// accounts a run creates are marked with a hash of it until the run completes,
+	// so a retry of the same file keeps setting them up instead of treating them as
+	// username collisions. Empty disables the markers.
+	RunID string
 }
+
+// The property group and field holding the temporary marker that a scoped import
+// leaves on the accounts it creates until the import completes.
+const (
+	BulkImportPropertyGroupName       = "bulk_import"
+	BulkImportPendingRunPropertyField = "pending_import_run"
+)

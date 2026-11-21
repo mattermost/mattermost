@@ -9299,3 +9299,30 @@ func TestPatchPropertyFieldNullGrantsEcho(t *testing.T) {
 		require.Equal(t, field.Attrs[model.PropertyFieldAttributeOptions], stored.Attrs[model.PropertyFieldAttributeOptions])
 	})
 }
+
+func TestImportMarkerFieldIsLocked(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.BulkImportPropertyGroupName)
+	require.Nil(t, appErr)
+	field, err := th.App.Srv().Store().PropertyField().GetFieldByNameForObjectType(th.Context, group.ID, "", model.PropertyFieldObjectTypeUser, model.BulkImportPendingRunPropertyField)
+	require.NoError(t, err)
+	require.True(t, field.Protected)
+
+	t.Run("system admin cannot write a marker value", func(t *testing.T) {
+		items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(`"forged"`)}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("system admin cannot edit the marker field", func(t *testing.T) {
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer("renamed")}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field.ID, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
