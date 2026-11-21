@@ -11,7 +11,7 @@ import path from 'node:path';
 
 import {runAgent} from './agents.mjs';
 import {BudgetExceeded} from './budgets.mjs';
-import {canonicalJson, readJson, REPO_ROOT, stageDirName, STAGE_NAMES, toPosix, writeFileAtomic} from './common.mjs';
+import {canonicalJson, readJson, REPO_ROOT, STAGE_SETS, toPosix, writeFileAtomic} from './common.mjs';
 import {validate} from './schemas.mjs';
 
 export function countCalls(file, stage) {
@@ -34,9 +34,9 @@ export function countCalls(file, stage) {
     return n;
 }
 
-export function createContext({flags, out, index, budget, provider, state, feature}) {
-    const name = STAGE_NAMES[index];
-    const dirName = stageDirName(index);
+export function createContext({flags, out, index, budget, provider, state, feature, stageSet = STAGE_SETS.pipeline}) {
+    const name = stageSet.names[index];
+    const dirName = stageSet.dirs[index];
     const startedAt = process.hrtime.bigint();
     const callsFile = path.join(out, 'agent-calls.jsonl');
 
@@ -53,7 +53,8 @@ export function createContext({flags, out, index, budget, provider, state, featu
         feature,
         callsFile,
 
-        dirOf: (i) => path.join(out, stageDirName(i)),
+        stageSet,
+        dirOf: (i) => path.join(out, stageSet.dirs[i]),
         rel: (abs) => toPosix(path.relative(out, abs)),
         stageRel: (file) => `${dirName}/${file}`,
 
@@ -82,7 +83,7 @@ export function createContext({flags, out, index, budget, provider, state, featu
                 const verdict = validate(schemaRef, data);
                 if (!verdict.ok) {
                     throw new Error(
-                        `artifact ${stageDirName(stage)}/${file} violates ${schemaRef}: ${verdict.errors.slice(0, 3).join('; ')}`,
+                        `artifact ${stageSet.dirs[stage]}/${file} violates ${schemaRef}: ${verdict.errors.slice(0, 3).join('; ')}`,
                     );
                 }
             }

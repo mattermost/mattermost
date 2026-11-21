@@ -11,6 +11,10 @@
         "emit": {"time_seconds": 300, "agent_calls": 0, "retries": 0},
         "verify": {"time_seconds": 3600, "agent_calls": 3, "retries": 2},
         "promote": {"time_seconds": 60, "agent_calls": 0, "retries": 0},
-        "lessons": {"time_seconds": 300, "agent_calls": 2, "retries": 2}
+        "lessons": {"time_seconds": 300, "agent_calls": 2, "retries": 2},
+        "baseline": {"time_seconds": 300, "agent_calls": 0, "retries": 0},
+        "control": {"time_seconds": 600, "agent_calls": 0, "retries": 0},
+        "dispatch": {"time_seconds": 300, "agent_calls": 3, "retries": 2},
+        "collect": {"time_seconds": 120, "agent_calls": 3, "retries": 2}
     }
 }

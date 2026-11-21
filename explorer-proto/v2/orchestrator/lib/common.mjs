@@ -16,6 +16,8 @@ export const V2_DIR = path.resolve(ORCH_DIR, '..');
 export const PROTO_DIR = path.resolve(V2_DIR, '..');
 export const REPO_ROOT = path.resolve(PROTO_DIR, '..');
 export const ORCH_REPO_PATH = 'explorer-proto/v2/orchestrator';
+export const INFRA_DIR = path.join(PROTO_DIR, 'infra');
+export const ORCH_RUNS_DIR = path.join(INFRA_DIR, '.run', 'orch');
 
 export const EXIT = {
     OK: 0,
@@ -42,8 +44,18 @@ export const STAGE_NAMES = [
 
 export const MODES = ['explore', 'author', 'both'];
 
-export function stageDirName(index) {
-    return `${index}-${STAGE_NAMES[index]}`;
+/** The two stage layouts: the ten-stage pipeline and the five-stage verification of an existing spec. */
+export const STAGE_SETS = {
+    pipeline: {id: 'pipeline', names: STAGE_NAMES, dirs: STAGE_NAMES.map((n, i) => `${i}-${n}`)},
+    verify_spec: {
+        id: 'verify_spec',
+        names: ['target', 'baseline', 'control', 'dispatch', 'collect'],
+        dirs: ['0-target', '1-baseline', '2-control', 'verify', 'collect'],
+    },
+};
+
+export function stageDirName(index, set = STAGE_SETS.pipeline) {
+    return set.dirs[index];
 }
 
 /** Thrown by a stage to stop the pipeline with a specific exit code (awaiting agent, invalid agent result, ...). */

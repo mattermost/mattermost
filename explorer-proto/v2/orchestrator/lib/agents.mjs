@@ -107,7 +107,7 @@ function stripUndefined(obj) {
 
 /**
  * spec: {role, name?, prompt, inputs: [{path, base, purpose}], schemaRef: "agent#select" | dynamicSchema: object,
- *        allowedTools?, extraTools?, check?: (result) => string[]}
+ *        allowedTools?, extraTools?, context?: object (inline task details), check?: (result) => string[]}
  */
 export function buildTask(ctx, spec, resultRel, schemaInfo) {
     const promptRepo = `${ORCH_REPO_PATH}/prompts/${spec.prompt}`;
@@ -120,6 +120,7 @@ export function buildTask(ctx, spec, resultRel, schemaInfo) {
         allowed_tools: [...READ_ONLY_TOOLS, ...(spec.extraTools ?? []), `write_file:${resultRel}`],
         forbidden: {fields: FORBIDDEN_KEY_WORDS, content: FORBIDDEN_CONTENT},
         caps: {agent_calls: ctx.budget.agent_calls, retries: ctx.budget.retries},
+        ...(spec.context ? {context: spec.context} : {}),
     };
     const taskId = `${ctx.name}-${spec.role}-${sha256Json(body).slice(0, 10)}`;
     return {schema: 'explorer-agent-task/v1', task_id: taskId, ...body};

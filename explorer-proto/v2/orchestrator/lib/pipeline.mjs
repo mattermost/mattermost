@@ -18,15 +18,16 @@ import {
     readJson,
     sha256File,
     sha256Json,
-    stageDirName,
     StageSignal,
-    STAGE_NAMES,
+    STAGE_SETS,
     writeCanonical,
 } from './common.mjs';
 import {countCalls, createContext} from './context.mjs';
 import {loadFeature} from './feature.mjs';
 import {validate} from './schemas.mjs';
 import {STAGES} from './stages/index.mjs';
+import {VERIFY_STAGES} from './verify/index.mjs';
+import {assertSpecUnchanged, SpecHashMismatch} from './verify/spec.mjs';
 
 import {countAgentCalls, stageRecord} from '../../bakeoff/metrics.mjs';
 import {saveResult} from '../../bakeoff/result_set.mjs';
@@ -36,7 +37,7 @@ const RECORD = 'stage-record.json';
 
 function codeHash() {
     const files = [];
-    for (const dir of ['lib', 'gates', 'schemas', 'prompts', 'config']) {
+    for (const dir of ['lib', 'gates', 'schemas', 'prompts', 'config', 'controls']) {
         for (const f of listFiles(path.join(ORCH_DIR, dir))) {
             files.push(`${dir}/${f}`);
         }
@@ -45,14 +46,14 @@ function codeHash() {
     return sha256Json(files.sort().map((f) => [f, sha256File(path.join(ORCH_DIR, f))]));
 }
 
-function readState(out, index) {
-    const file = path.join(out, '.state', `${stageDirName(index)}.json`);
+function readState(out, set, index) {
+    const file = path.join(out, '.state', `${set.dirs[index]}.json`);
     const base = {active_seconds: 0, retries_used: 0, invalid_results: 0};
     return fs.existsSync(file) ? {...base, ...readJson(file)} : base;
 }
 
-function writeState(out, index, state) {
-    const file = path.join(out, '.state', `${stageDirName(index)}.json`);
+function writeState(out, set, index, state) {
+    const file = path.join(out, '.state', `${set.dirs[index]}.json`);
     fs.mkdirSync(path.dirname(file), {recursive: true});
     fs.writeFileSync(file, JSON.stringify(state));
 }
@@ -62,7 +63,7 @@ function clearStageDir(dir) {
         return;
     }
     for (const entry of fs.readdirSync(dir)) {
-        if (!entry.startsWith('agent-result')) {
+        if (!entry.startsWith('agent-result') && !/^attempt-[1-9][0-9]*$/.test(entry)) {
             fs.rmSync(path.join(dir, entry), {recursive: true, force: true});
         }
     }
@@ -72,7 +73,10 @@ export function exitFor(result) {
     return {pass: EXIT.OK, skipped: EXIT.OK, fail: EXIT.FAIL, blocked: EXIT.BLOCKED}[result] ?? EXIT.FAIL;
 }
 
-function upToDate(ctx, inputsHash) {
+const outputsOf = (ctx, stage) =>
+    hashFiles(ctx.dir, listFiles(ctx.dir, {skip: (rel) => rel === RECORD || Boolean(stage.ignoreOutput?.(rel))}));
+
+function upToDate(ctx, stage, inputsHash) {
     const file = path.join(ctx.dir, RECORD);
     if (!fs.existsSync(file)) {
         return false;
@@ -90,8 +94,7 @@ function upToDate(ctx, inputsHash) {
     ) {
         return false;
     }
-    const current = hashFiles(ctx.dir, listFiles(ctx.dir, {skip: (rel) => rel === RECORD}));
-    return sha256Json(current) === sha256Json(record.outputs);
+    return sha256Json(outputsOf(ctx, stage)) === sha256Json(record.outputs);
 }
 
 function describe(e) {
@@ -161,11 +164,11 @@ async function executeStage(stage, ctx, cfg, inputsHash) {
             exitCode = EXIT.FAIL;
         }
     }
-    writeState(ctx.out, ctx.index, ctx.state);
+    writeState(ctx.out, ctx.stageSet, ctx.index, ctx.state);
 
-    const outputs = hashFiles(ctx.dir, listFiles(ctx.dir, {skip: (rel) => rel === RECORD}));
+    const outputs = outputsOf(ctx, stage);
     const metrics = stageRecord({
-        stage: stageDirName(ctx.index),
+        stage: ctx.stageDirName,
         category: 'pipeline',
         command: 'pilot',
         argCount: cfg.argCount,
@@ -198,21 +201,23 @@ async function executeStage(stage, ctx, cfg, inputsHash) {
     if (cfg.resultFile && ['pass', 'skipped'].includes(record.result)) {
         appendToResultSet(cfg.resultFile, record.metrics);
     }
-    return {record, exitCode, signal: outcome.signal};
+    return {record, exitCode, signal: outcome.signal, halt: outcome.halt};
 }
 
 function printStage(ctx, record) {
     const reason = record.reason ? `  ${record.reason}` : '';
     process.stdout.write(
-        `${stageDirName(ctx.index).padEnd(12)} ${record.result.padEnd(14)} ${record.metrics.elapsed_seconds.toFixed(1).padStart(7)}s  agent calls ${record.metrics.agent_calls}  budget ${record.budget_outcome}${reason}\n`,
+        `${ctx.stageDirName.padEnd(12)} ${record.result.padEnd(14)} ${record.metrics.elapsed_seconds.toFixed(1).padStart(7)}s  agent calls ${record.metrics.agent_calls}  budget ${record.budget_outcome}${reason}\n`,
     );
 }
 
-/** Runs the selected stages in order and stops at the first one that is not pass or skipped. Returns the exit code. */
-export async function runPipeline(cfg) {
-    const out = path.resolve(cfg.out);
-    fs.mkdirSync(out, {recursive: true});
-    const runConfig = {
+function resumeCommand(cfg, out) {
+    const target = cfg.runId ? `--run-id ${cfg.runId}` : `--out ${out}`;
+    return `node explorer-proto/v2/orchestrator/pilot.mjs run --resume ${target}`;
+}
+
+function runConfigOf(cfg) {
+    const config = {
         schema: 'explorer-run-config/v1',
         target: cfg.target,
         feature: cfg.feature,
@@ -220,6 +225,26 @@ export async function runPipeline(cfg) {
         live: cfg.live,
         agents: cfg.agents,
     };
+    if (cfg.verifySpec) {
+        Object.assign(config, {
+            run_id: cfg.runId,
+            session: cfg.session,
+            engine_charter: cfg.engineCharter,
+            verify_spec: {path: cfg.verifySpec.path, sha256: cfg.verifySpec.sha256},
+            control: {id: cfg.control.id, file: cfg.control.file, sha256: cfg.control.sha256},
+            inputs_fingerprint: cfg.inputsFingerprint,
+        });
+    } else if (cfg.session) {
+        config.session = cfg.session;
+    }
+    return config;
+}
+
+/** Runs the selected stages in order and stops at the first one that is not pass or skipped. Returns the exit code. */
+export async function runPipeline(cfg) {
+    const out = path.resolve(cfg.out);
+    fs.mkdirSync(out, {recursive: true});
+    const runConfig = runConfigOf(cfg);
     const checked = validate('orch#run-config', runConfig);
     if (!checked.ok) {
         process.stderr.write(`invalid run configuration: ${checked.errors.join('; ')}\n`);
@@ -241,23 +266,43 @@ export async function runPipeline(cfg) {
         return EXIT.USAGE;
     }
 
-    const loaded = loadFeature(cfg.feature);
-    if (!loaded.ok) {
-        process.stderr.write(`feature ${cfg.feature}: ${loaded.errors.join('; ')}\n`);
-        return loaded.exitCode;
+    const stages = cfg.verifySpec ? VERIFY_STAGES : STAGES;
+    const stageSet = cfg.verifySpec ? STAGE_SETS.verify_spec : STAGE_SETS.pipeline;
+    let loaded = {feature: null};
+    if (!cfg.verifySpec) {
+        loaded = loadFeature(cfg.feature);
+        if (!loaded.ok) {
+            process.stderr.write(`feature ${cfg.feature}: ${loaded.errors.join('; ')}\n`);
+            return loaded.exitCode;
+        }
     }
 
     const flags = {...cfg, out};
     const common = {mode: cfg.mode, live: cfg.live, target: cfg.target, feature: cfg.feature, code: codeHash()};
     const from = cfg.from ?? 0;
-    const to = cfg.to ?? STAGE_NAMES.length - 1;
+    const to = cfg.to ?? stages.length - 1;
+    const what = cfg.verifySpec ? `verify-spec run=${cfg.runId}` : `feature=${cfg.feature} mode=${cfg.mode}`;
     process.stdout.write(
-        `pilot run: target=${cfg.target} feature=${cfg.feature} mode=${cfg.mode} ${cfg.live ? 'LIVE' : 'dry'} agents=${provider.kind}\n`,
+        `pilot run: target=${cfg.target} ${what} ${cfg.live ? 'LIVE' : 'dry'} agents=${provider.kind}\n`,
     );
 
     for (let index = from; index <= to; index++) {
-        const stage = STAGES[index];
-        const state = readState(out, index);
+        const stage = stages[index];
+        if (cfg.verifySpec && index > 0) {
+            try {
+                assertSpecUnchanged(cfg);
+            } catch (e) {
+                if (!(e instanceof SpecHashMismatch)) {
+                    throw e;
+                }
+                process.stdout.write(
+                    `${stageSet.dirs[index].padEnd(12)} fail            spec_hash_mismatch: the spec differs from the hash recorded for this run (hard failure)\n`,
+                );
+                stages[0].teardown?.(flags);
+                return EXIT.FAIL;
+            }
+        }
+        const state = readState(out, stageSet, index);
         const ctx = createContext({
             flags,
             out,
@@ -266,14 +311,29 @@ export async function runPipeline(cfg) {
             provider,
             state,
             feature: loaded.feature,
+            stageSet,
         });
         ctx.featureInfo = loaded;
-        const inModes = stage.modes.includes(cfg.mode);
+        const inModes = cfg.verifySpec || stage.modes.includes(cfg.mode);
         const parts = inModes ? await stage.inputs(ctx) : [];
         const inputsHash = sha256Json({...common, stage: stage.name, inModes, parts});
-        const mustRun = cfg.force || (cfg.live && stage.runsEveryLiveInvocation);
-        if (!mustRun && upToDate(ctx, inputsHash)) {
-            process.stdout.write(`${stageDirName(index).padEnd(12)} up to date\n`);
+        let mustRun = Boolean(cfg.force);
+        if (cfg.live && stage.liveReuse && !cfg.force) {
+            const decision = await stage.liveReuse(ctx);
+            if (decision.reuse) {
+                if (decision.holdsStack) {
+                    stage.adoptStack?.();
+                }
+                process.stdout.write(`${ctx.stageDirName.padEnd(12)} reused          ${decision.note}\n`);
+                continue;
+            }
+            ctx.rerunReason = decision.reason;
+            mustRun = true;
+        } else if (cfg.live && stage.liveReuse) {
+            ctx.rerunReason = 'forced';
+        }
+        if (!mustRun && upToDate(ctx, stage, inputsHash)) {
+            process.stdout.write(`${ctx.stageDirName.padEnd(12)} up to date\n`);
             continue;
         }
         const effective = inModes
@@ -285,22 +345,29 @@ export async function runPipeline(cfg) {
                       reason: `skipped: mode ${cfg.mode} does not include this stage`,
                   }),
               };
-        const {record, exitCode, signal} = await executeStage(effective, ctx, cfg, inputsHash);
+        const {record, exitCode, signal, halt} = await executeStage(effective, ctx, cfg, inputsHash);
         printStage(ctx, record);
         if (!['pass', 'skipped'].includes(record.result)) {
             if (signal?.extra?.taskAbs) {
                 process.stdout.write(
-                    `agent task:   ${signal.extra.taskAbs}\nresult file:  ${signal.extra.resultAbs}\nresume:       node explorer-proto/v2/orchestrator/pilot.mjs run --resume --out ${out}\n`,
+                    `agent task:   ${signal.extra.taskAbs}\nresult file:  ${signal.extra.resultAbs}\nresume:       ${resumeCommand(cfg, out)}\n`,
                 );
             }
-            STAGES[0].teardown?.(flags);
+            stages[0].teardown?.(flags);
             return exitCode;
         }
         state.active_seconds = 0;
         state.retries_used = 0;
         state.invalid_results = 0;
-        writeState(out, index, state);
+        writeState(out, stageSet, index, state);
+        if (halt) {
+            process.stdout.write(
+                `agent task:   ${halt.taskAbs}\nresult file:  ${halt.resultAbs}\nresume:       ${resumeCommand(cfg, out)}\n`,
+            );
+            stages[0].teardown?.(flags);
+            return halt.exitCode;
+        }
     }
-    STAGES[0].teardown?.(flags);
+    stages[0].teardown?.(flags);
     return EXIT.OK;
 }

@@ -15,7 +15,7 @@ import {describeErrors, readSchema, SCHEMA_DIR, schemaNames} from '../../schemas
 
 const LOCAL_SCHEMA_DIR = path.join(ORCH_DIR, 'schemas');
 const AJV_DIR = path.resolve(SCHEMA_DIR, '../../../e2e-tests/playwright/node_modules/ajv');
-const LOCAL_FILES = {orch: 'orchestrator', agent: 'agent-results', feature: 'feature'};
+const LOCAL_FILES = {orch: 'orchestrator', agent: 'agent-results', feature: 'feature', verifier: 'verifier-result'};
 
 let instance;
 

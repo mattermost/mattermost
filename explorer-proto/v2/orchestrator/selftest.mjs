@@ -19,6 +19,7 @@ import {validate} from './lib/schemas.mjs';
 import {stubResult} from './lib/stub_agent.mjs';
 import {buildVerdict, overallOf} from './lib/verdicts.mjs';
 import {unitChecks} from './selftest_units.mjs';
+import {verifySpecChecks} from './selftest_verify.mjs';
 
 const PILOT = path.join(ORCH_DIR, 'pilot.mjs');
 const KEEP = process.argv.includes('--keep');
@@ -678,6 +679,7 @@ async function main() {
     });
 
     await unitChecks({check, assert, WORK, newDir, envWithoutLicence, FEATURE});
+    await verifySpecChecks({check, assert, newDir});
 }
 
 await main();

@@ -10,11 +10,22 @@ import path from 'node:path';
 import {listFiles, readJson} from './common.mjs';
 import {validate, validateWithSchema} from './schemas.mjs';
 
+const STAGE_DIR = '(?:[0-9]-[a-z]+|verify|collect)';
+
 const RULES = [
     [/^run\.json$/, 'orch#run-config'],
-    [/^[0-9]-[a-z]+\/stage-record\.json$/, 'orch#stage-record'],
-    [/^0-target\/target\.json$/, 'target'],
-    [/^0-target\/target-check\.json$/, 'orch#target-check'],
+    [new RegExp(`^${STAGE_DIR}/stage-record\\.json$`), 'orch#stage-record'],
+    [/^0-target\/(?:attempt-[1-9][0-9]*\/)?target\.json$/, 'target'],
+    [/^0-target\/(?:attempt-[1-9][0-9]*\/)?target-check\.json$/, 'orch#target-check'],
+    [/^0-target\/attempt-[1-9][0-9]*\/setup\.json$/, 'orch#stage0-setup'],
+    [/^0-target\/attempt-[1-9][0-9]*\/attempt\.json$/, 'orch#stage0-attempt'],
+    [/^0-target\/status\.json$/, 'orch#stage0-status'],
+    [/^1-baseline\/baseline\.json$/, 'orch#baseline-record'],
+    [/^2-control\/control\.json$/, 'orch#control-record'],
+    [/^2-control\/failure-trace\.json$/, 'orch#failure-trace'],
+    [/^verify\/dispatch\.json$/, 'orch#dispatch-record'],
+    [/^collect\/collect\.json$/, 'orch#collect-record'],
+    [/^summary\.json$/, 'orch#run-summary'],
     [/^1-index\/index-summary\.json$/, 'orch#index-summary'],
     [/^2-explore\/feature-plan\.json$/, 'orch#feature-plan'],
     [/^3-triage\/repro\.json$/, 'orch#repro'],
@@ -31,7 +42,7 @@ const RULES = [
     [/^8-promote\/promote\.json$/, 'orch#promote'],
     [/^9-lessons\/lessons\/[^/]+\.json$/, 'lesson'],
     [/^9-lessons\/application-plan\.json$/, 'orch#lesson-plan'],
-    [/^[0-9]-[a-z]+\/agent-task(?:\.[a-z-]+)?\.json$/, 'orch#agent-task'],
+    [new RegExp(`^${STAGE_DIR}/agent-task(?:\\.[a-z-]+)?\\.json$`), 'orch#agent-task'],
 ];
 
 function resultSchemaFor(out, relFile) {
@@ -47,7 +58,7 @@ function resultSchemaFor(out, relFile) {
     if (schema.base === 'out') {
         return {schema: readJson(path.join(out, schema.file))};
     }
-    return {ref: `agent#${schema.definition}`};
+    return {ref: schema.definition ? `agent#${schema.definition}` : schema.id};
 }
 
 function checkAgentResult(resultSchema, data) {
@@ -89,7 +100,7 @@ export function validateOutDir(out, {skipStages = []} = {}) {
             }
             continue;
         }
-        const isResult = /^[0-9]-[a-z]+\/agent-result(?:\.[a-z-]+)?\.json$/.test(file);
+        const isResult = new RegExp(`^${STAGE_DIR}/agent-result(?:\\.[a-z-]+)?\\.json$`).test(file);
         if (
             !file.endsWith('.json') ||
             /\.(?:errors|rejected)\.json$/.test(file) ||

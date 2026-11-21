@@ -62,6 +62,35 @@
                 "agents": {
                     "type": "string",
                     "pattern": "^(manual|stub(:[a-z-]+)?|cmd:.+)$"
+                },
+                "run_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,60}$"},
+                "session": {"type": "string", "pattern": "^[a-z0-9-]{1,40}$"},
+                "engine_charter": {"type": "string", "pattern": "^(?:session|journey):[a-z0-9-]+$"},
+                "verify_spec": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256"],
+                    "properties": {
+                        "path": {"$ref": "#/definitions/relPath"},
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "control": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id", "file", "sha256"],
+                    "properties": {
+                        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,60}$"},
+                        "file": {"$ref": "#/definitions/relPath"},
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "inputs_fingerprint": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
                 }
             }
         },
@@ -955,7 +984,7 @@
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "maxLength": 80
+                        "maxLength": 120
                     }
                 },
                 "forbidden": {
@@ -993,6 +1022,10 @@
                             "minimum": 0
                         }
                     }
+                },
+                "context": {
+                    "type": "object",
+                    "description": "Inline task details for a role that needs more than input files (the independent verifier)."
                 }
             }
         },
@@ -1010,6 +1043,835 @@
                 "gates": {
                     "$ref": "https://explorer-proto.invalid/v2/schemas/verdict.schema.json#/properties/gates"
                 }
+            }
+        },
+        "stage0-attempt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "attempt", "outcome", "reason", "session", "files"],
+            "properties": {
+                "schema": {"const": "explorer-stage0-attempt/v1"},
+                "attempt": {"type": "integer", "minimum": 1},
+                "outcome": {"enum": ["pass", "fail", "blocked"]},
+                "reason": {"type": "string", "maxLength": 200},
+                "detail": {"type": "string", "maxLength": 300},
+                "session": {"type": ["string", "null"]},
+                "files": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                    }
+                }
+            }
+        },
+        "stage0-setup": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "attempt",
+                "target_file_sha256",
+                "image_pin",
+                "session",
+                "image_digest",
+                "licence",
+                "gate",
+                "manifest_session_check",
+                "fixture_fingerprint",
+                "probe"
+            ],
+            "properties": {
+                "schema": {"const": "explorer-stage0-setup/v1"},
+                "attempt": {"type": "integer", "minimum": 1},
+                "target_file_sha256": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                },
+                "image_pin": {"type": "string", "maxLength": 300},
+                "session": {"type": ["string", "null"]},
+                "image_digest": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/imageDigest"
+                },
+                "licence": {"enum": ["PASS", "FAIL", "not_run"]},
+                "gate": {"enum": ["PASS", "FAIL", "not_run"]},
+                "manifest_session_check": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["result", "session_name", "bookmark_titles", "failures"],
+                            "properties": {
+                                "result": {"enum": ["pass", "fail"]},
+                                "session_name": {"type": ["string", "null"]},
+                                "bookmark_titles": {
+                                    "type": "object",
+                                    "additionalProperties": {"type": "string", "maxLength": 120}
+                                },
+                                "failures": {"type": "array", "items": {"type": "string", "maxLength": 80}}
+                            }
+                        }
+                    ]
+                },
+                "fixture_fingerprint": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    ]
+                },
+                "probe": {"enum": ["pass", "not_run"]}
+            }
+        },
+        "stage0-status": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "session", "attempts", "current_attempt"],
+            "properties": {
+                "schema": {"const": "explorer-stage0-status/v1"},
+                "session": {"type": ["string", "null"]},
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["attempt", "dir", "outcome", "reason", "files"],
+                        "properties": {
+                            "attempt": {"type": "integer", "minimum": 1},
+                            "dir": {"$ref": "#/definitions/relPath"},
+                            "outcome": {"enum": ["pass", "fail", "blocked"]},
+                            "reason": {"type": "string", "maxLength": 200},
+                            "detail": {"type": "string", "maxLength": 300},
+                            "files": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                                }
+                            }
+                        }
+                    }
+                },
+                "current_attempt": {"type": ["integer", "null"]}
+            }
+        },
+        "control-definition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "id",
+                "label",
+                "charter",
+                "channel",
+                "changed_title",
+                "owner_patch_required",
+                "endpoint",
+                "commands"
+            ],
+            "properties": {
+                "schema": {"const": "explorer-control-definition/v1"},
+                "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,60}$"},
+                "label": {"type": "string", "maxLength": 60},
+                "charter": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["session", "file", "negative_control_id", "note"],
+                    "properties": {
+                        "session": {"type": "string", "pattern": "^[a-z0-9-]{1,40}$"},
+                        "file": {"$ref": "#/definitions/relPath"},
+                        "negative_control_id": {"type": "string", "maxLength": 80},
+                        "note": {"type": "string", "maxLength": 600}
+                    }
+                },
+                "channel": {"type": "string", "maxLength": 60},
+                "changed_title": {"type": "string", "maxLength": 120},
+                "owner_patch_required": {"type": "boolean"},
+                "endpoint": {"type": "string", "maxLength": 600},
+                "commands": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["read", "mutate", "restore"],
+                    "properties": {
+                        "read": {"type": "string", "maxLength": 300},
+                        "mutate": {"type": "string", "maxLength": 300},
+                        "restore": {"type": "string", "maxLength": 300}
+                    }
+                }
+            }
+        },
+        "baseline-record": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "session", "test_title", "spec", "fixture", "replay", "judge", "result"],
+            "properties": {
+                "schema": {"const": "explorer-baseline-record/v1"},
+                "session": {"type": "string", "maxLength": 40},
+                "test_title": {"type": "string", "maxLength": 300},
+                "spec": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256_before", "sha256_after"],
+                    "properties": {
+                        "path": {"$ref": "#/definitions/relPath"},
+                        "sha256_before": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        },
+                        "sha256_after": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "fixture": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["fingerprint_before", "fingerprint_after"],
+                    "properties": {
+                        "fingerprint_before": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        },
+                        "fingerprint_after": {
+                            "oneOf": [
+                                {"type": "null"},
+                                {
+                                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "replay": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["command", "exit_code", "retries", "workers", "report"],
+                    "properties": {
+                        "command": {"$ref": "#/definitions/argv"},
+                        "exit_code": {"type": ["integer", "null"]},
+                        "retries": {"type": "integer"},
+                        "workers": {"type": "integer"},
+                        "report": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["stats", "retries_configured", "workers", "tests"],
+                            "properties": {
+                                "stats": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["expected", "unexpected", "flaky", "skipped"],
+                                    "properties": {
+                                        "expected": {"type": "integer"},
+                                        "unexpected": {"type": "integer"},
+                                        "flaky": {"type": "integer"},
+                                        "skipped": {"type": "integer"}
+                                    }
+                                },
+                                "retries_configured": {"type": "integer"},
+                                "workers": {"type": "integer"},
+                                "tests": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["title", "status", "results"],
+                                        "properties": {
+                                            "title": {"type": "string", "maxLength": 300},
+                                            "status": {"type": "string", "maxLength": 30},
+                                            "results": {"type": "array", "items": {"type": "string", "maxLength": 30}}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "judge": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["status", "observed", "rules", "counts"],
+                    "properties": {
+                        "status": {"enum": ["pass", "fail", "blocked"]},
+                        "observed": {"type": "string", "maxLength": 40},
+                        "rules": {"type": "array", "items": {"type": "string", "maxLength": 60}},
+                        "counts": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["reports", "tests", "passed"],
+                            "properties": {
+                                "reports": {"type": "integer"},
+                                "tests": {"type": "integer"},
+                                "passed": {"type": "integer"}
+                            }
+                        }
+                    }
+                },
+                "result": {"enum": ["pass", "fail"]}
+            }
+        },
+        "failure-trace": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "label",
+                "spec",
+                "test_title",
+                "failing",
+                "message",
+                "message_first_line",
+                "error_count",
+                "bookmark_bar_snapshot",
+                "judge",
+                "mutation",
+                "restore"
+            ],
+            "properties": {
+                "schema": {"const": "explorer-failure-trace/v1"},
+                "label": {"type": "string", "maxLength": 60},
+                "spec": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256"],
+                    "properties": {
+                        "path": {"$ref": "#/definitions/relPath"},
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "test_title": {"type": "string", "maxLength": 300},
+                "failing": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["line", "expect_call", "matcher", "predicate"],
+                    "properties": {
+                        "line": {"type": "integer", "minimum": 1},
+                        "expect_call": {"type": "string", "maxLength": 500},
+                        "matcher": {"type": ["string", "null"]},
+                        "predicate": {"type": "string", "maxLength": 20}
+                    }
+                },
+                "message": {"type": "string", "maxLength": 3000},
+                "message_first_line": {"type": "string", "maxLength": 200},
+                "error_count": {"type": "integer"},
+                "bookmark_bar_snapshot": {
+                    "type": "array",
+                    "items": {"type": "string", "maxLength": 300},
+                    "maxItems": 40
+                },
+                "judge": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["status", "observed", "rules", "counts"],
+                    "properties": {
+                        "status": {"enum": ["pass", "fail", "blocked"]},
+                        "observed": {"type": "string", "maxLength": 40},
+                        "rules": {"type": "array", "items": {"type": "string", "maxLength": 60}},
+                        "counts": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["reports", "tests", "passed"],
+                            "properties": {
+                                "reports": {"type": "integer"},
+                                "tests": {"type": "integer"},
+                                "passed": {"type": "integer"}
+                            }
+                        }
+                    }
+                },
+                "mutation": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "control_id", "description", "declared_title", "changed_title"],
+                    "properties": {
+                        "label": {"type": "string", "maxLength": 60},
+                        "control_id": {"type": "string", "maxLength": 80},
+                        "description": {"type": "string", "maxLength": 600},
+                        "declared_title": {"type": "string", "maxLength": 120},
+                        "changed_title": {"type": "string", "maxLength": 120}
+                    }
+                },
+                "restore": {"type": "string", "maxLength": 600}
+            }
+        },
+        "control-record": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "label",
+                "control_id",
+                "control_definition",
+                "session",
+                "spec",
+                "expectation",
+                "mutation_control",
+                "replay",
+                "judge",
+                "failure_trace",
+                "restore",
+                "result"
+            ],
+            "properties": {
+                "schema": {"const": "explorer-control-record/v1"},
+                "label": {"type": "string", "maxLength": 60},
+                "control_id": {"type": "string", "maxLength": 80},
+                "control_definition": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["file", "sha256"],
+                    "properties": {
+                        "file": {"$ref": "#/definitions/relPath"},
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "session": {"type": "string", "maxLength": 40},
+                "spec": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256_before", "sha256_after"],
+                    "properties": {
+                        "path": {"$ref": "#/definitions/relPath"},
+                        "sha256_before": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        },
+                        "sha256_after": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "expectation": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "test_title",
+                        "failing_line",
+                        "expected_failing_assertion_text",
+                        "message_fragments",
+                        "expects_up_to_failing"
+                    ],
+                    "properties": {
+                        "test_title": {"type": "string", "maxLength": 300},
+                        "failing_line": {"type": "integer", "minimum": 1},
+                        "expected_failing_assertion_text": {"type": "string", "maxLength": 500},
+                        "message_fragments": {"type": "array", "items": {"type": "string", "maxLength": 300}},
+                        "expects_up_to_failing": {"type": "integer"}
+                    }
+                },
+                "mutation_control": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["status", "states"],
+                    "properties": {
+                        "status": {"enum": ["pass", "fail", "blocked"]},
+                        "blocked_reason": {"type": "string", "maxLength": 60},
+                        "states": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["state", "result"],
+                                "properties": {
+                                    "state": {"type": "string", "maxLength": 40},
+                                    "result": {"type": "string", "maxLength": 20},
+                                    "detail": {"type": "string", "maxLength": 300}
+                                }
+                            }
+                        }
+                    }
+                },
+                "replay": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["command", "exit_code", "report"],
+                    "properties": {
+                        "command": {"$ref": "#/definitions/argv"},
+                        "exit_code": {"type": ["integer", "null"]},
+                        "report": {
+                            "oneOf": [
+                                {"type": "null"},
+                                {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["stats", "retries_configured", "workers", "tests"],
+                                    "properties": {
+                                        "stats": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": ["expected", "unexpected", "flaky", "skipped"],
+                                            "properties": {
+                                                "expected": {"type": "integer"},
+                                                "unexpected": {"type": "integer"},
+                                                "flaky": {"type": "integer"},
+                                                "skipped": {"type": "integer"}
+                                            }
+                                        },
+                                        "retries_configured": {"type": "integer"},
+                                        "workers": {"type": "integer"},
+                                        "tests": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "required": ["title", "status", "results"],
+                                                "properties": {
+                                                    "title": {"type": "string", "maxLength": 300},
+                                                    "status": {"type": "string", "maxLength": 30},
+                                                    "results": {
+                                                        "type": "array",
+                                                        "items": {"type": "string", "maxLength": 30}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "judge": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["status", "observed", "rules", "counts"],
+                            "properties": {
+                                "status": {"enum": ["pass", "fail", "blocked"]},
+                                "observed": {"type": "string", "maxLength": 40},
+                                "rules": {"type": "array", "items": {"type": "string", "maxLength": 60}},
+                                "counts": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["reports", "tests", "passed"],
+                                    "properties": {
+                                        "reports": {"type": "integer"},
+                                        "tests": {"type": "integer"},
+                                        "passed": {"type": "integer"}
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "failure_trace": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["file", "error_count", "snapshot_lines", "leak_scan"],
+                            "properties": {
+                                "file": {"$ref": "#/definitions/relPath"},
+                                "error_count": {"type": "integer"},
+                                "snapshot_lines": {"type": "integer"},
+                                "leak_scan": {
+                                    "oneOf": [
+                                        {"type": "null"},
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": ["unsafe_text", "licence"],
+                                            "properties": {
+                                                "unsafe_text": {"enum": ["PASS", "FAIL"]},
+                                                "licence": {"enum": ["PASS", "FAIL", "not_run"]}
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                "restore": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["states", "seed_check", "fixture_fingerprint", "replay"],
+                    "properties": {
+                        "states": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["state", "result"],
+                                "properties": {
+                                    "state": {"type": "string", "maxLength": 40},
+                                    "result": {"type": "string", "maxLength": 20},
+                                    "detail": {"type": "string", "maxLength": 300}
+                                }
+                            }
+                        },
+                        "seed_check": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["result", "manifest_session", "titles_declared", "fingerprint_equal"],
+                            "properties": {
+                                "result": {"enum": ["pass", "fail"]},
+                                "manifest_session": {"type": "boolean"},
+                                "titles_declared": {"type": "boolean"},
+                                "fingerprint_equal": {"type": "boolean"}
+                            }
+                        },
+                        "fixture_fingerprint": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        },
+                        "replay": {
+                            "oneOf": [
+                                {"type": "null"},
+                                {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["exit_code", "judge"],
+                                    "properties": {
+                                        "exit_code": {"type": ["integer", "null"]},
+                                        "judge": {
+                                            "oneOf": [
+                                                {"type": "null"},
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["status", "observed", "rules", "counts"],
+                                                    "properties": {
+                                                        "status": {"enum": ["pass", "fail", "blocked"]},
+                                                        "observed": {"type": "string", "maxLength": 40},
+                                                        "rules": {
+                                                            "type": "array",
+                                                            "items": {"type": "string", "maxLength": 60}
+                                                        },
+                                                        "counts": {
+                                                            "type": "object",
+                                                            "additionalProperties": false,
+                                                            "required": ["reports", "tests", "passed"],
+                                                            "properties": {
+                                                                "reports": {"type": "integer"},
+                                                                "tests": {"type": "integer"},
+                                                                "passed": {"type": "integer"}
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "result": {"enum": ["pass", "fail", "blocked"]}
+            }
+        },
+        "dispatch-record": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "task_id", "role", "task_file", "result_file", "spec", "task_leak_scan", "teardown"],
+            "properties": {
+                "schema": {"const": "explorer-dispatch-record/v1"},
+                "task_id": {"$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"},
+                "role": {"type": "string", "maxLength": 60},
+                "task_file": {"$ref": "#/definitions/relPath"},
+                "result_file": {"$ref": "#/definitions/relPath"},
+                "spec": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256"],
+                    "properties": {
+                        "path": {"$ref": "#/definitions/relPath"},
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "task_leak_scan": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["unsafe_text", "licence"],
+                    "properties": {
+                        "unsafe_text": {"enum": ["PASS", "FAIL"]},
+                        "licence": {"enum": ["PASS", "FAIL", "not_run"]}
+                    }
+                },
+                "teardown": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "command",
+                        "exit_code",
+                        "manifest_removed",
+                        "forwarder_stopped",
+                        "containers_left",
+                        "confirmed"
+                    ],
+                    "properties": {
+                        "command": {"$ref": "#/definitions/argv"},
+                        "exit_code": {"type": "integer"},
+                        "manifest_removed": {"type": "boolean"},
+                        "forwarder_stopped": {"type": "boolean"},
+                        "containers_left": {"type": "integer"},
+                        "confirmed": {"type": "boolean"}
+                    }
+                }
+            }
+        },
+        "collect-record": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "task_id",
+                "result_sha256",
+                "accepted",
+                "verifier_verdict",
+                "run_verdict",
+                "hard_failure",
+                "checks",
+                "cross_checked"
+            ],
+            "properties": {
+                "schema": {"const": "explorer-collect-record/v1"},
+                "task_id": {"$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"},
+                "result_sha256": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                },
+                "accepted": {"type": "boolean"},
+                "verifier_verdict": {"enum": ["pass", "fail", "blocked"]},
+                "run_verdict": {"enum": ["pass", "fail", "blocked"]},
+                "hard_failure": {"type": ["string", "null"]},
+                "checks": {"type": "object", "additionalProperties": {"type": "boolean"}},
+                "cross_checked": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["spec_sha256", "failing_line", "expects_up_to_failing"],
+                    "properties": {
+                        "spec_sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        },
+                        "failing_line": {"type": "integer", "minimum": 1},
+                        "expects_up_to_failing": {"type": "integer"}
+                    }
+                }
+            }
+        },
+        "run-summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "run_id",
+                "session",
+                "target",
+                "image_digest",
+                "fixture_fingerprint",
+                "spec",
+                "verification_control",
+                "assertion",
+                "results",
+                "stages",
+                "verdict"
+            ],
+            "properties": {
+                "schema": {"const": "explorer-run-summary/v1"},
+                "run_id": {"type": "string", "maxLength": 80},
+                "session": {"type": "string", "maxLength": 40},
+                "target": {"enum": ["release", "main"]},
+                "image_digest": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/imageDigest"
+                },
+                "fixture_fingerprint": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                },
+                "spec": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256", "unchanged_at_every_stage", "observations"],
+                    "properties": {
+                        "path": {"$ref": "#/definitions/relPath"},
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        },
+                        "unchanged_at_every_stage": {"type": "boolean"},
+                        "observations": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["stage", "point", "sha256"],
+                                "properties": {
+                                    "stage": {"type": "string", "maxLength": 40},
+                                    "point": {"type": "string", "maxLength": 20},
+                                    "sha256": {
+                                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "verification_control": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "id", "declared_title", "changed_title", "note"],
+                    "properties": {
+                        "label": {"type": "string", "maxLength": 60},
+                        "id": {"type": "string", "maxLength": 80},
+                        "declared_title": {"type": "string", "maxLength": 120},
+                        "changed_title": {"type": "string", "maxLength": 120},
+                        "note": {"type": "string", "maxLength": 400}
+                    }
+                },
+                "assertion": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["spec_path", "line", "expect_call", "test_title"],
+                    "properties": {
+                        "spec_path": {"$ref": "#/definitions/relPath"},
+                        "line": {"type": "integer", "minimum": 1},
+                        "expect_call": {"type": "string", "maxLength": 500},
+                        "test_title": {"type": "string", "maxLength": 300}
+                    }
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["step", "produced_by", "status", "detail"],
+                        "properties": {
+                            "step": {"type": "string", "maxLength": 60},
+                            "produced_by": {"type": "string", "maxLength": 200},
+                            "status": {"enum": ["verified", "failed", "blocked"]},
+                            "detail": {"type": "string", "maxLength": 300}
+                        }
+                    }
+                },
+                "stages": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["stage", "dir", "result"],
+                        "properties": {
+                            "stage": {"type": "string", "maxLength": 40},
+                            "dir": {"$ref": "#/definitions/relPath"},
+                            "result": {"type": "string", "maxLength": 30},
+                            "attempts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["attempt", "outcome", "reason"],
+                                    "properties": {
+                                        "attempt": {"type": "integer"},
+                                        "outcome": {"type": "string", "maxLength": 20},
+                                        "reason": {"type": "string", "maxLength": 200}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "verdict": {"type": "string", "maxLength": 30}
             }
         }
     }

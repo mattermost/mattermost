@@ -1,0 +1,20 @@
+{
+    "schema": "explorer-control-definition/v1",
+    "id": "release-bookmark-title-changed",
+    "label": "verification control",
+    "charter": {
+        "session": "bookmarks",
+        "file": "explorer-proto/sessions/bookmarks/charter.json",
+        "negative_control_id": "release-bookmark-title-changed",
+        "note": "The charter describes this control in prose only (negative_controls[0].change and .restore), so the changed title is copied here and checked against that text when the definition is loaded. The declared title is read from the charter's fixture_setup.bookmarks, never from this file."
+    },
+    "channel": "release-planning",
+    "changed_title": "Release memo golf 3e47",
+    "owner_patch_required": true,
+    "endpoint": "PATCH /api/v4/channels/{channel_id}/bookmarks/{bookmark_id} with a JSON body holding only display_name, sent as the seeding admin who owns the bookmark. The bookmark is updated in place and keeps its id; a patch by anyone else would soft-delete it and save a copy with a new id.",
+    "commands": {
+        "read": "node {bookmark_ctl} read --channel={channel}",
+        "mutate": "node {bookmark_ctl} patch --channel={channel} --title='{title_changed}'",
+        "restore": "node {bookmark_ctl} patch --channel={channel} --title='{title_declared}'"
+    }
+}

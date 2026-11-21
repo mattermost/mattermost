@@ -1,0 +1,86 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/orchestrator/verifier-result.schema.json",
+    "title": "Result of the independent verifier for an existing spec under a verification control (agent-result.json)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "task_id",
+        "spec_sha256_observed",
+        "clean_fixture_confirmed",
+        "baseline_pass",
+        "control_applied",
+        "reproduced_failure",
+        "restored",
+        "verdict",
+        "notes"
+    ],
+    "properties": {
+        "task_id": {"$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"},
+        "spec_sha256_observed": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+        },
+        "clean_fixture_confirmed": {"type": "boolean"},
+        "baseline_pass": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["exit", "passed", "judge"],
+            "properties": {
+                "exit": {"type": "integer"},
+                "passed": {"type": "boolean"},
+                "judge": {"enum": ["pass", "fail", "blocked"]}
+            }
+        },
+        "control_applied": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["accepted", "fields_changed_summary"],
+            "properties": {
+                "accepted": {"type": "boolean"},
+                "fields_changed_summary": {"type": "string", "maxLength": 300}
+            }
+        },
+        "reproduced_failure": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": [
+                "failing_line",
+                "expect_call",
+                "message_first_line",
+                "only_one_error",
+                "step_evidence_summary",
+                "judge"
+            ],
+            "properties": {
+                "failing_line": {"type": "integer", "minimum": 1},
+                "expect_call": {"type": "string", "maxLength": 500},
+                "message_first_line": {"type": "string", "maxLength": 200},
+                "only_one_error": {"type": "boolean"},
+                "step_evidence_summary": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 30,
+                    "items": {"type": "string", "maxLength": 200}
+                },
+                "judge": {"enum": ["pass", "fail", "blocked"]}
+            }
+        },
+        "restored": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["readback", "id_same", "seed_check", "replay_pass", "judge", "spec_sha_after"],
+            "properties": {
+                "readback": {"type": "boolean"},
+                "id_same": {"type": "boolean"},
+                "seed_check": {"type": "boolean"},
+                "replay_pass": {"type": "boolean"},
+                "judge": {"enum": ["pass", "fail", "blocked"]},
+                "spec_sha_after": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                }
+            }
+        },
+        "verdict": {"enum": ["pass", "fail", "blocked"]},
+        "notes": {"type": "string", "maxLength": 1500}
+    }
+}
