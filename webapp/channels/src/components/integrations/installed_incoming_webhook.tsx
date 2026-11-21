@@ -25,8 +25,14 @@ export function matchesFilter(incomingWebhook: IncomingWebhook, channel: Channel
         return true;
     }
 
+    // Match against the webhook URL shown in the list (and thus the hook ID itself).
+    const hookUrl = getSiteURL() + '/hooks/' + incomingWebhook.id;
+    if (hookUrl.toLowerCase().indexOf(filter) !== -1) {
+        return true;
+    }
+
     if (incomingWebhook.channel_id) {
-        if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
+        if (channel?.name && channel.name.toLowerCase().indexOf(filter) !== -1) {
             return true;
         }
     }

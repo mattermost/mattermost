@@ -23,6 +23,7 @@ export function matchesFilter(outgoingWebhook: OutgoingWebhook, channel: Channel
         display_name: displayName,
         description,
         trigger_words: triggerWords,
+        callback_urls: callbackUrls,
     } = outgoingWebhook;
 
     if (
@@ -35,6 +36,14 @@ export function matchesFilter(outgoingWebhook: OutgoingWebhook, channel: Channel
     if (triggerWords) {
         for (const triggerWord of triggerWords) {
             if (triggerWord.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+    }
+
+    if (callbackUrls) {
+        for (const callbackUrl of callbackUrls) {
+            if (callbackUrl.toLowerCase().indexOf(filter) !== -1) {
                 return true;
             }
         }
