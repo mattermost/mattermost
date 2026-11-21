@@ -171,7 +171,8 @@ func evalSMTPNotConfigured(s *healthcheck.Snapshot) healthcheck.Result {
 	if cfg, _ := s.ConfigRoot(); *cfg.EmailSettings.SMTPServer == "" {
 		return healthcheck.Firing(messageID)
 	}
-	return probes.Eval(s, smtpProbe, messageID, messageID)
+	return probes.Eval(s, smtpProbe, messageID,
+		healthcheck.TranslationId("health.rule.smtp_not_configured.message.partial"))
 }
 
 func evalSMTPUnreachable(s *healthcheck.Snapshot) healthcheck.Result {

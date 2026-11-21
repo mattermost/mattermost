@@ -215,6 +215,11 @@ func TestSMTPNotConfigured(t *testing.T) {
 		messageID: messageID,
 		details:   map[string]string{"nodes": "app-1", "error": refusedErr},
 	}
+	partialWant := messagingWant{
+		state:     healthcheck.StateFiring,
+		messageID: "health.rule.smtp_not_configured.message.partial",
+		details:   map[string]string{"nodes": "app-1", "error": refusedErr},
+	}
 	notCollected := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 	defaultServer := func(enabled bool, nodes ...*healthcheck.NodeSnapshot) *healthcheck.Snapshot {
 		return smtpSnapshot(enabled, new(model.EmailSMTPDefaultServer), new(model.EmailSMTPDefaultPort), nodes...)
@@ -227,6 +232,17 @@ func TestSMTPNotConfigured(t *testing.T) {
 	}{
 		{name: "config section absent", snapshot: &healthcheck.Snapshot{}, want: configUnknownWant},
 		{name: "default server refuses the probe", snapshot: defaultServer(true, leaderWithEmail(model.StatusFail, refusedErr)), want: probeFailedWant},
+		{
+			name: "default server refuses on every node",
+			snapshot: defaultServer(true,
+				leaderWithEmail(model.StatusFail, refusedErr),
+				nodeWithEmail("app-2", model.StatusFail, refusedErr)),
+			want: messagingWant{
+				state:     healthcheck.StateFiring,
+				messageID: messageID,
+				details:   map[string]string{"nodes": "app-1, app-2", "error": refusedErr},
+			},
+		},
 		{name: "default server answers the probe", snapshot: defaultServer(true, leaderWithEmail(model.StatusOk, "")), want: resolvedWant},
 		{name: "default server not probed", snapshot: defaultServer(true), want: notCollected},
 		{
@@ -234,7 +250,7 @@ func TestSMTPNotConfigured(t *testing.T) {
 			snapshot: defaultServer(true,
 				leaderWithEmail(model.StatusFail, refusedErr),
 				nodeWithEmail("app-2", model.StatusOk, "")),
-			want: probeFailedWant,
+			want: partialWant,
 		},
 		{name: "empty server", snapshot: smtpSnapshot(true, new(""), new("10025")), want: firing},
 		{name: "server unset", snapshot: smtpSnapshot(true, nil, new("10025")), want: configUnknownWant},
