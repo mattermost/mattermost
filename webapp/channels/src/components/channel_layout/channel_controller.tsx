@@ -87,7 +87,12 @@ export default function ChannelController(props: Props) {
                 <QuoteSelectionButton/>
                 {enableMarkAllReadShortcut && <MarkAllAsReadToast/>}
                 <div className={classNames('container-fluid channel-view-inner')}>
-                    {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}
+                    {props.shouldRenderCenterChannel ? <CenterChannel/> : (
+                        <LoadingScreen
+                            testId='center.loading'
+                            centered={true}
+                        />
+                    )}
                     <Pluggable pluggableName='Root'/>
                     <ResetStatusModal/>
                 </div>

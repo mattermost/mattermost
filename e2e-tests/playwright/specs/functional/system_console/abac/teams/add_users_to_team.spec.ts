@@ -20,7 +20,7 @@ import {
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 
-import {enableTeamMembershipPolicies} from './helpers';
+import {cleanUpCreated, enableTeamMembershipPolicies} from './helpers';
 
 /** Opens System Console > Teams > the team's page and its Add Members dialog. */
 async function openAddMembers(app: App, team: Team) {
@@ -34,27 +34,12 @@ async function openAddMembers(app: App, team: Team) {
 test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@team_membership']}, () => {
     test.setTimeout(duration.two_min);
 
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        for (const id of createdTeamIds) {
-            try {
-                await adminClient.deleteTeam(id);
-            } catch {
-                // ignore
-            }
-        }
-        createdTeamIds = [];
-        for (const id of createdUserIds) {
-            try {
-                await adminClient.updateUserActive(id, false);
-            } catch {
-                // ignore
-            }
-        }
-        createdUserIds = [];
+        await cleanUpCreated(adminClient, {teamIds: createdTeamIds.splice(0), userIds: createdUserIds.splice(0)});
     });
 
     test('MM-68846-T7 PRIVATE governed team blocks non-qualifying candidates inline', async ({pw}) => {
@@ -103,7 +88,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
         const users = await openAddMembers(app, team);
 
         // # Search for eng1 — qualifying candidate
-        await users.searchCombobox.locator.pressSequentially(eng1.username.slice(0, 8));
+        await users.searchCombobox.type(eng1.username.slice(0, 8));
         const eng1Row = users.results.user(eng1);
         await expect(eng1Row).toBeVisible();
 
@@ -114,7 +99,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
         // # Search for mkt1 — non-qualifying candidate
         await users.searchCombobox.clear();
         await expect(users.searchCombobox).toHaveValue('');
-        await users.searchCombobox.locator.pressSequentially(mkt1.username.slice(0, 8));
+        await users.searchCombobox.type(mkt1.username.slice(0, 8));
         const mkt1Row = users.results.user(mkt1);
         await expect(mkt1Row).toBeVisible();
 
@@ -170,7 +155,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
         const users = await openAddMembers(app, team);
 
         // # Search for mkt1 — non-qualifying but advisory = no block
-        await users.searchCombobox.locator.pressSequentially(mkt1.username.slice(0, 8));
+        await users.searchCombobox.type(mkt1.username.slice(0, 8));
         const mkt1Row = users.results.user(mkt1);
         await expect(mkt1Row).toBeVisible();
 

@@ -46,7 +46,7 @@ const AdminSectionPanel: React.FC<Props> = ({
                 className='AdminSectionPanel'
                 data-testid={dataTestId}
             >
-                <div data-testid={testId ? `${testId}.body` : 'admin-section-panel-body'}>
+                <div data-testid={testId ? `${testId}.body` : undefined}>
                     {children}
                 </div>
             </div>
@@ -74,7 +74,7 @@ const AdminSectionPanel: React.FC<Props> = ({
             titleTestId={titleTestId}
             subtitleTestId={subtitleTestId}
         >
-            <div data-testid={testId ? `${testId}.body` : 'admin-section-panel-body'}>
+            <div data-testid={testId ? `${testId}.body` : undefined}>
                 {children}
             </div>
         </AdminPanel>

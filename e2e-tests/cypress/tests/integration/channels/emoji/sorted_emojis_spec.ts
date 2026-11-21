@@ -55,9 +55,9 @@ describe('Emoji sorting', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type('sma', {delay: TIMEOUTS.HALF_SEC});
 
         // # Get list of recent emojis based on search text
-        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children('img').each(($el) => {
-            const emojiName = $el.get(0);
-            emojiList.push(emojiName.dataset.testid!);
+        // The testid names each emoji by its primary short name: emoji_picker.system_emoji:<short_name>--button
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).each(($btn) => {
+            emojiList.push((/^emoji_picker\.(?:system|custom)_emoji:(.+)--button$/).exec($btn.attr('data-testid')!)![1]);
         }).then(() => {
             // # Comparing list of emojis obtained from search above and making sure order is same as requirement describes
             expect(emojiList).to.deep.equal([
@@ -72,9 +72,9 @@ describe('Emoji sorting', () => {
                 'arrow_up_small',
                 'black_medium_small_square',
                 'black_small_square',
-                'mostly_sunny,sun_small_cloud,sun_behind_small_cloud',
+                'mostly_sunny',
                 'white_medium_small_square',
-                'zany_face,grinning_face_with_one_large_and_one_small_eye',
+                'zany_face',
             ]);
         });
     });

@@ -164,7 +164,14 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
 
         // * Custom status is shown next to username in the channel switcher
         cy.get('#suggestionList').should('be.visible');
-        cy.findByTestId(currentUser.username).should('be.visible').
+        // The testid uses a channel id; match the scoped row by its visible username.
+        cy.findByTestId((testId, element) => {
+            const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+            const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+            return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+                (visibleUsername === `@${currentUser.username}` || (!visibleUsername &&
+                    (visibleName === currentUser.username || Boolean(visibleName?.startsWith(`${currentUser.username} (`)))));
+        }).should('be.visible').
             find('.emoticon').should('have.attr', 'data-emoticon', 'grinning');
     });
 });

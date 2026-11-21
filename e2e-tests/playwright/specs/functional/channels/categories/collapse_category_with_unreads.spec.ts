@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import type {Locator} from '@playwright/test';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+
+import {expect, test, DefaultChannel} from '@mattermost/playwright-lib';
+import type {App, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 const categoryName = 'Noisy';
 const unreadChannelName = 'noisy-unread';
@@ -30,7 +33,7 @@ async function setupNoisyCategory(pw: PlaywrightExtended, collapseCategoryWithUn
         channelIds[name] = channel.id;
     }
 
-    await userClient.createChannelCategory(user.id, team.id, {
+    const category = await userClient.createChannelCategory(user.id, team.id, {
         team_id: team.id,
         user_id: user.id,
         display_name: categoryName,
@@ -62,7 +65,24 @@ async function setupNoisyCategory(pw: PlaywrightExtended, collapseCategoryWithUn
         message: `@${user.username} can you take a look?`,
     });
 
-    return {user, userClient, team};
+    return {user, userClient, team, category};
+}
+
+/**
+ * The category's header button (collapses and expands it) and the sidebar link of a channel in it, on the generated
+ * page objects.
+ */
+function sidebarOf(app: App, category: ChannelCategory) {
+    const categoryHeader = app.lhs.channelList.category(category).headerButton.locator;
+    const channelLink = (name: string) => app.lhs.channelList.channel({name}).locator;
+    return {categoryHeader, channelLink};
+}
+
+/** Collapses the category from its header. */
+async function collapse(categoryHeader: Locator) {
+    await expect(categoryHeader).toHaveAccessibleName(categoryName);
+    await categoryHeader.click();
+    await expect(categoryHeader).toHaveAttribute('aria-expanded', 'false');
 }
 
 test.describe('Collapse category with unread channels', () => {
@@ -74,28 +94,25 @@ test.describe('Collapse category with unread channels', () => {
         {tag: '@channel_sidebar'},
         async ({pw}) => {
             // # Set up the category without saving the setting, so the default (off) applies
-            const {user, team} = await setupNoisyCategory(pw);
+            const {user, team, category} = await setupNoisyCategory(pw);
 
             // # Log in and open Town Square
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
 
-            const sidebar = channelsPage.sidebarLeft;
+            const {categoryHeader, channelLink} = sidebarOf(app, category);
 
             // * Verify the channels are unread and the muted channel has a mention count
-            await sidebar.assertItemUnread(unreadChannelName);
-            await expect(sidebar.unreadMentionsBadge(mutedChannelName)).toBeVisible();
+            await expect(channelLink(unreadChannelName)).toHaveClass(/unread|unread-title/);
+            await expect(app.lhs.channelList.channel({name: mutedChannelName}).mentionBadgeText.locator).toBeVisible();
 
             // # Collapse the category
-            const categoryHeader = sidebar.container.getByRole('button', {name: categoryName, exact: true});
-            await categoryHeader.click();
-            await expect(categoryHeader).toHaveAttribute('aria-expanded', 'false');
+            await collapse(categoryHeader);
 
             // * Verify the unread channel and the muted channel with a mention stay visible
-            await expect(sidebar.container.locator(`#sidebarItem_${unreadChannelName}`)).toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${mutedChannelName}`)).toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${openChannelName}`)).toBeVisible();
+            await expect(channelLink(unreadChannelName)).toBeVisible();
+            await expect(channelLink(mutedChannelName)).toBeVisible();
+            await expect(channelLink(openChannelName)).toBeVisible();
         },
     );
 
@@ -108,22 +125,31 @@ test.describe('Collapse category with unread channels', () => {
         {tag: '@channel_sidebar'},
         async ({pw}) => {
             // # Set up the category without saving the setting
-            const {user, userClient, team} = await setupNoisyCategory(pw);
+            const {user, userClient, team, category} = await setupNoisyCategory(pw);
 
             // # Log in and open Town Square
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
 
             // # Open Settings > Display and turn the setting on
-            const settingsModal = await channelsPage.openSettings();
-            const displaySettings = await settingsModal.openDisplayTab();
-            await displaySettings.collapseCategoryWithUnreadsEditButton.click();
-            await displaySettings.verifySectionIsExpanded('collapseCategoryWithUnreads');
-            await displaySettings.container.getByRole('radio', {name: 'On', exact: true}).check();
-            await displaySettings.container.getByRole('button', {name: 'Save', exact: true}).click();
-            await expect(displaySettings.container.locator('#collapse_category_with_unreadsDesc')).toHaveText('On');
-            await settingsModal.closeButton.click();
+            await app.globalHeader.settingsButton.clickTo(app.userSettingsModal);
+            await app.userSettingsModal.tabs.tab('display').select();
+            const section = app.settings.display.section('collapse_category_with_unreads');
+            const options = section.collapseCategoryWithUnreads;
+            await expect(section.container).toBeVisible();
+            await section.editButton.click();
+
+            // (the section is expanded: its row with the Edit button gave way to the form with Cancel)
+            await expect(section.editButton.locator).not.toBeVisible();
+            await expect(section.cancelButton.locator).toBeVisible();
+
+            await expect(options.option('true').locator).toHaveAccessibleName('On');
+            await options.option('true').check();
+            await expect(options.option('true')).toBeChecked();
+            await section.saveButton.click();
+            await expect(section.describeText.locator).toHaveText('On');
+            await app.userSettingsModal.closeButton.click();
+            await expect(app.userSettingsModal.locator).not.toBeVisible();
 
             // * Verify the save wrote the value true
             await expect
@@ -137,26 +163,24 @@ test.describe('Collapse category with unread channels', () => {
                 })
                 .toBe('true');
 
-            const sidebar = channelsPage.sidebarLeft;
+            const {categoryHeader, channelLink} = sidebarOf(app, category);
 
             // # Collapse the category
-            const categoryHeader = sidebar.container.getByRole('button', {name: categoryName, exact: true});
-            await categoryHeader.click();
-            await expect(categoryHeader).toHaveAttribute('aria-expanded', 'false');
+            await collapse(categoryHeader);
 
             // * Verify the unread channel and the muted channel with a mention are hidden
-            await expect(sidebar.container.locator(`#sidebarItem_${unreadChannelName}`)).not.toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${mutedChannelName}`)).not.toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${openChannelName}`)).not.toBeVisible();
+            await expect(channelLink(unreadChannelName)).not.toBeVisible();
+            await expect(channelLink(mutedChannelName)).not.toBeVisible();
+            await expect(channelLink(openChannelName)).not.toBeVisible();
 
             // # Expand the category
             await categoryHeader.click();
             await expect(categoryHeader).toHaveAttribute('aria-expanded', 'true');
 
             // * Verify every channel is visible in the open category
-            await expect(sidebar.container.locator(`#sidebarItem_${unreadChannelName}`)).toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${mutedChannelName}`)).toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${openChannelName}`)).toBeVisible();
+            await expect(channelLink(unreadChannelName)).toBeVisible();
+            await expect(channelLink(mutedChannelName)).toBeVisible();
+            await expect(channelLink(openChannelName)).toBeVisible();
         },
     );
 
@@ -168,24 +192,21 @@ test.describe('Collapse category with unread channels', () => {
         {tag: '@channel_sidebar'},
         async ({pw}) => {
             // # Set up the category with the setting on
-            const {user, team} = await setupNoisyCategory(pw, true);
+            const {user, team, category} = await setupNoisyCategory(pw, true);
 
             // # Log in and open a channel in the category
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, openChannelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: openChannelName});
 
-            const sidebar = channelsPage.sidebarLeft;
+            const {categoryHeader, channelLink} = sidebarOf(app, category);
 
             // # Collapse the category
-            const categoryHeader = sidebar.container.getByRole('button', {name: categoryName, exact: true});
-            await categoryHeader.click();
-            await expect(categoryHeader).toHaveAttribute('aria-expanded', 'false');
+            await collapse(categoryHeader);
 
             // * Verify only the current channel stays visible
-            await expect(sidebar.container.locator(`#sidebarItem_${openChannelName}`)).toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${unreadChannelName}`)).not.toBeVisible();
-            await expect(sidebar.container.locator(`#sidebarItem_${mutedChannelName}`)).not.toBeVisible();
+            await expect(channelLink(openChannelName)).toBeVisible();
+            await expect(channelLink(unreadChannelName)).not.toBeVisible();
+            await expect(channelLink(mutedChannelName)).not.toBeVisible();
         },
     );
 });

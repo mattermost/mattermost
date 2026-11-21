@@ -10,7 +10,7 @@ import RhsPluginPopout from './rhs_plugin_popout';
 
 jest.mock('components/loading_screen', () => ({
     __esModule: true,
-    default: () => <div data-testid='loading-screen'>{'Loading Screen'}</div>,
+    default: () => <div data-testid='rhs.plugin_popout.loading'>{'Loading Screen'}</div>,
 }));
 
 jest.mock('components/search_results_header', () => ({
@@ -86,7 +86,7 @@ describe('RhsPluginPopout', () => {
             },
         );
 
-        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+        expect(screen.getByTestId('rhs.plugin_popout.loading')).toBeInTheDocument();
         expect(screen.queryByTestId('search-results-header')).not.toBeInTheDocument();
         expect(screen.queryByTestId('pluggable-RightHandSidebarComponent-')).not.toBeInTheDocument();
     });
@@ -102,7 +102,7 @@ describe('RhsPluginPopout', () => {
             baseState,
         );
 
-        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.plugin_popout.loading')).not.toBeInTheDocument();
         expect(screen.getByTestId('search-results-header')).toBeInTheDocument();
         expect(screen.getByText(pluginTitle)).toBeInTheDocument();
         expect(screen.getByTestId(`pluggable-RightHandSidebarComponent-${pluggableId}`)).toBeInTheDocument();

@@ -405,7 +405,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
         <div
             ref={rootRef}
             className='ChannelInfoAttributes'
-            data-testid={testId ?? 'channelInfoAttributes'}
+            data-testid={testId}
         >
             <div className='ChannelInfoAttributes__heading'>
                 <FormattedMessage {...headingMessages[channelKind]}/>
@@ -464,12 +464,12 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
                                         {label},
                                     )}
-                                    data-testid={testId ? `${row}.edit--button` : `channelInfoAttributeEdit-${field.name}`}
+                                    data-testid={testId ? `${row}.edit--button` : undefined}
                                 >
                                     {attribute.displayValue && (
                                         <span
                                             className='ChannelInfoAttributes__textValue'
-                                            data-testid={testId ? `${row}.value--text` : `channelInfoAttributeTextValue-${field.name}`}
+                                            data-testid={testId ? `${row}.value--text` : undefined}
                                         >
                                             {attribute.displayValue}
                                         </span>
@@ -478,7 +478,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     {!attribute.displayValue && !isMissing && (
                                         <span
                                             className='ChannelInfoAttributes__empty'
-                                            data-testid={testId ? `${row}.unset--text` : `channelInfoAttributeUnset-${field.name}`}
+                                            data-testid={testId ? `${row}.unset--text` : undefined}
                                         >
                                             <FormattedMessage
                                                 id='channel_attributes.info.not_set'
@@ -526,7 +526,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                             valueControl = (
                                 <span
                                     className='ChannelInfoAttributes__empty'
-                                    data-testid={testId ? `${row}.unset--text` : `channelInfoAttributeUnset-${field.name}`}
+                                    data-testid={testId ? `${row}.unset--text` : undefined}
                                 >
                                     <FormattedMessage
                                         id='channel_attributes.info.not_set'
@@ -547,14 +547,14 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     }
                                 }}
                                 className='ChannelInfoAttributes__row'
-                                data-testid={testId ? `${row}:${field.id}` : `channelInfoAttributeRow-${field.name}`}
+                                data-testid={testId ? `${row}:${field.id}` : undefined}
                             >
                                 <span className={isMissing ? 'ChannelInfoAttributes__label ChannelInfoAttributes__label--missing' : 'ChannelInfoAttributes__label'}>
                                     {label}
                                     {locked && (
                                         <LockOutlineIcon
                                             size={12}
-                                            data-testid={testId ? `${row}.locked` : `channelInfoAttributeLock-${field.name}`}
+                                            data-testid={testId ? `${row}.locked` : undefined}
                                             aria-label={formatMessage(lockReason)}
                                         />
                                     )}
@@ -568,7 +568,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     <span
                                         className='ChannelInfoAttributes__error'
                                         role='alert'
-                                        data-testid={testId ? `${row}.error--alert` : `channelInfoAttributeError-${field.name}`}
+                                        data-testid={testId ? `${row}.error--alert` : undefined}
                                     >
                                         {failedAsRequired ? (
                                             <FormattedMessage
@@ -604,7 +604,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     />
                                 </>
                             ),
-                            dataTestId: testId ? `${testId}.add--button` : 'channelInfoAddAttributeButton',
+                            dataTestId: testId ? `${testId}.add--button` : undefined,
                         }}
                         menu={{
                             id: 'channelInfoAddAttributeMenu',
@@ -615,7 +615,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                             <Menu.Item
                                 key={attribute.field.id}
                                 id={`channelInfoAddAttribute-${attribute.field.name}`}
-                                data-testid={testId ? `${testId}.add_menu.attribute:${attribute.field.id}--menuitem` : `channelInfoAddAttribute-${attribute.field.name}`}
+                                data-testid={testId ? `${testId}.add_menu.attribute:${attribute.field.id}--menuitem` : undefined}
                                 onClick={() => handleAdd(attribute.field.id)}
                                 labels={<span>{getPropertyFieldLabel(attribute.field)}</span>}
                             />

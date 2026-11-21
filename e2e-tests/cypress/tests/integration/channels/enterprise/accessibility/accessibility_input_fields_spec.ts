@@ -271,7 +271,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#emojiPickerButton').should('be.focused').and('have.attr', 'aria-label', 'select an emoji').tab();
 
             // * Verify if the focus is on the Reply button
-            cy.findByTestId('center.post_create.send--button').should('be.focused');
+            cy.findByTestId('rhs.post_create.send--button').should('be.focused');
         });
     });
 });

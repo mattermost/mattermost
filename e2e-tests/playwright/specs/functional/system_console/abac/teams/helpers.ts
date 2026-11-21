@@ -2,9 +2,46 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {Locator, Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import {Api, App, Msg, openSystemConsoleSection, expect, waitForApi} from '@mattermost/playwright-lib';
+import {
+    Api,
+    App,
+    Msg,
+    expect,
+    ignoreMissing,
+    openSystemConsoleSection,
+    systemConsolePath,
+    waitForApi,
+} from '@mattermost/playwright-lib';
+
+type PolicyRow = ReturnType<App['policySelectionModal']['policies']['row']>;
+
+/**
+ * Removes what a test created, in the order policies, teams, users (users are deactivated: hard deletion needs server
+ * config). Something a test already removed is skipped; any other failure is thrown, so a teardown that really fails
+ * shows up instead of leaving data behind unnoticed. Team child policies are keyed by the team id, so pass the team
+ * ids as `policyIds` too when a test may have given a team its own policy.
+ */
+export async function cleanUpCreated(
+    client: Client4,
+    created: {policyIds?: string[]; teamIds?: string[]; userIds?: string[]},
+): Promise<void> {
+    for (const id of created.policyIds ?? []) {
+        // A test may leave the policy in a state the server refuses to remove: a rule with values hidden from the
+        // admin, or attribute-based access switched off so the service is not running. Those two answers are skipped.
+        await ignoreMissing(
+            () => client.deleteAccessControlPolicy(id),
+            ['app.pap.has_masked_values.app_error', 'app.pap.is_ready.app_error'],
+        );
+    }
+    for (const id of created.teamIds ?? []) {
+        await ignoreMissing(() => client.deleteTeam(id));
+    }
+    for (const id of created.userIds ?? []) {
+        await ignoreMissing(() => client.updateUserActive(id, false));
+    }
+}
 
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
@@ -127,20 +164,21 @@ export async function openTeamConfig(app: App, teamDisplayName: string): Promise
 
     // Let the unfiltered first load land, so it can't overwrite the search results.
     const teams = app.admin.teams;
-    await expect(await teams.rowList.first()).toBeVisible({timeout: 15_000});
+    await expect(teams.rowList).not.toHaveKeyCount(0, {timeout: 15_000});
 
     await teams.searchTextbox.fill(teamDisplayName);
     await expect(teams.searchTextbox).toHaveValue(teamDisplayName);
 
-    const row = await teams.rowList.itemWith({text: teamDisplayName});
-    await expect(row).toBeVisible({timeout: 15_000});
+    const teamId = await teams.rowList.keyWith({text: teamDisplayName}, {timeout: 15_000});
+    const row = teams.row(teamId);
+    await expect(row).toBeVisible();
     await row.editLink.click();
 
-    await expect(app.page).toHaveURL(/\/admin_console\/user_management\/teams\/[a-z0-9]+$/, {timeout: 15_000});
+    await expect(app.page).toHavePath(systemConsolePath(`user_management/teams/${teamId}`), {timeout: 15_000});
     // The Team Management panel's title has no test id; its toggles do. One of them shows once the panel has loaded:
     // the anyone-can-join toggle is hidden for a synced team, and the policy toggle is only there with ABAC.
     const {team} = app.admin;
-    await expect(team.allowAll.container.locator.or(team.policyEnforce.container.locator).first()).toBeVisible({
+    await expect(team.allowAll.container.locator.or(team.policyEnforce.container.locator)).not.toHaveCount(0, {
         timeout: 15_000,
     });
 }
@@ -152,18 +190,16 @@ export async function openTeamConfig(app: App, teamDisplayName: string): Promise
  * before typing so our search isn't overwritten by the late-resolving initial
  * load (which would otherwise show the first page of unrelated policies).
  */
-export async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
-    const page = 'page' in scope ? scope.page() : scope;
-    const policies = new App(page).policySelectionModal.policies;
+export async function findPolicyRow(app: App, policyName: string): Promise<PolicyRow> {
+    const {page} = app;
+    const policies = app.policySelectionModal.policies;
     await expect(policies.container).toBeVisible({timeout: 15_000});
     // DataGrid renders the loading message in its generated rows scope until the initial fetch has landed.
     await expect(policies.rows).not.toContainMessage(Msg.admin.data_grid.loading, undefined, {timeout: 15_000});
     await expect(policies.searchTextbox).toBeVisible();
 
-    // Filling the current term again does not fire React's onChange, so do not wait for a nonexistent request.
-    if ((await policies.searchTextbox.locator.inputValue()) !== policyName) {
-        await Promise.all([waitForApi(page, Api.SearchAccessControlPolicies), policies.searchTextbox.fill(policyName)]);
-    }
+    // The dialog opens with an empty search box, so filling the name always changes it and fires a request.
+    await Promise.all([waitForApi(page, Api.SearchAccessControlPolicies), policies.searchTextbox.fill(policyName)]);
     await expect(policies.searchTextbox).toHaveValue(policyName);
     await expect(policies.rows).not.toContainMessage(Msg.admin.data_grid.loading, undefined, {timeout: 15_000});
 
@@ -172,13 +208,12 @@ export async function findPolicyRow(scope: Page | Locator, policyName: string): 
     await expect
         .poll(
             async () => {
-                for (const key of await policies.rowList.keys()) {
-                    if ((await policies.row(key).cell('name').locator.textContent()) === policyName) {
-                        matchingKey = key;
-                        return true;
-                    }
-                }
-                return false;
+                const keys = await policies.rowList.keys();
+                const names = await Promise.all(
+                    keys.map((key) => policies.row(key).cell('name').locator.textContent()),
+                );
+                matchingKey = keys[names.indexOf(policyName)];
+                return matchingKey !== undefined;
             },
             {timeout: 15_000},
         )
@@ -189,7 +224,7 @@ export async function findPolicyRow(scope: Page | Locator, policyName: string): 
     const row = policies.row(matchingKey);
     await expect(row).toBeVisible({timeout: 15_000});
     await expect(row.cell('name')).toHaveText(policyName);
-    return row.container.locator;
+    return row;
 }
 
 export async function setToggle(app: App, on: boolean): Promise<void> {
@@ -216,13 +251,9 @@ export async function addTeamMemberRaw(
         headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
         body: JSON.stringify({team_id: teamId, user_id: userId}),
     });
-    let body: any = {};
-    try {
-        body = await res.json();
-    } catch {
-        // empty body is fine
-    }
-    return {status: res.status, body};
+    // A rejection or a bodiless response may have no JSON to read.
+    const text = await res.text();
+    return {status: res.status, body: text ? JSON.parse(text) : {}};
 }
 
 // Log in via raw REST to obtain the user's OWN session token, so a self-join can be
@@ -237,23 +268,19 @@ export async function loginRaw(baseRoute: string, loginId: string, password: str
     return res.headers.get('Token') ?? '';
 }
 
-export async function switchTeamRulesMode(page: Page): Promise<void> {
+/** Switches the team rules editor from Simple (the table) to Advanced (the CEL editor). */
+export async function switchTeamRulesToAdvanced(page: Page): Promise<void> {
     const rules = new App(page).admin.team.accessRules;
-    const wasCel = await rules.rules.input.isVisible();
     await expect(rules.switchModeButton).toBeEnabled({timeout: 60_000});
     await rules.switchModeButton.click();
-    if (wasCel) {
-        await expect(rules.rules.input).not.toBeVisible();
-        await expect(rules.rules.container).toBeVisible();
-    } else {
-        await expect(rules.rules.input).toBeVisible();
-    }
+    await expect(rules.rules.input).toBeVisible();
 }
 
 export async function typeTeamRulesCel(page: Page, expression: string): Promise<void> {
     const rules = new App(page).admin.team.accessRules.rules;
     await expect(rules.input).toBeVisible({timeout: 10_000});
     // Monaco owns its native textbox and rendered lines; scope both to the generated CELEditor input.
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- Monaco's own editing textarea cannot take a test id
     const input = rules.input.locator.getByRole('textbox');
     await input.focus();
     await expect(input).toBeFocused();
@@ -262,14 +289,14 @@ export async function typeTeamRulesCel(page: Page, expression: string): Promise<
     // Pace input so Monaco's paired brackets and quotes are overtyped rather than duplicated.
     await input.type(expression, {delay: 10});
     await expect
-        .poll(async () => (await rules.input.locator.locator('.view-lines').innerText()).replace(/\s/g, ''))
+        .poll(async () =>
+            // eslint-disable-next-line test-surface/e2e-no-literal-locators -- Monaco renders its text in internal .view-lines elements, which cannot take a test id
+            (await rules.input.locator.locator('.view-lines').innerText()).replace(/\s/g, ''),
+        )
         .toBe(expression.replace(/\s/g, ''));
 }
 
 export async function waitForTeamRulesValidation(page: Page, state: 'validated' | 'error'): Promise<void> {
     const rules = new App(page).admin.team.accessRules.rules;
-    // CELEditor puts the exact validation state on the status text's parent, which has no generated part.
-    await expect(rules.statusText.locator.locator('..')).toHaveAttribute('data-validation-state', state, {
-        timeout: 10_000,
-    });
+    await expect(rules.statusBarGroup).toHaveAttribute('data-validation-state', state, {timeout: 10_000});
 }

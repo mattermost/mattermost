@@ -63,7 +63,7 @@ const BannerTokenControls = ({testId, attributes, onInsertToken, disabled, chann
                             />
                         </>
                     ),
-                    dataTestId: testId ? `${testId}.insert--button` : 'bannerAttributeTokenButton',
+                    dataTestId: testId ? `${testId}.insert--button` : undefined,
                     'aria-label': formatMessage({
                         id: 'channel_attributes.banner.insert_attribute_aria',
                         defaultMessage: 'Insert an attribute into the banner text',
@@ -86,7 +86,7 @@ const BannerTokenControls = ({testId, attributes, onInsertToken, disabled, chann
                         <Menu.Item
                             key={suggestion.name}
                             id={`bannerAttributeToken-${suggestion.name}`}
-                            data-testid={testId ? `${testId}.insert_menu.attribute:${attributes[index].field.id}--menuitem` : `bannerAttributeToken-${suggestion.name}`}
+                            data-testid={testId ? `${testId}.insert_menu.attribute:${attributes[index].field.id}--menuitem` : undefined}
                             onClick={() => onInsertToken(attributeToken(suggestion.name))}
 
                             // One child, not two: Menu.Item reads two children as a
@@ -104,7 +104,7 @@ const BannerTokenControls = ({testId, attributes, onInsertToken, disabled, chann
                                 </span>
                             }
                             trailingElements={suggestion.value ? undefined : (
-                                <UnsetValueIndicator testId={testId ? `${testId}.insert_menu.attribute.unset` : `bannerAttributeTokenUnset-${suggestion.name}`}/>
+                                <UnsetValueIndicator testId={testId ? `${testId}.insert_menu.attribute.unset` : undefined}/>
                             )}
                         />
                     );

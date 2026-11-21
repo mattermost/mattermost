@@ -115,7 +115,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                     initialFocus={-1}
                 >
                     <div
-                        data-testid={testIdScope ? `${testIdScope}.calendar` : 'date-picker-popper'}
+                        data-testid={testIdScope ? `${testIdScope}.calendar` : undefined}
                         ref={setFloating}
                         style={{
                             position: strategy,

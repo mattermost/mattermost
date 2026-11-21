@@ -5,20 +5,25 @@ import accessRules from '@/fixtures/system-roles-console-access';
 import disabledTests from '@/fixtures/console-example-inputs';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
+// A sidebar item is keyed by its sub-key: the section 'user_management.groups' is admin.sidebar.category.section:groups
+function sidebarItemTestId(section) {
+    return `admin.sidebar.category.section:${section.split('.').slice(1).join('.')}--listitem`;
+}
+
 function noAccessFunc(section) {
     // * If it's a no-access permission, we just need to check that the section doesn't exist in the side bar
-    cy.findByTestId(section).should('not.exist');
+    cy.findByTestId(sidebarItemTestId(section)).should('not.exist');
 }
 
 function readOnlyFunc(section) {
     // * If it's a read only permission, we need to make sure that the section does exist in the sidebar however the inputs in that section is disabled (read only)
-    cy.findByTestId(section).should('exist');
+    cy.findByTestId(sidebarItemTestId(section)).should('exist');
     checkInputsShould('be.disabled', section);
 }
 
 function readWriteFunc(section) {
     // * If we have read + write (can edit) permissions, we need to make the section exists and also that the inputs are all enabled
-    cy.findByTestId(section).should('exist');
+    cy.findByTestId(sidebarItemTestId(section)).should('exist');
     checkInputsShould('be.enabled', section);
 }
 
@@ -44,7 +49,7 @@ export function makeUserASystemRole(testUsers, role) {
     });
 
     // # Click on edit for the role
-    cy.findByTestId(`${role}_edit`).click();
+    cy.findByTestId(`admin.roles.row:${role}--row`).findByTestId('admin.roles.row.edit--link').click();
 
     // # Click Add People button
     cy.findByRole('button', {name: 'Add People'}).click().wait(TIMEOUTS.HALF_SEC);

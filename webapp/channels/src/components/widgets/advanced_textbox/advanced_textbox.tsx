@@ -156,7 +156,7 @@ const AdvancedTextbox = ({
                 {internalError && (
                     <div className='AdvancedTextbox__error-message'>
                         <i className='icon icon-alert-circle-outline'/>
-                        <span data-testid={testId ? `${testId}.error--text` : 'advanced-textbox-error-text'}>{internalError}</span>
+                        <span data-testid={testId ? `${testId}.error--text` : undefined}>{internalError}</span>
                     </div>
                 )}
 
@@ -177,7 +177,7 @@ const AdvancedTextbox = ({
             {/* Error message display */}
             {(descriptionMessage && !internalError) && (
                 <p
-                    data-testid={testId ? `${testId}.description--text` : 'AdvancedTextbox__description'}
+                    data-testid={testId ? `${testId}.description--text` : undefined}
                     className='AdvancedTextbox__description'
                 >
                     {descriptionMessage}

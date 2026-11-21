@@ -10,6 +10,7 @@ import ConfirmModal from './confirm_modal';
 
 describe('ConfirmModal', () => {
     const baseProps = {
+        testId: 'fixture.confirm_modal',
         show: true,
         onConfirm: jest.fn(),
         onCancel: jest.fn(),

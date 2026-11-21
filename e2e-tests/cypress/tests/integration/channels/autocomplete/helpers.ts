@@ -132,11 +132,11 @@ function searchAndVerifyChannel(channel: Cypress.Channel, shouldExist = true) {
 
     if (shouldExist) {
         // * Channel should appear in suggestions list
-        cy.get('#suggestionList').findByTestId(channel.name).should('be.visible');
+        cy.get('#suggestionList').findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).should('be.visible');
     } else {
         // * Suggestion list and channel item should not appear
         cy.get('#suggestionList').should('not.exist');
-        cy.findByTestId(channel.name).should('not.exist');
+        cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).should('not.exist');
     }
 }
 
@@ -183,7 +183,14 @@ function verifySuggestionAtPostTextbox(...expectedUsers: SimpleUser[]) {
 
 function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
-        cy.findByTestId(user.username).
+        // The testid uses a channel id; match the scoped row by its visible username.
+        cy.findByTestId((testId, element) => {
+            const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+            const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+            return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+                (visibleUsername === `@${user.username}` || (!visibleUsername &&
+                    (visibleName === user.username || Boolean(visibleName?.startsWith(`${user.username} (`)))));
+        }).
             should('be.visible').
             and('have.text', `${user.first_name} ${user.last_name} (${user.nickname})@${user.username}`);
     });

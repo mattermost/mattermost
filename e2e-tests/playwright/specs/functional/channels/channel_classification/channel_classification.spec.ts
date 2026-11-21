@@ -152,8 +152,9 @@ test.describe('Channel Classification - New channel creation', () => {
         await expect(newChannelModal.classificationSwitch).toBeOn();
 
         // Select a classification level
-        await newChannelModal.classificationLevel.controlButton.click();
-        const menu = newChannelModal.classificationLevel.menu;
+        const menu = await newChannelModal.classificationLevel.controlButton.clickTo(
+            newChannelModal.classificationLevel.menu,
+        );
         await (await menu.optionList.itemWith({text: exactly(selectedLevel.name)})).select();
 
         // Banner text should be auto-populated with the bold level name
@@ -190,8 +191,9 @@ test.describe('Channel Classification - New channel creation', () => {
         await expect(newChannelModal.classificationSwitch).toBeOn();
 
         // Select the classification level
-        await newChannelModal.classificationLevel.controlButton.click();
-        const menu = newChannelModal.classificationLevel.menu;
+        const menu = await newChannelModal.classificationLevel.controlButton.clickTo(
+            newChannelModal.classificationLevel.menu,
+        );
         await (await menu.optionList.itemWith({text: exactly(selectedLevel.name)})).select();
 
         // Wait for banner text to auto-populate, then create the channel

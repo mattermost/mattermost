@@ -48,7 +48,7 @@ test(
 
         // * Verify the setting is shown as true with help text about webapp.pre_auth
         await expect(setting.trueRadio).toBeChecked();
-        await expect(setting.helpText).toContainText('webapp.pre_auth');
+        await expect(setting.setHelpText).toContainText('webapp.pre_auth');
 
         // # Set it to false and save
         await setting.falseRadio.check();

@@ -179,7 +179,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                 });
             }
         } else {
-            tokenList = <LoadingScreen/>;
+            tokenList = <LoadingScreen testId='admin.manage_tokens_modal.loading'/>;
         }
 
         return (

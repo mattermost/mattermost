@@ -22,6 +22,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
             defaultMessage: 'test-button-text-default',
         },
         disabled: false,
+        buttonTestId: 'fixture.panel',
     };
 
     test('should render with button', () => {
@@ -39,7 +40,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();
 
-        const button = screen.getByTestId('test-button-text-default');
+        const button = screen.getByTestId('fixture.panel--button');
         expect(button).toBeInTheDocument();
         expect(button.className).toMatch(/button--emphasis-primary/);
         expect(button).toBeEnabled();
@@ -58,7 +59,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
             </AdminPanelWithButton>,
         );
 
-        const button = screen.getByTestId('test-button-text-default');
+        const button = screen.getByTestId('fixture.panel--button');
         expect(button).toBeInTheDocument();
         expect(button.className).toMatch(/button--emphasis-primary/);
 
@@ -78,7 +79,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
             </AdminPanelWithButton>,
         );
 
-        await userEvent.click(screen.getByTestId('test-button-text-default'));
+        await userEvent.click(screen.getByTestId('fixture.panel--button'));
         expect(onButtonClick).not.toHaveBeenCalled();
     });
 
@@ -93,7 +94,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
             </AdminPanelWithButton>,
         );
 
-        const button = screen.getByTestId('test-button-text-default');
+        const button = screen.getByTestId('fixture.panel--button');
         await userEvent.click(button);
 
         expect(onButtonClick).toHaveBeenCalledTimes(1);

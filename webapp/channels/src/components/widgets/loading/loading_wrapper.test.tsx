@@ -13,44 +13,54 @@ describe('components/widgets/loading/LoadingWrapper', () => {
             <LoadingWrapper
                 loading={true}
                 text='test'
+                testId='fixture.loading'
             >
                 {'children'}
             </LoadingWrapper>,
         );
 
         expect(screen.getByText('test')).toBeInTheDocument();
-        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture.loading')).toBeInTheDocument();
         expect(screen.queryByText('children')).not.toBeInTheDocument();
     });
 
     test('should show spinner without text when loading', () => {
         render(
-            <LoadingWrapper loading={true}>
+            <LoadingWrapper
+                loading={true}
+                testId='fixture.loading'
+            >
                 {'text'}
             </LoadingWrapper>,
         );
 
-        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture.loading')).toBeInTheDocument();
         expect(screen.queryByText('text')).not.toBeInTheDocument();
     });
 
     test('should show content with children when not loading', () => {
         render(
-            <LoadingWrapper loading={false}>
+            <LoadingWrapper
+                loading={false}
+                testId='fixture.loading'
+            >
                 {'text'}
             </LoadingWrapper>,
         );
 
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.loading')).not.toBeInTheDocument();
         expect(screen.getByText('text')).toBeInTheDocument();
     });
 
     test('should show nothing when not loading and no children', () => {
         const {container} = render(
-            <LoadingWrapper loading={false}/>,
+            <LoadingWrapper
+                loading={false}
+                testId='fixture.loading'
+            />,
         );
 
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.loading')).not.toBeInTheDocument();
         expect(container).toBeEmptyDOMElement();
     });
 });

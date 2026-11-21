@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 
 import {
-    type App,
-    expect,
-    test,
-    closeChannelSettings,
-    openChannelSettingsConfigurationTab,
     Api,
+    closeChannelSettings,
+    createChannelFromModal,
+    expect,
+    openChannelSettingsConfigurationTab,
     settle,
+    test,
+    type App,
 } from '@mattermost/playwright-lib';
 
 type Banner = App['center']['channelBanner'];
@@ -29,6 +30,15 @@ async function expectBanner(banner: Banner, text: string, color: string) {
     await expect(banner).toHaveCSS('background-color', hexToRgb(color));
 }
 
+/** The element's box on screen, failing when it has none (not rendered). */
+async function boxOf(element: Locator) {
+    const box = await element.boundingBox();
+    if (!box) {
+        throw new Error('The element has no bounding box');
+    }
+    return box;
+}
+
 /**
  * The element lies fully inside the banner's content area (its box minus its padding). Bounding boxes are not clipped
  * by a parent's overflow, so an element that reaches into the padding would be cut off on screen.
@@ -36,8 +46,8 @@ async function expectBanner(banner: Banner, text: string, color: string) {
 async function expectInsideBanner(banner: Banner, element: Locator) {
     const EPSILON = 0.5;
     await expect(element).toBeVisible();
-    const box = (await banner.locator.boundingBox())!;
-    const inner = (await element.boundingBox())!;
+    const box = await boxOf(banner.locator);
+    const inner = await boxOf(element);
     const padding = await banner.locator.evaluate((node) => {
         const styles = window.getComputedStyle(node);
         return {
@@ -64,11 +74,11 @@ test('Should show channel banner when configured', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     let channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -117,11 +127,11 @@ test('Should show channel banner in thread view', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     // Configure the channel banner
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
@@ -154,11 +164,11 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
     await expect(app.center.postCreate).toBeVisible();
 
     await app.center.postCreate.message.container.fill('Message without banner');
@@ -178,11 +188,11 @@ test('Should render image emoticons without clipping', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -210,11 +220,11 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -229,9 +239,9 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    const emoji = app.center.channelBanner.markdown.unicodeEmojiText.locator.first();
+    const emoji = app.center.channelBanner.markdown.unicodeEmojiText;
     await expect(emoji).toHaveCSS('font-size', `${EMOJI_SIZE}px`);
-    await expectInsideBanner(app.center.channelBanner, emoji);
+    await expectInsideBanner(app.center.channelBanner, emoji.locator);
 });
 
 test('Should render text with descenders without clipping', async ({pw}) => {
@@ -241,11 +251,11 @@ test('Should render text with descenders without clipping', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -271,11 +281,11 @@ test('Should render markdown', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -290,9 +300,12 @@ test('Should render markdown', async ({pw}) => {
     await closeChannelSettings(channelSettingsModal);
 
     // markdown emphasis renders as plain <strong> inside the banner text, with no testid of its own
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- rendered markdown <strong> element: it cannot take a testid
     await expect(app.center.channelBanner.locator.locator('strong')).toHaveText('bold');
     // markdown emphasis renders as plain <em> inside the banner text, with no testid of its own
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- rendered markdown <em> element: it cannot take a testid
     await expect(app.center.channelBanner.locator.locator('em')).toHaveText('italic');
     // markdown emphasis renders as plain <del> inside the banner text, with no testid of its own
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- rendered markdown <del> element: it cannot take a testid
     await expect(app.center.channelBanner.locator.locator('del')).toHaveText('strikethrough');
 });

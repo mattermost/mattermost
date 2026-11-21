@@ -42,7 +42,7 @@ const ClusterTableContainer = () => {
     }, [load]);
 
     if (clusterInfos == null) {
-        return (<LoadingScreen/>);
+        return (<LoadingScreen testId='admin.cluster.nodes.loading'/>);
     }
 
     return (

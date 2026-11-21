@@ -137,7 +137,14 @@ describe('Verify Guest User Identification in different screens', () => {
 
         // * Verify if Guest badge is displayed for the guest user in the Switch Channel Dialog
         cy.get('#suggestionList').should('be.visible');
-        cy.findByTestId(guestUser.username).within(($el) => {
+        // The testid uses a channel id; match the scoped row by its visible username.
+        cy.findByTestId((testId, element) => {
+            const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+            const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+            return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+                (visibleUsername === `@${guestUser.username}` || (!visibleUsername &&
+                    (visibleName === guestUser.username || Boolean(visibleName?.startsWith(`${guestUser.username} (`)))));
+        }).within(($el) => {
             cy.wrap($el).find('.Tag').should('be.visible').and('have.text', 'GUEST');
         });
 

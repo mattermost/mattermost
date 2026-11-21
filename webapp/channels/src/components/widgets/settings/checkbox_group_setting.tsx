@@ -20,7 +20,7 @@ type Props = {
     labelPosition?: 'before' | 'after';
     disabled?: boolean;
 
-    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row keeps its input-id based ids. */
+    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row renders no test ids. */
     testIdScope?: string;
 
     /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */

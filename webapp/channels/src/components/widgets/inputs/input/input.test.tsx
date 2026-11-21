@@ -10,13 +10,19 @@ import Input from './input';
 describe('components/widgets/inputs/Input', () => {
     test('should keep defaultValue across re-renders when value is omitted (uncontrolled / IME)', () => {
         const {rerender} = renderWithContext(
-            <Input defaultValue=''/>,
+            <Input
+                defaultValue=''
+                testId='fixture.input'
+            />,
         );
         const input = screen.getByRole('textbox') as HTMLInputElement;
 
         fireEvent.input(input, {target: {value: '그'}});
         rerender(
-            <Input defaultValue=''/>,
+            <Input
+                defaultValue=''
+                testId='fixture.input'
+            />,
         );
 
         expect(input.value).toBe('그');
@@ -29,6 +35,7 @@ describe('components/widgets/inputs/Input', () => {
 
         renderWithContext(
             <Input
+                testId='fixture.input'
                 value={value}
                 clearable={true}
                 clearableTooltipText={clearableTooltipText}
@@ -173,6 +180,7 @@ describe('components/widgets/inputs/Input', () => {
 
             const {container} = renderWithContext(
                 <Input
+                    testId='fixture.input'
                     name='test'
                     value=''
                     validate={mockValidate}
@@ -197,6 +205,7 @@ describe('components/widgets/inputs/Input', () => {
 
             const {container} = renderWithContext(
                 <Input
+                    testId='fixture.input'
                     name='test'
                     value=''
                     validate={mockValidate}
@@ -242,6 +251,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should show error styling when input is empty with minLength set', async () => {
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={''}
                     minLength={2}
                 />,
@@ -255,7 +265,7 @@ describe('components/widgets/inputs/Input', () => {
             });
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-wrapper');
+            const fieldset = screen.getByTestId('fixture.input.field');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
@@ -266,6 +276,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should show error styling and message when input length < minLength', async () => {
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={'a'}
                     minLength={2}
                 />,
@@ -281,7 +292,7 @@ describe('components/widgets/inputs/Input', () => {
             act(() => inputElement.blur());
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-wrapper');
+            const fieldset = screen.getByTestId('fixture.input.field');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
@@ -294,6 +305,7 @@ describe('components/widgets/inputs/Input', () => {
 
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={'ab'}
                     minLength={2}
                     onChange={onChange}
@@ -318,6 +330,7 @@ describe('components/widgets/inputs/Input', () => {
             // Render with a value that exceeds the limit
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={'abcdef'}
                     limit={5}
                     onChange={onChange}
@@ -332,7 +345,7 @@ describe('components/widgets/inputs/Input', () => {
             });
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-wrapper');
+            const fieldset = screen.getByTestId('fixture.input.field');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
@@ -341,6 +354,7 @@ describe('components/widgets/inputs/Input', () => {
 
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={'abcde'}
                     limit={5}
                     onChange={onChange}
@@ -356,6 +370,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should not show error on empty required input until blur', async () => {
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={''}
                     required={true}
                 />,
@@ -378,13 +393,14 @@ describe('components/widgets/inputs/Input', () => {
             expect(errorMessage).toBeInTheDocument();
 
             // Check for error styling
-            const fieldset = screen.getByTestId('input-wrapper');
+            const fieldset = screen.getByTestId('fixture.input.field');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
         test('should not show error on non-empty required input', async () => {
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={'abc'}
                     required={true}
                 />,
@@ -408,6 +424,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should prioritize required validation over minLength on blur for empty input', async () => {
             renderWithContext(
                 <Input
+                    testId='fixture.input'
                     value={''}
                     required={true}
                     minLength={2}

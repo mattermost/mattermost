@@ -599,7 +599,7 @@ describe('SuggestionBox', () => {
 
             await showSuggestions();
 
-            expect(screen.getByTestId('suggestion-selected')).toHaveTextContent('Suggestion: @apple');
+            expect(screen.getByTestId('suggestion.selected--text')).toHaveTextContent('Suggestion: @apple');
         });
 
         test('should stop at the last suggestion when pressing the down arrow repeatedly', async () => {
@@ -614,7 +614,7 @@ describe('SuggestionBox', () => {
 
             await userEvent.keyboard('{arrowdown}{arrowdown}{arrowdown}{arrowdown}');
 
-            expect(screen.getByTestId('suggestion-selected')).toHaveTextContent('Suggestion: @cherry');
+            expect(screen.getByTestId('suggestion.selected--text')).toHaveTextContent('Suggestion: @cherry');
         });
 
         test('should stop at the first suggestion when pressing the up arrow repeatedly', async () => {
@@ -629,7 +629,7 @@ describe('SuggestionBox', () => {
 
             await userEvent.keyboard('{arrowdown}{arrowup}{arrowup}{arrowup}');
 
-            expect(screen.getByTestId('suggestion-selected')).toHaveTextContent('Suggestion: @apple');
+            expect(screen.getByTestId('suggestion.selected--text')).toHaveTextContent('Suggestion: @apple');
         });
 
         test('should complete the selected suggestion when pressing tab', async () => {
@@ -750,11 +750,11 @@ describe('SuggestionBox', () => {
                 expect(screen.getByRole('listbox')).toBeVisible();
             });
 
-            expect(screen.getByTestId('suggestion-selected')).toHaveTextContent('Suggestion: @apple');
+            expect(screen.getByTestId('suggestion.selected--text')).toHaveTextContent('Suggestion: @apple');
 
             fireEvent.mouseMove(screen.getByRole('option', {name: 'Suggestion: @banana'}));
 
-            expect(screen.getByTestId('suggestion-selected')).toHaveTextContent('Suggestion: @banana');
+            expect(screen.getByTestId('suggestion.selected--text')).toHaveTextContent('Suggestion: @banana');
         });
 
         test('should call onItemSelected with the completed item', async () => {

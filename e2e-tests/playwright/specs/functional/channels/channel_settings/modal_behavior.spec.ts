@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {createChannelFromModal, expect, openNewChannelModal, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that releasing a mouse drag that started inside a modal but ends outside it does not
@@ -47,16 +47,17 @@ test(
     {tag: '@channel_settings'},
     async ({pw}) => {
         const {user, team} = await pw.initSetup();
-        const {app, channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
         await app.channelsPage.goto({team, channel: 'town-square'});
         await expect(app.center.postCreate).toBeVisible();
 
         // # Create a new public channel via the modal
-        const createdChannel = `Random ${pw.random.id()}`;
-        await channelsPage.newChannel(createdChannel, 'O');
+        const createdName = `Random ${pw.random.id()}`;
+        const createdChannel = await createChannelFromModal(app, createdName, 'O');
 
         // * Verify the new channel is opened
-        await expect(app.channelHeader.openMenuButton).toContainText(createdChannel);
+        await expect(app.channelHeader.openMenuButton).toContainText(createdName);
+        await expect(app.lhs.channelList.channel(createdChannel).container).toBeVisible();
 
         // # Leave the channel via the channel header menu
         await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.leaveChannelMenuItem);
@@ -64,20 +65,21 @@ test(
 
         // * Verify the user is redirected to the default channel and the channel is no longer in the sidebar
         await expect(app.channelHeader.openMenuButton).toContainText('Town Square');
-        await expect(channelsPage.sidebarLeft.container.getByText(createdChannel)).not.toBeVisible();
+        await expect(app.lhs.channelList.channel(createdChannel).container).not.toBeVisible();
+        const sidebarChannels = await app.lhs.channelList.channelList.keys();
 
         // # Open the create-channel modal, enter a name, and cancel without creating
         const cancelledChannel = `AB ${pw.random.id()}`;
-        const newChannelModal = await channelsPage.openNewChannelModal();
-        await newChannelModal.displayNameInput.fill(cancelledChannel);
-        await expect(newChannelModal.displayNameInput).toHaveValue(cancelledChannel);
-        await newChannelModal.cancel();
+        const newChannelModal = await openNewChannelModal(app);
+        await newChannelModal.name.container.fill(cancelledChannel);
+        await expect(newChannelModal.name.container).toHaveValue(cancelledChannel);
+        await newChannelModal.cancelButton.click();
 
         // * Verify the modal is closed and the cancelled channel was never created or joined
         await expect(newChannelModal.container).not.toBeVisible();
-        await expect(channelsPage.sidebarLeft.container.getByText(cancelledChannel)).not.toBeVisible();
+        await expect(app.lhs.channelList.channelList).toHaveKeys(sidebarChannels, {ordered: false});
 
         // * Verify the previously left channel remains absent from the sidebar
-        await expect(channelsPage.sidebarLeft.container.getByText(createdChannel)).not.toBeVisible();
+        await expect(app.lhs.channelList.channel(createdChannel).container).not.toBeVisible();
     },
 );

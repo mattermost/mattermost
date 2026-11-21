@@ -59,7 +59,7 @@ export default function ChannelPopout() {
     }, [dispatch, channelId]);
 
     if (!team) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId='channel_popout.loading'/>;
     }
 
     return (

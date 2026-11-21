@@ -29,7 +29,7 @@ test('should open Root Modal from post actions menu and all submenu items', asyn
         await post.container.hover();
         await expect(post.menu.actionsButton).toBeVisible();
         await post.menu.actionsButton.click();
-        await expect(post.menu.actionsMenu).toBeVisible();
+        await expect(app.page.getByRole('menu').first()).toBeVisible();
     }
 
     // # Click the top-level "Demo Plugin" action

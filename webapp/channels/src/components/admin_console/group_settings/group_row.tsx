@@ -89,6 +89,7 @@ const GroupRow = (props: Props) => {
             return (
                 <a href='#'>
                     <LoadingSpinner
+                        testId='admin.ldap_groups.group.loading'
                         text={props.mattermost_group_id ? formatMessage({id: 'admin.group_settings.group_row.unlinking', defaultMessage: 'Unlinking'}) : formatMessage({id: 'admin.group_settings.group_row.linking', defaultMessage: 'Linking'})}
                     />
                 </a>
@@ -157,6 +158,7 @@ const GroupRow = (props: Props) => {
     return (
         <div
             id={`${props.name}_group`}
+            data-testid={`admin.ldap_groups.group:${props.primary_key}`}
             className={'group ' + (props.checked ? 'checked' : '')}
         >
             <div className='group-row'>

@@ -514,6 +514,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await expect(regionSelect).toBeVisible();
             await regionSelect.focus();
             await regionSelect.fill('Sou');
+            await expect(regionSelect).toHaveValue('Sou');
 
             await (await regionSelectPicker.suggestions.suggestionList.itemWith({text: 'South'})).select();
 

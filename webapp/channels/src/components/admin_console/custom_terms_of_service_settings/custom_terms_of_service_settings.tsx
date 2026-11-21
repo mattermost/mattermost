@@ -192,7 +192,7 @@ export default class CustomTermsOfServiceSettings extends OLDAdminSettings<Props
 
     renderSettings = () => {
         if (this.state.loadingTermsText) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='admin.custom_terms.loading'/>;
         }
 
         return (

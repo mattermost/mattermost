@@ -46,7 +46,14 @@ describe('Messaging', () => {
         // # Verify that the list of users and channels suggestions is present
         cy.get('#suggestionList').should('be.visible').within(() => {
             // * Newly created username should be there in the search list; click it
-            cy.findByTestId(secondUser.username).scrollIntoView().should('exist').click().wait(TIMEOUTS.HALF_SEC);
+            // The testid uses a channel id; match the scoped row by its visible username.
+            cy.findByTestId((testId, element) => {
+                const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+                const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+                return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+                    (visibleUsername === `@${secondUser.username}` || (!visibleUsername &&
+                        (visibleName === secondUser.username || Boolean(visibleName?.startsWith(`${secondUser.username} (`)))));
+            }).scrollIntoView().should('exist').click().wait(TIMEOUTS.HALF_SEC);
         });
 
         // # Verify that we are in a DM channel

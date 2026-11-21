@@ -227,7 +227,9 @@ export const goToPermissionsAndCreateTeamOverrideScheme = (schemeName: string, t
 export const deleteOrEditTeamScheme = (schemeDisplayName: string, editOrDelete: string) => {
     cy.apiAdminLogin();
     cy.visit('/admin_console/user_management/permissions');
-    cy.findByTestId(`${schemeDisplayName}-${editOrDelete}`).click();
+    cy.contains('[data-testid^="admin.permission_schemes.scheme:"]', schemeDisplayName).
+        findByTestId(editOrDelete === 'edit' ? 'admin.permission_schemes.scheme.edit--link' : 'admin.permission_schemes.scheme.delete--button').
+        click();
     if (editOrDelete === 'delete') {
         cy.get('#confirmModalButton').click();
     }

@@ -127,7 +127,7 @@ const DoVerifyEmail = () => {
                 </div>
             </div>
         ) : (
-            <LoadingScreen/>
+            <LoadingScreen testId='verify_email.loading'/>
         )
     );
 };

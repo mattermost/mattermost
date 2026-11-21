@@ -95,7 +95,7 @@ function UrlInput({
     const urlInputLabel = (
         <span
             className='url-input-label'
-            data-testid={testIdScope ? `${testIdScope}.label--text` : 'urlInputLabel'}
+            data-testid={testIdScope ? `${testIdScope}.label--text` : undefined}
         >
             {formatMessage({id: 'url_input.label.url', defaultMessage: 'URL: '})}
             {isShortenedURL ? getShortenedURL(fullURL, shortenLength) : fullURL}
@@ -117,7 +117,7 @@ function UrlInput({
                 )}
                 {isEditing && (
                     <Input
-                        data-testid={testIdScope ? `${testIdScope}.value--textbox` : 'channelURLInput'}
+                        data-testid={testIdScope ? `${testIdScope}.value--textbox` : undefined}
                         name='url-input'
                         type='text'
                         containerClassName='url-input-editable-container'

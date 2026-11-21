@@ -149,7 +149,7 @@ function DraggableRow<T extends TableMandatoryTypes>({
             ref={setRowElement}
             id={`${rowIdPrefix}${row.original.id}`}
             key={row.id}
-            data-testid={testIdScope ? `${testIdScope}.row:${row.original.id}--row` : 'listTableBodyRow'}
+            data-testid={testIdScope ? `${testIdScope}.row:${row.original.id}--row` : undefined}
             onClick={handleRowClick}
             className={classNames({clickable: Boolean(tableMeta.onRowClick)})}
         >
@@ -278,11 +278,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 )}
             >
                 <caption className='sr-only'>{tableMeta.tableCaption}</caption>
-                <thead data-testid={props.testIdScope ? `${props.testIdScope}.head` : 'listTableHead'}>
+                <thead data-testid={props.testIdScope ? `${props.testIdScope}.head` : undefined}>
                     {props.table.getHeaderGroups().map((headerGroup) => (
                         <tr
                             key={headerGroup.id}
-                            data-testid={props.testIdScope ? undefined : 'listTableHeadRow'}
                         >
                             {headerGroup.headers.map((header) => (
                                 <th
@@ -408,12 +407,12 @@ export function ListTable<TableType extends TableMandatoryTypes>(
             {hasPagination && (
                 <div
                     className='adminConsoleListTabletOptionalFoot'
-                    data-testid={props.testIdScope ? `${props.testIdScope}.footer` : 'listTableFoot'}
+                    data-testid={props.testIdScope ? `${props.testIdScope}.footer` : undefined}
                 >
-                    <span data-testid={props.testIdScope ? `${props.testIdScope}.footer.pagination--text` : 'listTableFoot-paginationInfo'}>{tableMeta.paginationInfo}</span>
+                    <span data-testid={props.testIdScope ? `${props.testIdScope}.footer.pagination--text` : undefined}>{tableMeta.paginationInfo}</span>
                     <div
                         className='adminConsoleListTablePageSize'
-                        data-testid={props.testIdScope ? `${props.testIdScope}.footer.page_size` : 'listTableFoot-pageSize'}
+                        data-testid={props.testIdScope ? `${props.testIdScope}.footer.page_size` : undefined}
                         aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
                     >
                         <FormattedMessage

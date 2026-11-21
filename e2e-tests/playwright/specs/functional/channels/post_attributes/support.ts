@@ -8,8 +8,15 @@ import type {FieldType, PropertyField, PropertyIdentity, PropertyPermissionLevel
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getAdminClient, test} from '@mattermost/playwright-lib';
-import type {ChannelsPage, ChannelsPost, PlaywrightExtended} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getAdminClient,
+    ignoreMissing,
+    test,
+    type App,
+    type generated,
+    type PlaywrightExtended,
+} from '@mattermost/playwright-lib';
 
 export const GROUP = 'access_control';
 export const OBJECT_TYPE = 'post';
@@ -412,23 +419,17 @@ export async function deleteFields(adminClient: Client4, fields: PropertyField[]
  */
 export async function purgeFields(adminClient: Client4): Promise<void> {
     // Masking first: a holder field cannot be deleted while a template masks by it.
-    try {
-        const templates = await adminClient.getPropertyFields(GROUP, TEMPLATE_OBJECT_TYPE, {targetType: 'system'});
-        for (const template of (templates ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX))) {
-            await unmaskTemplate(adminClient, template);
-        }
-    } catch {} // eslint-disable-line no-empty
+    const templates = await adminClient.getPropertyFields(GROUP, TEMPLATE_OBJECT_TYPE, {targetType: 'system'});
+    for (const template of (templates ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX))) {
+        await unmaskTemplate(adminClient, template);
+    }
 
     // Templates last: one cannot be deleted while a linked field is on it.
     for (const objectType of [OBJECT_TYPE, USER_OBJECT_TYPE, TEMPLATE_OBJECT_TYPE]) {
-        try {
-            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: 'system'});
-            const stale = (fields ?? []).filter(
-                (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
-            );
+        const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: 'system'});
+        const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
 
-            await deleteFieldsOf(adminClient, objectType, stale);
-        } catch {} // eslint-disable-line no-empty
+        await deleteFieldsOf(adminClient, objectType, stale);
     }
 }
 
@@ -479,66 +480,6 @@ export function sentValues(request: Request): SentValue[] | undefined {
 }
 
 /**
- * The composer-side locators for one field, scoped to one composer (centre or thread
- * sidebar): both can be on screen at once and carry the same test ids.
- */
-export function composerChips(scope: Locator) {
-    return scope.getByTestId('post-attributes-composer');
-}
-
-export function composerChip(scope: Locator, field: PropertyField) {
-    return scope.getByTestId(`post-attribute-chip-${field.name}`);
-}
-
-export function composerRest(scope: Locator, field: PropertyField) {
-    return scope.getByTestId(`post-attribute-rest-${field.name}`);
-}
-
-export function composerTrigger(scope: Locator, field: PropertyField) {
-    return scope.getByTestId(`post-attribute-trigger-${field.name}`);
-}
-
-export function composerInput(scope: Locator, field: PropertyField) {
-    return scope.getByTestId(`post-attribute-input-${field.name}`);
-}
-
-export function composerRemove(scope: Locator, field: PropertyField) {
-    return scope.getByTestId(`post-attribute-remove-${field.name}`);
-}
-
-// The `+` in the action row, and the `Add attribute` control that follows the chips.
-export function composerPlus(scope: Locator) {
-    return scope.getByTestId('post-attributes-composer-add');
-}
-
-export function composerInlineAdd(scope: Locator) {
-    return scope.getByTestId('post-attributes-add');
-}
-
-// The picker menu is portalled out of the composer, so it is found from the page.
-export function pickerItem(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-add-${field.name}`);
-}
-
-/**
- * Stages a field by opening the `+` in the action row and choosing it from the
- * picker. A select field's value menu opens by itself afterwards, and a text or user
- * field's control takes focus.
- */
-export async function stageField(page: Page, scope: Locator, field: PropertyField) {
-    await composerPlus(scope).click();
-    await pickerItem(page, field).click();
-}
-
-/**
- * Picks an option in the value menu a select, rank or multiselect chip has open. The
- * role differs by type: a multiselect's items are checkboxes and the others radios.
- */
-export async function chooseOption(page: Page, name: string, {multi = false}: {multi?: boolean} = {}) {
-    await page.getByRole(multi ? 'menuitemcheckbox' : 'menuitemradio', {name, exact: true}).click();
-}
-
-/**
  * The active system-scoped fields on the server, for a case that needs "no other field"
  * to decide whether it can run. Call it after `purgeFields` and before the case creates
  * its own: anything left then is either not the suite's to touch, or one of the suite's
@@ -549,48 +490,36 @@ export async function activeSystemFields(adminClient: Client4): Promise<Property
     return (fields ?? []).filter((field) => field.delete_at === 0);
 }
 
-// The edit modal's locators for one field. The modal is a dialog on the page, so they are
-// found from the page rather than from a post.
-export function modalRow(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-row-${field.name}`);
-}
-
-export function modalTrigger(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-trigger-${field.name}`);
-}
-
-export function modalClear(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-clear-${field.name}`);
-}
-
-export function modalInput(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-input-${field.name}`);
+/** Matches exactly `text`, for finding a chip by the option it shows. */
+export function exactly(text: string): RegExp {
+    return new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
 }
 
 /**
- * Opens the post's `…` menu with the pointer and picks `Attributes`. The message text is
- * hovered rather than the post, so the pointer never rests on the chip row and the hover
+ * The option chip on a post's attribute row that shows `name`. Option-bearing fields (`select`, `multiselect`,
+ * `rank`) share one renderer, so their chips are told apart by the option they show.
+ */
+export function optionChip(
+    attributes: generated.CenterPostListPostAttributes<generated.CenterPostListPostAttributesMount>,
+    name: string,
+): Locator {
+    return attributes.value.selectText.locator.filter({hasText: exactly(name)});
+}
+
+/**
+ * Opens the post's `…` menu with the pointer and picks `Attributes`, returning the modal.
+ *
+ * The message text is hovered rather than the post, so the pointer never rests on the chip row and the hover
  * card is not what opened the modal.
  */
 export async function openModalFromPostMenu(
-    channelsPage: ChannelsPage,
-    post: ChannelsPost,
-    {keyboard = false}: {keyboard?: boolean} = {},
+    app: App,
+    post: generated.CenterPostListPost<generated.CenterPostListPostMount>,
 ) {
-    await post.messageText.hover();
-    await post.postMenu.toBeVisible();
-
-    if (keyboard) {
-        // Opened with Enter so the pointer is not left over a menu item: on a post whose
-        // menu opens under it, the pointer lands on `Remind` and its submenu replaces the menu.
-        await post.postMenu.dotMenuButton.focus();
-        await post.postMenu.dotMenuButton.press('Enter');
-    } else {
-        await post.postMenu.dotMenuButton.click();
-    }
-
-    await channelsPage.postDotMenu.toBeVisible();
-    await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
+    await post.message.container.hover();
+    await expect(post.menu.dotMenuButton).toBeVisible();
+    const dotMenu = await post.menu.dotMenuButton.clickTo(app.postDotMenu);
+    return dotMenu.postAttributesMenuItem.clickTo(app.postAttributesModal);
 }
 
 /**
@@ -645,9 +574,7 @@ export async function setHolding(adminClient: Client4, userId: string, holder: P
  */
 export async function deleteFieldsOf(adminClient: Client4, objectType: string, fields: PropertyField[]) {
     for (const field of fields) {
-        try {
-            await adminClient.deletePropertyField(GROUP, objectType, field.id);
-        } catch {} // eslint-disable-line no-empty
+        await ignoreMissing(() => adminClient.deletePropertyField(GROUP, objectType, field.id));
     }
 }
 
@@ -657,9 +584,9 @@ export async function deleteFieldsOf(adminClient: Client4, objectType: string, f
  * field is on it, so without this a masking template and its holder outlive the spec.
  */
 export async function unmaskTemplate(adminClient: Client4, template: PropertyField) {
-    try {
-        await adminClient.patchPropertyField(GROUP, TEMPLATE_OBJECT_TYPE, template.id, {permissions: {masking: null}});
-    } catch {} // eslint-disable-line no-empty
+    await ignoreMissing(() =>
+        adminClient.patchPropertyField(GROUP, TEMPLATE_OBJECT_TYPE, template.id, {permissions: {masking: null}}),
+    );
 }
 
 /**

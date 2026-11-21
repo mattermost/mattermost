@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
+import {screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -58,12 +58,13 @@ describe('BannerTokenControls', () => {
     test('renders nothing when the channel has no attributes to offer', () => {
         renderWithContext(
             <BannerTokenControls
+                testId='fixture.banner_tokens'
                 attributes={[]}
                 onInsertToken={jest.fn()}
             />,
         );
 
-        expect(screen.queryByTestId('bannerAttributeTokenButton')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.banner_tokens.insert--button')).not.toBeInTheDocument();
     });
 
     test('offers each attribute by its display name and inserts its machine-name token', async () => {
@@ -72,12 +73,13 @@ describe('BannerTokenControls', () => {
 
         renderWithContext(
             <BannerTokenControls
+                testId='fixture.banner_tokens'
                 attributes={[attribute('caveat', 'NOFORN', 'Caveat / Releasability')]}
                 onInsertToken={onInsertToken}
             />,
         );
 
-        await userEvent.click(screen.getByTestId('bannerAttributeTokenButton'));
+        await userEvent.click(screen.getByTestId('fixture.banner_tokens.insert--button'));
 
         const items = await screen.findAllByRole('menuitem');
         const caveat = items.find((item) => item.textContent?.includes('Caveat / Releasability'));
@@ -96,16 +98,17 @@ describe('BannerTokenControls', () => {
 
         renderWithContext(
             <BannerTokenControls
+                testId='fixture.banner_tokens'
                 attributes={[attribute('program', 'AURORA'), attribute('caveat', '')]}
                 onInsertToken={jest.fn()}
             />,
         );
 
-        await userEvent.click(screen.getByTestId('bannerAttributeTokenButton'));
+        await userEvent.click(screen.getByTestId('fixture.banner_tokens.insert--button'));
 
         // Only the attribute with no value is flagged.
-        expect(await screen.findByTestId('bannerAttributeTokenUnset-caveat')).toBeInTheDocument();
-        expect(screen.queryByTestId('bannerAttributeTokenUnset-program')).not.toBeInTheDocument();
+        expect(await within(screen.getByTestId('fixture.banner_tokens.insert_menu.attribute:field_caveat--menuitem')).findByTestId('fixture.banner_tokens.insert_menu.attribute.unset')).toBeInTheDocument();
+        expect(within(screen.getByTestId('fixture.banner_tokens.insert_menu.attribute:field_program--menuitem')).queryByTestId('fixture.banner_tokens.insert_menu.attribute.unset')).not.toBeInTheDocument();
 
         // The icon is not the only carrier: the state is part of each item's name.
         expect(screen.getByRole('menuitem', {name: /program.*Value on this channel: AURORA/})).toBeInTheDocument();
@@ -117,13 +120,14 @@ describe('BannerTokenControls', () => {
 
         renderWithContext(
             <BannerTokenControls
+                testId='fixture.banner_tokens'
                 attributes={[attribute('program', 'AURORA')]}
                 onInsertToken={jest.fn()}
                 channelKind='board'
             />,
         );
 
-        await userEvent.click(screen.getByTestId('bannerAttributeTokenButton'));
+        await userEvent.click(screen.getByTestId('fixture.banner_tokens.insert--button'));
 
         expect(await screen.findByRole('menu', {name: 'Board attributes'})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: /program.*Value on this board: AURORA/})).toBeInTheDocument();
@@ -132,12 +136,13 @@ describe('BannerTokenControls', () => {
     test('disables insertion when the banner fields are locked', () => {
         renderWithContext(
             <BannerTokenControls
+                testId='fixture.banner_tokens'
                 attributes={[attribute('program', 'AURORA')]}
                 onInsertToken={jest.fn()}
                 disabled={true}
             />,
         );
 
-        expect(screen.getByTestId('bannerAttributeTokenButton')).toBeDisabled();
+        expect(screen.getByTestId('fixture.banner_tokens.insert--button')).toBeDisabled();
     });
 });

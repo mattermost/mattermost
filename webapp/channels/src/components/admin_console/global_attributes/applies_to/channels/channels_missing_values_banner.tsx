@@ -164,6 +164,7 @@ export default function ChannelsMissingValuesBanner({
     return (
         <AlertBanner
             id='channelsMissingValuesBanner'
+            testId='channelsMissingValuesBanner'
             mode={mode}
             title={<FormattedMessage {...messages.title}/>}
             message={message}

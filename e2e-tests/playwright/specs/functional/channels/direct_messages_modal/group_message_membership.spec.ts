@@ -49,7 +49,9 @@ test('MM-T468 Group Messaging: Add member to existing GM', {tag: '@direct_messag
 
     // # Open the group message member list
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
-    await app.channelHeader.menu.membersMenuItem.clickTo(app.rhs.channelMembers);
+    // The members panel can already be open from adding the member, so the item is clicked and the panel asserted.
+    await app.channelHeader.menu.membersMenuItem.click();
+    await expect(app.rhs.channelMembers).toBeVisible();
 
     // * Verify the new member and every original member remain in the conversation
     for (const member of [...members, newMember]) {

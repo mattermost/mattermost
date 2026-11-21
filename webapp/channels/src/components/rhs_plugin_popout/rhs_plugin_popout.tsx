@@ -42,7 +42,7 @@ export default function RhsPluginPopout() {
     }, [pluginComponentData]);
 
     if (!showPluggable) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId='rhs.plugin_popout.loading'/>;
     }
 
     return (

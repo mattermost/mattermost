@@ -4,11 +4,11 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {expect, type App} from '@mattermost/playwright-lib';
+import {expect, ignoreMissing, type App} from '@mattermost/playwright-lib';
 
 import {createMembershipPolicy, openPolicy, policyIdByName, setAbacEnabled} from '../surface';
 
-import {deleteFieldFromDB} from './masking_db_setup';
+import {deleteFieldFromDB, setFieldAsPublic} from './masking_db_setup';
 
 export async function enableMaskingFlag(client: Client4): Promise<void> {
     const config = await client.getConfig();
@@ -64,38 +64,88 @@ export async function createMaskingMultiselectField(
 }
 
 /**
- * Delete a CPA field by ID. Tries the API first; falls back to a direct DB
- * soft-delete for fields that were flipped to protected=true via
- * setFieldAsSharedOnly / setFieldAsSourceOnly (the API returns 403 for those).
- * Never throws.
+ * Delete a CPA field by ID. Tries the API first; falls back to a direct DB soft-delete for fields that were flipped to
+ * protected=true via setFieldAsSharedOnly / setFieldAsSourceOnly (the API answers 403 for those). A field that is
+ * already gone (404) is fine; every other failure is thrown.
  */
 export async function deleteCPAField(client: Client4, fieldId: string): Promise<void> {
-    if (!fieldId) {
-        return;
-    }
     try {
         await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields/${fieldId}`, {
             method: 'DELETE',
         });
-    } catch {
-        try {
-            await deleteFieldFromDB(fieldId);
-        } catch {
-            // best-effort
+    } catch (error) {
+        const status = (error as {status_code?: number}).status_code;
+        if (status === 404) {
+            return;
         }
+        if (status !== 403) {
+            throw error;
+        }
+        await deleteFieldFromDB(fieldId);
     }
 }
 
+/** Delete a policy by ID. A policy that is already gone is fine; every other failure is thrown. */
 export async function deletePolicy(client: Client4, policyId: string): Promise<void> {
-    if (!policyId) {
-        return;
-    }
-    try {
-        await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}`, {
+    await ignoreMissing(() =>
+        (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}`, {
             method: 'DELETE',
-        });
-    } catch {
-        // best-effort
+        }),
+    );
+}
+
+/**
+ * What one masking test created. Register the test's client with `track`, push ids as they are made, and call `run`
+ * from an `afterEach`, so cleanup that fails is reported on its own instead of replacing the test's failure.
+ */
+export class MaskingCleanup {
+    private client: Client4 | undefined;
+    private readonly fieldIds: string[] = [];
+    private readonly policyIds: string[] = [];
+    private readonly teamAssignments: Array<{policyId: string; teamIds: string[]}> = [];
+
+    track(client: Client4): {
+        fieldIds: string[];
+        policyIds: string[];
+        teamAssignments: Array<{policyId: string; teamIds: string[]}>;
+    } {
+        this.client = client;
+        return {fieldIds: this.fieldIds, policyIds: this.policyIds, teamAssignments: this.teamAssignments};
+    }
+
+    /** Makes the fields public, takes policies off their teams and channels, deletes the policies, then the fields, then turns the masking flag off. Does nothing when no test tracked. */
+    async run(): Promise<void> {
+        const client = this.client;
+        if (!client) {
+            return;
+        }
+        this.client = undefined;
+        // A policy that holds values its viewer may not see cannot be deleted, so make the fields visible first.
+        for (const id of this.fieldIds) {
+            await setFieldAsPublic(id);
+        }
+        // A policy that still has channels or teams assigned cannot be deleted, so take it off both first.
+        for (const {policyId, teamIds} of this.teamAssignments.splice(0)) {
+            await ignoreMissing(() => client.unassignTeamsFromAccessControlPolicy(policyId, teamIds));
+        }
+        for (const id of this.policyIds) {
+            await ignoreMissing(async () => {
+                const {channels} = await client.getChannelsForAccessControlPolicy(id, '', 200);
+                if (channels.length > 0) {
+                    await client.unassignChannelsFromAccessControlPolicy(
+                        id,
+                        channels.map((channel) => channel.id),
+                    );
+                }
+            });
+        }
+        for (const id of this.policyIds.splice(0)) {
+            await deletePolicy(client, id);
+        }
+        for (const id of this.fieldIds.splice(0)) {
+            await deleteCPAField(client, id);
+        }
+        await disableMaskingFlag(client);
     }
 }
 
@@ -170,8 +220,8 @@ export async function resubmitPolicyExpression(
                 },
                 body: JSON.stringify(policy),
             });
-            const body = await putResp.json().catch(() => ({}));
-            return {status: putResp.status, body};
+            const text = await putResp.text();
+            return {status: putResp.status, body: JSON.parse(text || '{}')};
         },
         {id: policyId, expr: newExpression},
     );

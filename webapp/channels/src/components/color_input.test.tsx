@@ -26,6 +26,7 @@ function ColorInputWrapper({onChange, value: initialValue, ...otherProps}: Color
 
 describe('components/ColorInput', () => {
     const baseProps = {
+        testIdScope: 'fixture.color',
         id: 'sidebarBg',
         onChange: jest.fn(),
         value: '#ffffff',
@@ -34,37 +35,37 @@ describe('components/ColorInput', () => {
     test('should hide color picker when first rendered', () => {
         const {getByTestId} = renderWithContext(<ColorInputWrapper {...baseProps}/>);
 
-        const inputElement = getByTestId('color-inputColorValue');
+        const inputElement = getByTestId('fixture.color.value--textbox');
 
         expect(inputElement).toBeInTheDocument();
         expect(inputElement).toBeVisible();
-        expect(screen.queryByTestId('color-popover')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.color.picker')).not.toBeInTheDocument();
     });
 
     test('should show color picker when color picker button is clicked', async () => {
         const {getByTestId} = renderWithContext(<ColorInputWrapper {...baseProps}/>);
 
-        const colorPickerToggleButton = getByTestId('color-togglerButton');
+        const colorPickerToggleButton = getByTestId('fixture.color.toggle');
 
         await userEvent.click(colorPickerToggleButton);
 
-        const colorPopover = getByTestId('color-popover');
+        const colorPopover = getByTestId('fixture.color.picker');
 
         expect(colorPopover).toBeInTheDocument();
         expect(colorPopover).toBeVisible();
-        expect(document.activeElement).toBe(getByTestId('color-inputColorValue'));
+        expect(document.activeElement).toBe(getByTestId('fixture.color.value--textbox'));
 
         await userEvent.click(document.body);
 
-        expect(screen.queryByTestId('color-popover')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.color.picker')).not.toBeInTheDocument();
     });
 
     test('should change color when the color picker is clicked', async () => {
         const {getByTestId} = renderWithContext(<ColorInputWrapper {...baseProps}/>);
 
-        await userEvent.click(getByTestId('color-togglerButton'));
+        await userEvent.click(getByTestId('fixture.color.toggle'));
 
-        const colorPopover = getByTestId('color-popover');
+        const colorPopover = getByTestId('fixture.color.picker');
 
         await userEvent.click(colorPopover);
 
@@ -75,7 +76,7 @@ describe('components/ColorInput', () => {
     test('should keep what the user types in the textbox until blur', async () => {
         const {getByTestId} = renderWithContext(<ColorInputWrapper{...baseProps}/>);
 
-        const inputElement = getByTestId('color-inputColorValue');
+        const inputElement = getByTestId('fixture.color.value--textbox');
 
         await userEvent.clear(inputElement);
         await userEvent.type(inputElement, '#abc');
@@ -83,7 +84,7 @@ describe('components/ColorInput', () => {
         expect(inputElement).toHaveValue('#abc');
 
         // The RGB here is the equivalent of '#abc'.
-        expect(getByTestId('color-icon').style.backgroundColor).toBe('rgb(170, 187, 204)');
+        expect(getByTestId('fixture.color.swatch').style.backgroundColor).toBe('rgb(170, 187, 204)');
 
         await act(() => {
             inputElement.blur();
@@ -93,6 +94,6 @@ describe('components/ColorInput', () => {
         expect(inputElement).toHaveValue('#aabbcc');
 
         // The RGB value passed in the assertion is the equivalent of '#aabbcc'.
-        expect(getByTestId('color-icon').style.backgroundColor).toBe('rgb(170, 187, 204)');
+        expect(getByTestId('fixture.color.swatch').style.backgroundColor).toBe('rgb(170, 187, 204)');
     });
 });

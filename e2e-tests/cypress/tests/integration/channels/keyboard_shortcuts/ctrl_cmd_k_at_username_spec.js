@@ -36,7 +36,14 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#quickSwitchInput').type('@' + otherUser.username.slice(0, 3));
 
         // # Click on the username in the suggestion list
-        cy.findByTestId(otherUser.username).click();
+        // The testid uses a channel id; match the scoped row by its visible username.
+        cy.findByTestId((testId, element) => {
+            const visibleName = element?.querySelector('.suggestion-list__channel-name-text')?.textContent;
+            const visibleUsername = element?.querySelector('.suggestion-list__desc')?.textContent;
+            return testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+                (visibleUsername === `@${otherUser.username}` || (!visibleUsername &&
+                    (visibleName === otherUser.username || Boolean(visibleName?.startsWith(`${otherUser.username} (`)))));
+        }).click();
 
         // * The direct message channel for the user opens
         cy.url().should('include', `/${testTeam.name}/messages/@${otherUser.username}`);

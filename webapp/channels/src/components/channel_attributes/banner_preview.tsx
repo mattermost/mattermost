@@ -60,7 +60,7 @@ const BannerPreview = ({testId, template, attributes, backgroundColor}: Props) =
                 <div
                     className='BannerPreview'
                     style={style}
-                    data-testid={testId ?? 'bannerAttributePreview'}
+                    data-testid={testId}
                 >
                     <Markdown
                         message={rendered}
@@ -68,7 +68,7 @@ const BannerPreview = ({testId, template, attributes, backgroundColor}: Props) =
                     />
                 </div>
             ) : (
-                <div data-testid={testId ? `${testId}.empty_notice` : 'bannerPreviewEmptyNotice'}>
+                <div data-testid={testId ? `${testId}.empty_notice` : undefined}>
                     <SectionNotice
                         type='warning'
                         title={formatMessage({

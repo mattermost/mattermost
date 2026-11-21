@@ -34,24 +34,17 @@ import {
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 
-import {enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
+import {cleanUpCreated, enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
 
 test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_membership']}, () => {
     test.setTimeout(duration.four_min);
 
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        for (const id of createdTeamIds) {
-            await adminClient.deleteTeam(id).catch(() => {});
-        }
-        createdTeamIds = [];
-        for (const id of createdUserIds) {
-            await adminClient.updateUserActive(id, false).catch(() => {});
-        }
-        createdUserIds = [];
+        await cleanUpCreated(adminClient, {teamIds: createdTeamIds.splice(0), userIds: createdUserIds.splice(0)});
     });
 
     /**
@@ -62,9 +55,9 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
      */
     test('MM-69100-T_cascade - team sync removal cascades to private channel membership', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminClient} = await pw.getAdminClient();
-        if (!adminClient) {
-            throw new Error('Admin client not available');
+        const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
         }
         const suffix = pw.random.id();
 
@@ -76,10 +69,7 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
 
-        const {adminUser} = await pw.getAdminClient();
-        if (adminUser) {
-            await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
-        }
+        await adminClient.removeFromTeam(team.id, adminUser.id);
 
         // # Private channel inside the governed team — the cascade target
         const privateChannel = await createPrivateChannel(adminClient, team.id);
@@ -218,8 +208,10 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
 
         // * Navigating to the governed team URL redirects mkt1 away (no membership). Not channelsPage.goto: it waits
         // * for the channel to render, and mkt1 lands on "Team not found" instead
-        await mkt1App.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
-        await expect(mkt1App.page).not.toHaveURL(new RegExp(`/${team.name}/`));
+        await mkt1App.page.goto(`/${team.name}/channels/${DefaultChannel.TownSquare}`);
+        await expect(mkt1App.page).not.toHavePath(
+            mkt1App.channelsPage.pathFor({team, channel: DefaultChannel.TownSquare}),
+        );
 
         // =========================================================
         // UI — eng1: governed team and private channel still accessible
@@ -228,12 +220,12 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
         const eng1WithPassword = {...eng1, password: eng1Password};
         const {app: eng1App} = await pw.testBrowser.login(eng1WithPassword);
 
-        // * eng1 can access the governed team — URL confirms they are on it
+        // * eng1 can access the governed team — the path confirms they are on it
         // (team sidebar icon only renders when the user belongs to multiple teams,
         // so we assert the route instead of the sidebar element)
         await eng1App.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
         await expect(eng1App.center.postCreate.message.container).toBeVisible();
-        await expect(eng1App.page).toHaveURL(new RegExp(`/${team.name}/`));
+        await expect(eng1App.page).toHavePath(eng1App.channelsPage.pathFor({team, channel: DefaultChannel.TownSquare}));
 
         // * Private channel is accessible to eng1
         await eng1App.channelsPage.goto({team, channel: privateChannel});

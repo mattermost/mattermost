@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, closeChannelSettings, openChannelSettingsInfoTab, Api, settle} from '@mattermost/playwright-lib';
+import {
+    Api,
+    closeChannelSettings,
+    createChannelFromModal,
+    expect,
+    openChannelSettingsInfoTab,
+    settle,
+    test,
+} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a multi-line channel header is truncated in the header bar, that hovering it opens a
@@ -43,6 +51,7 @@ test(
         await expect(popover).toContainText('Four');
 
         // the link is rendered from the header's markdown inside the popover, without a testid of its own
+        // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the link is markdown the user wrote, rendered inside the popover; it has no element of ours to give a test id
         const link = popover.locator.getByRole('link', {name: 'Google'});
         await expect(link).toHaveAttribute('href', 'https://google.com/');
 
@@ -65,13 +74,13 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     // # Make sure the channel intro offers its action buttons instead of only the invite button
     await pw.ensureChannelIntroActions(adminClient);
 
-    const {app, channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
     await app.channelsPage.goto({team, channel: 'town-square'});
     await expect(app.center.postCreate).toBeVisible();
 
     // # Create a new public channel so its intro (with the "Set header" link) is shown
     const channelName = `channel header ${pw.random.id()}`;
-    await channelsPage.newChannel(channelName, 'O');
+    await createChannelFromModal(app, channelName, 'O');
     await expect(app.channelHeader.openMenuButton).toContainText(channelName);
 
     // # Open the Edit Header modal from the intro and cancel without entering text
@@ -87,7 +96,10 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     await expect(app.editChannelHeaderModal).not.toBeVisible();
 
     // * Verify the header-change system message is posted
-    await expect(app.center.postList.postList.locator.last()).toContainText(`updated the channel header to: ${header}`);
+    const headerChange = await app.center.postList.postList.itemWith({
+        text: `updated the channel header to: ${header}`,
+    });
+    await expect(headerChange.container).toBeVisible();
 
     // # Open the channel info panel from the channel header menu
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.toggleInfoMenuItem);

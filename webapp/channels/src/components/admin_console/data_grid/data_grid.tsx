@@ -192,7 +192,7 @@ class DataGrid extends React.PureComponent<Props, State> {
             <div
                 className='DataGrid_rows'
                 role='presentation'
-                data-testid={this.props.testIdScope ? `${this.props.testIdScope}.rows` : 'dataGrid-rows'}
+                data-testid={this.props.testIdScope ? `${this.props.testIdScope}.rows` : undefined}
                 style={rowsContainerStyles || {}}
             >
                 {rowsToRender}
@@ -264,10 +264,10 @@ class DataGrid extends React.PureComponent<Props, State> {
             footer = (
                 <div
                     className='DataGrid_footer'
-                    data-testid={this.props.testIdScope ? `${this.props.testIdScope}.footer` : 'dataGrid-footer'}
+                    data-testid={this.props.testIdScope ? `${this.props.testIdScope}.footer` : undefined}
                 >
                     <div className='DataGrid_cell'>
-                        <span data-testid={this.props.testIdScope ? `${this.props.testIdScope}.footer.pagination--text` : 'dataGrid-footer-paginationInfo'}>
+                        <span data-testid={this.props.testIdScope ? `${this.props.testIdScope}.footer.pagination--text` : undefined}>
                             <FormattedMessage
                                 id='admin.data_grid.paginatorCount'
                                 defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
@@ -300,7 +300,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className={classNames('DataGrid', this.props.className)}
-                data-testid={this.props.testIdScope ?? 'dataGrid'}
+                data-testid={this.props.testIdScope}
                 ref={this.ref}
             >
                 {this.renderSearch()}
