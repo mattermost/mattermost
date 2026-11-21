@@ -12,10 +12,10 @@
 
 describe('Integrations', () => {
     const testCases = [
-        {command: '/away', className: 'userAccountMenu_awayMenuItem_icon', message: 'You are now away'},
-        {command: '/dnd', className: 'userAccountMenu_dndMenuItem_icon', message: 'Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off.'},
-        {command: '/offline', className: 'userAccountMenu_offlineMenuItem_icon', message: 'You are now offline'},
-        {command: '/online', className: 'userAccountMenu_onlineMenuItem_icon', message: 'You are now online'},
+        {command: '/away', badgeClassName: 'userAccountMenu_statusBadge--away', message: 'You are now away'},
+        {command: '/dnd', badgeClassName: 'userAccountMenu_statusBadge--do-not-disturb', message: 'Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off.'},
+        {command: '/offline', badgeClassName: 'userAccountMenu_statusBadge--offline', message: 'You are now offline'},
+        {command: '/online', badgeClassName: 'userAccountMenu_statusBadge--online', message: 'You are now online'},
     ];
 
     let offTopicUrl;
@@ -67,9 +67,8 @@ describe('Integrations', () => {
 function verifyUserStatus(testCase, isCompactMode) {
     // * Verify that the user status is as indicated
     cy.uiGetProfileHeader().
-        find('svg').
-        should('be.visible').
-        and('have.class', testCase.className);
+        find(`.${testCase.badgeClassName}`).
+        should('be.visible');
 
     cy.uiWaitUntilMessagePostedIncludes(testCase.message);
 
