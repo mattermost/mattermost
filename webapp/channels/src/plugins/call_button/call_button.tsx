@@ -51,7 +51,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
     const isOpenDM = Boolean(currentChannel && isDirectChannel(currentChannel) && !currentChannel.delete_at);
     const dmUserId = isOpenDM && currentChannel ? getUserIdFromChannelName(currentUserId, currentChannel.name) : undefined;
     const mayOfferStartMenu = Boolean(dmUserId && hasStartCallMenu(singleCallButton));
-    const mayOfferPhone = !mayOfferStartMenu && Boolean(singleCallButton?.phoneAction && dmUserId);
+    const mayOfferPhone = !mayOfferStartMenu && Boolean(singleCallButton?.startPhoneCallAction && dmUserId);
     const callOngoing = useSelector((state: GlobalState) => mayOfferPhone && Object.keys(getSessionsInCalls(state)[currentChannel?.id ?? ''] ?? {}).length > 0);
     const canCall = useCanStartCall(currentChannel?.id ?? '', currentUserId, mayOfferStartMenu || mayOfferPhone);
     const phones = usePhoneCallOptions(dmUserId, mayOfferPhone && canCall && !callOngoing);
@@ -78,11 +78,11 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
     };
 
     function handleStartCall() {
-        singleCallButton?.action?.(currentChannel, channelMember);
+        singleCallButton?.startCallAction?.(currentChannel, channelMember);
     }
 
     function handlePhoneCall(phone: DialablePhone) {
-        singleCallButton?.phoneAction?.({number: phone.number, userId: dmUserId ?? '', label: phone.label, fieldId: phone.fieldId});
+        singleCallButton?.startPhoneCallAction?.({number: phone.number, userId: dmUserId ?? '', label: phone.label, fieldId: phone.fieldId});
     }
 
     if (mayOfferStartMenu && canCall && singleCallButton && dmUserId) {
@@ -104,7 +104,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         );
     }
 
-    if (singleCallButton?.phoneAction && dmUserId && phones.length > 0) {
+    if (singleCallButton?.startPhoneCallAction && dmUserId && phones.length > 0) {
         return (
             <div
                 style={style.container}
@@ -127,7 +127,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
 
     if (pluginCallComponents.length === 1) {
         const item = pluginCallComponents[0];
-        const clickHandler = () => item.action?.(currentChannel, channelMember);
+        const clickHandler = () => item.startCallAction?.(currentChannel, channelMember);
 
         return (
             <div
@@ -148,7 +148,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
                 key={item.id}
                 onClick={(e) => {
                     e.preventDefault();
-                    item.action?.(currentChannel, channelMember);
+                    item.startCallAction?.(currentChannel, channelMember);
                 }}
             >
                 {item.dropdownButton}

@@ -72,8 +72,8 @@ const CallButton = ({
     // for the user, the button opens a menu offering a call or a phone call.
     const callButtonAction = useSelector((state: GlobalState) => state.plugins.components?.CallButton?.[0]);
     const offerStartMenu = hasStartCallMenu(callButtonAction);
-    const phoneAction = callButtonAction?.phoneAction;
-    const phones = usePhoneCallOptions(userId, !offerStartMenu && Boolean(phoneAction) && shouldRenderButton && !hasDMCall);
+    const startPhoneCallAction = callButtonAction?.startPhoneCallAction;
+    const phones = usePhoneCallOptions(userId, !offerStartMenu && Boolean(startPhoneCallAction) && shouldRenderButton && !hasDMCall);
     const startDMCall = useStartDMCall(userId, dmChannel);
 
     function handleStartCall() {
@@ -83,7 +83,7 @@ const CallButton = ({
 
     function handlePhoneCall(phone: DialablePhone) {
         hide?.();
-        phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
+        startPhoneCallAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
     }
 
     if (!shouldRenderButton) {
@@ -104,7 +104,7 @@ const CallButton = ({
         );
     }
 
-    if (phoneAction && phones.length > 0) {
+    if (startPhoneCallAction && phones.length > 0) {
         return (
             <CallOptionsMenu
                 menuId='profilePopoverCallOptionsMenu'

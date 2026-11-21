@@ -50,7 +50,7 @@ const DMCallButton = ({
 }: Props) => {
     const containerRef = useRef<HTMLSpanElement>(null);
     const inCall = useIsInCall(callButton, dmChannel?.id);
-    const phones = usePhoneCallOptions(userId, Boolean(callButton.phoneAction) && !inCall);
+    const phones = usePhoneCallOptions(userId, Boolean(callButton.startPhoneCallAction) && !inCall);
     const focusHandlers = useKeepFocusOnCallButton(containerRef, inCall);
 
     // Only public and private channels have call links; DMs and GMs don't.
@@ -68,7 +68,7 @@ const DMCallButton = ({
 
     function handlePhoneCall(phone: DialablePhone) {
         onSelect?.();
-        callButton.phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
+        callButton.startPhoneCallAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
     }
 
     async function handleCopyCallLink() {

@@ -383,11 +383,12 @@ export default class PluginRegistry {
      * Accepts the following:
      * - button - A React element to use as the main button to be displayed in case of a single registration.
      * - dropdownButton -A React element to use as the dropdown button to be displayed in case of multiple registrations.
-     * - action - A function called when the button is clicked, passed the channel and channel member as arguments.
-     * - phoneAction - Optional. A function that places an outbound phone call, passed the number, the user it
-     *   belongs to, and the label and ID of the profile attribute it came from. When given, and the other person
-     *   in a DM or profile popover has a phone number, the call button opens a menu offering a call through
-     *   action or a phone call to each number.
+     * - startCallAction - A function that starts a call, passed the channel and channel member as arguments.
+     *   Formerly `action`, which is still accepted.
+     * - startPhoneCallAction - Optional. A function that places an outbound phone call, passed the number, the user
+     *   it belongs to, and the label and ID of the profile attribute it came from. When given, and the other person
+     *   in a DM or profile popover has a phone number, the call button offers a phone call to each number.
+     *   Formerly `phoneAction`, which is still accepted.
      * - callSettingsAction - Optional. A function that opens the user's call settings.
      * - isInCall - Optional. A selector, passed the state and a channel ID, that returns true while the current
      *   user is starting, ringing, or in a call in that channel. Without it, a call counts once a session joins.
@@ -403,33 +404,42 @@ export default class PluginRegistry {
     registerCallButtonAction = reArg([
         'button',
         'dropdownButton',
-        'action',
+        'startCallAction',
         'icon',
         'dropdownText',
-        'phoneAction',
+        'startPhoneCallAction',
         'callSettingsAction',
         'isInCall',
         'getCallLink',
+
+        // Deprecated names, still accepted from plugins that pass an object. They go last so they never take a
+        // position, and they must stay listed or such an object would be read as positional arguments.
+        'action',
+        'phoneAction',
     ], ({
         button,
         dropdownButton,
-        action,
+        startCallAction,
         icon,
         dropdownText,
-        phoneAction,
+        startPhoneCallAction,
         callSettingsAction,
         isInCall,
         getCallLink,
+        action,
+        phoneAction,
     }: {
         button: ReactResolvable;
         dropdownButton: ReactResolvable;
-        action: CallButtonAction['action'];
+        startCallAction?: CallButtonAction['startCallAction'];
         icon: ReactResolvable;
         dropdownText: ReactResolvable;
-        phoneAction?: CallButtonAction['phoneAction'];
+        startPhoneCallAction?: CallButtonAction['startPhoneCallAction'];
         callSettingsAction?: CallButtonAction['callSettingsAction'];
         isInCall?: CallButtonAction['isInCall'];
         getCallLink?: CallButtonAction['getCallLink'];
+        action?: CallButtonAction['startCallAction'];
+        phoneAction?: CallButtonAction['startPhoneCallAction'];
     }) => {
         const id = generateId();
 
@@ -440,15 +450,17 @@ export default class PluginRegistry {
             dropdownButton: resolveReactElement(dropdownButton),
             icon: resolveReactElement(icon),
             dropdownText: resolveReactElement(dropdownText),
-            action,
-            phoneAction,
+            startCallAction: startCallAction ?? action,
+            startPhoneCallAction: startPhoneCallAction ?? phoneAction,
             callSettingsAction,
             isInCall,
             getCallLink,
         };
 
         this.dispatchPluginComponentWithData('CallButton', data);
-        this.dispatchPluginComponentWithData('MobileChannelHeaderButton', data);
+
+        // The mobile channel header lists these with the channel header buttons, which use `action`.
+        this.dispatchPluginComponentWithData('MobileChannelHeaderButton', {...data, action: data.startCallAction});
 
         return id;
     });

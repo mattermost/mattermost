@@ -42,8 +42,8 @@ const makeCallButton = (withPhoneAction = true, extra: Partial<CallButtonAction>
     pluginId: 'com.mattermost.calls',
     button: <button>{'Plugin call button'}</button>,
     dropdownButton: <span>{'Plugin dropdown button'}</span>,
-    action: jest.fn(),
-    phoneAction: withPhoneAction ? jest.fn() : undefined,
+    startCallAction: jest.fn(),
+    startPhoneCallAction: withPhoneAction ? jest.fn() : undefined,
     ...extra,
 } as unknown as CallButtonAction);
 
@@ -131,7 +131,7 @@ describe('profile popover call button', () => {
         expect(screen.getByText('Start an Audio Call')).toBeInTheDocument();
         expect(screen.getByText('Call DSN')).toBeInTheDocument();
         expect(screen.getByText('312-555-0174 • Phone call')).toBeInTheDocument();
-        expect(callButton.action).not.toHaveBeenCalled();
+        expect(callButton.startCallAction).not.toHaveBeenCalled();
     });
 
     test('dials a number through the plugin and closes the popover', async () => {
@@ -142,9 +142,9 @@ describe('profile popover call button', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
         await userEvent.click(screen.getByText('Call DSN'));
 
-        await waitFor(() => expect(callButton.phoneAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
+        await waitFor(() => expect(callButton.startPhoneCallAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
         expect(hide).toHaveBeenCalled();
-        expect(callButton.action).not.toHaveBeenCalled();
+        expect(callButton.startCallAction).not.toHaveBeenCalled();
     });
 
     test('starts a call in the DM from the menu', async () => {
@@ -154,7 +154,7 @@ describe('profile popover call button', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
         await userEvent.click(screen.getByText('Start an Audio Call'));
 
-        await waitFor(() => expect(callButton.action).toHaveBeenCalledWith(dmChannel, channelMember));
+        await waitFor(() => expect(callButton.startCallAction).toHaveBeenCalledWith(dmChannel, channelMember));
     });
 
     test.each([
@@ -165,7 +165,7 @@ describe('profile popover call button', () => {
 
         expect(screen.queryByRole('button', {name: 'Call options'})).not.toBeInTheDocument();
         await userEvent.click(screen.getByLabelText('Start Call'));
-        expect(opts.callButtons[0].action).toHaveBeenCalledWith(dmChannel, channelMember);
+        expect(opts.callButtons[0].startCallAction).toHaveBeenCalledWith(dmChannel, channelMember);
     });
 
     test('keeps the disabled button while a call is ongoing', () => {
@@ -199,7 +199,7 @@ describe('channel header call button', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
 
         expect(screen.getByText('Call DSN')).toBeInTheDocument();
-        expect(callButton.action).not.toHaveBeenCalled();
+        expect(callButton.startCallAction).not.toHaveBeenCalled();
     });
 
     test('dials a number or starts a call from the menu', async () => {
@@ -208,11 +208,11 @@ describe('channel header call button', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
         await userEvent.click(screen.getByText('Call DSN'));
-        await waitFor(() => expect(callButton.phoneAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
+        await waitFor(() => expect(callButton.startPhoneCallAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
 
         await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
         await userEvent.click(screen.getByText('Start an Audio Call'));
-        await waitFor(() => expect(callButton.action).toHaveBeenCalledWith(dmChannel, channelMember));
+        await waitFor(() => expect(callButton.startCallAction).toHaveBeenCalledWith(dmChannel, channelMember));
     });
 
     test('outside a DM, keeps the plugin button', async () => {
@@ -221,7 +221,7 @@ describe('channel header call button', () => {
 
         expect(screen.queryByRole('button', {name: 'Call options'})).not.toBeInTheDocument();
         await userEvent.click(screen.getByText('Plugin call button'));
-        expect(callButton.action).toHaveBeenCalled();
+        expect(callButton.startCallAction).toHaveBeenCalled();
     });
 
     test('keeps the plugin button while a call is ongoing', () => {
@@ -287,7 +287,7 @@ describe.each([
 
         expect(menuItemNames()).toEqual(['Start call', 'Call settings']);
         expect(screen.getAllByRole('separator')).toHaveLength(1);
-        expect(callButton.action).not.toHaveBeenCalled();
+        expect(callButton.startCallAction).not.toHaveBeenCalled();
     });
 
     test('with phone numbers, puts them between separators, with no headings', async () => {
@@ -311,11 +311,11 @@ describe.each([
 
         await openMenu();
         await userEvent.click(screen.getByRole('menuitem', {name: /Call DSN/}));
-        await waitFor(() => expect(callButton.phoneAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
+        await waitFor(() => expect(callButton.startPhoneCallAction).toHaveBeenCalledWith({number: '312-555-0174', userId, label: 'DSN', fieldId: 'dsn'}));
 
         await openMenu();
         await userEvent.click(screen.getByRole('menuitem', {name: 'Start call'}));
-        await waitFor(() => expect(callButton.action).toHaveBeenCalledWith(dmChannel, channelMember));
+        await waitFor(() => expect(callButton.startCallAction).toHaveBeenCalledWith(dmChannel, channelMember));
 
         if (surface === 'profile popover') {
             expect(hide).toHaveBeenCalledTimes(3);
@@ -368,7 +368,7 @@ describe.each([
         await userEvent.click(button);
 
         expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-        expect(callButton.action).not.toHaveBeenCalled();
+        expect(callButton.startCallAction).not.toHaveBeenCalled();
     });
 
     test('prefers the plugin\'s own in-call state over sessions', () => {

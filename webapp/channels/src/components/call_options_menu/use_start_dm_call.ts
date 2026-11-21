@@ -31,6 +31,6 @@ export default function useStartDMCall(userId: string, dmChannel?: Channel | nul
         }
 
         const state = store.getState();
-        state.plugins.components.CallButton?.[0]?.action?.(channel, getMyCurrentChannelMembership(state));
+        state.plugins.components.CallButton?.[0]?.startCallAction?.(channel, getMyCurrentChannelMembership(state));
     }, [dispatch, store, dmChannel, userId]);
 }
