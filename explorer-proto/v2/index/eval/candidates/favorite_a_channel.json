@@ -1,0 +1,19 @@
+{
+    "title": "Favorite a channel",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["create a public channel", "log in as the member"],
+    "goal_terms": ["favorite a channel", "favorites category", "unfavorite", "sidebar category"],
+    "checkpoints": [
+        {
+            "description": "channel moves to the FAVORITES category and returns to CHANNELS when unfavorited",
+            "labels": ["FAVORITES", "CHANNELS", "sidebar channel link"],
+            "expected_text": ["Favorite", "Unfavorite"]
+        }
+    ],
+    "ui_labels": ["channel options menu", "Favorite", "Unfavorite", "FAVORITES", "sidebar channel link"]
+}

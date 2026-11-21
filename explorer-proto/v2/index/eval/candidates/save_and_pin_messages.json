@@ -1,0 +1,27 @@
+{
+    "title": "Save and pin messages",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["create a channel with several posts", "log in as the member"],
+    "goal_terms": ["save a message", "pin a message", "Saved messages", "Pinned messages", "post menu"],
+    "checkpoints": [
+        {
+            "description": "saved message is listed under Saved messages and pinned message under Pinned messages",
+            "labels": ["Saved messages", "Pinned messages"],
+            "expected_text": []
+        }
+    ],
+    "ui_labels": [
+        "post dot menu",
+        "Save",
+        "Unsave",
+        "Pin to Channel",
+        "Unpin from Channel",
+        "Saved messages",
+        "Pinned messages"
+    ]
+}

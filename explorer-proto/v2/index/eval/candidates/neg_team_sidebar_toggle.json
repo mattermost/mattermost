@@ -1,0 +1,19 @@
+{
+    "title": "Hide and show the team sidebar",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["create two teams", "log in as a member of both teams"],
+    "goal_terms": ["team sidebar", "hide team switcher", "product rail", "collapse and restore"],
+    "checkpoints": [
+        {
+            "description": "team sidebar disappears after hiding and reappears after showing",
+            "labels": ["Hide team sidebar", "Show team sidebar"],
+            "expected_text": ["Hide team sidebar", "Show team sidebar"]
+        }
+    ],
+    "ui_labels": ["Hide team sidebar", "Show team sidebar", "team sidebar"]
+}

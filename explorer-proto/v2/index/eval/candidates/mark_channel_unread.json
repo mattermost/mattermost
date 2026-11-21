@@ -1,0 +1,19 @@
+{
+    "title": "Mark a channel as unread",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["create two channels", "another user posts in the channel", "log in as the member"],
+    "goal_terms": ["mark channel as unread", "Mark as Unread", "sidebar unread state", "unread channel"],
+    "checkpoints": [
+        {
+            "description": "channel appears unread in the sidebar after Mark as Unread",
+            "labels": ["sidebar channel link", "unread"],
+            "expected_text": ["Mark as Unread"]
+        }
+    ],
+    "ui_labels": ["channel options menu", "Mark as Unread", "sidebar channel link", "unread"]
+}

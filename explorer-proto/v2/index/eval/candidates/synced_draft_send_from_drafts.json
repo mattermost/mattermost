@@ -1,0 +1,19 @@
+{
+    "title": "Send a synced draft from the Drafts panel",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["log in as a member", "type a message in a channel without sending it", "drafts sync to the server"],
+    "goal_terms": ["synced draft", "Drafts panel", "send draft", "drafts view", "send from drafts"],
+    "checkpoints": [
+        {
+            "description": "draft sent from the Drafts panel appears as a post in the channel and leaves Drafts",
+            "labels": ["Drafts", "post"],
+            "expected_text": []
+        }
+    ],
+    "ui_labels": ["Drafts", "Send now", "draft item", "post textbox"]
+}

@@ -1,0 +1,38 @@
+{
+    "counts": {
+        "files_scanned": 6,
+        "files_with_tests": 5,
+        "files_with_parse_diagnostics": 0,
+        "tests": 14,
+        "by_suite": {
+            "cypress": 6,
+            "playwright": 8
+        },
+        "by_origin": {
+            "emitted": 1,
+            "repo": 12,
+            "session": 1
+        },
+        "files_with_tests_by_suite": {
+            "cypress": 1,
+            "playwright": 4
+        },
+        "source_status": {
+            "extracted": 11,
+            "partial": 3
+        },
+        "skipped": 2
+    },
+    "partial_reason_categories": {
+        "dynamic_locator": 1,
+        "loop_generated_test": 1,
+        "unresolved_cy_command": 1,
+        "unresolved_helper": 1
+    },
+    "partial_reasons": {
+        "dynamic_locator:locator": 1,
+        "loop_generated_test": 1,
+        "unresolved_cy_command:mysteryCommand": 1,
+        "unresolved_helper:missingHelper": 1
+    }
+}

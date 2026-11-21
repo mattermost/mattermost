@@ -1,0 +1,125 @@
+{
+    "note": "Leads from earlier read-only reviews (coverage.md, sessions/*/QA-NOTES.md). Suffix paths are resolved against the index; lines are approximate. 'corrections' in evaluate output records every lead that did not resolve to a test containing the line.",
+    "pairs": [
+        {
+            "candidate": "bookmark_bar_follows_switch",
+            "kind": "positive",
+            "expected": [
+                {
+                    "file": "channel_bookmarks/bookmark_display_navigation.spec.ts",
+                    "line": 38,
+                    "lead": "MM-T5611"
+                },
+                {
+                    "file": "channel_bookmarks/bookmark_display_navigation.spec.ts",
+                    "line": 11,
+                    "lead": "MM-T5609"
+                },
+                {"file": "channel/channel_bookmarks_spec.ts", "line": 58},
+                {"file": "channel/channel_bookmarks_spec.ts", "line": 865}
+            ]
+        },
+        {
+            "candidate": "auto_follow_new_threads",
+            "kind": "positive",
+            "expected": [
+                {
+                    "file": "collapsed_reply_threads/channel_notifications_spec.ts",
+                    "line": 54
+                },
+                {
+                    "file": "collapsed_reply_threads/following_spec.ts",
+                    "line": 172
+                },
+                {"file": "notifications/channel_mentions.spec.ts", "line": 9}
+            ]
+        },
+        {
+            "candidate": "archived_channel_info_read_only",
+            "kind": "positive",
+            "expected": [
+                {
+                    "file": "archived_channel/archive_channel_header_spec.ts",
+                    "line": 38
+                },
+                {
+                    "file": "archived_channels/archived_channels.spec.ts",
+                    "line": 9
+                }
+            ]
+        },
+        {
+            "candidate": "members_rhs_channel_switch",
+            "kind": "positive",
+            "expected": [
+                {"file": "channel/channel_members_rhs_spec.ts", "line": 98},
+                {"file": "channel/channel_members_rhs_spec.ts", "line": 116}
+            ]
+        },
+        {
+            "candidate": "favorite_a_channel",
+            "kind": "positive",
+            "expected": [
+                {
+                    "file": "channel_sidebar/sidebar_channel_menu_spec.ts",
+                    "line": 72
+                },
+                {
+                    "file": "multi_team_and_dm/favorite_and_close_spec.js",
+                    "line": 40
+                }
+            ]
+        },
+        {
+            "candidate": "synced_draft_send_from_drafts",
+            "kind": "positive",
+            "expected": [
+                {"file": "drafts/draft_send_from_panel.spec.ts", "line": 19},
+                {
+                    "file": "messaging/message_draft_persistance_spec.js",
+                    "line": 35
+                }
+            ]
+        },
+        {
+            "candidate": "save_and_pin_messages",
+            "kind": "positive",
+            "expected": [
+                {"file": "messaging/save_post_spec.js", "line": 23},
+                {"file": "messaging/pinned_posts_2_spec.js", "line": 69},
+                {"file": "search/search_highlighting.spec.ts", "line": 77}
+            ]
+        },
+        {
+            "candidate": "mark_channel_unread",
+            "kind": "positive",
+            "expected": [
+                {
+                    "file": "mark_as_unread/mark_as_unread_spec.js",
+                    "line": 102
+                },
+                {"file": "mark_as_unread/channel_and_dm.spec.ts", "line": 9}
+            ]
+        },
+        {
+            "candidate": "neg_team_sidebar_toggle",
+            "kind": "negative",
+            "expected": []
+        },
+        {
+            "candidate": "neg_thread_open_in_channel",
+            "kind": "negative",
+            "expected": []
+        },
+        {
+            "candidate": "neg_pending_join_requests",
+            "kind": "negative",
+            "expected": []
+        },
+        {
+            "candidate": "neg_trust_proxy_device_identity",
+            "kind": "negative",
+            "expected": []
+        }
+    ]
+}

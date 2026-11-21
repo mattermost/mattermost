@@ -1,0 +1,19 @@
+{
+    "title": "Info panel of an archived channel is read-only",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["create a public channel", "archive the channel", "log in as a member and open the archived channel"],
+    "goal_terms": ["archived channel", "channel Info panel", "read-only", "no edit controls", "archived notice"],
+    "checkpoints": [
+        {
+            "description": "Info panel shows the archived notice and no edit or add people controls",
+            "labels": ["Info", "Edit", "Add People", "Favorite"],
+            "expected_text": ["This channel is archived."]
+        }
+    ],
+    "ui_labels": ["View Info", "Info", "Close Sidebar Icon", "channel header"]
+}

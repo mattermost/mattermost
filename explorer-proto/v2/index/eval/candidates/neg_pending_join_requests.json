@@ -1,0 +1,27 @@
+{
+    "title": "Approve pending join requests from the Members panel",
+    "actors": [
+        {
+            "id": "admin",
+            "role": "channel_admin"
+        },
+        {
+            "id": "requester",
+            "role": "member"
+        }
+    ],
+    "setup": [
+        "create a private channel that requires approval to join",
+        "requester asks to join the channel",
+        "log in as channel admin"
+    ],
+    "goal_terms": ["pending join requests", "approve join request", "decline join request", "members panel"],
+    "checkpoints": [
+        {
+            "description": "approved requester appears in the member list and the pending request disappears",
+            "labels": ["Members", "Pending join requests", "Approve"],
+            "expected_text": ["Pending join requests"]
+        }
+    ],
+    "ui_labels": ["Members", "Pending join requests", "Approve", "Decline"]
+}

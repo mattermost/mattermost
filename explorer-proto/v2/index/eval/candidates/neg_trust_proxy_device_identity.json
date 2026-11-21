@@ -1,0 +1,24 @@
+{
+    "title": "Enable trusting the proxy device identity header in the System Console",
+    "actors": [
+        {
+            "id": "admin",
+            "role": "system_admin"
+        }
+    ],
+    "setup": ["log in as system admin", "open System Console access control settings"],
+    "goal_terms": [
+        "trust proxy device identity header",
+        "access control settings",
+        "system console toggle",
+        "header name"
+    ],
+    "checkpoints": [
+        {
+            "description": "setting is saved and shown enabled after reload",
+            "labels": ["Trust proxy device identity header", "Save"],
+            "expected_text": ["Trust proxy device identity header"]
+        }
+    ],
+    "ui_labels": ["Trust proxy device identity header", "Save", "System Console"]
+}

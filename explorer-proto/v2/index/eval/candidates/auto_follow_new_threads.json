@@ -1,0 +1,44 @@
+{
+    "title": "Auto-follow every new thread in a channel",
+    "actors": [
+        {
+            "id": "bea",
+            "role": "member"
+        },
+        {
+            "id": "abe",
+            "role": "member"
+        }
+    ],
+    "setup": [
+        "create team with two public channels incidents and lounge",
+        "add both users to both channels",
+        "second user posts a root post and a reply in the channel"
+    ],
+    "goal_terms": [
+        "follow every new thread in the channel",
+        "auto-follow threads preference",
+        "channel notification preferences",
+        "followed threads list",
+        "collapsed reply threads"
+    ],
+    "checkpoints": [
+        {
+            "description": "per-channel auto-follow preference is saved from the channel notification preferences dialog",
+            "labels": ["Notification Preferences", "Automatically follow threads in this channel"],
+            "expected_text": []
+        },
+        {
+            "description": "thread started by the other user appears in the followed threads list",
+            "labels": ["Threads", "Followed threads"],
+            "expected_text": ["Followed threads"]
+        }
+    ],
+    "ui_labels": [
+        "channel menu",
+        "Notification Preferences",
+        "Automatically follow threads in this channel",
+        "Threads",
+        "Followed threads"
+    ]
+}

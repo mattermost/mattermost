@@ -1,0 +1,28 @@
+{
+    "title": "Switching channel with the Members panel open",
+    "actors": [
+        {
+            "id": "admin",
+            "role": "channel_admin"
+        }
+    ],
+    "setup": [
+        "create a team with two public channels",
+        "log in as channel admin",
+        "open the Info panel then the Members panel"
+    ],
+    "goal_terms": [
+        "channel members RHS",
+        "switch channel with members panel open",
+        "right-hand sidebar follows the new channel",
+        "members count"
+    ],
+    "checkpoints": [
+        {
+            "description": "members panel is retargeted to the newly selected channel",
+            "labels": ["Members", "sidebar right"],
+            "expected_text": ["members"]
+        }
+    ],
+    "ui_labels": ["View Info", "Members", "sidebar channel link", "sidebar right"]
+}

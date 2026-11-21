@@ -1,0 +1,24 @@
+{
+    "title": "Open a followed thread in its channel from the thread item menu",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": ["create a channel with a root post and replies", "member follows the thread", "log in as the member"],
+    "goal_terms": [
+        "thread item menu",
+        "open in channel",
+        "followed thread root post",
+        "jump to channel from threads list"
+    ],
+    "checkpoints": [
+        {
+            "description": "choosing Open in channel navigates from the threads list to the channel with the root post",
+            "labels": ["Threads", "Open in channel"],
+            "expected_text": ["Open in channel"]
+        }
+    ],
+    "ui_labels": ["Threads", "thread item menu", "Open in channel"]
+}

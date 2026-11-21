@@ -1,0 +1,34 @@
+{
+    "title": "Bookmark bar follows an in-app channel switch",
+    "actors": [
+        {
+            "id": "member",
+            "role": "member"
+        }
+    ],
+    "setup": [
+        "create two public channels in one team",
+        "create one link bookmark in each channel",
+        "add the member to both channels",
+        "log in as the member"
+    ],
+    "goal_terms": [
+        "channel bookmarks bar",
+        "bookmark link",
+        "switch channel in-app through the sidebar",
+        "bar shows only the current channel bookmarks"
+    ],
+    "checkpoints": [
+        {
+            "description": "start channel shows only its own bookmark in the bar",
+            "labels": ["channel bookmarks container", "bookmark link"],
+            "expected_text": []
+        },
+        {
+            "description": "after the sidebar switch the bar shows the new channel bookmark and not the previous channel bookmark",
+            "labels": ["channel bookmarks container", "bookmark link", "sidebar channel link"],
+            "expected_text": []
+        }
+    ],
+    "ui_labels": ["testid:channel-bookmarks-container", "bookmark link", "sidebar channel link"]
+}
