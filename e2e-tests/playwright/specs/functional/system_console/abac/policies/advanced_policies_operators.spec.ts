@@ -56,11 +56,9 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
     });
     const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
-    await systemConsolePage.page.waitForTimeout(1000);
     const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
     if (await policyRowForTest.isVisible({timeout: 3000})) {
         await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
         await testAccessRule(systemConsolePage.page, {
             expectedMatchingUsers: [engineerUser.username],
             expectedNonMatchingUsers: [salesUser.username],
@@ -122,11 +120,9 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
     });
     const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
-    await systemConsolePage.page.waitForTimeout(1000);
     const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
     if (await policyRowForTest.isVisible({timeout: 3000})) {
         await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
         await testAccessRule(systemConsolePage.page, {
             expectedMatchingUsers: [engineerUser.username],
             expectedNonMatchingUsers: [salesUser.username],
@@ -190,11 +186,9 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
     });
     const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
-    await systemConsolePage.page.waitForTimeout(1000);
     const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
     if (await policyRowForTest.isVisible({timeout: 3000})) {
         await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
         await testAccessRule(systemConsolePage.page, {
             expectedMatchingUsers: [engineerUser.username],
             expectedNonMatchingUsers: [salesUser.username],

@@ -40,7 +40,6 @@ test.describe('System Console - Users table sorting', () => {
         // * Verify that emails are sorted in the expected direction (table can still be
         // re-fetching rows from other workers creating users — poll longer than default).
         await expect(async () => {
-            await systemConsolePage.page.waitForLoadState('networkidle').catch(() => {});
             const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
             const maxRows = Math.min(rowCount, 40);
             const emails: string[] = [];
@@ -68,7 +67,6 @@ test.describe('System Console - Users table sorting', () => {
 
         // * Verify that emails are sorted in the toggled direction
         await expect(async () => {
-            await systemConsolePage.page.waitForLoadState('networkidle').catch(() => {});
             const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
             const maxRows = Math.min(rowCount, 40);
             const emails: string[] = [];

@@ -95,7 +95,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policy1Name;
         await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
 
         const policyRow = systemConsolePage.page.locator('.policy-name').first();
         const policyElementId = await policyRow.getAttribute('id');
@@ -110,7 +109,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await updateUserAttributes(adminClient, testUser.id, {Department: 'Sales'});
 
         // Wait for attribute change to propagate
-        await systemConsolePage.page.waitForTimeout(1000);
 
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
@@ -121,7 +119,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob1);
 
         // Wait for membership updates to apply
-        await systemConsolePage.page.waitForTimeout(1000);
 
         // Verify user is removed
         const userInChannelAfterRemoval = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
@@ -168,7 +165,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Activate and run sync to auto-add user
         await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId2);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-        await systemConsolePage.page.waitForTimeout(1000);
 
         const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
         const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
@@ -195,7 +191,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await updateUserAttributes(adminClient, testUser.id, {Department: 'Marketing'});
 
         // Wait for attribute change to propagate
-        await systemConsolePage.page.waitForTimeout(1000);
 
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
@@ -206,7 +201,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob3);
 
         // Small delay for channel membership update
-        await systemConsolePage.page.waitForTimeout(1000);
 
         // Verify user is removed
         const userRemovedFromChannel2 = await verifyUserInChannel(adminClient, testUser.id, channel2.id);

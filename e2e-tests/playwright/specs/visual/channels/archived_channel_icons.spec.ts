@@ -45,11 +45,12 @@ test(
 
         // # Open browse channels modal to show archived channels
         await page.keyboard.press('Control+K');
-        await page.waitForTimeout(500);
+        await channelsPage.findChannelsModal.toBeVisible();
 
         // # Type to search for archived channels
         await page.keyboard.type('archive');
-        await page.waitForTimeout(500);
+        await expect(channelsPage.findChannelsModal.getResult('public-to-archive')).toBeVisible();
+        await expect(channelsPage.findChannelsModal.getResult('private-to-archive')).toBeVisible();
 
         // # Hide dynamic content
         await pw.hideDynamicChannelsContent(page);
@@ -98,14 +99,22 @@ test(
 
         // # Navigate to admin console channels list
         await page.goto('/admin_console/user_management/channels');
-        await page.waitForTimeout(1000);
 
         // # Wait for channel list to load
-        await expect(page.locator('.DataGrid')).toBeVisible({timeout: 10000});
+        await expect(page.getByTestId('dataGrid')).toBeVisible({timeout: 10000});
 
-        // # Search for our test channels to bring them into view
-        await page.fill('[data-testid="searchInput"]', 'Admin');
-        await page.waitForTimeout(500);
+        // # Search for our test channels to bring them into view (search is debounced)
+        const searchResults = page.waitForResponse((response) => {
+            return (
+                response.request().method() === 'POST' &&
+                response.url().includes('/api/v4/channels/search') &&
+                response.ok()
+            );
+        });
+        await page.getByTestId('searchInput').fill('Admin');
+        await searchResults;
+        await expect(page.getByText('Admin Public Archive', {exact: true})).toBeVisible();
+        await expect(page.getByText('Admin Private Archive', {exact: true})).toBeVisible();
 
         // * Verify both archived channels are visible with correct icons
         const testArgs = {page, browserName, viewport};

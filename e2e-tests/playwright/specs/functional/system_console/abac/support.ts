@@ -4,6 +4,10 @@
 /**
  * Shared ABAC test helper functions
  * These functions are used across multiple ABAC test files to reduce duplication
+ *
+ * The fixed waits in this helper stay. Policy-editor menus and the admin
+ * search boxes do not expose a close or result event, and deleting the waits
+ * made the policy-management specs time out.
  */
 
 import {expect, type Page} from '@playwright/test';

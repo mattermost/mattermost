@@ -358,9 +358,21 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         for (let i = 0; i < count; i++) {
             const placeholder = concealedPlaceholders.nth(i);
             if (await placeholder.isVisible()) {
+                const testId = await placeholder.getAttribute('data-testid');
+                const revealed = receiverPage.page.waitForResponse((response) => {
+                    const url = response.url();
+                    return (
+                        response.request().method() === 'GET' &&
+                        url.includes('/posts/') &&
+                        url.includes('/reveal') &&
+                        response.ok()
+                    );
+                });
                 await placeholder.click();
-                // Wait for reveal animation
-                await receiverPage.page.waitForTimeout(500);
+                await revealed;
+                if (testId) {
+                    await expect(receiverPage.page.getByTestId(testId)).not.toBeVisible();
+                }
             }
         }
 

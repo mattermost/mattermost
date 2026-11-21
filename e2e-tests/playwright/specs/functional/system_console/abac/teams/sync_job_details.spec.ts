@@ -100,7 +100,6 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
 
         // * Section title is "Membership sync jobs" (capital S verified in en.json)
         await expect(page.getByText(/Membership sync jobs/i)).toBeVisible({timeout: 10000});
@@ -146,7 +145,6 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
 
         // * Button names its scope so a green success isn't mistaken for a team re-sync
         await expect(page.getByRole('button', {name: /Run Channel Sync/i})).toBeVisible({timeout: 10000});
@@ -210,7 +208,6 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
 
         // # Open the most recent job's details (the channel sync chained from the team sync)
         const jobRow = page.locator('.job-table__access-control tr.clickable').first();
