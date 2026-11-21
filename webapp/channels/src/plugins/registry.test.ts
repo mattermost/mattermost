@@ -399,6 +399,57 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerCallButtonAction', () => {
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getCallButtons() {
+        return mockCurrentStore.getState().components.CallButton;
+    }
+
+    it('passes the Start call menu actions and the in-call selector through to the call button', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const action = jest.fn();
+        const phoneAction = jest.fn();
+        const copyCallLinkAction = jest.fn();
+        const callSettingsAction = jest.fn();
+        const isInCall = jest.fn();
+
+        registry.registerCallButtonAction({
+            button: null,
+            dropdownButton: null,
+            action,
+            icon: null,
+            dropdownText: null,
+            phoneAction,
+            copyCallLinkAction,
+            callSettingsAction,
+            isInCall,
+        });
+
+        const [entry] = getCallButtons();
+        expect(entry.action).toBe(action);
+        expect(entry.phoneAction).toBe(phoneAction);
+        expect(entry.copyCallLinkAction).toBe(copyCallLinkAction);
+        expect(entry.callSettingsAction).toBe(callSettingsAction);
+        expect(entry.isInCall).toBe(isInCall);
+    });
+
+    it('leaves the new fields undefined for a plugin that registers positionally, as older plugins do', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const action = jest.fn();
+
+        registry.registerCallButtonAction(null, null, action);
+
+        const [entry] = getCallButtons();
+        expect(entry.action).toBe(action);
+        expect(entry.copyCallLinkAction).toBeUndefined();
+        expect(entry.callSettingsAction).toBeUndefined();
+        expect(entry.isInCall).toBeUndefined();
+    });
+});
+
 describe('PluginRegistry — registerChannelViewComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 

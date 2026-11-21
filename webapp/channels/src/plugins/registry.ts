@@ -388,6 +388,14 @@ export default class PluginRegistry {
      *   belongs to, and the label and ID of the profile attribute it came from. When given, and the other person
      *   in a DM or profile popover has a phone number, the call button opens a menu offering a call through
      *   action or a phone call to each number.
+     * - copyCallLinkAction - Optional. A function that copies a link to a call with the other person in a DM,
+     *   passed their user ID and the DM channel if it exists.
+     * - callSettingsAction - Optional. A function that opens the user's call settings.
+     * - isInCall - Optional. A selector, passed the state and a channel ID, that returns true while the current
+     *   user is starting, ringing, or in a call in that channel. Without it, a call counts once a session joins.
+     *   It runs on every store update, so it must be cheap and return a boolean.
+     *   When copyCallLinkAction or callSettingsAction is given, the call button in a DM and the profile popover
+     *   opens a Start call menu, and shows an In call button instead while a call is going on.
      * Returns an unique identifier
      * Minimum required version: 6.5
      */
@@ -398,6 +406,9 @@ export default class PluginRegistry {
         'icon',
         'dropdownText',
         'phoneAction',
+        'copyCallLinkAction',
+        'callSettingsAction',
+        'isInCall',
     ], ({
         button,
         dropdownButton,
@@ -405,6 +416,9 @@ export default class PluginRegistry {
         icon,
         dropdownText,
         phoneAction,
+        copyCallLinkAction,
+        callSettingsAction,
+        isInCall,
     }: {
         button: ReactResolvable;
         dropdownButton: ReactResolvable;
@@ -412,6 +426,9 @@ export default class PluginRegistry {
         icon: ReactResolvable;
         dropdownText: ReactResolvable;
         phoneAction?: CallButtonAction['phoneAction'];
+        copyCallLinkAction?: CallButtonAction['copyCallLinkAction'];
+        callSettingsAction?: CallButtonAction['callSettingsAction'];
+        isInCall?: CallButtonAction['isInCall'];
     }) => {
         const id = generateId();
 
@@ -424,6 +441,9 @@ export default class PluginRegistry {
             dropdownText: resolveReactElement(dropdownText),
             action,
             phoneAction,
+            copyCallLinkAction,
+            callSettingsAction,
+            isInCall,
         };
 
         this.dispatchPluginComponentWithData('CallButton', data);
