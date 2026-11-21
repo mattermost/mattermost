@@ -1109,7 +1109,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableWebHubChannelIteration == nil {
-		s.EnableWebHubChannelIteration = new(false)
+		s.EnableWebHubChannelIteration = new(true)
 	}
 
 	if s.FrameAncestors == nil {

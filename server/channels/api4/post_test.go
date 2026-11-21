@@ -5222,7 +5222,9 @@ func TestWebHubMembership(t *testing.T) {
 	t.Run("WithoutChannelIteration", func(t *testing.T) {
 		mainHelper.Parallel(t)
 
-		th := Setup(t).InitBasic(t)
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableWebHubChannelIteration = false
+		}).InitBasic(t)
 
 		_testWebHubMembership(th, t)
 	})
