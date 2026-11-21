@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "package": "compass",
+  "packageVersion": "0.0.0",
+  "testIdProp": "testId",
+  "components": {
+    "Button": {"at": "Button.tsx:1", "role": "button", "parts": [{"suffix": "--button", "role": "button", "at": "Button.tsx:2"}]},
+    "IconButton": {"at": "IconButton.tsx:1", "role": "button", "parts": [
+      {"suffix": "--button", "role": "button", "when": {"prop": "toggled", "set": false}, "at": "IconButton.tsx:2"},
+      {"suffix": "--togglebutton", "role": "togglebutton", "when": {"prop": "toggled", "set": true}, "at": "IconButton.tsx:2"}
+    ]},
+    "Modal": {"at": "Modal.tsx:1", "role": "dialog", "parts": [
+      {"suffix": "--dialog", "role": "dialog", "at": "Modal.tsx:2"},
+      {"suffix": ".back--button", "role": "button", "handlers": ["onBack"], "at": "ModalHeader.tsx:3"},
+      {"suffix": ".close--button", "role": "button", "handlers": ["onClose"], "at": "ModalHeader.tsx:4"}
+    ]},
+    "Tabs": {"at": "Tabs.tsx:1", "role": null, "parts": [
+      {"suffix": "", "role": null, "at": "Tabs.tsx:2"},
+      {"suffix": ".tab:{key}--tab", "role": "tab", "key": "string", "handlers": ["onChange"], "at": "Tabs.tsx:3"}
+    ]}
+  }
+}

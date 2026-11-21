@@ -1,0 +1,49 @@
+{
+  "name": "@mattermost/test-surface",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static scanner that turns the webapp's data-testids into a version 4 surface report and a typed Playwright page-object SDK",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "test-surface": "./bin/test-surface.mjs"
+  },
+  "exports": {
+    "./grammar": {
+      "types": "./lint/grammar.d.ts",
+      "default": "./lint/grammar.js"
+    },
+    "./lint": {
+      "types": "./lint/index.d.ts",
+      "default": "./lint/index.js"
+    },
+    "./lint/webapp": {
+      "types": "./lint/webapp.d.ts",
+      "default": "./lint/webapp.js"
+    },
+    "./verbs": {
+      "types": "./lint/verbs.d.ts",
+      "default": "./lint/verbs.js"
+    }
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "scripts": {
+    "check": "eslint ./src ./test ./bin ./hooks ./lint --quiet",
+    "fix": "eslint ./src ./test ./bin ./hooks ./lint --quiet --fix",
+    "check-types": "tsc -p tsconfig.json",
+    "test": "node --test --test-reporter=spec test/*.test.ts lint/*.test.js",
+    "scan": "node ./bin/test-surface.mjs scan",
+    "tsc": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "js-yaml": "4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "6.0.3"
+  }
+}

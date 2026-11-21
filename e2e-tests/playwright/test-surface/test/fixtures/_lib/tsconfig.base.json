@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "jsx": "preserve",
+        "strict": true,
+        "noEmit": true,
+        "target": "es2020",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "baseUrl": ".",
+        "types": [],
+        "skipLibCheck": true,
+        "ignoreDeprecations": "6.0"
+    }
+}

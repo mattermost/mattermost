@@ -1,0 +1,50 @@
+name: Test Surface CI
+on:
+  push:
+    branches:
+      - master
+      - release-*
+    paths:
+      - "e2e-tests/playwright/test-surface/**"
+      - ".github/workflows/test-surface-ci.yml"
+  pull_request:
+    paths:
+      - "e2e-tests/playwright/test-surface/**"
+      - ".github/workflows/test-surface-ci.yml"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  check-test-surface:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: e2e-tests/playwright
+    env:
+      CI: "1"
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/setup-webapp
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      - name: ci/setup-playwright-dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund < /dev/null
+      - name: ci/check-tool
+        run: |
+          npm run check --workspace @mattermost/test-surface
+          npm run check-types --workspace @mattermost/test-surface
+          npm run build --workspace @mattermost/test-surface
+      - name: ci/test-scanner-generator-and-lint-rules
+        run: npm test --workspace @mattermost/test-surface

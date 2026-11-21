@@ -1,0 +1,18 @@
+{
+  "root": ".",
+  "tsconfig": "tsconfig.json",
+  "include": [
+    "src"
+  ],
+  "entityTypeDirs": [
+    "types"
+  ],
+  "checks": {
+    "strictPaths": [
+      "src/"
+    ]
+  },
+  "output": {
+    "report": "surface.json"
+  }
+}
