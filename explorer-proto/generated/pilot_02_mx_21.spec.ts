@@ -23,7 +23,7 @@ test(
         const {page, channelsPage} = await openGuardedSession(pw);
         const info = page.getByRole('region', {name: 'Info', exact: true});
 
-        // # Go to /qa-team/channels/legacy-roadmap (exploration root, state s6c6bce31)
+        // # Go to /qa-team/channels/legacy-roadmap (exploration root, state s3f16dcc6)
         await channelsPage.goto('qa-team', 'legacy-roadmap');
         await channelsPage.centerView.header.toBeVisible();
 
@@ -34,8 +34,10 @@ test(
         // * Checkpoint assertions: declared (scenarios.json PILOT-02 expected_outcome.assertions)
         await expect(info).toBeVisible(); // declared (scenarios.json PILOT-02)
         await expect(info.getByText('This channel is archived.', {exact: true})).toBeVisible(); // declared (scenarios.json PILOT-02)
+        // UNCONFIRMED-BY-LIVE (declared from source: channel_info_rhs.tsx:217-256): never present in any explored state.
         await expect(info.getByRole('button', {name: 'Unarchive', exact: true})).toHaveCount(0); // declared (scenarios.json PILOT-02)
-        await expect(info.getByRole('button', {name: 'Add People', exact: true})).toHaveCount(0); // declared (scenarios.json PILOT-02) WARNING: name not confirmed live, see trace.md
+        // Substring name on purpose: the live name carries an icon glyph prefix, so an exact name could not detect presence.
+        await expect(info.getByRole('button', {name: /Add People/})).toHaveCount(0); // declared (scenarios.json PILOT-02)
         await expect(info.getByRole('button', {name: 'Edit', exact: true})).toHaveCount(0); // declared (scenarios.json PILOT-02)
         await expect(info.getByRole('button', {name: 'Notification Preferences', exact: true})).toHaveCount(0); // declared (scenarios.json PILOT-02)
         await expect(info.getByRole('button', {name: 'Channel Settings', exact: true})).toHaveCount(0); // declared (scenarios.json PILOT-02)

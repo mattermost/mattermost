@@ -23,7 +23,7 @@ test(
         const {page, channelsPage} = await openGuardedSession(pw);
         const info = page.getByRole('region', {name: 'Info', exact: true});
 
-        // # Go to /qa-team/channels/qa-sandbox (exploration root, state s82fd117b)
+        // # Go to /qa-team/channels/qa-sandbox (exploration root, state s72745cc9)
         await channelsPage.goto('qa-team', 'qa-sandbox');
         await channelsPage.centerView.header.toBeVisible();
 
