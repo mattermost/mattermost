@@ -46,23 +46,23 @@ func isOrigin(siteURL string) bool {
 }
 
 // saveOnboardingSiteURL saves the Site URL sent by the onboarding wizard, unless an admin or an
-// environment variable has already set one. Only an invalid URL is an error: a failed save is
-// logged, so that onboarding still completes.
-func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) *model.AppError {
+// environment variable has already set one. It returns the saved Site URL, or "" if nothing was
+// saved. Only an invalid URL is an error: a failed save is logged, so that onboarding still completes.
+func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) (string, *model.AppError) {
 	if siteURL == "" {
-		return nil
+		return "", nil
 	}
 
 	siteURL = strings.TrimSuffix(siteURL, "/")
 	if !isOrigin(siteURL) {
-		return model.NewAppError("CompleteOnboarding", "api.error_invalid_site_url_provided_for_onboarding", nil, "", http.StatusBadRequest)
+		return "", model.NewAppError("CompleteOnboarding", "api.error_invalid_site_url_provided_for_onboarding", nil, "", http.StatusBadRequest)
 	}
 
 	// The config store re-applies environment overrides on save, so saving would be a no-op.
 	if serviceOverrides, ok := a.GetEnvironmentConfig(nil)["ServiceSettings"].(map[string]any); ok {
 		if _, overridden := serviceOverrides["SiteURL"]; overridden {
 			rctx.Logger().Debug("Site URL is set by an environment variable, ignoring the onboarding value")
-			return nil
+			return "", nil
 		}
 	}
 
@@ -70,31 +70,35 @@ func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) *model.App
 	// The Site URL is write-restricted, so a restricted system admin can't set it in the System Console either.
 	if *cfg.ExperimentalSettings.RestrictSystemAdmin {
 		rctx.Logger().Debug("System admins are restricted, ignoring the onboarding Site URL")
-		return nil
+		return "", nil
 	}
 	if current := *cfg.ServiceSettings.SiteURL; current != "" && current != model.ServiceSettingsDefaultSiteURL {
 		rctx.Logger().Debug("Site URL is already set, ignoring the onboarding value", mlog.String("site_url", current))
-		return nil
+		return "", nil
 	}
 
 	cfg.ServiceSettings.SiteURL = &siteURL
 	if _, _, appErr := a.SaveConfig(cfg, true); appErr != nil {
 		rctx.Logger().Warn("Failed to save the Site URL during onboarding", mlog.Err(appErr))
+		return "", nil
 	}
 
-	return nil
+	return siteURL, nil
 }
 
-func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboardingRequest) *model.AppError {
+// CompleteOnboarding saves the onboarding choices and starts the plugin installs. It returns the
+// Site URL it saved, or "" if it saved none, so that the caller can audit the config change.
+func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboardingRequest) (string, *model.AppError) {
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	if !isCloud && request.Organization == "" {
 		rctx.Logger().Error("No organization name provided for self hosted onboarding")
-		return model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
+		return "", model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := a.saveOnboardingSiteURL(rctx, request.SiteURL); appErr != nil {
-		return appErr
+	savedSiteURL, appErr := a.saveOnboardingSiteURL(rctx, request.SiteURL)
+	if appErr != nil {
+		return "", appErr
 	}
 
 	if request.Organization != "" {
@@ -109,7 +113,7 @@ func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboar
 
 	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return a.markAdminOnboardingComplete(rctx)
+		return savedSiteURL, a.markAdminOnboardingComplete(rctx)
 	}
 
 	pluginContext := pluginContext(rctx)
@@ -146,7 +150,7 @@ func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboar
 		}(pluginID)
 	}
 
-	return a.markAdminOnboardingComplete(rctx)
+	return savedSiteURL, a.markAdminOnboardingComplete(rctx)
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {

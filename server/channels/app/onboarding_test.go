@@ -20,10 +20,11 @@ func TestOnboardingSavesOrganizationName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	appErr := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
+	savedSiteURL, appErr := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
 		Organization: "Mattermost In Tests",
 	})
 	require.Nil(t, appErr)
+	require.Empty(t, savedSiteURL)
 	defer func() {
 		_, err := th.App.Srv().Store().System().PermanentDeleteByName(mm_model.SystemOrganizationName)
 		require.NoError(t, err)
@@ -43,7 +44,7 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 			cfg.ServiceSettings.SiteURL = &siteURL
 		})
 	}
-	completeOnboarding := func(th *TestHelper, siteURL string) *mm_model.AppError {
+	completeOnboarding := func(th *TestHelper, siteURL string) (string, *mm_model.AppError) {
 		return th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
 			Organization: "Mattermost In Tests",
 			SiteURL:      siteURL,
@@ -54,26 +55,34 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 		for _, current := range []string{"", mm_model.ServiceSettingsDefaultSiteURL} {
 			setSiteURL(current)
 
-			require.Nil(t, completeOnboarding(th, "https://mattermost.example.com/"))
+			saved, appErr := completeOnboarding(th, "https://mattermost.example.com/")
+			require.Nil(t, appErr)
+			assert.Equal(t, "https://mattermost.example.com", saved)
 			assert.Equal(t, "https://mattermost.example.com", *th.App.Config().ServiceSettings.SiteURL)
 		}
 
 		setSiteURL("")
-		require.Nil(t, completeOnboarding(th, "http://10.0.0.5:8065"))
+		saved, appErr := completeOnboarding(th, "http://10.0.0.5:8065")
+		require.Nil(t, appErr)
+		assert.Equal(t, "http://10.0.0.5:8065", saved)
 		assert.Equal(t, "http://10.0.0.5:8065", *th.App.Config().ServiceSettings.SiteURL)
 	})
 
 	t.Run("ignores an empty site URL", func(t *testing.T) {
 		setSiteURL("")
 
-		require.Nil(t, completeOnboarding(th, ""))
+		saved, appErr := completeOnboarding(th, "")
+		require.Nil(t, appErr)
+		assert.Empty(t, saved)
 		assert.Empty(t, *th.App.Config().ServiceSettings.SiteURL)
 	})
 
 	t.Run("does not overwrite a site URL set by an admin", func(t *testing.T) {
 		setSiteURL("https://admin.example.com")
 
-		require.Nil(t, completeOnboarding(th, "https://mattermost.example.com"))
+		saved, appErr := completeOnboarding(th, "https://mattermost.example.com")
+		require.Nil(t, appErr)
+		assert.Empty(t, saved)
 		assert.Equal(t, "https://admin.example.com", *th.App.Config().ServiceSettings.SiteURL)
 	})
 
@@ -82,7 +91,9 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *mm_model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 		defer th.App.UpdateConfig(func(cfg *mm_model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
 
-		require.Nil(t, completeOnboarding(th, "https://mattermost.example.com"))
+		saved, appErr := completeOnboarding(th, "https://mattermost.example.com")
+		require.Nil(t, appErr)
+		assert.Empty(t, saved)
 		assert.Empty(t, *th.App.Config().ServiceSettings.SiteURL)
 	})
 
@@ -105,8 +116,9 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 			"https://mattermost.example.com:0",
 			"https://mattermost.example.com:99999",
 		} {
-			appErr := completeOnboarding(th, siteURL)
+			saved, appErr := completeOnboarding(th, siteURL)
 			require.NotNil(t, appErr, siteURL)
+			assert.Empty(t, saved, siteURL)
 			assert.Equal(t, "api.error_invalid_site_url_provided_for_onboarding", appErr.Id, siteURL)
 			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode, siteURL)
 		}
@@ -118,7 +130,9 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 		// An empty value is still an override: the config store would re-apply it on save.
 		t.Setenv("MM_SERVICESETTINGS_SITEURL", "")
 
-		require.Nil(t, completeOnboarding(th, "https://mattermost.example.com"))
+		saved, appErr := completeOnboarding(th, "https://mattermost.example.com")
+		require.Nil(t, appErr)
+		assert.Empty(t, saved)
 		assert.Empty(t, *th.App.Config().ServiceSettings.SiteURL)
 
 		// The config value alone can't prove the guard fired, since a save would be undone by the
@@ -137,7 +151,9 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 		defer tearDown()
 		require.NoError(t, activationErrors[0])
 
-		require.Nil(t, completeOnboarding(th, "https://mattermost.example.com"))
+		saved, appErr := completeOnboarding(th, "https://mattermost.example.com")
+		require.Nil(t, appErr)
+		assert.Empty(t, saved)
 		assert.Empty(t, *th.App.Config().ServiceSettings.SiteURL)
 
 		onboarding, appErr := th.App.GetOnboarding()
