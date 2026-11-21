@@ -1,6 +1,7 @@
 # Channel Info panel: coverage ledger and pilot design (Phase 2)
 
 - **Pinned SHA:** `f88f88cff6bc984076c605806621e8f5ff3717bc` (confirmed with `git rev-parse HEAD`; master, version 12.2.0 per `server/public/model/version.go:16` and `webapp/channels/package.json:6`).
+- **Tested server:** `mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7` with `postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5`, licensed (see section 9). The pinned checkout is unreleased 12.2.0; the server is the 12.1.0 release image.
 - **Feature area:** Channel Info RHS, opened by the channel-header button `View Info` or the channel menu item `View Info`.
 - **Machine-readable companion:** `explorer-proto/scenarios.json`.
 - All paths are relative to the repo root. `CIR` = `webapp/channels/src/components/channel_info_rhs/`.
@@ -91,6 +92,8 @@ Legend: **RV** = re-verified by me by reading the file at the pinned SHA. **IV**
 | CY-34 (new) | `channel/channel_settings_modal_spec.ts:273,287` | MM-T7/T8: purpose >250 / header >1024 errors in Channel Settings modal. Not Info RHS. | ACTIVE, near-miss | RV |
 | CY-35 (new) | `channel/leave_and_archive_channel_destructive_spec.ts:32` | channel menu lists `View Info` | ACTIVE, near-miss | RV |
 | CY-36 (new) | `channel/channel_members_rhs_spec.ts:90` | `3 members` text in Members **sub-view** (not the Info badge) | ACTIVE, near-miss | RV |
+| CY-37 (new) | `archived_channel/archive_channel_member_spec.ts:21` | MM-T1719: user created with `promoteNewUserAsAdmin: true` (:16), archives the channel (:32), opens header dropdown `#channelMembers` (:38), asserts `findByText('Manage')` does not exist in the RHS (:41). **Does not prove** anything about the Info panel: it is the Members view, the user is a system admin rather than a regular member, and it checks only the `Manage` text (no archived notice, Add People, Edit, menu items or Unarchive). | ACTIVE, near-miss | RV |
+| CY-38 (new) | `channel/channel_members_rhs_spec.ts:116` | Members RHS opened from header `#member_rhs` (:120-121), switch to a DM (:127), asserts `#sidebar-right` does not exist (:130). **Does not prove** PILOT-01: Info is never opened, the target is a DM, and the assertion is that the RHS closes, not that Info content follows the new channel. | ACTIVE, near-miss | RV |
 | — | `accessibility/accessibility_dropdowns_spec.js:33` (lists `View Info` at :60); `messaging/reactions_spec.js:124` (`Add a channel header` at :127 is the center header) | not Info RHS | — | RV |
 
 ### 2.2 Playwright (main)
@@ -104,6 +107,7 @@ Legend: **RV** = re-verified by me by reading the file at the pinned SHA. **IV**
 | PW-23 | `channel_attribute_display.spec.ts:364` | `test.fixme` header chips overflow | SKIPPED | RV |
 | PW-24 | `channel_attribute_editing.spec.ts:164` | `test.fixme` multiselect option header chips | SKIPPED | RV |
 | PW-25 (new) | `channels/categories/managed_categories.spec.ts:358` | `test.fixme` favorite disabled in managed category (center header `#toggleFavorite`, not Info) | SKIPPED, near-miss | RV |
+| PW-26 (new) | `channels/archived_channels/archived_channels.spec.ts:9` | MM-T1671: regular user from `pw.initSetup()` (`lib/src/server/init.ts:40-42`) archives the channel (:19), opens channel menu `Members` (:22-24), sees the admin in the list (:27), and `Manage` / `Add` buttons are not visible (:30-31; locators `sidebar_right.ts:67-68`). **Does not prove** PILOT-02: Members view, not Info; no archived notice, Add People, Edit, Notification Preferences, Channel Settings or Unarchive checks in the Info panel. | ACTIVE, near-miss | RV |
 | — | `channels/messaging/group_message.spec.ts:9` | GM header in center header, not Info | — | RV |
 | — | Upgrade specs | nothing about Channel Info | — | IV |
 
@@ -130,7 +134,7 @@ Techniques: **EP** equivalence partitioning, **BVA** boundary values, **ST** sta
 | MX-02 | Open via channel menu `View Info` | ST | COVERED | PW-01 :89-94, CY-31 :116 |
 | MX-03 | Toggle with Ctrl/Cmd+Alt+I | ST | COVERED | CY-29 |
 | MX-04 | Close via header `Close Info` / `Close Sidebar Icon` | ST | OPEN_WITH_EVIDENCE | `channel_info_button.tsx:37-48`, `CIR/header.tsx:71-78`; CY-31/CY-12 click without asserting |
-| **MX-05** | **Info open on A, sidebar switch to B: panel shows B, not A** | ST | **OPEN_WITH_EVIDENCE → proposed (PILOT-01)** | `CIR/index.ts:39`, `sidebar_right.tsx:240-253`, `global_actions.tsx:88,92` |
+| **MX-05** | **Info open on A, sidebar switch to B: panel shows B, not A** | ST | **OPEN_WITH_EVIDENCE → proposed (PILOT-01)** | `CIR/index.ts:39`, `sidebar_right.tsx:240-253`, `global_actions.tsx:88,92`; near-misses CY-32 (title only), CY-38 (RHS closes on DM); newly verified by the pilot |
 | MX-06 | Members sub-view → switch to DM → Info | ST | COVERED | CY-32 |
 | MX-07 | Reload with Info open → not restored | ST | OPEN_WITH_EVIDENCE | `reducers/storage.ts:154-161`, `reducers/views/rhs.ts:184,353` |
 | MX-08 | System Console round trip | ST | COVERED | CY-30 |
@@ -146,7 +150,7 @@ Techniques: **EP** equivalence partitioning, **BVA** boundary values, **ST** sta
 | MX-18 | Purpose exactly 250 / header exactly 1024 displayed | BVA | OPEN_WITH_EVIDENCE | `channel.go:44-45` |
 | MX-19 | Purpose 251 / header 1025 rejected | BVA | COVERED (outside panel) | `channel.go:358-364`; CY-34 |
 | MX-20 | Private channel Info | EP | OPEN_WITH_EVIDENCE | `CIR/index.ts:48-50`; no e2e opens Info on `P` |
-| **MX-21** | **Archived public, regular member: notice, read-only gating** | DT | **OPEN_WITH_EVIDENCE → proposed (PILOT-02)** | `CIR/channel_info_rhs.tsx:196,217-246,255`; `CIR/menu.tsx:159-161`; unit-only `channel_info_rhs.test.tsx:74`, `menu.test.tsx:98,291` |
+| **MX-21** | **Archived public, regular member: notice, read-only gating** | DT | **OPEN_WITH_EVIDENCE → proposed (PILOT-02)** | `CIR/channel_info_rhs.tsx:196,217-246,255`; `CIR/menu.tsx:159-161`; unit-only `channel_info_rhs.test.tsx:74`, `menu.test.tsx:98,291`; near-misses PW-26, CY-37 (Members view, not Info); newly verified by the pilot |
 | MX-22 | Archived, team admin → `Unarchive` | DT | OPEN_WITH_EVIDENCE | `CIR/channel_info_rhs.tsx:201,225-240` |
 | MX-23 | DM name/position/header; Add People absent | EP | COVERED | CY-25, CY-27, CY-28 |
 | MX-24 | DM/GM Copy Link absent | EP | OPEN_WITH_EVIDENCE | CY-19/CY-26 vacuous; `top_buttons.tsx:101` |
@@ -206,9 +210,13 @@ INFO --Files/Pinned/Members--> sub-view --Back--> INFO               [MX-09 COVE
 | COVERED (main) | 20 |
 | COVERED_BY_OPEN_PR (Peter stack only) | 1 (MX-13) |
 | OPEN_WITH_EVIDENCE (total) | 18 |
-| … of which newly verified by the pilot (**proposed**) | 2 (MX-05, MX-21) |
-| … remaining open | 16 |
+| … of which newly verified by the pilot | 2 (MX-05, MX-21) |
+| … remaining open with evidence | 16 |
 | UNVERIFIED | 1 (MX-39) |
+
+Check: 20 + 1 + 2 + 16 + 1 = 40. Recomputed from the `matrix[]` rows in `scenarios.json` (status field, plus `pilot_id` for the two pilot rows).
+
+The two pilot rows keep the matrix status `OPEN_WITH_EVIDENCE → proposed (PILOT-0x)` on purpose: `src/emit.ts` (`coverageStatus`, :151-159) reads that cell and skips any scenario whose status starts with `COVERED`, so marking them covered would dedupe the pilots away. "Newly verified" means the generated specs passed on the licensed 12.1.0 stack in the independent verifier run (not re-run in this ledger round); they are not yet merged tests, so they are not counted as COVERED.
 
 ## 5. Selected pilot scenarios
 
@@ -218,24 +226,40 @@ Full detail (allowlist, fixtures, assertions, negative controls, flake risks) is
 - **Path:** go to `/qa-team/channels/qa-sandbox` → click button `View Info` → (check A) → click link `release planning public channel` → (check B).
 - **Allowlist:** button `View Info`; link `release planning public channel`. Assertion-only locators: region `Info`, button `Close Info`.
 - **Expected, scoped to region `Info`:** before the switch the panel contains `Sandbox purpose alpha-7f3c` and `Sandbox header alpha-7f3c`. After it, the URL is `/qa-team/channels/release-planning`, region `Info` is still visible, button `Close Info` is visible, and the panel contains `Release Planning`, `Release purpose bravo-91d2`, `Release header bravo-91d2` and `release-planning`, and does **not** contain either Sandbox string.
-- **Negative control:** swap the purpose/header strings between the two channels.
-- **Why it is a real gap:** CY-32 only checks the constant title after a Members-to-DM switch.
+- **Negative control (verify gate):** `release-purpose-changed`, see 5.1. The earlier `swap-purpose-header` seed variant stays documented as an additional exploratory variant but is no longer part of the verify gate.
+- **Why it is a real gap:** no spec on main opens Info, switches channel in-app and then asserts the new channel's Info content. CY-32 (`channel_members_rhs_spec.ts:98`) asserts only the fixed title `Info` (:111) after a Members-to-DM switch. CY-38 (`channel_members_rhs_spec.ts:116-130`) asserts only that the RHS closes when switching to a DM. The Playwright helper `openChannelInfo()` (`lib/src/ui/pages/channels.ts:364-379`) skips the click when the text `Info` is already visible, so it never exercises a switch with the panel open, and no Playwright spec asserts Info content after a channel switch.
 
 ### PILOT-02 (MX-21): archived public channel is read-only for a regular member
 - **Path:** go to `/qa-team/channels/legacy-roadmap` (archived) → click button `View Info`.
 - **Allowlist:** button `View Info` only.
 - **Expected, scoped to region `Info`:** `This channel is archived.` is visible. The counts of buttons `Unarchive`, `Add People`, `Edit`, `Notification Preferences` and `Channel Settings` are all 0. The panel contains `Legacy purpose charlie-4e8a` and `Legacy header charlie-4e8a`, and buttons `Members` and `Copy Link` are visible.
-- **Negative control:** skip the archive step. The notice is then missing, and Add People, Edit and Notification Preferences appear because `channel_user` has those permissions by default.
-- **Why it is a real gap:** only Jest unit tests with mocked props cover this; the nearest e2e test (CY-33) checks the header dropdown.
-- **Change 2026-11-21 (authorized by the coordinator, fix round 2):** the `Add People` absence check now matches the name by substring (`getByRole('button', {name: /Add People/})` inside region `Info`, `name_match: "contains"` in `scenarios.json`). Reason: the live 12.1.0 accessible name is `<icon glyph> Add People` (icon-font `<i>` without `aria-label`, `top_buttons.tsx:203` at `v12.1.0`), so the exact name could never detect presence and the count-0 check was vacuous. `Edit`, `Notification Preferences` and `Channel Settings` stay exact (names observed exactly in the live UI). `Unarchive` stays exact from source (no icon, no `aria-label`) but is UNCONFIRMED-BY-LIVE: it needs `manage_team`, which `qa-user` lacks.
+- **Negative controls (verify gate):** `no-archive` and `team-admin`, see 5.1.
+- **Why it is a real gap:** no spec opens the Info panel of an archived channel as a non-admin; only Jest unit tests with mocked props cover this. The nearest e2e tests check other components: CY-33 the header dropdown; PW-26 (MM-T1671, `archived_channels.spec.ts:9-31`) and CY-37 (MM-T1719, `archive_channel_member_spec.ts:41`, as a system admin) the read-only **Members** view of an archived channel, a different panel. `This channel is archived` has **0** hits under `e2e-tests/` (re-grepped: `rg -uu -i -c 'this channel is archived' e2e-tests/` and `git grep`, both empty).
+- **Change 2026-11-21 (authorized by the coordinator, fix round 2):** the `Add People` absence check now matches the name by substring (`getByRole('button', {name: /Add People/})` inside region `Info`, `name_match: "contains"` in `scenarios.json`). Reason: the live 12.1.0 accessible name is `<icon glyph> Add People` (icon-font `<i>` without `aria-label`, `top_buttons.tsx:203` at `v12.1.0`), so the exact name could never detect presence and the count-0 check was vacuous. `Edit`, `Notification Preferences` and `Channel Settings` stay exact (names observed exactly in the live UI). `Unarchive` stays exact; evidence below.
+- **Unarchive evidence (verified by independent verifier run; automated control added):** the source declares the `Unarchive` button inside the archived notice (`CIR/channel_info_rhs.tsx:217-256` at the pinned commit; at `v12.1.0` a plain `<button>` with no icon and no `aria-label`, `channel_info_rhs.tsx:226-237` at that tag), wrapped in `ChannelPermissionGate` for `manage_team` (:225-240 at the pinned commit), which only `team_admin` holds (`server/public/model/role.go:1086`). A regular member such as `qa-user` therefore never sees it, which is why the committed absence probe on the `no-archive` seed still reports it as not presentable (`generated/absence-probe-no-archive.md`). The independent verifier ran an extra control on the live licensed 12.1.0 stack that made `qa-user` a team admin; PILOT-02 then failed at the Unarchive count-0 assertion with `Received: 1`, so the exact locator `getByRole('button', {name: 'Unarchive', exact: true})` matches the live UI. `run-pilot.sh verify` re-runs this as the automated control `team-admin` (wired in verify, result reported in the pilot report). What this establishes: the assertion can detect the button when it is rendered. What it does not: the spec itself only asserts absence for a regular member; the Unarchive flow for a team admin (MX-22) stays open. The generated spec comment and the absence-probe text still print the emitter's own `UNCONFIRMED-BY-LIVE` label because the explorer, signed in as `qa-user`, never observes the button; that label comes from `src/assertions.ts:92-93`, not from this ledger.
+
+### 5.1 Automated negative controls in `run-pilot.sh verify`
+
+Each control is a **seed or role change that preserves navigation** (same URLs, same allowlisted clicks), applied before a **replay only** of the already-generated specs (no re-explore, no re-emit). The judge accepts a control only if the named scenario fails at exactly the listed assertion and the other scenario passes. Any other outcome, including an unrelated timeout, a location-less test timeout, a failing click, or a setup/seed/licence failure, counts as verification **FAILURE**, never as a pass.
+
+| Control | Scenario | Change (admin API) | Expected result |
+| --- | --- | --- | --- |
+| `release-purpose-changed` | PILOT-01 | Change **only** the purpose of `release-planning` with `PUT /api/v4/channels/{id}/patch` to a string that does not contain `Release purpose bravo-91d2`; then, as `qa-user`, `POST /api/v4/channels/members/me/view` for `release-planning` and then `qa-sandbox`. Restore the seeded purpose (and re-mark viewed) afterwards. | PILOT-01 fails only at `expect.soft(info).toContainText('Release purpose bravo-91d2')`; the URL, region `Info` visible and `Close Info` assertions pass. PILOT-02 passes. |
+| `no-archive` (seed variant) | PILOT-02 | Seed `legacy-roadmap` identically but skip the archive step. | PILOT-02 fails only at `expect(info.getByText('This channel is archived.', {exact: true})).toBeVisible()`. PILOT-01 passes. |
+| `team-admin` | PILOT-02 | Make `qa-user` a team admin with `PUT /api/v4/teams/{team_id}/members/{user_id}/schemeRoles` (`scheme_admin: true`, `scheme_user: true`; the endpoint sets guest, user and admin together, `server/channels/api4/team.go:1381`). Restore `scheme_admin: false` afterwards (`infra/scripts/verify_seed.mjs:32` rejects a seed where `qa-user` is still a scheme admin). | PILOT-02 fails only at `expect(info.getByRole('button', {name: 'Unarchive', exact: true})).toHaveCount(0)` with `Received: 1`. PILOT-01 passes. |
+
+- **Declared flakiness risk of `release-purpose-changed`:** a purpose patch posts a `system_purpose_change` message into the channel (`server/channels/app/channel.go:1162,2190-2208`), which makes `release-planning` unread for `qa-user`, and the sidebar link name gains ` unread` (`sidebar_channel_link.tsx:152-153`). The allowlisted click on the exact name `release planning public channel` would then time out. The control handles this by re-marking both channels viewed after the patch, in the seed's view order. If the click still times out, the control is a verification FAILURE (the unrelated-timeout rule above), not a pass.
+- **Why `swap-purpose-header` left the gate:** under that seed six soft text assertions each wait the 10 s expect timeout, which together with setup exceeds the 60 s test timeout (`e2e-tests/playwright/playwright.config.ts:42,45`), so the run ends in a location-less test timeout instead of failing at named assertions. It remains documented as an additional exploratory seed variant (`infra/scripts/up.sh --variant=swap-purpose-header`).
+- **Scope of these controls:** they show that the declared assertions are sensitive to **seed and role** changes. They are not product regressions, so they cannot show that a real stale-panel regression (PILOT-01) or a real permission-gating regression (PILOT-02) would be caught.
+- At this branch's base commit (`bf1aca7986`), `run-pilot.sh` (`cmd_verify`, :380-417) still runs `swap-purpose-header` and `no-archive` only; `release-purpose-changed` and `team-admin` are being wired in verify by the runner owner, and their results are reported in the pilot report.
 
 ## 6. Next three candidates beyond the pilot
 
 | # | Candidate | Setup needs | Fits pilot explorer rules? |
 | --- | --- | --- | --- |
 | 1 | MX-37 Members badge = seeded member count | 2 extra users in `qa-sandbox` (4 members); negative control: 3 | Partly. One control (`View Info`), but the badge is hidden from the accessibility name (`CIR/menu.tsx:96`), so the explorer cannot see it in snapshots; the assertion must read element text under region `Info` > button `Members` (the name is not unique page-wide, `channel_header.tsx:49`). |
-| 2 | MX-15 + MX-32 member without manage_public_channel_properties: no Edit affordances, empty sections hidden | Patch `channel_user` role (server-wide) or a licensed channel scheme; one channel with content, one empty | Allowlist fits (`View Info`, sidebar links), but the server-wide role change conflicts with a single shared seed; needs its own server or a restore step. |
-| 3 | MX-17 long purpose: `more` / `less` | 6-line purpose (≤ 250 runes), fixed viewport | Yes: controls `View Info` and button `more` (unique if only purpose is long; no aria-label, so name = text). Layout threshold (`linelimiter.tsx:34`) makes it flake-prone. |
+| 2 | MX-15 + MX-32 member without manage_public_channel_properties: no Edit affordances, empty sections hidden | Patch `channel_user` role (server-wide) or a licensed channel scheme; one channel with content, one empty | No. The allowlist would fit (`View Info`, sidebar links), but the server-wide `channel_user` role change breaks the no-per-test-server-config rule and the single shared deterministic seed. |
+| 3 | MX-17 long purpose: `more` / `less` | 6-line purpose (≤ 250 runes), fixed viewport | Yes: controls `View Info` and button `more` (unique if only purpose is long; no aria-label, so name = text). Layout threshold (`linelimiter.tsx:34`) makes it layout-dependent and the flakiest of the three. |
 
 ## 7. Rejected near-gaps (rationale)
 
@@ -264,7 +288,7 @@ Full detail (allowlist, fixtures, assertions, negative controls, flake risks) is
 
 ### 8.1 What infra must provide
 
-- **Image:** `mattermost/mattermost-team-edition:12.1.0@sha256:35927b9c535a9eb74f0e45385d3fe5d8308b16e0464031f157a834da8af3ee73` + `postgres:15` (the repo's `POSTGRES_IMAGE`, `e2e-tests/playwright/lib/src/containers/default_images.ts:7`). Default config, no license, no feature flags.
+- **Images (what ran):** `mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7` + `postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5` (`infra/docker-compose.yml:9,26`). Licensed, no feature flags; outbound features off; details in section 9.
 - **Team:** `qa-team` / "QA Team" (open).
 - **Users:** `qa-admin` (system_admin, seeding only); `qa-user` (system_user, team_user) with the four onboarding preferences from `e2e-tests/playwright/lib/src/server/user.ts:71-78`.
 - **Channels (all type O, members qa-admin + qa-user):**
@@ -276,7 +300,7 @@ Full detail (allowlist, fixtures, assertions, negative controls, flake risks) is
 | `legacy-roadmap` | Legacy Roadmap | `Legacy purpose charlie-4e8a` | `Legacy header charlie-4e8a` | archived (`DELETE /api/v4/channels/{id}`) after membership and patches |
 
 - **Order:** create channels → add members → patch purpose/header → archive `legacy-roadmap` → as qa-user `POST /api/v4/channels/members/me/view` for `release-planning`, then `qa-sandbox` → write storageState. Emit a manifest with the generated ids and verify `delete_at > 0` for `legacy-roadmap`.
-- **Negative-control variants** (seed flags): `--swap-sandbox-release-text` (PILOT-01), `--skip-archive-legacy` (PILOT-02).
+- **Negative controls:** seed variant `no-archive` (PILOT-02) plus the admin-API controls `release-purpose-changed` (PILOT-01) and `team-admin` (PILOT-02); see 5.1. Seed variant `swap-purpose-header` is exploratory only.
 
 ### 8.2 What engine must provide
 
@@ -285,17 +309,19 @@ Full detail (allowlist, fixtures, assertions, negative controls, flake risks) is
 - **Assertions:** exactly those declared in `scenarios.json` (`expected_outcome`). Every text assertion is scoped to region `Info`. Count-0 assertions run only after a positive visibility assertion has passed. Never derive expected values from an observed snapshot.
 - **Uniqueness check:** fail the run if an allowlisted locator resolves to anything other than exactly 1 element (watch `Members`, which collides with the channel-header button).
 
-## 9. Docker report and release pin
+## 9. Server setup and release pin (licensed Enterprise, what actually ran)
 
-**Docker (run: `docker info`, `docker images`; nothing pulled):** daemon reachable. Client and server 28.5.2, storage driver fuse-overlayfs, cgroup v2, Compose plugin v5.1.3, Buildx v0.33.0. Containers: 0. Images: 0. `docker images` lists no images.
+**Images:** `mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7` (linux/amd64) with `postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5` (`infra/docker-compose.yml:9,26`; same refs in `run-pilot.sh:20-21`). Both are pinned by digest and never pulled by the scripts.
 
-**Release pin recommendation:** `mattermost/mattermost-team-edition:12.1.0`, digest `sha256:35927b9c535a9eb74f0e45385d3fe5d8308b16e0464031f157a834da8af3ee73`.
+**Licence:** the server is licensed through `MM_LICENSE`, passed through Compose by name only at runtime from the invoking shell (`infra/docker-compose.yml:53`). No licence value or length is recorded anywhere in this ledger. The licence check `IsLicensed === 'true'` is required: `run-pilot.sh` treats a missing pass line as a setup failure (`step_stack`, :148-153), so an unlicensed server fails the run instead of testing a different edition. `MM_SERVICEENVIRONMENT=test` is set on the pilot Mattermost container only (`infra/docker-compose.yml:37-38`), user-approved because the licence is test-signed. The pilot asserts no licensed feature: neither scenario depends on the licence, and the generated specs carry no `pw.skipIfNoLicense()` (`generated/pilot_01_mx_05.spec.ts:6`, `generated/pilot_02_mx_21.spec.ts:6`).
 
-How it was determined:
-1. The pinned commit is master at version 12.2.0 (`server/public/model/version.go:16`), which is unreleased; the newest final tag in the repo is `v12.1.0` (commit `243e3d0135203ab9166fe8f2873b07f697b06fd4`, `git tag -l 'v12.*'`).
-2. Docker Hub metadata API (HTTP GET only, no pull) confirms `mattermost/mattermost-team-edition:12.1.0` and `mattermost/mattermost-enterprise-edition:12.1.0` (`sha256:059c6ae2…e0e7`) exist; `v12.1.0`-prefixed tags do not. The repo's own upgrade tooling uses floating `release-<major>.<minor>` tags (`e2e-tests/playwright/script/resolve_upgrade_matrix.mjs:40-43`); pin the patch tag plus digest instead for determinism.
-3. Team edition is enough: the Info RHS needs no license, and the enterprise image without a license adds nothing these scenarios use.
-4. **Release drift check:** `git diff --stat v12.1.0 HEAD` shows 13 changed files in the Info RHS and related components (+520/−266). I re-checked both pilots against `v12.1.0`: `getCurrentChannel` (`index.ts:40`), header aria-label = tooltip (`header_icon_wrapper.tsx:46,56`), the sidebar link, `resizable_rhs` and `toggle_info` are unchanged, archived notice text (`channel_info_rhs.tsx:218`), `canEditChannelProperties` (:194), `canAddPeople` (:253), menu gating (`menu.tsx:140,142`), and MM-63240 "always allow viewing archived channels" (`c8d6630141`) is an ancestor of `v12.1.0`. Both scenarios' expected outcomes hold in both versions. The scenario expectations are grounded in source at both versions, not at HEAD alone.
+**Network (from `infra/README.md:30-42`):** one internal-only Docker network (`internal: true`), no published ports, and a loopback-only TCP forwarder (`infra/forwarder.mjs`, `127.0.0.1:8065` → Mattermost container). DIRECT (tested by the gate): both containers only on the internal network, no published ports, Postgres has no default route, forwarder bound only to `127.0.0.1`, boundary canary unreachable from the Postgres container, `IsLicensed === 'true'`. INFERRED: the Mattermost container's own egress boundary (the image is distroless and is not exec'd; it rests on the tested network membership).
+
+**Release drift:** the pinned checkout is `f88f88c` (master, unreleased 12.2.0, `server/public/model/version.go:16`), while the tested server is the 12.1.0 release image (tag `v12.1.0`, commit `243e3d0135203ab9166fe8f2873b07f697b06fd4`). Between `v12.1.0` and the pinned commit, 13 related files changed (+520/−266: `CIR/` plus `sidebar_right.tsx`, `channel_info_button.tsx`, `header_icon_wrapper.tsx`; re-run with `git diff --shortstat`). The pilot commits on top of `f88f88c` touch no `webapp/`, `server/` or `e2e-tests/` file, so source line numbers cited here are the same at the branch head. Consequence: source citations without a tag are for 12.2.0 and may differ in the running 12.1.0 UI. Known differences already handled: the `Add People` accessible name carries an icon glyph at 12.1.0 (substring absence check, section 5); `Unarchive` is a plain button at 12.1.0 versus `UnarchiveButton` plus a management-policy hook at HEAD (`CIR/channel_info_rhs.tsx:201,225`); Favorite/Mute names differ (section 7, not used by the pilots). Both scenarios were re-checked against both versions: `getCurrentChannel` (`index.ts:40` at `v12.1.0`), header aria-label = tooltip, sidebar link, `resizable_rhs` and `toggle_info` unchanged; archived notice text (`channel_info_rhs.tsx:218` at `v12.1.0`), `canEditChannelProperties` (:194), `canAddPeople` (:253), menu gating (`menu.tsx:140,142`); MM-63240 "always allow viewing archived channels" (`c8d6630141`) is an ancestor of `v12.1.0`. The independent verifier re-checked both scenarios against both versions as well. Behaviour on a 12.2.0 server is not verified (see section 11).
+
+**Why the patch tag plus digest:** the repo's upgrade tooling uses floating `release-<major>.<minor>` tags (`e2e-tests/playwright/script/resolve_upgrade_matrix.mjs:40-43`); pinning the digest keeps runs deterministic.
+
+**Superseded:** the Phase 2 recommendation of `mattermost/mattermost-team-edition:12.1.0` with no licence was not what ran and is withdrawn.
 
 ## 10. UNVERIFIED items
 
@@ -303,4 +329,14 @@ How it was determined:
 - PW-02..21 numbering: re-verified at the file/group level (no purpose/header/member-count/type assertions), not test by test.
 - PS-03 and PS-04: verified from diff stats and file lists, not line by line.
 - Upgrade specs ("nothing about channel info"): taken from the inventory.
-- Runtime behavior was not exercised (no server was started, by instruction). Both pilot expectations are derived from source and seed values and still need their first real run.
+- Runtime results are taken from the independent verifier run on the licensed 12.1.0 stack, not re-run in this ledger round (no Docker by instruction). The automated controls `release-purpose-changed` and `team-admin` are wired in verify; their results are reported in the pilot report, not here.
+
+## 11. Known limits
+
+- Mattermost container egress isolation is INFERRED, not tested (distroless image, not exec'd; `infra/README.md:41`).
+- Chromium egress is guarded at the application level only (`src/guard.ts`), with no host firewall, by instruction.
+- The redirect guard is tested against a local stand-in origin and a second local server (`src/guard_check.pw.ts:41-53,195`), not against a real external host.
+- The explorer's state key ignores post content (`src/snapshot.ts:160` drops posts), so states that differ only in posts are merged.
+- Replay is sensitive to unread state: an unseen post renames the sidebar link (` unread` suffix), and the exact-name click then times out. The seed's final view calls and the `release-purpose-changed` re-view step guard against it.
+- Behaviour on master 12.2.0 is not verified; only the 12.1.0 release image was run.
+- The negative controls verify sensitivity to seed and role changes, not to product regressions.
