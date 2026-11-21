@@ -988,6 +988,51 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await waitFor(() => expect(screen.queryByText('unassign failed')).not.toBeInTheDocument());
         });
 
+        test('does not unlink parents a non-system-admin could not load when they save a rule edit', async () => {
+            // Their parent fetch is refused, so the parent is never listed.
+            const actions = renderLinkedTeam({
+                getAccessControlPolicy: jest.fn(() => new Promise<ActionResult>(() => {})),
+                saveTeamAccessPolicy: saveKeepingStoredImports(),
+            });
+
+            await waitFor(() => expect(actions.getAccessControlPolicy).toHaveBeenCalledWith('parent1'));
+            await userEvent.click(screen.getByTestId('add-rule-no-autoadd-button'));
+            await saveAndApply();
+
+            await waitFor(() => expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledTimes(1));
+            expect(actions.saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                imports: [],
+                rules: [expect.objectContaining({expression: 'user.attributes.Department == "Engineering"'})],
+            }));
+            expect(actions.assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
+        });
+
+        test('a links-only save after a partly applied save sends the rules that save stored', async () => {
+            const actions = renderLinkedTeam({
+                saveTeamAccessPolicy: saveKeepingStoredImports(),
+                unassignTeamsFromAccessControlPolicy: jest.fn().
+                    mockResolvedValueOnce({error: {message: 'unassign failed'}}).
+                    mockResolvedValue({data: {status: 'OK'}}),
+            });
+
+            await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('add-rule-no-autoadd-button'));
+            await userEvent.click(screen.getByLabelText('Remove policy'));
+            await userEvent.click(document.getElementById('confirmModalButton')!);
+            await saveAndApply();
+            await waitFor(() => expect(screen.getByText('unassign failed')).toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => expect(actions.saveTeamAccessPolicy).toHaveBeenCalledTimes(2));
+            expect(actions.saveTeamAccessPolicy).toHaveBeenLastCalledWith(expect.objectContaining({
+                imports: [],
+                rules: [expect.objectContaining({expression: 'user.attributes.Department == "Engineering"'})],
+            }));
+        });
+
         test('a failed delete when unlinking the last parent leaves the link in place', async () => {
             const actions = renderLinkedTeam({
                 getTeamAccessControlPolicy: jest.fn().mockResolvedValue({

@@ -662,7 +662,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         saveNeeded = true;
                     } else {
                         const savedPolicyIds = (policyResult.data as AccessControlPolicy | undefined)?.imports ?? [];
-                        const linkError = await this.linkParentsNotSaved(savedPolicyIds, parentPolicyIds);
+                        const linkError = await this.linkParentsNotSaved(savedPolicyIds, parentPolicyIds, originalPolicyIds);
                         if (linkError) {
                             serverError = <FormError error={linkError.message}/>;
                             saveNeeded = true;
@@ -678,10 +678,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         }
 
                         this.setState({
+                            teamRulesExistingRules: teamPolicy.rules,
                             teamRulesOriginalExpression: savedExpression,
                             teamRulesOriginalAutoSync: savedAutoSync,
                             teamRulesHaveChanges: linksOnly && teamRulesHaveChanges,
-                            originalPolicyIds: linkError ? savedPolicyIds : parentPolicyIds,
+                            originalPolicyIds: linkError ? savedPolicyIds.filter((id) => originalPolicyIds.includes(id) || parentPolicyIds.includes(id)) : parentPolicyIds,
                         });
                     }
                 } catch (error) {
@@ -816,11 +817,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     // A non-system-admin's policy save keeps the stored imports, so links it didn't
     // apply go through the assign/unassign endpoints, which report the refusal.
-    private linkParentsNotSaved = async (savedIds: string[], wantedIds: string[]): Promise<{message?: string} | undefined> => {
+    // Only the admin's own link edits are reconciled: parents they couldn't load
+    // never reach originalPolicyIds and must not read as unlinks.
+    private linkParentsNotSaved = async (savedIds: string[], wantedIds: string[], originalIds: string[]): Promise<{message?: string} | undefined> => {
         const {teamID, actions} = this.props;
         const results = await Promise.all([
-            ...wantedIds.filter((id) => !savedIds.includes(id)).map((id) => actions.assignTeamToAccessControlPolicy(id, teamID)),
-            ...savedIds.filter((id) => !wantedIds.includes(id)).map((id) => actions.unassignTeamsFromAccessControlPolicy(id, [teamID])),
+            ...wantedIds.filter((id) => !savedIds.includes(id) && !originalIds.includes(id)).map((id) => actions.assignTeamToAccessControlPolicy(id, teamID)),
+            ...savedIds.filter((id) => !wantedIds.includes(id) && originalIds.includes(id)).map((id) => actions.unassignTeamsFromAccessControlPolicy(id, [teamID])),
         ]);
         return results.find((r) => r.error)?.error;
     };
