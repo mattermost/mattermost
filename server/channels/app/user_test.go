@@ -245,6 +245,47 @@ func TestUpdateUser(t *testing.T) {
 		require.Nil(t, u)
 	})
 
+	t.Run("username compared with existing user ids", func(t *testing.T) {
+		existing := th.CreateUser(t)
+
+		tests := []struct {
+			name     string
+			username string
+			wantErr  bool
+			usePatch bool
+		}{
+			{name: "rejected when username is an existing user id", username: existing.Id, wantErr: true},
+			{name: "rejected when username matches an existing user id except for letter case", username: strings.ToUpper(existing.Id), wantErr: true},
+			{name: "rejected when username matches an existing user id after normalization", username: existing.Id + "\u202a", wantErr: true},
+			{name: "updated when username is a normal value", username: "updateduser" + model.NewId(), wantErr: false},
+			{name: "updated when username looks like an id and no user has that id", username: model.NewId(), wantErr: false},
+			{name: "rejected when username is an existing user id using patch", username: existing.Id, wantErr: true, usePatch: true},
+			{name: "rejected when username matches an existing user id except for letter case using patch", username: strings.ToUpper(existing.Id), wantErr: true, usePatch: true},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				userToUpdate := th.CreateUser(t)
+				var u *model.User
+				var err *model.AppError
+				if tc.usePatch {
+					u, err = th.App.PatchUser(th.Context, userToUpdate.Id, &model.UserPatch{Username: &tc.username}, false)
+				} else {
+					userToUpdate.Username = tc.username
+					u, err = th.App.UpdateUser(th.Context, userToUpdate, false)
+				}
+				if tc.wantErr {
+					require.NotNil(t, err)
+					require.Nil(t, u)
+					return
+				}
+				require.Nil(t, err)
+				require.NotNil(t, u)
+				require.Equal(t, tc.username, u.Username)
+			})
+		}
+	})
+
 	t.Run("fails if default profile picture is not updated when user has default profile picture and username is changed", func(t *testing.T) {
 		user.Username = "updatedUsername"
 		iLastPictureUpdate := user.LastPictureUpdate
@@ -362,6 +403,66 @@ func TestCreateUser(t *testing.T) {
 		u, err := th.App.CreateUser(th.Context, user)
 		require.NotNil(t, err)
 		require.Nil(t, u)
+	})
+
+	t.Run("username compared with existing user ids", func(t *testing.T) {
+		tests := []struct {
+			name           string
+			guest          bool
+			useExistingID  bool
+			uppercaseID    bool
+			idSuffix       string
+			usernamePrefix string
+			wantErr        bool
+		}{
+			{name: "user rejected when username is an existing user id", useExistingID: true, wantErr: true},
+			{name: "guest rejected when username is an existing user id", guest: true, useExistingID: true, wantErr: true},
+			{name: "user rejected when username matches an existing user id except for letter case", useExistingID: true, uppercaseID: true, wantErr: true},
+			{name: "guest rejected when username matches an existing user id except for letter case", guest: true, useExistingID: true, uppercaseID: true, wantErr: true},
+			{name: "user rejected when username matches an existing user id after normalization", useExistingID: true, idSuffix: "\u202a", wantErr: true},
+			{name: "user created with a normal username", usernamePrefix: "normaluser", wantErr: false},
+			{name: "guest created with a normal username", guest: true, usernamePrefix: "normalguest", wantErr: false},
+			{name: "user created when username looks like an id and no user has that id", wantErr: false},
+			{name: "guest created when username looks like an id and no user has that id", guest: true, wantErr: false},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				username := tc.usernamePrefix + model.NewId()
+				if tc.useExistingID {
+					username = th.CreateUser(t).Id
+					if tc.uppercaseID {
+						username = strings.ToUpper(username)
+					}
+					username += tc.idSuffix
+				}
+
+				id := model.NewId()
+				user := &model.User{
+					Email:         "success+" + id + "@simulator.amazonses.com",
+					Username:      username,
+					Nickname:      "nn_" + id,
+					Password:      model.NewTestPassword(),
+					EmailVerified: true,
+				}
+
+				var created *model.User
+				var err *model.AppError
+				if tc.guest {
+					created, err = th.App.CreateGuest(th.Context, user)
+				} else {
+					created, err = th.App.CreateUser(th.Context, user)
+				}
+				if tc.wantErr {
+					require.NotNil(t, err)
+					require.Nil(t, created)
+					return
+				}
+				require.Nil(t, err)
+				require.NotNil(t, created)
+				require.Equal(t, username, created.Username)
+			})
+		}
 	})
 
 	t.Run("should sanitize user authdata before publishing to plugin hooks", func(t *testing.T) {

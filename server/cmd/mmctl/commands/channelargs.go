@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -34,6 +35,12 @@ func parseChannelArg(channelArg string) (string, string) {
 	return result[0], result[1]
 }
 
+// channelInOtherTeam reports whether channel belongs to a team other than teamID. A channel with no team
+// (for example a DM or GM) is not in another team, so it is not rejected for a team prefix.
+func channelInOtherTeam(channel *model.Channel, teamID string) bool {
+	return channel.TeamId != "" && channel.TeamId != teamID
+}
+
 func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel {
 	teamArg, channelPart := parseChannelArg(channelArg)
 	if teamArg == "" && channelPart == "" {
@@ -51,11 +58,28 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 			return nil
 		}
 
-		channel, _, _ = c.GetChannelByNameIncludeDeleted(context.TODO(), channelPart, team.Id, "")
+		if model.IsValidId(channelPart) {
+			channel, _, _ = getChannelByIDArg(c, channelPart)
+			if channel != nil && channelInOtherTeam(channel, team.Id) {
+				channel = nil
+			}
+		}
+
+		if channel == nil {
+			channel, _, _ = c.GetChannelByNameIncludeDeleted(context.TODO(), channelPart, team.Id, "")
+		}
+
+		if channel != nil || model.IsValidId(channelPart) {
+			return channel
+		}
 	}
 
 	if channel == nil {
-		channel, _, _ = c.GetChannel(context.TODO(), channelPart)
+		if model.IsValidId(channelPart) {
+			channel, _, _ = getChannelByIDArg(c, channelPart)
+		} else {
+			channel, _, _ = c.GetChannel(context.TODO(), channelPart)
+		}
 	}
 
 	return channel
@@ -90,26 +114,59 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	}
 	var channel *model.Channel
 	var response *model.Response
+	var team *model.Team
+	var crossTeamID bool
+	var forbiddenErr error
 	if teamArg != "" {
-		team, err := getTeamFromArg(c, teamArg)
+		var err error
+		team, err = getTeamFromArg(c, teamArg)
 		if err != nil {
 			return nil, err
 		}
-		channel, response, err = c.GetChannelByNameIncludeDeleted(context.TODO(), channelArg, team.Id, "")
-		if err != nil {
-			err = ExtractErrorFromResponse(response, err)
-			var nfErr *NotFoundError
-			var badRequestErr *BadRequestError
-			if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-				return nil, err
+		if model.IsValidId(channelArg) {
+			channel, response, err = getChannelByIDArg(c, channelArg)
+			if err != nil {
+				// A forbidden ID may still be a visible channel name in the team, so keep the error for the fallback below.
+				if response == nil || response.StatusCode != http.StatusForbidden {
+					return nil, err
+				}
+				forbiddenErr = err
+			}
+			if channel != nil && channelInOtherTeam(channel, team.Id) {
+				crossTeamID = true
+				channel = nil
+			}
+		}
+		if channel == nil {
+			channel, response, err = c.GetChannelByNameIncludeDeleted(context.TODO(), channelArg, team.Id, "")
+			if err != nil {
+				err = ExtractErrorFromResponse(response, err)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
+				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
+					return nil, err
+				}
+			}
+			if channel == nil && crossTeamID {
+				return nil, fmt.Errorf("channel does not belong to team %q", teamArg)
+			}
+			if channel == nil && forbiddenErr != nil {
+				return nil, forbiddenErr
 			}
 		}
 	}
 	if channel != nil {
 		return channel, nil
 	}
+	if teamArg != "" && model.IsValidId(channelArg) {
+		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
+	}
 	var err error
-	channel, response, err = c.GetChannel(context.TODO(), channelArg)
+	if model.IsValidId(channelArg) {
+		channel, response, err = getChannelByIDArg(c, channelArg)
+	} else {
+		channel, response, err = c.GetChannel(context.TODO(), channelArg)
+	}
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
@@ -122,4 +179,32 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
 	}
 	return channel, nil
+}
+
+// getChannelByIDArg tries to fetch a channel by ID, first with the exact case,
+// then with the lowercase form if different. This mirrors getUserByIDArg's behavior.
+func getChannelByIDArg(c client.Client, channelArg string) (*model.Channel, *model.Response, error) {
+	candidates := []string{channelArg}
+	if lower := strings.ToLower(channelArg); lower != channelArg {
+		candidates = append(candidates, lower)
+	}
+
+	var response *model.Response
+	for _, id := range candidates {
+		var channel *model.Channel
+		var err error
+		channel, response, err = c.GetChannel(context.TODO(), id)
+		if err == nil && channel != nil {
+			return channel, response, nil
+		}
+		if err != nil {
+			nErr := ExtractErrorFromResponse(response, err)
+			var nfErr *NotFoundError
+			var badRequestErr *BadRequestError
+			if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+				return nil, response, nErr
+			}
+		}
+	}
+	return nil, response, nil
 }
