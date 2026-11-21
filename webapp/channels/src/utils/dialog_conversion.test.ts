@@ -2373,6 +2373,146 @@ describe('dialog_conversion', () => {
         });
     });
 
+    describe('preview element handling', () => {
+        const legacyOptions: ConversionOptions = {enhanced: false};
+        const enhancedOptions: ConversionOptions = {enhanced: true};
+
+        it('should map preview to AppFieldTypes.PREVIEW', () => {
+            expect(getFieldType({type: DialogElementTypes.PREVIEW} as DialogElement)).toBe('preview');
+        });
+
+        it('should return null default value for preview elements', () => {
+            const element = {
+                type: DialogElementTypes.PREVIEW,
+                default: 'file_id_1',
+            } as DialogElement;
+            expect(getDefaultValue(element)).toBeNull();
+        });
+
+        it('should convert preview element to a field with preview_file_id and is_required false', () => {
+            const element = {
+                name: 'my_preview',
+                display_name: 'My Preview',
+                type: DialogElementTypes.PREVIEW,
+                default: 'file_id_1',
+                optional: false,
+            } as DialogElement;
+
+            const {field, errors} = convertElement(element, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.type).toBe('preview');
+            expect(field?.preview_file_id).toBe('file_id_1');
+            expect(field?.is_required).toBe(false);
+            expect(field?.value).toBeNull();
+        });
+
+        it('should not set preview_file_id when default is missing', () => {
+            const element = {
+                name: 'my_preview',
+                display_name: 'My Preview',
+                type: DialogElementTypes.PREVIEW,
+                optional: true,
+            } as DialogElement;
+
+            const {field} = convertElement(element, legacyOptions);
+
+            expect(field?.type).toBe('preview');
+            expect(field?.preview_file_id).toBeUndefined();
+        });
+
+        it('should pass a positive max_height through as preview_max_height', () => {
+            const element = {
+                name: 'my_preview',
+                display_name: 'My Preview',
+                type: DialogElementTypes.PREVIEW,
+                default: 'file_id_1',
+                max_height: 300,
+            } as DialogElement;
+
+            const {field} = convertElement(element, legacyOptions);
+
+            expect(field?.preview_max_height).toBe(300);
+        });
+
+        it('should leave preview_max_height unset when max_height is 0 or missing', () => {
+            const base = {
+                name: 'my_preview',
+                display_name: 'My Preview',
+                type: DialogElementTypes.PREVIEW,
+                default: 'file_id_1',
+            } as DialogElement;
+
+            expect(convertElement({...base, max_height: 0}, legacyOptions).field?.preview_max_height).toBeUndefined();
+            expect(convertElement(base, legacyOptions).field?.preview_max_height).toBeUndefined();
+        });
+
+        it('should pass the file subtype through', () => {
+            const base = {
+                name: 'my_preview',
+                display_name: 'My Preview',
+                type: DialogElementTypes.PREVIEW,
+                default: 'file_id_1',
+            } as DialogElement;
+
+            expect(convertElement({...base, subtype: 'file'}, legacyOptions).field?.subtype).toBe('file');
+            expect(convertElement(base, legacyOptions).field?.subtype).toBeUndefined();
+        });
+
+        it('should pass the first_page subtype through', () => {
+            const element = {
+                name: 'my_preview',
+                display_name: 'My Preview',
+                type: DialogElementTypes.PREVIEW,
+                subtype: 'first_page',
+                default: 'file_id_1',
+            } as DialogElement;
+
+            expect(convertElement(element, legacyOptions).field?.subtype).toBe('first_page');
+        });
+
+        it('should allow a preview without a display_name, converting it to an empty label', () => {
+            const element = {
+                name: 'my_preview',
+                type: DialogElementTypes.PREVIEW,
+                default: 'file_id_1',
+            } as DialogElement;
+
+            expect(validateDialogElement(element, 0, enhancedOptions)).toHaveLength(0);
+
+            const {field, errors} = convertElement(element, enhancedOptions);
+            expect(errors).toHaveLength(0);
+            expect(field?.label).toBe('');
+        });
+
+        it('should exclude preview from submission even when not optional, with no required error', () => {
+            const values = {text_field: 'hello'} as unknown as AppFormValues;
+            const elements: DialogElement[] = [
+                {
+                    name: 'my_preview',
+                    display_name: 'My Preview',
+                    type: DialogElementTypes.PREVIEW,
+                    default: 'file_id_1',
+                    optional: false,
+                } as DialogElement,
+                {
+                    name: 'text_field',
+                    display_name: 'Text Field',
+                    type: 'text',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            [legacyOptions, enhancedOptions].forEach((options) => {
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(values, elements, options);
+
+                expect(errors).toHaveLength(0);
+                expect(submission).not.toHaveProperty('my_preview');
+                expect(submission).toEqual({text_field: 'hello'});
+            });
+        });
+    });
+
     describe('extractPrimitiveValues', () => {
         it('should extract value from a single select option', () => {
             const result = extractPrimitiveValues({

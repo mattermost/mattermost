@@ -109,7 +109,7 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
 }
 
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
-    if (elem.type === 'action_button') {
+    if (elem.type === 'action_button' || elem.type === 'preview') {
         return null;
     }
 

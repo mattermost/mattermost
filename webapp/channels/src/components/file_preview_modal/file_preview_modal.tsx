@@ -18,6 +18,7 @@ import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
+import {canGetPublicLink} from 'utils/file_utils';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
@@ -550,7 +551,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         let canCopyContent = false;
         let canToggleMarkdown = false;
         if (isFileInfo(fileInfo)) {
-            showPublicLink = true;
+            // Also check the post: a file just posted by this user keeps its upload info, with no post_id.
+            showPublicLink = Boolean(this.props.post?.id) || canGetPublicLink(fileInfo);
             fileName = fileInfo.name;
             fileUrl = getFileUrl(fileInfo.id);
             fileDownloadUrl = getFileDownloadUrl(fileInfo.id);

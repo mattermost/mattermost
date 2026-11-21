@@ -3024,6 +3024,171 @@ func TestDialogElementIsValid_ActionButton(t *testing.T) {
 	})
 }
 
+func TestDialogElementIsValid_Preview(t *testing.T) {
+	t.Run("should pass validation with a file ID", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			Default:     NewId(),
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("should pass when default is empty", func(t *testing.T) {
+		// A preview with no file yet renders nothing, e.g. until a field refresh fills it in.
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("should fail when default is not a valid ID", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			Default:     "not-an-id",
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "default must be a valid file ID")
+	})
+
+	t.Run("should fail with options", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			Default:     NewId(),
+			Options:     []*PostActionOptions{{Text: "a", Value: "a"}},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot have options")
+	})
+
+	t.Run("should pass with a positive max_height", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			Default:     NewId(),
+			MaxHeight:   300,
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("should fail with a negative max_height", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			Default:     NewId(),
+			MaxHeight:   -1,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "max_height cannot be negative")
+	})
+
+	t.Run("should fail when max_height is set on a non-preview element", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Notes",
+			Name:        "notes",
+			Type:        "text",
+			MaxHeight:   300,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "max_height can only be used with preview elements")
+	})
+
+	t.Run("should pass with the file subtype", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			SubType:     "file",
+			Default:     NewId(),
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("should pass with the first_page subtype and a max_height", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			SubType:     "first_page",
+			Default:     NewId(),
+			MaxHeight:   300,
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("should pass without a display name", func(t *testing.T) {
+		element := DialogElement{
+			Name:    "load_plan",
+			Type:    "preview",
+			Default: NewId(),
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("should fail with a display name over the maximum length", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: strings.Repeat("x", DialogElementDisplayNameMaxLength+1),
+			Name:        "load_plan",
+			Type:        "preview",
+			Default:     NewId(),
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "DisplayName")
+	})
+
+	t.Run("should still require a display name on other element types", func(t *testing.T) {
+		element := DialogElement{
+			Name:    "notes",
+			Type:    "text",
+			SubType: "text",
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "DisplayName cannot be empty")
+	})
+
+	t.Run("should fail with an unknown subtype", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			SubType:     "email",
+			Default:     NewId(),
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid preview subtype")
+	})
+
+	t.Run("should fail with max_height and the file subtype", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Load Plan",
+			Name:        "load_plan",
+			Type:        "preview",
+			SubType:     "file",
+			Default:     NewId(),
+			MaxHeight:   300,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "max_height cannot be used with the file preview subtype")
+	})
+}
+
 func TestDialogSizeValidation(t *testing.T) {
 	getBaseDialog := func() Dialog {
 		return Dialog{
