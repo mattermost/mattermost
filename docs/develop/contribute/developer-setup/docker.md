@@ -12,7 +12,7 @@ ENABLED_DOCKER_SERVICES="postgres mysql inbucket"
 But there are many additional services ready to work with your local environment. Note that some services will require a Mattermost Enterprise license.
 
 ```
-ENABLED_DOCKER_SERVICES="postgres mysql inbucket minio openldap dejavu keycloak elasticsearch grafana prometheus promtail loki"
+ENABLED_DOCKER_SERVICES="postgres mysql inbucket minio openldap dejavu keycloak elasticsearch grafana prometheus promtail loki ingress-sharedsecret"
 ```
 
 To customize which services are started, either export the above environment variable or copy [`config.mk`](https://github.com/mattermost/mattermost/blob/master/server/config.mk) as `config.override.mk` to tune appropriately.
@@ -122,6 +122,16 @@ From https://www.keycloak.org/documentation:
 > Keycloak is an open source identity and access management solution.
 
 Keycloak can be used as a SAML identity provider with your local setup. See the setup instructions [here](https://github.com/mattermost/mattermost/blob/master/server/build/docker/keycloak/README.md).
+
+## ingress-sharedsecret
+
+An nginx reverse proxy on port `8090` that sits in front of the Mattermost server on port `8065`. It returns `403` for any request that lacks the `X-Mattermost-Preauth-Secret` header, except for the paths needed before login (static files, `/api/v4/config/client`, `/api/v4/notifications/ack`, SAML, OAuth, third-party and desktop login). Use it to test the mobile shared secret (pre-authentication secret) feature locally. See [Pre-authentication secrets](https://docs.mattermost.com/deployment-guide/server/pre-authentication-secrets.html) for the feature itself.
+
+```
+ENABLED_DOCKER_SERVICES="postgres inbucket ingress-sharedsecret" make run-server
+```
+
+Point the mobile app at `http://<your-host>:8090` and set the secret in the app. The default secret is `123456`. Set `MM_INGRESS_PREAUTH_SECRET` to use another value. The proxy forwards to `host.docker.internal:8065`, so the server must run on the host.
 
 # Other Docker services
 

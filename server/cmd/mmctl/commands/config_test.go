@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -281,6 +282,118 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get a cloud restricted value that isn't a pointer", func() {
+		printer.Clean()
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+		outputConfig.RateLimitSettings.VaryByHeader = "X-Forwarded-For"
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("X-Forwarded-For", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get an empty cloud restricted value that isn't a pointer from a server that isn't Cloud", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(map[string]string{"IsLicensed": "true", "Cloud": "false"}, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get cloud restricted error if a value that isn't a pointer is empty on a Cloud server", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(map[string]string{"IsLicensed": "true", "Cloud": "true"}, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "accessing this config path: ClientRequirements.AndroidLatestVersion is restricted in a cloud environment")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get an empty cloud restricted value that isn't a pointer in local mode", func() {
+		printer.Clean()
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get error if checking for a Cloud server fails", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "failed to check whether the server is a Cloud server: mock error")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

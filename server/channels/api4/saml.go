@@ -216,7 +216,7 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlIdpCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.RemoveSamlIdpCertificate(); err != nil {
+	if err := c.App.RemoveSamlIdpCertificate(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}

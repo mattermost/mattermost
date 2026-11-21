@@ -27,6 +27,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {useWebSocketClient} from 'utils/use_websocket/hooks';
 
 import {EmptyState, TabEmptyState} from './empty_state';
+import ExportMenu from './export_menu';
 import FindingGroups from './finding_groups';
 import FindingTabs, {tabId} from './finding_tabs';
 import GroupByControl from './group_by_control';
@@ -41,8 +42,8 @@ export type Props = {
     mutedFindings: HealthFinding[];
     lastEvaluatedAt: number;
 
-    // Whether the viewer may mute findings and run checks, which needs manage_system. Delegated
-    // admins who can only read Site Statistics see the page read-only.
+    // Whether the viewer has manage_system, which muting findings, running checks and exporting
+    // need. Delegated admins who can only read Site Statistics see the page read-only.
     canManage: boolean;
 
     // Jobs in the store by ID. job_updated WebSocket events keep them up to date.
@@ -122,6 +123,11 @@ const runNotAllowedMessage = defineMessage({
     defaultMessage: 'Only system admins can run checks.',
 });
 
+const exportErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.export.error',
+    defaultMessage: 'The health findings could not be exported. Try again.',
+});
+
 const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, jobs, actions}: Props) => {
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -133,6 +139,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
     const [muteError, setMuteError] = useState<MessageDescriptor | null>(null);
     const [starting, setStarting] = useState(false);
     const [runError, setRunError] = useState<MessageDescriptor | null>(null);
+    const [exportFailed, setExportFailed] = useState(false);
     const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
     const [, setStaleCheck] = useState(0);
     const wsClient = useWebSocketClient();
@@ -342,9 +349,20 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                             values={{time: <RelativeTime value={lastEvaluatedAt}/>}}
                         />
                     </p>
-                    {runButton}
+                    <div className='HealthDashboard__actions'>
+                        {runButton}
+                        {canManage && <ExportMenu onError={setExportFailed}/>}
+                    </div>
                 </div>
                 {runErrorBanner}
+                {exportFailed && (
+                    <AlertBanner
+                        mode='danger'
+                        className='HealthDashboard__exportError'
+                        onDismiss={() => setExportFailed(false)}
+                        message={<FormattedMessage {...exportErrorMessage}/>}
+                    />
+                )}
                 <div className='HealthDashboard__toolbar'>
                     <FindingTabs
                         idPrefix={idPrefix}

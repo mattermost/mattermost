@@ -70,6 +70,11 @@
     "description": "API error when a render-time access control decision is requested for a resource type that has no decision support."
   },
   {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Channel permission actions feature is not enabled.",
+    "description": "API error for admins saving an access control policy that uses a channel permission action (such as channel read access) while that feature is not enabled on the server."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled.",
     "description": "API error for admins when channel-level permission policies (attribute-based access control) are not enabled on the server."
@@ -238,6 +243,11 @@
     "id": "api.admin.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata.",
     "description": "Admin console error when generating the Mattermost Service Provider metadata for SAML setup fails; 'Service Provider' is a SAML role term."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "The uploaded file doesn't match the stored Service Provider certificate or private key. Disable encryption to replace them one at a time.",
+    "description": "Admin console error when an uploaded SAML Service Provider certificate or private key doesn't belong to the other half of the key pair while SAML encryption is enabled; 'Service Provider' is a SAML role term."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -490,9 +500,24 @@
     "description": "System message posted in a channel when it is converted from public to private."
   },
   {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to manage this channel.",
+    "description": "Error shown when an attribute-based channel policy currently denies the user permission to manage the channel (change its settings, members or policies). Also returned as the response text of slash commands such as /header, /purpose, /rename, /kick and /share. 'currently' signals the denial may lift when the user's attributes or session change."
+  },
+  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your license does not support groups",
     "description": "API error when requesting member counts by group without a license that includes user groups; 'groups' are user groups."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "You do not currently have access to this channel.",
+    "description": "Error shown when an attribute-based channel policy currently denies the user access to read the channel, for example when opening, joining or loading posts from it. 'currently' signals the denial may lift when the user's attributes or session (such as network or device) change."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to write in this channel.",
+    "description": "Error shown when an attribute-based channel policy currently denies the user permission to post, react, edit, upload files or run commands in the channel. 'currently' signals the denial may lift when the user's attributes or session change."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
@@ -3304,6 +3329,11 @@
     "description": "API error when the server's own Site URL is not configured and cannot be determined; needed for shared channels / secure connection operations."
   },
   {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Unable to export the health report.",
+    "description": "API error when the server fails to render the Site health report that an admin is exporting as HTML or Markdown."
+  },
+  {
     "id": "api.health_finding.feature_disabled.app_error",
     "translation": "The health dashboard is not enabled.",
     "description": "API error when a health dashboard endpoint is called while the health dashboard feature flag is off."
@@ -4325,6 +4355,39 @@
     "description": "API error when the JSON patch body for updating a custom property field is invalid; 'patch' is a partial-update noun."
   },
   {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "This attribute has been deleted.",
+    "description": "API error when the System Console asks for the channels missing a value for a channel attribute, or tries to notify their admins, but the attribute was deleted, for example from another tab."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Cannot look up compliance data for a v1 property field via this API.",
+    "description": "API error when the System Console asks which channels are missing a value for a channel attribute, but the attribute is a legacy (v1) property field that this compliance lookup does not support."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "You do not have permission to view this property field's compliance data.",
+    "description": "API error when a user without permission asks which channels are missing a value for a channel attribute (the list of non-compliant channels and their admins is admin-only)."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Only attributes that apply to every team can list or notify channels missing a value.",
+    "description": "API error when the System Console asks for the channels missing a value for a channel attribute scoped to a single team; Required is enforced only on attributes that apply server-wide."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "The notifications were not sent since channel admins were recently notified about this. You can send another notification in {{.Count}} minute.",
+      "other": "The notifications were not sent since channel admins were recently notified about this. You can send another notification in {{.Count}} minutes."
+    },
+    "description": "API error when an admin clicks Notify to remind channel admins about a missing channel attribute value, but a reminder for the same attribute was already sent within the one-hour cooldown; {{.Count}} is the number of minutes until another reminder can be sent."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "The notifications were not sent since channel admins were recently notified about this. Please try again later.",
+    "description": "API error when an admin clicks Notify to remind channel admins about a missing channel attribute value, but a reminder for the same attribute was already sent within the cooldown period and the remaining wait could not be determined."
+  },
+  {
     "id": "api.property_field.object_type_mismatch.app_error",
     "translation": "Property field object type does not match URL.",
     "description": "API error when the property field's object type differs from the type segment in the request URL; developer-leaning register."
@@ -4393,6 +4456,11 @@
     "id": "api.property_field.permissions.field_write_none.app_error",
     "translation": "The permissions object must let system administrators edit the field, so its field write level cannot be none.",
     "description": "API error (400) when a request to create or update a custom property field (e.g. a channel attribute) submits permissions whose field write level is none, which would leave no system administrator able to edit or delete the field."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "This attribute can't be marked as required yet because some active channels don't have a value for it. Notify the channel admins, then try again.",
+    "description": "API error when an admin tries to mark a channel attribute as Required while some active channels have no value for it; the admin must notify the channel admins and wait for values to be set first."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -6905,6 +6973,11 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Too many resources in one access control evaluation; the limit is {{.Max}}.",
+    "description": "API error (400) returned to a plugin when a batch access control evaluation asks for decisions on more distinct resource IDs than the server allows in one call. {{.Max}} is the maximum number of resource IDs."
+  },
+  {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
     "translation": "Access control could not be evaluated for this resource.",
     "description": "API error (503) returned to a plugin when the Access Control / Policy Enforcement Point is not available to decide whether the requested resource may be accessed. The underlying reason is carried in the untranslated error detail."
@@ -7355,6 +7428,11 @@
     "description": "API error returned when listing the channels that use a given permissions scheme fails; 'scheme' is the permissions-scheme feature term."
   },
   {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Unable to look up channel admins.",
+    "description": "Server error when looking up the channel admins of channels that are missing a value for a channel attribute fails."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels.",
     "description": "API error returned when fetching a user's channel list fails due to a server error."
@@ -7545,6 +7623,36 @@
     "description": "Error from the advanced-permissions migration job when reading a batch of channel members from the database fails; visible in the jobs table/logs."
   },
   {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Unable to look up channels missing a value for this attribute.",
+    "description": "Server error when checking whether any active channel is missing a value for a channel attribute fails, e.g. while marking the attribute as Required."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Unable to count channels missing a value for this attribute.",
+    "description": "Server error when counting the channels that are missing a value for a channel attribute fails."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Unable to count all channels missing a value for this attribute.",
+    "description": "Server error when counting all channels (local and shared) that are missing a value for a channel attribute fails."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Unable to count local channels missing a value for this attribute.",
+    "description": "Server error when counting the local (non-shared) channels that are missing a value for a channel attribute fails."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Unable to list channels missing a value for this attribute.",
+    "description": "Server error when listing the channels that are missing a value for a channel attribute fails, e.g. in the System Console channel list modal."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Unable to look up remote channels missing a value for this attribute.",
+    "description": "Server error when looking up which of the channels missing a value for a channel attribute are shared (remote) channels fails."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team.",
     "description": "API error returned when moving a channel to another team is blocked because some channel members are not members of the destination team."
@@ -7718,6 +7826,44 @@
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels.",
     "description": "API error when checking whether a user is a member of any of a given list of channels fails."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Unable to count the channel admins and channels affected by this attribute.",
+    "description": "Server error when counting the channel admins and channels to notify about a missing channel attribute value fails."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Unable to look up the channel admins to notify about this attribute.",
+    "description": "Server error when looking up which channel admins to send a direct-message reminder to about a missing channel attribute value fails."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})",
+    "description": "One Markdown bullet line in the channel-admin reminder direct message, linking to a channel that is missing a channel attribute value; keep the leading newline, the dash and the [text](link) syntax."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _and {{.Count}} more channels_",
+    "description": "Last Markdown bullet line in the channel-admin reminder direct message when there are too many channels to list; {{.Count}} is the number of channels not shown. Keep the leading newline, the dash and the underscores (italics)."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Please set a value for **{{.AttributeName}}** on these channels you manage. The system administrator needs every channel to have a value before this attribute can be made required.",
+    "description": "Direct message from the system bot to a channel admin whose channels have no value for a channel attribute that is not required yet, followed by a Markdown bullet list of those channels; also shown to the system admin as the preview before sending. {{.AttributeName}} is the attribute's name. Keep the Markdown bold markers."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "You're a channel admin for a channel that is missing a required channel attribute. Please set a **{{.AttributeName}}** value.",
+      "other": "You're a channel admin for channels that are missing a required channel attribute. Please set a **{{.AttributeName}}** value."
+    },
+    "description": "Direct message from the system bot to a channel admin whose channels have no value for a required channel attribute, followed by a Markdown bullet list of those channels; also shown to the system admin as the preview before sending. The count is the number of the admin's channels missing the value; {{.AttributeName}} is the attribute's name. Keep the Markdown bold markers."
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Unable to claim the notification cooldown for this attribute.",
+    "description": "Server error when reserving the cooldown that prevents reminders about a missing channel attribute value from being sent too often fails."
   },
   {
     "id": "app.channel_guard.invalid_channel.app_error",
@@ -8674,6 +8820,21 @@
     "id": "app.emoji.get_list.internal_error",
     "translation": "Unable to get the emoji.",
     "description": "API error returned when listing custom emojis fails."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "As written: {{.Value}}",
+    "description": "Subtle line on the core mm:time entity card repeating the timestamp token as the author wrote it."
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Timestamp",
+    "description": "Title shown on the core mm:time entity card when a reader opens a recognized timestamp."
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}",
+    "description": "Primary line on the core mm:time entity card showing the value converted to UTC."
   },
   {
     "id": "app.export.channel_requires_team.error",
@@ -10581,6 +10742,16 @@
     "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
   },
   {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Failed to determine if action has a permission policy",
+    "description": "Internal server error when the server cannot look up whether any permission policy governs a given action. Shown to administrators and in logs."
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Failed to determine if the resource's access policy governs the action.",
+    "description": "Internal error when the server cannot tell whether a channel's attribute-based access policy, or a policy it imports, declares a given action; the server then evaluates the policy anyway. Logged for admins, not shown to end users."
+  },
+  {
     "id": "app.plugin.add_public_key.file_exists.app_error",
     "translation": "A configuration file named {{.Name}} already exists.",
     "description": "Error when adding a plugin-signing public key would overwrite an existing configuration file of the same name."
@@ -10764,6 +10935,11 @@
     "id": "app.plugin.remove_bundle.app_error",
     "translation": "Unable to remove plugin bundle from file store.",
     "description": "Admin console error when deleting a plugin's bundle file from the file store fails."
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded.",
+    "description": "Returned when installing or reattaching a plugin that uses the core server caller identity."
   },
   {
     "id": "app.plugin.restart.app_error",
@@ -14557,6 +14733,213 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.report.area.auth",
+    "translation": "Authentication",
+    "description": "Label of the authentication area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "High availability",
+    "description": "Label of the high availability cluster area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Compliance",
+    "description": "Label of the compliance area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Database",
+    "description": "Label of the database area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Jobs",
+    "description": "Label of the background jobs area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licensing",
+    "description": "Label of the licensing area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Notifications",
+    "description": "Label of the notifications area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platform",
+    "description": "Label of the platform (host and runtime) area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Search",
+    "description": "Label of the search area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Updates",
+    "description": "Label of the server version and updates area tag on a finding in the shareable health report (Site health export and mmctl health check output); matches the area names on the System Console Site health page."
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} on {{.Node}}",
+    "description": "Title of a finding that applies to one server node in the shareable health report (Site health export and mmctl health check output); {{.Title}} is the finding title and {{.Node}} the node's hostname."
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Data collected",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output) for a one-off evaluation such as a Support Packet; followed by the date and time the evaluated data was collected, which can be long before the report was made."
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Unknown",
+    "description": "Shown after 'Data collected' in the shareable health report (Site health export and mmctl health check output) when a one-off evaluation, such as of a Support Packet, does not record when its data was collected."
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licensed to",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the name of the company the Mattermost license is issued to."
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Last evaluated",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the date and time the health checks last ran."
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Generated",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the date and time the report was generated."
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "License",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the license tier, such as Enterprise."
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Not evaluated yet",
+    "description": "Shown after 'Last evaluated' in the shareable health report (Site health export and mmctl health check output) when the health checks have never run."
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Server version",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the Mattermost server version."
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Site URL",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the server's Site URL."
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Evaluation appears to have stopped.",
+    "description": "Warning in the header of the shareable health report (Site health export and mmctl health check output) when the last evaluation is more than two hours old."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Open this setting in the System Console",
+    "description": "Link text in the shareable health report (Site health export and mmctl health check output) that opens the System Console page where the finding's setting is changed."
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Details",
+    "description": "Label of the collapsible block listing a finding's raw details in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Read the documentation",
+    "description": "Link text to a finding's documentation in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "How to fix it",
+    "description": "Label before a finding's remediation steps in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Summary",
+    "description": "Heading of the summary section of the shareable health report (Site health export and mmctl health check output), which counts the findings."
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Muted",
+    "description": "Heading of the section of the shareable health report (Site health export and mmctl health check output) listing findings an admin muted."
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Resolved",
+    "description": "Heading of the section of the shareable health report (Site health export and mmctl health check output) listing findings that are no longer firing."
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Could not evaluate",
+    "description": "Heading of the section of the shareable health report (Site health export and mmctl health check output) listing checks that could not run, each with the reason."
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Critical",
+    "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Info",
+    "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output); short for informational."
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Warning",
+    "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} critical",
+      "other": "{{.Count}} critical"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of critical findings."
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} info",
+      "other": "{{.Count}} info"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of informational findings."
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "No open findings.",
+    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the critical, warning, info and could-not-evaluate sections are all empty. Muted and resolved findings can still be listed below it."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "The first health check runs within an hour of enabling the feature.",
+    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never completed and there are no findings."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} could not be evaluated",
+      "other": "{{.Count}} could not be evaluated"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of checks that could not run."
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} warning",
+      "other": "{{.Count}} warnings"
+    },
+    "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of warning findings."
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Health report",
+    "description": "Title of the shareable health report (Site health export and mmctl health check output)."
+  },
+  {
     "id": "health.rule.audit_log_off.message",
     "translation": "No audit log target is active and this workspace has {{.users}} registered users. Administrative actions, logins and configuration changes leave no separate audit trail. This is a compliance and forensic gap, not a stability risk.",
     "description": "Health dashboard finding detail when audit logging is off on a large workspace; {{.users}} is the number of registered users. An 'audit log target' is a destination (such as a file) that audit records are written to."
@@ -15617,6 +16000,26 @@
     "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
   },
   {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Open server and email signup are enabled while email verification is off, so anyone who can reach this server can create an account with a made-up email address and join open teams. If open signup is intended, mute this finding.",
+    "description": "Health dashboard finding detail when anyone can create an account with an email address they don't have to verify."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Open server and email signup are enabled while email verification is off. TeamSettings.RestrictCreationToDomains limits signup to some domains, but Mattermost only checks that the address ends in an allowed domain, not that the person owns it. Anyone who can reach this server can sign up under an allowed domain and appear to be a colleague. If open signup is intended, mute this finding.",
+    "description": "Health dashboard finding detail when anyone can create an account with an unverified email address and the signup domain restriction can therefore be bypassed. 'TeamSettings.RestrictCreationToDomains' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Set EmailSettings.RequireEmailVerification to true. Confirm that SMTP works first: existing users who never verified their email address must verify it at their next login. If you don't want open signup, set TeamSettings.EnableOpenServer to false; users can still join through team invite links, so email verification is still recommended. To limit signup to your organization, set TeamSettings.RestrictCreationToDomains together with email verification; without verification it can be bypassed.",
+    "description": "Health dashboard fix-it step when anyone can create an account with an unverified email address. 'EmailSettings.RequireEmailVerification', 'TeamSettings.EnableOpenServer', 'TeamSettings.RestrictCreationToDomains' and 'SMTP' are config or product names, and 'true' and 'false' are setting values; do not translate them."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Anyone can sign up with an unverified email address",
+    "description": "Health dashboard finding title when open server and email signup are enabled while email verification is off."
+  },
+  {
     "id": "health.rule.plugin_health_off.message",
     "translation": "PluginSettings.EnableHealthCheck is false, so a plugin that crashes is not restarted automatically.",
     "description": "Health dashboard finding detail when the plugin health check is turned off; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
@@ -16365,6 +16768,31 @@
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid.",
     "description": "Validation error for an access control policy rule whose action list is invalid; 'action' is what the rule allows (e.g. join, view)."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Channel access actions on a permission policy can only apply to the System User, System Guest or System Admin role.",
+    "description": "Validation error when saving a system permission policy whose rules use the Channel Read Access, Channel Write Access or Manage Channel action, but whose role is a custom role. Such a policy would never apply, because channel access is evaluated against the user's built-in system role."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "A channel access rule on a permission policy can't specify its own role. The policy's role applies.",
+    "description": "Validation error when saving a system permission policy with a Channel Read Access, Channel Write Access or Manage Channel rule that sets its own role, as channel policy rules do. The role of a permission policy is set on the policy, not on each rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "The Manage Channel action is only allowed on permission and channel policies.",
+    "description": "Validation error when saving an access policy that uses the Manage Channel action on a policy type other than a permission policy or a channel policy. 'Manage Channel' is the name of the action in the System Console."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "The Channel Read Access action is only allowed on permission and channel policies.",
+    "description": "Validation error when saving an access policy that uses the Channel Read Access action on a policy type other than a permission policy or a channel policy. 'Channel Read Access' is the name of the action in the System Console."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "The Channel Write Access action is only allowed on permission and channel policies.",
+    "description": "Validation error when saving an access policy that uses the Channel Write Access action on a policy type other than a permission policy or a channel policy. 'Channel Write Access' is the name of the action in the System Console."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",

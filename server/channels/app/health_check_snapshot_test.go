@@ -341,7 +341,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 				require.NotNil(t, evaluations[i].Result.Value)
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
-			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
+			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED",
+				"DB_POSTS_DEAD_TUPLES", "DB_POOL_SATURATED":
 				// These set a value only when they have the numbers to compare, so none is required.
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
