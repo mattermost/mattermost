@@ -17,3 +17,12 @@ export type Session = {
     team_members: TeamMembership[];
     local: boolean;
 };
+
+export type SessionAttributeManifestEntry = {
+    name: string;
+    type: string;
+    ttl_seconds: number;
+    grace_period_seconds: number;
+    platforms: string[];
+    display_name?: string;
+};

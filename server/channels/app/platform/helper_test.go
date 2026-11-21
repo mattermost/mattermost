@@ -72,6 +72,10 @@ func (ms *mockSuite) HasPermissionToChannelAction(rctx request.CTX, userID strin
 	return true
 }
 
+func (ms *mockSuite) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, error) {
+	return nil, nil
+}
+
 func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool {
 	return true
 }

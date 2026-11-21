@@ -57,6 +57,7 @@ func (s *LocalCacheSessionAttributeStore) Refresh(sessionID string, attrs map[st
 		entry.ChangedAt = existing.ChangedAt
 	}
 
+	changed := false
 	for key, value := range attrs {
 		if entry.Timestamps[key] > updatedAt {
 			continue
@@ -64,10 +65,15 @@ func (s *LocalCacheSessionAttributeStore) Refresh(sessionID string, attrs map[st
 		// only update the changed at timestamp if the value has changed
 		// so that we don't refresh the other caches unnecessarily
 		if existingValue, ok := entry.Attrs[key]; !ok || existingValue != value {
-			entry.ChangedAt = updatedAt
+			changed = true
 		}
 		entry.Attrs[key] = value
 		entry.Timestamps[key] = updatedAt
+	}
+	if changed {
+		// ChangedAt is the epoch callers compare to detect a change, so it must
+		// advance even when two changes share a millisecond.
+		entry.ChangedAt = max(updatedAt, entry.ChangedAt+1)
 	}
 
 	s.rootStore.doStandardAddToCache(s.rootStore.sessionAttributeCache, sessionID, entry)

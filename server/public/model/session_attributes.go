@@ -149,6 +149,30 @@ type SAAttrs struct {
 	DisplayName        string   `json:"display_name,omitempty"`
 }
 
+// SessionAttributeDeadline holds, in epoch milliseconds, when a session attribute was last
+// refreshed (RefreshedAt), when its TTL runs out (StaleAt) and when its grace period ends
+// and it stops counting (ExpiresAt).
+type SessionAttributeDeadline struct {
+	RefreshedAt int64 `json:"refreshed_at"`
+	StaleAt     int64 `json:"stale_at"`
+	ExpiresAt   int64 `json:"expires_at"`
+}
+
+// SessionAttributesRecord describes the session attributes a websocket connection's events
+// were evaluated against when it went inactive, so that a resume can tell whether they
+// still hold. Times are in epoch milliseconds.
+type SessionAttributesRecord struct {
+	Epoch      string `json:"epoch"`
+	RecordedAt int64  `json:"recorded_at"`
+	// ExpireAt is the earliest grace period end among the attributes live at RecordedAt,
+	// or 0 if none was.
+	ExpireAt int64 `json:"expire_at"`
+	// Live are the deadlines of the attributes live at RecordedAt.
+	Live map[string]SessionAttributeDeadline `json:"live,omitempty"`
+	// Lapsed are the attributes already past their grace period at RecordedAt.
+	Lapsed []string `json:"lapsed,omitempty"`
+}
+
 type SessionAttributeManifestEntry struct {
 	Name               string   `json:"name"`
 	Type               string   `json:"type"`

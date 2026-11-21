@@ -48,6 +48,36 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
+// GetSessionAttributeDeadlines provides a mock function with given fields: rctx, sessionID
+func (_m *SuiteIFace) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, error) {
+	ret := _m.Called(rctx, sessionID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSessionAttributeDeadlines")
+	}
+
+	var r0 map[string]model.SessionAttributeDeadline
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (map[string]model.SessionAttributeDeadline, error)); ok {
+		return rf(rctx, sessionID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) map[string]model.SessionAttributeDeadline); ok {
+		r0 = rf(rctx, sessionID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]model.SessionAttributeDeadline)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, sessionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetViewUsersRestrictions provides a mock function with given fields: rctx, userID
 func (_m *SuiteIFace) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
 	ret := _m.Called(rctx, userID)
