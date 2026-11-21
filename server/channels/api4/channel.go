@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"slices"
 	"strconv"
@@ -57,7 +58,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/direct", api.APISessionRequired(createDirectChannel)).Methods(http.MethodPost)
-	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels)).Methods(http.MethodPost)
+	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods(http.MethodPost)
@@ -66,12 +67,12 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods(http.MethodPut)
 	api.BaseRoutes.Channels.Handle("/stats/member_count", api.APISessionRequired(getChannelsMemberCount)).Methods(http.MethodPost)
 
-	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.APISessionRequired(getPrivateChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/recommended", api.APISessionRequired(getRecommendedChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.APISessionRequired(getPublicChannelsByIdsForTeam)).Methods(http.MethodPost)
-	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/read", api.APISessionRequired(readAllInTeam)).Methods(http.MethodPut)
@@ -1504,7 +1505,20 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	channels, err := c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	var channels model.ChannelList
+	var err *model.AppError
+	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		// A page too large to multiply is past the end of any list.
+		offset := math.MaxInt
+		if c.Params.PerPage == 0 || c.Params.Page <= math.MaxInt/c.Params.PerPage {
+			offset = c.Params.Page * c.Params.PerPage
+		}
+		var scopedErr error
+		channels, scopedErr = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, offset, c.Params.PerPage)
+		err = model.AsAppError(scopedErr)
+	} else {
+		channels, err = c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	}
 	if err != nil {
 		c.Err = err
 		return
@@ -1854,7 +1868,16 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channels model.ChannelList
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
+		if scope, scoped := c.AppContext.Session().Scope(); scoped {
+			var scopedErr error
+			channels, scopedErr = c.App.SearchChannelsInSessionScope(c.AppContext, scope, c.Params.TeamId, props.Term)
+			appErr = model.AsAppError(scopedErr)
+		} else {
+			channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
+		}
+	} else if c.AppContext.Session().IsScoped() {
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
 	} else {
 		// If the user is not a team member, return a 404
 		if _, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
@@ -1877,6 +1900,49 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// searchAllChannelsInSessionScope is the user (non-System Console) search of
+// searchAllChannels for a scoped session: it searches only the scope's
+// channels, on one team when a single team is given.
+func searchAllChannelsInSessionScope(c *Context, w http.ResponseWriter, props *model.ChannelSearch, scope *model.SessionScope, fromSysConsole bool) {
+	if fromSysConsole {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
+		return
+	}
+
+	teamID := ""
+	if len(props.TeamIds) == 1 && model.IsValidId(props.TeamIds[0]) {
+		teamID = props.TeamIds[0]
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionListTeamChannels) {
+			c.SetPermissionError(model.PermissionListTeamChannels)
+			return
+		}
+	} else if !scope.HasPermission(model.PermissionListTeamChannels.Id) {
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
+	}
+
+	found, scopedErr := c.App.SearchAllChannelsInSessionScope(c.AppContext, scope, teamID, props.Term, &model.ChannelSearchOpts{
+		Private:                 props.Private,
+		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
+	})
+	if scopedErr != nil {
+		c.Err = model.AsAppError(scopedErr)
+		return
+	}
+
+	var response any = found
+	if teamID != "" {
+		channels := make(model.ChannelList, 0, len(found))
+		for _, channel := range found {
+			channels = append(channels, &channel.Channel)
+		}
+		response = channels
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
@@ -1892,6 +1958,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("system_console")
 			return
 		}
+	}
+
+	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		searchAllChannelsInSessionScope(c, w, props, scope, fromSysConsole)
+		return
 	}
 
 	if !fromSysConsole {

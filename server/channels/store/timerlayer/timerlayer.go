@@ -1440,6 +1440,22 @@ func (s *TimerLayerChannelStore) Autocomplete(rctx request.CTX, userID string, t
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources, opts *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.AutocompleteInSessionScope(teamID, term, resources, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.AutocompleteInSessionScope", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 	start := time.Now()
 
@@ -1978,6 +1994,22 @@ func (s *TimerLayerChannelStore) GetChannelAdminsInfoByChannelIds(channelIDs []s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelAdminsInfoByChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelIDsInSessionScope(teamID string, resources *model.SessionScopeResources, publicOnly bool) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelIDsInSessionScope(teamID, resources, publicOnly)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelIDsInSessionScope", success, elapsed)
 	}
 	return result, err
 }
@@ -3283,6 +3315,22 @@ func (s *TimerLayerChannelStore) SearchInTeam(teamID string, term string, includ
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SearchInTeam", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) SearchInTeamInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.SearchInTeamInSessionScope(teamID, term, resources)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SearchInTeamInSessionScope", success, elapsed)
 	}
 	return result, err
 }

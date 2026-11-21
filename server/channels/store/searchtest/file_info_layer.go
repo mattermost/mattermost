@@ -16,6 +16,11 @@ import (
 
 var searchFileInfoStoreTests = []searchTest{
 	{
+		Name: "Should limit a scoped search to the session scope's channels",
+		Fn:   testSearchFilesInSessionScope,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should be able to search posts including results from DMs",
 		Fn:   testFileInfoSearchFileInfosIncludingDMs,
 		Tags: []string{EngineAll},

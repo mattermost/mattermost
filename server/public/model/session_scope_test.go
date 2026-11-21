@@ -285,3 +285,14 @@ func TestSessionScopeResourcesWithLimits(t *testing.T) {
 	assert.NotEqual(t, "changed", resources.ChannelIDs[0], "returns copies")
 	assert.NotEqual(t, "changed", resources.PublicChannelTeamIDs[0], "returns copies")
 }
+
+func TestSearchParamsScopedChannelsNotFromJSON(t *testing.T) {
+	var params SearchParams
+	require.NoError(t, json.Unmarshal([]byte(`{"terms":"x","ScopedChannels":{"open_team_public_channels":true},"scoped_channels":{"channel_ids":["a"]}}`), &params))
+	assert.Nil(t, params.ScopedChannels)
+
+	params.ScopedChannels = &SessionScopeResources{OpenTeamPublicChannels: true}
+	b, err := json.Marshal(params)
+	require.NoError(t, err)
+	assert.NotContains(t, string(b), "open_team_public_channels")
+}

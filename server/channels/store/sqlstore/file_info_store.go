@@ -569,11 +569,21 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 	if err := model.IsSearchParamsListValid(paramsList); err != nil {
 		return nil, err
 	}
+	scopedChannels := paramsList[0].ScopedChannels
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
-		LeftJoin("Channels as C ON C.Id=FileInfo.ChannelId").
-		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
+		LeftJoin("Channels as C ON C.Id=FileInfo.ChannelId")
+	if scopedChannels == nil {
+		query = query.LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId")
+	} else {
+		scopedSQL, scopedArgs, err := sessionScopeChannelIDsQuery(fs.getSubQueryBuilder(), scopedChannels).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "file_info_search_scope_tosql")
+		}
+		query = query.Where(fmt.Sprintf("C.Id IN (%s)", scopedSQL), scopedArgs...)
+	}
+	query = query.
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		Where(sq.Or{
 			sq.Eq{"FileInfo.CreatorId": model.BookmarkFileOwner},
@@ -594,7 +604,7 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			query = query.Where(sq.Eq{"C.DeleteAt": 0})
 		}
 
-		if !params.SearchWithoutUserId {
+		if scopedChannels == nil && !params.SearchWithoutUserId {
 			query = query.Where(sq.Eq{"CM.UserId": userId})
 		}
 
