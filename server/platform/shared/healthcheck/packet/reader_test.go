@@ -157,6 +157,10 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "ha",
 			expected: []finding{
+				{Code: "CLUSTER_CONFIG_DRIFT", State: healthcheck.StateUnknown, Subject: "cluster.config"},
+				{Code: "CLUSTER_CONFIG_DRIFT", State: healthcheck.StateUnknown, Subject: "cluster.config", Scope: "app-1.example.com"},
+				{Code: "CLUSTER_CONFIG_DRIFT", State: healthcheck.StateUnknown, Subject: "cluster.config", Scope: "app-2.example.com"},
+				{Code: "CLUSTER_CONFIG_DRIFT", State: healthcheck.StateUnknown, Subject: "cluster.config", Scope: "app-3.example.com"},
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateUnknown, Subject: "Database.PostsDeadTuples"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},

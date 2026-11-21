@@ -51,6 +51,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"CLUSTER_BAD_ADVERTISE",
 		"CLUSTER_CONFIG_WRITABLE",
 		"CLUSTER_VERSION_SKEW",
+		"CLUSTER_CONFIG_DRIFT",
 		"NODE_NOT_RESPONDING",
 
 		// compliance

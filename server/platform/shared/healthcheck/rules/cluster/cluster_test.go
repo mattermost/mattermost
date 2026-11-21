@@ -223,6 +223,7 @@ func TestRegistered(t *testing.T) {
 		{clusterBadAdvertise, "CLUSTER_BAD_ADVERTISE", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ClusterSettings.AdvertiseAddress", true, false},
 		{clusterConfigWritable, "CLUSTER_CONFIG_WRITABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ClusterSettings.ReadOnlyConfig", true, false},
 		{versionSkew, "CLUSTER_VERSION_SKEW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.version", true, true},
+		{configDrift, "CLUSTER_CONFIG_DRIFT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.config", true, true},
 		{nodeNotResponding, "NODE_NOT_RESPONDING", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.node", false, true},
 	}
 
