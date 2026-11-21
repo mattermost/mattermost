@@ -87,6 +87,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		// notifications
 		"PUSH_ID_ONLY",
 		"MAX_NOTIFICATIONS_PER_CHANNEL",
+		"SMTP_NOT_CONFIGURED",
 		"SMTP_UNREACHABLE",
 		"PUSH_EMPTY_URL",
 		"PUSH_BAD_SCHEME",
