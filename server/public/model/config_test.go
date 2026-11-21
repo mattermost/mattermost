@@ -744,6 +744,254 @@ func TestServiceSettingsCompressResponses(t *testing.T) {
 	}
 }
 
+func TestSamlSettingsDependentSettings(t *testing.T) {
+	newConfig := func() *Config {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.SamlSettings.Enable = new(true)
+		cfg.SamlSettings.EnableSyncWithLdap = new(true)
+		cfg.SamlSettings.EnableSyncWithLdapIncludeAuth = new(true)
+		cfg.SamlSettings.IgnoreGuestsLdapSync = new(true)
+		cfg.GuestAccountsSettings.Enable = new(true)
+		cfg.SamlSettings.SignRequest = new(true)
+		cfg.SamlSettings.Encrypt = new(true)
+		cfg.SamlSettings.PrivateKeyFile = new("saml-private.key")
+		cfg.SamlSettings.PublicCertificateFile = new("saml-public.crt")
+		return cfg
+	}
+
+	t.Run("all dependencies enabled", func(t *testing.T) {
+		cfg := newConfig()
+		assert.True(t, cfg.SamlSettings.SyncsWithLdap())
+		assert.True(t, cfg.SamlSettings.SyncsWithLdapIncludeAuth())
+		assert.True(t, cfg.SamlIgnoresGuestsLdapSync())
+		assert.True(t, cfg.SamlSettings.SignsRequests())
+	})
+
+	t.Run("SAML disabled", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.Enable = new(false)
+		assert.False(t, cfg.SamlSettings.SyncsWithLdap())
+		assert.False(t, cfg.SamlSettings.SyncsWithLdapIncludeAuth())
+		assert.False(t, cfg.SamlIgnoresGuestsLdapSync())
+	})
+
+	t.Run("AD/LDAP sync without auth data", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.EnableSyncWithLdapIncludeAuth = new(false)
+		assert.True(t, cfg.SamlSettings.SyncsWithLdap())
+		assert.False(t, cfg.SamlSettings.SyncsWithLdapIncludeAuth())
+	})
+
+	t.Run("signing disabled", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.SignRequest = new(false)
+		assert.False(t, cfg.SamlSettings.SignsRequests())
+	})
+
+	t.Run("AD/LDAP sync disabled", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.EnableSyncWithLdap = new(false)
+		assert.False(t, cfg.SamlSettings.SyncsWithLdapIncludeAuth())
+		assert.False(t, cfg.SamlIgnoresGuestsLdapSync())
+	})
+
+	t.Run("guest accounts disabled", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.GuestAccountsSettings.Enable = new(false)
+		assert.False(t, cfg.SamlIgnoresGuestsLdapSync())
+	})
+
+	t.Run("signing without encryption", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.Encrypt = new(false)
+		assert.False(t, cfg.SamlSettings.SignsRequests())
+	})
+
+	t.Run("signing without a private key", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.PrivateKeyFile = new("")
+		assert.False(t, cfg.SamlSettings.SignsRequests())
+	})
+
+	t.Run("signing without a public certificate", func(t *testing.T) {
+		cfg := newConfig()
+		cfg.SamlSettings.PublicCertificateFile = new("")
+		assert.False(t, cfg.SamlSettings.SignsRequests())
+	})
+}
+
+func TestDependentBoolSettings(t *testing.T) {
+	for name, tc := range map[string]struct {
+		set   func(cfg *Config, parent, child bool)
+		check func(cfg *Config) bool
+	}{
+		"MetricsSettings.EnableClientMetrics": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.MetricsSettings.Enable, cfg.MetricsSettings.EnableClientMetrics = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.MetricsSettings.ClientMetricsEnabled() },
+		},
+		"MetricsSettings.EnableNotificationMetrics": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.MetricsSettings.Enable, cfg.MetricsSettings.EnableNotificationMetrics = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.MetricsSettings.NotificationMetricsEnabled() },
+		},
+		"FileSettings.ArchiveRecursion": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.FileSettings.ExtractContent, cfg.FileSettings.ArchiveRecursion = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.FileSettings.ArchiveRecursionEnabled() },
+		},
+		"EmailSettings.EnableEmailBatching": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.EmailSettings.SendEmailNotifications, cfg.EmailSettings.EnableEmailBatching = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.EmailSettings.EmailBatchingEnabled() },
+		},
+		"AnnouncementSettings.AllowBannerDismissal": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.AnnouncementSettings.EnableBanner, cfg.AnnouncementSettings.AllowBannerDismissal = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.AnnouncementSettings.BannerDismissalAllowed() },
+		},
+		"ThemeSettings.AllowCustomThemes": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.ThemeSettings.EnableThemeSelection, cfg.ThemeSettings.AllowCustomThemes = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.ThemeSettings.CustomThemesAllowed() },
+		},
+		"NativeAppSettings.MobileAllowPdfLinkNavigation": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.NativeAppSettings.MobileEnableSecureFilePreview, cfg.NativeAppSettings.MobileAllowPdfLinkNavigation = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.NativeAppSettings.MobilePdfLinkNavigationAllowed() },
+		},
+		"ServiceSettings.EnableInlineLatex": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.ServiceSettings.EnableLatex, cfg.ServiceSettings.EnableInlineLatex = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.ServiceSettings.InlineLatexEnabled() },
+		},
+		"ServiceSettings.EnforceMultifactorAuthentication": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.ServiceSettings.EnableMultifactorAuthentication, cfg.ServiceSettings.EnforceMultifactorAuthentication = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.ServiceSettings.MultifactorAuthenticationEnforced() },
+		},
+		"GuestAccountsSettings.EnforceMultifactorAuthentication": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.ServiceSettings.EnableMultifactorAuthentication = new(true)
+				cfg.ServiceSettings.EnforceMultifactorAuthentication = &p
+				cfg.GuestAccountsSettings.EnforceMultifactorAuthentication = &c
+			},
+			check: func(cfg *Config) bool { return cfg.GuestMultifactorAuthenticationEnforced() },
+		},
+		"GuestAccountsSettings.EnforceMultifactorAuthentication with MFA disabled": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.ServiceSettings.EnableMultifactorAuthentication = &p
+				cfg.ServiceSettings.EnforceMultifactorAuthentication = new(true)
+				cfg.GuestAccountsSettings.EnforceMultifactorAuthentication = &c
+			},
+			check: func(cfg *Config) bool { return cfg.GuestMultifactorAuthenticationEnforced() },
+		},
+		"AccessControlSettings.EnableAccessControlAuditLogging": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl, cfg.AccessControlSettings.EnableAccessControlAuditLogging = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.AccessControlSettings.AuditLoggingEnabled() },
+		},
+		"AccessControlSettings.EnableChannelPolicyIndicators": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl, cfg.AccessControlSettings.EnableChannelPolicyIndicators = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.AccessControlSettings.ChannelPolicyIndicatorsEnabled() },
+		},
+		"AccessControlSettings.TrustProxyDeviceIdentityHeader": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl, cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.AccessControlSettings.TrustsProxyDeviceIdentityHeader() },
+		},
+		"AccessControlSettings.EnforceDeviceIDConsistency": {
+			set: func(cfg *Config, p, c bool) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl, cfg.AccessControlSettings.EnforceDeviceIDConsistency = &p, &c
+			},
+			check: func(cfg *Config) bool { return cfg.AccessControlSettings.EnforcesDeviceIDConsistency() },
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			for _, c := range []struct{ parent, child, expected bool }{
+				{parent: true, child: true, expected: true},
+				{parent: false, child: true, expected: false},
+				{parent: true, child: false, expected: false},
+			} {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.set(cfg, c.parent, c.child)
+				assert.Equal(t, c.expected, tc.check(cfg), "parent=%v child=%v", c.parent, c.child)
+			}
+		})
+	}
+}
+
+func TestConfigIsValidEmailBatching(t *testing.T) {
+	newConfig := func(sendEmailNotifications bool) *Config {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.ServiceSettings.SiteURL = new("")
+		cfg.EmailSettings.SendEmailNotifications = new(sendEmailNotifications)
+		cfg.EmailSettings.EnableEmailBatching = new(true)
+		return cfg
+	}
+
+	t.Run("batching requires a site URL when email notifications are on", func(t *testing.T) {
+		appErr := newConfig(true).IsValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.site_url_email_batching.app_error", appErr.Id)
+	})
+
+	t.Run("batching is ignored when email notifications are off", func(t *testing.T) {
+		require.Nil(t, newConfig(false).IsValid())
+	})
+
+	t.Run("batching is ignored in a cluster when email notifications are off", func(t *testing.T) {
+		cfg := newConfig(false)
+		cfg.ServiceSettings.SiteURL = new("http://localhost:8065")
+		cfg.ClusterSettings.Enable = new(true)
+		require.Nil(t, cfg.IsValid())
+	})
+}
+
+func TestLdapSettingsUsesAdminFilter(t *testing.T) {
+	for name, tc := range map[string]struct {
+		enable, enableSync, enableAdminFilter bool
+		adminFilter                           string
+		expected                              bool
+	}{
+		"login enabled":         {enable: true, enableAdminFilter: true, adminFilter: "(role=admin)", expected: true},
+		"sync enabled":          {enableSync: true, enableAdminFilter: true, adminFilter: "(role=admin)", expected: true},
+		"login and sync off":    {enableAdminFilter: true, adminFilter: "(role=admin)"},
+		"admin filter disabled": {enable: true, adminFilter: "(role=admin)"},
+		"admin filter empty":    {enable: true, enableAdminFilter: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := LdapSettings{
+				Enable:            new(tc.enable),
+				EnableSync:        new(tc.enableSync),
+				EnableAdminFilter: new(tc.enableAdminFilter),
+				AdminFilter:       new(tc.adminFilter),
+			}
+			assert.Equal(t, tc.expected, s.UsesAdminFilter())
+		})
+	}
+
+	t.Run("unset fields from unsaved diagnostic settings", func(t *testing.T) {
+		assert.False(t, (&LdapSettings{}).UsesAdminFilter())
+	})
+}
+
 func TestServiceSettingsHardenedModeMigration(t *testing.T) {
 	t.Run("defaults to disabled without the deprecated setting", func(t *testing.T) {
 		ss := ServiceSettings{}
