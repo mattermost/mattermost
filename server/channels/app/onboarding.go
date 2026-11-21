@@ -48,7 +48,7 @@ func isOrigin(siteURL string) bool {
 // saveOnboardingSiteURL saves the Site URL sent by the onboarding wizard, unless an admin or an
 // environment variable has already set one. It returns the saved Site URL, or "" if nothing was
 // saved. Only an invalid URL is an error: a failed save is logged, so that onboarding still completes.
-func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) (string, *model.AppError) {
+func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) (string, error) {
 	if siteURL == "" {
 		return "", nil
 	}
@@ -96,9 +96,9 @@ func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboar
 		return "", model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
 	}
 
-	savedSiteURL, appErr := a.saveOnboardingSiteURL(rctx, request.SiteURL)
-	if appErr != nil {
-		return "", appErr
+	savedSiteURL, err := a.saveOnboardingSiteURL(rctx, request.SiteURL)
+	if err != nil {
+		return "", model.AsAppError(err)
 	}
 
 	if request.Organization != "" {
