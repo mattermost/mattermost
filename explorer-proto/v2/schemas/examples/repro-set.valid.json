@@ -1,0 +1,18 @@
+{
+    "schema": "explorer-repro-set/v2",
+    "target_sha": "0123456789abcdef0123456789abcdef01234567",
+    "bugs": [
+        {
+            "id": "EX-1",
+            "summary": "Example: Enter does not submit the typed value.",
+            "expected_oracle_class": "typed_input_ignored",
+            "state_path": "/<team>/channels/<channel>"
+        },
+        {
+            "id": "EX-2",
+            "summary": "Example: console error on open.",
+            "expected_oracle_class": "console_error",
+            "reproduces": false
+        }
+    ]
+}

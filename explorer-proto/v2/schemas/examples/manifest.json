@@ -1,0 +1,286 @@
+[
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.invalid-a-with-bug-oracle-metrics.json",
+        "valid": false,
+        "error_contains": "/known_bug_recall"
+    },
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.invalid-a-wrong-commit.json",
+        "valid": false,
+        "error_contains": "/version/commit"
+    },
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.invalid-control-pass-without-failed-at.json",
+        "valid": false,
+        "error_contains": "/control_sensitivity/controls/0"
+    },
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.invalid-rejection-without-evidence.json",
+        "valid": false,
+        "error_contains": "/features/1/evidence"
+    },
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.invalid-stability-19-replays.json",
+        "valid": false,
+        "error_contains": "/stability/specs/0/replays"
+    },
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.valid-a.json",
+        "valid": true
+    },
+    {
+        "schema": "bakeoff-result",
+        "file": "bakeoff-result.valid-b.json",
+        "valid": true
+    },
+    {
+        "schema": "charter",
+        "file": "charter.invalid-allowed-actions-in-v2.json",
+        "valid": false,
+        "error_contains": "/allowed_actions"
+    },
+    {
+        "schema": "charter",
+        "file": "charter.invalid-event-with-request-list.json",
+        "valid": false,
+        "error_contains": "(requests)"
+    },
+    {
+        "schema": "charter",
+        "file": "charter.invalid-exempt-path-not-allowed.json",
+        "valid": false,
+        "error_contains": "/leakage/exempt_paths"
+    },
+    {
+        "schema": "charter",
+        "file": "charter.invalid-forbidden-key-in-fixture.json",
+        "valid": false,
+        "error_contains": "/fixture"
+    },
+    {
+        "schema": "charter",
+        "file": "charter.invalid-missing-leakage-rule.json",
+        "valid": false,
+        "error_contains": "/leakage/rules"
+    },
+    {
+        "schema": "charter",
+        "file": "charter.invalid-top-level-steps.json",
+        "valid": false,
+        "error_contains": "(steps)"
+    },
+    {
+        "schema": "charter",
+        "file": "charter.valid-v2.json",
+        "valid": true
+    },
+    {
+        "schema": "coverage-index",
+        "file": "coverage-index.invalid-bad-fingerprint.json",
+        "valid": false,
+        "error_contains": "/tests/0/fingerprint/value"
+    },
+    {
+        "schema": "coverage-index",
+        "file": "coverage-index.invalid-helper-flag-without-helper.json",
+        "valid": false,
+        "error_contains": "/tests/0/assertions/1"
+    },
+    {
+        "schema": "coverage-index",
+        "file": "coverage-index.invalid-partial-without-reasons.json",
+        "valid": false,
+        "error_contains": "/tests/0"
+    },
+    {
+        "schema": "coverage-index",
+        "file": "coverage-index.valid.json",
+        "valid": true
+    },
+    {
+        "schema": "finding",
+        "file": "finding.invalid-confirmed-single-reproduction.json",
+        "valid": false,
+        "error_contains": "/reproduction_count"
+    },
+    {
+        "schema": "finding",
+        "file": "finding.invalid-evidence-with-loopback.json",
+        "valid": false,
+        "error_contains": "/evidence_text"
+    },
+    {
+        "schema": "finding",
+        "file": "finding.invalid-rejected-without-reason.json",
+        "valid": false,
+        "error_contains": "/"
+    },
+    {
+        "schema": "finding",
+        "file": "finding.invalid-state-path-with-origin.json",
+        "valid": false,
+        "error_contains": "/state_path"
+    },
+    {
+        "schema": "finding",
+        "file": "finding.invalid-state-path-with-server-id.json",
+        "valid": false,
+        "error_contains": "/state_path"
+    },
+    {
+        "schema": "finding",
+        "file": "finding.valid-candidate.json",
+        "valid": true
+    },
+    {
+        "schema": "finding",
+        "file": "finding.valid-confirmed.json",
+        "valid": true
+    },
+    {
+        "schema": "finding",
+        "file": "finding.valid-rejected.json",
+        "valid": true
+    },
+    {
+        "schema": "lesson",
+        "file": "lesson.invalid-applied.json",
+        "valid": false,
+        "error_contains": "/applied"
+    },
+    {
+        "schema": "lesson",
+        "file": "lesson.invalid-approved-without-approver.json",
+        "valid": false,
+        "error_contains": "/"
+    },
+    {
+        "schema": "lesson",
+        "file": "lesson.invalid-no-evidence.json",
+        "valid": false,
+        "error_contains": "/evidence"
+    },
+    {
+        "schema": "lesson",
+        "file": "lesson.invalid-proposed-with-approver.json",
+        "valid": false,
+        "error_contains": "/"
+    },
+    {
+        "schema": "lesson",
+        "file": "lesson.valid-approved.json",
+        "valid": true
+    },
+    {
+        "schema": "lesson",
+        "file": "lesson.valid-proposed.json",
+        "valid": true
+    },
+    {
+        "schema": "repro-set",
+        "file": "repro-set.invalid-unknown-oracle-class.json",
+        "valid": false,
+        "error_contains": "/bugs/0/expected_oracle_class"
+    },
+    {
+        "schema": "repro-set",
+        "file": "repro-set.valid.json",
+        "valid": true
+    },
+    {
+        "schema": "target",
+        "file": "target.invalid-licence-detail.json",
+        "valid": false,
+        "error_contains": "/licence_check"
+    },
+    {
+        "schema": "target",
+        "file": "target.invalid-missing-image-digest.json",
+        "valid": false,
+        "error_contains": "/image"
+    },
+    {
+        "schema": "target",
+        "file": "target.invalid-release-with-branch-ref.json",
+        "valid": false,
+        "error_contains": "/ref"
+    },
+    {
+        "schema": "target",
+        "file": "target.valid-main.json",
+        "valid": true
+    },
+    {
+        "schema": "target",
+        "file": "target.valid-release.json",
+        "valid": true
+    },
+    {
+        "schema": "trace",
+        "file": "trace.invalid-state-path-with-origin.json",
+        "valid": false,
+        "error_contains": "/states/0/path"
+    },
+    {
+        "schema": "trace",
+        "file": "trace.invalid-transition-state-id.json",
+        "valid": false,
+        "error_contains": "/transitions/0/to"
+    },
+    {
+        "schema": "trace",
+        "file": "trace.valid.json",
+        "valid": true
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.invalid-blocked-without-reason.json",
+        "valid": false,
+        "error_contains": "/gates/1"
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.invalid-duplicate-without-duplicate_of.json",
+        "valid": false,
+        "error_contains": "/"
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.invalid-gate-without-evidence.json",
+        "valid": false,
+        "error_contains": "/gates/0/evidence"
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.invalid-pass-with-failed-gate.json",
+        "valid": false,
+        "error_contains": "/gates"
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.invalid-prose-evidence-ref.json",
+        "valid": false,
+        "error_contains": "/gates/0/evidence/0/ref"
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.valid-blocked-control.json",
+        "valid": true
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.valid-emitted.json",
+        "valid": true
+    },
+    {
+        "schema": "verdict",
+        "file": "verdict.valid-rejected-duplicate.json",
+        "valid": true
+    }
+]

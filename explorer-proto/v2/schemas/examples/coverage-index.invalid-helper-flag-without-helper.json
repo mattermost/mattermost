@@ -1,0 +1,74 @@
+{
+    "schema": "explorer-coverage-index/v2",
+    "source_sha": "0123456789abcdef0123456789abcdef01234567",
+    "indexer": "example-indexer.1",
+    "tests": [
+        {
+            "id": "playwright:e2e-tests/playwright/specs/functional/channels/channel_bookmarks/example.spec.ts:38",
+            "suite": "playwright",
+            "file": "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/example.spec.ts",
+            "line": 38,
+            "title": "EX-T1 opens an internal link",
+            "tags": ["@channels"],
+            "test_ids": ["EX-T1"],
+            "actors": [
+                {
+                    "role": "member",
+                    "created_by": "pw.initSetup"
+                }
+            ],
+            "setup_calls": [
+                {
+                    "name": "adminClient.createPublicChannel",
+                    "kind": "api",
+                    "source": {
+                        "file": "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/example.spec.ts",
+                        "line": 41
+                    }
+                }
+            ],
+            "actions": [
+                {
+                    "label": "Open internal link",
+                    "kind": "click",
+                    "locator": {
+                        "strategy": "role",
+                        "value": "link",
+                        "name": "Town Square"
+                    },
+                    "source": {
+                        "file": "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/example.spec.ts",
+                        "line": 63
+                    }
+                }
+            ],
+            "assertions": [
+                {
+                    "target": {
+                        "file": "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/example.spec.ts",
+                        "line": 65
+                    },
+                    "matcher": "toContain",
+                    "resolved_through_helper": false
+                },
+                {
+                    "target": {
+                        "file": "e2e-tests/playwright/lib/src/ui/components/channels/example_bar.ts",
+                        "line": 22
+                    },
+                    "matcher": "toBeVisible",
+                    "subject": {
+                        "strategy": "testid",
+                        "value": "example-bar"
+                    },
+                    "resolved_through_helper": true
+                }
+            ],
+            "fingerprint": {
+                "algorithm": "sha256-structural-v1",
+                "value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+            },
+            "source_status": "extracted"
+        }
+    ]
+}

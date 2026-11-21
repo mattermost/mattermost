@@ -1,0 +1,291 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/coverage-index.schema.json",
+    "title": "Explorer v2 coverage index: existing Cypress and Playwright tests, structurally extracted",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema", "source_sha", "indexer", "tests"],
+    "properties": {
+        "schema": {
+            "const": "explorer-coverage-index/v2"
+        },
+        "source_sha": {
+            "$ref": "common.schema.json#/definitions/sha1"
+        },
+        "indexer": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "tests": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "suite",
+                    "file",
+                    "line",
+                    "title",
+                    "tags",
+                    "test_ids",
+                    "actors",
+                    "setup_calls",
+                    "actions",
+                    "assertions",
+                    "fingerprint",
+                    "source_status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^(?:cypress|playwright):[A-Za-z0-9_.@+/-]+:[0-9]+$"
+                    },
+                    "suite": {
+                        "type": "string",
+                        "enum": ["cypress", "playwright"]
+                    },
+                    "file": {
+                        "$ref": "common.schema.json#/definitions/repoPath"
+                    },
+                    "line": {
+                        "$ref": "common.schema.json#/definitions/line"
+                    },
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^@?[A-Za-z0-9_.-]{1,60}$"
+                        }
+                    },
+                    "test_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z][A-Z0-9]*-[A-Za-z0-9_]+$"
+                        }
+                    },
+                    "actors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["role", "created_by"],
+                            "properties": {
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["admin", "member", "guest", "anonymous", "unknown"]
+                                },
+                                "created_by": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z0-9_.$]{1,120}$"
+                                }
+                            }
+                        }
+                    },
+                    "setup_calls": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["name", "kind", "source"],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z0-9_.$]{1,120}$"
+                                },
+                                "kind": {
+                                    "type": "string",
+                                    "enum": ["api", "helper", "fixture", "ui"]
+                                },
+                                "source": {
+                                    "$ref": "common.schema.json#/definitions/sourceRef"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["label", "kind", "locator", "source"],
+                            "properties": {
+                                "label": {
+                                    "$ref": "common.schema.json#/definitions/shortText"
+                                },
+                                "kind": {
+                                    "type": "string",
+                                    "enum": ["click", "fill", "press", "goto", "select", "check", "hover", "other"]
+                                },
+                                "locator": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["strategy", "value"],
+                                    "properties": {
+                                        "strategy": {
+                                            "type": "string",
+                                            "enum": [
+                                                "role",
+                                                "text",
+                                                "label",
+                                                "placeholder",
+                                                "testid",
+                                                "css",
+                                                "xpath",
+                                                "other"
+                                            ]
+                                        },
+                                        "value": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 200
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "maxLength": 160
+                                        }
+                                    }
+                                },
+                                "source": {
+                                    "$ref": "common.schema.json#/definitions/sourceRef"
+                                }
+                            }
+                        }
+                    },
+                    "assertions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["target", "matcher", "resolved_through_helper"],
+                            "properties": {
+                                "target": {
+                                    "$ref": "common.schema.json#/definitions/sourceRef"
+                                },
+                                "matcher": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z0-9_.]{1,80}$"
+                                },
+                                "subject": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["strategy", "value"],
+                                    "properties": {
+                                        "strategy": {
+                                            "type": "string",
+                                            "enum": [
+                                                "role",
+                                                "text",
+                                                "label",
+                                                "placeholder",
+                                                "testid",
+                                                "css",
+                                                "xpath",
+                                                "other"
+                                            ]
+                                        },
+                                        "value": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 200
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "maxLength": 160
+                                        }
+                                    }
+                                },
+                                "resolved_through_helper": {
+                                    "type": "boolean"
+                                },
+                                "helper": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["name", "source"],
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "pattern": "^[A-Za-z0-9_.$]{1,120}$"
+                                        },
+                                        "source": {
+                                            "$ref": "common.schema.json#/definitions/sourceRef"
+                                        }
+                                    }
+                                }
+                            },
+                            "if": {
+                                "properties": {
+                                    "resolved_through_helper": {
+                                        "const": true
+                                    }
+                                },
+                                "required": ["resolved_through_helper"]
+                            },
+                            "then": {
+                                "required": ["helper"]
+                            },
+                            "else": {
+                                "not": {
+                                    "required": ["helper"]
+                                }
+                            }
+                        }
+                    },
+                    "fingerprint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["algorithm", "value"],
+                        "properties": {
+                            "algorithm": {
+                                "const": "sha256-structural-v1"
+                            },
+                            "value": {
+                                "$ref": "common.schema.json#/definitions/sha256"
+                            }
+                        }
+                    },
+                    "source_status": {
+                        "type": "string",
+                        "enum": ["extracted", "partial"]
+                    },
+                    "partial_reasons": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "dynamic_locator",
+                                "unresolved_helper",
+                                "templated_title",
+                                "external_data",
+                                "parse_error"
+                            ]
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
+                    }
+                },
+                "if": {
+                    "properties": {
+                        "source_status": {
+                            "const": "partial"
+                        }
+                    },
+                    "required": ["source_status"]
+                },
+                "then": {
+                    "required": ["partial_reasons"]
+                },
+                "else": {
+                    "not": {
+                        "required": ["partial_reasons"]
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,285 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/verdict.schema.json",
+    "title": "Explorer v2 verdict: per-gate results with evidence references",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema", "verdict_id", "subject", "outcome", "overall", "gates"],
+    "properties": {
+        "schema": {
+            "const": "explorer-verdict/v2"
+        },
+        "verdict_id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "subject": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "id"],
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "enum": ["spec", "charter", "feature"]
+                },
+                "id": {
+                    "$ref": "common.schema.json#/definitions/id"
+                }
+            }
+        },
+        "feature_id": {
+            "$ref": "common.schema.json#/definitions/featureId"
+        },
+        "outcome": {
+            "$ref": "common.schema.json#/definitions/outcome"
+        },
+        "overall": {
+            "$ref": "common.schema.json#/definitions/triState"
+        },
+        "gates": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["gate", "result", "evidence"],
+                "properties": {
+                    "gate": {
+                        "$ref": "common.schema.json#/definitions/gateName"
+                    },
+                    "result": {
+                        "$ref": "common.schema.json#/definitions/triState"
+                    },
+                    "evidence": {
+                        "$ref": "common.schema.json#/definitions/evidenceRefs"
+                    },
+                    "counts": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["passed", "total"],
+                        "properties": {
+                            "passed": {
+                                "$ref": "common.schema.json#/definitions/count"
+                            },
+                            "total": {
+                                "$ref": "common.schema.json#/definitions/count"
+                            }
+                        }
+                    },
+                    "failed_at": {
+                        "$ref": "common.schema.json#/definitions/sourceRef"
+                    },
+                    "blocked_reason": {
+                        "type": "string",
+                        "enum": [
+                            "licence_insufficient",
+                            "fixture_unavailable",
+                            "control_not_applicable",
+                            "environment",
+                            "budget"
+                        ]
+                    }
+                },
+                "if": {
+                    "properties": {
+                        "result": {
+                            "const": "blocked"
+                        }
+                    },
+                    "required": ["result"]
+                },
+                "then": {
+                    "required": ["blocked_reason"]
+                },
+                "else": {
+                    "not": {
+                        "required": ["blocked_reason"]
+                    }
+                }
+            },
+            "minItems": 1
+        },
+        "duplicate_of": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["suite", "file", "line"],
+            "properties": {
+                "suite": {
+                    "type": "string",
+                    "enum": ["cypress", "playwright"]
+                },
+                "file": {
+                    "$ref": "common.schema.json#/definitions/repoPath"
+                },
+                "line": {
+                    "$ref": "common.schema.json#/definitions/line"
+                },
+                "test_id": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Z0-9]*-[A-Za-z0-9_]+$"
+                }
+            }
+        },
+        "unreachable_reason": {
+            "type": "string",
+            "enum": ["licence_insufficient", "no_entry_point"]
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "overall": {
+                        "const": "pass"
+                    }
+                },
+                "required": ["overall"]
+            },
+            "then": {
+                "properties": {
+                    "gates": {
+                        "items": {
+                            "properties": {
+                                "result": {
+                                    "const": "pass"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "overall": {
+                        "const": "fail"
+                    }
+                },
+                "required": ["overall"]
+            },
+            "then": {
+                "properties": {
+                    "gates": {
+                        "contains": {
+                            "properties": {
+                                "result": {
+                                    "const": "fail"
+                                }
+                            },
+                            "required": ["result"]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "overall": {
+                        "const": "blocked"
+                    }
+                },
+                "required": ["overall"]
+            },
+            "then": {
+                "properties": {
+                    "gates": {
+                        "allOf": [
+                            {
+                                "contains": {
+                                    "properties": {
+                                        "result": {
+                                            "const": "blocked"
+                                        }
+                                    },
+                                    "required": ["result"]
+                                }
+                            },
+                            {
+                                "not": {
+                                    "contains": {
+                                        "properties": {
+                                            "result": {
+                                                "const": "fail"
+                                            }
+                                        },
+                                        "required": ["result"]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "outcome": {
+                        "const": "emitted_passing"
+                    }
+                },
+                "required": ["outcome"]
+            },
+            "then": {
+                "properties": {
+                    "overall": {
+                        "const": "pass"
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "outcome": {
+                        "enum": ["rejected_duplicate", "rejected_unreachable"]
+                    }
+                },
+                "required": ["outcome"]
+            },
+            "then": {
+                "properties": {
+                    "overall": {
+                        "const": "fail"
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "outcome": {
+                        "const": "rejected_duplicate"
+                    }
+                },
+                "required": ["outcome"]
+            },
+            "then": {
+                "required": ["duplicate_of"]
+            },
+            "else": {
+                "not": {
+                    "required": ["duplicate_of"]
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "outcome": {
+                        "const": "rejected_unreachable"
+                    }
+                },
+                "required": ["outcome"]
+            },
+            "then": {
+                "required": ["unreachable_reason"]
+            },
+            "else": {
+                "not": {
+                    "required": ["unreachable_reason"]
+                }
+            }
+        }
+    ]
+}

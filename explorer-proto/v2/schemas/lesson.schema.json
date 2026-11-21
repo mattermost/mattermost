@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/lesson.schema.json",
+    "title": "Explorer v2 lesson: a proposal only, never applied by the pipeline",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema", "id", "observation", "evidence", "proposed_check", "status", "applied"],
+    "properties": {
+        "schema": {
+            "const": "explorer-lesson/v2"
+        },
+        "id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "observation": {
+            "$ref": "common.schema.json#/definitions/evidenceText"
+        },
+        "evidence": {
+            "$ref": "common.schema.json#/definitions/evidenceRefs"
+        },
+        "proposed_check": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "description"],
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "enum": ["leakage_rule", "lint_rule", "oracle", "gate_threshold", "fixture_check"]
+                },
+                "description": {
+                    "$ref": "common.schema.json#/definitions/evidenceText"
+                },
+                "target_file": {
+                    "$ref": "common.schema.json#/definitions/repoPath"
+                }
+            }
+        },
+        "status": {
+            "type": "string",
+            "enum": ["proposed", "approved", "rejected"]
+        },
+        "approver": {
+            "$ref": "common.schema.json#/definitions/reviewerHandle"
+        },
+        "applied": {
+            "const": false
+        }
+    },
+    "if": {
+        "properties": {
+            "status": {
+                "const": "proposed"
+            }
+        },
+        "required": ["status"]
+    },
+    "then": {
+        "not": {
+            "required": ["approver"]
+        }
+    },
+    "else": {
+        "required": ["approver"]
+    }
+}

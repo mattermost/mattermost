@@ -1,0 +1,899 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/charter.schema.json",
+    "title": "Explorer v2 charter: intent, constraints and checks, with no route or step fields",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema"],
+    "definitions": {
+        "fixtureValue": {
+            "anyOf": [
+                {
+                    "type": ["string", "number", "boolean", "null"],
+                    "maxLength": 1500
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/fixtureValue"
+                    }
+                },
+                {
+                    "type": "object",
+                    "propertyNames": {
+                        "not": {
+                            "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                        }
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/definitions/fixtureValue"
+                    }
+                }
+            ]
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "string",
+            "enum": ["explorer-charter/v2", "explorer-session-charter/v1", "explorer-journey-charter/v1"]
+        },
+        "charter_id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "journey_id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "qualifies": {
+            "type": "boolean"
+        },
+        "qualifies_reason": {
+            "type": "string",
+            "maxLength": 1500
+        },
+        "feature_id": {
+            "oneOf": [
+                {
+                    "$ref": "common.schema.json#/definitions/id"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "minItems": 1
+                }
+            ]
+        },
+        "lane": {
+            "type": "string",
+            "enum": ["Browser"]
+        },
+        "target_release": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {
+                "server": {
+                    "type": "string",
+                    "maxLength": 400
+                },
+                "source_tag": {
+                    "type": "string",
+                    "maxLength": 80
+                },
+                "license_dependency": {
+                    "type": "string",
+                    "maxLength": 1500
+                }
+            }
+        },
+        "technique": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {
+                "primary": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "model": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "secondary": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "boundary_note": {
+                    "type": "string",
+                    "maxLength": 1500
+                }
+            }
+        },
+        "charter": {
+            "type": "string",
+            "maxLength": 1500
+        },
+        "goal": {
+            "type": "string",
+            "maxLength": 600
+        },
+        "consequence": {
+            "type": "string",
+            "maxLength": 600
+        },
+        "actors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "persona", "role", "ui"],
+                "properties": {
+                    "id": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "persona": {
+                        "type": "string",
+                        "maxLength": 400
+                    },
+                    "role": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "ui": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        },
+        "start": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["start_path"],
+            "properties": {
+                "team": {
+                    "type": "string",
+                    "maxLength": 80
+                },
+                "user": {
+                    "type": "string",
+                    "maxLength": 80
+                },
+                "actor": {
+                    "type": "string",
+                    "maxLength": 80
+                },
+                "start_path": {
+                    "type": "string",
+                    "pattern": "^/[A-Za-z0-9_<>{}.:/-]*$",
+                    "maxLength": 200
+                },
+                "sign_in": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "why_this_path": {
+                    "type": "string",
+                    "maxLength": 1500
+                }
+            }
+        },
+        "fixture_setup": {
+            "type": "object",
+            "propertyNames": {
+                "not": {
+                    "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                }
+            },
+            "additionalProperties": {
+                "$ref": "#/definitions/fixtureValue"
+            }
+        },
+        "fixture": {
+            "type": "object",
+            "propertyNames": {
+                "not": {
+                    "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                }
+            },
+            "additionalProperties": {
+                "$ref": "#/definitions/fixtureValue"
+            }
+        },
+        "allowed_actions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["role", "name", "exact"],
+                "properties": {
+                    "role": {
+                        "$ref": "common.schema.json#/definitions/role"
+                    },
+                    "name": {
+                        "$ref": "common.schema.json#/definitions/accessibleName"
+                    },
+                    "exact": {
+                        "type": "boolean"
+                    },
+                    "why": {
+                        "type": "string",
+                        "maxLength": 1500
+                    }
+                }
+            },
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "action_rules": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {
+                "scope_note": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "roles_in_play": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 1500
+                    }
+                },
+                "roles_excluded": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["roles"],
+                    "properties": {
+                        "roles": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "maxLength": 1500
+                            }
+                        },
+                        "why": {
+                            "type": "string",
+                            "maxLength": 1500
+                        }
+                    }
+                },
+                "key_actions": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["allowed"],
+                    "properties": {
+                        "allowed": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "maxLength": 1500
+                            }
+                        },
+                        "why": {
+                            "type": "string",
+                            "maxLength": 1500
+                        }
+                    }
+                },
+                "regions_in_play": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 1500
+                    }
+                },
+                "regions_excluded": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["region"],
+                        "properties": {
+                            "region": {
+                                "type": "string",
+                                "maxLength": 1500
+                            },
+                            "why": {
+                                "type": "string",
+                                "maxLength": 1500
+                            }
+                        }
+                    }
+                },
+                "excluded_name_patterns": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["patterns"],
+                    "properties": {
+                        "match": {
+                            "type": "string",
+                            "maxLength": 1500
+                        },
+                        "patterns": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["pattern"],
+                                "properties": {
+                                    "pattern": {
+                                        "type": "string",
+                                        "maxLength": 400
+                                    },
+                                    "why": {
+                                        "type": "string",
+                                        "maxLength": 1500
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "origin_rule": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "path_scope_rule": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "uniqueness": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "modal_policy": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "enumeration": {
+                    "type": "string",
+                    "maxLength": 1500
+                }
+            }
+        },
+        "goal_terms": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["derive_from"],
+            "properties": {
+                "derive_from": {
+                    "type": "string",
+                    "maxLength": 40
+                },
+                "stopwords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "uniqueItems": true
+                }
+            }
+        },
+        "budget": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["max_actions", "max_depth", "max_states"],
+            "properties": {
+                "max_actions": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "max_depth": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "max_states": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "max_replays": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "wall_clock_seconds": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "budget_semantics": {
+            "type": "string",
+            "maxLength": 1500
+        },
+        "locator_scope": {
+            "type": "object",
+            "propertyNames": {
+                "not": {
+                    "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                }
+            },
+            "additionalProperties": {
+                "type": "string",
+                "maxLength": 1500
+            }
+        },
+        "name_match_rules": {
+            "type": "object",
+            "propertyNames": {
+                "not": {
+                    "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                }
+            },
+            "additionalProperties": {
+                "type": "string",
+                "maxLength": 1500
+            }
+        },
+        "expected_outcome": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "applies_to", "expect"],
+                "properties": {
+                    "id": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "applies_to": {
+                        "type": "string",
+                        "maxLength": 1500
+                    },
+                    "expect": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["id", "kind"],
+                            "properties": {
+                                "id": {
+                                    "$ref": "common.schema.json#/definitions/id"
+                                },
+                                "kind": {
+                                    "type": "string",
+                                    "enum": ["url_path", "testid", "role"]
+                                },
+                                "equals": {
+                                    "type": "string",
+                                    "maxLength": 300
+                                },
+                                "testid": {
+                                    "type": "string",
+                                    "maxLength": 160
+                                },
+                                "role": {
+                                    "$ref": "common.schema.json#/definitions/role"
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "maxLength": 160
+                                },
+                                "match": {
+                                    "type": "string",
+                                    "enum": ["exact", "contains"]
+                                },
+                                "scope": {
+                                    "type": "string",
+                                    "maxLength": 80
+                                },
+                                "visible": {
+                                    "type": "boolean"
+                                },
+                                "count": {
+                                    "$ref": "common.schema.json#/definitions/count"
+                                },
+                                "source": {
+                                    "type": "string",
+                                    "maxLength": 1500
+                                }
+                            }
+                        },
+                        "minItems": 1
+                    }
+                }
+            }
+        },
+        "checkpoints": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "kind", "description", "predicate"],
+                "properties": {
+                    "id": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": ["rest", "ui"]
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 1500
+                    },
+                    "predicate": {
+                        "type": "object",
+                        "propertyNames": {
+                            "not": {
+                                "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                            }
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/fixtureValue"
+                        }
+                    },
+                    "source": {
+                        "type": "string",
+                        "maxLength": 1500
+                    }
+                }
+            }
+        },
+        "events": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "actor", "action", "params"],
+                "properties": {
+                    "id": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "trigger": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["checkpoint"],
+                        "properties": {
+                            "checkpoint": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "when": {
+                                "type": "string",
+                                "maxLength": 1500
+                            }
+                        }
+                    },
+                    "actor": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "via": {
+                        "type": "string",
+                        "maxLength": 1500
+                    },
+                    "action": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]{0,59}$"
+                    },
+                    "params": {
+                        "type": "object",
+                        "propertyNames": {
+                            "not": {
+                                "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                            }
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/fixtureValue"
+                        }
+                    },
+                    "constraints": {
+                        "type": "string",
+                        "maxLength": 1500
+                    },
+                    "result_checkpoint": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    },
+                    "disclosure": {
+                        "type": "string",
+                        "maxLength": 1500
+                    }
+                }
+            }
+        },
+        "success_criteria": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {
+                "qualifies_when": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "ordering": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "path_conditions": {
+                    "type": "string",
+                    "maxLength": 1500
+                },
+                "selection": {
+                    "type": "string",
+                    "maxLength": 1500
+                }
+            }
+        },
+        "negative_controls": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id"],
+                "propertyNames": {
+                    "not": {
+                        "pattern": "(?:(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[tT][eE][pP][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[oO][uU][tT][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[eE][qQ][uU][eE][nN][cC][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][lL][kK][tT][hH][rR][oO][uU][gG][hH][sS]?(?![a-z])|(?:(?<![A-Za-z])[sS]|(?<=[a-z])S)[cC][rR][iI][pP][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[rR][oO][cC][eE][dD][uU][rR][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][cC][iI][pP][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[pP]|(?<=[a-z])P)[lL][aA][yY][bB][oO][oO][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[iI]|(?<=[a-z])I)[tT][iI][nN][eE][rR][aA][rR][yY][sS]?(?![a-z])|(?:(?<![A-Za-z])[wW]|(?<=[a-z])W)[aA][yY][pP][oO][iI][nN][tT][sS]?(?![a-z])|(?:(?<![A-Za-z])[bB]|(?<=[a-z])B)[rR][eE][aA][dD][cC][rR][uU][mM][bB][sS]?(?![a-z])|(?:(?<![A-Za-z])[rR]|(?<=[a-z])R)[eE][aA][cC][hH][aA][bB][lL][eE][sS]?(?![a-z])|(?:(?<![A-Za-z])[cC]|(?<=[a-z])C)[lL][iI][cC][kK][sS]?(?![a-z])|(?:(?<![A-Za-z])[nN]|(?<=[a-z])N)[aA][vV][iI][gG][aA][tT][eE][sS]?(?![a-z]))"
+                    }
+                },
+                "properties": {
+                    "id": {
+                        "$ref": "common.schema.json#/definitions/id"
+                    }
+                },
+                "additionalProperties": {
+                    "$ref": "#/definitions/fixtureValue"
+                }
+            }
+        },
+        "dedupe": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key"],
+            "properties": {
+                "key": {
+                    "$ref": "common.schema.json#/definitions/id"
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 1500
+                }
+            }
+        },
+        "constraints": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "maxLength": 1500
+            }
+        },
+        "known_risks": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "maxLength": 1500
+            }
+        },
+        "oracles": {
+            "type": "array",
+            "items": {
+                "$ref": "common.schema.json#/definitions/oracleClass"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "leakage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rules", "exempt_paths"],
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "minItems": 5,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "kind"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^L[0-9]{1,2}$"
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "ordered_phrase",
+                                    "numbered_steps",
+                                    "deny_labels",
+                                    "unknown_key",
+                                    "forbidden_key"
+                                ]
+                            },
+                            "patterns": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 200
+                                },
+                                "maxItems": 20
+                            },
+                            "deny_list": {
+                                "$ref": "common.schema.json#/definitions/repoPath"
+                            }
+                        },
+                        "allOf": [
+                            {
+                                "if": {
+                                    "properties": {
+                                        "kind": {
+                                            "const": "ordered_phrase"
+                                        }
+                                    },
+                                    "required": ["kind"]
+                                },
+                                "else": {
+                                    "properties": {
+                                        "patterns": false
+                                    }
+                                }
+                            },
+                            {
+                                "if": {
+                                    "properties": {
+                                        "kind": {
+                                            "const": "deny_labels"
+                                        }
+                                    },
+                                    "required": ["kind"]
+                                },
+                                "then": {
+                                    "required": ["deny_list"]
+                                },
+                                "else": {
+                                    "properties": {
+                                        "deny_list": false
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "allOf": [
+                        {
+                            "contains": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "ordered_phrase"
+                                    }
+                                },
+                                "required": ["kind"]
+                            }
+                        },
+                        {
+                            "contains": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "numbered_steps"
+                                    }
+                                },
+                                "required": ["kind"]
+                            }
+                        },
+                        {
+                            "contains": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "deny_labels"
+                                    }
+                                },
+                                "required": ["kind"]
+                            }
+                        },
+                        {
+                            "contains": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "unknown_key"
+                                    }
+                                },
+                                "required": ["kind"]
+                            }
+                        },
+                        {
+                            "contains": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "forbidden_key"
+                                    }
+                                },
+                                "required": ["kind"]
+                            }
+                        }
+                    ]
+                },
+                "exempt_paths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "fixture",
+                            "fixture_setup",
+                            "negative_controls",
+                            "target_release",
+                            "dedupe",
+                            "qualifies_reason",
+                            "**.source",
+                            "**.why",
+                            "**.note"
+                        ]
+                    },
+                    "uniqueItems": true
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "schema": {
+                        "const": "explorer-charter/v2"
+                    }
+                },
+                "required": ["schema"]
+            },
+            "then": {
+                "required": ["charter_id", "goal", "lane", "start", "budget", "action_rules", "leakage"],
+                "properties": {
+                    "allowed_actions": false,
+                    "journey_id": false
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "schema": {
+                        "const": "explorer-session-charter/v1"
+                    }
+                },
+                "required": ["schema"]
+            },
+            "then": {
+                "required": [
+                    "feature_id",
+                    "lane",
+                    "charter",
+                    "start",
+                    "allowed_actions",
+                    "budget",
+                    "expected_outcome",
+                    "dedupe"
+                ],
+                "properties": {
+                    "journey_id": false,
+                    "charter_id": false,
+                    "leakage": false
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "schema": {
+                        "const": "explorer-journey-charter/v1"
+                    }
+                },
+                "required": ["schema"]
+            },
+            "then": {
+                "required": [
+                    "journey_id",
+                    "feature_id",
+                    "lane",
+                    "goal",
+                    "actors",
+                    "start",
+                    "action_rules",
+                    "checkpoints",
+                    "success_criteria",
+                    "budget",
+                    "dedupe"
+                ],
+                "properties": {
+                    "charter_id": false,
+                    "leakage": false,
+                    "allowed_actions": false
+                }
+            }
+        }
+    ]
+}

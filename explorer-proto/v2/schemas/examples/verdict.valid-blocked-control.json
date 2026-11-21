@@ -1,0 +1,34 @@
+{
+    "schema": "explorer-verdict/v2",
+    "verdict_id": "vrd-001",
+    "subject": {
+        "kind": "spec",
+        "id": "example-spec"
+    },
+    "feature_id": "F2",
+    "outcome": "blocked",
+    "overall": "blocked",
+    "gates": [
+        {
+            "gate": "schema",
+            "result": "pass",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/schema.json"
+                }
+            ]
+        },
+        {
+            "gate": "control_sensitivity",
+            "result": "blocked",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/control_sensitivity.json"
+                }
+            ],
+            "blocked_reason": "control_not_applicable"
+        }
+    ]
+}

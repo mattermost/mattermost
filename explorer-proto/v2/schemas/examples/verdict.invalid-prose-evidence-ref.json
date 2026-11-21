@@ -1,0 +1,43 @@
+{
+    "schema": "explorer-verdict/v2",
+    "verdict_id": "vrd-001",
+    "subject": {
+        "kind": "spec",
+        "id": "example-spec"
+    },
+    "feature_id": "F2",
+    "outcome": "emitted_passing",
+    "overall": "pass",
+    "gates": [
+        {
+            "gate": "schema",
+            "result": "pass",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "looked fine to me"
+                }
+            ]
+        },
+        {
+            "gate": "leakage",
+            "result": "pass",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/leakage.json"
+                }
+            ]
+        },
+        {
+            "gate": "stability",
+            "result": "pass",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/stability.json"
+                }
+            ]
+        }
+    ]
+}

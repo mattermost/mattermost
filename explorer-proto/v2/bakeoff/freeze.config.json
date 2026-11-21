@@ -1,0 +1,15 @@
+{
+    "schema": "explorer-freeze-config/v1",
+    "directories": [
+        {"role": "schemas", "dir": "explorer-proto/v2/schemas", "extensions": null},
+        {"role": "harness", "dir": "explorer-proto/v2/bakeoff", "extensions": null},
+        {"role": "gate_modules", "dir": "explorer-proto/src", "extensions": [".ts"]},
+        {"role": "gate_modules", "dir": "explorer-proto/v2/gates", "extensions": [".mjs", ".ts", ".js"]}
+    ],
+    "inputs": [
+        {"path": "explorer-proto/v2/bakeoff/inputs/goals.json", "required": true},
+        {"path": "explorer-proto/v2/bakeoff/inputs/controls.json", "required": true},
+        {"path": "explorer-proto/v2/bakeoff/inputs/repro-set.json", "required": false}
+    ],
+    "exclude": ["explorer-proto/v2/bakeoff/FREEZE.json"]
+}

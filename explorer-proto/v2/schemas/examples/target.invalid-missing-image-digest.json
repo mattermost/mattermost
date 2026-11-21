@@ -1,0 +1,21 @@
+{
+    "schema": "explorer-target/v2",
+    "kind": "release",
+    "ref": "v12.1.0",
+    "sha": "243e3d0135203ab9166fe8f2873b07f697b06fd4",
+    "image": {
+        "ref": "mattermost/mattermost-enterprise-edition:12.1.0",
+        "platform": "linux/amd64"
+    },
+    "database_image": {
+        "ref": "postgres:15.20",
+        "digest": "sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5"
+    },
+    "server_version": "12.1.0",
+    "licence_check": "PASS",
+    "playwright_version": "1.62.1",
+    "browser_build": {
+        "name": "chromium_headless_shell",
+        "revision": "1234"
+    }
+}

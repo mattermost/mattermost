@@ -1,0 +1,259 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/trace.schema.json",
+    "title": "Explorer v2 trace: what a program-driven exploration or discovery run observed",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schema",
+        "trace_id",
+        "charter_id",
+        "target_sha",
+        "stage",
+        "budget",
+        "states",
+        "transitions",
+        "guard",
+        "outcome"
+    ],
+    "properties": {
+        "schema": {
+            "const": "explorer-trace/v2"
+        },
+        "trace_id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "charter_id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "target_sha": {
+            "$ref": "common.schema.json#/definitions/sha1"
+        },
+        "stage": {
+            "type": "string",
+            "enum": ["explore", "discover", "replay"]
+        },
+        "budget": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["limits", "used"],
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["max_actions", "max_depth", "max_states"],
+                    "properties": {
+                        "max_actions": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "max_depth": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "max_states": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "max_replays": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "wall_clock_seconds": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                },
+                "used": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["actions", "states", "deepest", "budget_skips"],
+                    "properties": {
+                        "actions": {
+                            "$ref": "common.schema.json#/definitions/count"
+                        },
+                        "states": {
+                            "$ref": "common.schema.json#/definitions/count"
+                        },
+                        "deepest": {
+                            "$ref": "common.schema.json#/definitions/count"
+                        },
+                        "budget_skips": {
+                            "$ref": "common.schema.json#/definitions/count"
+                        },
+                        "replays": {
+                            "$ref": "common.schema.json#/definitions/count"
+                        }
+                    }
+                }
+            }
+        },
+        "states": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "depth", "path", "snapshot_hash", "same_document", "candidates", "skipped"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^s[0-9a-f]{8}$"
+                    },
+                    "depth": {
+                        "$ref": "common.schema.json#/definitions/count"
+                    },
+                    "path": {
+                        "$ref": "common.schema.json#/definitions/sanitizedPath"
+                    },
+                    "snapshot_hash": {
+                        "$ref": "common.schema.json#/definitions/sha256"
+                    },
+                    "same_document": {
+                        "type": "boolean"
+                    },
+                    "candidates": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "common.schema.json#/definitions/control"
+                        }
+                    },
+                    "skipped": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["role", "name", "reason"],
+                            "properties": {
+                                "role": {
+                                    "$ref": "common.schema.json#/definitions/role"
+                                },
+                                "name": {
+                                    "$ref": "common.schema.json#/definitions/accessibleName"
+                                },
+                                "reason": {
+                                    "type": "string",
+                                    "enum": [
+                                        "not_unique",
+                                        "missing",
+                                        "excluded_name",
+                                        "excluded_role",
+                                        "excluded_region",
+                                        "off_origin",
+                                        "max_depth",
+                                        "budget"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "transitions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["n", "from", "action", "to", "same_document", "changes"],
+                "properties": {
+                    "n": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "from": {
+                        "type": "string",
+                        "pattern": "^s[0-9a-f]{8}$"
+                    },
+                    "action": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["kind", "role", "name"],
+                        "properties": {
+                            "kind": {
+                                "type": "string",
+                                "enum": ["click", "fill", "press_key", "select"]
+                            },
+                            "role": {
+                                "$ref": "common.schema.json#/definitions/role"
+                            },
+                            "name": {
+                                "$ref": "common.schema.json#/definitions/accessibleName"
+                            },
+                            "key": {
+                                "type": "string",
+                                "enum": ["Enter", "Escape", "Tab"]
+                            },
+                            "input_ref": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            }
+                        }
+                    },
+                    "to": {
+                        "type": "string",
+                        "pattern": "^s[0-9a-f]{8}$"
+                    },
+                    "same_document": {
+                        "type": "boolean"
+                    },
+                    "changes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "common.schema.json#/definitions/shortText"
+                        }
+                    }
+                }
+            }
+        },
+        "guard": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["blocked_total", "violations"],
+            "properties": {
+                "blocked_total": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "violations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "common.schema.json#/definitions/shortText"
+                    }
+                }
+            }
+        },
+        "findings": {
+            "type": "array",
+            "items": {
+                "$ref": "common.schema.json#/definitions/id"
+            },
+            "uniqueItems": true
+        },
+        "outcome": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status"],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["reached", "completed", "budget_exhausted", "unreachable", "blocked"]
+                },
+                "checkpoint_results": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "result"],
+                        "properties": {
+                            "id": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "result": {
+                                "$ref": "common.schema.json#/definitions/triState"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "schema": "explorer-target/v2",
+    "kind": "main",
+    "ref": "master",
+    "sha": "0123456789abcdef0123456789abcdef01234567",
+    "image": {
+        "ref": "mattermost/mattermost-enterprise-edition:master",
+        "digest": "sha256:abababababababababababababababababababababababababababababababab",
+        "platform": "linux/amd64",
+        "build_sha": "0123456789abcdef0123456789abcdef01234567"
+    },
+    "server_version": "12.2.0",
+    "licence_check": "PASS",
+    "playwright_version": "1.62.1",
+    "browser_build": {
+        "name": "chromium_headless_shell",
+        "revision": "1234"
+    }
+}

@@ -1,0 +1,135 @@
+{
+    "schema": "explorer-bakeoff-result/v2",
+    "version": {
+        "label": "B",
+        "name": "v2",
+        "commit": "fedcba9876543210fedcba9876543210fedcba98"
+    },
+    "target": {
+        "kind": "main",
+        "sha": "0123456789abcdef0123456789abcdef01234567",
+        "image_digest": "sha256:abababababababababababababababababababababababababababababababab"
+    },
+    "features": [
+        {
+            "feature_id": "F1",
+            "outcome": "emitted_passing",
+            "gates_all_passed": true,
+            "reviewer_equivalence": "non_equivalent",
+            "evidence": [
+                {
+                    "kind": "verdict",
+                    "ref": "verdicts/f4.json"
+                }
+            ]
+        },
+        {
+            "feature_id": "F4",
+            "outcome": "rejected_duplicate",
+            "gates_all_passed": false,
+            "reviewer_equivalence": "equivalent",
+            "evidence": []
+        }
+    ],
+    "duplicate_rejection": {
+        "planted_total": 1,
+        "planted_rejected": 1,
+        "proposals_reviewed": 1,
+        "proposals_non_equivalent": 1
+    },
+    "stability": {
+        "retries": 0,
+        "specs": [
+            {
+                "spec": "spec-f1",
+                "feature_id": "F1",
+                "replays": 20,
+                "passed": 20
+            }
+        ]
+    },
+    "control_sensitivity": {
+        "controls": [
+            {
+                "spec": "spec-f1",
+                "control_id": "ctl-1",
+                "result": "pass",
+                "failed_at": {
+                    "file": "specs/f1.spec.ts",
+                    "line": 30
+                },
+                "evidence": [
+                    {
+                        "kind": "verdict",
+                        "ref": "verdicts/f4.json"
+                    }
+                ]
+            }
+        ]
+    },
+    "discovery": {
+        "runs": [
+            {
+                "feature_id": "F1",
+                "variant": "original",
+                "success": true,
+                "actions_used": 40,
+                "wall_clock_seconds_used": 120.5
+            }
+        ]
+    },
+    "route_leakage": {
+        "charters_checked": 1,
+        "violations": 0,
+        "named_controls": 0
+    },
+    "known_bug_recall": {
+        "repro_set_sha256": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "reproducing_total": 1,
+        "flagged": 1,
+        "per_bug": [
+            {
+                "bug_id": "EX-1",
+                "flagged": true,
+                "finding_id": "fnd-001"
+            }
+        ]
+    },
+    "false_positives": {
+        "states_explored": 50,
+        "confirmed_findings": 1,
+        "adjudications": [
+            {
+                "finding_id": "fnd-009",
+                "judgment": "false_positive",
+                "reviewer": "qa-lead"
+            }
+        ]
+    },
+    "cost": {
+        "stages": [
+            {
+                "stage": "explore",
+                "category": "pipeline",
+                "command_name": "node",
+                "arg_count": 3,
+                "exit_code": 0,
+                "elapsed_seconds": 12.345,
+                "agent_calls": 2
+            }
+        ],
+        "manual": [
+            {
+                "kind": "human_review_minutes",
+                "value": 15,
+                "reviewer": "qa-lead"
+            }
+        ],
+        "justifications": [
+            {
+                "component": "agent_calls",
+                "gain_metric": "features_handled"
+            }
+        ]
+    }
+}

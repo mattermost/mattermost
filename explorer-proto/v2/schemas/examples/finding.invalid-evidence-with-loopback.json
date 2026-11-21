@@ -1,0 +1,18 @@
+{
+    "schema": "explorer-finding/v2",
+    "id": "fnd-001",
+    "oracle": "console_error",
+    "severity_candidate": "minor",
+    "state_path": "/<team>/channels/<channel>",
+    "evidence_text": "Request to 127.0.0.1 failed.",
+    "reproduction_count": {
+        "attempts": 3,
+        "reproduced": 1
+    },
+    "status": "candidate",
+    "trace_ref": {
+        "trace_id": "trc-001",
+        "state_id": "s0a1b2c3d",
+        "transition": 2
+    }
+}

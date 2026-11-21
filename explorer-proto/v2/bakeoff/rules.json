@@ -1,0 +1,44 @@
+{
+    "schema": "explorer-bakeoff-rules/v2",
+    "version_a": {"name": "v1 frozen", "commit": "9c6927a30f5e5d3d380d8b2ea9b109080490d2c3"},
+    "primary_target_kind": "main",
+    "replays_per_spec": 20,
+    "discovery_budget": {
+        "max_actions": 240,
+        "max_depth": 9,
+        "max_states": 200,
+        "max_replays": 260,
+        "wall_clock_seconds": 3600
+    },
+    "features": {
+        "F1": {
+            "title": "Channel creation modal and custom-time modals: typed input, Enter submit",
+            "expected_outcomes": ["emitted_passing"]
+        },
+        "F2": {
+            "title": "Favorites persist after a channel switch and after a reload",
+            "expected_outcomes": ["emitted_passing"]
+        },
+        "F3": {
+            "title": "Request acknowledgement on a message (needs a Professional licence)",
+            "expected_outcomes": ["emitted_passing", "rejected_unreachable"],
+            "allowed_unreachable_reasons": ["licence_insufficient"]
+        },
+        "F4": {
+            "title": "Planted duplicate: the bookmark-open flow already covered by MM-T5611",
+            "expected_outcomes": ["rejected_duplicate"],
+            "covered_by": {
+                "suite": "playwright",
+                "file": "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/bookmark_display_navigation.spec.ts",
+                "line": 38,
+                "test_id": "MM-T5611"
+            }
+        }
+    },
+    "decision": {
+        "min_features_handled": 3,
+        "cost_ratio_max": 1.5,
+        "cost_components": ["elapsed_seconds", "agent_calls", "fix_rounds", "human_review_minutes"],
+        "gain_metrics": ["features_handled", "stability_rate", "control_sensitivity_rate", "discovery_rate"]
+    }
+}

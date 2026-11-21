@@ -1,0 +1,43 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/repro-set.schema.json",
+    "title": "Explorer v2 known-bug reproduction set, provided by the lead for the main SHA",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema", "target_sha", "bugs"],
+    "properties": {
+        "schema": {
+            "const": "explorer-repro-set/v2"
+        },
+        "target_sha": {
+            "$ref": "common.schema.json#/definitions/sha1"
+        },
+        "bugs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "summary", "expected_oracle_class"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[A-Z][A-Z0-9]*-[0-9]+$"
+                    },
+                    "summary": {
+                        "$ref": "common.schema.json#/definitions/shortText"
+                    },
+                    "expected_oracle_class": {
+                        "$ref": "common.schema.json#/definitions/oracleClass"
+                    },
+                    "state_path": {
+                        "$ref": "common.schema.json#/definitions/sanitizedPath"
+                    },
+                    "reproduces": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            }
+        }
+    }
+}

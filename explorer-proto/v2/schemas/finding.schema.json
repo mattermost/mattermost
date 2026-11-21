@@ -1,0 +1,121 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/finding.schema.json",
+    "title": "Explorer v2 finding: one oracle observation",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schema",
+        "id",
+        "oracle",
+        "severity_candidate",
+        "state_path",
+        "evidence_text",
+        "reproduction_count",
+        "status",
+        "trace_ref"
+    ],
+    "properties": {
+        "schema": {
+            "const": "explorer-finding/v2"
+        },
+        "id": {
+            "$ref": "common.schema.json#/definitions/id"
+        },
+        "oracle": {
+            "$ref": "common.schema.json#/definitions/oracleClass"
+        },
+        "severity_candidate": {
+            "type": "string",
+            "enum": ["critical", "major", "minor", "trivial"]
+        },
+        "state_path": {
+            "$ref": "common.schema.json#/definitions/sanitizedPath"
+        },
+        "evidence_text": {
+            "$ref": "common.schema.json#/definitions/evidenceText"
+        },
+        "reproduction_count": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["attempts", "reproduced"],
+            "properties": {
+                "attempts": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "reproduced": {
+                    "$ref": "common.schema.json#/definitions/count"
+                }
+            }
+        },
+        "status": {
+            "type": "string",
+            "enum": ["candidate", "confirmed", "rejected"]
+        },
+        "trace_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["trace_id"],
+            "properties": {
+                "trace_id": {
+                    "$ref": "common.schema.json#/definitions/id"
+                },
+                "state_id": {
+                    "type": "string",
+                    "pattern": "^s[0-9a-f]{8}$"
+                },
+                "transition": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "rejection_reason": {
+            "type": "string",
+            "enum": ["not_reproduced", "expected_behaviour", "harness_artifact", "duplicate_finding"]
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "status": {
+                        "const": "confirmed"
+                    }
+                },
+                "required": ["status"]
+            },
+            "then": {
+                "properties": {
+                    "reproduction_count": {
+                        "type": "object",
+                        "properties": {
+                            "reproduced": {
+                                "minimum": 2
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "status": {
+                        "const": "rejected"
+                    }
+                },
+                "required": ["status"]
+            },
+            "then": {
+                "required": ["rejection_reason"]
+            },
+            "else": {
+                "not": {
+                    "required": ["rejection_reason"]
+                }
+            }
+        }
+    ]
+}

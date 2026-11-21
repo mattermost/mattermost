@@ -1,0 +1,13 @@
+{
+    "schema": "explorer-lesson/v2",
+    "id": "les-001",
+    "observation": "Discovery stalled on a dialog whose close control has no accessible name.",
+    "evidence": [],
+    "proposed_check": {
+        "kind": "oracle",
+        "description": "Flag dialogs whose controls lack an accessible name.",
+        "target_file": "explorer-proto/v2/oracles/example.mjs"
+    },
+    "status": "proposed",
+    "applied": false
+}

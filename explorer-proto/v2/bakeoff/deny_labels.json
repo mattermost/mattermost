@@ -1,0 +1,48 @@
+{
+    "labels": [
+        {
+            "label": "qa sandbox public channel",
+            "role": "link",
+            "sources": [
+                {
+                    "id": "bookmarks",
+                    "kind": "session"
+                }
+            ]
+        },
+        {
+            "label": "release planning public channel",
+            "role": "link",
+            "sources": [
+                {
+                    "id": "PILOT-01",
+                    "kind": "pilot"
+                },
+                {
+                    "id": "bookmarks",
+                    "kind": "session"
+                }
+            ]
+        },
+        {
+            "label": "View Info",
+            "role": "button",
+            "sources": [
+                {
+                    "id": "PILOT-01",
+                    "kind": "pilot"
+                },
+                {
+                    "id": "PILOT-02",
+                    "kind": "pilot"
+                },
+                {
+                    "id": "bookmarks",
+                    "kind": "session"
+                }
+            ]
+        }
+    ],
+    "min_length": 4,
+    "schema": "explorer-deny-labels/v1"
+}

@@ -1,0 +1,155 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/bakeoff-rules.schema.json",
+    "title": "Pre-registered bakeoff rules, read by report.mjs and never edited by it",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schema",
+        "version_a",
+        "primary_target_kind",
+        "replays_per_spec",
+        "discovery_budget",
+        "features",
+        "decision"
+    ],
+    "properties": {
+        "schema": {
+            "const": "explorer-bakeoff-rules/v2"
+        },
+        "version_a": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "commit"],
+            "properties": {
+                "name": {
+                    "const": "v1 frozen"
+                },
+                "commit": {
+                    "$ref": "common.schema.json#/definitions/sha1"
+                }
+            }
+        },
+        "primary_target_kind": {
+            "const": "main"
+        },
+        "replays_per_spec": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "discovery_budget": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["max_actions", "max_depth", "max_states", "max_replays", "wall_clock_seconds"],
+            "properties": {
+                "max_actions": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "max_depth": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "max_states": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "max_replays": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "wall_clock_seconds": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "features": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["F1", "F2", "F3", "F4"],
+            "patternProperties": {
+                "^F[1-9][0-9]*$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["title", "expected_outcomes"],
+                    "properties": {
+                        "title": {
+                            "$ref": "common.schema.json#/definitions/shortText"
+                        },
+                        "allowed_unreachable_reasons": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": ["licence_insufficient", "no_entry_point"]
+                            },
+                            "uniqueItems": true
+                        },
+                        "expected_outcomes": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "common.schema.json#/definitions/outcome"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true
+                        },
+                        "covered_by": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["suite", "file", "line", "test_id"],
+                            "properties": {
+                                "suite": {
+                                    "type": "string",
+                                    "enum": ["cypress", "playwright"]
+                                },
+                                "file": {
+                                    "$ref": "common.schema.json#/definitions/repoPath"
+                                },
+                                "line": {
+                                    "$ref": "common.schema.json#/definitions/line"
+                                },
+                                "test_id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Z][A-Z0-9]*-[A-Za-z0-9_]+$"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "decision": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["min_features_handled", "cost_ratio_max", "cost_components", "gain_metrics"],
+            "properties": {
+                "min_features_handled": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "cost_ratio_max": {
+                    "type": "number",
+                    "exclusiveMinimum": 1
+                },
+                "cost_components": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": ["elapsed_seconds", "agent_calls", "fix_rounds", "human_review_minutes"]
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "gain_metrics": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": ["features_handled", "stability_rate", "control_sensitivity_rate", "discovery_rate"]
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                }
+            }
+        }
+    }
+}

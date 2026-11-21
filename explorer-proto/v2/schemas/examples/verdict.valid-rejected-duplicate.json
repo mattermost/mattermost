@@ -1,0 +1,39 @@
+{
+    "schema": "explorer-verdict/v2",
+    "verdict_id": "vrd-001",
+    "subject": {
+        "kind": "spec",
+        "id": "example-spec"
+    },
+    "feature_id": "F4",
+    "outcome": "rejected_duplicate",
+    "overall": "fail",
+    "gates": [
+        {
+            "gate": "schema",
+            "result": "pass",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/schema.json"
+                }
+            ]
+        },
+        {
+            "gate": "duplicate",
+            "result": "fail",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/duplicate.json"
+                }
+            ]
+        }
+    ],
+    "duplicate_of": {
+        "suite": "playwright",
+        "file": "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/example.spec.ts",
+        "line": 38,
+        "test_id": "EX-T1"
+    }
+}

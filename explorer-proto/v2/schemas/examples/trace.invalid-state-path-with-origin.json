@@ -1,0 +1,79 @@
+{
+    "schema": "explorer-trace/v2",
+    "trace_id": "trc-001",
+    "charter_id": "example.sidebar:muted-channels-visible",
+    "target_sha": "0123456789abcdef0123456789abcdef01234567",
+    "stage": "discover",
+    "budget": {
+        "limits": {
+            "max_actions": 120,
+            "max_depth": 8,
+            "max_states": 100
+        },
+        "used": {
+            "actions": 2,
+            "states": 2,
+            "deepest": 1,
+            "budget_skips": 0
+        }
+    },
+    "states": [
+        {
+            "id": "s0a1b2c3d",
+            "depth": 0,
+            "path": "http://127.0.0.1:8065/team",
+            "snapshot_hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+            "same_document": true,
+            "candidates": [
+                {
+                    "role": "button",
+                    "name": "View Info"
+                }
+            ],
+            "skipped": []
+        },
+        {
+            "id": "s1b2c3d4e",
+            "depth": 1,
+            "path": "/<team>/channels/town-square",
+            "snapshot_hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+            "same_document": true,
+            "candidates": [],
+            "skipped": [
+                {
+                    "role": "button",
+                    "name": "Delete",
+                    "reason": "excluded_name"
+                }
+            ]
+        }
+    ],
+    "transitions": [
+        {
+            "n": 1,
+            "from": "s0a1b2c3d",
+            "action": {
+                "kind": "click",
+                "role": "button",
+                "name": "View Info"
+            },
+            "to": "s1b2c3d4e",
+            "same_document": true,
+            "changes": ["region \"Info\" appeared"]
+        }
+    ],
+    "guard": {
+        "blocked_total": 0,
+        "violations": []
+    },
+    "findings": ["fnd-001"],
+    "outcome": {
+        "status": "reached",
+        "checkpoint_results": [
+            {
+                "id": "C1",
+                "result": "pass"
+            }
+        ]
+    }
+}

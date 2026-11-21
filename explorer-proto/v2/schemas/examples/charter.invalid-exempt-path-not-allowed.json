@@ -1,0 +1,69 @@
+{
+    "schema": "explorer-charter/v2",
+    "charter_id": "example.sidebar:muted-channels-visible",
+    "goal": "I want to tell at a glance which channels I have muted, so that I can stop reading them by accident.",
+    "consequence": "If this breaks, a muted channel looks the same as an active one.",
+    "lane": "Browser",
+    "start": {
+        "start_path": "/<team>/channels/town-square",
+        "actor": "member"
+    },
+    "action_rules": {
+        "roles_in_play": ["button", "link", "menuitem"],
+        "roles_excluded": {
+            "roles": ["textbox"],
+            "why": "No typed input in this charter."
+        },
+        "excluded_name_patterns": {
+            "match": "whole word, case-insensitive",
+            "patterns": [
+                {
+                    "pattern": "\\bdelete\\b",
+                    "why": "Destructive."
+                }
+            ]
+        },
+        "uniqueness": "Exact role and exact accessible name, unique at actuation time."
+    },
+    "goal_terms": {
+        "derive_from": "goal",
+        "stopwords": ["i", "want", "to", "the", "a"]
+    },
+    "budget": {
+        "max_actions": 120,
+        "max_depth": 8,
+        "max_states": 100,
+        "max_replays": 150,
+        "wall_clock_seconds": 1800
+    },
+    "oracles": ["console_error", "dead_control"],
+    "dedupe": {
+        "key": "example.sidebar:muted-channels-visible"
+    },
+    "leakage": {
+        "rules": [
+            {
+                "id": "L1",
+                "kind": "ordered_phrase"
+            },
+            {
+                "id": "L2",
+                "kind": "numbered_steps"
+            },
+            {
+                "id": "L3",
+                "kind": "deny_labels",
+                "deny_list": "explorer-proto/v2/bakeoff/deny_labels.json"
+            },
+            {
+                "id": "L4",
+                "kind": "unknown_key"
+            },
+            {
+                "id": "L5",
+                "kind": "forbidden_key"
+            }
+        ],
+        "exempt_paths": ["goal"]
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "schema": "explorer-finding/v2",
+    "id": "fnd-001",
+    "oracle": "console_error",
+    "severity_candidate": "minor",
+    "state_path": "/<team>/channels/<channel>",
+    "evidence_text": "Console error \"TypeError: x is undefined\" logged once when the panel opened.",
+    "reproduction_count": {
+        "attempts": 3,
+        "reproduced": 1
+    },
+    "status": "rejected",
+    "trace_ref": {
+        "trace_id": "trc-001",
+        "state_id": "s0a1b2c3d",
+        "transition": 2
+    },
+    "rejection_reason": "not_reproduced"
+}

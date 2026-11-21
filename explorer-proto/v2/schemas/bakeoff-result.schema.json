@@ -1,0 +1,544 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/schemas/bakeoff-result.schema.json",
+    "title": "Explorer v2 bakeoff result set for one version on one target",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema", "version", "target"],
+    "properties": {
+        "schema": {
+            "const": "explorer-bakeoff-result/v2"
+        },
+        "version": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "name", "commit"],
+            "properties": {
+                "label": {
+                    "type": "string",
+                    "enum": ["A", "B"]
+                },
+                "name": {
+                    "type": "string",
+                    "enum": ["v1 frozen", "v2"]
+                },
+                "commit": {
+                    "$ref": "common.schema.json#/definitions/sha1"
+                }
+            }
+        },
+        "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "sha", "image_digest"],
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "enum": ["release", "main"]
+                },
+                "sha": {
+                    "$ref": "common.schema.json#/definitions/sha1"
+                },
+                "image_digest": {
+                    "$ref": "common.schema.json#/definitions/imageDigest"
+                }
+            }
+        },
+        "features": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["feature_id", "outcome", "gates_all_passed", "reviewer_equivalence", "evidence"],
+                "properties": {
+                    "feature_id": {
+                        "$ref": "common.schema.json#/definitions/featureId"
+                    },
+                    "outcome": {
+                        "$ref": "common.schema.json#/definitions/outcome"
+                    },
+                    "gates_all_passed": {
+                        "type": "boolean"
+                    },
+                    "reviewer_equivalence": {
+                        "type": "string",
+                        "enum": ["equivalent", "non_equivalent", "not_reviewed"]
+                    },
+                    "unreachable_reason": {
+                        "type": "string",
+                        "enum": ["licence_insufficient", "no_entry_point"]
+                    },
+                    "evidence": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "common.schema.json#/definitions/evidenceRef"
+                        }
+                    }
+                },
+                "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "outcome": {
+                                    "enum": ["rejected_duplicate", "rejected_unreachable"]
+                                }
+                            },
+                            "required": ["outcome"]
+                        },
+                        "then": {
+                            "properties": {
+                                "evidence": {
+                                    "minItems": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "outcome": {
+                                    "const": "emitted_passing"
+                                }
+                            },
+                            "required": ["outcome"]
+                        },
+                        "then": {
+                            "properties": {
+                                "gates_all_passed": {
+                                    "const": true
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "outcome": {
+                                    "const": "rejected_unreachable"
+                                }
+                            },
+                            "required": ["outcome"]
+                        },
+                        "then": {
+                            "required": ["unreachable_reason"]
+                        },
+                        "else": {
+                            "not": {
+                                "required": ["unreachable_reason"]
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "duplicate_rejection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["planted_total", "planted_rejected", "proposals_reviewed", "proposals_non_equivalent"],
+            "properties": {
+                "planted_total": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "planted_rejected": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "proposals_reviewed": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "proposals_non_equivalent": {
+                    "$ref": "common.schema.json#/definitions/count"
+                }
+            }
+        },
+        "stability": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["retries", "specs"],
+            "properties": {
+                "retries": {
+                    "const": 0
+                },
+                "specs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["spec", "feature_id", "replays", "passed"],
+                        "properties": {
+                            "spec": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "feature_id": {
+                                "$ref": "common.schema.json#/definitions/featureId"
+                            },
+                            "replays": {
+                                "const": 20
+                            },
+                            "passed": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 20
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "control_sensitivity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["controls"],
+            "properties": {
+                "controls": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["spec", "control_id", "result", "evidence"],
+                        "properties": {
+                            "spec": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "control_id": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "result": {
+                                "$ref": "common.schema.json#/definitions/triState"
+                            },
+                            "failed_at": {
+                                "$ref": "common.schema.json#/definitions/sourceRef"
+                            },
+                            "evidence": {
+                                "$ref": "common.schema.json#/definitions/evidenceRefs"
+                            }
+                        },
+                        "if": {
+                            "properties": {
+                                "result": {
+                                    "const": "pass"
+                                }
+                            },
+                            "required": ["result"]
+                        },
+                        "then": {
+                            "required": ["failed_at"]
+                        }
+                    }
+                }
+            }
+        },
+        "discovery": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runs"],
+            "properties": {
+                "runs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["feature_id", "variant", "success", "actions_used", "wall_clock_seconds_used"],
+                        "properties": {
+                            "feature_id": {
+                                "$ref": "common.schema.json#/definitions/featureId"
+                            },
+                            "variant": {
+                                "type": "string",
+                                "enum": ["original", "paraphrased", "shuffled"]
+                            },
+                            "success": {
+                                "type": "boolean"
+                            },
+                            "actions_used": {
+                                "$ref": "common.schema.json#/definitions/count"
+                            },
+                            "wall_clock_seconds_used": {
+                                "$ref": "common.schema.json#/definitions/seconds"
+                            },
+                            "evidence": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "common.schema.json#/definitions/evidenceRef"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "route_leakage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["charters_checked", "violations", "named_controls"],
+            "properties": {
+                "charters_checked": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "violations": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "named_controls": {
+                    "$ref": "common.schema.json#/definitions/count"
+                }
+            }
+        },
+        "known_bug_recall": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["repro_set_sha256", "reproducing_total", "flagged", "per_bug"],
+            "properties": {
+                "repro_set_sha256": {
+                    "$ref": "common.schema.json#/definitions/sha256"
+                },
+                "reproducing_total": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "flagged": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "per_bug": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["bug_id", "flagged"],
+                        "properties": {
+                            "bug_id": {
+                                "type": "string",
+                                "pattern": "^[A-Z][A-Z0-9]*-[0-9]+$"
+                            },
+                            "flagged": {
+                                "type": "boolean"
+                            },
+                            "finding_id": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "false_positives": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["states_explored", "confirmed_findings", "adjudications"],
+            "properties": {
+                "states_explored": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "confirmed_findings": {
+                    "$ref": "common.schema.json#/definitions/count"
+                },
+                "adjudications": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["finding_id", "judgment", "reviewer"],
+                        "properties": {
+                            "finding_id": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "judgment": {
+                                "type": "string",
+                                "enum": ["true_bug", "false_positive", "unknown"]
+                            },
+                            "reviewer": {
+                                "$ref": "common.schema.json#/definitions/reviewerHandle"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "cost": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stages"],
+            "properties": {
+                "stages": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "stage",
+                            "category",
+                            "command_name",
+                            "arg_count",
+                            "exit_code",
+                            "elapsed_seconds",
+                            "agent_calls"
+                        ],
+                        "properties": {
+                            "stage": {
+                                "$ref": "common.schema.json#/definitions/id"
+                            },
+                            "category": {
+                                "type": "string",
+                                "enum": ["pipeline", "measurement"]
+                            },
+                            "command_name": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_.+-]{1,80}$"
+                            },
+                            "arg_count": {
+                                "$ref": "common.schema.json#/definitions/count"
+                            },
+                            "exit_code": {
+                                "type": ["integer", "null"]
+                            },
+                            "signal": {
+                                "type": "string",
+                                "pattern": "^SIG[A-Z0-9]{1,10}$"
+                            },
+                            "elapsed_seconds": {
+                                "$ref": "common.schema.json#/definitions/seconds"
+                            },
+                            "agent_calls": {
+                                "$ref": "common.schema.json#/definitions/count"
+                            },
+                            "agent_calls_file_present": {
+                                "type": "boolean"
+                            },
+                            "agent_calls_malformed_lines": {
+                                "$ref": "common.schema.json#/definitions/count"
+                            },
+                            "volatile": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["started_at", "ended_at"],
+                                "properties": {
+                                    "started_at": {
+                                        "type": "string",
+                                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$"
+                                    },
+                                    "ended_at": {
+                                        "type": "string",
+                                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "manual": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["kind", "value", "reviewer"],
+                        "properties": {
+                            "kind": {
+                                "type": "string",
+                                "enum": ["human_review_minutes", "agent_rounds", "fix_rounds"]
+                            },
+                            "value": {
+                                "$ref": "common.schema.json#/definitions/seconds"
+                            },
+                            "reviewer": {
+                                "$ref": "common.schema.json#/definitions/reviewerHandle"
+                            },
+                            "feature_id": {
+                                "$ref": "common.schema.json#/definitions/featureId"
+                            },
+                            "note": {
+                                "type": "string",
+                                "maxLength": 120,
+                                "not": {
+                                    "pattern": "(?:https?://|127\\.0\\.0\\.1|localhost)"
+                                }
+                            }
+                        }
+                    }
+                },
+                "justifications": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["component", "gain_metric"],
+                        "properties": {
+                            "component": {
+                                "type": "string",
+                                "enum": ["elapsed_seconds", "agent_calls", "fix_rounds", "human_review_minutes"]
+                            },
+                            "gain_metric": {
+                                "type": "string",
+                                "enum": [
+                                    "features_handled",
+                                    "stability_rate",
+                                    "control_sensitivity_rate",
+                                    "discovery_rate"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "version": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "const": "A"
+                            }
+                        },
+                        "required": ["label"]
+                    }
+                },
+                "required": ["version"]
+            },
+            "then": {
+                "properties": {
+                    "version": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "const": "v1 frozen"
+                            },
+                            "commit": {
+                                "const": "9c6927a30f5e5d3d380d8b2ea9b109080490d2c3"
+                            }
+                        }
+                    },
+                    "known_bug_recall": false,
+                    "false_positives": false
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "version": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "const": "B"
+                            }
+                        },
+                        "required": ["label"]
+                    }
+                },
+                "required": ["version"]
+            },
+            "then": {
+                "properties": {
+                    "version": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "const": "v2"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

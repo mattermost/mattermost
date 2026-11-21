@@ -1,0 +1,23 @@
+{
+    "schema": "explorer-verdict/v2",
+    "verdict_id": "vrd-001",
+    "subject": {
+        "kind": "spec",
+        "id": "example-spec"
+    },
+    "feature_id": "F2",
+    "outcome": "rejected_duplicate",
+    "overall": "fail",
+    "gates": [
+        {
+            "gate": "duplicate",
+            "result": "fail",
+            "evidence": [
+                {
+                    "kind": "report",
+                    "ref": "reports/duplicate.json"
+                }
+            ]
+        }
+    ]
+}
