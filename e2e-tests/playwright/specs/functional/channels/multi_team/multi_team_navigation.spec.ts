@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  *
  * MM-T432 is a duplicate of MM-T430 and is covered by this test.
  */
-test('MM-T430 MM-T432 switches between teams and logs out', {tag: '@multi_team'}, async ({pw}) => {
+test('MM-T430 MM-T432 switches between teams and logs out', {tag: ['@multi_team', '@core']}, async ({pw}) => {
     // # Create a user in one team, then add them to a second team
     const {user, team, adminClient} = await pw.initSetup();
     const secondTeam = await pw.createNewTeam(adminClient, {
@@ -45,7 +45,7 @@ test('MM-T430 MM-T432 switches between teams and logs out', {tag: '@multi_team'}
 /**
  * @objective Verify that reopening the app returns the user to the previously viewed team and channel.
  */
-test('MM-T431 reopens to the previously viewed team and channel', {tag: '@multi_team'}, async ({pw}) => {
+test('MM-T431 reopens to the previously viewed team and channel', {tag: ['@multi_team', '@core']}, async ({pw}) => {
     // # Create a user in one team, then add them to a second team
     const {user, team, adminClient} = await pw.initSetup();
     const secondTeam = await pw.createNewTeam(adminClient, {
@@ -80,7 +80,7 @@ test('MM-T431 reopens to the previously viewed team and channel', {tag: '@multi_
 /**
  * @objective Verify that the right-hand-side reply panel can be expanded to overlay the center channel and collapsed back while staying open.
  */
-test('MM-T440 expands and collapses the RHS reply panel', {tag: '@multi_team'}, async ({pw}) => {
+test('MM-T440 expands and collapses the RHS reply panel', {tag: ['@multi_team', '@core']}, async ({pw}) => {
     // # Create and log in as a test user
     const {user, team} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);

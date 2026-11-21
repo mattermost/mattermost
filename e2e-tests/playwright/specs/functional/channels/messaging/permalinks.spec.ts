@@ -6,7 +6,7 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that clicking a post timestamp in the RHS or center channel highlights the post in the center channel.
  */
-test('MM-T176 highlights the center post when its timestamp is clicked', {tag: ['@messaging']}, async ({pw}) => {
+test('MM-T176 highlights the center post when its timestamp is clicked', {tag: ['@messaging', '@core']}, async ({pw}) => {
     // # Create and log in as a test user
     const {user, team} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);
@@ -42,7 +42,7 @@ test('MM-T176 highlights the center post when its timestamp is clicked', {tag: [
 /**
  * @objective Verify that following a permalink to the first post in a channel loads the channel start without an endless loading indicator above it.
  */
-test('MM-T3308 follows a permalink to the first post without endless loading', {tag: '@messaging'}, async ({pw}) => {
+test('MM-T3308 follows a permalink to the first post without endless loading', {tag: ['@messaging', '@core']}, async ({pw}) => {
     const messageCount = 10;
     const base = `permalink-${pw.random.id()}`;
 

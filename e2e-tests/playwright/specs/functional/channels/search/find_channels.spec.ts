@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test(
     'MM-T5424 Find channel search returns only 50 results when there are more than 50 channels with similar names',
-    {tag: '@smoke'},
+    {tag: ['@smoke', '@core']},
     async ({pw}) => {
         const {adminClient, user, team} = await pw.initSetup();
 

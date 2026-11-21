@@ -17,7 +17,7 @@ const NOTIFY_ALL_TITLE = 'Confirm sending notifications to entire channel';
  */
 test(
     'MM-T483 triggers notification with uppercase channel-wide mention and highlights message for all users',
-    {tag: '@notifications'},
+    {tag: ['@notifications', '@core']},
     async ({pw}) => {
         // # Initialize setup and get the required users and team
         const {team, adminUser, user} = await pw.initSetup();
@@ -79,7 +79,7 @@ test(
  */
 test(
     'MM-T484 recognizes a mixed-case @channEL channel-wide mention and preserves its casing',
-    {tag: '@notifications'},
+    {tag: ['@notifications', '@core']},
     async ({pw}) => {
         const {adminClient, team, user} = await pw.initSetup();
 
@@ -117,7 +117,7 @@ test(
  */
 test(
     'MM-T485 recognizes an uppercase @HERE channel-wide mention and preserves its casing',
-    {tag: '@notifications'},
+    {tag: ['@notifications', '@core']},
     async ({pw}) => {
         const {adminClient, team, user} = await pw.initSetup();
 
