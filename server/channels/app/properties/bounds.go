@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"slices"
@@ -60,11 +61,11 @@ func (h *BoundsHook) isGroupV3(groupID string) (bool, error) {
 }
 
 // check runs the field-level checks. existing is nil for a new field.
-func (h *BoundsHook) check(field, existing *model.PropertyField) error {
+func (h *BoundsHook) check(rctx request.CTX, field, existing *model.PropertyField) error {
 	if err := refuseSetOnCreate(field); err != nil {
 		return err
 	}
-	return h.validateBoundsChange(field, existing)
+	return h.validateBoundsChange(rctx, field, existing)
 }
 
 func (h *BoundsHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
@@ -75,7 +76,7 @@ func (h *BoundsHook) PreCreatePropertyField(rctx request.CTX, field *model.Prope
 	if !v3 {
 		return field, nil
 	}
-	if err := h.check(field, nil); err != nil {
+	if err := h.check(rctx, field, nil); err != nil {
 		return nil, err
 	}
 	return field, nil
@@ -93,7 +94,7 @@ func (h *BoundsHook) PreUpdatePropertyField(rctx request.CTX, groupID string, fi
 	if err != nil {
 		return nil, err
 	}
-	if err := h.check(field, existing); err != nil {
+	if err := h.check(rctx, field, existing); err != nil {
 		return nil, err
 	}
 	return field, nil
@@ -125,7 +126,7 @@ func (h *BoundsHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, f
 	}
 
 	for _, field := range fields {
-		if err := h.check(field, existingByID[field.ID]); err != nil {
+		if err := h.check(rctx, field, existingByID[field.ID]); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 	}
@@ -152,37 +153,114 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 	return model.NewAppError("UpsertPropertyField", "app.property_field.set_on_create_unsupported.app_error", nil, details, http.StatusBadRequest)
 }
 
-// validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once. Unless the PropertyFieldBounds and PropertyFieldPermissionsV3
-// flags are both on it is refused whatever the license; with them on it is refused
-// unless the server is licensed for Enterprise Advanced. Rules and locks already
-// on the field ride along, and removing them is always allowed. Unstated bounds
-// (nil) and mutability ("") add nothing; the update path fills them in from the
-// stored field.
-func (h *BoundsHook) validateBoundsChange(field, existing *model.PropertyField) error {
-	var prevBounds model.PropertyBounds
-	prevMutability := model.PropertyFieldMutabilityMutable
-	if existing != nil {
-		prevBounds = existing.Bounds
-		prevMutability = existing.Mutability.OrMutable()
-	}
+// changePolicyWrites is what the change_policy translation in a field write's
+// pre-hooks tells the bounds hook: which fields the request saves in the old
+// format. Such a write carries the existing change_policy feature over, so the
+// flag does not gate the self rules and write_once its translation adds.
+type changePolicyWrites struct {
+	oldFormatByField map[string]bool
+}
 
-	var adding string
+type changePolicyWritesKey struct{}
+
+// withChangePolicyWrites attaches a fresh, empty record to rctx. Every public
+// field-write method calls it, even when rctx already carries one, so one save's
+// record never leaks into another's.
+func withChangePolicyWrites(rctx request.CTX) request.CTX {
+	c := &changePolicyWrites{oldFormatByField: make(map[string]bool)}
+	return rctx.WithContext(context.WithValue(rctx.Context(), changePolicyWritesKey{}, c))
+}
+
+// changePolicyWritesFrom returns the record on rctx, or nil when no write method
+// created one; its methods then report every field as not old-format.
+func changePolicyWritesFrom(rctx request.CTX) *changePolicyWrites {
+	c, _ := rctx.Context().Value(changePolicyWritesKey{}).(*changePolicyWrites)
+	return c
+}
+
+// record notes whether the save of fieldID is an old-format write. A batch can
+// name a field twice; it counts as old-format only if every entry for it is, so
+// a rule stated directly in one entry can't ride another entry's exemption.
+func (c *changePolicyWrites) record(fieldID string, oldFormat bool) {
+	if c == nil {
+		return
+	}
+	if prev, seen := c.oldFormatByField[fieldID]; seen {
+		oldFormat = prev && oldFormat
+	}
+	c.oldFormatByField[fieldID] = oldFormat
+}
+
+func (c *changePolicyWrites) oldFormat(fieldID string) bool {
+	return c != nil && c.oldFormatByField[fieldID]
+}
+
+// translated reports whether the change_policy translation saw fieldID in this
+// request, so its stored change_policy / editable keys are a lock it honours.
+func (c *changePolicyWrites) translated(fieldID string) bool {
+	if c == nil {
+		return false
+	}
+	_, seen := c.oldFormatByField[fieldID]
+	return seen
+}
+
+// validateBoundsChange refuses a new bounds rule, or a mutability that newly
+// becomes write_once, judged against the stored settings (changePolicyBaseline
+// when the change_policy translation saw the field). Unless the
+// PropertyFieldBounds and PropertyFieldPermissionsV3 flags are both on it is
+// refused whatever the license, except what an old-format write's translation
+// adds (a self rule or write_once): that carries the existing change_policy
+// feature over and needs only the license. A parent rule saved beside
+// change_policy is still refused. With the flags on it is refused unless the
+// server is licensed for Enterprise Advanced. Rules and locks already on the
+// field ride along, and removing them is always allowed. Unstated bounds (nil)
+// and mutability ("") add nothing; the update path fills them in from the stored
+// field.
+func (h *BoundsHook) validateBoundsChange(rctx request.CTX, field, existing *model.PropertyField) error {
+	writes := changePolicyWritesFrom(rctx)
+	// Only the access_control hook translates, so only there does a stored
+	// change_policy count as a lock; elsewhere it was never enforced.
+	prevMutability, prevBounds := model.PropertyFieldMutabilityMutable, model.PropertyBounds(nil)
+	if existing != nil {
+		prevMutability, prevBounds = existing.Mutability.OrMutable(), existing.Bounds
+	}
+	if writes.translated(field.ID) {
+		prevMutability, prevBounds = changePolicyBaseline(existing)
+	}
+	oldFormat := writes.oldFormat(field.ID)
+
+	// adding is the first thing the write adds, which the license check names;
+	// flagGated is the first of those the flag also refuses, so it skips the self
+	// rules and write_once that an old-format write's translation adds.
+	var adding, flagGated string
 	for _, rule := range field.Bounds {
-		if !slices.Contains(prevBounds, rule) {
-			adding = fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
-			break
+		if slices.Contains(prevBounds, rule) {
+			continue
+		}
+		desc := fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
+		if adding == "" {
+			adding = desc
+		}
+		if flagGated == "" && (!oldFormat || rule.Reference != model.PropertyBoundsReferenceSelf) {
+			flagGated = desc
 		}
 	}
-	if adding == "" && field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
-		adding = fmt.Sprintf("make the field %s", field.Mutability)
+	if field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
+		desc := fmt.Sprintf("make the field %s", field.Mutability)
+		if adding == "" {
+			adding = desc
+		}
+		if flagGated == "" && !oldFormat {
+			flagGated = desc
+		}
 	}
 	if adding == "" {
 		return nil
 	}
 
-	if !h.propertyFieldBoundsEnabled() {
-		details := fmt.Sprintf("field %s: cannot %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, adding)
+	if flagGated != "" && !h.propertyFieldBoundsEnabled() {
+		details := fmt.Sprintf("field %s: cannot %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, flagGated)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
 	if !h.propertyService.boundsEnforced() {

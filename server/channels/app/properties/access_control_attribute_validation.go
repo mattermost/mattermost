@@ -11,11 +11,13 @@ import (
 	"maps"
 	"math"
 	"net/http"
+	"reflect"
 	"slices"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -165,7 +167,7 @@ func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool
 // creation of a new field (or when an update targets a field that does not
 // exist, which the store reports later): every rule then treats the field as
 // brand new, with nothing to grandfather.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field, existing *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rctx request.CTX, field, existing *model.PropertyField) error {
 	// Access policies and the attribute views they read have no notion of a
 	// number or a boolean, so those types are refused here, whether a field is
 	// created with one or changed to one, rather than stored and then ignored or
@@ -222,6 +224,56 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := h.validateSyncSources(field, existing); err != nil {
 		return err
 	}
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+		readUnlockOverStaleEditable(field, existing)
+	}
+	// change_policy only ever meant something on a channel field, so elsewhere it
+	// is dropped before validation rather than refused: an integration still
+	// sending it is warned instead of broken. A raise/lower policy on a field
+	// that isn't a rank is stripped by the validation below; read it first so
+	// that is logged too.
+	oldKeys := oldPolicyKeysWritten(field, existing)
+	// Read before validation, which deletes change_policy "any" and nulls. A nil
+	// key or blank change_policy states nothing: it is how a plugin leaves a key
+	// unset, as the plugin RPC can't omit one. Nor does a raise/lower policy the
+	// validation strips, which would otherwise read as an unlock, except on a rank
+	// changing type: it carries its stored policy along, and that unlock is what
+	// keeps the type change saveable.
+	sentPolicy, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
+	sentPolicy = strings.TrimSpace(sentPolicy)
+	stripped := model.IsOrderedPropertyFieldChangePolicy(sentPolicy) && field.Type != model.PropertyFieldTypeRank
+	wasRank := existing != nil && existing.Type == model.PropertyFieldTypeRank
+	statesPolicy := sentPolicy != "" && (!stripped || wasRank) || field.Attrs[model.PropertyFieldAttrEditable] != nil
+	loggable := stripped
+	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
+		dropOldPolicyKeys(field)
+		loggable = true
+	}
+	// Both old keys are validated first: the translation below reads them.
+	for _, key := range boolFieldAttrKeys {
+		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
+			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
+	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
+	oldFormatWrite, err := translateChangePolicy(field, existing, statesPolicy)
+	if err != nil {
+		return err
+	}
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+		// Tells the bounds hook, which runs after this one, to let the translated
+		// self rule or write_once through the flag gate.
+		changePolicyWritesFrom(rctx).record(field.ID, oldFormatWrite)
+	}
+	if oldFormatWrite && len(oldKeys) == 0 {
+		// Unlocking with change_policy "any" or editable=true names none of them.
+		oldKeys = []string{model.PropertyFieldAttrChangePolicy}
+	}
+	if oldFormatWrite || loggable {
+		h.propertyService.warnOldPolicyKeys(rctx, field, oldKeys)
+	}
 
 	if err := model.ValidatePropertyFieldVisibility(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
@@ -248,11 +300,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
-	for _, key := range boolFieldAttrKeys {
-		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
-			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
-		}
-	}
 	// The kill switch blocks only newly marking a channel field required: a
 	// field that predates the switch being engaged keeps its required=true
 	// attr untouched (same lenient-grandfather rationale as Name and
@@ -268,9 +315,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if objectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
 		model.IsPropertyFieldRequired(field) && !prevRequired {
 		return newRequiredAttrDisabledError(field)
-	}
-	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
-		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
 	// Lenient grandfather, same rationale as Name: a PATCH merges attrs, so a
 	// field carrying an actions value that predates (or has since fallen out of)
@@ -732,7 +776,7 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 	// repaired, actions get the strict check with nothing to grandfather, and a
 	// required=true channel field is rejected outright if the kill switch is on
 	// (there is nothing to grandfather on a brand new field).
-	if err := h.sanitizeAndValidateFieldAttrs(field, nil); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(rctx, field, nil); err != nil {
 		return nil, err
 	}
 
@@ -757,7 +801,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(rctx, field, existing); err != nil {
 		return nil, err
 	}
 	if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
@@ -799,7 +843,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 		// not-found error later): strict rank validation is the safe default
 		// for that path, and a required channel field is rejected outright
 		// rather than grandfathered.
-		if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+		if err := h.sanitizeAndValidateFieldAttrs(rctx, field, existing); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 		if existing != nil {
@@ -1236,141 +1280,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 	}
 
-	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
-}
-
-// validateChangePolicy enforces attrs.change_policy: a value may be set once,
-// and after that may only move in the direction its policy allows. It runs on
-// every write path into the group, so a direct API call is refused the same way
-// the UI refuses to offer the edit.
-//
-// Only channel targets are covered. The same group holds user attributes, which
-// LDAP/SAML sync rewrites on login; locking those would break the sync. Other
-// object types are a separate decision.
-//
-// This is a read-then-write with no transaction around it, so two concurrent
-// first writes can both pass. That is the window the rest of the property system
-// already lives with, and the loser overwrites a value set milliseconds earlier.
-func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request.CTX, groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
-	// Grouped by target so one search covers every governed field on a channel:
-	// PropertyValueSearchOpts carries a single FieldID, so a per-field lookup
-	// would cost a round trip each. "any" is the default and the common case,
-	// so an ordinary write does no query at all.
-	governed := map[string][]*model.PropertyValue{}
-	for _, value := range values {
-		if value.TargetType != model.PropertyValueTargetTypeChannel {
-			continue
-		}
-		field, ok := fieldMap[value.FieldID]
-		if !ok || model.GetPropertyFieldChangePolicy(field) == model.PropertyFieldChangePolicyAny {
-			continue
-		}
-		governed[value.TargetID] = append(governed[value.TargetID], value)
-	}
-
-	for targetID, pending := range governed {
-		existing, err := h.propertyService.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
-		if err != nil {
-			return err
-		}
-
-		existingByFieldID := make(map[string]*model.PropertyValue, len(existing))
-		for _, value := range existing {
-			existingByFieldID[value.FieldID] = value
-		}
-
-		for _, value := range pending {
-			old, ok := existingByFieldID[value.FieldID]
-
-			// A user-initiated clear leaves a null-valued row behind rather than
-			// deleting it, so the presence of a row is not proof of a set value.
-			if !ok || model.IsEmptyPropertyValue(old.Value) {
-				continue
-			}
-			if err := checkValueMove(fieldMap[value.FieldID], old.Value, value.Value); err != nil {
-				return err
-			}
-		}
-	}
-
 	return nil
-}
-
-// checkValueMove decides whether a field's policy permits replacing old with
-// next. Both are known non-empty on the old side; next may be empty, which is a
-// clear.
-func checkValueMove(field *model.PropertyField, old, next json.RawMessage) error {
-	policy := model.GetPropertyFieldChangePolicy(field)
-
-	if policy == model.PropertyFieldChangePolicyNever {
-		return newChangePolicyError(field, policy)
-	}
-
-	// Clearing is the largest downgrade there is, and re-setting afterwards
-	// would launder a value straight past a directional policy.
-	if model.IsEmptyPropertyValue(next) {
-		return newChangePolicyError(field, policy)
-	}
-
-	ranks := buildOptionRankMap(field)
-	oldRank, oldOK := singleOptionRank(field.Type, old, ranks)
-	newRank, newOK := singleOptionRank(field.Type, next, ranks)
-
-	// Fail closed: an option deleted from the field leaves a comparison that
-	// cannot be made, and an unresolvable comparison on a marking must not
-	// default to permitted.
-	if !oldOK || !newOK {
-		return newChangePolicyError(field, policy)
-	}
-
-	// Higher rank is higher, matching filterSharedOnlyRankFieldOptions, which
-	// exposes every option at or below the caller's own rank.
-	switch policy {
-	case model.PropertyFieldChangePolicyRaiseOnly:
-		if newRank > oldRank {
-			return nil
-		}
-	case model.PropertyFieldChangePolicyLowerOnly:
-		if newRank < oldRank {
-			return nil
-		}
-	}
-
-	return newChangePolicyError(field, policy)
-}
-
-// singleOptionRank resolves the rank of the one option a rank value carries. A
-// rank field is select-shaped, so anything other than exactly one known option
-// is unresolvable.
-func singleOptionRank(fieldType model.PropertyFieldType, raw json.RawMessage, ranks map[string]int) (int, bool) {
-	optionIDs, err := extractOptionIDsFromValue(fieldType, raw)
-	if err != nil || len(optionIDs) != 1 {
-		return 0, false
-	}
-	for optionID := range optionIDs {
-		rank, ok := ranks[optionID]
-		return rank, ok
-	}
-	return 0, false
-}
-
-// newChangePolicyError returns the refusal for a policy. The AppError is
-// returned rather than a sentinel so its specific i18n key survives the HTTP
-// layer's mapPropertyServiceError fallback, the same way the CEL name errors do.
-//
-// Each key is written inline: i18n-extract only sees IDs passed literally to
-// NewAppError, and drops any it cannot find from en.json.
-func newChangePolicyError(field *model.PropertyField, policy string) error {
-	details := fmt.Sprintf("field %s: change policy %q does not permit this change", field.ID, policy)
-
-	switch policy {
-	case model.PropertyFieldChangePolicyRaiseOnly:
-		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.raise_only.app_error", nil, details, http.StatusForbidden)
-	case model.PropertyFieldChangePolicyLowerOnly:
-		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.lower_only.app_error", nil, details, http.StatusForbidden)
-	default:
-		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.never.app_error", nil, details, http.StatusForbidden)
-	}
 }
 
 // newDirectChannelValueError returns the refusal for a hand-written DM/GM
@@ -1417,6 +1327,188 @@ func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existi
 		return model.NewAppError("UpsertPropertyField", "app.property_field.openid_sync_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
 	return nil
+}
+
+// changePolicyDeprecatedMessage is logged for every write of the old keys.
+const changePolicyDeprecatedMessage = "change_policy and editable are deprecated; set mutability and bounds instead"
+
+// oldPolicyKeysWritten lists the old keys field carries that differ from the
+// stored field's, so a save echoing what it was shown writes none. change_policy
+// "any", nil or blank, and editable=true or nil, mean the same as absent and
+// don't count.
+func oldPolicyKeysWritten(field, existing *model.PropertyField) []string {
+	changed := func(key string) bool {
+		return existing == nil || !reflect.DeepEqual(field.Attrs[key], existing.Attrs[key])
+	}
+	var keys []string
+	p, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
+	if p = strings.TrimSpace(p); p != "" && p != model.PropertyFieldChangePolicyAny &&
+		changed(model.PropertyFieldAttrChangePolicy) {
+		keys = append(keys, model.PropertyFieldAttrChangePolicy)
+	}
+	if field.Attrs[model.PropertyFieldAttrEditable] == false && changed(model.PropertyFieldAttrEditable) {
+		keys = append(keys, model.PropertyFieldAttrEditable)
+	}
+	return keys
+}
+
+// readUnlockOverStaleEditable strips the stale key an unlock arrives with, so the
+// unlock isn't taken for an echo of the stored lock. Every save of a locked field
+// stores editable=false beside change_policy, and a PATCH merges attrs while a
+// plugin sends back what it read, so an unlock still carries one of them.
+// change_policy "any" drops an editable=false equal to the stored one;
+// editable=true that differs from the stored one, sent beside the stored
+// change_policy, drops that change_policy.
+func readUnlockOverStaleEditable(field, existing *model.PropertyField) {
+	if existing == nil {
+		return
+	}
+	sameAsStored := func(key string) bool {
+		return reflect.DeepEqual(field.Attrs[key], existing.Attrs[key])
+	}
+	p, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
+	switch {
+	case strings.TrimSpace(p) == model.PropertyFieldChangePolicyAny:
+		if field.Attrs[model.PropertyFieldAttrEditable] == false && sameAsStored(model.PropertyFieldAttrEditable) {
+			delete(field.Attrs, model.PropertyFieldAttrEditable)
+		}
+	case field.Attrs[model.PropertyFieldAttrEditable] == true && !sameAsStored(model.PropertyFieldAttrEditable) &&
+		sameAsStored(model.PropertyFieldAttrChangePolicy):
+		delete(field.Attrs, model.PropertyFieldAttrChangePolicy)
+	}
+}
+
+// dropOldPolicyKeys removes change_policy and editable=false from a field they
+// don't apply to. editable=true stays: it means the same as absent, and content
+// flagging sets it on its own fields.
+func dropOldPolicyKeys(field *model.PropertyField) {
+	delete(field.Attrs, model.PropertyFieldAttrChangePolicy)
+	if editable, ok := field.Attrs[model.PropertyFieldAttrEditable].(bool); ok && !editable {
+		delete(field.Attrs, model.PropertyFieldAttrEditable)
+	}
+}
+
+// warnOldPolicyKeys logs a write of the old keys, so integrations still using
+// them can be found. Nothing is logged for no keys.
+func (ps *PropertyService) warnOldPolicyKeys(rctx request.CTX, field *model.PropertyField, keys []string) {
+	if len(keys) == 0 {
+		return
+	}
+	rctx.Logger().Warn(changePolicyDeprecatedMessage,
+		mlog.String("caller_id", ps.extractCallerID(rctx)),
+		mlog.String("field_id", field.ID),
+		mlog.String("group_id", field.GroupID),
+		mlog.String("keys", strings.Join(keys, ",")),
+	)
+}
+
+// changePolicyBaseline returns the mutability and bounds the change_policy
+// translation judges a save against: the stored field's, or for a channel field locked only by its old
+// change_policy (the startup conversion hasn't reached it yet) that policy
+// translated. On create it is mutable with no rules.
+func changePolicyBaseline(existing *model.PropertyField) (model.PropertyFieldMutability, model.PropertyBounds) {
+	if existing == nil {
+		return model.PropertyFieldMutabilityMutable, nil
+	}
+	mutability, bounds := existing.Mutability.OrMutable(), existing.Bounds
+	if existing.ObjectType != model.PropertyFieldObjectTypeChannel ||
+		model.PropertyFieldChangePolicyFromSettings(mutability, bounds) != model.PropertyFieldChangePolicyAny {
+		return mutability, bounds
+	}
+	if m, b, err := model.PropertyFieldSettingsFromChangePolicy(model.GetPropertyFieldChangePolicy(existing), bounds); err == nil {
+		return m, b
+	}
+	return mutability, bounds
+}
+
+// translateChangePolicy settles a channel field's mutability and bounds from the
+// old change_policy / editable keys, then rewrites the old keys from the result so
+// they always match (v2 readers, mobile and a rolled-back server read them). Only
+// channel fields translate: change_policy was never enforced on others. It reports
+// whether the save is an old-format write, one whose old policy differs from the
+// stored field's. That write sets the settings from the policy; any other save
+// keeps the settings it states, with unstated ones (mutability "", bounds nil)
+// taken from the baseline. A caller sending back the policy it was shown is not
+// using the old format, and nor is one whose attrs carry neither old key, or
+// carry them only nil, as a blank change_policy, or as a raise/lower policy on
+// a field that isn't and wasn't a rank (statesPolicy false): every locked
+// field's attrs carry the keys the server derived, so a whole-object update
+// that rebuilds attrs without them would otherwise unlock a field it never
+// meant to. Like an omitted mutability, an omitted, nil, blank or stripped key
+// is not an unlock; change_policy "any" or editable=true is.
+func translateChangePolicy(field, existing *model.PropertyField, statesPolicy bool) (bool, error) {
+	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
+		return false, nil
+	}
+
+	policy := model.GetPropertyFieldChangePolicy(field)
+	oldFormatWrite := statesPolicy && (existing == nil && policy != model.PropertyFieldChangePolicyAny ||
+		existing != nil && policy != model.GetPropertyFieldChangePolicy(existing))
+
+	mutability, bounds := field.Mutability, field.Bounds
+	baseMutability, baseBounds := changePolicyBaseline(existing)
+	if mutability == "" {
+		mutability = baseMutability
+	}
+	if bounds == nil {
+		bounds = baseBounds
+	}
+	if oldFormatWrite {
+		if !model.PropertyFieldChangePolicyDescribes(baseMutability, baseBounds) {
+			details := fmt.Sprintf("field %s: its rules can't be expressed with change_policy", field.ID)
+			return false, model.NewAppError("UpsertPropertyField", "app.property_field.change_policy_unsupported.app_error", nil, details, http.StatusBadRequest)
+		}
+		var err error
+		if mutability, bounds, err = model.PropertyFieldSettingsFromChangePolicy(policy, bounds); err != nil {
+			return false, fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+		if changePolicyConflicts(field, existing, mutability, bounds) {
+			details := fmt.Sprintf("field %s: change_policy disagrees with the mutability or bounds in the same request", field.ID)
+			return false, model.NewAppError("UpsertPropertyField", "app.property_field.change_policy_conflict.app_error", nil, details, http.StatusBadRequest)
+		}
+	}
+
+	// Mutable and no rules stay unstated, as the update path refills them from the
+	// stored field. An old-format write states them: that is how it unlocks.
+	if oldFormatWrite || mutability != model.PropertyFieldMutabilityMutable {
+		field.Mutability = mutability
+	}
+	if oldFormatWrite || (field.Bounds == nil && len(bounds) > 0) {
+		field.Bounds = bounds
+	}
+	field.Attrs = model.SetPropertyFieldChangePolicyAttrs(field.Attrs, model.PropertyFieldChangePolicyFromSettings(mutability, bounds))
+	return oldFormatWrite, nil
+}
+
+// changePolicyConflicts reports whether an old-format write also changes
+// mutability or the self rules to something its change_policy doesn't translate
+// to. Changed is judged against the stored field, so an echo of it is not a
+// change; on create anything stated is.
+func changePolicyConflicts(field, existing *model.PropertyField, translatedMutability model.PropertyFieldMutability, translatedBounds model.PropertyBounds) bool {
+	var storedBounds model.PropertyBounds
+	storedMutability := model.PropertyFieldMutabilityMutable
+	if existing != nil {
+		storedMutability, storedBounds = existing.Mutability.OrMutable(), existing.Bounds
+	}
+	changesMutability := field.Mutability != "" &&
+		(existing == nil || field.Mutability.OrMutable() != storedMutability)
+	if changesMutability && field.Mutability.OrMutable() != translatedMutability {
+		return true
+	}
+	if field.Bounds != nil && !model.PropertyBoundsEqual(selfRules(field.Bounds), selfRules(storedBounds)) {
+		return !model.PropertyBoundsEqual(selfRules(field.Bounds), selfRules(translatedBounds))
+	}
+	return false
+}
+
+func selfRules(bounds model.PropertyBounds) model.PropertyBounds {
+	var out model.PropertyBounds
+	for _, r := range bounds {
+		if r.Reference == model.PropertyBoundsReferenceSelf {
+			out = append(out, r)
+		}
+	}
+	return out
 }
 
 func newRequiredAttrDisabledError(field *model.PropertyField) error {
@@ -1507,10 +1599,8 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx requ
 	return values, nil
 }
 
-// PreDeletePropertyValue closes the gap a literal delete would otherwise leave in
-// change_policy: a delete is indistinguishable from a clear, which every
-// non-"any" policy already refuses on the upsert path. Without this, deleting a
-// locked value and writing a fresh one would launder it past its policy.
+// PreDeletePropertyValue applies the DM/GM and required checks to a delete, which
+// is indistinguishable from a clear. The bounds hook refuses deleting a locked value.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
 	if !h.isGroupManaged(groupID) {
 		return nil
@@ -1527,12 +1617,11 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
 		return dcErr
 	}
-	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
+	return h.refuseRequiredDelete(rctx, groupID, []*model.PropertyValue{value})
 }
 
-// PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
-// (e.g. via the plugin API). Other target types are untouched -- see
-// validateChangePolicy for why enforcement is scoped to channels.
+// PreDeletePropertyValuesForTarget applies the same checks to a target-wide delete
+// (e.g. via the plugin API), for channel targets only.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
 	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
 		return nil
@@ -1549,12 +1638,12 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 	if err != nil {
 		return err
 	}
-	return h.refuseGovernedDelete(rctx, groupID, values)
+	return h.refuseRequiredDelete(rctx, groupID, values)
 }
 
-// refuseGovernedDelete refuses to delete any set channel value that is required,
-// or governed by a non-"any" change policy.
-func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
+// refuseRequiredDelete refuses to delete any set value of a required field. A locked
+// field's value is refused by the bounds hook.
+func (h *AccessControlAttributeValidationHook) refuseRequiredDelete(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
@@ -1593,16 +1682,11 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 			continue
 		}
 		// Required is enforced for every target type, matching the write path
-		// in validateValues. change_policy stays channel-only -- see
-		// validateChangePolicy for why. The kill switch is likewise scoped to
-		// channel attributes: a required post/user field stays enforced
-		// regardless of the flag.
+		// in validateValues. The kill switch is scoped to channel attributes: a
+		// required post/user field stays enforced regardless of the flag.
 		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
 			model.IsPropertyFieldRequired(field) {
 			return newRequiredValueError(field)
-		}
-		if v.TargetType == model.PropertyValueTargetTypeChannel && model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {
-			return newChangePolicyError(field, model.GetPropertyFieldChangePolicy(field))
 		}
 	}
 
