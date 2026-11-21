@@ -89,6 +89,13 @@ export function matchesName(actual: string, a: {name: string; match: NameMatch})
     return a.match === 'contains' ? actual.includes(a.name) : actual === a.name;
 }
 
-export function unconfirmedLabel(locator: {source_ref?: string; why?: string}): string {
-    return `UNCONFIRMED-BY-LIVE (declared from source: ${locator.source_ref ?? locator.why})`;
+export const TEAM_ADMIN_ONLY = 'TEAM-ADMIN-ONLY';
+
+/** Spec comment for an absence check whose element only renders for a team admin (source_ref entries). */
+export function teamAdminOnlyComment(name: string): string {
+    return `${name}: absence is asserted for a regular member (needs manage_team). Presence of this exact name is exercised by the verify control with the same user as team admin, not by this spec.`;
+}
+
+export function teamAdminOnlyNote(locator: {name: string; source_ref?: string; why?: string}): string {
+    return `${TEAM_ADMIN_ONLY}: ${locator.name} never present in explored states because qa-user is a regular member (needs manage_team); presence of this exact name is exercised by the verify control with qa-user as team admin, not by the pilot spec or the explorer (source: ${locator.source_ref ?? locator.why})`;
 }

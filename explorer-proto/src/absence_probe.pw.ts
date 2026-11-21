@@ -7,7 +7,7 @@ import path from 'node:path';
 import type {Locator} from '@playwright/test';
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {SCOPE, absenceAssertions, absenceLocator, unconfirmedLabel} from './assertions.ts';
+import {SCOPE, absenceAssertions, absenceLocator} from './assertions.ts';
 import type {AbsenceAssertion} from './assertions.ts';
 import {readManifest} from './manifest.ts';
 import {outDir} from './paths.ts';
@@ -70,7 +70,7 @@ for (const scenario of readScenarios().filter((s) => absenceAssertions(s).length
             } else if (count >= 1) {
                 verdict = 'PASS (locator detects the element when present)';
             } else if (entry.source_ref) {
-                verdict = `${unconfirmedLabel(entry)}: cannot be shown present for qa-user`;
+                verdict = `NOT SHOWN PRESENT by this probe: qa-user is a regular member and ${a.name} needs manage_team; presence of this exact name is exercised by the verify control with qa-user as team admin (source: ${entry.source_ref})`;
             } else {
                 verdict = 'FAIL (locator found nothing although the element should be present: vacuous)';
             }

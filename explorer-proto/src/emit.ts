@@ -7,7 +7,15 @@ import path from 'node:path';
 import * as prettier from 'prettier';
 
 import {COVERAGE_PATH, PLAYWRIGHT_DIR, SRC_DIR} from './paths.ts';
-import {SCOPE, absenceLocator, matchesName, parseStatement, unconfirmedLabel} from './assertions.ts';
+import {
+    SCOPE,
+    TEAM_ADMIN_ONLY,
+    absenceLocator,
+    matchesName,
+    parseStatement,
+    teamAdminOnlyComment,
+    teamAdminOnlyNote,
+} from './assertions.ts';
 import type {AbsenceAssertion, Assertion} from './assertions.ts';
 import {parseStep, readScenarios, startPath} from './scenarios.ts';
 import type {Scenario} from './scenarios.ts';
@@ -121,7 +129,11 @@ function checkAgainstLive(
                     note: `WARNING ${label} never observed in any explored state${near}; this count-0 assertion may pass vacuously`,
                 };
             }
-            return {note: `${unconfirmedLabel(absenceLocator(s, a))}: ${label} never present in any explored state`};
+            const entry = absenceLocator(s, a);
+            if (entry.source_ref) {
+                return {note: teamAdminOnlyNote(entry)};
+            }
+            return {problem: `${label} never present in any explored state, so its count-0 check would be vacuous`};
         }
         case 'contains': {
             const present = textOf(region).includes(a.text);
@@ -277,10 +289,8 @@ function plan(s: Scenario, trace: Trace): Plan | EmissionRecord {
                         return record;
                     }
                     record.locatorChecks.push(note!);
-                    if (note!.startsWith('UNCONFIRMED-BY-LIVE')) {
-                        lines.push(
-                            `// ${note!.slice(0, note!.indexOf('): ') + 1)}: never present in any explored state.`,
-                        );
+                    if (note!.startsWith(TEAM_ADMIN_ONLY)) {
+                        lines.push(`// ${teamAdminOnlyComment(a.kind === 'count0' ? a.name : '')}`);
                     }
                     const warn = note!.startsWith('WARNING') ? ' WARNING: name not confirmed live, see trace.md' : '';
                     lines.push(`${assertionCode(a)} // declared (scenarios.json ${s.id})${warn}`);
