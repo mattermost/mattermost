@@ -284,18 +284,27 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 		return a.HandleCommandResponse(rctx, cmd, args, response, true)
 	}
 
+	// EnableCommands only governs custom commands; built-in commands keep working when it is off.
+	enableCustomCommands := *a.Config().ServiceSettings.EnableCommands
+
 	// Custom commands can override built ins
-	cmd, response, appErr = a.tryExecuteCustomCommand(rctx, args, trigger, message)
-	if appErr != nil {
-		return nil, appErr
-	} else if cmd != nil && response != nil {
-		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(rctx, cmd, args, response, false)
+	if enableCustomCommands {
+		cmd, response, appErr = a.tryExecuteCustomCommand(rctx, args, trigger, message)
+		if appErr != nil {
+			return nil, appErr
+		} else if cmd != nil && response != nil {
+			response.TriggerId = clientTriggerId
+			return a.HandleCommandResponse(rctx, cmd, args, response, false)
+		}
 	}
 
 	cmd, response = a.tryExecuteBuiltInCommand(rctx, args, trigger, message)
 	if cmd != nil && response != nil {
 		return a.HandleCommandResponse(rctx, cmd, args, response, true)
+	}
+
+	if !enableCustomCommands {
+		return nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if len(trigger) > maxTriggerLen {

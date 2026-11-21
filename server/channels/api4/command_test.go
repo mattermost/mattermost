@@ -11,7 +11,9 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1456,6 +1458,82 @@ func TestExecuteInvalidCommand(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.ExecuteCommand(context.Background(), channel.Id, "/getcommand")
 	require.NoError(t, err)
+}
+
+func TestExecuteCommandWithCustomCommandsDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	var customHits atomic.Int32
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		customHits.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(&model.CommandResponse{Text: "custom response"}); err != nil {
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
+		}
+	}))
+	defer ts.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCommands = true
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8"
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+
+	_, appErr := th.App.CreateCommand(&model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "customcommand",
+	})
+	require.Nil(t, appErr)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = false })
+
+	t.Run("built-in command executes", func(t *testing.T) {
+		resp, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/echo test")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 10, "", false, false)
+			require.NoError(c, err)
+			found := false
+			for _, post := range posts.Posts {
+				if post.Message == "test" && post.UserId == th.BasicUser.Id {
+					found = true
+				}
+			}
+			assert.True(c, found, "echo post not created")
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+
+	t.Run("custom command does not execute", func(t *testing.T) {
+		_, resp, err := client.ExecuteCommand(context.Background(), channel.Id, "/customcommand")
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "api.command.disabled.app_error")
+		require.Zero(t, customHits.Load())
+	})
+
+	t.Run("unknown command returns disabled error", func(t *testing.T) {
+		_, resp, err := client.ExecuteCommand(context.Background(), channel.Id, "/junk")
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "api.command.disabled.app_error")
+	})
+
+	t.Run("custom command executes once re-enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+
+		resp, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/customcommand")
+		require.NoError(t, err)
+		require.Equal(t, "custom response", resp.Text)
+		require.EqualValues(t, 1, customHits.Load())
+	})
 }
 
 func TestExecuteGetCommand(t *testing.T) {
