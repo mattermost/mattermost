@@ -490,6 +490,27 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
+	if deactivateMissingUsers && user.Id != "" && !matchedByAuthData {
+		// A username is not an identity across instances, so in a scoped import an
+		// account matched only by username may belong to someone else. Attribute the
+		// source user's content and memberships to it, as the username-collision path
+		// below does, but never apply the export's email, roles, credentials, profile,
+		// or preferences to it.
+		rctx.Logger().Warn(
+			"Scoped import: source user matched an existing destination account by username only; adding memberships without updating the account",
+			mlog.String("source_username", *data.Username),
+			mlog.String("matched_dest_username", user.Username),
+		)
+		if report != nil {
+			report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				Username: *data.Username,
+				Reason:   "username_matched_existing",
+				Action:   imports.UnmatchedUserLinkedExisting,
+			})
+		}
+		return a.importUserTeams(rctx, user, *data.Username, data.Teams, deactivateMissingUsers, true, report)
+	}
+
 	// When matched by auth_data, preserve the dest username — the whole point of
 	// auth_data matching is that the username may have legitimately changed.
 	// For new shells (SSO mismatch or missing email user), the source username is used.
@@ -1053,10 +1074,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
-	return a.importUserTeams(rctx, savedUser, *data.Username, data.Teams, deactivateMissingUsers, report)
+	return a.importUserTeams(rctx, savedUser, *data.Username, data.Teams, deactivateMissingUsers, false, report)
 }
 
-func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool) *model.AppError {
+func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
@@ -1086,6 +1107,21 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 		}
 		bot = &model.Bot{}
 		hasBotChanged = true
+	} else if deactivateMissingUsers {
+		// As with users, a username is not an identity across instances, so in a
+		// scoped import an existing bot is used for attribution only.
+		rctx.Logger().Warn(
+			"Scoped import: source bot matched an existing destination bot by username only; leaving the destination bot unchanged",
+			mlog.String("bot_username", *data.Username),
+		)
+		if report != nil {
+			report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				Username: *data.Username,
+				Reason:   "bot_username_matched_existing",
+				Action:   imports.UnmatchedUserLinkedExisting,
+			})
+		}
+		return nil
 	}
 
 	bot.Username = *data.Username
@@ -1132,6 +1168,24 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 			// previous partial import) but has no bot record yet.
 			if invErr, ok := errors.AsType[*store.ErrInvalidInput](appErr); !ok || invErr.Field != "username" {
 				return appErr
+			}
+
+			if deactivateMissingUsers {
+				// The username belongs to a destination account that isn't a bot, so
+				// nothing confirms it's the account the export refers to. Never convert
+				// it; the export's content still resolves to it by username.
+				rctx.Logger().Warn(
+					"Scoped import: source bot's username belongs to an existing destination user; not converting that account into a bot",
+					mlog.String("bot_username", *data.Username),
+				)
+				if report != nil {
+					report.UnmatchedUsers.Add(imports.UnmatchedUser{
+						Username: *data.Username,
+						Reason:   "bot_username_matched_user",
+						Action:   imports.UnmatchedUserLinkedExisting,
+					})
+				}
+				return nil
 			}
 
 			rctx.Logger().Info("CreateBot failed with username conflict during import, recovering by linking existing user",
@@ -1267,7 +1321,12 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 	return nil
 }
 
-func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername string, data *[]imports.UserTeamImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
+// importUserTeams adds the user to the given teams and their channels. When
+// unverifiedMatch is set, user is an existing account matched only by username
+// during a scoped import: new memberships are created with default roles so the
+// user's content can be attributed, but the export's roles and preferences are
+// not applied and existing memberships are left untouched.
+func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername string, data *[]imports.UserTeamImportData, deactivateMissingUsers bool, unverifiedMatch bool, report *imports.ImportReport) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1327,8 +1386,14 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, "", http.StatusInternalServerError)
 		}
 
+		if existing, ok := existingMembershipsByTeamId[team.Id]; unverifiedMatch && ok && existing.DeleteAt > 0 {
+			rctx.Logger().Warn("Scoped import: not restoring a removed team membership of a destination account matched only by username",
+				mlog.String("team", team.Name), mlog.String("user", sourceUsername))
+			continue
+		}
+
 		// Team-specific theme Preferences.
-		if tdata.Theme != nil {
+		if tdata.Theme != nil && !unverifiedMatch {
 			teamThemePreferencesByID[team.Id] = append(teamThemePreferencesByID[team.Id], model.Preference{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryTheme,
@@ -1341,7 +1406,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 		isUserByTeamId[team.Id] = true
 		isAdminByTeamID[team.Id] = false
 
-		if tdata.Roles == nil {
+		if tdata.Roles == nil || unverifiedMatch {
 			isUserByTeamId[team.Id] = true
 		} else {
 			rawRoles := *tdata.Roles
@@ -1390,7 +1455,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 		if existing, ok := existingMembershipsByTeamId[team.Id]; !ok {
 			newTeamMembers = append(newTeamMembers, member)
 			joinedTeamIDs = append(joinedTeamIDs, team.Id)
-		} else {
+		} else if !unverifiedMatch {
 			oldTeamMembers = append(oldTeamMembers, member)
 			if existing.DeleteAt > 0 {
 				joinedTeamIDs = append(joinedTeamIDs, team.Id)
@@ -1429,16 +1494,20 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 	}
 	a.warnIfTeamsOverMemberLimit(rctx, joinedTeamIDs, teamsByID)
 
-	for _, member := range append(newMembers, oldMembers...) {
-		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
-			// Bulk import uses internal function to support two-phase role updates.
-			if _, appErr = a.updateTeamMemberRolesInternal(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId], true); appErr != nil {
-				return appErr
+	// New members of an unverified match keep the default scheme roles they were
+	// saved with.
+	if !unverifiedMatch {
+		for _, member := range append(newMembers, oldMembers...) {
+			if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
+				// Bulk import uses internal function to support two-phase role updates.
+				if _, appErr = a.updateTeamMemberRolesInternal(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId], true); appErr != nil {
+					return appErr
+				}
 			}
-		}
 
-		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
-			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
+			if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
+				rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
+			}
 		}
 	}
 
@@ -1450,7 +1519,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(rctx, user, sourceUsername, team, &channelsToImport, deactivateMissingUsers, report); err != nil {
+		if err := a.importUserChannels(rctx, user, sourceUsername, team, &channelsToImport, deactivateMissingUsers, unverifiedMatch, report); err != nil {
 			return err
 		}
 	}
@@ -1478,7 +1547,9 @@ func (a *App) warnIfTeamsOverMemberLimit(rctx request.CTX, joinedTeamIDs []strin
 	}
 }
 
-func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsername string, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
+// importUserChannels adds the user to the given channels of team. See
+// importUserTeams for the meaning of unverifiedMatch.
+func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsername string, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool, unverifiedMatch bool, report *imports.ImportReport) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1544,6 +1615,14 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 		isGuestByChannelId[channel.Id] = false
 		isUserByChannelId[channel.Id] = true
 		isAdminByChannelId[channel.Id] = false
+
+		if unverifiedMatch {
+			if _, ok := existingMembershipsByChannelId[channel.Id]; ok {
+				channelsByID[channel.Id] = channel
+				continue
+			}
+			cdata = imports.UserChannelImportData{Name: cdata.Name}
+		}
 
 		if cdata.Roles != nil {
 			rawRoles := *cdata.Roles
@@ -1661,16 +1740,20 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 		}
 	}
 
-	for _, member := range append(newMembers, oldMembers...) {
-		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
-			// Bulk import uses internal function to support two-phase role updates.
-			if _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
-				return err
+	// New members of an unverified match keep the default scheme roles they were
+	// saved with.
+	if !unverifiedMatch {
+		for _, member := range append(newMembers, oldMembers...) {
+			if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
+				// Bulk import uses internal function to support two-phase role updates.
+				if _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
+					return err
+				}
 			}
-		}
 
-		if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); appErr != nil {
-			rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
+			if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); appErr != nil {
+				rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
+			}
 		}
 	}
 

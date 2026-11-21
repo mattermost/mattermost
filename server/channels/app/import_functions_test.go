@@ -2662,7 +2662,7 @@ func TestImportUserTeams(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserTeams(th.Context, user, user.Username, tc.data, false, &imports.ImportReport{})
+				appErr := th.App.importUserTeams(th.Context, user, user.Username, tc.data, false, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -2701,7 +2701,7 @@ func TestImportUserTeams(t *testing.T) {
 		}
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
-		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
+		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, false, &imports.ImportReport{})
 		require.Nil(t, appErr)
 
 		_, err := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2731,7 +2731,7 @@ func TestImportUserTeams(t *testing.T) {
 				Name: &th.BasicTeam.Name,
 			},
 		}
-		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
+		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, false, &imports.ImportReport{})
 		require.Nil(t, appErr)
 
 		teamMember, nErr := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2851,7 +2851,7 @@ func TestImportUserChannels(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserChannels(th.Context, user, user.Username, th.BasicTeam, tc.data, false, &imports.ImportReport{})
+				appErr := th.App.importUserChannels(th.Context, user, user.Username, th.BasicTeam, tc.data, false, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -6355,7 +6355,7 @@ func TestImportImportBot(t *testing.T) {
 		data := imports.BotImportData{
 			// Missing required Username
 		}
-		appErr := th.App.importBot(th.Context, &data, true)
+		appErr := th.App.importBot(th.Context, &data, true, false, nil)
 		require.NotNil(t, appErr, "Should have failed to import invalid bot.")
 	})
 
@@ -6366,7 +6366,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("A test bot"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, true)
+		appErr := th.App.importBot(th.Context, &data, true, false, nil)
 		require.Nil(t, appErr, "Should have succeeded to import valid bot in dry-run.")
 
 		// Verify bot was not created in DB.
@@ -6383,7 +6383,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("A test bot"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Should have succeeded to import valid bot.")
 
 		// Verify bot was created.
@@ -6403,7 +6403,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("Original description"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "First import should succeed.")
 
 		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6412,7 +6412,7 @@ func TestImportImportBot(t *testing.T) {
 
 		// Import again with updated description.
 		data.Description = new("Updated description")
-		appErr = th.App.importBot(th.Context, &data, false)
+		appErr = th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Re-import should succeed.")
 
 		bot, err = th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6448,7 +6448,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("Recovered bot"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Import should recover when user exists without bot record.")
 
 		// Verify the bot record now exists and is linked to the pre-existing user.
@@ -6489,7 +6489,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("New description"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Re-import of fully existing bot should succeed.")
 
 		bot, botErr := th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6526,7 +6526,7 @@ func TestImportImportBot(t *testing.T) {
 		// Must not panic — this is the primary regression guard.
 		var appErr *model.AppError
 		require.NotPanics(t, func() {
-			appErr = th.App.importBot(th.Context, &data, false)
+			appErr = th.App.importBot(th.Context, &data, false, false, nil)
 		}, "importBot must not panic when CreateBot fails due to existing user")
 
 		// Beyond not panicking, the fix should also recover successfully.
@@ -6547,7 +6547,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("Same description"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "First import should succeed.")
 
 		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6559,7 +6559,7 @@ func TestImportImportBot(t *testing.T) {
 		// Sleep briefly so that any real update would produce a different
 		// UpdateAt timestamp (millisecond resolution).
 		time.Sleep(2 * time.Millisecond)
-		appErr = th.App.importBot(th.Context, &data, false)
+		appErr = th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Idempotent re-import should succeed.")
 
 		bot, err = th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6577,7 +6577,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("Unchanged description"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "First import should succeed.")
 
 		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6586,7 +6586,7 @@ func TestImportImportBot(t *testing.T) {
 
 		// Re-import changing only the DisplayName.
 		data.DisplayName = new("Updated DisplayName")
-		appErr = th.App.importBot(th.Context, &data, false)
+		appErr = th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Re-import with changed DisplayName should succeed.")
 
 		bot, err = th.App.Srv().Store().Bot().GetByUsername(username)
@@ -6616,7 +6616,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("Should fail"),
 			Owner:       &th.BasicUser.Username,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.NotNil(t, appErr, "Import should fail when CreateBot hits a non-username error.")
 		assert.Contains(t, appErr.Id, "email_exists", "Error should indicate email conflict, not username conflict.")
 	})
@@ -6630,7 +6630,7 @@ func TestImportImportBot(t *testing.T) {
 			Description: new("Bot owned by plugin"),
 			Owner:       &pluginOwner,
 		}
-		appErr := th.App.importBot(th.Context, &data, false)
+		appErr := th.App.importBot(th.Context, &data, false, false, nil)
 		require.Nil(t, appErr, "Import should succeed with non-existent owner (treated as plugin).")
 
 		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
