@@ -1,0 +1,16 @@
+{
+    "schema": "explorer-orchestrator-budgets/v1",
+    "note": "time_seconds is orchestrator active time per stage (time spent waiting for a manual agent is not counted); agent_calls and retries are totals per stage across invocations. Exceeding any of them is a reported failure.",
+    "stages": {
+        "target": {"time_seconds": 1500, "agent_calls": 0, "retries": 0},
+        "index": {"time_seconds": 120, "agent_calls": 0, "retries": 0},
+        "explore": {"time_seconds": 1800, "agent_calls": 0, "retries": 0},
+        "triage": {"time_seconds": 600, "agent_calls": 2, "retries": 2},
+        "select": {"time_seconds": 900, "agent_calls": 6, "retries": 2},
+        "discover": {"time_seconds": 1800, "agent_calls": 0, "retries": 0},
+        "emit": {"time_seconds": 300, "agent_calls": 0, "retries": 0},
+        "verify": {"time_seconds": 3600, "agent_calls": 3, "retries": 2},
+        "promote": {"time_seconds": 60, "agent_calls": 0, "retries": 0},
+        "lessons": {"time_seconds": 300, "agent_calls": 2, "retries": 2}
+    }
+}

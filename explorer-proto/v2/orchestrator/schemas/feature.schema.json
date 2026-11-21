@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/orchestrator/feature.schema.json",
+    "title": "Explorer v2 feature definition: a bounded traversal area with general action rules, no route and no ordered steps",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schema",
+        "id",
+        "title",
+        "matrix_area",
+        "goal",
+        "consequence",
+        "start",
+        "action_rules",
+        "budget",
+        "oracles"
+    ],
+    "properties": {
+        "schema": {
+            "const": "explorer-feature/v1"
+        },
+        "id": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+        },
+        "title": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+        },
+        "matrix_area": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]{0,60}$"
+        },
+        "bakeoff_feature": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/featureId"
+        },
+        "goal": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/goal"
+        },
+        "consequence": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/consequence"
+        },
+        "start": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/start"
+        },
+        "action_rules": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/action_rules"
+        },
+        "budget": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/budget"
+        },
+        "oracles": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/oracles"
+        }
+    }
+}

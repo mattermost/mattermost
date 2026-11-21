@@ -1,0 +1,1016 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/orchestrator/orchestrator.schema.json",
+    "title": "Explorer v2 orchestrator artifacts (run config, stage records, per-stage summaries, agent task)",
+    "definitions": {
+        "relPath": {
+            "description": "Path relative to the run output directory or the repository root, forward slashes, no parent segments.",
+            "type": "string",
+            "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9_.@+/#:=-]+$",
+            "maxLength": 240
+        },
+        "argv": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "maxLength": 400
+            },
+            "minItems": 1
+        },
+        "evidence": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/evidenceRefs"
+        },
+        "violation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rule", "path", "detail"],
+            "properties": {
+                "rule": {
+                    "type": "string",
+                    "maxLength": 40
+                },
+                "path": {
+                    "type": "string",
+                    "maxLength": 240
+                },
+                "detail": {
+                    "type": "string",
+                    "maxLength": 300
+                }
+            }
+        },
+        "run-config": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "target", "feature", "mode", "live", "agents"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-run-config/v1"
+                },
+                "target": {
+                    "enum": ["release", "main"]
+                },
+                "feature": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                },
+                "mode": {
+                    "enum": ["explore", "author", "both"]
+                },
+                "live": {
+                    "type": "boolean"
+                },
+                "agents": {
+                    "type": "string",
+                    "pattern": "^(manual|stub(:[a-z-]+)?|cmd:.+)$"
+                }
+            }
+        },
+        "stage-record": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "metrics",
+                "result",
+                "budget",
+                "budget_outcome",
+                "retries_used",
+                "inputs_hash",
+                "outputs"
+            ],
+            "properties": {
+                "schema": {
+                    "const": "explorer-stage-record/v1"
+                },
+                "metrics": {
+                    "description": "Exactly the record that bakeoff/metrics.mjs appends to a result set (cost.stages).",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "stage",
+                        "category",
+                        "command_name",
+                        "arg_count",
+                        "exit_code",
+                        "elapsed_seconds",
+                        "agent_calls"
+                    ],
+                    "properties": {
+                        "stage": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                        },
+                        "category": {
+                            "enum": ["pipeline", "measurement"]
+                        },
+                        "command_name": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_.+-]{1,80}$"
+                        },
+                        "arg_count": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/count"
+                        },
+                        "exit_code": {
+                            "type": ["integer", "null"]
+                        },
+                        "signal": {
+                            "type": "string"
+                        },
+                        "elapsed_seconds": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/seconds"
+                        },
+                        "agent_calls": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/count"
+                        },
+                        "agent_calls_file_present": {
+                            "type": "boolean"
+                        },
+                        "agent_calls_malformed_lines": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/count"
+                        },
+                        "volatile": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "result": {
+                    "enum": ["pass", "skipped", "fail", "blocked", "awaiting_agent", "agent_invalid"]
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 400
+                },
+                "budget": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["time_seconds", "agent_calls", "retries"],
+                    "properties": {
+                        "time_seconds": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "agent_calls": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "retries": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                "budget_outcome": {
+                    "enum": ["within", "time_exceeded", "agent_calls_exceeded", "retries_exceeded"]
+                },
+                "retries_used": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "inputs_hash": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                },
+                "outputs": {
+                    "type": "object",
+                    "propertyNames": {
+                        "$ref": "#/definitions/relPath"
+                    },
+                    "additionalProperties": {
+                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                    }
+                }
+            }
+        },
+        "agent-call": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "role", "provider", "task_id", "attempt", "outcome"],
+            "properties": {
+                "stage": {
+                    "type": "string",
+                    "maxLength": 40
+                },
+                "role": {
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "provider": {
+                    "enum": ["manual", "cmd", "stub"]
+                },
+                "task_id": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                },
+                "attempt": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "outcome": {
+                    "enum": ["ok", "invalid", "failed", "timeout"]
+                }
+            }
+        },
+        "target-check": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "kind", "target_file", "checks", "stack"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-target-check/v1"
+                },
+                "kind": {
+                    "enum": ["release", "main"]
+                },
+                "target_file": {
+                    "$ref": "#/definitions/relPath"
+                },
+                "checks": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "result", "evidence"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            "result": {
+                                "enum": ["pass", "fail", "info"]
+                            },
+                            "evidence": {
+                                "type": "string",
+                                "maxLength": 300
+                            }
+                        }
+                    }
+                },
+                "stack": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["live", "started", "licence", "gate"],
+                    "properties": {
+                        "live": {
+                            "type": "boolean"
+                        },
+                        "started": {
+                            "type": "boolean"
+                        },
+                        "licence": {
+                            "enum": ["PASS", "FAIL", "not_run"]
+                        },
+                        "gate": {
+                            "enum": ["PASS", "FAIL", "not_run"]
+                        },
+                        "commands": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/argv"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "index-summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "source_sha",
+                "cache_key",
+                "tests",
+                "by_suite",
+                "source_status",
+                "files",
+                "coverage_index_schema"
+            ],
+            "properties": {
+                "schema": {
+                    "const": "explorer-index-summary/v1"
+                },
+                "source_sha": {
+                    "type": "string",
+                    "pattern": "^([0-9a-f]{40}|unknown)$"
+                },
+                "cache_key": {
+                    "type": "string",
+                    "maxLength": 80
+                },
+                "tests": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "by_suite": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "source_status": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "files": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["tests", "meta"],
+                    "properties": {
+                        "tests": {
+                            "$ref": "#/definitions/relPath"
+                        },
+                        "meta": {
+                            "$ref": "#/definitions/relPath"
+                        }
+                    }
+                },
+                "coverage_index_schema": {
+                    "description": "Sample check of the extractor records against schemas/coverage-index.schema.json; informational.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["checked_records", "conformant"],
+                    "properties": {
+                        "checked_records": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "conformant": {
+                            "type": "boolean"
+                        },
+                        "first_errors": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "maxLength": 200
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "feature-plan": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "feature_id",
+                "feature_file",
+                "feature_sha256",
+                "start_path",
+                "budget",
+                "oracles",
+                "leakage",
+                "runner",
+                "findings_source",
+                "run_files"
+            ],
+            "properties": {
+                "schema": {
+                    "const": "explorer-feature-plan/v1"
+                },
+                "feature_id": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                },
+                "feature_file": {
+                    "$ref": "#/definitions/relPath"
+                },
+                "feature_sha256": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                },
+                "start_path": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "budget": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/budget"
+                },
+                "oracles": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/charter.schema.json#/properties/oracles"
+                },
+                "leakage": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["pass", "violations"],
+                    "properties": {
+                        "pass": {
+                            "type": "boolean"
+                        },
+                        "violations": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/violation"
+                            }
+                        }
+                    }
+                },
+                "runner": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["status", "command"],
+                    "properties": {
+                        "status": {
+                            "enum": ["planned", "adopted", "ran"]
+                        },
+                        "command": {
+                            "$ref": "#/definitions/argv"
+                        },
+                        "skipped_reason": {
+                            "type": "string",
+                            "maxLength": 200
+                        }
+                    }
+                },
+                "findings_source": {
+                    "enum": ["none", "adopted", "live"]
+                },
+                "run_files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/relPath"
+                    }
+                }
+            }
+        },
+        "repro": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "source", "attempts", "groups"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-repro/v1"
+                },
+                "source": {
+                    "enum": ["none", "adopted", "live"]
+                },
+                "attempts": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "finding_id",
+                            "oracle",
+                            "source_class",
+                            "state_path",
+                            "evidence_text",
+                            "attempts",
+                            "reproduced",
+                            "first_action"
+                        ],
+                        "properties": {
+                            "finding_id": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                            },
+                            "oracle": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/oracleClass"
+                            },
+                            "source_class": {
+                                "type": "string",
+                                "maxLength": 80
+                            },
+                            "state_path": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sanitizedPath"
+                            },
+                            "evidence_text": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/evidenceText"
+                            },
+                            "attempts": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "reproduced": {
+                                "type": "integer",
+                                "minimum": 0
+                            },
+                            "first_action": {
+                                "type": "integer",
+                                "minimum": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "triage-summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "source", "attempts", "findings", "classification"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-triage-summary/v1"
+                },
+                "source": {
+                    "enum": ["none", "adopted", "live"]
+                },
+                "attempts": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "classification": {
+                    "enum": ["not_needed", "agent"]
+                },
+                "findings": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "oracle", "status", "reproduced", "attempts", "file"],
+                        "properties": {
+                            "id": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                            },
+                            "oracle": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/oracleClass"
+                            },
+                            "status": {
+                                "enum": ["candidate", "confirmed", "rejected"]
+                            },
+                            "reproduced": {
+                                "type": "integer",
+                                "minimum": 0
+                            },
+                            "attempts": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "file": {
+                                "$ref": "#/definitions/relPath"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "coverage-report": {
+            "description": "Output of v2/index/coverage-check.mjs runCheck, kept as evidence.",
+            "type": "object",
+            "required": ["candidate", "verdict", "results"],
+            "properties": {
+                "candidate": {
+                    "type": "string"
+                },
+                "verdict": {
+                    "enum": ["likely_duplicate", "needs_review", "no_close_match"]
+                },
+                "results": {
+                    "type": "array"
+                }
+            }
+        },
+        "selection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "feature_id", "decisions"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-selection/v1"
+                },
+                "feature_id": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                },
+                "decisions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["charter_id", "decision", "leakage", "coverage_verdict", "reviewed", "evidence"],
+                        "properties": {
+                            "charter_id": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                            },
+                            "decision": {
+                                "enum": [
+                                    "accepted",
+                                    "rejected_schema",
+                                    "rejected_leakage",
+                                    "rejected_duplicate",
+                                    "rejected_dedupe_key"
+                                ]
+                            },
+                            "leakage": {
+                                "enum": ["pass", "fail", "not_run"]
+                            },
+                            "coverage_verdict": {
+                                "enum": ["likely_duplicate", "needs_review", "no_close_match", "not_run"]
+                            },
+                            "reviewed": {
+                                "type": "boolean"
+                            },
+                            "evidence": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/evidenceRef"
+                                }
+                            },
+                            "violations": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/violation"
+                                }
+                            },
+                            "duplicate_of": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["suite", "file", "line"],
+                                "properties": {
+                                    "suite": {
+                                        "enum": ["cypress", "playwright"]
+                                    },
+                                    "file": {
+                                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/repoPath"
+                                    },
+                                    "line": {
+                                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/line"
+                                    },
+                                    "test_id": {
+                                        "type": "string",
+                                        "pattern": "^[A-Z][A-Z0-9]*-[A-Za-z0-9_]+$"
+                                    }
+                                }
+                            },
+                            "charter_file": {
+                                "$ref": "#/definitions/relPath"
+                            },
+                            "verdict_file": {
+                                "$ref": "#/definitions/relPath"
+                            }
+                        },
+                        "allOf": [
+                            {
+                                "if": {
+                                    "properties": {
+                                        "decision": {
+                                            "const": "accepted"
+                                        }
+                                    },
+                                    "required": ["decision"]
+                                },
+                                "then": {
+                                    "required": ["charter_file"]
+                                },
+                                "else": {
+                                    "required": ["verdict_file"],
+                                    "properties": {
+                                        "evidence": {
+                                            "minItems": 1
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "commands": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "stage", "live", "status", "commands"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-commands/v1"
+                },
+                "stage": {
+                    "type": "string",
+                    "maxLength": 40
+                },
+                "live": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "enum": ["planned", "ran", "blocked"]
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 400
+                },
+                "commands": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["purpose", "argv"],
+                        "properties": {
+                            "charter_id": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                            },
+                            "purpose": {
+                                "type": "string",
+                                "maxLength": 200
+                            },
+                            "argv": {
+                                "$ref": "#/definitions/argv"
+                            },
+                            "exit_code": {
+                                "type": ["integer", "null"]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "verify-summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "live", "gates", "verdicts"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-verify-summary/v1"
+                },
+                "live": {
+                    "type": "boolean"
+                },
+                "gates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 60
+                    }
+                },
+                "verdicts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["charter_id", "overall", "outcome", "file"],
+                        "properties": {
+                            "charter_id": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                            },
+                            "overall": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/triState"
+                            },
+                            "outcome": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/outcome"
+                            },
+                            "file": {
+                                "$ref": "#/definitions/relPath"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "promote": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "dry_run",
+                "pushed",
+                "pr_opened",
+                "promotable",
+                "reasons",
+                "branch",
+                "files",
+                "would_add"
+            ],
+            "properties": {
+                "schema": {
+                    "const": "explorer-promote/v1"
+                },
+                "dry_run": {
+                    "const": true
+                },
+                "pushed": {
+                    "const": false
+                },
+                "pr_opened": {
+                    "const": false
+                },
+                "promotable": {
+                    "type": "boolean"
+                },
+                "reasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 300
+                    }
+                },
+                "branch": {
+                    "type": "string",
+                    "pattern": "^explorer/[a-z0-9._-]+$"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/relPath"
+                    }
+                },
+                "would_add": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/relPath"
+                    }
+                }
+            }
+        },
+        "lesson-plan": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "lessons"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-lesson-plan/v1"
+                },
+                "lessons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "file", "protected_target", "decision", "reason"],
+                        "properties": {
+                            "id": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                            },
+                            "file": {
+                                "$ref": "#/definitions/relPath"
+                            },
+                            "target_file": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/repoPath"
+                            },
+                            "protected_target": {
+                                "type": "boolean"
+                            },
+                            "decision": {
+                                "enum": ["eligible", "refused_needs_human_approval", "eligible_approved"]
+                            },
+                            "reason": {
+                                "type": "string",
+                                "maxLength": 300
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "agent-task": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "schema",
+                "task_id",
+                "stage",
+                "role",
+                "prompt",
+                "inputs",
+                "output",
+                "allowed_tools",
+                "forbidden",
+                "caps"
+            ],
+            "properties": {
+                "schema": {
+                    "const": "explorer-agent-task/v1"
+                },
+                "task_id": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                },
+                "stage": {
+                    "type": "string",
+                    "maxLength": 40
+                },
+                "role": {
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "prompt": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["file", "sha256"],
+                    "properties": {
+                        "file": {
+                            "$ref": "#/definitions/relPath"
+                        },
+                        "sha256": {
+                            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                        }
+                    }
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["path", "base", "sha256"],
+                        "properties": {
+                            "path": {
+                                "$ref": "#/definitions/relPath"
+                            },
+                            "base": {
+                                "enum": ["out", "repo"]
+                            },
+                            "sha256": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                            },
+                            "purpose": {
+                                "type": "string",
+                                "maxLength": 200
+                            }
+                        }
+                    }
+                },
+                "output": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["result_file", "result_schema"],
+                    "properties": {
+                        "result_file": {
+                            "$ref": "#/definitions/relPath"
+                        },
+                        "result_schema": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["id", "file", "base", "sha256"],
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "maxLength": 80
+                                },
+                                "file": {
+                                    "$ref": "#/definitions/relPath"
+                                },
+                                "base": {
+                                    "enum": ["out", "repo"]
+                                },
+                                "sha256": {
+                                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"
+                                },
+                                "definition": {
+                                    "type": "string",
+                                    "maxLength": 40
+                                }
+                            }
+                        }
+                    }
+                },
+                "allowed_tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "maxLength": 80
+                    }
+                },
+                "forbidden": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["fields", "content"],
+                    "properties": {
+                        "fields": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "maxLength": 40
+                            }
+                        },
+                        "content": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "maxLength": 200
+                            }
+                        }
+                    }
+                },
+                "caps": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["agent_calls", "retries"],
+                    "properties": {
+                        "agent_calls": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "retries": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            }
+        },
+        "gate-results": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "charter_id", "gates"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-gate-results/v1"
+                },
+                "charter_id": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+                },
+                "gates": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/verdict.schema.json#/properties/gates"
+                }
+            }
+        }
+    }
+}

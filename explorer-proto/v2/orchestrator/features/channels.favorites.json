@@ -1,0 +1,97 @@
+{
+    "schema": "explorer-feature/v1",
+    "id": "channels.favorites",
+    "title": "Favorite channels group",
+    "matrix_area": "channels.navigation",
+    "bakeoff_feature": "F2",
+    "goal": "I want to keep the channels I use most in a favorites group, so that they stay quick to reach when I switch channels or come back later.",
+    "consequence": "If this breaks, a channel I marked as a favorite is missing from my favorites group or appears in it without my choosing.",
+    "start": {
+        "start_path": "/<team>/channels/town-square",
+        "actor": "member"
+    },
+    "action_rules": {
+        "scope_note": "General policy for any journey in the channel sidebar and channel navigation area. It names no control that a particular journey needs.",
+        "roles_in_play": [
+            "button",
+            "link",
+            "menuitem",
+            "menuitemcheckbox",
+            "menuitemradio",
+            "checkbox",
+            "switch",
+            "tab"
+        ],
+        "roles_excluded": {
+            "roles": ["textbox", "searchbox", "combobox", "listbox", "option", "slider", "spinbutton"],
+            "why": "These need typed or continuous input, which this feature does not use."
+        },
+        "key_actions": {
+            "allowed": ["Escape"],
+            "why": "Escape only dismisses an open menu, popover or dialog."
+        },
+        "regions_in_play": [
+            "Left sidebar: team sidebar navigation, its channel and view links, and its category and channel controls with their menus",
+            "Channel header, with its menus and submenus",
+            "Right-hand panels opened in-app",
+            "Modal dialogs, see modal_policy"
+        ],
+        "regions_excluded": [
+            {
+                "region": "Global header: product switcher, global search, recent mentions, saved items, account and status menu, global settings, help",
+                "why": "These are workspace-wide surfaces outside channel navigation. The account menu holds sign-out."
+            },
+            {
+                "region": "Message composer and the message list",
+                "why": "Content authoring and per-post controls are outside this feature."
+            }
+        ],
+        "excluded_name_patterns": {
+            "match": "Case-insensitive, whole word, on the accessible name.",
+            "patterns": [
+                {
+                    "pattern": "\\bdelete\\b|\\bremove\\b|\\barchive\\b|\\bunarchive\\b|\\bdeactivate\\b",
+                    "why": "Destructive or irreversible changes to shared objects."
+                },
+                {
+                    "pattern": "\\bleave\\b",
+                    "why": "Ends membership, which removes the actor from the fixture."
+                },
+                {
+                    "pattern": "\\blog ?out\\b|\\bsign ?out\\b",
+                    "why": "Ends the session."
+                },
+                {
+                    "pattern": "\\bhelp\\b|\\breport\\b",
+                    "why": "Help opens documentation. Report opens a moderation flow."
+                },
+                {
+                    "pattern": "\\bcopy\\b|\\bdownload\\b|\\bexport\\b",
+                    "why": "Writes outside the observed app state."
+                }
+            ]
+        },
+        "origin_rule": "Exclude any link whose resolved href is outside the app origin, or that has target=_blank. The exact-origin guard aborts off-origin traffic anyway.",
+        "path_scope_rule": "If an action leaves the team path prefix, the runner records the resulting state and does not expand it.",
+        "uniqueness": "A candidate is actuated only by exact role plus exact accessible name, and only if that pair resolves to exactly one visible, enabled element at actuation time. Ambiguous or missing candidates are skipped and recorded with the reason.",
+        "modal_policy": "While a modal dialog is open, only controls inside the topmost dialog are candidates. The dialog can be left with Escape or with its own close or cancel control.",
+        "enumeration": "Candidates come only from the live accessibility snapshot of the current state, after the rules above. They are never taken from this file, a prior trace or a reference path."
+    },
+    "budget": {
+        "max_actions": 240,
+        "max_depth": 9,
+        "max_states": 200,
+        "max_replays": 260,
+        "wall_clock_seconds": 3600
+    },
+    "oracles": [
+        "console_error",
+        "uncaught_exception",
+        "failed_request",
+        "http_server_error",
+        "dead_control",
+        "stale_content",
+        "state_not_persisted",
+        "accessible_name_missing"
+    ]
+}

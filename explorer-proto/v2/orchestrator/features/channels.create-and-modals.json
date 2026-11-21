@@ -1,0 +1,99 @@
+{
+    "schema": "explorer-feature/v1",
+    "id": "channels.create-and-modals",
+    "title": "Channel creation and custom-time dialogs",
+    "matrix_area": "channels",
+    "bakeoff_feature": "F1",
+    "goal": "I want to fill in dialogs by typing and finish them from the keyboard, so that creating a channel or choosing a custom time works without the mouse.",
+    "consequence": "If this breaks, a dialog accepts input it should reject, ignores what I typed, or closes without telling me that it failed.",
+    "start": {
+        "start_path": "/<team>/channels/town-square",
+        "actor": "member"
+    },
+    "action_rules": {
+        "scope_note": "General policy for any journey in the channel sidebar, channel header and the modal dialogs they open. It names no control that a particular journey needs.",
+        "roles_in_play": [
+            "button",
+            "link",
+            "menuitem",
+            "menuitemcheckbox",
+            "menuitemradio",
+            "checkbox",
+            "radio",
+            "switch",
+            "tab",
+            "textbox",
+            "combobox"
+        ],
+        "roles_excluded": {
+            "roles": ["searchbox", "listbox", "option", "slider", "spinbutton"],
+            "why": "These need continuous input or a long option list, which this feature does not use."
+        },
+        "key_actions": {
+            "allowed": ["Escape", "Enter"],
+            "why": "Escape dismisses an open menu, popover or dialog. Enter submits a focused dialog field."
+        },
+        "regions_in_play": [
+            "Left sidebar: team sidebar navigation, its channel and view links, and its category and channel controls with their menus",
+            "Channel header, with its menus and submenus",
+            "Modal dialogs, see modal_policy"
+        ],
+        "regions_excluded": [
+            {
+                "region": "Global header: product switcher, global search, recent mentions, saved items, account and status menu, global settings, help",
+                "why": "These are workspace-wide surfaces outside channel dialogs. The account menu holds sign-out."
+            },
+            {
+                "region": "Message composer and the message list",
+                "why": "Content authoring and per-post controls are outside this feature."
+            }
+        ],
+        "excluded_name_patterns": {
+            "match": "Case-insensitive, whole word, on the accessible name.",
+            "patterns": [
+                {
+                    "pattern": "\\bdelete\\b|\\bremove\\b|\\barchive\\b|\\bunarchive\\b|\\bdeactivate\\b",
+                    "why": "Destructive or irreversible changes to shared objects."
+                },
+                {
+                    "pattern": "\\bleave\\b",
+                    "why": "Ends membership, which removes the actor from the fixture."
+                },
+                {
+                    "pattern": "\\blog ?out\\b|\\bsign ?out\\b",
+                    "why": "Ends the session."
+                },
+                {
+                    "pattern": "\\bhelp\\b|\\breport\\b",
+                    "why": "Help opens documentation. Report opens a moderation flow."
+                },
+                {
+                    "pattern": "\\bcopy\\b|\\bdownload\\b|\\bexport\\b",
+                    "why": "Writes outside the observed app state."
+                }
+            ]
+        },
+        "origin_rule": "Exclude any link whose resolved href is outside the app origin, or that has target=_blank. The exact-origin guard aborts off-origin traffic anyway.",
+        "path_scope_rule": "If an action leaves the team path prefix, the runner records the resulting state and does not expand it.",
+        "uniqueness": "A candidate is actuated only by exact role plus exact accessible name, and only if that pair resolves to exactly one visible, enabled element at actuation time. Ambiguous or missing candidates are skipped and recorded with the reason.",
+        "modal_policy": "While a modal dialog is open, only controls inside the topmost dialog are candidates. Text boxes receive only the fixed fixture strings supplied by deterministic code. The dialog can be left with Escape or with its own close or cancel control.",
+        "enumeration": "Candidates come only from the live accessibility snapshot of the current state, after the rules above. They are never taken from this file, a prior trace or a reference path."
+    },
+    "budget": {
+        "max_actions": 240,
+        "max_depth": 9,
+        "max_states": 200,
+        "max_replays": 260,
+        "wall_clock_seconds": 3600
+    },
+    "oracles": [
+        "console_error",
+        "uncaught_exception",
+        "failed_request",
+        "http_server_error",
+        "dead_control",
+        "typed_input_ignored",
+        "accessible_name_missing",
+        "unexpected_dialog"
+    ]
+}

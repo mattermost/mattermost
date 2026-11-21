@@ -1,0 +1,341 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://explorer-proto.invalid/v2/orchestrator/agent-results.schema.json",
+    "title": "Explorer v2 agent result formats (advisory judgement only; deterministic gates always win)",
+    "definitions": {
+        "text": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/evidenceText"
+        },
+        "taskId": {
+            "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"
+        },
+        "sourceCitation": {
+            "description": "A file:line in the repository, so a reviewer can be checked against the coverage report.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line"],
+            "properties": {
+                "file": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/repoPath"
+                },
+                "line": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/line"
+                }
+            }
+        },
+        "axis": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["citations", "rationale"],
+            "properties": {
+                "citations": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/sourceCitation"
+                    }
+                },
+                "rationale": {
+                    "$ref": "#/definitions/text"
+                }
+            }
+        },
+        "candidate": {
+            "description": "Input of v2/index/coverage-check.mjs: what a user sees, never what the explorer is told.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title"],
+            "properties": {
+                "title": {
+                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                },
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "role"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            "role": {
+                                "type": "string",
+                                "maxLength": 60
+                            }
+                        }
+                    }
+                },
+                "setup": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                    }
+                },
+                "goal_terms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                    }
+                },
+                "checkpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["description"],
+                        "properties": {
+                            "description": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                                }
+                            },
+                            "expected_text": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                                }
+                            }
+                        }
+                    }
+                },
+                "ui_labels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/shortText"
+                    }
+                }
+            }
+        },
+        "triage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "task_id", "classifications"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-triage-result/v1"
+                },
+                "task_id": {
+                    "$ref": "#/definitions/taskId"
+                },
+                "classifications": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["finding_id", "status", "severity_candidate"],
+                        "properties": {
+                            "finding_id": {
+                                "$ref": "#/definitions/taskId"
+                            },
+                            "status": {
+                                "enum": ["candidate", "confirmed", "rejected"]
+                            },
+                            "severity_candidate": {
+                                "enum": ["critical", "major", "minor", "trivial"]
+                            },
+                            "rejection_reason": {
+                                "enum": [
+                                    "not_reproduced",
+                                    "expected_behaviour",
+                                    "harness_artifact",
+                                    "duplicate_finding"
+                                ]
+                            },
+                            "note": {
+                                "$ref": "#/definitions/text"
+                            }
+                        },
+                        "allOf": [
+                            {
+                                "if": {
+                                    "properties": {
+                                        "status": {
+                                            "const": "rejected"
+                                        }
+                                    },
+                                    "required": ["status"]
+                                },
+                                "then": {
+                                    "required": ["rejection_reason"]
+                                },
+                                "else": {
+                                    "not": {
+                                        "required": ["rejection_reason"]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "select": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "task_id", "proposals"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-select-result/v1"
+                },
+                "task_id": {
+                    "$ref": "#/definitions/taskId"
+                },
+                "proposals": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["charter", "candidate"],
+                        "properties": {
+                            "charter": {
+                                "type": "object"
+                            },
+                            "candidate": {
+                                "$ref": "#/definitions/candidate"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "review": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "task_id", "reviews"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-review-result/v1"
+                },
+                "task_id": {
+                    "$ref": "#/definitions/taskId"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["charter_id", "judgement", "compared_test", "axes"],
+                        "properties": {
+                            "charter_id": {
+                                "$ref": "#/definitions/taskId"
+                            },
+                            "judgement": {
+                                "enum": ["equivalent", "non_equivalent"]
+                            },
+                            "compared_test": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["suite", "file", "line"],
+                                "properties": {
+                                    "suite": {
+                                        "enum": ["cypress", "playwright"]
+                                    },
+                                    "file": {
+                                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/repoPath"
+                                    },
+                                    "line": {
+                                        "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/line"
+                                    }
+                                }
+                            },
+                            "axes": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["actors_setup", "transitions", "final_assertions"],
+                                "properties": {
+                                    "actors_setup": {
+                                        "$ref": "#/definitions/axis"
+                                    },
+                                    "transitions": {
+                                        "$ref": "#/definitions/axis"
+                                    },
+                                    "final_assertions": {
+                                        "$ref": "#/definitions/axis"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "verify": {
+            "description": "Base of the verify result; the orchestrator adds per-charter constraints so proposed_overall can never be pass while a deterministic gate is fail or blocked.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "task_id", "reviews"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-verify-result/v1"
+                },
+                "task_id": {
+                    "$ref": "#/definitions/taskId"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["charter_id", "equivalence", "leak_review", "proposed_overall", "evidence"],
+                        "properties": {
+                            "charter_id": {
+                                "$ref": "#/definitions/taskId"
+                            },
+                            "equivalence": {
+                                "enum": ["equivalent", "non_equivalent"]
+                            },
+                            "leak_review": {
+                                "enum": ["clean", "leaks"]
+                            },
+                            "proposed_overall": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/triState"
+                            },
+                            "evidence": {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/evidenceRefs"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "lessons": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema", "task_id", "lessons"],
+            "properties": {
+                "schema": {
+                    "const": "explorer-lessons-result/v1"
+                },
+                "task_id": {
+                    "$ref": "#/definitions/taskId"
+                },
+                "lessons": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "https://explorer-proto.invalid/v2/schemas/lesson.schema.json"
+                            },
+                            {
+                                "properties": {
+                                    "status": {
+                                        "const": "proposed"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
