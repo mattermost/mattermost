@@ -493,6 +493,56 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(getLogs.mock.calls[1][0].dateFrom).not.toBe('');
     });
 
+    describe('filtered download', () => {
+        function filteredItem() {
+            return screen.getByRole('menuitem', {name: /^Filtered entries/});
+        }
+
+        async function openDownloadMenu() {
+            await userEvent.click(screen.getByLabelText('Open menu to download the logs'));
+        }
+
+        function renderWithEntries(getLogs: jest.Mock) {
+            return renderWithContext(
+                <Logs
+                    logs={[{caller: 'c', level: 'info', msg: 'm', timestamp: '2026-03-12T10:00:01.000Z'} as never]}
+                    logNodes={[]}
+                    truncatedLogNodes={[]}
+                    plainLogs={[]}
+                    isPlainLogs={false}
+                    plugins={{}}
+                    actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+                />,
+            );
+        }
+
+        test('should be disabled while a reload is pending and enabled after it succeeds', async () => {
+            const pending = deferred();
+            renderWithEntries(jest.fn().mockReturnValue(pending.promise));
+            await openDownloadMenu();
+            expect(filteredItem()).toHaveAttribute('aria-disabled', 'true');
+
+            await act(async () => {
+                pending.resolve();
+            });
+            await waitFor(() => expect(filteredItem()).not.toHaveAttribute('aria-disabled', 'true'));
+        });
+
+        test('should stay disabled after a failed reload', async () => {
+            const pending = deferred();
+            renderWithEntries(jest.fn().mockReturnValue(pending.promise.then(() => ({error: {message: 'failed'}}))));
+            await openDownloadMenu();
+
+            // The fixture has a row, so the viewer shows it refreshing rather than loading
+            expect(screen.getByText('Refreshing…')).toBeInTheDocument();
+            await act(async () => {
+                pending.resolve();
+            });
+            await waitFor(() => expect(screen.queryByText('Refreshing…')).not.toBeInTheDocument());
+            expect(filteredItem()).toHaveAttribute('aria-disabled', 'true');
+        });
+    });
+
     test('should send the search with the query', async () => {
         const getLogs = jest.fn().mockResolvedValue({});
         renderLogs(getLogs);
@@ -519,6 +569,34 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
         expect(getNewLogs.mock.calls[0][0].search).toBe('websocket');
         expect(getLogs).toHaveBeenCalledTimes(2);
+    });
+
+    test('should ask a live-tail poll again for the window a node could not answer', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
+        const failed = {data: {'node-b': [{timestamp: '2026-10-20 12:01:00.000 Z', level: 'error', msg: 'unreachable', caller: '', failed_node: true}]}};
+        const getLogs = jest.fn().mockResolvedValue({});
+        const getNewLogs = jest.fn().mockResolvedValueOnce(failed).mockResolvedValue({data: {'node-b': []}});
+        renderLogs(getLogs, getNewLogs);
+        await pickMenuItem('Open menu to select a time range', 'Last hour');
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '2026-10-20 11:00:00.000 +00:00'}), expect.any(AbortSignal)));
+
+        // Each interval change polls straight away
+        jest.setSystemTime(new Date('2026-10-20T12:01:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs.mock.calls[0][0].dateFrom).toBe('2026-10-20 11:59:30.000 +00:00');
+
+        // node-b missed it, so the next poll starts from the same point
+        jest.setSystemTime(new Date('2026-10-20T12:02:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 30 seconds');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs.mock.calls[1][0].dateFrom).toBe('2026-10-20 11:59:30.000 +00:00');
+
+        // Every node answered, so the one after moves on
+        jest.setSystemTime(new Date('2026-10-20T12:03:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 60 seconds');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(3));
+        expect(getNewLogs.mock.calls[2][0].dateFrom).toBe('2026-10-20 12:01:30.000 +00:00');
     });
 
     test('should not queue a live-tail poll behind a pending search', async () => {

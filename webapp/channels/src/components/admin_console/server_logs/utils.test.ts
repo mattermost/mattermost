@@ -4,7 +4,7 @@
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import type {LogObjectWithAdditionalInfo} from './types';
-import {LEVEL_GROUPS, formatLogValue, groupLevels, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
+import {LEVEL_GROUPS, formatLogValue, groupLevels, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, logsToJsonLines, filteredLogsFilename, newestLogTimes, nextDayStart} from './utils';
 
 describe('components/admin_console/server_logs/utils', () => {
     test.each([
@@ -104,5 +104,89 @@ describe('components/admin_console/server_logs/utils', () => {
         ])('in %s at %s', (timezone, now, expected) => {
             expect(nextDayStart(timezone, Date.parse(now))).toBe(Date.parse(expected));
         });
+    });
+
+    describe('logsToJsonLines', () => {
+        const entry = (msg: string, timestamp: string, extra: Record<string, unknown> = {}) => ({
+            caller: 'c', level: LogLevelEnum.INFO, msg, timestamp, ...extra,
+        }) as LogObjectWithAdditionalInfo;
+
+        test('should write one JSON object per line, oldest first', () => {
+            const lines = logsToJsonLines([
+                entry('b', '2026-03-12T10:00:02.000Z'),
+                entry('a', '2026-03-12T10:00:01.000Z'),
+            ]).split('\n');
+
+            expect(lines.map((line) => JSON.parse(line).msg)).toEqual(['a', 'b']);
+        });
+
+        test('should keep input order for entries with the same time', () => {
+            const lines = logsToJsonLines([
+                entry('second', '2026-03-12T10:00:01.000Z'),
+                entry('first', '2026-03-12T10:00:01.000Z'),
+            ]).split('\n');
+
+            expect(lines.map((line) => JSON.parse(line).msg)).toEqual(['second', 'first']);
+        });
+
+        test('should put entries without a readable time last, in input order', () => {
+            const lines = logsToJsonLines([
+                entry('bad1', 'not a time'),
+                entry('late', '2026-03-12T10:00:02.000Z'),
+                entry('bad2', ''),
+                entry('early', '2026-03-12T10:00:01.000Z'),
+            ]).split('\n');
+
+            expect(lines.map((line) => JSON.parse(line).msg)).toEqual(['early', 'late', 'bad1', 'bad2']);
+        });
+
+        test('should add a server_node field only when the entry has a node', () => {
+            const lines = logsToJsonLines([
+                {...entry('a', '2026-03-12T10:00:01.000Z'), [LogNodeKey]: 'node-a'},
+                {...entry('b', '2026-03-12T10:00:02.000Z'), [LogNodeKey]: ''},
+                entry('c', '2026-03-12T10:00:03.000Z'),
+            ]).split('\n').map((line) => JSON.parse(line));
+
+            expect(lines[0].server_node).toBe('node-a');
+            expect(lines[1]).not.toHaveProperty('server_node');
+            expect(lines[2]).not.toHaveProperty('server_node');
+        });
+
+        test('should not overwrite the entry\'s own node field', () => {
+            const [line] = logsToJsonLines([
+                {...entry('a', '2026-03-12T10:00:01.000Z', {node: 'logged-node'}), [LogNodeKey]: 'node-a'},
+            ]).split('\n').map((l) => JSON.parse(l));
+
+            expect(line.node).toBe('logged-node');
+            expect(line.server_node).toBe('node-a');
+        });
+
+        test('should keep the entry\'s own server_node field and add the node under a free key', () => {
+            const [line] = logsToJsonLines([
+                {...entry('a', '2026-03-12T10:00:01.000Z', {server_node: 'worker-7', _server_node: 'taken'}), [LogNodeKey]: 'node-a'},
+            ]).split('\n').map((l) => JSON.parse(l));
+
+            expect(line.server_node).toBe('worker-7');
+            expect(line).toHaveProperty('_server_node', 'taken');
+            expect(line).toHaveProperty('__server_node', 'node-a');
+        });
+
+        test('should skip failed-node entries', () => {
+            const text = logsToJsonLines([
+                entry('a', '2026-03-12T10:00:01.000Z'),
+                entry('failed', '2026-03-12T10:00:02.000Z', {failed_node: true}),
+            ]);
+
+            expect(text.split('\n')).toHaveLength(1);
+            expect(text).not.toContain('failed');
+        });
+
+        test('should return an empty string for no entries', () => {
+            expect(logsToJsonLines([])).toBe('');
+        });
+    });
+
+    test('should name the filtered download after the local time', () => {
+        expect(filteredLogsFilename(new Date(2026, 2, 5, 9, 8, 7))).toBe('mattermost-logs-filtered-20260305-090807.jsonl');
     });
 });

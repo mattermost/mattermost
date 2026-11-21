@@ -104,3 +104,55 @@ export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: stri
         return time < startOfToday || time > endOfToday;
     });
 }
+
+const SERVER_NODE_FIELD = 'server_node';
+
+// The entries as JSON Lines, oldest first whatever order they're shown in, so the file reads like the log.
+// The node isn't a JSON key (it's a symbol), so it's written as "server_node", which leaves the entry's own "node" field alone.
+// An entry that has its own "server_node" keeps it, and the node goes under the first free key of "_server_node", "__server_node", ...
+// A failed-node entry only says a node couldn't be reached, so it isn't a log line
+export function logsToJsonLines(logs: LogObjectWithAdditionalInfo[]): string {
+    return logs.
+        filter((log) => log.failed_node !== true).
+        map((log, index) => ({log, index, time: logEntryTime(log)})).
+        sort((a, b) => {
+            // Entries without a readable time go last, in input order, so the comparator stays consistent
+            const aValid = !Number.isNaN(a.time);
+            const bValid = !Number.isNaN(b.time);
+            if (aValid !== bValid) {
+                return aValid ? -1 : 1;
+            }
+            return (aValid ? a.time - b.time : 0) || (a.index - b.index);
+        }).
+        map(({log}) => {
+            const node = log[LogNodeKey];
+            if (!node) {
+                return JSON.stringify(log);
+            }
+            let key = SERVER_NODE_FIELD;
+            while (Object.hasOwn(log, key)) {
+                key = '_' + key;
+            }
+            return JSON.stringify({...log, [key]: node});
+        }).
+        join('\n');
+}
+
+// mattermost-logs-filtered-YYYYMMDD-HHmmss.jsonl, in the browser's local time
+export function filteredLogsFilename(now = new Date()): string {
+    return `mattermost-logs-filtered-${moment(now).format('YYYYMMDD-HHmmss')}.jsonl`;
+}
+
+export function downloadTextFile(filename: string, text: string, type = 'application/x-ndjson') {
+    const url = URL.createObjectURL(new Blob([text], {type}));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Revoking at once can cancel the download before the browser has started reading the blob
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+}
