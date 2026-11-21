@@ -2,11 +2,16 @@
   "pinned_commit": "f88f88cff6bc984076c605806621e8f5ff3717bc",
   "feature_area": "Channel Info panel (Info RHS) - opened via channel header button 'View Info' or channel menu item 'View Info'",
   "target_release": {
-    "image": "mattermost/mattermost-team-edition:12.1.0",
-    "digest": "sha256:35927b9c535a9eb74f0e45385d3fe5d8308b16e0464031f157a834da8af3ee73",
+    "image": "mattermost/mattermost-enterprise-edition:12.1.0",
+    "digest": "sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7",
+    "platform": "linux/amd64",
+    "database_image": "postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5",
     "git_tag": "v12.1.0",
     "git_tag_commit": "243e3d0135203ab9166fe8f2873b07f697b06fd4",
-    "note": "Pinned checkout is master (version 12.2.0, unreleased). Both selected scenarios were re-checked against v12.1.0 source; see coverage.md 'Release pin'."
+    "licence": "Licensed via MM_LICENSE, passed through Compose by name only at runtime (infra/docker-compose.yml:53); no licence value or length is recorded. IsLicensed === 'true' is required: an unlicensed server is a setup failure (run-pilot.sh step_stack :148-153). MM_SERVICEENVIRONMENT=test is set on the pilot Mattermost container only (infra/docker-compose.yml:37-38), user-approved because the licence is test-signed. The pilot asserts no licensed feature; neither scenario depends on the licence.",
+    "network": "Internal-only Docker network (internal: true), no published ports, loopback-only forwarder 127.0.0.1:8065 -> Mattermost container. DIRECT: container network membership, no published ports, Postgres has no default route, forwarder loopback-only, IsLicensed. INFERRED: the Mattermost container's own egress boundary (distroless, not exec'd). Source: infra/README.md:30-42.",
+    "drift": "Pinned checkout is f88f88c (master, unreleased 12.2.0); the tested server is the 12.1.0 release image. 13 related files changed between v12.1.0 and f88f88c (+520/-266: channel_info_rhs/, sidebar_right.tsx, channel_info_button.tsx, header_icon_wrapper.tsx). Untagged source citations are for 12.2.0 and may differ in the running UI. Both scenarios were re-checked against both versions (ledger and independent verifier). Behaviour on a 12.2.0 server is not verified.",
+    "note": "Pinned checkout is master (version 12.2.0, unreleased). Both selected scenarios were re-checked against v12.1.0 source; see coverage.md section 9. The earlier team-edition, unlicensed recommendation was not what ran and is withdrawn."
   },
   "scenarios": [
     {
@@ -17,17 +22,19 @@
       "risk_behavior_under_test": "Stale-panel regression. The Info RHS keeps rhsState=CHANNEL_INFO and a selectedChannelId captured when it was opened (actions/views/rhs.ts:524-530, reducers/views/rhs.ts:107), but renders getCurrentChannel (channel_info_rhs/index.ts:39). switchToChannel re-targets the Pinned and Files RHS views to the new channel (actions/global_actions.tsx:88, :92) but does nothing for Info, and SidebarRight does not close the RHS on a same-team channel change (sidebar_right.tsx:240-253). The panel content following the new channel therefore depends on an implicit coupling that no e2e test pins down. A regression would show channel A's purpose/header/handle while the user is in channel B.",
       "closest_cypress": [
         {"id": "CY-32", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_members_rhs_spec.ts:98", "asserts": "From the Members sub-view, switching to a DM leaves the RHS title 'Info' visible (:111). Asserts only the static title text."},
+        {"id": "CY-38", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_members_rhs_spec.ts:116-130", "asserts": "Members RHS opened from header #member_rhs (:120-121), switch to a DM (:127), #sidebar-right does not exist (:130).", "does_not_prove": "Info is never opened, the target is a DM, and the assertion is that the RHS closes; nothing about Info content following the new channel."},
         {"id": "CY-01", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:82", "asserts": "Open via #channel-info-btn; helper :536-541 checks 'Info' and the subtitle contains the display name, for a single channel, no transition."},
         {"id": "CY-08", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:202", "asserts": "Purpose patched via API while the panel is open appears in the RHS (single channel, live update)."},
         {"id": "CY-09", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:215", "asserts": "Header patched via API appears in the RHS (single channel)."}
       ],
       "closest_playwright": [
         {"id": "PW-01", "ref": "e2e-tests/playwright/specs/functional/channels/channel_settings/channel_headers.spec.ts:59", "asserts": "MM-T880: header saved via intro modal is visible in the Info RHS opened from channel menu 'View Info' (:89-94). Single channel."},
-        {"id": "PS-01 (open PR, not main)", "ref": "PR #40212 e2e-tests/playwright/specs/functional/channels/channel_info_rhs/channel_info_rhs.spec.ts:10-48", "asserts": "Name, purpose, handle, ID for one channel; mute; settings modal. No channel switch."}
+        {"id": "PS-01 (open PR, not main)", "ref": "PR #40212 e2e-tests/playwright/specs/functional/channels/channel_info_rhs/channel_info_rhs.spec.ts:10-48", "asserts": "Name, purpose, handle, ID for one channel; mute; settings modal. No channel switch."},
+        {"id": "PW infra", "ref": "e2e-tests/playwright/lib/src/ui/pages/channels.ts:364-379", "asserts": "openChannelInfo() clicks #channel-info-btn only if getByText('Info', {exact: true}) is not already visible in the RHS.", "does_not_prove": "It skips the click when Info text is already visible, so it never exercises a channel switch with the panel open; no Playwright spec asserts Info content after a switch."}
       ],
-      "remaining_gap": "No test opens Info on channel A, switches in-app to channel B, and asserts that the panel now shows B's display name/purpose/header/handle AND no longer shows A's values. CY-32 starts from a different RHS state (Members), lands on a DM (different about-area component, about_area_dm.tsx), and checks only the constant title 'Info', which would pass even if the content were stale.",
+      "remaining_gap": "No spec opens Info, switches channel in-app and then asserts the new channel's Info content (display name/purpose/header/handle) AND the absence of the previous channel's values. CY-32 asserts only the fixed title 'Info' after a Members-to-DM switch; CY-38 (channel_members_rhs_spec.ts:116-130) asserts only that the RHS closes when switching to a DM; the Playwright openChannelInfo() helper skips the click if Info text is already visible.",
       "fixture_setup": {
-        "server": "Fresh mattermost/mattermost-team-edition:12.1.0 + postgres:15, default config, no license, no feature flags.",
+        "server": "Fresh mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7 + postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5, licensed via MM_LICENSE passed through Compose at runtime (IsLicensed === 'true' required; unlicensed is a setup failure), MM_SERVICEENVIRONMENT=test on the Mattermost container only (test-signed licence, user-approved), outbound features off, no feature flags. No assertion depends on the licence. See target_release.",
         "team": {"name": "qa-team", "display_name": "QA Team", "type": "O"},
         "users": [
           {"username": "qa-admin", "roles": "system_admin system_user", "purpose": "seeding only; never signed in by the explorer"},
@@ -85,12 +92,36 @@
         ]
       },
       "negative_control": {
-        "change": "Swap the seeded purpose and header strings between qa-sandbox and release-planning (names, display names, URLs, membership and view-state unchanged).",
-        "expected_effect": "Navigation and both clicks still succeed; post-switch toContainText 'Release purpose bravo-91d2' fails and not.toContainText 'Sandbox purpose alpha-7f3c' fails. Pre-switch also fails, proving the pre-switch checkpoint is seed-bound."
+        "change": "Verify gate: control release-purpose-changed (see automated_controls). Change only the purpose of release-planning via the admin API, re-mark both channels viewed for qa-user, replay only.",
+        "expected_effect": "PILOT-01 fails only at expect.soft(info).toContainText('Release purpose bravo-91d2'); URL, region 'Info' visible and 'Close Info' assertions pass; PILOT-02 passes. Any other failure, unrelated timeout or setup failure is a verification FAILURE.",
+        "scope": "Verifies the assertions against a SEED change, not a product regression; it cannot show that a real stale-panel regression would be caught.",
+        "automated_controls": [
+          {
+            "name": "release-purpose-changed",
+            "kind": "seed change via admin API, navigation preserved, replay only (no re-explore, no re-emit)",
+            "change": "As admin: PUT /api/v4/channels/{release-planning id}/patch with only {purpose: <string not containing 'Release purpose bravo-91d2'>}. Then as qa-user: POST /api/v4/channels/members/me/view for release-planning, then qa-sandbox (seed view order).",
+            "restore": "Patch the seeded purpose 'Release purpose bravo-91d2' back and re-mark both channels viewed for qa-user.",
+            "expected_failing_assertion": "expect.soft(info).toContainText('Release purpose bravo-91d2')",
+            "expected_failures_only_at": ["expect.soft(info).toContainText('Release purpose bravo-91d2')"],
+            "expected_passing": ["page URL pathname is /qa-team/channels/release-planning", "expect(info).toBeVisible()", "expect(page.getByRole('button', {name: 'Close Info', exact: true})).toBeVisible()", "all other PILOT-01 assertions", "PILOT-02 passes"],
+            "declared_flakiness_risk": "A purpose patch posts a system_purpose_change message (server/channels/app/channel.go:1162,2190-2208), making release-planning unread for qa-user; the sidebar link name then gains ' unread' (sidebar_channel_link.tsx:152-153) and the exact-name click times out. Handled by the re-view step after the patch; if the click still times out, the control is a verification FAILURE.",
+            "failure_rule": "Unrelated timeouts, location-less test timeouts, failing clicks, or setup/seed/licence failures count as verification FAILURE, never as a pass.",
+            "status": "wired in verify, result reported in the pilot report"
+          }
+        ],
+        "additional_exploratory_seed_variants": [
+          {
+            "name": "swap-purpose-header",
+            "change": "Swap the seeded purpose and header strings between qa-sandbox and release-planning (names, display names, URLs, membership and view-state unchanged); infra/scripts/up.sh --variant=swap-purpose-header.",
+            "expected_effect": "Navigation and both clicks still succeed; post-switch toContainText 'Release purpose bravo-91d2' fails and not.toContainText 'Sandbox purpose alpha-7f3c' fails. Pre-switch also fails, proving the pre-switch checkpoint is seed-bound.",
+            "in_verify_gate": false,
+            "why_not_in_gate": "Six soft text assertions each wait the 10 s expect timeout; with setup this exceeds the 60 s test timeout (e2e-tests/playwright/playwright.config.ts:42,45), producing a location-less timeout instead of named assertion failures."
+          }
+        ]
       },
       "dedupe_key": "channel-info-rhs|state-transition|open-info>sidebar-switch-O-to-O|content-follows-current-channel",
       "risks_of_flakiness": [
-        "Sidebar link name gains ' unread' if release-planning has unseen posts; mitigated by the final view call and no later posts. Engine must not fall back to a regex.",
+        "Sidebar link name gains ' unread' if release-planning has unseen posts; mitigated by the final view call and no later posts. Engine must not fall back to a regex. The release-purpose-changed control posts a system message and must re-mark the channels viewed before replay.",
         "Center channel header also renders 'Release header bravo-91d2'; every text assertion must be scoped to region 'Info'.",
         "The about area and subtitle render from Redux immediately, but use auto-waiting expect (default 5s+) rather than snapshot timing.",
         "Onboarding tours can cover the sidebar for a new user; mitigated by the four seeded preferences.",
@@ -106,12 +137,14 @@
       "closest_cypress": [
         {"id": "CY-33", "ref": "e2e-tests/cypress/tests/integration/channels/archived_channel/archive_channel_header_spec.ts:38", "asserts": "MM-T1717: after archiving, the channel header DROPDOWN hides Archive, Channel Settings and Notification Preferences and keeps Members. Does not open the Info RHS."},
         {"id": "CY-06", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:158", "asserts": "Add People absent in the Info RHS for a user whose channel_user role lost manage_*_members (permission cause, active channel). Does not check Edit, notice or menu items."},
-        {"id": "CY-35", "ref": "e2e-tests/cypress/tests/integration/channels/channel/leave_and_archive_channel_destructive_spec.ts:32", "asserts": "Channel menu lists 'View Info' (and others) for an active channel."}
+        {"id": "CY-35", "ref": "e2e-tests/cypress/tests/integration/channels/channel/leave_and_archive_channel_destructive_spec.ts:32", "asserts": "Channel menu lists 'View Info' (and others) for an active channel."},
+        {"id": "CY-37", "ref": "e2e-tests/cypress/tests/integration/channels/archived_channel/archive_channel_member_spec.ts:21 (assertion :41)", "asserts": "MM-T1719: user created with promoteNewUserAsAdmin: true (:16) archives the channel (:32), opens header dropdown #channelMembers (:38), and findByText('Manage') does not exist in the RHS (:41).", "does_not_prove": "Members view, not the Info panel; the user is a system admin, not a regular member; checks only the 'Manage' text (no archived notice, Add People, Edit, menu items or Unarchive)."}
       ],
       "closest_playwright": [
-        {"id": "PW-attr-edit-lock", "ref": "e2e-tests/playwright/specs/functional/channels/channel_attributes/channel_attribute_editing.spec.ts:293", "asserts": "Archives (:316) then unarchives (:326) a channel as setup only; Info is opened on the ACTIVE channel to check attribute locking."}
+        {"id": "PW-attr-edit-lock", "ref": "e2e-tests/playwright/specs/functional/channels/channel_attributes/channel_attribute_editing.spec.ts:293", "asserts": "Archives (:316) then unarchives (:326) a channel as setup only; Info is opened on the ACTIVE channel to check attribute locking."},
+        {"id": "PW-26", "ref": "e2e-tests/playwright/specs/functional/channels/archived_channels/archived_channels.spec.ts:9-31", "asserts": "MM-T1671: regular user from pw.initSetup() (lib/src/server/init.ts:40-42) archives the channel (:19), opens channel menu Members (:22-24), sees the admin in the list (:27), and Manage/Add buttons are not visible (:30-31; locators sidebar_right.ts:67-68).", "does_not_prove": "Members view, not the Info panel; no archived notice, Add People, Edit, Notification Preferences, Channel Settings or Unarchive checks in Info."}
       ],
-      "remaining_gap": "No test (main or open PR) opens the Info RHS on an archived channel. The archived-notice text, the absence of Add People/Edit/Notification Preferences/Channel Settings in the panel, the absence of Unarchive for a non-team-admin, and the preservation of read-only purpose/header are unproven end-to-end. CY-33 proves the analogous gating only for the header dropdown, a different component (channel_header_menu).",
+      "remaining_gap": "No spec (main or open PR) opens the Info panel of an archived channel as a non-admin. The archived-notice text, the absence of Add People/Edit/Notification Preferences/Channel Settings in the panel, the absence of Unarchive for a non-team-admin, and the preservation of read-only purpose/header are unproven end-to-end. The Members-view read-only behaviour on archived channels is covered by MM-T1671 (PW-26) and Cypress archive_channel_member_spec (CY-37), but that is a different panel; CY-33 covers the header dropdown. 'This channel is archived' has 0 hits under e2e-tests/ (rg -uu -i and git grep, re-run for this ledger).",
       "fixture_setup": {
         "server": "Same server and users as PILOT-01.",
         "team": {"name": "qa-team"},
@@ -136,7 +169,7 @@
         {"role": "button", "name": "Edit", "exact": true, "name_match": "exact", "why": "All EditableArea affordances share aria-label 'Edit' (editable_area.tsx:69, :81); counted, never clicked."},
         {"role": "button", "name": "Notification Preferences", "exact": true, "name_match": "exact", "why": "menu.tsx:204-214 (aria-label = text, :96)."},
         {"role": "button", "name": "Channel Settings", "exact": true, "name_match": "exact", "why": "menu.tsx:196-203; channel_kind_messages.ts:34."},
-        {"role": "button", "name": "Unarchive", "exact": true, "name_match": "exact", "why": "channel_info_rhs.tsx:231-239.", "source_ref": "channel_info_rhs.tsx:217-256", "name_match_note": "No icon and no aria-label in the button (v12.1.0 source), so the exact name applies. Needs manage_team to render; never present for qa-user."},
+        {"role": "button", "name": "Unarchive", "exact": true, "name_match": "exact", "why": "channel_info_rhs.tsx:231-239.", "source_ref": "channel_info_rhs.tsx:217-256", "name_match_note": "No icon and no aria-label in the button (v12.1.0 source), so the exact name applies. Needs manage_team to render; never present for qa-user.", "live_evidence": "Verified by independent verifier run; automated control added. Source declares the button inside the archived notice (channel_info_rhs.tsx:217-256 at the pinned commit; plain button without icon or aria-label at v12.1.0, :226-237), gated by manage_team (team_admin only, role.go:1086), so qa-user never sees it. On the live licensed 12.1.0 stack, with qa-user made a team admin, PILOT-02 failed at the Unarchive count-0 assertion with 'Received: 1', so this exact locator matches the live UI. run-pilot.sh verify re-runs it as control 'team-admin' (wired in verify, result reported in the pilot report). Establishes that the assertion can detect the button; the spec itself asserts absence for a regular member only."},
         {"role": "button", "name": "Members", "exact": true, "why": "menu.tsx:215-226; positive control. NOT unique page-wide (channel header button is also 'Members', channel_header.tsx:49,327-337), so must be scoped to region 'Info'."},
         {"role": "button", "name": "Copy Link", "exact": true, "why": "top_buttons.tsx:101,172-183; positive control."}
       ],
@@ -165,8 +198,34 @@
         ]
       },
       "negative_control": {
-        "change": "Seed legacy-roadmap identically but skip the DELETE (archive) step.",
-        "expected_effect": "Same URL and the 'View Info' click still work; the notice assertion fails, and Add People/Edit/Notification Preferences counts become >= 1 because qa-user holds the default channel_user permissions (role.go:974,979), so the count-0 assertions fail."
+        "change": "Verify gate: controls no-archive (seed variant) and team-admin (role change), see automated_controls. Seed legacy-roadmap identically but skip the DELETE (archive) step; separately, make qa-user a team admin on the default seed.",
+        "expected_effect": "no-archive: same URL and the 'View Info' click still work; PILOT-02 fails at the hard notice assertion, which stops the test, so the later count-0 checks do not run (their non-vacuity is shown by the absence probe on this seed: Add People/Edit/Notification Preferences/Channel Settings counts >= 1 because qa-user holds the default channel_user permissions, role.go:974,979). team-admin: PILOT-02 fails only at the Unarchive count-0 assertion with 'Received: 1'. PILOT-01 passes in both.",
+        "scope": "Verifies the assertions against SEED/ROLE changes, not product regressions; they cannot show that a real permission-gating regression would be caught.",
+        "automated_controls": [
+          {
+            "name": "no-archive",
+            "kind": "seed variant (infra/scripts/up.sh --variant=no-archive), navigation preserved, replay only",
+            "change": "Seed legacy-roadmap identically but skip DELETE /api/v4/channels/{id}.",
+            "restore": "Re-seed the default variant before later steps.",
+            "expected_failing_assertion": "expect(info.getByText('This channel is archived.', {exact: true})).toBeVisible()",
+            "expected_failures_only_at": ["expect(info.getByText('This channel is archived.', {exact: true})).toBeVisible()"],
+            "expected_passing": ["PILOT-01 passes"],
+            "failure_rule": "Unrelated timeouts, location-less test timeouts, failing clicks, or setup/seed/licence failures count as verification FAILURE, never as a pass.",
+            "status": "already in run-pilot.sh verify (cmd_verify :396-398)"
+          },
+          {
+            "name": "team-admin",
+            "kind": "role change via admin API on the default seed, navigation preserved, replay only",
+            "change": "As admin: PUT /api/v4/teams/{team_id}/members/{qa-user id}/schemeRoles with {scheme_admin: true, scheme_user: true, scheme_guest: false} (the endpoint sets all three, server/channels/api4/team.go:1381).",
+            "restore": "PUT the same endpoint with scheme_admin: false (infra/scripts/verify_seed.mjs:32 rejects a seed where qa-user is a scheme admin).",
+            "expected_failing_assertion": "expect(info.getByRole('button', {name: 'Unarchive', exact: true})).toHaveCount(0)",
+            "expected_failures_only_at": ["expect(info.getByRole('button', {name: 'Unarchive', exact: true})).toHaveCount(0)"],
+            "expected_received": "Received: 1",
+            "expected_passing": ["all PILOT-02 assertions before the Unarchive check", "PILOT-01 passes"],
+            "failure_rule": "Unrelated timeouts, location-less test timeouts, failing clicks, or setup/seed/licence failures count as verification FAILURE, never as a pass.",
+            "status": "wired in verify, result reported in the pilot report"
+          }
+        ]
       },
       "dedupe_key": "channel-info-rhs|decision|type=O,archived=true,role=team_user+channel_user,manage_team=false,content=present|archived-notice+read-only",
       "risks_of_flakiness": [
@@ -182,7 +241,7 @@
     {"id": "MX-02", "description": "Open Info via channel menu item 'View Info'", "technique": "state-transition", "status": "COVERED", "evidence": ["PW-01 channel_headers.spec.ts:89-94", "CY-31 not_open_emoji_picker_spec.js:116", "toggle_info.tsx:38-51"]},
     {"id": "MX-03", "description": "Toggle Info open/closed with Ctrl/Cmd+Alt+I", "technique": "state-transition (closed->open->closed)", "status": "COVERED", "evidence": ["CY-29 ctrl_cmd_alt_I_toggles_channel_info_rhs_spec.js:22", "sidebar_right.tsx:137-144"]},
     {"id": "MX-04", "description": "Close Info via header toggle (name becomes 'Close Info') or RHS close button 'Close Sidebar Icon'; RHS disappears", "technique": "state-transition (open->closed)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["channel_info_button.tsx:37-48", "header.tsx:71-78", "CY-31 :129 clicks menu 'Close Info' without asserting closure; CY-12 :280-285 conditionally clicks #rhsCloseButton without asserting"]},
-    {"id": "MX-05", "description": "Info open on public channel A, in-app switch to public channel B via sidebar: panel stays open and shows B's name/purpose/header/handle, not A's", "technique": "state-transition (open->switch channel)", "status": "OPEN_WITH_EVIDENCE", "pilot": "proposed", "pilot_id": "PILOT-01", "evidence": ["index.ts:39", "sidebar_right.tsx:240-253,322-324", "global_actions.tsx:88,92 (only PIN/FILES re-targeted)", "nearest: CY-32 channel_members_rhs_spec.ts:98 (title only, from Members, to DM)"]},
+    {"id": "MX-05", "description": "Info open on public channel A, in-app switch to public channel B via sidebar: panel stays open and shows B's name/purpose/header/handle, not A's", "technique": "state-transition (open->switch channel)", "status": "OPEN_WITH_EVIDENCE", "pilot": "proposed", "pilot_id": "PILOT-01", "evidence": ["index.ts:39", "sidebar_right.tsx:240-253,322-324", "global_actions.tsx:88,92 (only PIN/FILES re-targeted)", "nearest: CY-32 channel_members_rhs_spec.ts:98 (title only, from Members, to DM)", "near-miss: CY-38 channel_members_rhs_spec.ts:116-130 (RHS closes on channel to DM switch)"], "pilot_result": "newly verified by the pilot (generated spec passed on the licensed 12.1.0 stack in the independent verifier run); status kept OPEN_WITH_EVIDENCE because src/emit.ts dedupes any COVERED status"},
     {"id": "MX-06", "description": "From Members sub-view (opened from Info), switch to a DM: RHS returns to Info", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-32 channel_members_rhs_spec.ts:98-113", "channel_members_rhs/index.ts:151-155"]},
     {"id": "MX-07", "description": "Full page reload with Info open: RHS is not restored (RHS view state not persisted)", "technique": "state-transition (open->reload)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["reducers/storage.ts:154-161 (only storage persisted)", "reducers/views/rhs.ts:184 (rhsState default null), :353 (isSidebarOpen default false)"], "note": "Behavior is incidental (no product contract found); rejected for pilot."},
     {"id": "MX-08", "description": "Info remains open after a System Console round trip", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-30 open_rhs_coming_from_system_console_spec.ts:46 (title carries 'KNOWN ISSUE: MM-47226' but the test is an active it())"]},
@@ -198,7 +257,7 @@
     {"id": "MX-18", "description": "Boundary: purpose of exactly 250 runes / header of exactly 1024 runes display in panel", "technique": "boundary-value analysis (at limit)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["server/public/model/channel.go:44-45", "display path identical to MX-17"]},
     {"id": "MX-19", "description": "Boundary: purpose 251 / header 1025 rejected", "technique": "boundary-value analysis (limit+1)", "status": "COVERED", "evidence": ["server channel.go:358-364", "UI maxLength edit_channel_purpose_modal.tsx:28,179; edit_channel_header_modal.tsx:28,173", "CY channel_settings_modal_spec.ts:273 (MM-T7), :287 (MM-T8)"], "note": "Enforced outside the Info panel; covered for the settings modal."},
     {"id": "MX-20", "description": "Private channel Info: About area, Copy Link, Add People gated by manage_private_channel_members", "technique": "equivalence partitioning (type=private)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["index.ts:48-50", "top_buttons.tsx:99,101", "no e2e opens Info on a 'P' channel (searched channel_info_rhs_spec.ts, channel_members_rhs_spec.ts, Playwright specs)"]},
-    {"id": "MX-21", "description": "Archived public channel, regular member: archived notice, no Unarchive/Add People/Edit/Notification Preferences/Channel Settings, purpose/header read-only, Members/Copy Link present", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "pilot": "proposed", "pilot_id": "PILOT-02", "evidence": ["channel_info_rhs.tsx:196,217-246,255", "menu.tsx:159-161", "unit only: channel_info_rhs.test.tsx:74, menu.test.tsx:98,291", "nearest e2e: CY-33 archive_channel_header_spec.ts:38 (header dropdown)"]},
+    {"id": "MX-21", "description": "Archived public channel, regular member: archived notice, no Unarchive/Add People/Edit/Notification Preferences/Channel Settings, purpose/header read-only, Members/Copy Link present", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "pilot": "proposed", "pilot_id": "PILOT-02", "evidence": ["channel_info_rhs.tsx:196,217-246,255", "menu.tsx:159-161", "unit only: channel_info_rhs.test.tsx:74, menu.test.tsx:98,291", "nearest e2e: CY-33 archive_channel_header_spec.ts:38 (header dropdown)", "near-miss: PW-26 archived_channels.spec.ts:9-31 (MM-T1671, Members view of archived channel)", "near-miss: CY-37 archive_channel_member_spec.ts:41 (MM-T1719, Members view, system admin)"], "pilot_result": "newly verified by the pilot (generated spec passed on the licensed 12.1.0 stack in the independent verifier run); status kept OPEN_WITH_EVIDENCE because src/emit.ts dedupes any COVERED status"},
     {"id": "MX-22", "description": "Archived channel, team/system admin: 'Unarchive' link in notice (not for town-square)", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "evidence": ["channel_info_rhs.tsx:201,225-240", "role.go:1080-1086"]},
     {"id": "MX-23", "description": "DM: other user's name and position, header; Add People absent", "technique": "equivalence partitioning (type=DM)", "status": "COVERED", "evidence": ["CY-27 :509", "CY-28 :519", "CY-25 :486 (channel_info_rhs_spec.ts)"]},
     {"id": "MX-24", "description": "DM and GM: Copy Link absent", "technique": "equivalence partitioning", "status": "OPEN_WITH_EVIDENCE", "evidence": ["top_buttons.tsx:101", "CY-19 :403/:411 and CY-26 :497/:505 use cy.uiGetRHS().get('Copy Link'), a CSS selector that never matches, so they pass vacuously"]},
@@ -227,7 +286,8 @@
     "newly_verified_by_pilot_proposed": 2,
     "open_with_evidence_remaining": 16,
     "unverified": 1,
-    "check": "20 + 1 + 18 + 1 = 40; the 2 proposed rows are included in open_with_evidence_total"
+    "newly_verified_by_pilot": 2,
+    "check": "20 + 1 + 18 + 1 = 40; the 2 pilot rows (MX-05, MX-21) are included in open_with_evidence_total, so 20 covered + 1 covered by open PR + 2 newly verified by the pilot + 16 open with evidence + 1 unverified = 40"
   },
   "next_candidates": [
     {
@@ -242,14 +302,14 @@
       "title": "Member without manage_public_channel_properties: no Edit affordances; empty purpose/header sections hidden",
       "setup": "Remove manage_public_channel_properties from channel_user (PATCH /api/v4/roles/{id}/patch), restore afterwards; or a channel scheme (licensed). Channels: one with purpose/header, one with both empty.",
       "expected_source": "channel_info_rhs.tsx:196; about_area_channel.tsx:145,169; editable_area.tsx:60,66.",
-      "pilot_rules_fit": "Yes for allowlist (button 'View Info', sidebar links) but the server-wide role mutation conflicts with a single shared deterministic seed; needs its own server or strict ordering."
+      "pilot_rules_fit": "No. The allowlist would fit (button 'View Info', sidebar links), but the server-wide channel_user role change breaks the no-per-test-server-config rule and the single shared deterministic seed."
     },
     {
       "matrix_ref": "MX-17",
       "title": "Long purpose truncated with 'more' and expanded with 'less'",
       "setup": "Purpose of 6 short lines separated by newlines (<= 250 runes), header short. Fixed viewport.",
       "expected_source": "linelimiter.tsx:32-45 (needLimiter when scrollHeight > 4*20px*1.1), :65-72 toggle text from i18n 'more'/'less'.",
-      "pilot_rules_fit": "Yes: controls 'View Info' and button 'more' (unique if only purpose is long; ToggleButton has no aria-label so name = text). Layout-dependent threshold makes it the most flake-prone of the three."
+      "pilot_rules_fit": "Yes: controls 'View Info' and button 'more' (unique if only purpose is long; ToggleButton has no aria-label so name = text). Fits the rules, but the layout-dependent threshold makes it the flakiest of the three."
     }
   ]
 }
