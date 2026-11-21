@@ -7,15 +7,21 @@ import type {AddressInfo} from 'node:net';
 import path from 'node:path';
 
 import {expect, test} from '@playwright/test';
+import type {Page} from '@playwright/test';
 
+import {writeJson} from './containment_report.ts';
+import {startFixtureServer} from './fixture_servers.ts';
+import type {FixtureServer, ServerCounters} from './fixture_servers.ts';
 import {GuardLedger, closeGuardedContext, guardedBrowser} from './guard.ts';
-import {outDir} from './paths.ts';
+import {outDir, reportsDir} from './paths.ts';
 
 const ITERATIONS = 40;
 const REQUESTS_PER_ITERATION = 48;
 
 let server: http.Server;
 let origin: string;
+let second: FixtureServer;
+let controlTotals: ServerCounters | undefined;
 const outcomes: Array<{iteration: number; teardownAborted: number; violations: string[]}> = [];
 
 // Staggered, streamed responses so that, at close time, some handlers are still fetching and others
@@ -38,9 +44,21 @@ test.beforeAll(async () => {
     });
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    second = await startFixtureServer({websocket: 'destroy'});
 });
 
+// Every iteration also reaches for the second origin over HTTP, an image and a WebSocket while handlers are in flight.
+async function reachForSecondOrigin(page: Page, target: string) {
+    await page.evaluate((url) => {
+        fetch(`${url}/race-fetch`, {mode: 'no-cors'}).catch(() => undefined);
+        new Image().src = `${url}/race-image`;
+        new WebSocket(`${url.replace('http', 'ws')}/race-socket`).onerror = () => undefined;
+    }, target);
+}
+
 test.afterAll(async () => {
+    const secondTotals = second ? {...second.counters} : undefined;
+    await second?.close();
     server?.closeAllConnections();
     server?.close();
     const failed = outcomes.filter((o) => o.violations.length > 0);
@@ -53,9 +71,38 @@ test.afterAll(async () => {
         `- iterations with unexpected handler errors: ${failed.length}`,
         `- teardown_aborted (benign, teardown-caused) across iterations: ${outcomes.reduce((s, o) => s + o.teardownAborted, 0)}`,
         ...failed.map((o) => `- iteration ${o.iteration}: ${o.violations.join('; ')}`),
+        '',
+        '## second origin, server-side counters (its own TCP accepts, parsed HTTP requests and upgrade events)',
+        '',
+        `- during all guarded iterations: connections ${secondTotals?.connections}, http requests ${secondTotals?.httpRequests}, upgrades ${secondTotals?.upgrades}`,
+        `- positive control, same attempts in an unguarded context: connections ${controlTotals?.connections}, http requests ${controlTotals?.httpRequests}, upgrades ${controlTotals?.upgrades}`,
     ];
+    writeJson(path.join(reportsDir(), 'guard-race.fragment.json'), {
+        schema: 'explorer-containment-race/v1',
+        iterations_planned: ITERATIONS,
+        iterations_completed: outcomes.length,
+        unexpected_handler_errors: failed.length,
+        second_server_totals: secondTotals,
+        positive_control_totals: controlTotals,
+    });
     fs.mkdirSync(outDir(), {recursive: true});
     fs.writeFileSync(path.join(outDir(), 'guard-race-report.md'), `${body.join('\n')}\n`);
+});
+
+test('positive control: the same second-origin attempts in an unguarded context reach the second server', async ({
+    browser,
+}) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto(`${origin}/page`);
+    await reachForSecondOrigin(page, second.origin);
+    await expect.poll(() => second.counters.upgrades).toBeGreaterThan(0);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    controlTotals = {...second.counters};
+    expect(controlTotals.httpRequests).toBeGreaterThan(0);
+    expect(controlTotals.connections).toBeGreaterThan(0);
+    await context.close();
+    second.reset();
 });
 
 for (let iteration = 0; iteration < ITERATIONS; iteration++) {
@@ -66,6 +113,7 @@ for (let iteration = 0; iteration < ITERATIONS; iteration++) {
         const context = await guardedBrowser(browser, origin, ledger).newContext();
         const page = await context.newPage();
         await page.goto(`${origin}/page`);
+        await reachForSecondOrigin(page, second.origin);
 
         await page.evaluate((count) => {
             for (let n = 0; n < count; n++) {
@@ -88,6 +136,10 @@ for (let iteration = 0; iteration < ITERATIONS; iteration++) {
         expect(ledger.violations).toEqual([]);
     });
 }
+
+test('the second origin received nothing across all guarded iterations', () => {
+    expect(second.counters).toEqual({connections: 0, httpRequests: 0, upgrades: 0});
+});
 
 test('teardown messages are benign only while the session is closing', () => {
     const ledger = new GuardLedger('replay');

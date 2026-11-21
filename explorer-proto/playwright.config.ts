@@ -10,10 +10,12 @@ import {defineConfig} from '@playwright/test';
 
 import baseConfig from '../e2e-tests/playwright/playwright.config';
 
+import {WS_LNA_LAUNCH_ARG} from './src/guard.ts';
 import {explorerMode} from './src/modes.ts';
-import {SRC_DIR, outDir, reportsDir, resultsDir, sessionName, journeyName} from './src/paths.ts';
+import {SCRATCH_DIR, SRC_DIR, outDir, reportsDir, resultsDir, sessionName, journeyName} from './src/paths.ts';
 import {journeySpecLocation} from './src/journey_spec_path.ts';
-import {CONTAINMENT_LAUNCH_ARGS} from './src/journey_containment.ts';
+import {thinContainmentLaunchArgs} from './src/journey_containment.ts';
+import {SCRATCH_SPEC_NAME} from './src/containment_scratch.ts';
 
 const mode = explorerMode();
 // PILOT_SESSION=<name> (set by `cli.ts --session=<name>`) selects the charter session explorer and its
@@ -41,6 +43,7 @@ const testLocation = {
     'guard-race': {testDir: SRC_DIR, testMatch: 'guard_race.pw.ts'},
     'probe-absence': {testDir: SRC_DIR, testMatch: 'absence_probe.pw.ts'},
     'guard-journey': {testDir: SRC_DIR, testMatch: 'guard_journey.pw.ts'},
+    'guard-journey-spec': {testDir: SCRATCH_DIR, testMatch: SCRATCH_SPEC_NAME},
     'explore-journey': {testDir: SRC_DIR, testMatch: 'explore_journey.pw.ts'},
     // The emitted repo-native spec runs from the repo specs tree (it never imports explorer-proto).
     'replay-journey': {
@@ -49,8 +52,19 @@ const testLocation = {
     },
 }[mode];
 
-// Containment for the unmodified repo-native spec: host-resolver rules applied at browser launch.
-const journeyLaunchArgs = mode === 'replay-journey' ? CONTAINMENT_LAUNCH_ARGS : [];
+// Plain repo-native specs (and the guard-journey scratch spec) get exact-origin containment through the
+// browser launch args; modes that run the application-level guard get the WebSocket LNA workaround.
+const THIN_MODES = ['replay-journey', 'guard-journey-spec'];
+const GUARDED_MODES = ['replay', 'explore', 'explore-journey', 'guard-check', 'guard-race', 'probe-absence'];
+
+function modeLaunchArgs(): string[] {
+    if (THIN_MODES.includes(mode)) {
+        return thinContainmentLaunchArgs(mode);
+    }
+    return GUARDED_MODES.includes(mode) && process.env.EXPLORER_WS_LNA_WORKAROUND !== '0' ? [WS_LNA_LAUNCH_ARG] : [];
+}
+
+const extraLaunchArgs = modeLaunchArgs();
 
 // The repo globalSetup is skipped: it would create a default team and reset plugins on the shared
 // seeded server. Testcontainers stays off (env.ts refuses PW_USE_TESTCONTAINERS).
@@ -71,7 +85,7 @@ export default defineConfig({
         serviceWorkers: 'block',
         launchOptions: {
             ...(baseConfig.use?.launchOptions ?? {}),
-            args: [...((baseConfig.use?.launchOptions as {args?: string[]})?.args ?? []), ...journeyLaunchArgs],
+            args: [...((baseConfig.use?.launchOptions as {args?: string[]})?.args ?? []), ...extraLaunchArgs],
         },
     },
     projects: [
@@ -88,7 +102,7 @@ export default defineConfig({
                                 launchOptions?: {args?: string[]};
                             }
                         )?.launchOptions?.args ?? []),
-                        ...journeyLaunchArgs,
+                        ...extraLaunchArgs,
                     ],
                 },
             },

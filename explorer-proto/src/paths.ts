@@ -38,6 +38,7 @@ export const PLAYWRIGHT_DIR = path.join(REPO_DIR, 'e2e-tests', 'playwright');
 export const PLAYWRIGHT_SPECS_DIR = path.join(PLAYWRIGHT_DIR, 'specs');
 export const CONFIG_PATH = path.join(PROTO_DIR, 'playwright.config.ts');
 
+export const SCRATCH_DIR = path.join(PROTO_DIR, 'infra', '.run');
 export const SESSIONS_DIR = path.join(PROTO_DIR, 'sessions');
 
 /** Charter session selected with `--session=<name>` (CLI) or PILOT_SESSION; '' for the default pilot. */

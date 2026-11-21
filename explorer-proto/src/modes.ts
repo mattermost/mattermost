@@ -10,6 +10,7 @@ export const EXPLORER_MODES = [
     'explore-journey',
     'replay-journey',
     'guard-journey',
+    'guard-journey-spec',
 ] as const;
 export type ExplorerMode = (typeof EXPLORER_MODES)[number];
 

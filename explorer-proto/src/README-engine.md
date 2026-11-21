@@ -6,20 +6,20 @@ Run from the repository root after `explorer-proto/infra/scripts/up.sh`. Node 24
 node explorer-proto/src/cli.ts explore      [--out=<dir>]   # bounded BFS -> <dir>/trace.json, trace.md
 node explorer-proto/src/cli.ts emit         [--out=<dir>]   # trace.json + scenarios.json -> <dir>/*.spec.ts, trace.md
 node explorer-proto/src/cli.ts replay       [--out=<dir>]   # runs the already-generated specs only (no explore/emit)
-node explorer-proto/src/cli.ts guard-check  [--out=<dir>]   # network guard proof -> <dir>/guard-report.md
-node explorer-proto/src/cli.ts guard-race   [--out=<dir>]   # teardown race regression (local server, no stack) -> <dir>/guard-race-report.md
+node explorer-proto/src/cli.ts guard-check  [--out=<dir>]   # network guard proof on a loopback fixture (no stack) -> <dir>/guard-report.md
+node explorer-proto/src/cli.ts guard-race   [--out=<dir>]   # teardown race regression (local servers, no stack) -> <dir>/guard-race-report.md
 node explorer-proto/src/cli.ts probe-absence [--out=<dir>]  # absence-locator non-vacuity -> <dir>/absence-probe-<variant>.md
 ```
 
 - `<dir>` defaults to `explorer-proto/generated`. Arguments after `--` go to `playwright test` (e.g. `-- --grep PILOT-02`).
 - `PW_BASE_URL` is optional; default is `base_url` from `infra/.run/seed-manifest.json`. It must be `http://127.0.0.1:<port>`.
 - `PW_USE_TESTCONTAINERS` must be unset. The CLI drops `MM_LICENSE` from the Playwright process env.
-- Exit codes: Playwright's for explore/replay/guard-check; emit exits 1 if any scenario was stopped.
+- Exit codes: Playwright's for explore/replay/guard-check/guard-race; `guard-journey` exits 1 if any mechanism, control or thin-config run fails; emit exits 1 if any scenario was stopped.
 - Reports: `generated/reports/<mode>.json` (Playwright JSON) and `generated/test-results/<mode>/`, both git-ignored. Screenshots, video and traces are off.
 
 ## How it works
 
-- `playwright.config.ts` spreads `e2e-tests/playwright/playwright.config.ts`, keeps only the `chrome` project, skips the repo globalSetup, and selects the test dir by `EXPLORER_MODE` (`explore` and `guard-check` run `src/*.pw.ts`; `replay` runs `<dir>/*.spec.ts`).
+- `playwright.config.ts` spreads `e2e-tests/playwright/playwright.config.ts`, keeps only the `chrome` project, skips the repo globalSetup, and selects the test dir by `EXPLORER_MODE` (`explore` and the guard checks run `src/*.pw.ts`; `replay` runs `<dir>/*.spec.ts`). Modes that run the application-level guard (`explore`, `replay`, `explore-journey`, `guard-check`, `guard-race`, `probe-absence`) add the browser launch arg `--disable-features=LocalNetworkAccessChecksWebSockets` (see "WebSocket under the guard"); `EXPLORER_WS_LNA_WORKAROUND=0` removes it.
 - `session.ts` `openGuardedSession(pw)` calls the framework's `TestBrowser.login(seeded user)` on a Browser wrapper (`guard.ts` `guardedBrowser`). The wrapper creates the context with `serviceWorkers: 'block'` and installs the guard before returning it, so the guard exists before `login()` opens its page; `login()` never navigates.
 - `guard.ts` allows exactly the manifest origin: `context.route('**/*')` aborts other origins, resolves 3xx responses itself (`route.fetch({maxRedirects: 0})`, every later hop checked) because Playwright does not route redirect hops, `context.routeWebSocket` closes WebSockets to any other origin, and a response/redirect-chain listener records escapes as violations that fail the session.
 - Handler lifecycle: every route handler promise is tracked. Closing a session marks the ledger `closing`, refuses new fulfils (abort, counted as `teardown_aborted`), waits for in-flight handlers (bounded 2 s), closes, then lets late handlers settle. A handler error is benign only while closing and only for `Fetch response has been disposed`, `Request context disposed`, `Target page, context or browser has been closed` or `Route is already handled`; any other handler error is a violation that fails `closeGuardedSession(s)`.
@@ -54,7 +54,8 @@ explorer-proto/infra/scripts/up.sh                                   # default s
 node explorer-proto/src/cli.ts explore --journey=auto-follow [--out=<dir>]   # best-first search -> <dir>/trace.json, trace.md, stats.json
 node explorer-proto/src/cli.ts emit    --journey=auto-follow [--out=<dir>]   # trace + charter -> ONE repo-native spec under e2e-tests/playwright/specs/
 node explorer-proto/src/cli.ts replay  --journey=auto-follow                 # runs the emitted repo-native spec through the thin config with containment
-node explorer-proto/src/cli.ts guard-journey [--out=<dir>]                   # proves the repo-native-spec containment (and its residual gap)
+node explorer-proto/src/cli.ts guard-journey --journey=auto-follow            # proves the repo-native-spec containment on a loopback fixture -> <dir>/guard-journey-report.md
+node explorer-proto/src/cli.ts containment-evidence --journey=auto-follow     # composes <dir>/containment-evidence.json (the v2 containment_evidence gate input) from the last guard-check, guard-race and guard-journey runs
 ```
 
 Default `<dir>` is `sessions/<name>/generated`. The journey name maps to `sessions/<name>/charter.json`.
@@ -157,18 +158,66 @@ asserts C1 (REST), C2 (REST), C3 (UI), C4 (UI) and FINAL (REST) with the charter
 licence-gated). The emitter **stops** (writes nothing) when no path qualified, when the snapshot cannot expose the
 C3 row text, when a declared expectation id is missing, or when it would have to invent a step; a stop is reported.
 
-### Network containment for the repo-native spec (`journey_containment.ts`)
+### Network containment for the repo-native spec (`containment_proxy.ts`, `journey_containment.ts`)
 
-The emitted spec uses plain repo fixtures (`pw.testBrowser.login` → `browser.newContext`), so the explorer's
-application-level guard cannot be imported into it, and config `use` context options (serviceWorkers, route
-handlers) never reach that context. The strongest config-only lever is a Chromium launch argument applied to the
-whole browser in `replay-journey` mode: `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1`. That blocks any
-external host and the name `localhost` for HTTP and WebSocket. **Residual gap (stated plainly):** a second
-`127.0.0.1` origin on a different port is *not* blocked, because host-resolver rules cannot filter by port and the
-unmodified spec's context cannot be intercepted without editing the lib or the spec. `guard-journey` proves exactly
-this: external host blocked, `localhost` blocked, the allowed origin works, and the second-port origin reachable.
-`serviceWorkers: 'block'` is also set in `use` (covers fixture contexts only; off-origin SW scripts fail to resolve
-anyway). Screenshot, video and trace stay `off`, including on failing runs.
+The emitted spec uses plain repo fixtures (`pw.testBrowser.login` -> `browser.newContext`), so the explorer's
+application-level guard cannot be imported into it and `context.route` handlers cannot be installed. What does
+reach the browser the lib uses is the config: `use.launchOptions` configures the browser the Playwright
+`browser` fixture launches, and `pw.testBrowser` wraps exactly that fixture. `use.serviceWorkers: 'block'` also reaches contexts
+the lib creates through `browser.newContext` (the Playwright runner applies `use` context options as defaults for every
+context made in a test); `guard-journey` proves it: the worker script is never requested, while an explicit
+`serviceWorkers: 'allow'` context from the same browser does request it. **Correction:** earlier text said `serviceWorkers`
+covered fixture contexts only and not the login context; that was wrong, it reaches both. Route handlers (`context.route`) do not.
+
+`replay --journey=<name>` therefore starts a **filtering forward proxy** (`containment_proxy.ts`) in the CLI process
+before Playwright and stops it afterwards. Chromium is launched with
+`--proxy-server=http://127.0.0.1:<proxy>`, `--proxy-bypass-list=<-loopback>` and, as a second layer,
+`--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1`.
+
+- The proxy forwards only the exact approved `host:port` (absolute-URI HTTP, `CONNECT` tunnels; WebSockets use `CONNECT`
+  in Chromium 151) and answers everything else `403` before it opens any upstream socket. It counts refusals by category
+  (`same-host-other-port`, `loopback-alias`, `other-host`, never a port). CLI output prints only counts.
+- `<-loopback>` is required: Chromium bypasses a proxy for `127.0.0.1` and `localhost` by default. `guard-journey` runs a
+  control with `--proxy-server` alone and the second server then receives HTTP and the WebSocket upgrade.
+- The proxy port exists only in the CLI process and the child environment (`EXPLORER_CONTAINMENT_PROXY_PORT`); it is never
+  written to a report, trace or spec. Running `replay-journey` without the CLI is refused (the config throws), not run uncontained.
+- The proxy sees the scheme only for plain HTTP; for a `CONNECT` it sees `host:port`. An `https://` or `wss://` URL to the
+  approved `host:port` would be tunnelled (to a server that speaks plain HTTP, so the TLS handshake fails); no other
+  destination can be reached.
+- `403` is what the page sees for a refused plain-HTTP request or navigation (`x-explorer-containment: refused`); a
+  refused `CONNECT` fails as a network error. The page cannot tell a proxy 403 from an app 403, so verdicts use server-side counters.
+- Not covered: UDP channels (WebRTC, WebTransport/QUIC) do not pass a TCP proxy. The WebTransport/WebRTC LNA checks stay on.
+- Not verified here: a full replay against the real Mattermost stack (needs Docker). The proxy is verified against loopback
+  fixtures with HTTP, redirects, an echo WebSocket and a service-worker probe.
+
+**What `guard-journey` proves (all on loopback fixtures, no stack).** Every verdict is the second server's own counters
+(TCP connections accepted, HTTP requests parsed, `upgrade` events), never a client error. It runs the same traffic suite
+(`containment_suite.ts`) in: the thin config with a plain test (`containment_scratch.ts` writes the git-ignored scratch spec
+`infra/.run/containment_scratch.spec.ts`; the lib's own `test` is not used because its auto fixtures log in to a server) with and without
+containment; and mechanism variants (plain launch, the old host-resolver-only rule, a proxy without `<-loopback>`, the
+proxy, and the proxy while DNS would resolve an external name to the second server). The controls must leak or the run fails.
+`localhost` by name on the approved port cannot be a separate server: the approved server's counters and `Host`
+headers show it received nothing (direct), and the proxy's refusal count is the other half. The external name is direct
+only where DNS can be mapped to the second server (the mechanism variant); in the thin-config run it is the proxy's refusal count plus the client error.
+
+## WebSocket under the guard (Local Network Access)
+
+The guard fulfils every document with `route.fulfill`, so Chromium sees no peer address for the page, treats it as a
+non-local origin and fails the page's WebSocket to the loopback approved origin with
+`net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`. `guard-check` reproduces this on a loopback fixture (diagnostic line
+"plain launch without the workaround flag": `ws:failed`) and shows the fix: the config passes
+`--disable-features=LocalNetworkAccessChecksWebSockets` in the app-guard modes, which disables only the WebSocket check
+(not the navigation, WebRTC or WebTransport checks); the echo then completes under the guard and the second server still counts 0.
+Not fulfilling documents would need a second, unverifiable look at redirects, so the flag was chosen. Re-check on the real app under
+Docker is outstanding: the committed pilot traces were produced before this flag.
+
+## Containment evidence
+
+`guard-check`, `guard-race` and `guard-journey` each write a git-ignored fragment under `reports/`;
+`containment-evidence --journey=auto-follow` turns them into `sessions/auto-follow/generated/containment-evidence.json`
+(schema `explorer-containment-evidence/v1`, the input of `v2/gates/containment_evidence.mjs`: `exploration` and
+`replay` are the application-level guard on a loopback fixture, `journey` is the thin-config run of the scratch spec,
+`scope.spec` is that scratch spec, not a pilot spec). It refuses to write when a run failed or a positive control did not leak.
 
 ## Storage state
 

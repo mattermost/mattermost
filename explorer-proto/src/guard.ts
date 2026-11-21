@@ -8,6 +8,12 @@ import {compareStrings} from './snapshot.ts';
 export type GuardMode = 'exploration' | 'replay';
 type Channel = 'http' | 'redirect' | 'websocket';
 
+// The guard fulfils every document itself, so Chromium sees no peer address for the page and applies its
+// Local Network Access check to the page's WebSocket to the (loopback) approved origin, which then fails with
+// ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS. This disables only that WebSocket check; the origin checks here,
+// and the other LNA checks (navigation, WebRTC, WebTransport), are untouched.
+export const WS_LNA_LAUNCH_ARG = '--disable-features=LocalNetworkAccessChecksWebSockets';
+
 const MAX_REDIRECT_HOPS = 5;
 const CLOSE_DRAIN_MS = 2000;
 

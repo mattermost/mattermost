@@ -1,0 +1,176 @@
+{
+  "schema": "explorer-containment-evidence/v1",
+  "scope": {
+    "kind": "spec_as_run",
+    "spec": "explorer-proto/infra/.run/containment_scratch.spec.ts",
+    "spec_sha256": "d496f170f7cb57229e34e959b67dd8397d2d900add3308805c2d92313a8d4637",
+    "config": "explorer-proto/playwright.config.ts",
+    "note": "the spec run through the thin config is the generated scratch spec of guard-journey, not a pilot spec"
+  },
+  "modes": {
+    "exploration": {
+      "second_origin_rejected": {
+        "loopback_alias": "blocked",
+        "same_host_other_port": "blocked"
+      },
+      "websocket_other_origin_closed": {
+        "loopback_alias": "blocked",
+        "same_host_other_port": "blocked"
+      },
+      "service_workers": {
+        "register_attempted": true,
+        "script_requests": 0
+      },
+      "second_server_hits": {
+        "http": 0,
+        "websocket_upgrades": 0,
+        "connections": 0
+      },
+      "violations": 0,
+      "violations_after_close": 0,
+      "evidence": {
+        "second_server_totals": {
+          "connections": 0,
+          "httpRequests": 0,
+          "upgrades": 0
+        },
+        "second_server_totals_after_close": {
+          "connections": 0,
+          "httpRequests": 0,
+          "upgrades": 0
+        },
+        "leaked_probes": [],
+        "external_name_maps_to_second_server": true
+      }
+    },
+    "replay": {
+      "second_origin_rejected": {
+        "loopback_alias": "blocked",
+        "same_host_other_port": "blocked"
+      },
+      "websocket_other_origin_closed": {
+        "loopback_alias": "blocked",
+        "same_host_other_port": "blocked"
+      },
+      "service_workers": {
+        "register_attempted": true,
+        "script_requests": 0
+      },
+      "second_server_hits": {
+        "http": 0,
+        "websocket_upgrades": 0,
+        "connections": 0
+      },
+      "violations": 0,
+      "violations_after_close": 0,
+      "evidence": {
+        "second_server_totals": {
+          "connections": 0,
+          "httpRequests": 0,
+          "upgrades": 0
+        },
+        "second_server_totals_after_close": {
+          "connections": 0,
+          "httpRequests": 0,
+          "upgrades": 0
+        },
+        "leaked_probes": [],
+        "external_name_maps_to_second_server": true
+      }
+    },
+    "journey": {
+      "second_origin_rejected": {
+        "loopback_alias": "blocked",
+        "same_host_other_port": "blocked"
+      },
+      "websocket_other_origin_closed": {
+        "loopback_alias": "blocked",
+        "same_host_other_port": "blocked"
+      },
+      "service_workers": {
+        "register_attempted": true,
+        "script_requests": 0
+      },
+      "second_server_hits": {
+        "http": 0,
+        "websocket_upgrades": 0,
+        "connections": 0
+      },
+      "violations": 0,
+      "violations_after_close": 0,
+      "evidence": {
+        "second_server_totals": {
+          "connections": 0,
+          "httpRequests": 0,
+          "upgrades": 0
+        },
+        "second_server_totals_after_close": {
+          "connections": 0,
+          "httpRequests": 0,
+          "upgrades": 0
+        },
+        "leaked_probes": [],
+        "external_name_maps_to_second_server": false
+      }
+    }
+  },
+  "race": {
+    "iterations_planned": 40,
+    "iterations_completed": 40,
+    "unexpected_handler_errors": 0,
+    "second_server_totals": {
+      "connections": 0,
+      "httpRequests": 0,
+      "upgrades": 0
+    },
+    "positive_control_totals": {
+      "connections": 3,
+      "httpRequests": 2,
+      "upgrades": 1
+    }
+  },
+  "positive_controls": [
+    {
+      "id": "control-unguarded",
+      "leaked_probes": [
+        "second.navigate",
+        "second.subresources",
+        "second.websocket",
+        "second.redirect-cross-origin",
+        "second.redirect-chain",
+        "second.fetch-redirect-cross-origin",
+        "localhost.navigate",
+        "localhost.subresources",
+        "localhost.websocket",
+        "external.navigate",
+        "external.subresources",
+        "external.websocket",
+        "service-worker.register"
+      ],
+      "second_server_totals": {
+        "connections": 8,
+        "httpRequests": 11,
+        "upgrades": 2
+      }
+    },
+    {
+      "id": "thin-config-control",
+      "leaked_probes": [
+        "second.navigate",
+        "second.subresources",
+        "second.websocket",
+        "second.redirect-cross-origin",
+        "second.redirect-chain",
+        "second.fetch-redirect-cross-origin",
+        "localhost.navigate",
+        "localhost.subresources",
+        "localhost.websocket"
+      ],
+      "second_server_totals": {
+        "connections": 4,
+        "httpRequests": 7,
+        "upgrades": 1
+      }
+    }
+  ]
+}

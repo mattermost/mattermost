@@ -1,15 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|probe-absence> [--session=<name>] [--out=<dir>] [-- <playwright args>]
-import {spawnSync} from 'node:child_process';
+// Usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|containment-evidence|probe-absence> [--session=<name>] [--out=<dir>] [-- <playwright args>]
+import {spawn, spawnSync} from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import {startContainmentProxy} from './containment_proxy.ts';
+import {buildEvidenceRecord, readFragment, writeJson} from './containment_report.ts';
+import type {RaceFragment} from './containment_report.ts';
+import {SCRATCH_SPEC_NAME} from './containment_scratch.ts';
 import {emit} from './emit.ts';
 import {emitJourney} from './emit_journey.ts';
 import {emitSession} from './emit_session.ts';
-import {CONFIG_PATH, PLAYWRIGHT_DIR, PROTO_DIR, journeyName, outDir, reportsDir, sessionName} from './paths.ts';
+import {runGuardJourney} from './guard_journey_run.ts';
+import {PROXY_PORT_ENV} from './journey_containment.ts';
+import {allowedOrigin} from './manifest.ts';
+import {
+    CONFIG_PATH,
+    PLAYWRIGHT_DIR,
+    PROTO_DIR,
+    REPO_DIR,
+    REPORTS_DIR,
+    SCRATCH_DIR,
+    journeyName,
+    outDir,
+    reportsDir,
+    sessionName,
+} from './paths.ts';
 
 const [command, ...rest] = process.argv.slice(2);
 const separator = rest.indexOf('--');
@@ -30,16 +49,57 @@ if (journeyArg) {
     process.env.PILOT_JOURNEY = journeyArg.slice('--journey='.length);
 }
 const SESSION_COMMANDS = ['explore', 'emit', 'replay'];
-const JOURNEY_COMMANDS = ['explore', 'emit', 'replay', 'guard-journey'];
+const JOURNEY_COMMANDS = ['explore', 'emit', 'replay', 'guard-journey', 'containment-evidence'];
 
-function playwright(mode: string): number {
+const PLAYWRIGHT_BIN = path.join(PLAYWRIGHT_DIR, 'node_modules', '.bin', 'playwright');
+
+function childEnv(mode: string, extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
     // The license never needs to reach Playwright or the browser.
-    const env: NodeJS.ProcessEnv = {...process.env, EXPLORER_MODE: mode, EXPLORER_OUT_DIR: outDir()};
+    const env: NodeJS.ProcessEnv = {...process.env, ...extra, EXPLORER_MODE: mode, EXPLORER_OUT_DIR: outDir()};
     delete env.MM_LICENSE;
     delete env.PW_USE_TESTCONTAINERS;
-    const bin = path.join(PLAYWRIGHT_DIR, 'node_modules', '.bin', 'playwright');
-    const result = spawnSync(bin, ['test', '-c', CONFIG_PATH, ...passthrough], {cwd: PROTO_DIR, env, stdio: 'inherit'});
+    return env;
+}
+
+function playwright(mode: string): number {
+    const result = spawnSync(PLAYWRIGHT_BIN, ['test', '-c', CONFIG_PATH, ...passthrough], {
+        cwd: PROTO_DIR,
+        env: childEnv(mode),
+        stdio: 'inherit',
+    });
     return result.status ?? 1;
+}
+
+/** Asynchronous so that servers in this process (the containment proxy) keep serving while Playwright runs. */
+function playwrightAsync(mode: string, extra: NodeJS.ProcessEnv = {}): Promise<number> {
+    return new Promise((resolve) => {
+        const child = spawn(PLAYWRIGHT_BIN, ['test', '-c', CONFIG_PATH, ...passthrough], {
+            cwd: PROTO_DIR,
+            env: childEnv(mode, extra),
+            stdio: 'inherit',
+        });
+        child.on('exit', (code) => resolve(code ?? 1));
+        child.on('error', () => resolve(1));
+    });
+}
+
+/**
+ * Runs replay-journey with every browser request sent through a local filtering proxy that only forwards the
+ * approved origin. The proxy port exists only in this process and the child env, never in a written artifact.
+ */
+async function replayJourneyContained(): Promise<number> {
+    const approved = new URL(allowedOrigin());
+    const proxy = await startContainmentProxy({host: approved.hostname, port: Number(approved.port)});
+    try {
+        return await playwrightAsync('replay-journey', {[PROXY_PORT_ENV]: String(proxy.port)});
+    } finally {
+        await proxy.close();
+        const {allowedHttp, allowedTunnels, allowedUpgrades, refused, refusedByCategory, upstreamSocketsOpened} =
+            proxy.stats;
+        process.stdout.write(
+            `containment proxy: forwarded ${allowedHttp} HTTP request(s) and ${allowedTunnels + allowedUpgrades} tunnel(s); refused ${refused} ${JSON.stringify(refusedByCategory)}; upstream sockets ${upstreamSocketsOpened}\n`,
+        );
+    }
 }
 
 /** Replay passes only if at least one test ran and every test passed; a skip is not a pass. */
@@ -51,6 +111,26 @@ function judgeReplay(status: number, reportName: string, label: string): number 
         `${label}: ${verdict ? 'PASS' : 'FAIL'} (${stats.expected} passed, ${stats.unexpected} failed, ${stats.skipped} skipped, ${stats.flaky} flaky)\n`,
     );
     return verdict ? 0 : 1;
+}
+
+/** Composes the gate input from the last guard-check, guard-race and guard-journey runs; writes nothing if any run failed. */
+function containmentEvidence(): number {
+    const specArg = own.find((a) => a.startsWith('--spec='));
+    const spec = path.resolve(specArg ? specArg.slice('--spec='.length) : path.join(SCRATCH_DIR, SCRATCH_SPEC_NAME));
+    const record = buildEvidenceRecord({
+        check: readFragment(path.join(REPORTS_DIR, 'guard-check.fragment.json')),
+        race: JSON.parse(fs.readFileSync(path.join(REPORTS_DIR, 'guard-race.fragment.json'), 'utf8')) as RaceFragment,
+        journey: readFragment(path.join(reportsDir(), 'guard-journey.fragment.json')),
+        spec: {
+            path: path.relative(REPO_DIR, spec),
+            sha256: crypto.createHash('sha256').update(fs.readFileSync(spec)).digest('hex'),
+        },
+        config: path.relative(REPO_DIR, CONFIG_PATH),
+    });
+    const file = path.join(outDir(), 'containment-evidence.json');
+    writeJson(file, record);
+    process.stdout.write(`containment-evidence: wrote ${path.relative(REPO_DIR, file)}\n`);
+    return 0;
 }
 
 async function main(): Promise<number> {
@@ -102,7 +182,7 @@ async function main(): Promise<number> {
         }
         case 'replay':
             if (journey) {
-                return judgeReplay(playwright('replay-journey'), 'replay-journey', 'journey replay');
+                return judgeReplay(await replayJourneyContained(), 'replay-journey', 'journey replay');
             }
             return session ? judgeReplay(playwright('replay'), 'replay', 'session replay') : playwright('replay');
         case 'guard-check':
@@ -110,12 +190,14 @@ async function main(): Promise<number> {
         case 'guard-race':
             return playwright('guard-race');
         case 'guard-journey':
-            return playwright('guard-journey');
+            return runGuardJourney(playwrightAsync);
+        case 'containment-evidence':
+            return containmentEvidence();
         case 'probe-absence':
             return playwright('probe-absence');
         default:
             process.stderr.write(
-                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|probe-absence> [--session=<name>|--journey=<name>] [--out=<dir>]\n',
+                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|containment-evidence|probe-absence> [--session=<name>|--journey=<name>] [--out=<dir>]\n',
             );
             return 2;
     }
