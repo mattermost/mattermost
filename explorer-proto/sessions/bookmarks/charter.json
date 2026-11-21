@@ -1,0 +1,212 @@
+{
+  "schema": "explorer-session-charter/v1",
+  "qualifies": true,
+  "qualifies_reason": "No Cypress or Playwright test (main, upgrade specs or open PRs #40180-#40217) switches channel in-app and asserts afterwards which channel's bookmarks the bar shows. Evidence and closest tests: explorer-proto/sessions/bookmarks/QA-NOTES.md.",
+  "feature_id": "channels.bookmarks",
+  "lane": "Browser",
+  "target_release": {
+    "server": "mattermost/mattermost-enterprise-edition:12.1.0 (licensed; see explorer-proto/README.md Pinned references)",
+    "source_tag": "v12.1.0",
+    "license_dependency": "The bookmark bar renders only when the client license reports IsLicensed === 'true' (v12.1.0 webapp/channels/src/components/channel_bookmarks/utils.ts:120-124) and the create/patch endpoints return 501 without a license (v12.1.0 server/channels/api4/channel_bookmark.go:57-60, :153-156). An unlicensed server is a setup failure, never a pass or a different-edition run."
+  },
+  "technique": {
+    "primary": "state-transition testing",
+    "model": "The bookmark bar content is a function of the current channel. States are identified by URL path; the transition under test is an in-app channel change (no page reload). Each state must show only the current channel's bookmark.",
+    "secondary": "equivalence partitioning: class A = channel whose only bookmark has title A; class B = a different channel whose only bookmark has a different title B. One representative per class.",
+    "boundary_note": "The documented limit of 50 bookmarks per channel (docs/main/end-user-guide/collaborate/manage-channel-bookmarks.mdx:10; MAX_BOOKMARKS_PER_CHANNEL = 50 in v12.1.0 utils.ts:28) is NOT exercised. Each channel has exactly one bookmark."
+  },
+  "charter": "Explore how the channel bookmark bar behaves when a signed-in regular member changes channel in-app. Find out whether the bar shows only the current channel's bookmark in every state you reach, and never keeps the previous channel's bookmark. Use only the allowlisted controls, and report each state's URL path and the live accessible names of the bookmark links you see.",
+  "start": {
+    "team": "qa-team",
+    "user": "qa-user",
+    "start_path": "/qa-team/channels/qa-sandbox",
+    "sign_in": "Fixed seeded identity from infra/.run/seed-manifest.json through the framework login (explorer-proto/infra/INTERFACE.md, Signed-in setup). Never pw.initSetup()."
+  },
+  "fixture_setup": {
+    "owner": "infra (created via the Mattermost REST API at seed time; not by the QA lead or the explorer)",
+    "existing_seed_reused": "Team qa-team, user qa-user (system_user, team_user, onboarding preferences) and public channels qa-sandbox ('QA Sandbox') and release-planning ('Release Planning'), both with qa-user as a member, exactly as in explorer-proto/scenarios.json PILOT-01 fixture_setup. legacy-roadmap is not used.",
+    "seeding_admin": "The lib default admin (PW_ADMIN_USERNAME, see explorer-proto/infra/INTERFACE.md), who plays the qa-admin role. The same admin must create, patch and restore the bookmarks so that it stays the bookmark owner.",
+    "bookmarks": [
+      {
+        "channel": "qa-sandbox",
+        "display_name": "Sandbox runbook delta 2c71",
+        "type": "link",
+        "link_url": "<manifest base_url>/qa-team/channels/qa-sandbox",
+        "emoji": "none (omit the field)",
+        "image_url": "none (omit the field)"
+      },
+      {
+        "channel": "release-planning",
+        "display_name": "Release brief echo 5b90",
+        "type": "link",
+        "link_url": "<manifest base_url>/qa-team/channels/release-planning",
+        "emoji": "none (omit the field)",
+        "image_url": "none (omit the field)"
+      }
+    ],
+    "create_call": "As the seeding admin: POST /api/v4/channels/{channel_id}/bookmarks with body {\"display_name\": <title>, \"type\": \"link\", \"link_url\": <absolute URL>}. Expect 201; store the returned id in the seed manifest. Endpoint: v12.1.0 server/channels/api4/channel_bookmark.go:49, handler :56-150.",
+    "link_url_rule": "Must be absolute http(s): for type 'link' the server rejects anything else (v12.1.0 server/public/model/channel_bookmark.go:163 with IsValidHTTPURL, server/public/model/utils.go:795-805). Only type 'board' accepts a relative path (:144). The origin must come from the seed manifest base_url at seed time and must never appear in charter-derived specs. With the origin equal to the page origin, the bar renders an in-app react-router Link (v12.1.0 bookmark_item_content.tsx:356-366). Each bookmark points at its own channel, so even an accidental activation could not change the channel.",
+    "idempotency": "Before creating, GET /api/v4/channels/{channel_id}/bookmarks. If exactly one bookmark exists with the declared title, keep it. Delete anything else (DELETE /api/v4/channels/{channel_id}/bookmarks/{bookmark_id}) so that each channel ends with exactly one bookmark.",
+    "system_posts": "None. Bookmark create and update only publish WebSocket events (channel_bookmark_created / channel_bookmark_updated) and create no post (v12.1.0 server/channels/app/channel_bookmark.go:34-51, :53-107).",
+    "viewed_last": "After all bookmark writes, as qa-user: POST /api/v4/channels/members/me/view with {channel_id, prev_channel_id: ''} for release-planning, then for qa-sandbox (route v12.1.0 server/channels/api4/channel.go:62; same order as explorer-proto/infra/scripts/seed.mjs:100-101). Afterwards neither sidebar link name carries the ' unread' suffix (v12.1.0 sidebar_channel_link.tsx:152-154). Create no posts after the view calls.",
+    "read_back": "GET /api/v4/channels/{channel_id}/bookmarks for both channels. Each must return exactly one non-deleted bookmark with the declared display_name and type 'link'."
+  },
+  "allowed_actions": [
+    {
+      "role": "link",
+      "name": "qa sandbox public channel",
+      "exact": true,
+      "why": "Left-sidebar link for qa-sandbox. Accessible name = lowercased '<display_name> public channel' (v12.1.0 sidebar_channel_link.tsx:133-156, aria-label :320; prefix from sidebar_base_channel.tsx:53-58). The selected (current) channel uses the same name, because selection changes only a CSS class (:313)."
+    },
+    {
+      "role": "link",
+      "name": "release planning public channel",
+      "exact": true,
+      "why": "Left-sidebar link for release-planning, same naming rule. The pilot already observed this exact name live (explorer-proto/generated/trace.md, PILOT-01)."
+    },
+    {
+      "role": "button",
+      "name": "View Info",
+      "exact": true,
+      "why": "Distractor. The channel-header Info toggle (v12.1.0 channel_info_button.tsx; name observed live in PILOT-01/02) opens the Info side panel on the same URL. The v12.1.0 Info panel never renders bookmarks (no 'bookmark' match under channel_info_rhs/), so this control cannot change which channel's bookmarks the bar shows. While the panel is open the toggle is named 'Close Info', which is not allowlisted."
+    }
+  ],
+  "budget": {
+    "max_actions": 8,
+    "max_depth": 2,
+    "max_states": 6
+  },
+  "locator_scope": {
+    "bookmark_bar": "page.getByTestId('channel-bookmarks-container'): the bar container in v12.1.0 (channel_bookmarks.tsx:74-79). It is a plain div with no ARIA role, so it has no node of its own in an accessibility snapshot. In snapshot matching, presence checks look for the link anywhere on the page and require exactly 1 match. The emitted replay scopes presence checks to this test id.",
+    "page": "The whole page. Used for absence checks, which is stricter than the bar scope: the other channel's title must not appear as a link anywhere.",
+    "item_role_and_name": "Each visible bookmark is role 'link' (explicit role='link' on DynamicLink, v12.1.0 bookmark_item_content.tsx:170; an <a> via react-router Link, :343-366). Its content is the icon (BookOutlineIcon: an SVG with a path only, no title or aria-label; bookmark_icon.tsx:38, 80-87) followed by the label span with display_name (:175). Expected accessible name = display_name exactly, because the seed sets no emoji or image_url. Supporting precedent: Cypress channel_bookmarks_spec.ts:77, :87 and the Playwright page object channel_bookmarks_bar.ts getBookmark(name) (exact) used by MM-T5609 :32. Each item also has a sibling button 'Bookmark menu' (bookmark_dot_menu.tsx:137; opacity 0 but in the accessibility tree). The bar has a button 'Add a bookmark' (bookmarks_bar_menu.tsx:132, :223) because channel_user holds add_bookmark_public_channel (v12.1.0 server/public/model/role.go:987). Neither is allowlisted. Overflowed items are aria-hidden (bookmarks_bar_item.tsx:51) and would drop out of the snapshot.",
+    "live_name_status": "SOURCE-DERIVED, NOT LIVE-VERIFIED on 12.1.0. The explorer run must REPORT the exact live accessible name of every role-link node whose name contains 'Sandbox runbook' or 'Release brief', in every state. If a name differs from the declared title (for example an icon glyph or emoji prefix), the emitter must stop and report it. It must not adapt the expectation."
+  },
+  "name_match_rules": {
+    "exact": "Presence checks. The name must equal the declared title.",
+    "contains": "Absence checks only. Count 0 of role-link nodes whose name contains the declared title. Reason: in the earlier pilot an icon-font glyph prefix made the live name '<glyph> Add People', so an exact name could never match and an exact absence check passed vacuously. Every contains-substring here uses only letters, digits and spaces, as explorer-proto/src/assertions.ts:39 requires.",
+    "ordering": "Within each predicate, check the positive expectations (URL, bar visible, current channel's title present) before the absence check, so the absence check cannot pass on an unrendered bar."
+  },
+  "expected_outcome": [
+    {
+      "id": "initial_bar",
+      "applies_to": "The start state, and any discovered state whose URL path equals /qa-team/channels/qa-sandbox.",
+      "expect": [
+        {
+          "id": "ib-1",
+          "kind": "url_path",
+          "equals": "/qa-team/channels/qa-sandbox",
+          "source": "start.start_path; v12.1.0 sidebar_base_channel.tsx:63 (link target '/<team>/channels/<name>')"
+        },
+        {
+          "id": "ib-2",
+          "kind": "testid",
+          "testid": "channel-bookmarks-container",
+          "visible": true,
+          "source": "Doc manage-channel-bookmarks.mdx:10 'Bookmarks display directly under channel headers.'; v12.1.0 channel_view.tsx:227 and channel_bookmarks.tsx:70-79 (renders only when the channel has bookmarks)"
+        },
+        {
+          "id": "ib-3",
+          "kind": "role",
+          "role": "link",
+          "name": "Sandbox runbook delta 2c71",
+          "match": "exact",
+          "scope": "bookmark_bar",
+          "visible": true,
+          "count": 1,
+          "source": "Seed value (fixture_setup.bookmarks[qa-sandbox].display_name); v12.1.0 bookmark_item_content.tsx:165-176"
+        },
+        {
+          "id": "ib-4",
+          "kind": "role",
+          "role": "link",
+          "name": "Release brief echo 5b90",
+          "match": "contains",
+          "scope": "page",
+          "count": 0,
+          "source": "Seed value (belongs to release-planning only); v12.1.0 utils.ts:126-145 and mattermost-redux selectors/entities/channel_bookmarks.ts:9-17 (bar reads state.entities.channelBookmarks.byChannelId[channelId])"
+        }
+      ]
+    },
+    {
+      "id": "follows_switch",
+      "applies_to": "Any discovered state whose URL path equals /qa-team/channels/release-planning and that was reached from the start state through the allowed actions only, with no page reload.",
+      "expect": [
+        {
+          "id": "fs-1",
+          "kind": "url_path",
+          "equals": "/qa-team/channels/release-planning",
+          "source": "Seed channel name; v12.1.0 sidebar_base_channel.tsx:63"
+        },
+        {
+          "id": "fs-2",
+          "kind": "testid",
+          "testid": "channel-bookmarks-container",
+          "visible": true,
+          "source": "v12.1.0 channel_bookmarks.tsx:70-79; seed gives release-planning one bookmark"
+        },
+        {
+          "id": "fs-3",
+          "kind": "role",
+          "role": "link",
+          "name": "Release brief echo 5b90",
+          "match": "exact",
+          "scope": "bookmark_bar",
+          "visible": true,
+          "count": 1,
+          "source": "Seed value (fixture_setup.bookmarks[release-planning].display_name); v12.1.0 utils.ts:141-145 (fetchChannelBookmarks on channelId change)"
+        },
+        {
+          "id": "fs-4",
+          "kind": "role",
+          "role": "link",
+          "name": "Sandbox runbook delta 2c71",
+          "match": "contains",
+          "scope": "page",
+          "count": 0,
+          "source": "Seed value (belongs to qa-sandbox only); v12.1.0 channel_view.tsx:227 passes the current channelId; selector channel_bookmarks.ts:9-17 is keyed by channel id"
+        }
+      ]
+    }
+  ],
+  "negative_controls": [
+    {
+      "id": "release-bookmark-title-changed",
+      "change": "Replay only (no re-explore, no re-emit). As the seeding admin (the bookmark owner): PATCH /api/v4/channels/{release-planning channel_id}/bookmarks/{release-planning bookmark_id} with body {\"display_name\": \"Release memo golf 3e47\"}. Nothing else changes: same link_url, type, channel, membership and sidebar names (route v12.1.0 api4/channel_bookmark.go:50, handler :152-272, ChannelBookmarkPatch and Patch() in model/channel_bookmark.go:238-273). Because the caller is the owner, the bookmark is updated in place and keeps its id (app/channel_bookmark.go:55-76). A non-owner patch would soft-delete it and create a copy with a new id (:77-95).",
+      "emits_post": false,
+      "re_view_needed": "Not required: the patch creates no post (app/channel_bookmark.go:53-107), so no ' unread' suffix appears. Re-running the two view calls is harmless and allowed.",
+      "expected_failing_assertion": "follows_switch / fs-3: role link named exactly 'Release brief echo 5b90' visible with count 1 in the bookmark bar",
+      "expected_passing": [
+        "initial_bar / ib-1..ib-4",
+        "follows_switch / fs-1 (URL), fs-2 (bar visible), fs-4 (no 'Sandbox runbook delta 2c71' link)"
+      ],
+      "must_keep": "Navigation intact: same start path and the same allowlisted clicks succeed. The run counts as a pass only if fs-3 fails and every other expectation passes. Unrelated timeouts, location-less test timeouts, failing clicks, closed pages, guard violations, and setup, seed or license failures all count as FAILURE.",
+      "restore": "As the same admin: PATCH the same bookmark with {\"display_name\": \"Release brief echo 5b90\"}. Then read back both channels (fixture_setup.read_back). Re-viewing is optional, for the reason above. A replay on the restored seed must pass."
+    }
+  ],
+  "dedupe": {
+    "key": "channels.bookmarks:bar-follows-switch",
+    "note": "Not equivalent to MM-T5611 (bookmark_display_navigation.spec.ts:38: in-app navigation by clicking an internal bookmark, asserts only the URL at :65), MM-T5609 (:11: single channel via goto, bar and bookmark visible at :31-32), Cypress channel_bookmarks_spec.ts:58 (empty bar absent, :67) or :865 (cy.visit reloads, asserts only the overflow count at :876-880)."
+  },
+  "constraints": [
+    "No screenshots, video or Playwright traces (explorer-proto/playwright.config.ts:43-45).",
+    "Loopback origin only: the manifest base_url http://127.0.0.1:<port> through the exact-origin guard. Service workers blocked.",
+    "Retries 0 (explorer-proto/playwright.config.ts:36).",
+    "Zero LLM, zero vision. Decisions come only from Playwright text accessibility snapshots, the allowlist and the declared predicates.",
+    "Only allowlisted controls may be clicked, by exact role and exact name, and only when they resolve to exactly one element. Never click bookmark links, 'Bookmark menu', 'Add a bookmark' or anything else.",
+    "Each candidate action runs in a fresh guarded context with path replay from start_path. States are deduped by URL path plus normalized snapshot.",
+    "Expected values come only from this charter. They are never derived from an observed snapshot or from the seed manifest.",
+    "No per-test server config, feature flags, role changes or new teams. Single shared deterministic seed.",
+    "Never print, log or store the license value or credentials."
+  ],
+  "known_risks": [
+    "Unread suffix: an unseen post renames a sidebar link to '<name> public channel unread' (v12.1.0 sidebar_channel_link.tsx:152-154), and the exact-name action then times out. Bookmark writes create no post, but the view calls must still come last and no post may follow them.",
+    "Glyph or emoji prefix: with an emoji the live name becomes ':<emoji>: <title>' (Cypress channel_bookmarks_spec.ts:96), and an icon-font glyph would prefix it too. The seed sets no emoji or image_url, and the default icon is a title-less SVG. Presence checks stay exact and will fail loudly on a prefix; absence checks use contains. The explorer must report the live names (locator_scope.live_name_status).",
+    "Overflow: the repo config viewport is 1280x1024 (e2e-tests/playwright/playwright.config.ts:33; the explorer config spreads it). Overflow starts when items exceed the container width minus 96 px (use_bookmarks_overflow.ts:12,15,93-105). Items are 5-25rem wide (bookmarks_bar_item.tsx:100-101). One short title does not overflow, even with the Info panel open. An overflowed item is aria-hidden (bookmarks_bar_item.tsx:51) and would vanish from the snapshot.",
+    "Render timing: the bar appears only after fetchChannelBookmarks resolves for the new channel (utils.ts:141-145). Replay must use auto-waiting expects, not snapshot timing.",
+    "Absence before render: an absence check passes trivially if the bar has not rendered yet. Mitigated by the ordering rule in name_match_rules.",
+    "Origin mismatch: if link_url's origin differs from the page origin (localhost vs 127.0.0.1), the item renders as an external link opening in a new tab (bookmark_item_content.tsx:327-340). It is still role link with the same name, so the assertions are unaffected, but the seed must use the manifest base_url.",
+    "Release drift: the open PR #40216 renames the test id to 'channel_bookmarks'. HEAD (12.2.0) adds a static React key and a plugin branch in channel_view.tsx. Neither applies to the 12.1.0 server under test.",
+    "Onboarding tours could cover the sidebar. Mitigated by the existing seeded onboarding preferences."
+  ]
+}
