@@ -527,6 +527,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                             </label>
                             <div className='col-md-5 col-sm-8'>
                                 <OAuthConnectionAudienceInput
+                                    testId='integrations.command.oauth_audience.loading'
                                     value={this.state.url}
                                     onChange={this.updateUrl}
                                     placeholder={defineMessage({

@@ -15,7 +15,7 @@ type Props = {
     value?: string[];
     disabled?: boolean;
 
-    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row keeps its input-id based ids. */
+    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row renders no test ids. */
     testIdScope?: string;
 
     /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
@@ -100,7 +100,7 @@ const CheckboxMatrixSetting = ({
 
     const handleChange = rowSelection === 'single' ? handleRadioChange : handleCheckboxChange;
 
-    let rootTestId = id;
+    let rootTestId;
     if (testIdScope) {
         rootTestId = testKey ? `${testIdScope}:${testKey}--group` : `${testIdScope}--group`;
     }
@@ -114,7 +114,7 @@ const CheckboxMatrixSetting = ({
             {label && (
                 <label
                     className='control-label'
-                    data-testid={testIdScope ? `${testIdScope}.label--text` : id + 'label'}
+                    data-testid={testIdScope ? `${testIdScope}.label--text` : undefined}
                 >
                     {label}
                 </label>
@@ -173,7 +173,7 @@ const CheckboxMatrixSetting = ({
             {helpText && (
                 <div
                     className='help-text'
-                    data-testid={testIdScope ? `${testIdScope}.help--text` : id + 'help-text'}
+                    data-testid={testIdScope ? `${testIdScope}.help--text` : undefined}
                 >
                     {helpText}
                 </div>

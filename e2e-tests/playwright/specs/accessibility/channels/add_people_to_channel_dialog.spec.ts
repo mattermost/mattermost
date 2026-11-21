@@ -63,7 +63,7 @@ test(
 
         // * Verify the heading with channel name
         const modalName = `Add people to ${channel.display_name}`;
-        // The dialog heading has no generated member; retain the scoped heading assertion.
+        // The dialog heading has no generated member, so it is read by role inside the dialog.
         await expect(dialog.locator.getByRole('heading', {name: modalName})).toBeVisible();
         await expect(dialog.locator.getByRole('heading', {level: 1})).toHaveText(modalName);
 

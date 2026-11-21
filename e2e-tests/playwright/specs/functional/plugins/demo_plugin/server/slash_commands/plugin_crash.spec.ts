@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {demoPluginId, duration, test, expect} from '@mattermost/playwright-lib';
+import {Api, demoPluginId, duration, expect, settle, test} from '@mattermost/playwright-lib';
 
 test('should crash plugin via /crash command and verify recovery', async ({pw}) => {
     // # Setup
-    const {adminClient, user} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
 
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Use autocomplete to select /crash command and send it
-    await channelsPage.centerView.postCreate.selectSlashCommandFromAutocomplete('/cr', '/crash');
-    await channelsPage.centerView.postCreate.sendMessage();
+    await app.center.postCreate.message.container.fill('/cr');
+    await expect(app.center.postCreate.message.suggestions.suggestion('/crash')).toBeVisible();
+    await app.center.postCreate.message.suggestions.suggestion('/crash').select();
+    await expect(app.center.postCreate.message.container).toHaveValue(/^\/crash/);
+    await settle(app.center.postCreate.sendButton, {wait: Api.ExecuteCommand}).click();
 
     // * Verify the post contains the crash message
-    await channelsPage.centerView.waitUntilLastPostContains('Crashing plugin');
+    await expect(await app.center.postList.postList.itemWith({text: 'Crashing plugin'})).toBeVisible();
 
     // * Verify the plugin recovers (polls every 500ms by default)
     await expect
@@ -45,5 +48,8 @@ test('should crash plugin via /crash command and verify recovery', async ({pw}) 
     await expect.poll(() => pw.isPluginActive(adminClient, demoPluginId), {timeout: duration.half_min}).toBe(true);
 
     // * Verify recovery by using /demo_plugin command
-    await channelsPage.centerView.postCreate.selectSlashCommandFromAutocomplete('/demo', '/demo_plugin');
+    await app.center.postCreate.message.container.fill('/demo');
+    await expect(app.center.postCreate.message.suggestions.suggestion('/demo_plugin')).toBeVisible();
+    await app.center.postCreate.message.suggestions.suggestion('/demo_plugin').select();
+    await expect(app.center.postCreate.message.container).toHaveValue(/^\/demo_plugin/);
 });

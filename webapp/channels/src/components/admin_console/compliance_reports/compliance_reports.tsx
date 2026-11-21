@@ -164,7 +164,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
 
         let content = null;
         if (this.state.loadingReports) {
-            content = <LoadingScreen/>;
+            content = <LoadingScreen testId='admin.compliance_reports.loading'/>;
         } else {
             const list = [];
 

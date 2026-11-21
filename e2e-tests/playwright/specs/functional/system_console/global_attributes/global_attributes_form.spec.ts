@@ -464,9 +464,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
                 // * Chips render in ascending rank order
                 const {ranks} = app.admin.attribute;
-                const low = await ranks.optionList.keyWith({text: 'Low'});
+                // Chips are keyed by position (lowest rank first), so order is read from their text.
                 const high = await ranks.optionList.keyWith({text: 'High'});
-                await expect(ranks.optionList).toHaveKeys([low, high]);
+                await expect(ranks.optionList.locator).toHaveText([/Low/, /High/]);
 
                 // # Reorder "High" to position 1 via its popover's Rank submenu.
                 // The submenu opens on hover (components/menu/sub_menu.tsx) and closes
@@ -484,7 +484,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await app.page.keyboard.press('Enter');
 
                 // * Reordered — "High" now renders first
-                await expect(ranks.optionList).toHaveKeys([high, low]);
+                await expect(ranks.optionList.locator).toHaveText([/High/, /Low/]);
 
                 await app.admin.saveButton.click();
 

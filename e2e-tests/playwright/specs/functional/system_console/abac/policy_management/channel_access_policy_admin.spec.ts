@@ -3,7 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {ChannelsPage, expect, test, enableABAC} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
 import {
     activatePolicy,
@@ -77,15 +77,15 @@ test.describe(
             const readableMessage = `readable under a management denial ${pw.random.id()}`;
             await adminClient.createPost({channel_id: channel.id, message: readableMessage} as any);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await enableABAC(systemConsolePage.page);
+            const {app: adminApp} = await pw.testBrowser.login(adminUser);
+            await enableABAC(adminApp.page);
             await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 
             const policyName = `PP Manage Deny ${pw.random.id()}`;
             createdPolicyName = policyName;
             createdPolicyClient = adminClient;
 
-            await createPermissionPolicy(systemConsolePage.page, {
+            await createPermissionPolicy(adminApp.page, {
                 name: policyName,
                 celExpression: 'user.attributes.Department == "NoSuchDepartment"',
                 permissions: ['Manage Channel'],
@@ -96,15 +96,16 @@ test.describe(
             expect(policyId).toBeTruthy();
             await activatePolicy(adminClient, policyId!);
 
-            const {page} = await pw.testBrowser.login(user);
-            const channelsPage = new ChannelsPage(page);
-            await page.goto(`/${team.name}/channels/${channel.name}`);
-            await channelsPage.toBeVisible();
+            const {app, page} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel});
 
-            await expect(page.locator(`#sidebarItem_${channel.name}`)).toBeVisible();
-            await expect((await channelsPage.getLastPost()).body).toContainText(readableMessage);
+            await expect(app.lhs.channelList.channel(channel).container).toBeVisible();
+            await expect(app.center.postList).toContainText(readableMessage);
 
-            const channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
 
             // * Both policy tabs stay listed, with the notice explaining that editing is restricted
             await expect(channelSettings.tabs.tab('access_rules').locator).toBeVisible();
@@ -174,14 +175,14 @@ test.describe(
             await adminClient.addToChannel(user.id, channel.id);
             await adminClient.updateChannelMemberRoles(channel.id, user.id, 'channel_user channel_admin');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await enableABAC(systemConsolePage.page);
+            const {app: adminApp} = await pw.testBrowser.login(adminUser);
+            await enableABAC(adminApp.page);
             await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 
             const policyName = `PP Read Deny ${pw.random.id()}`;
             createdPolicyName = policyName;
             createdPolicyClient = adminClient;
-            await createPermissionPolicy(systemConsolePage.page, {
+            await createPermissionPolicy(adminApp.page, {
                 name: policyName,
                 celExpression: 'user.attributes.Department == "NoSuchDepartment"',
                 permissions: ['Channel Read Access'],

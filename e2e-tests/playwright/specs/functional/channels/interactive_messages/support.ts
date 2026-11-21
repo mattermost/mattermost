@@ -12,7 +12,7 @@ import {expect, type App, type KeyedList} from '@mattermost/playwright-lib';
 export type CenterPost = ReturnType<App['center']['postList']['post']>;
 export type ThreadPost = ReturnType<App['rhs']['thread']['post']>;
 
-async function latestMatching<Item extends {message: {container: {text(): Promise<string>}}}>(
+async function latestMatching<Item extends {container: {locator: {innerText(): Promise<string>}}}>(
     list: KeyedList<string, Item>,
     text: string | RegExp,
 ): Promise<Item> {
@@ -20,7 +20,8 @@ async function latestMatching<Item extends {message: {container: {text(): Promis
     await expect
         .poll(async () => {
             for (const key of (await list.keys()).reverse()) {
-                const message = await list.item(key).message.container.text();
+                // The whole post: block text is not inside the message text.
+                const message = await list.item(key).container.locator.innerText();
                 if (
                     typeof text === 'string'
                         ? message.includes(text)
@@ -53,6 +54,7 @@ export async function centerPostContaining(app: App, text: string | RegExp): Pro
 export async function openThread(app: App, post: CenterPost) {
     await post.container.hover();
     await post.menu.replyButton.click();
+    await expect(app.rhs.postCreate).toBeVisible();
     await expect(await app.rhs.thread.postList.first()).toBeVisible();
 }
 

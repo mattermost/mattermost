@@ -46,14 +46,13 @@ const AdminPanelWithButton = ({
 }: Props) => {
     let button;
     if (onButtonClick && buttonText) {
-        const legacyButtonId = (buttonText.defaultMessage as string || '').split(' ').join('-').toLowerCase();
         button = (
             <Button
                 emphasis='primary'
                 destructive={destructive}
                 disabled={disabled}
                 onClick={onButtonClick}
-                data-testid={buttonTestId ? `${buttonTestId}--button` : legacyButtonId}
+                data-testid={buttonTestId ? `${buttonTestId}--button` : undefined}
             >
                 <FormattedMessage
                     {...buttonText}

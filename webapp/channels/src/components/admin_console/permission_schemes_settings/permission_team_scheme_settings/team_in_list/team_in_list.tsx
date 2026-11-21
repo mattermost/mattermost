@@ -32,10 +32,12 @@ const TeamInList = ({
     return (
         <div
             className='team'
+            data-testid={`admin.permissions.team_scheme.teams.team:${team.id}`}
             key={team.id}
         >
             <div className='team-info-block'>
                 <TeamIcon
+                    testIdScope='admin.permissions.team_scheme.teams.team'
                     content={team.display_name}
                     url={imageURLForTeam(team)}
                 />

@@ -15,7 +15,7 @@ export const unsetValueMessage = defineMessage({
 });
 
 type Props = {
-    testId: string;
+    testId?: string;
 };
 
 /**

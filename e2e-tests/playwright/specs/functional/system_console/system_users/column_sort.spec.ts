@@ -91,7 +91,7 @@ test.describe('System Console - Users table sorting', () => {
         const app = await openSystemUsers(pw, adminUser);
 
         // * Verify that 'Last login' column is not sortable
-        // The non-sortable header is a container; retain the attempted click through its locator.
+        // The non-sortable header is a container, so the click is attempted through its locator.
         const lastLoginHeader = app.admin.users.table.head.column('lastLoginColumn').locator;
         await expect(lastLoginHeader).toBeVisible();
         await expect(lastLoginHeader).not.toHaveAttribute('aria-sort');

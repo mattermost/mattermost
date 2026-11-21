@@ -240,9 +240,8 @@ function uiGotoDirectMessageWithUser(user: User) {
         type(user.username, {force: true}).wait(TIMEOUTS.ONE_SEC);
 
     // * Expect user count in the list to be 1
-    cy.get('#multiSelectList').
-        should('be.visible').
-        children().
+    // One query, so it re-runs from the list when the list re-mounts while the search results narrow
+    cy.get('#multiSelectList > *').
         should('have.length', 1);
 
     // # Select first user in the list
@@ -276,9 +275,8 @@ function sendDirectMessageToUsers(users: User[], message: string) {
         cy.get('#selectItems input').should('be.enabled').type(`@${user.username}`, {force: true});
 
         // * Expect user count in the list to be 1
-        cy.get('#multiSelectList').
-            should('be.visible').
-            children().
+        // One query, so it re-runs from the list when the list re-mounts while the search results narrow
+        cy.get('#multiSelectList > *').
             should('have.length', 1);
 
         // # Select first user in the list

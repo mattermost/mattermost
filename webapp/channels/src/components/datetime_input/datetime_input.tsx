@@ -259,7 +259,7 @@ type Props = {
     minDateTime?: Moment;
     maxDateTime?: Moment;
 
-    // The input's scope: `.calendar`, `.time--button`, `.time_menu.time:<HHmm>--menuitem`; without it, the legacy ids.
+    // The input's scope: `.calendar`, `.time--button`, `.time_menu.time:<HHmm>--menuitem`; without it, no test ids.
     testIdScope?: string;
 };
 

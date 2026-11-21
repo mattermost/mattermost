@@ -46,14 +46,14 @@ describe('System console', () => {
         cy.visit('/admin_console');
 
         // * Scroll to the last item of the page and ensure it can be clicked
-        cy.findByTestId('experimental.feature_flags').scrollIntoView().click();
+        cy.findByTestId('admin.sidebar.category.section:feature_flags--listitem').findByTestId('admin.sidebar.category.section.title--link').scrollIntoView().click();
     });
 
     it('MM-T1634 - Search box should remain visible / in the header as you scroll down the settings list in the left-hand-side', () => {
         cy.visit('/admin_console');
 
         // * Scroll to bottom of left hand side
-        cy.findByTestId('experimental.feature_flags').scrollIntoView().click();
+        cy.findByTestId('admin.sidebar.category.section:feature_flags--listitem').findByTestId('admin.sidebar.category.section.title--link').scrollIntoView().click();
 
         // * To check if the sidebar is in view, try to click it
         cy.get('#adminSidebarFilter').should('be.visible').click();

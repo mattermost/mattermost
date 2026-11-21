@@ -83,7 +83,7 @@ const UserList = ({
             <div
                 key='no-users-found'
                 className='more-modal__placeholder-row no-users-found'
-                data-testid={testIdScope ? `${testIdScope}.no_users--text` : 'noUsersFound'}
+                data-testid={testIdScope ? `${testIdScope}.no_users--text` : undefined}
             >
                 <p>
                     <FormattedMessage

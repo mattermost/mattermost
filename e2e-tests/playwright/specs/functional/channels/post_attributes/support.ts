@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page, Request} from '@playwright/test';
+import type {Locator, Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
+
+import {expect, type App, type generated} from '@mattermost/playwright-lib';
 
 export const GROUP = 'post_attributes';
 export const OBJECT_TYPE = 'post';
@@ -159,4 +161,52 @@ export function recordRequests(page: Page, fragment: string): string[] {
     });
 
     return urls;
+}
+
+/** Matches exactly `text`, for finding a chip by the option it shows. */
+export function exactly(text: string): RegExp {
+    return new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+}
+
+/**
+ * The option chip on a post's attribute row that shows `name`. Option-bearing fields (`select`, `multiselect`,
+ * `rank`) share one renderer, so their chips are told apart by the option they show.
+ */
+export function optionChip(
+    attributes: generated.CenterPostListPostAttributes<generated.CenterPostListPostAttributesMount>,
+    name: string,
+): Locator {
+    return attributes.value.selectText.locator.filter({hasText: exactly(name)});
+}
+
+/**
+ * Opens the post's `…` menu with the pointer and picks `Attributes`, returning the modal.
+ *
+ * The message text is hovered rather than the post, so the pointer never rests on the chip row and the hover
+ * card is not what opened the modal.
+ */
+export async function openModalFromPostMenu(
+    app: App,
+    post: generated.CenterPostListPost<generated.CenterPostListPostMount>,
+) {
+    await post.message.container.hover();
+    await expect(post.menu.dotMenuButton).toBeVisible();
+    const dotMenu = await post.menu.dotMenuButton.clickTo(app.postDotMenu);
+    return dotMenu.postAttributesMenuItem.clickTo(app.postAttributesModal);
+}
+
+/**
+ * Counts full page loads after the point it is called.
+ *
+ * The write path's whole claim is that a value changes in place, and "without a reload" is otherwise asserted
+ * only by the test not writing one — which proves nothing about the code reloading on its own.
+ */
+export function countLoads(page: Page): () => number {
+    let loads = 0;
+
+    page.on('load', () => {
+        loads++;
+    });
+
+    return () => loads;
 }

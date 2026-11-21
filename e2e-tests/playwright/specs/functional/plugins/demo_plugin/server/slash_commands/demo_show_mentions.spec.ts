@@ -3,27 +3,23 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {centerPostWithText, sendDemoSlashCommand} from '../../helpers';
+
 test('should parse user and channel mentions from /show_mentions command text', async ({pw}) => {
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Town Square
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /show_mentions
-    const responsePost = channelsPage.centerView.container
-        .getByRole('listitem')
-        .filter({hasText: 'contains the following different mentions'})
-        .last();
-    await channelsPage.centerView.postCreate.input.fill('/show_mentions @sysadmin ~town-square');
-    await channelsPage.centerView.postCreate.sendMessage();
+    const responsePost = centerPostWithText(app, 'contains the following different mentions');
+    await sendDemoSlashCommand(app, '/show_mentions @sysadmin ~town-square');
     await expect(responsePost).toBeVisible();
 
     // * Verify user mentions section

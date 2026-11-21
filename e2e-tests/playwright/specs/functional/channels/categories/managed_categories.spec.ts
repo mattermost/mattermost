@@ -323,7 +323,7 @@ test.describe('Managed Channel Categories', () => {
             expect(order).toContain(channelsId);
             expect(order.indexOf('managed_Alpha Priority')).toBeGreaterThanOrEqual(0);
             expect(order.indexOf('managed_Alpha Priority')).toBeLessThan(order.indexOf(channelsId));
-            // Drivers expose no layout geometry; retain the visual order independently of DOM order.
+            // Drivers expose no layout geometry, so the visual order is read from the elements' boxes.
             const priorityHeader = managedCategory(app, 'Alpha Priority').headerButton;
             const channelsHeader = app.lhs.channelList.category(channelsId).headerButton;
             await expect(priorityHeader).toBeVisible();
@@ -407,7 +407,7 @@ test.describe('Managed Channel Categories', () => {
         await expect
             .poll(() => channelsIn(app, 'managed_Sorted Category').channelKeys())
             .toEqual([channelA.name, channelB.name]);
-        // Drivers expose no layout geometry; retain the visual order independently of DOM order.
+        // Drivers expose no layout geometry, so the visual order is read from the elements' boxes.
         const sortedChannels = channelsIn(app, 'managed_Sorted Category');
         const alphaBox = await sortedChannels.channel(channelA).container.boundingBox();
         const bravoBox = await sortedChannels.channel(channelB).container.boundingBox();
@@ -677,7 +677,7 @@ test.describe('Managed Channel Categories', () => {
 
             // * Verify the setting is visible (the System Console doesn't render it yet, so its path isn't among the
             // generated setting keys: this is the known issue above)
-            // This known-failing setting is not rendered or declared; retain master's native target, without inventing a key.
+            // This known-failing setting is neither rendered nor declared, so it is addressed by its native element.
             const setting = app.page.getByTestId('TeamSettings.EnableManagedChannelCategoriestrue');
             await expect(setting).toBeVisible();
         },

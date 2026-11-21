@@ -5,9 +5,19 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {HYDRATION_PARAM, createField, deleteFields, fieldName, optionId, purgeFields, setPostValues} from './support';
+import {
+    HYDRATION_PARAM,
+    createField,
+    deleteFields,
+    fieldName,
+    optionChip,
+    optionId,
+    purgeFields,
+    setPostValues,
+} from './support';
 
-const CHIPS = 'post-attributes-chips';
+const SECRET = 'SECRET';
+const UNCLASSIFIED = 'UNCLASSIFIED';
 
 /**
  * @objective Verify a value changed after a channel was loaded is on screen after a
@@ -26,7 +36,7 @@ test('shows a value changed since the last load after a reload', {tag: '@post_at
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post
-    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const {adminClient, user, userClient, team, townSquare: channel} = await pw.initSetup();
     const suffix = pw.random.id();
     const created: PropertyField[] = [];
 
@@ -34,44 +44,40 @@ test('shows a value changed since the last load after a reload', {tag: '@post_at
         await purgeFields(adminClient);
 
         const classification = await createField(adminClient, fieldName('classification', suffix), {
-            options: ['SECRET', 'UNCLASSIFIED'],
+            options: [SECRET, UNCLASSIFIED],
         });
         created.push(classification);
-
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const post = await userClient.createTestPost({channel_id: channel.id, message: 'reloaded post'});
         await setPostValues(adminClient, post.id, [
-            {field_id: classification.id, value: optionId(classification, 'SECRET')},
+            {field_id: classification.id, value: optionId(classification, SECRET)},
         ]);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel});
 
         // * Verify the first load shows the original value, so the reload below is
         // comparing against something that was really on screen
-        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
-        await expect(postOnScreen.container.getByTestId(CHIPS)).toBeVisible();
-        await expect(postOnScreen.container.getByText('SECRET', {exact: true})).toBeVisible();
+        const chips = app.center.postList.post(post).attributes;
+        await expect(chips.locator).toBeVisible();
+        await expect(optionChip(chips, SECRET)).toBeVisible();
 
         // # Change the value from outside this browser, so nothing in the page has been
         // told about it other than through a refetch
         await setPostValues(adminClient, post.id, [
-            {field_id: classification.id, value: optionId(classification, 'UNCLASSIFIED')},
+            {field_id: classification.id, value: optionId(classification, UNCLASSIFIED)},
         ]);
 
         // # Reload, and capture the hydrated posts response the reload makes
-        const hydrated = page.waitForResponse((response) => response.url().includes(HYDRATION_PARAM));
-        await page.reload();
-        await channelsPage.toBeVisible();
+        const hydrated = app.page.waitForResponse((response) => response.url().includes(HYDRATION_PARAM));
+        await app.page.reload();
+        await expect(app.center.composer.locator).toBeVisible();
 
         // * Verify the new value is on screen and the old one is gone. This is the
         // symptom, asserted before the mechanism so a regression reports as the thing a
         // user would see rather than as a header that changed
-        const postAfterReload = await channelsPage.centerView.getPostById(post.id);
-        await expect(postAfterReload.container.getByText('UNCLASSIFIED', {exact: true})).toBeVisible();
-        await expect(postAfterReload.container.getByText('SECRET', {exact: true})).not.toBeVisible();
+        await expect(optionChip(chips, UNCLASSIFIED)).toBeVisible();
+        await expect(optionChip(chips, SECRET)).not.toBeVisible();
 
         // * Verify the response carries no ETag. This is the mechanism: an ETag here is
         // one a later request would revalidate against, and it cannot see value changes

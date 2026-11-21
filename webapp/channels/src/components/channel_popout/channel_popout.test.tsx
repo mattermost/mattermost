@@ -54,7 +54,7 @@ jest.mock('components/unreads_status_handler', () => ({
 }));
 jest.mock('components/loading_screen', () => ({
     __esModule: true,
-    default: () => <div data-testid='loading-screen'>{'LoadingScreen'}</div>,
+    default: () => <div data-testid='channel_popout.loading'>{'LoadingScreen'}</div>,
 }));
 
 describe('ChannelPopout', () => {
@@ -102,7 +102,7 @@ describe('ChannelPopout', () => {
     test('should show loading screen when team is not found', () => {
         jest.mocked(useTeamByName).mockReturnValue(undefined);
         renderPopout('/_popout/channel/test-team/channels/town-square');
-        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_popout.loading')).toBeInTheDocument();
     });
 
     test('should render ChannelIdentifierRouter and SidebarRight when team is resolved', () => {

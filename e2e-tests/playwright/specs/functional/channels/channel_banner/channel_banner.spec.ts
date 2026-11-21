@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 
 import {
-    type App,
-    expect,
-    test,
-    closeChannelSettings,
-    openChannelSettingsConfigurationTab,
     Api,
+    closeChannelSettings,
+    createChannelFromModal,
+    expect,
+    openChannelSettingsConfigurationTab,
     settle,
+    test,
+    type App,
 } from '@mattermost/playwright-lib';
 
 type Banner = App['center']['channelBanner'];
@@ -64,11 +65,11 @@ test('Should show channel banner when configured', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     let channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -117,11 +118,11 @@ test('Should show channel banner in thread view', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     // Configure the channel banner
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
@@ -154,11 +155,11 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
     await expect(app.center.postCreate).toBeVisible();
 
     await app.center.postCreate.message.container.fill('Message without banner');
@@ -178,11 +179,11 @@ test('Should render image emoticons without clipping', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -210,11 +211,11 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -241,11 +242,11 @@ test('Should render text with descenders without clipping', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
@@ -271,11 +272,11 @@ test('Should render markdown', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
     await app.page.goto('/');
     await expect(app.center.postCreate).toBeVisible();
 
-    await channelsPage.newChannel(pw.random.id(), 'O');
+    await createChannelFromModal(app, pw.random.id(), 'O');
 
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
     const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);

@@ -218,7 +218,7 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
 
         // * Navigating to the governed team URL redirects mkt1 away (no membership). Not channelsPage.goto: it waits
         // * for the channel to render, and mkt1 lands on "Team not found" instead
-        await mkt1App.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
+        await mkt1App.page.goto(`/${team.name}/channels/${DefaultChannel.TownSquare}`);
         await expect(mkt1App.page).not.toHaveURL(new RegExp(`/${team.name}/`));
 
         // =========================================================

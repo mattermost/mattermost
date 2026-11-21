@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {SystemConsolePage} from '@mattermost/playwright-lib';
 import {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
@@ -11,7 +10,9 @@ import {
     closeChannelSettings,
     openChannelSettingsConfigurationTab,
     Api,
+    generated,
     settle,
+    type App,
 } from '@mattermost/playwright-lib';
 
 test(
@@ -31,16 +32,10 @@ test(
         // The Edit Scheme link stays disabled until the permissions migration finishes
         await pw.ensurePhase2MigrationCompleted();
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await gotoSystemSchemePage(app);
 
-        await gotoSystemSchemePage(systemConsolePage);
-
-        const scheme = systemConsolePage.permissionsSystemScheme;
-        await scheme.toBeVisible();
-
-        await scheme.expectManageChannelAutoTranslationChecked(scheme.channelAdministratorsSection);
+        await expectManageChannelAutoTranslationChecked(app, 'channelAdministratorsSection');
     },
 );
 
@@ -61,16 +56,10 @@ test(
         // The Edit Scheme link stays disabled until the permissions migration finishes
         await pw.ensurePhase2MigrationCompleted();
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await gotoSystemSchemePage(app);
 
-        await gotoSystemSchemePage(systemConsolePage);
-
-        const scheme = systemConsolePage.permissionsSystemScheme;
-        await scheme.toBeVisible();
-
-        await scheme.expectManageChannelAutoTranslationChecked(scheme.systemAdministratorsSection);
+        await expectManageChannelAutoTranslationChecked(app, 'systemAdministratorsSection');
     },
 );
 
@@ -274,10 +263,29 @@ test.describe('autotranslation configuration tests', () => {
     );
 });
 
-async function gotoSystemSchemePage(systemConsolePage: SystemConsolePage) {
-    await systemConsolePage.sidebar.userManagement.permissions.click();
-    await systemConsolePage.page.waitForURL(/\/admin_console\/user_management\/permissions/);
+async function gotoSystemSchemePage(app: App) {
+    // The Edit Scheme link leads here; the route is opened directly once the permissions migration has finished.
+    await app.page.goto(`${generated.AdminConsolePage.path()}/user_management/permissions/system_scheme`);
+    await expect(app.page).toHaveURL(/\/admin_console\/user_management\/permissions\/system_scheme/);
+    // The page's heading is plain text without a test id of its own.
+    await expect(app.page.getByText('System Scheme', {exact: true})).toBeVisible();
+}
 
-    await systemConsolePage.page.getByRole('link', {name: 'Edit Scheme'}).click();
-    await expect(systemConsolePage.page).toHaveURL(/\/admin_console\/user_management\/permissions\/system_scheme/);
+/**
+ * Asserts that "Manage Channel Auto Translation" is checked (ON) in the given role section. The role sections carry
+ * only an element id, so the section is found by it; the permission rows and their checked marker inside it carry the
+ * generated test ids (`admin.permissions.group.row:<permission>` and `admin.permissions.group.row.checkbox.checked`).
+ * There can be two rows (public and private channel).
+ */
+async function expectManageChannelAutoTranslationChecked(app: App, sectionId: string) {
+    const section = app.page.locator(`#${sectionId}`);
+    const rows = section
+        .locator('[data-testid^="admin.permissions.group.row:"]')
+        .filter({hasText: 'Manage Channel Auto Translation'});
+    await expect(rows.first()).toBeVisible();
+    const count = await rows.count();
+    expect(count, 'Manage Channel Auto Translation permission rows were not found in the section').toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+        await expect(rows.nth(i).locator('[data-testid="admin.permissions.group.row.checkbox.checked"]')).toBeVisible();
+    }
 }

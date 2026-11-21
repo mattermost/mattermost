@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {demoPluginId, expect, test} from '@mattermost/playwright-lib';
 
 test('should show demo plugin settings sections and save changes with alert confirmation', async ({pw}) => {
     // # Setup
@@ -9,29 +9,37 @@ test('should show demo plugin settings sections and save changes with alert conf
     await pw.ensureDemoPlugin();
 
     // # Login and navigate to Town Square
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
-    // # Open Settings via the library method
-    const settingsModal = await channelsPage.openSettings();
+    // # Open Settings
+    await app.globalHeader.settingsButton.clickTo(app.userSettingsModal);
+    const settingsModal = app.userSettingsModal;
+
+    // The demo plugin's settings panel renders inside the modal but is not part of the scanned webapp, so its
+    // content is addressed by role within the modal.
+    const pluginPanel = settingsModal.container.locator;
+    const sections = settingsModal.settings.pluginPanel(demoPluginId).sectionList;
 
     // # Navigate to the Demo Plugin settings tab
-    await expect(settingsModal.container.getByText('PLUGIN PREFERENCES')).toBeVisible();
-    await settingsModal.container.getByRole('tab', {name: /Demo Plugin/i}).click();
+    await expect(pluginPanel.getByText('PLUGIN PREFERENCES')).toBeVisible();
+    const demoTab = pluginPanel.getByRole('tab', {name: /Demo Plugin/i});
+    await demoTab.click();
+    await expect(demoTab).toHaveAttribute('aria-selected', 'true');
 
     // * Verify Demo Plugin Settings panel and all four section titles
-    await expect(settingsModal.container.getByRole('heading', {name: 'Demo Plugin Settings', level: 3})).toBeVisible();
-    await expect(settingsModal.container.getByText('Example action', {exact: true})).toBeVisible();
-    await expect(settingsModal.container.getByRole('heading', {name: 'Test section number 1', level: 4})).toBeVisible();
-    await expect(settingsModal.container.getByRole('heading', {name: 'Test section number 2', level: 4})).toBeVisible();
-    await expect(settingsModal.container.getByRole('heading', {name: 'Test section disabled', level: 4})).toBeVisible();
+    await expect(pluginPanel.getByRole('heading', {name: 'Demo Plugin Settings', level: 3})).toBeVisible();
+    await expect(pluginPanel.getByText('Example action', {exact: true})).toBeVisible();
+    await expect(pluginPanel.getByRole('heading', {name: 'Test section number 1', level: 4})).toBeVisible();
+    await expect(pluginPanel.getByRole('heading', {name: 'Test section number 2', level: 4})).toBeVisible();
+    await expect(pluginPanel.getByRole('heading', {name: 'Test section disabled', level: 4})).toBeVisible();
 
     // * Verify Example action section has its button
-    await expect(settingsModal.container.getByRole('button', {name: 'Here is the button text'})).toBeVisible();
+    await expect(pluginPanel.getByRole('button', {name: 'Here is the button text'})).toBeVisible();
 
     // * Verify Edit buttons visible for active sections (disabled section has none)
-    const editButtons = settingsModal.container.locator('.section-min__edit');
+    const editButtons = pluginPanel.locator('.section-min__edit');
     await expect(editButtons).toHaveCount(2);
 
     // # Expand Section 1, select Option 2, save
@@ -41,22 +49,30 @@ test('should show demo plugin settings sections and save changes with alert conf
         alerts.push(dialog.message());
         await dialog.accept();
     };
-    channelsPage.page.on('dialog', dialogHandler);
+    app.page.on('dialog', dialogHandler);
 
     await editButtons.first().click();
-    await settingsModal.container.getByRole('radio', {name: 'Option 2'}).first().click();
-    await channelsPage.page.getByTestId('saveSetting').click();
+    const option2 = pluginPanel.getByRole('radio', {name: 'Option 2'}).first();
+    await expect(option2).toBeVisible();
+    await option2.click();
+    await expect(option2).toBeChecked();
+    await (await sections.itemWith({text: 'Test section number 1'})).saveButton.click();
+    await expect.poll(() => alerts.length).toBe(1);
 
     // * Verify the save alert fired with the expected message
     expect(alerts[0]).toBe('saving {setting1}: 2');
 
     // # Expand Section 2, select Option 1, save
     await editButtons.nth(1).click();
-    await settingsModal.container.getByRole('radio', {name: 'Option 1'}).first().click();
-    await channelsPage.page.getByTestId('saveSetting').click();
+    const option1 = pluginPanel.getByRole('radio', {name: 'Option 1'}).first();
+    await expect(option1).toBeVisible();
+    await option1.click();
+    await expect(option1).toBeChecked();
+    await (await sections.itemWith({text: 'Test section number 2'})).saveButton.click();
+    await expect.poll(() => alerts.length).toBe(2);
 
     // * Verify the save alert fired with the expected message
     expect(alerts[1]).toBe('saving {setting3}: 1');
 
-    channelsPage.page.off('dialog', dialogHandler);
+    app.page.off('dialog', dialogHandler);
 });

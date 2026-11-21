@@ -179,66 +179,7 @@ export type {
 
 export {startStack, stopStack, withStackLock} from './containers';
 
-export {
-    ChannelsPage,
-    LandingLoginPage,
-    LoginPage,
-    RecapsPage,
-    ResetPasswordPage,
-    SignupPage,
-    ScheduledPostsPage,
-    SystemConsolePage,
-    DraftsPage,
-} from './ui/pages';
-
-export {
-    components,
-    AboutBuildModal,
-    GlobalHeader,
-    SearchBox,
-    ChannelsCenterView,
-    ChannelsSidebarLeft,
-    ChannelsSidebarRight,
-    ChannelsAppBar,
-    ChannelsHeader,
-    ChannelsPostCreate,
-    ChannelsPostEdit,
-    ChannelsPost,
-    DraftPost,
-    FindChannelsModal,
-    DeletePostModal,
-    DeleteScheduledPostModal,
-    SettingsModal,
-    PostDotMenu,
-    PostMenu,
-    ThreadFooter,
-    Footer,
-    MainHeader,
-    PostReminderMenu,
-    EmojiGifPicker,
-    GenericConfirmModal,
-    ScheduleMessageMenu,
-    ScheduleMessageModal,
-    ScheduledPostIndicator,
-    ScheduledDraftModal,
-    ScheduledPost,
-    SendMessageNowModal,
-    SystemConsoleFeatureDiscovery,
-    MessagePriority,
-    UserProfilePopover,
-    UserAccountMenu,
-    DeletePostConfirmationDialog,
-    RestorePostConfirmationDialog,
-    ProfileModal,
-    WysiwygEditor,
-} from './ui/components';
-export type {PriorityOption} from './ui/components';
-
 export {setWysiwygUserPreference, WYSIWYG_PREF_CATEGORY, WYSIWYG_PREF_NAME} from './wysiwyg_helpers';
-
-export {TextInputSetting} from './ui/components/system_console/base_components';
-
-export {expectFilesVisible, expectFilesRedacted} from './ui/components/channels/post';
 
 export {TestArgs, ScreenshotOptions} from './types';
 

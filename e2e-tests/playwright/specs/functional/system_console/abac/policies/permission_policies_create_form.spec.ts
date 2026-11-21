@@ -61,7 +61,8 @@ test.describe('Permission Policies - Create Policy', () => {
 
         const {policy} = await openNewPermissionPolicy(app);
 
-        await expect(policy).toContainMessage(Msg.admin.permission_policies.edit.who.title);
+        // The policy scope has no container of its own, so the panel title is read from the page.
+        await expect(app.page.locator('body')).toContainMessage(Msg.admin.permission_policies.edit.who.title);
         await expect(policy.roleLabelText).toBeVisible();
         await expect(policy.roleLabelText).toHaveMessage(Msg.admin.permission_policies.edit.who.role_label);
 

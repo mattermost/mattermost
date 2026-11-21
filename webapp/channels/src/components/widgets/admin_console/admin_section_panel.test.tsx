@@ -15,6 +15,7 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
             <AdminSectionPanel
                 title='Test Section'
                 description='Test description'
+                testId='fixture_panel'
             >
                 <div>{'Content'}</div>
             </AdminSectionPanel>,
@@ -23,7 +24,7 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('Test Section');
         expect(screen.getByText('Test description')).toBeInTheDocument();
         expect(screen.getByText('Content')).toBeInTheDocument();
-        expect(screen.getByTestId('admin-section-panel-body')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture_panel.body')).toBeInTheDocument();
     });
 
     test('renders with description as MessageDescriptor', () => {

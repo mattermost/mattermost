@@ -102,8 +102,8 @@ export default [
             },
         },
         rules: {
-            'test-surface/e2e-observe-actions': 'warn',
-            'test-surface/e2e-no-floating-actions': 'warn',
+            'test-surface/e2e-observe-actions': 'error',
+            'test-surface/e2e-no-floating-actions': 'error',
             'test-surface/e2e-disable-reason': 'error',
             'test-surface/e2e-no-locator-action': 'warn',
         },

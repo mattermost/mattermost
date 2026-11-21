@@ -63,6 +63,7 @@ test('adds a team member to the channel from the add people modal', {tag: '@chan
     await app.lhs.channelMenu.addMembersMenuItem.clickTo(app.channelInviteModal);
     const invite = app.channelInviteModal;
     await invite.users.searchCombobox.fill(newcomer.username);
+    // The selectable row has no clickable role, so the row itself is clicked.
     await invite.users.results.user(newcomer).container.click();
 
     // * The newcomer is selected, with a chip to remove them again

@@ -88,6 +88,8 @@ test.describe('sending a draft from the Drafts panel', () => {
         // # Start a thread and leave a reply draft in it
         await app.center.postCreate.message.container.fill(rootMessage);
         const root = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+        // The post's actions show on hover.
+        await app.center.postList.post(root).container.hover();
         await app.center.postList.post(root).menu.replyButton.click();
         await expect(app.rhs.postCreate.message.container).toBeVisible();
         await app.rhs.postCreate.message.container.fill(replyDraft);

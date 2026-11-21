@@ -132,7 +132,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
     public render(): React.ReactNode {
         if (!this.isValidState()) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='logged_in.loading'/>;
         }
 
         if (this.props.mfaRequired) {

@@ -7,6 +7,8 @@ const MINIMUM_VERSION = '6.0.0';
 const OLD_DESKTOP_VERSION = '5.0.0';
 const DESKTOP_APP_USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Mattermost/${OLD_DESKTOP_VERSION} Chrome/120.0.0.0 Electron/28.0.0`;
 
+// The Update Required page is rendered by the server (server/channels/web/unsupported_desktop_app.go), outside the
+// webapp the surface scan reads, so it has no generated page object: its heading, text and link are found by role.
 test('Desktop App update required screen shows when connecting with older version', async ({pw}) => {
     const {adminClient} = await pw.initSetup();
 

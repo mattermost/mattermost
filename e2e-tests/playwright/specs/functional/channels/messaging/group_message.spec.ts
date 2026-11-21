@@ -78,9 +78,9 @@ test('MM-T473_1 Edit GM channel header', {tag: '@messaging'}, async ({pw}) => {
 
     // # Open the channel menu, choose Edit Header, and save the replacement
     await app.channelHeader.openMenuButton.click();
-    await expect(app.channelHeader.menu.channelSettingsMenuItem).toBeVisible();
+    await expect(app.channelHeader.menu.settingsMenuItem).toBeVisible();
     const menu = app.channelHeader.menu;
-    await menu.channelSettingsMenuItem.hover(); // a group message keeps Edit Header in the Settings submenu
+    await menu.settingsMenuItem.hover(); // a group message keeps Edit Header in the Settings submenu
     const editor = await menu.editHeaderMenuItem.clickTo(app.editChannelHeaderModal);
     await editor.header.container.fill(header);
     await settle(editor.saveButton, {wait: Api.PatchChannel}).click();
@@ -113,9 +113,9 @@ test('MM-T473_2 Edit GM channel header with a mention', {tag: '@messaging'}, asy
     const {app} = await pw.testBrowser.login(user);
     await app.channelsPage.goto({team, path: 'messages', channel: groupChannel});
     await app.channelHeader.openMenuButton.click();
-    await expect(app.channelHeader.menu.channelSettingsMenuItem).toBeVisible();
+    await expect(app.channelHeader.menu.settingsMenuItem).toBeVisible();
     const menu = app.channelHeader.menu;
-    await menu.channelSettingsMenuItem.hover(); // a group message keeps Edit Header in the Settings submenu
+    await menu.settingsMenuItem.hover(); // a group message keeps Edit Header in the Settings submenu
     const editor = await menu.editHeaderMenuItem.clickTo(app.editChannelHeaderModal);
     await editor.header.container.fill(header);
     await settle(editor.saveButton, {wait: Api.PatchChannel}).click();

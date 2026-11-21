@@ -204,7 +204,12 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                         aria-label={downloading ? preparingLabel : downloadAllLabel}
                         onClick={handleDownloadAll}
                     >
-                        {downloading ? <LoadingSpinner legacy={true}/> : <DownloadOutlineIcon size={14}/>}
+                        {downloading ? (
+                            <LoadingSpinner
+                                legacy={true}
+                                testId={testIdScope ? `${testIdScope}.download_all.loading` : undefined}
+                            />
+                        ) : <DownloadOutlineIcon size={14}/>}
                         {downloading ? preparingLabel : (
                             <FormattedMessage
                                 id='media_gallery.download_all'

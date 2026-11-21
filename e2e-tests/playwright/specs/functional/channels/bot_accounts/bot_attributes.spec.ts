@@ -562,7 +562,7 @@ test.describe('Bot account attributes @bot_accounts', () => {
             await expect(rank).toHaveAttribute('aria-expanded', 'false');
 
             // # Pick the higher rank and save
-            await attribute.valueChoiceCombobox.choose('High');
+            await attribute.valueChoiceCombobox.choose(/^High,/);
             await expect(attribute.valueChoiceCombobox).toHaveValue('High');
             await expect(badge).toHaveText('2');
             await saveBotEdit(app, team.name);

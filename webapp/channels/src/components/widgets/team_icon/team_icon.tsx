@@ -61,7 +61,7 @@ export class TeamIcon extends React.PureComponent<Props> {
             if (teamIconUrl) {
                 icon = (
                     <div
-                        data-testid={testIdScope ? `${testIdScope}.icon--img` : 'teamIconImage'}
+                        data-testid={testIdScope ? `${testIdScope}.icon--img` : undefined}
                         className={`TeamIcon__image TeamIcon__${size}`}
                         aria-label={
                             formatMessage({
@@ -78,7 +78,7 @@ export class TeamIcon extends React.PureComponent<Props> {
             } else {
                 icon = (
                     <div
-                        data-testid={testIdScope ? `${testIdScope}.initials--img` : 'teamIconInitial'}
+                        data-testid={testIdScope ? `${testIdScope}.initials--img` : undefined}
                         className={`TeamIcon__initials TeamIcon__initials__${size}`}
                         aria-label={
                             formatMessage({

@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand} from '../../helpers';
+import {centerPostWithText, sendDemoSlashCommand} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
     // # Setup
@@ -11,23 +11,15 @@ test('should post interactive button and respond with click attribution via /int
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Town Square
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /interactive command
-    const interactivePost = channelsPage.centerView.container
-        .getByRole('listitem')
-        .filter({hasText: 'Test interactive button'})
-        .last();
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/interactive');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const interactivePost = centerPostWithText(app, 'Test interactive button');
+    await sendDemoSlashCommand(app, '/interactive');
 
     // * Verify post appears with 'Test interactive button' and an 'Interactive Button' button
     await expect(interactivePost).toBeVisible();
@@ -42,7 +34,7 @@ test('should post interactive button and respond with click attribution via /int
     await replyButton.click();
 
     // * Verify bot response in the thread panel
-    const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
+    const threadPanel = app.page.getByRole('region', {name: /Thread/});
     await expect(threadPanel).toBeVisible();
 
     // Verify response credits the user who clicked

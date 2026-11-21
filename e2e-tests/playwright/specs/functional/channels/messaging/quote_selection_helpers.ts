@@ -3,6 +3,8 @@
 
 import type {Locator} from '@playwright/test';
 
+import {expect} from '@mattermost/playwright-lib';
+
 /**
  * Selects `phrase` inside the given post message by dragging the mouse over it, like a user does,
  * from left to right or, with `backward`, from right to left. With `untilPhrase`, the selection
@@ -56,6 +58,7 @@ export async function selectTextWithMouse(
     // loading screen has faded out, since raw mouse moves don't wait for anything.
     const box = (await message.boundingBox())!;
     await message.hover({position: {x: from.x - box.x, y: from.y - box.y}});
+    await expect(message).toBeVisible();
 
     const mouse = message.page().mouse;
     await mouse.down();

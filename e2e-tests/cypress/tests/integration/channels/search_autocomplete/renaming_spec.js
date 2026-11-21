@@ -155,7 +155,7 @@ function searchAndVerifyChannel(channel) {
     cy.get('#suggestionList', {timeout: TIMEOUTS.FIVE_SEC}).should('be.visible');
 
     // * Channel should appear
-    cy.findByTestId(channel.name).
+    cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).
         should('be.visible');
 }
 

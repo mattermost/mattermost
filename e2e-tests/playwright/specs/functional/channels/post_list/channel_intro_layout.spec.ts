@@ -6,9 +6,9 @@ import type {Page} from '@playwright/test';
 import {expect, test, watchElementSize} from '@mattermost/playwright-lib';
 
 // The intro picks its action buttons based on whether the workspace has fewer than 10 users
-const testCases = [
-    {name: 'fewer than 10 users', totalUsersCount: 3, expectedButton: /Invite others to the workspace/},
-    {name: '10 or more users', totalUsersCount: 50, expectedButton: /^Favorite$/},
+const testCases: Array<{name: string; totalUsersCount: number; expectedButton: 'inviteButton' | 'favoriteButton'}> = [
+    {name: 'fewer than 10 users', totalUsersCount: 3, expectedButton: 'inviteButton'},
+    {name: '10 or more users', totalUsersCount: 50, expectedButton: 'favoriteButton'},
 ];
 
 for (const {name, totalUsersCount, expectedButton} of testCases) {
@@ -35,7 +35,7 @@ for (const {name, totalUsersCount, expectedButton} of testCases) {
                 await adminClient.deletePost(postId);
             }
 
-            const {channelsPage, page} = await pw.testBrowser.login(user);
+            const {app, page} = await pw.testBrowser.login(user);
             const sizeWatcher = await watchElementSize(page, 'channelIntro');
 
             // # Hold back the total user count
@@ -45,16 +45,15 @@ for (const {name, totalUsersCount, expectedButton} of testCases) {
             const postsLoaded = page.waitForResponse(
                 (response) => response.url().includes(`/channels/${channel.id}/posts`) && response.ok(),
             );
-            await channelsPage.goto(team.name, channel.name);
+            await app.channelsPage.goto({team, channel});
             await Promise.all([usersStats.requested, postsLoaded]);
 
             // # Let the total user count load
             usersStats.release();
 
             // * Verify that the intro shows the action buttons for the user count
-            await expect(
-                channelsPage.centerView.channelIntro.getByRole('button', {name: expectedButton}),
-            ).toBeVisible();
+            const {channelIntro} = app.center.postList;
+            await expect(channelIntro[expectedButton]).toBeVisible();
 
             // * Verify that the intro was only ever rendered at one size
             expect(await sizeWatcher.isWatchingElement()).toBe(true);
