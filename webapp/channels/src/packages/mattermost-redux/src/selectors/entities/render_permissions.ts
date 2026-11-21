@@ -8,5 +8,5 @@ import type {GlobalState} from '@mattermost/types/store';
 // resource/action, or undefined if none has been fetched yet.
 export function getRenderDecision(state: GlobalState, identifier: RenderDecisionIdentifier): RenderPermissionEntry | undefined {
     const {resourceType, resourceId, action} = identifier;
-    return state.entities.renderPermissions.byResource[resourceType]?.[resourceId]?.[action];
+    return state.entities.renderPermissions?.byResource?.[resourceType]?.[resourceId]?.[action];
 }

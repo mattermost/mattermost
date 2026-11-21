@@ -46,7 +46,6 @@ import {
     getMySystemPermissions,
     haveIChannelPermission,
     haveICurrentChannelPermission,
-    haveITeamPermission,
 } from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -1313,20 +1312,23 @@ export const getRedirectChannelNameForCurrentTeam = (state: GlobalState): string
 
 export const getRedirectChannelNameForTeam = (state: GlobalState, teamId: string): string => {
     const defaultChannelForTeam = getDefaultChannelForTeams(state)[teamId];
-    const canIJoinPublicChannelsInTeam = haveITeamPermission(state,
-        teamId,
-        Permissions.JOIN_PUBLIC_CHANNELS,
-    );
     const myChannelMemberships = getMyChannelMemberships(state);
     const iAmMemberOfTheTeamDefaultChannel = Boolean(defaultChannelForTeam && myChannelMemberships[defaultChannelForTeam.id]);
 
-    if (iAmMemberOfTheTeamDefaultChannel || canIJoinPublicChannelsInTeam) {
+    if (iAmMemberOfTheTeamDefaultChannel) {
         return General.DEFAULT_CHANNEL;
     }
 
+    // A non-guest can't leave the default channel, so having the team's other channels
+    // loaded without it means the server is hiding it, as a channel read-access policy
+    // does. Sending the user there would fail, so send them to a channel they have.
     const myFirstChannelForTeam = getMyFirstChannelForTeams(state)[teamId];
+    if (myFirstChannelForTeam) {
+        return myFirstChannelForTeam.name;
+    }
 
-    return (myFirstChannelForTeam && myFirstChannelForTeam.name) || General.DEFAULT_CHANNEL;
+    // Nothing loaded for the team yet: the default channel is the one to join.
+    return General.DEFAULT_CHANNEL;
 };
 
 // isManually unread looks into state if the provided channelId is marked as unread by the user.
