@@ -200,6 +200,164 @@ proxy, and the proxy while DNS would resolve an external name to the second serv
 headers show it received nothing (direct), and the proxy's refusal count is the other half. The external name is direct
 only where DNS can be mapped to the second server (the mechanism variant); in the thin-config run it is the proxy's refusal count plus the client error.
 
+## Outcome mode (journey charters with `success_criteria.outcomes`)
+
+Every addition below is switched on by a charter key. A charter without that key runs exactly the code it ran
+before; the auto-follow charter declares none of them, and the selftest re-renders its committed `trace.json` and
+`trace.md` byte for byte through the current writer.
+
+```bash
+node explorer-proto/src/cli.ts explore --journey=<name> [--out=<dir>] [--charter-hash]   # outcome run when the charter declares outcomes
+node explorer-proto/src/cli.ts charter-check --journey=<name>    # parses the outcome rules only (no stack, no browser)
+node explorer-proto/src/cli.ts charter-hash  --journey=<name>    # sha256 of sessions/<name>/charter.json (same as sha256sum)
+node explorer-proto/src/cli.ts engine-hash [--list]               # deterministic hash of the engine files listed below
+node explorer-proto/src/cli.ts journey-selftest                   # offline outcome-mode selftest (loopback fake app, synthetic charters)
+```
+
+| Charter key | Behaviour (generic) | Code |
+| --- | --- | --- |
+| `fixture.posts[]` | Each post is created after channels and memberships and before preferences and the view calls, with `POST <path>` from `request` (default `POST /api/v4/posts`), the body's `{..}` templates resolved (`{channel.<key>.id}`, `{actor.<id>.id}`, ...), by the client `as` names: a fixture actor id as its first word uses that actor's own session; `admin` or no actor uses the admin. Any status other than `expect <nnn>` in `request` (default 201) is a setup failure. Binds `{post.<key>.id}`. | `journey_fixture.ts` |
+| `fixture.server_preconditions` with `source: "client_config"` or a `how` naming `GET /api/v4/config/client...` | Unauthenticated, read-only GET of that path **before** the fixture is built; each `expect` key is compared with `===` on the returned object; a difference is a setup failure. Keys named (capitalised words) in `target_release.build_identity_report` that exist in the response are recorded verbatim in the report and never asserted. Otherwise the admin `GET /config` path is unchanged. | `journey_fixture.ts` |
+| REST `expect` keys | Dotted paths with array indexes and `length` (`a.b[0].c`, `a.list.length`); an object or array expectation is compared by deep equality after template resolution; primitives stay `===`. Unbound templates still mean "not yet true". Paths without brackets read exactly as before. | `journey_charter.ts` `readPath`/`deepEqual`, `journey_rest.ts` |
+| REST checkpoint ids named in `fixture.read_back` | Evaluated after the read-back and again at the end of every replay; false is a setup failure. | `journey_search.ts` |
+| `fixture.read_back` text | The membership-level auto-follow check runs only if it mentions auto-follow, the followed-threads check only if it mentions threads. | `journey_fixture.ts` |
+| `success_criteria.outcomes` | Switches the search into outcome mode (everything below). | `journey_outcomes.ts`, `journey_search.ts` |
+
+**Rule grammar (`journey_outcomes.ts`).** Names come only from the charter; text the grammar does not recognise
+stops the run before any fixture is built (`charter-check` shows the parse).
+
+- `per_state_classification`: every `<checkpoint-id> true|false` in a class's text is a clause; a state gets the
+  first declared class whose clauses all hold. A checkpoint that was not evaluated matches no clause.
+- `run_verdict` texts: `every other case` = always; `at least one reached state is <CLASS>` = observed, or
+  confirmed when the text mentions confirmation; `no <CLASS> observation exists` = none; otherwise
+  `precondition`/`read-back` = setup failure. Conditions in one text are ANDed.
+- `precedence`: `<VERDICT>` (its run_verdict rule) or `<VERDICT> when a[n] [un]confirmed <CLASS> exists`. The first
+  entry that holds is the verdict; the last entry must be an "every other case" rule.
+- Confirmation order: the classes in confirmed/unconfirmed conditions, in precedence order. `failing_observations`:
+  classes named in `observation_policy.preserve_failures`.
+- UI checkpoint keys: `evaluated_only_when: "<id> is true|false ..."` gates a checkpoint on an earlier result in
+  the same observation; `settle`: `ms`/`timeout_ms` or `up to <n> ms` in `settle.rule`; `post_scope`: `anchor`
+  (a `fixed_strings` key), `same_as`, or in `rule` `same container as <id>`, else the `fixed_strings` key after
+  `contains`, else the only one named.
+
+**UI evaluation (`journey_observe.ts`).** After the existing snapshot-stability settle, each UI checkpoint is
+evaluated on the raw aria snapshot. If it is false and declares a settle window, it is re-evaluated through
+`expect.poll` (intervals 100/250/500 ms) on a fresh snapshot until it holds or the window ends; no fixed sleep.
+Text clauses match case-sensitive substrings; a string the snapshot lacks is looked up in the DOM
+(`getByText(<escaped regex>)`) and the method (`snapshot`/`dom`/`none`) is recorded per string. With `post_scope`,
+the container is the smallest ancestor-or-self of each node whose own text holds the anchor whose role is one of
+`listitem, article, row, gridcell, treeitem, dialog, alertdialog, complementary, region, main`; the DOM fallback
+uses the smallest element of those roles whose text holds the anchor. An owner checkpoint holds when all its
+clauses hold in one container; a same-container dependent must hold in every container where its owner held.
+When no container is anchored, the evaluation is page-wide and the log says so (`scope`).
+
+**Search, confirmation, verdict (`journey_search.ts`).** Every state of every replay (start, expansion,
+confirmation, including intermediate steps) is evaluated and classified. `budget_reserve.confirmation_replays_reserved`
+replays are never spent on expansion, and expansion also stops when the elapsed time plus the reserved replays at
+the mean replay cost would pass `wall_clock_seconds`. With `observation_policy.no_early_stop` the search runs to
+budget or frontier exhaustion; without it, it stops at the first classification that needs confirmation. Then
+every distinct (class, action path) that needs confirmation is replayed on a fresh fixture (confirmation order,
+then fewest actions, then lexicographic), drawing on the reserve and any unspent replays; it is confirmed when the
+replay's state at the end of that path has the same class. Pairs first observed during confirmation are confirmed
+the same way while budget remains. A setup-phase error (preconditions, fixture, read-back) ends the run as a setup
+failure; any other replay error is recorded and the run continues. The spec emitter refuses outcome charters.
+
+**Outputs (in the journey's out dir, sanitized: no origin, port, slug, id, password or token).**
+
+- `observations.jsonl`: append-only, one JSON object per line, `seq` from 1 and `prev_sha256` = sha256 of every
+  byte before the line. Kinds: `read_back`, `checkpoint` (replay id, `<slug>`, state key, URL path with fixture
+  tokens replaced, action path, checkpoint id, per-clause results with string and evidence method, scope, settle
+  window and outcome, the state's classification), `state`, `confirmation`, `setup_failure`, `replay_error`,
+  `verdict`. The file is opened in append mode; an existing non-empty log is refused (use a fresh `--out`).
+- `report.json` (`explorer-journey-outcome-report/v1`): run verdict and the precedence entry that decided it,
+  setup failure, preconditions, build identity, `failing_observations` (with confirmation status), representative
+  confirmed path per class (fewest actions, then lexicographic), states and observations per class, evidence method
+  counts per string, confirmations, flakiness (same state key or same path with different classes), replay errors,
+  reserve use.
+- `trace.md`/`trace.json`: as before plus a verdict section / `outcomes` summary. `stats.json` is unchanged;
+  measured settle waits (wall clock) go to `observation-stats.json` only.
+
+**Exit status.** `explore` writes the report and exits 0 for every verdict except a setup failure, which fails the
+Playwright run after the report is written.
+
+### Offline selftest (`journey-selftest`)
+
+`journey_selftest.pw.ts` runs with no stack: the CLI picks a loopback port, hands it to Playwright as `PW_BASE_URL`
+and `EXPLORER_SELFTEST_PORT` (never printed), and the test serves `journey_selftest_app.ts` there (the REST routes
+the fixture factory, read-back and lib login use, plus server-rendered pages). The charter is
+`journey_selftest_charter.json` (a ribbon-tally post; its own ids, classes and verdict names) and copies of it with
+budget, settle or scope changed per case. The real fixture factory, REST evaluator, guard, search, UI evaluator,
+log and report run against it. Cases: rules and verdict table, fail-closed grammar, matchers, log append-only and
+refusals, engine-hash list, auto-follow trace re-render; then (i) all items render, (ii) one item missing in the
+room view but present on a second surface, (iii) nothing renders, (iv) delayed post / delayed rows within the
+window and a no-settle control that misclassifies them, (v) a missing item a fresh fixture does not reproduce and
+one with no budget left to confirm it, (vi) flag mismatch, rejected post and wrong stored data, (viii) item text
+present elsewhere on the page but not in the anchored container, with a page-wide control, and a DOM-only case.
+
+### Engine hash
+
+`engine-hash` prints `sha256(listing)`, where `listing` is the `sha256sum` output for the files below in this
+order (`<hex>  <path>\n` each). From the repository root, `sha256sum $(cat <list>) | sha256sum` gives the same
+value. The list rule is: every `.ts` and `.json` file under `explorer-proto/src` (recursive) plus
+`explorer-proto/playwright.config.ts`, repo-relative, code-unit order. This README is not part of the hash; the
+selftest fails if the list below and the rule disagree. A verifier may compare: the engine hash and this list,
+the charter's sha256 (`charter-hash`), and the git tree ids the QA notes name (`HEAD:explorer-proto/src`,
+`HEAD:explorer-proto/playwright.config.ts`, `HEAD:e2e-tests/playwright/lib`); the lib is not in the engine hash.
+
+<!-- engine-hash-files:begin -->
+```text
+explorer-proto/playwright.config.ts
+explorer-proto/src/absence_probe.pw.ts
+explorer-proto/src/assertions.ts
+explorer-proto/src/bfs.ts
+explorer-proto/src/charter.ts
+explorer-proto/src/cli.ts
+explorer-proto/src/containment_proxy.ts
+explorer-proto/src/containment_report.ts
+explorer-proto/src/containment_scratch.ts
+explorer-proto/src/containment_suite.ts
+explorer-proto/src/emit.ts
+explorer-proto/src/emit_journey.ts
+explorer-proto/src/emit_session.ts
+explorer-proto/src/engine_hash.ts
+explorer-proto/src/env.ts
+explorer-proto/src/explore.pw.ts
+explorer-proto/src/explore_journey.pw.ts
+explorer-proto/src/explore_session.pw.ts
+explorer-proto/src/fixture_servers.ts
+explorer-proto/src/guard.ts
+explorer-proto/src/guard_check.pw.ts
+explorer-proto/src/guard_journey.pw.ts
+explorer-proto/src/guard_journey_run.ts
+explorer-proto/src/guard_race.pw.ts
+explorer-proto/src/journey_actions.ts
+explorer-proto/src/journey_charter.ts
+explorer-proto/src/journey_containment.ts
+explorer-proto/src/journey_fixture.ts
+explorer-proto/src/journey_observations.ts
+explorer-proto/src/journey_observe.ts
+explorer-proto/src/journey_outcomes.ts
+explorer-proto/src/journey_rest.ts
+explorer-proto/src/journey_score.ts
+explorer-proto/src/journey_search.ts
+explorer-proto/src/journey_selftest.pw.ts
+explorer-proto/src/journey_selftest_app.ts
+explorer-proto/src/journey_selftest_charter.json
+explorer-proto/src/journey_spec_path.ts
+explorer-proto/src/journey_trace.ts
+explorer-proto/src/journey_ui.ts
+explorer-proto/src/manifest.ts
+explorer-proto/src/modes.ts
+explorer-proto/src/paths.ts
+explorer-proto/src/scenarios.ts
+explorer-proto/src/session.ts
+explorer-proto/src/session_trace.ts
+explorer-proto/src/snapshot.ts
+explorer-proto/src/trace.ts
+explorer-proto/src/tsconfig.json
+```
+<!-- engine-hash-files:end -->
+
 ## WebSocket under the guard (Local Network Access)
 
 The guard fulfils every document with `route.fulfill`, so Chromium sees no peer address for the page, treats it as a
