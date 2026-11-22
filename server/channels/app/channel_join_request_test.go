@@ -279,7 +279,7 @@ func TestUpdateChannelPrivacy_CancelsPendingRequestsOnConvertToPublic(t *testing
 	require.NotNil(t, req)
 
 	channel.Type = model.ChannelTypeOpen
-	converted, appErr := th.App.UpdateChannelPrivacy(th.Context, channel, th.BasicUser)
+	converted, appErr := th.App.UpdateChannelPrivacy(th.Context, channel, th.BasicUser, UpdateChannelPrivacyOptions{})
 	require.Nil(t, appErr)
 
 	// Discoverable must be reset on convert-to-public — the model invariant

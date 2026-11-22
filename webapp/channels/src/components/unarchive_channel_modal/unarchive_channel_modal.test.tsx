@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import useMissingRequiredChannelAttributes from 'components/common/hooks/useMissingRequiredChannelAttributes';
+import useRequiredChannelAttributesToAsk from 'components/common/hooks/useRequiredChannelAttributesToAsk';
 import ConnectedUnarchiveChannelModal from 'components/unarchive_channel_modal';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
@@ -14,7 +14,24 @@ import {TestHelper} from 'utils/test_helper';
 
 import UnarchiveChannelModal from './unarchive_channel_modal';
 
-jest.mock('components/common/hooks/useMissingRequiredChannelAttributes');
+jest.mock('components/common/hooks/useRequiredChannelAttributesToAsk');
+
+type FormProps = {
+    fields: Array<{id: string}>;
+    onChange: (fieldId: string, value: string | string[] | undefined) => void;
+};
+jest.mock('components/channel_attributes/channel_attributes_form', () => (props: FormProps) => (
+    <div>
+        {props.fields.map((field) => (
+            <button
+                key={field.id}
+                onClick={() => props.onChange(field.id, `value-${field.id}`)}
+            >
+                {`Fill ${field.id}`}
+            </button>
+        ))}
+    </div>
+));
 
 function propertyField(overrides: Partial<PropertyField>): PropertyField {
     return {
@@ -35,7 +52,9 @@ function propertyField(overrides: Partial<PropertyField>): PropertyField {
     };
 }
 
-const mockUseMissingRequiredChannelAttributes = jest.mocked(useMissingRequiredChannelAttributes);
+const mockUseRequiredChannelAttributesToAsk = jest.mocked(useRequiredChannelAttributesToAsk);
+
+const NOTHING_TO_ASK = {fields: [], cannotSet: [], enabled: false, loading: false};
 
 describe('components/unarchive_channel_modal', () => {
     const channel = TestHelper.getChannelMock({
@@ -62,7 +81,7 @@ describe('components/unarchive_channel_modal', () => {
     };
 
     beforeEach(() => {
-        mockUseMissingRequiredChannelAttributes.mockReturnValue({loading: false, missing: []});
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue(NOTHING_TO_ASK);
     });
 
     test('should have called actions.unarchiveChannel when Unarchive is clicked', async () => {
@@ -97,8 +116,8 @@ describe('components/unarchive_channel_modal', () => {
         expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
     });
 
-    test('Enter does nothing until the required attribute check has finished', async () => {
-        mockUseMissingRequiredChannelAttributes.mockReturnValue({loading: true, missing: []});
+    test('Enter does nothing until the required attribute lookup has finished', async () => {
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: true});
         const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
         renderWithContext(
             <UnarchiveChannelModal
@@ -107,24 +126,27 @@ describe('components/unarchive_channel_modal', () => {
             />,
         );
 
-        expect(screen.getByRole('button', {name: 'Unarchive'})).toBeDisabled();
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
         await userEvent.keyboard('{Enter}');
 
         expect(unarchiveChannel).not.toHaveBeenCalled();
     });
 
-    test('names a missing attribute by its label, capitalizing classification', () => {
-        mockUseMissingRequiredChannelAttributes.mockReturnValue({
-            loading: false,
-            missing: [
-                propertyField({id: 'f1', name: 'cost_center', attrs: {required: true, display_name: 'Cost Center'}}),
-                propertyField({id: 'f2', name: 'classification', linked_field_id: 't1', attrs: {required: true}}),
-            ],
-        });
+    test('keeps focus on the confirm button once the lookup finishes, so Enter restores the channel', async () => {
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: true});
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        const props = {...baseProps, actions: {unarchiveChannel}};
+        const {rerender} = renderWithContext(<UnarchiveChannelModal {...props}/>);
 
-        renderWithContext(<UnarchiveChannelModal {...baseProps}/>);
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
 
-        expect(screen.getByText(/This channel has no value for Cost Center, Classification\./)).toBeInTheDocument();
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: false});
+        rerender(<UnarchiveChannelModal {...props}/>);
+
+        expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
     });
 
     test('should have called props.onExited on Cancel', async () => {
@@ -143,48 +165,187 @@ describe('components/unarchive_channel_modal', () => {
         });
     });
 
-    test('shows no warning and the plain "Unarchive" label when no required attribute is missing', () => {
-        renderWithContext(
-            <UnarchiveChannelModal {...baseProps}/>,
-        );
-
-        expect(screen.getByRole('button', {name: 'Unarchive'})).toBeInTheDocument();
-        expect(screen.queryByText('Missing required attribute values')).not.toBeInTheDocument();
-    });
-
-    test('warns and relabels the confirm button when a required attribute is missing, but does not block the restore', async () => {
-        mockUseMissingRequiredChannelAttributes.mockReturnValue({
+    describe('with required channel attributes', () => {
+        const askFor = (ids: string[]) => ({
+            fields: ids.map((id) => propertyField({id, name: id, type: 'select', attrs: {required: true}})),
+            cannotSet: [],
+            enabled: true,
             loading: false,
-            missing: [{
-                id: 'field1',
-                group_id: 'group1',
-                name: 'cost_center',
-                type: 'text',
-                target_id: '',
-                target_type: 'channel',
-                object_type: 'channel',
-                create_at: 0,
-                update_at: 0,
-                delete_at: 0,
-                created_by: '',
-                updated_by: '',
-                attrs: {required: true, display_name: 'Cost center'},
-            }],
         });
 
-        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
-        const props = {...baseProps, actions: {unarchiveChannel}};
-        renderWithContext(
-            <UnarchiveChannelModal {...props}/>,
-        );
+        test('plain state: no fields, no notice, plain Unarchive button, no bypass', () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true});
+            renderWithContext(<UnarchiveChannelModal {...baseProps}/>);
 
-        expect(screen.getByText('Missing required attribute values')).toBeInTheDocument();
-        const confirmButton = screen.getByRole('button', {name: 'Unarchive anyway'});
-        expect(confirmButton).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Unarchive'})).toBeEnabled();
+            expect(screen.queryByTestId('unarchiveChannelModalRequiredAttributes')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('unarchiveChannelModalFlaggedNotice')).not.toBeInTheDocument();
+            expect(screen.queryByText(/anyway/i)).not.toBeInTheDocument();
+        });
 
-        await userEvent.click(confirmButton);
+        test('asks for the hook with the channel and its team', () => {
+            renderWithContext(<UnarchiveChannelModal {...baseProps}/>);
 
-        expect(unarchiveChannel).toHaveBeenCalledWith(props.channel.id);
+            expect(mockUseRequiredChannelAttributesToAsk).toHaveBeenCalledWith({teamId: channel.team_id, channelId: channel.id}, {requiredOnly: true});
+        });
+
+        test('fields state: shows the fields, disables Set and unarchive until all are filled, sends the values', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue(askFor(['f1', 'f2']));
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            expect(screen.getByText('This channel has no value for these required attributes:')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Unarchive'})).not.toBeInTheDocument();
+            expect(screen.queryByText(/anyway/i)).not.toBeInTheDocument();
+            const confirm = screen.getByRole('button', {name: 'Set and unarchive'});
+            expect(confirm).toBeDisabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Fill f1'}));
+            expect(confirm).toBeDisabled();
+            await userEvent.click(screen.getByRole('button', {name: 'Fill f2'}));
+            expect(confirm).toBeEnabled();
+
+            await userEvent.click(confirm);
+
+            expect(unarchiveChannel).toHaveBeenCalledWith(channel.id, [
+                {field_id: 'f1', value: 'value-f1'},
+                {field_id: 'f2', value: 'value-f2'},
+            ]);
+            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+        });
+
+        test('confirm does nothing while the fields are still loading', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: true});
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive'}));
+
+            expect(unarchiveChannel).not.toHaveBeenCalled();
+        });
+
+        test('error state: keeps the fields and the picked values, shows the server message, retries', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue(askFor(['f1']));
+            const unarchiveChannel = jest.fn().
+                mockResolvedValueOnce({error: {message: 'Value not allowed.'}}).
+                mockResolvedValueOnce({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Fill f1'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Set and unarchive'}));
+
+            await waitFor(() => expect(screen.getByText('We couldn\'t unarchive the channel. Value not allowed.')).toBeInTheDocument());
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Fill f1'})).toBeInTheDocument();
+            const retry = screen.getByRole('button', {name: 'Set and unarchive'});
+            expect(retry).toBeEnabled();
+
+            await userEvent.click(retry);
+
+            await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledTimes(2));
+            expect(unarchiveChannel).toHaveBeenLastCalledWith(channel.id, [{field_id: 'f1', value: 'value-f1'}]);
+            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+        });
+
+        test('flagged state: info notice and a plain Unarchive that sends no values', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({
+                fields: [],
+                cannotSet: [propertyField({id: 'f1', name: 'f1', attrs: {required: true}})],
+                enabled: true,
+                loading: false,
+            });
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            expect(screen.getByText('Some required attributes on this channel can only be set by its channel admins. They\'ll be notified after you unarchive it.')).toBeInTheDocument();
+            expect(screen.queryByTestId('unarchiveChannelModalRequiredAttributes')).not.toBeInTheDocument();
+            expect(screen.queryByText(/anyway/i)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive'}));
+
+            expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
+        });
+
+        test('promises no message for missing attributes nobody can edit', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({
+                fields: [],
+                cannotSet: [propertyField({id: 'f1', name: 'f1', type: 'date', attrs: {required: true}})],
+                enabled: true,
+                loading: false,
+            });
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            expect(screen.queryByText(/They'll be notified/)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive'}));
+
+            expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
+        });
+
+        test('mixed state: shows the fields and the notice for the ones only admins can set', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({
+                ...askFor(['f1']),
+                cannotSet: [propertyField({id: 'f2', name: 'f2', attrs: {required: true}})],
+            });
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            expect(screen.getByTestId('unarchiveChannelModalRequiredAttributes')).toBeInTheDocument();
+            expect(screen.getByText('Some required attributes on this channel can only be set by its channel admins. They\'ll be notified after you unarchive it.')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Fill f1'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Set and unarchive'}));
+
+            expect(unarchiveChannel).toHaveBeenCalledWith(channel.id, [{field_id: 'f1', value: 'value-f1'}]);
+        });
+
+        test('feature off: plain dialog, plain call, raw server error as before', async () => {
+            const unarchiveChannel = jest.fn().mockResolvedValue({error: {message: 'Something went wrong'}});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive'}));
+
+            expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
+            await waitFor(() => expect(screen.getByText('Something went wrong')).toBeInTheDocument());
+            expect(screen.queryByText(/We couldn't unarchive/)).not.toBeInTheDocument();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+        });
     });
 
     test('stays open and shows the server error when unarchiveChannel fails', async () => {

@@ -31,7 +31,7 @@ func toChannelAttributeAdmins(users []*model.User) []*model.ChannelAttributeAdmi
 // GetChannelsMissingAttributeValue returns a paginated list of active
 // channels lacking a value for the given channel attribute field, with each
 // channel's channel admins.
-func (a *App) GetChannelsMissingAttributeValue(rctx request.CTX, groupID string, field *model.PropertyField, page, perPage int) (*model.ChannelsMissingAttributeValueList, *model.AppError) {
+func (a *App) GetChannelsMissingAttributeValue(rctx request.CTX, groupID string, field *model.PropertyField, page, perPage int) (*model.ChannelsMissingAttributeValueList, error) {
 	opts := store.ChannelSearchOpts{
 		MissingPropertyValueGroupID: groupID,
 		MissingPropertyValueFieldID: field.ID,
@@ -91,7 +91,7 @@ func (a *App) GetChannelsMissingAttributeValue(rctx request.CTX, groupID string,
 // create mode. viewerLocale renders MessagePreview in the requesting
 // sysadmin's own locale -- it is a preview of the DM, not the DM itself, which
 // is rendered per-recipient in each channel admin's own locale.
-func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID string, field *model.PropertyField, viewerLocale string) (*model.ChannelAttributeComplianceSummary, *model.AppError) {
+func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID string, field *model.PropertyField, viewerLocale string) (*model.ChannelAttributeComplianceSummary, error) {
 	fieldID := ""
 	if field != nil {
 		fieldID = field.ID
@@ -123,6 +123,13 @@ func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID str
 
 	required := field != nil && model.IsPropertyFieldRequired(field)
 
+	// Lets the page say a notify is still cooling down before the admin
+	// confirms one, instead of only after the send is refused.
+	var notifyCooldownMillis int64
+	if field != nil {
+		notifyCooldownMillis = a.channelAttributeNotifyCooldownRemaining(rctx, field.ID)
+	}
+
 	return &model.ChannelAttributeComplianceSummary{
 		FieldId:                   fieldID,
 		Required:                  required,
@@ -131,5 +138,6 @@ func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID str
 		UniqueAdminCount:          uniqueAdminCount,
 		ChannelsWithoutAdminCount: missingLocal - channelsWithAdminCount,
 		MessagePreview:            channelAttributeNotifyMessagePreview(a.channelAttributeDisplayName(rctx, groupID, field), required, channelsWithAdminCount, viewerLocale),
+		NotifyCooldownMillis:      notifyCooldownMillis,
 	}, nil
 }

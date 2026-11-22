@@ -465,3 +465,94 @@ func TestChannelPatchAuditableIncludesDisableJoinLeaveMessages(t *testing.T) {
 	_, ok := m["disable_join_leave_messages"]
 	require.True(t, ok)
 }
+
+func TestGroupMessageConversionRequestBody(t *testing.T) {
+	t.Run("today's body decodes without property values", func(t *testing.T) {
+		var body GroupMessageConversionRequestBody
+		require.NoError(t, json.Unmarshal([]byte(`{"channel_id":"c1","team_id":"t1","name":"n","display_name":"N"}`), &body))
+		require.Equal(t, "c1", body.ChannelID)
+		require.Equal(t, "t1", body.TeamID)
+		require.Equal(t, "n", body.Name)
+		require.Equal(t, "N", body.DisplayName)
+		require.Nil(t, body.PropertyValues)
+	})
+
+	t.Run("round-trips property values", func(t *testing.T) {
+		in := GroupMessageConversionRequestBody{
+			ChannelID:      "c1",
+			TeamID:         "t1",
+			Name:           "n",
+			DisplayName:    "N",
+			PropertyValues: []PropertyValuePatchItem{{FieldID: "f1", Value: json.RawMessage(`"opt"`)}},
+		}
+		data, err := json.Marshal(in)
+		require.NoError(t, err)
+		require.Contains(t, string(data), `"property_values":[{"field_id":"f1","value":"opt"}]`)
+
+		var out GroupMessageConversionRequestBody
+		require.NoError(t, json.Unmarshal(data, &out))
+		require.Equal(t, in.PropertyValues[0].FieldID, out.PropertyValues[0].FieldID)
+		require.JSONEq(t, `"opt"`, string(out.PropertyValues[0].Value))
+	})
+
+	t.Run("omits empty property values", func(t *testing.T) {
+		data, err := json.Marshal(GroupMessageConversionRequestBody{ChannelID: "c1"})
+		require.NoError(t, err)
+		require.NotContains(t, string(data), "property_values")
+	})
+}
+
+func TestChannelPrivacyUpdateRequest(t *testing.T) {
+	t.Run("today's body decodes without property values", func(t *testing.T) {
+		var body ChannelPrivacyUpdateRequest
+		require.NoError(t, json.Unmarshal([]byte(`{"privacy":"P"}`), &body))
+		require.Equal(t, "P", body.Privacy)
+		require.Nil(t, body.PropertyValues)
+	})
+
+	t.Run("round-trips property values", func(t *testing.T) {
+		in := ChannelPrivacyUpdateRequest{
+			Privacy:        "P",
+			PropertyValues: []PropertyValuePatchItem{{FieldID: "f1", Value: json.RawMessage(`["a","b"]`)}},
+		}
+		data, err := json.Marshal(in)
+		require.NoError(t, err)
+
+		var out ChannelPrivacyUpdateRequest
+		require.NoError(t, json.Unmarshal(data, &out))
+		require.Equal(t, "P", out.Privacy)
+		require.Equal(t, "f1", out.PropertyValues[0].FieldID)
+		require.JSONEq(t, `["a","b"]`, string(out.PropertyValues[0].Value))
+	})
+
+	t.Run("omits empty property values", func(t *testing.T) {
+		data, err := json.Marshal(ChannelPrivacyUpdateRequest{Privacy: "O"})
+		require.NoError(t, err)
+		require.JSONEq(t, `{"privacy":"O"}`, string(data))
+	})
+}
+
+func TestChannelRestoreRequest(t *testing.T) {
+	t.Run("empty object decodes", func(t *testing.T) {
+		var body ChannelRestoreRequest
+		require.NoError(t, json.Unmarshal([]byte(`{}`), &body))
+		require.Nil(t, body.PropertyValues)
+	})
+
+	t.Run("round-trips property values", func(t *testing.T) {
+		in := ChannelRestoreRequest{PropertyValues: []PropertyValuePatchItem{{FieldID: "f1", Value: json.RawMessage(`"x"`)}}}
+		data, err := json.Marshal(in)
+		require.NoError(t, err)
+
+		var out ChannelRestoreRequest
+		require.NoError(t, json.Unmarshal(data, &out))
+		require.Equal(t, "f1", out.PropertyValues[0].FieldID)
+		require.JSONEq(t, `"x"`, string(out.PropertyValues[0].Value))
+	})
+
+	t.Run("omits empty property values", func(t *testing.T) {
+		data, err := json.Marshal(ChannelRestoreRequest{})
+		require.NoError(t, err)
+		require.JSONEq(t, `{}`, string(data))
+	})
+}

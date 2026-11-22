@@ -18,6 +18,7 @@ import {
     optionId,
     purgeAttributes,
     setChannelValue,
+    unarchiveWithoutRequiredValues,
 } from './helpers';
 
 test.describe('Channel attribute display and editing', {tag: ['@channel_attributes']}, () => {
@@ -307,7 +308,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 required: true,
             });
             created.push(undesignated);
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [undesignated]);
 
             // # Look at the incomplete channel as an ordinary member
             const asMember = await pw.testBrowser.login(user);
@@ -329,7 +330,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             // * But the row is there, saying the channel is incomplete, and it can be filled
             const info = await channelsPage.openChannelInfo();
-            await expect(info.attributes.unset(undesignated.name)).toBeVisible();
+            await expect(info.attributes.missingValue(undesignated.name)).toHaveText('Select a value');
             await info.attributes.select(undesignated.name, 'FILLED');
             await expect(info.attributes.chip(undesignated.name)).toHaveText('FILLED');
 
@@ -620,10 +621,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await modal.fillDisplayName(`Attr Banner Multi ${suffix}`);
 
             // The menu closes on each pick, so the second value needs it reopened.
-            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
-            await page.getByTestId('dropdownMenu').getByText('NOFORN', {exact: true}).click();
-            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
-            await page.getByTestId('dropdownMenu').getByText('ORCON', {exact: true}).click();
+            await modal.selectAttributeOption(caveats.name, 'NOFORN');
+            await modal.selectAttributeOption(caveats.name, 'ORCON');
 
             await modal.create();
             await expect(modal.container).not.toBeVisible();

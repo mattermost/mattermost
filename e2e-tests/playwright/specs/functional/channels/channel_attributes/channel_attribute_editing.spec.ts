@@ -20,6 +20,7 @@ import {
     purgeAttributes,
     readChannelValues,
     setChannelValue,
+    unarchiveWithoutRequiredValues,
     valueFor,
 } from './helpers';
 
@@ -323,7 +324,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 required: true,
             });
             created.push(marking);
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [marking]);
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
             await channelsPage.goto(team.name, channel.name);
@@ -331,8 +332,8 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
 
             const info = await channelsPage.openChannelInfo();
 
-            // * A required attribute with no value shows as unset and is still editable
-            await expect(info.attributes.unset(marking.name)).toBeVisible();
+            // * A required attribute with no value shows as missing and is still editable
+            await expect(info.attributes.missingValue(marking.name)).toHaveText('Select a value');
             await expect(info.attributes.lock(marking.name)).toHaveCount(0);
 
             // # Set it for the first time

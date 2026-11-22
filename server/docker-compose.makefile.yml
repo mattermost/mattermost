@@ -114,6 +114,13 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: otel-collector
+  ingress-sharedsecret:
+    container_name: mattermost-ingress-sharedsecret
+    ports:
+      - "8090:8090"
+    extends:
+        file: build/docker-compose.common.yml
+        service: ingress-sharedsecret
 
 networks:
   mm-test:

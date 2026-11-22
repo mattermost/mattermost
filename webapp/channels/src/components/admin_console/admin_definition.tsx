@@ -100,7 +100,7 @@ import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import HealthDashboard from './health_dashboard';
 import IPFiltering from './ip_filtering';
-import LDAPWizard from './ldap_wizard';
+import LDAPWizard, {searchableStrings as ldapWizardSearchableStrings} from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
 import LicensedSectionContainer from './licensed_section_container';
@@ -295,7 +295,7 @@ const adminDefinitionMessages = defineMessages({
 
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
-    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+    it.not(it.minLicenseTier(LicenseSkus.Professional)),
     it.not(it.isSystemAdmin),
 );
 
@@ -1122,8 +1122,8 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.UseLetsEncrypt',
                             label: defineMessage({id: 'admin.service.useLetsEncrypt', defaultMessage: 'Use Let\'s Encrypt:'}),
-                            help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. A certificate will only be retrieved for the hostname of the Site URL.'}),
+                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -2227,7 +2227,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'LogSettings.EnableWebhookDebugging',
                             label: defineMessage({id: 'admin.log.enableWebhookDebugging', defaultMessage: 'Enable Webhook Debugging:'}),
-                            help_text: defineMessage({id: 'admin.log.enableWebhookDebuggingDescription', defaultMessage: 'When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to "DEBUG".'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.log.enableWebhookDebuggingPayloadDescription', defaultMessage: 'When true, failed incoming webhook requests are logged with their payload at the "DEBUG" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_values: {
                                 boldedLogLevel: (
                                     <strong>
@@ -4644,6 +4644,22 @@ const AdminDefinition: AdminDefinitionType = {
                             banner_type: 'info',
                         },
                         {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.mfa.fipsBannerDesc', defaultMessage: 'TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            label_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.FIPS_MFA_TOTP}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            banner_type: 'warning',
+                            isHidden: it.clientConfigIsFalse('IsFipsEnabled'),
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableMultifactorAuthentication',
                             label: defineMessage({id: 'admin.service.mfaTitle', defaultMessage: 'Enable Multi-factor Authentication:'}),
@@ -4678,6 +4694,7 @@ const AdminDefinition: AdminDefinitionType = {
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                searchableStrings: ldapWizardSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAP')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),

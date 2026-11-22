@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {ComponentProps} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -14,11 +14,15 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {isPropertyFieldRequired, isPropertyFieldSourceManaged} from 'mattermost-redux/utils/property_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
 
+import type {ChannelAttributeSelection} from 'components/channel_attributes/channel_attributes_form';
+import ChannelAttributesForm from 'components/channel_attributes/channel_attributes_form';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
+import useRequiredChannelAttributesToAsk from 'components/common/hooks/useRequiredChannelAttributesToAsk';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import NoCommonTeamsError from './no_common_teams/no_common_teams';
@@ -70,6 +74,33 @@ const ConvertGmToChannelModal = (props: Props) => {
     const [nameError, setNameError] = useState<boolean>(false);
     const [conversionError, setConversionError] = useState<string>();
 
+    const attributesToAsk = useRequiredChannelAttributesToAsk({teamId: selectedTeamId ?? ''}, {requiredOnly: true});
+
+    // Only required fields are asked here; the optional classification courtesy
+    // the create dialog offers is not part of a conversion. Source-managed fields
+    // are written by their owner only: the server refuses a value for them, and
+    // doesn't wait for one.
+    const requiredFields = useMemo(() => attributesToAsk.fields.filter((field) => isPropertyFieldRequired(field) && !isPropertyFieldSourceManaged(field)), [attributesToAsk.fields]);
+    const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
+    const [converting, setConverting] = useState(false);
+
+    const handleAttributeChange = useCallback((fieldId: string, value: string | string[] | undefined) => {
+        setAttributeValues((current) => {
+            const next = {...current};
+            if (value === undefined) {
+                Reflect.deleteProperty(next, fieldId);
+            } else {
+                next[fieldId] = value;
+            }
+            return next;
+        });
+    }, []);
+
+    const requiredAttributesFilled = useMemo(() => requiredFields.every((field) => {
+        const value = attributeValues[field.id];
+        return Array.isArray(value) ? value.length > 0 : Boolean(value);
+    }), [requiredFields, attributeValues]);
+
     const dispatch = useDispatch();
 
     const mounted = useRef(false);
@@ -115,7 +146,23 @@ const ConvertGmToChannelModal = (props: Props) => {
             return;
         }
 
-        const {error} = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.current.trim());
+        const propertyValues = requiredFields.map((field) => ({field_id: field.id, value: attributeValues[field.id]}));
+
+        const name = channelName.trim();
+        const url = channelURL.current.trim();
+
+        setConverting(true);
+        let result;
+        if (propertyValues.length > 0) {
+            result = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, name, url, propertyValues);
+        } else {
+            result = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, name, url);
+        }
+        const {error} = result;
+        if (!mounted.current) {
+            return;
+        }
+        setConverting(false);
 
         if (error) {
             if (error.server_error_id === ServerErrorId.CHANNEL_NAME_EXISTS) {
@@ -134,10 +181,10 @@ const ConvertGmToChannelModal = (props: Props) => {
 
         setConversionError(undefined);
         props.onExited();
-    }, [selectedTeamId, props, channelName, formatMessage]);
+    }, [selectedTeamId, props, channelName, formatMessage, requiredFields, attributeValues]);
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
-    const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError && !urlError;
+    const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError && !urlError && requiredAttributesFilled && !(attributesToAsk.enabled && (attributesToAsk.loading || converting));
     const modalProps: Partial<ComponentProps<typeof GenericModal>> = {};
     let modalBody;
 
@@ -189,6 +236,13 @@ const ConvertGmToChannelModal = (props: Props) => {
                         urlError={urlError}
                     />
 
+                    <ChannelAttributesForm
+                        fields={requiredFields}
+                        values={attributeValues}
+                        onChange={handleAttributeChange}
+                        disabled={converting}
+                    />
+
                     {
                         conversionError &&
                         <div className='conversion-error'>
@@ -208,6 +262,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                     loading: showLoader,
                     'single-team': Object.keys(commonTeamsById).length === 1,
                     'multi-team': Object.keys(commonTeamsById).length > 1,
+                    'with-attributes': requiredFields.length > 0,
                 })}
             >
                 {subBody}

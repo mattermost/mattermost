@@ -28,6 +28,7 @@ import {
     deleteAttributes,
     optionId as attributeOptionId,
     purgeAttributes,
+    unarchiveWithoutRequiredValues,
 } from '../../channels/channel_attributes/helpers';
 
 import {requireGlobalAttributesEnabled, setGlobalAttributesFeatureFlag} from './global_attributes_helpers';
@@ -150,7 +151,7 @@ test.describe(
                 required: true,
                 displayName: `Escape ${suffix}`,
             });
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [pair.channelField]);
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -405,7 +406,7 @@ test.describe(
                 options: ['Value A'],
                 required: true,
             });
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [pair.channelField]);
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);

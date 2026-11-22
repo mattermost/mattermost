@@ -2037,7 +2037,8 @@ func TestCheckRequiredAttributeTransitionStaleRequiredRead(t *testing.T) {
 		return &copied
 	}
 
-	appErr = th.App.checkRequiredAttributeTransition(th.Context, "test", group.ID, withRequired(), withRequired())
-	require.NotNil(t, appErr)
-	assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", appErr.Id)
+	err := th.App.checkRequiredAttributeTransition(th.Context, "test", group.ID, withRequired(), withRequired())
+	var conflict *model.AppError
+	require.ErrorAs(t, err, &conflict)
+	assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", conflict.Id)
 }

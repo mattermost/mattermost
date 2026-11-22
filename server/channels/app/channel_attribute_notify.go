@@ -128,9 +128,9 @@ type channelAttributeAdminBatch struct {
 // stands) and, when it is, the token that claim was written under --
 // releaseChannelAttributeNotifyThrottle needs it back to release only this
 // specific claim, not whatever happens to be there when release runs.
-func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool, token string, appErr *model.AppError) {
+func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool, token string, err error) {
 	token = strconv.FormatInt(model.GetMillis(), 10)
-	claimed, err := a.Srv().Store().System().TryClaimIfOlderThan(
+	claimed, err = a.Srv().Store().System().TryClaimIfOlderThan(
 		channelAttributeNotifyThrottleKey(fieldID),
 		token,
 		channelAttributeNotifyCoolOffMillis,
@@ -141,18 +141,27 @@ func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool,
 	return claimed, token, nil
 }
 
-// channelAttributeNotifyThrottledError names the wait until the next notify
-// is accepted. The claim's value is the millis it was written at; when it
-// can't be read or looks expired (a lagging replica, a release in between),
-// it names no wait rather than a wrong one.
-func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) *model.AppError {
-	var remainingMillis int64
-	if system, err := a.Srv().Store().System().GetByName(channelAttributeNotifyThrottleKey(fieldID)); err != nil {
+// channelAttributeNotifyCooldownRemaining is how long until the next notify
+// for fieldID is accepted. The claim's value is the millis it was written at;
+// when it can't be read or looks expired (no claim, a lagging replica, a
+// release in between), it answers 0 rather than a wrong wait.
+func (a *App) channelAttributeNotifyCooldownRemaining(rctx request.CTX, fieldID string) int64 {
+	system, err := a.Srv().Store().System().GetByName(channelAttributeNotifyThrottleKey(fieldID))
+	if err != nil {
 		rctx.Logger().Debug("Failed to read channel attribute notify cooldown", mlog.String("field_id", fieldID), mlog.Err(err))
-	} else if claimedAt, parseErr := strconv.ParseInt(system.Value, 10, 64); parseErr == nil {
-		remainingMillis = claimedAt + channelAttributeNotifyCoolOffMillis - model.GetMillis()
+		return 0
 	}
+	claimedAt, parseErr := strconv.ParseInt(system.Value, 10, 64)
+	if parseErr != nil {
+		return 0
+	}
+	return max(claimedAt+channelAttributeNotifyCoolOffMillis-model.GetMillis(), 0)
+}
 
+// channelAttributeNotifyThrottledError names the wait until the next notify
+// is accepted, or no wait when it can't be worked out.
+func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) error {
+	remainingMillis := a.channelAttributeNotifyCooldownRemaining(rctx, fieldID)
 	if remainingMillis <= 0 {
 		return model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "api.property_field.notify_missing_values.throttled_unknown_wait.app_error", nil, "", http.StatusTooManyRequests)
 	}
@@ -204,16 +213,16 @@ func (a *App) fetchAllChannelAdminAssignments(groupID, fieldID string) ([]*model
 // unique channel admin of a channel missing a value for field, throttled per
 // field. Counts are computed synchronously so the caller can render them
 // immediately; delivery happens in the background.
-func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID string, field *model.PropertyField) (*model.ChannelAttributeNotifyResult, *model.AppError) {
+func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID string, field *model.PropertyField) (*model.ChannelAttributeNotifyResult, error) {
 	// Claimed atomically, and first: closes the double-click/two-HA-node
 	// race a separate check-then-write could not. Everything below that can
 	// still fail (transient store errors, a fully-failed delivery) releases
 	// this claim before returning, so a real "nobody was notified" outcome
 	// never costs the full hour -- see releaseChannelAttributeNotifyThrottle
 	// and its call sites.
-	claimed, token, appErr := a.claimChannelAttributeNotifyThrottle(field.ID)
-	if appErr != nil {
-		return nil, appErr
+	claimed, token, err := a.claimChannelAttributeNotifyThrottle(field.ID)
+	if err != nil {
+		return nil, err
 	}
 	if !claimed {
 		return nil, a.channelAttributeNotifyThrottledError(rctx, field.ID)
@@ -273,6 +282,13 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 	fieldID := field.ID
 	required := model.IsPropertyFieldRequired(field)
 
+	// Nobody to notify, so the cooldown is released before answering: the
+	// summary the page reloads next must not still report a wait.
+	if len(batches) == 0 {
+		a.releaseChannelAttributeNotifyThrottle(rctx, field.ID, token)
+		return result, nil
+	}
+
 	a.Srv().Go(func() {
 		a.sendChannelAttributeNotifyDMs(rctx, batches, displayName, required, fieldID, token)
 	})
@@ -281,17 +297,6 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 }
 
 func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string]*channelAttributeAdminBatch, attributeDisplayName string, required bool, fieldID, throttleToken string) {
-	if len(batches) == 0 {
-		// Every channel missing the value has no channel admin at all -- the
-		// D5 "report only" outcome, not a failure. Still nobody was
-		// notified, so this releases the cooldown the same as the
-		// GetSystemBot/fully-failed-delivery cases below: an admin who fixes
-		// this by adding themselves as a channel admin should not have to
-		// wait out the hour to retry.
-		a.releaseChannelAttributeNotifyThrottle(rctx, fieldID, throttleToken)
-		return
-	}
-
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to get system bot to notify channel admins of a missing required channel attribute",
@@ -318,7 +323,7 @@ func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string
 			UserId:    systemBot.UserId,
 			Type:      model.PostTypeDefault,
 			Message: channelAttributeNotifyMessageHeader(attributeDisplayName, required, len(batch.channels), T) +
-				"\n" + channelAttributeNotifyChannelList(batch.channels, T),
+				"\n" + channelAttributeNotifyChannelList(batch.channels, a.GetSiteURL(), T),
 			Props: model.StringInterface{
 				"property_field_id": fieldID,
 				"attribute_name":    attributeDisplayName,
@@ -343,9 +348,11 @@ func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string
 
 // escapeChannelAttributeMarkdownLinkText escapes backslashes and square
 // brackets so a channel display name, which any channel admin controls, cannot
-// terminate the link text it is inserted into and redirect the link.
+// terminate the link text it is inserted into and redirect the link. Line
+// breaks become spaces, since a blank line would end the link and let the rest
+// of the name render as the bot's own markdown.
 func escapeChannelAttributeMarkdownLinkText(displayName string) string {
-	return strings.NewReplacer(`\`, `\\`, `[`, `\[`, `]`, `\]`).Replace(displayName)
+	return strings.NewReplacer("\r\n", " ", "\r", " ", "\n", " ", `\`, `\\`, `[`, `\[`, `]`, `\]`).Replace(displayName)
 }
 
 // channelAttributeNotifyChannelList renders the bulleted channel list for a
@@ -353,8 +360,9 @@ func escapeChannelAttributeMarkdownLinkText(displayName string) string {
 // only auto-links within the team currently being viewed, and one admin's
 // affected channels routinely span teams. Collapses beyond
 // channelAttributeNotifyChannelsPerDM so an admin of hundreds of channels
-// doesn't receive an unreadable wall of text.
-func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelRef, T i18n.TranslateFunc) string {
+// doesn't receive an unreadable wall of text. Links are absolute so they work
+// on a subpath install and in clients that can't resolve a relative link.
+func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelRef, siteURL string, T i18n.TranslateFunc) string {
 	shown := channels
 	var more int
 	if len(shown) > channelAttributeNotifyChannelsPerDM {
@@ -364,7 +372,7 @@ func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelR
 
 	var b strings.Builder
 	for _, ref := range shown {
-		link := "/" + ref.teamName + "/channels/" + ref.channelName
+		link := siteURL + "/" + ref.teamName + "/channels/" + ref.channelName
 		b.WriteString(T("app.channel_attributes.notify_missing_value.dm_channel_line", model.StringInterface{
 			"ChannelDisplayName": escapeChannelAttributeMarkdownLinkText(ref.displayName),
 			"ChannelLink":        link,

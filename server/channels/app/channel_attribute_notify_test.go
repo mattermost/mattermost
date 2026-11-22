@@ -104,8 +104,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 			channels = append(channels, c)
 		}
 
-		result, appErr := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.Nil(t, appErr)
+		result, err := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.NoError(t, err)
 		// Not asserted as exact equality: the field ID is fresh, so every
 		// other active channel already in the test server (e.g. InitBasic's
 		// default channels) also "lacks a value" for it and contributes to
@@ -154,8 +154,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		makeAdmin(multiAdmin, newChannelNoAdmin(t, th, team))
 		makeAdmin(multiAdmin, newChannelNoAdmin(t, th, team))
 
-		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.Nil(t, appErr)
+		_, notifyErr := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.NoError(t, notifyErr)
 
 		require.Eventually(t, func() bool {
 			return len(dmPostsFromBotToUser(t, th, bot.UserId, soleAdmin.Id)) == 1 && len(dmPostsFromBotToUser(t, th, bot.UserId, multiAdmin.Id)) == 1
@@ -181,8 +181,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		c := newChannelNoAdmin(t, th, team)
 		th.AddUserToChannel(t, member, c)
 
-		result, appErr := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.Nil(t, appErr)
+		result, err := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.NoError(t, err)
 		// >= 1, not ==1: other active channels already in the test server
 		// (e.g. InitBasic's defaults) also lack a value for this fresh field
 		// and may themselves have no admin.
@@ -207,8 +207,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		require.Nil(t, appErr)
 		setChannelPropertyValue(t, th, groupID, field.ID, compliant.Id, `"set"`)
 
-		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.Nil(t, appErr)
+		_, notifyErr := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.NoError(t, notifyErr)
 
 		// The load-bearing assertion: this admin's only channel already has a
 		// value, so they must never be notified -- regardless of what other
@@ -241,8 +241,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, c.Id, deactivated.Id, false, true, true)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.Nil(t, appErr)
+		_, notifyErr := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.NoError(t, notifyErr)
 
 		// The load-bearing assertion: neither of these two, specifically,
 		// must ever be notified -- regardless of what other channels
@@ -269,19 +269,20 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, c.Id, admin.Id, false, true, true)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.Nil(t, appErr)
+		_, notifyErr := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.NoError(t, notifyErr)
 
 		require.Eventually(t, func() bool {
 			return len(dmPostsFromBotToUser(t, th, bot.UserId, admin.Id)) == 1
 		}, waitTimeout, waitInterval)
 
-		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusTooManyRequests, appErr.StatusCode)
-		assert.Equal(t, "api.property_field.notify_missing_values.throttled.app_error", appErr.Id)
-		appErr.Translate(i18n.GetUserTranslations("en"))
-		assert.Contains(t, appErr.Message, "You can send another notification in 60 minutes.")
+		_, err := th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		var throttled *model.AppError
+		require.ErrorAs(t, err, &throttled)
+		assert.Equal(t, http.StatusTooManyRequests, throttled.StatusCode)
+		assert.Equal(t, "api.property_field.notify_missing_values.throttled.app_error", throttled.Id)
+		throttled.Translate(i18n.GetUserTranslations("en"))
+		assert.Contains(t, throttled.Message, "You can send another notification in 60 minutes.")
 
 		posts := dmPostsFromBotToUser(t, th, bot.UserId, admin.Id)
 		assert.Len(t, posts, 1, "the throttled call must not send a second DM")
@@ -292,11 +293,11 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		fieldID := model.NewId()
 
 		claimed, token, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.True(t, claimed, "sanity check: the first claim on a fresh field must succeed")
 
 		stillThrottled, _, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.False(t, stillThrottled, "sanity check: a second claim right after the first must be refused")
 
 		// A batch naming a channel ID that cannot resolve to a real direct
@@ -309,7 +310,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		th.App.sendChannelAttributeNotifyDMs(th.Context, batches, "Cost center", false, fieldID, token)
 
 		canClaimAgain, _, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.True(t, canClaimAgain, "a fully-failed run must release the cooldown, not leave it claimed for an hour")
 	})
 
@@ -318,7 +319,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		fieldID := model.NewId()
 
 		claimed, staleToken, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.True(t, claimed)
 
 		// Simulate run A's claim aging out (e.g. a stalled goroutine) by
@@ -330,7 +331,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		}))
 		time.Sleep(2 * time.Millisecond)
 		claimedB, tokenB, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.True(t, claimedB)
 		require.NotEqual(t, staleToken, tokenB)
 
@@ -339,7 +340,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 
 		// Run B's claim must still stand -- a run C must be throttled.
 		claimedC, _, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, claimedC, "releasing run A's stale token must not delete run B's still-current claim")
 	})
 
@@ -353,7 +354,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		for range attempts {
 			wg.Go(func() {
 				claimed, _, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
-				require.Nil(t, appErr)
+				require.NoError(t, appErr)
 				if claimed {
 					atomic.AddInt32(&successes, 1)
 				}
@@ -474,21 +475,37 @@ func TestChannelAttributeNotifyChannelList(t *testing.T) {
 		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
 			{teamName: "team-a", channelName: "town-square", displayName: "Town Square"},
 			{teamName: "team-b", channelName: "off-topic", displayName: "Off-Topic"},
-		}, T)
+		}, "", T)
 
 		assert.Equal(t, "\n- [Town Square](/team-a/channels/town-square)\n- [Off-Topic](/team-b/channels/off-topic)", list)
+	})
+
+	t.Run("prefixes the site URL, including its subpath", func(t *testing.T) {
+		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
+			{teamName: "team-a", channelName: "town-square", displayName: "Town Square"},
+		}, "https://example.com/mattermost", T)
+
+		assert.Equal(t, "\n- [Town Square](https://example.com/mattermost/team-a/channels/town-square)", list)
 	})
 
 	t.Run("escapes backslashes and brackets in the display name so it cannot redirect the link", func(t *testing.T) {
 		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
 			{teamName: "team-a", channelName: "sneaky", displayName: "Safe](https://evil.example)[x"},
 			{teamName: "team-a", channelName: "slashes", displayName: `trailing\`},
-		}, T)
+		}, "", T)
 
 		assert.Equal(t,
 			"\n- [Safe\\](https://evil.example)\\[x](/team-a/channels/sneaky)"+
 				"\n- [trailing\\\\](/team-a/channels/slashes)",
 			list,
 		)
+	})
+
+	t.Run("flattens line breaks in the display name so it cannot end the link", func(t *testing.T) {
+		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
+			{teamName: "team-a", channelName: "sneaky", displayName: "x\n\n# Act now\r\n[here](https://evil.example)\r"},
+		}, "", T)
+
+		assert.Equal(t, "\n- [x  # Act now \\[here\\](https://evil.example) ](/team-a/channels/sneaky)", list)
 	})
 }

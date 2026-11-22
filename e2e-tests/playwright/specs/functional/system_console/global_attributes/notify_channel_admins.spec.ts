@@ -80,14 +80,17 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             // * The banner reflects a successful send
             await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notification queued');
 
-            // # Notify again right away
-            const secondModal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
-            await secondModal.confirm();
+            // # Come back to the page and notify again right away
+            await page.reload();
+            await expect(globalAttributes.displayNameInput).toBeVisible();
+            await attributeAppliesToChannels.expand();
+            await attributeAppliesToChannels.notifyChannelAdminsButton.click();
 
-            // * The second send is refused, and the banner says when another one can go out
+            // * No confirmation opens; the banner says when another one can go out
             await expect(attributeAppliesToChannels.missingValuesBanner).toContainText(
                 'You can send another notification in',
             );
+            await expect(page.getByTestId('notifyChannelAdminsModal')).toHaveCount(0);
 
             // # Switch to the channel admin's own session and check their DM inbox
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -195,7 +198,7 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             const modal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
 
             // * The no-admin channel is called out, not silently dropped
-            await expect(modal.container).toContainText("no channel admin and won't be notified");
+            await expect(modal.container).toContainText(/no channel admin and (isn't|aren't) notified/);
 
             await modal.confirm();
         } finally {

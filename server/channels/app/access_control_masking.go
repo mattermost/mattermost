@@ -791,7 +791,7 @@ const maskedTokenValue = model.MaskingTokenValue
 // could not see — is caught on the update path by the canonical merge, which
 // fails closed (ErrMergeNodeDeleted / ErrMergeShapeMismatch → 403) when the
 // submitted node can't be paired with the masked stored node.
-func rejectMaskedTokens(policy *model.AccessControlPolicy) *model.AppError {
+func rejectMaskedTokens(policy *model.AccessControlPolicy) error {
 	for _, rule := range policy.Rules {
 		if strings.Contains(rule.Expression, maskedTokenValue) {
 			return model.NewAppError("CreateOrUpdateAccessControlPolicy",

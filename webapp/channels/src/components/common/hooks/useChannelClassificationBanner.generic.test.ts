@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitFor} from '@testing-library/react';
 import * as ReactRedux from 'react-redux';
 
+import {ClientError} from '@mattermost/client';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -102,6 +104,24 @@ function makeState(
     } as PartialState;
 }
 
+function captureUnhandledRejections() {
+    const seen: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+        seen.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    return {
+        seen,
+        stop: () => process.off('unhandledRejection', onUnhandled),
+    };
+}
+
+function macrotask() {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 0);
+    });
+}
+
 // Classification is deliberately unavailable in these tests: the point is that a
 // designated attribute drives the banner on its own, with no classification
 // definition involved.
@@ -115,7 +135,7 @@ function mockNoClassification() {
 }
 
 describe('useChannelClassificationBanner — generic designated attributes', () => {
-    const dispatchMock = jest.fn();
+    const dispatchMock = jest.fn().mockResolvedValue({data: []});
 
     beforeEach(() => {
         dispatchMock.mockClear();
@@ -230,6 +250,33 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         );
 
         expect(result.current.position).toBe('display_banner_top');
+    });
+
+    test('a failed attribute field request does not surface as an unhandled rejection', async () => {
+        jest.mocked(ReactRedux.useDispatch).mockRestore();
+        const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(new ClientError(Client4.getUrl(), {
+            message: 'Channel attributes require an Enterprise Advanced license.',
+            server_error_id: 'api.property.channel_attributes.license.app_error',
+            status_code: 501,
+            url: '/api/v4/properties/groups/access_control/channel/fields',
+        }));
+        const rejections = captureUnhandledRejections();
+
+        try {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([], []),
+            );
+
+            await waitFor(() => expect(getPropertyFields).toHaveBeenCalledTimes(1));
+            await macrotask();
+
+            expect(rejections.seen).toEqual([]);
+            expect(getPropertyFields).toHaveBeenCalledTimes(1);
+            expect(result.current.hasClassification).toBe(false);
+        } finally {
+            rejections.stop();
+        }
     });
 
     test('joins attributes in sort_order and takes position from the lowest', () => {

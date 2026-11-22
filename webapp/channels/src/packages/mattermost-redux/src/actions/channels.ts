@@ -14,6 +14,7 @@ import type {
     ChannelNotifyProps,
     ChannelMembership,
     ChannelModerationPatch,
+    ChannelPropertyValuePatchItems,
     ChannelsWithTotalCount,
     ChannelSearchOpts,
     ServerChannel,
@@ -307,19 +308,19 @@ export function setMyChannelAutotranslation(channelId: string, enabled: boolean)
     };
 }
 
-export function updateChannelPrivacy(channelId: string, privacy: string): ActionFuncAsync<Channel> {
+export function updateChannelPrivacy(channelId: string, privacy: string, propertyValues?: ChannelPropertyValuePatchItems): ActionFuncAsync<Channel> {
     return bindClientFunc({
         clientFunc: Client4.updateChannelPrivacy,
         onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
-        params: [channelId, privacy],
+        params: [channelId, privacy, propertyValues],
     });
 }
 
-export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFuncAsync<Channel> {
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string, propertyValues?: ChannelPropertyValuePatchItems): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         let response;
         try {
-            response = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
+            response = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name, propertyValues);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -705,10 +706,10 @@ export function deleteChannel(channelId: string): ActionFuncAsync {
     };
 }
 
-export function unarchiveChannel(channelId: string): ActionFuncAsync {
+export function unarchiveChannel(channelId: string, propertyValues?: ChannelPropertyValuePatchItems): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
-            await Client4.unarchiveChannel(channelId);
+            await Client4.unarchiveChannel(channelId, propertyValues);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

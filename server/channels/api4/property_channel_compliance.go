@@ -118,9 +118,9 @@ func getPropertyFieldMissingValues(c *Context, w http.ResponseWriter, r *http.Re
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
-	list, appErr := c.App.GetChannelsMissingAttributeValue(rctx, group.ID, field, c.Params.Page, c.Params.PerPage)
-	if appErr != nil {
-		c.Err = appErr
+	list, err := c.App.GetChannelsMissingAttributeValue(rctx, group.ID, field, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -156,9 +156,9 @@ func getPropertyFieldComplianceSummary(c *Context, w http.ResponseWriter, r *htt
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
-	summary, appErr := c.App.GetChannelAttributeComplianceSummary(rctx, group.ID, field, channelAttributeViewerLocale(c, rctx))
-	if appErr != nil {
-		c.Err = appErr
+	summary, err := c.App.GetChannelAttributeComplianceSummary(rctx, group.ID, field, channelAttributeViewerLocale(c, rctx))
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -193,9 +193,9 @@ func getPropertyFieldsComplianceSummary(c *Context, w http.ResponseWriter, r *ht
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
-	summary, appErr := c.App.GetChannelAttributeComplianceSummary(rctx, group.ID, nil, channelAttributeViewerLocale(c, rctx))
-	if appErr != nil {
-		c.Err = appErr
+	summary, err := c.App.GetChannelAttributeComplianceSummary(rctx, group.ID, nil, channelAttributeViewerLocale(c, rctx))
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -231,9 +231,9 @@ func notifyPropertyFieldMissingValues(c *Context, w http.ResponseWriter, r *http
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
-	result, appErr := c.App.NotifyChannelAdminsOfMissingAttribute(rctx, group.ID, field)
-	if appErr != nil {
-		c.Err = appErr
+	result, err := c.App.NotifyChannelAdminsOfMissingAttribute(rctx, group.ID, field)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 

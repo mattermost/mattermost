@@ -65,6 +65,8 @@ import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UnarchiveChannelModal from './channels/unarchive_channel_modal';
+import ConvertGmModal from './channels/convert_gm_modal';
+import ConvertPrivateConfirmModal from './channels/convert_private_confirm_modal';
 import UserProfilePopover from './channels/user_profile_popover';
 import WysiwygEditor from './channels/wysiwyg_editor';
 // Burn-on-Read Components
@@ -160,6 +162,8 @@ const components = {
     TeamSettingsModal,
     ThreadFooter,
     UnarchiveChannelModal,
+    ConvertGmModal,
+    ConvertPrivateConfirmModal,
     UserProfilePopover,
     WysiwygEditor,
 
@@ -258,6 +262,8 @@ export {
     TeamSettingsModal,
     ThreadFooter,
     UnarchiveChannelModal,
+    ConvertGmModal,
+    ConvertPrivateConfirmModal,
     UserProfilePopover,
     WysiwygEditor,
 

@@ -22,6 +22,7 @@ import type {
     ChannelMembership,
     ChannelModeration,
     ChannelModerationPatch,
+    ChannelPropertyValuePatchItems,
     ChannelStats,
     ChannelsWithTotalCount,
     ChannelUnread,
@@ -114,7 +115,7 @@ import type {
     PluginsResponse,
     PluginStatus,
 } from '@mattermost/types/plugins';
-import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
+import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, EntityCard} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {ChannelAttributeComplianceSummary, ChannelAttributeNotifyResult, ChannelsMissingAttributeValueList, NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
@@ -1853,10 +1854,10 @@ export default class Client4 {
         );
     };
 
-    unarchiveChannel = (channelId: string) => {
+    unarchiveChannel = (channelId: string, propertyValues?: ChannelPropertyValuePatchItems) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelRoute(channelId)}/restore`,
-            {method: 'post'},
+            {method: 'post', body: propertyValues?.length ? JSON.stringify({property_values: propertyValues}) : undefined},
         );
     };
 
@@ -1867,10 +1868,10 @@ export default class Client4 {
         );
     };
 
-    updateChannelPrivacy = (channelId: string, privacy: any) => {
+    updateChannelPrivacy = (channelId: string, privacy: any, propertyValues?: ChannelPropertyValuePatchItems) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelRoute(channelId)}/privacy`,
-            {method: 'put', body: JSON.stringify({privacy})},
+            {method: 'put', body: JSON.stringify(propertyValues?.length ? {privacy, property_values: propertyValues} : {privacy})},
         );
     };
 
@@ -4949,6 +4950,20 @@ export default class Client4 {
         };
     };
 
+    getEntityCard = (typeId: string, value: string, postId?: string, occurrence?: string) => {
+        const params = new URLSearchParams({type_id: typeId, value});
+        if (postId) {
+            params.set('post_id', postId);
+        }
+        if (occurrence) {
+            params.set('id', occurrence);
+        }
+        return this.doFetch<EntityCard>(
+            `${this.getBaseRoute()}/entities/card?${params.toString()}`,
+            {method: 'get'},
+        );
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
@@ -5117,12 +5132,13 @@ export default class Client4 {
         );
     };
 
-    convertGroupMessageToPrivateChannel = (channelId: string, teamId: string, displayName: string, name: string) => {
+    convertGroupMessageToPrivateChannel = (channelId: string, teamId: string, displayName: string, name: string, propertyValues?: ChannelPropertyValuePatchItems) => {
         const body = {
             channel_id: channelId,
             team_id: teamId,
             display_name: displayName,
             name,
+            ...(propertyValues?.length ? {property_values: propertyValues} : {}),
         };
         return this.doFetchWithResponse<Channel>(
             `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
@@ -5583,6 +5599,18 @@ export default class Client4 {
             `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
             {method: 'delete'},
         );
+    };
+
+    exportHealthFindings = async (format: 'html' | 'md'): Promise<{content: string; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<string>(
+            `${this.getHealthFindingsRoute()}/export${buildQueryString({format})}`,
+            {method: 'get'},
+        );
+
+        return {
+            content: data,
+            filename: extractFilenameFromContentDisposition(headers.get('Content-Disposition'), `site-health.${format}`),
+        };
     };
 
     getFlaggedPostReportUrl = (postId: string) => {

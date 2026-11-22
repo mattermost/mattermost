@@ -21,7 +21,7 @@ import {
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
 
-import {isEnterpriseLicense} from 'utils/license_utils';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 // Scoped to the channel-object fields of this group rather than scanning every
 // field in the store. linked_field_id is what distinguishes the channel field
@@ -43,23 +43,23 @@ export type ClassificationMarkingsState = {
  * Reusable hook that gates classification markings availability.
  * Returns available=true only when all 3 conditions are met:
  * 1. ClassificationMarkings feature flag is enabled
- * 2. Enterprise license is active
+ * 2. Enterprise Advanced license is active
  * 3. Template classification field exists with at least one level configured
  *
  * Also fetches the channel-scoped classification linked field for consumers that need it.
  */
-export default function useClassificationMarkings(): ClassificationMarkingsState {
+export default function useClassificationMarkings({skipFetch = false}: {skipFetch?: boolean} = {}): ClassificationMarkingsState {
     const dispatch = useDispatch();
 
     const featureEnabled = useSelector(
         (state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true',
     );
     const license = useSelector(getLicense);
-    const hasEnterpriseLicense = isEnterpriseLicense(license);
+    const hasAdvancedLicense = isMinimumEnterpriseAdvancedLicense(license);
     const channelField = useSelector(selectChannelClassificationField) ?? null;
 
     useEffect(() => {
-        if (!featureEnabled || !hasEnterpriseLicense) {
+        if (skipFetch || !featureEnabled || !hasAdvancedLicense) {
             return;
         }
         if (!channelField) {
@@ -67,9 +67,9 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
-            ));
+            )).catch(() => {});
         }
-    }, [featureEnabled, hasEnterpriseLicense, channelField, dispatch]);
+    }, [skipFetch, featureEnabled, hasAdvancedLicense, channelField, dispatch]);
 
     const levels = useMemo((): ClassificationLevel[] => {
         if (!channelField) {
@@ -79,9 +79,9 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
         return optionsToLevels(options);
     }, [channelField]);
 
-    const loading = featureEnabled && hasEnterpriseLicense && !channelField;
+    const loading = featureEnabled && hasAdvancedLicense && !channelField;
 
-    const available = featureEnabled && hasEnterpriseLicense && levels.length > 0;
+    const available = featureEnabled && hasAdvancedLicense && levels.length > 0;
 
     return {available, loading, channelField, levels};
 }

@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules, autoAddModeForToggle} from '@mattermost/types/access_control';
-import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
+import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch, ChannelPropertyValuePatchItems} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -60,6 +60,7 @@ export interface ChannelDetailsProps {
     channelGroupsEnabled: boolean;
     abacSupported: boolean;
     channelAttributesEnabled?: boolean;
+    channelAttributesRequiredEnabled?: boolean;
     isDisabled?: boolean;
     actions: ChannelDetailsActions;
 }
@@ -111,8 +112,12 @@ interface ChannelDetailsState {
     // Pending edits are batched under the page's own Save, keyed by field id;
     // a null value means "clear this field".
     channelAttributeValues: Record<string, string | string[] | null>;
+
+    // Required attributes the attributes section can fill that have no value.
+    // While the page isn't archived, they hold back Save.
     missingRequiredChannelAttributes: MissingRequiredChannelAttribute[];
-    showRequiredChannelAttributeErrors: boolean;
+    checkingRequiredChannelAttributes: boolean;
+    requiredChannelAttributesCheckFailed: boolean;
 
     // Access rules confirmation modal state
     showAccessRulesConfirmModal: boolean;
@@ -131,7 +136,7 @@ export type ChannelDetailsActions = {
     getTeam: (teamId: string) => Promise<ActionResult>;
     getChannelModerations: (channelId: string) => Promise<ActionResult>;
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
-    updateChannelPrivacy: (channelId: string, privacy: string) => Promise<ActionResult>;
+    updateChannelPrivacy: (channelId: string, privacy: string, propertyValues?: ChannelPropertyValuePatchItems) => Promise<ActionResult>;
     patchGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
     patchChannelModerations: (channelID: string, patch: ChannelModerationPatch[]) => Promise<ActionResult>;
     loadScheme: (schemeID: string) => Promise<ActionResult>;
@@ -139,7 +144,7 @@ export type ChannelDetailsActions = {
     removeChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
     updateChannelMemberSchemeRoles: (channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
     deleteChannel: (channelId: string) => Promise<ActionResult>;
-    unarchiveChannel: (channelId: string) => Promise<ActionResult>;
+    unarchiveChannel: (channelId: string, propertyValues?: ChannelPropertyValuePatchItems) => Promise<ActionResult>;
     getAccessControlPolicy: (channelId: string) => Promise<ActionResult>;
     searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     assignChannelToAccessControlPolicy: (policyId: string, channelId: string) => Promise<ActionResult>;
@@ -200,7 +205,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             attributesLoaded: false,
             channelAttributeValues: {},
             missingRequiredChannelAttributes: [],
-            showRequiredChannelAttributeErrors: false,
+            checkingRequiredChannelAttributes: false,
+            requiredChannelAttributesCheckFailed: false,
 
             // Access rules confirmation modal state
             showAccessRulesConfirmModal: false,
@@ -221,7 +227,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 isLocalArchived: channel?.delete_at !== 0,
                 policyToggled: channel?.policy_enforced || false,
                 channelAttributeValues: {},
-                showRequiredChannelAttributeErrors: false,
             });
 
             // Load user attributes and policies if ABAC is supported
@@ -437,6 +442,15 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.processGroupsChange(groups);
     };
 
+    // Values the confirmation dialog collected for the privacy change. They are
+    // not state: they only have to survive from the confirm click to handleSubmit.
+    private privacyPropertyValues: ChannelPropertyValuePatchItems | undefined;
+
+    private handleConvertConfirm = (values?: ChannelPropertyValuePatchItems) => {
+        this.privacyPropertyValues = values;
+        this.handleSubmit();
+    };
+
     private hideConvertConfirmModal = () => {
         this.setState({showConvertConfirmModal: false});
     };
@@ -483,37 +497,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             return;
         }
 
-        // A required attribute can't be left empty by this page: not by
-        // clearing it, and not by unarchiving a channel that never had one,
-        // since its editor is right here. Elsewhere, unarchive only warns.
-        const isRestoring = this.channelToBeRestored();
-        const blockingAttributes = this.state.missingRequiredChannelAttributes.filter((m) => isRestoring || m.cleared);
-        if (blockingAttributes.length > 0) {
-            this.setState({
-                serverError: (
-                    <FormError
-                        error={(
-                            <FormattedMessage
-                                id='admin.channel_settings.channel_detail.attributes.required_missing'
-                                defaultMessage='Set a value for {attributes} before saving. {count, plural, one {This attribute is} other {These attributes are}} required.'
-                                values={{
-                                    attributes: blockingAttributes.map((m) => m.label).join(', '),
-                                    count: blockingAttributes.length,
-                                }}
-                            />
-                        )}
-                    />
-                ),
-                showRequiredChannelAttributeErrors: true,
-            });
-            return;
-        }
-
-        // The refusal above is now resolved. Its error must not linger: the
-        // rest of the save treats any serverError as a reason to skip steps,
-        // the unarchive among them.
-        if (this.state.showRequiredChannelAttributeErrors) {
-            this.setState({serverError: undefined, showRequiredChannelAttributeErrors: false}, this.onSave);
+        // Save is disabled while this holds; this only stops a stray submit.
+        if (this.requiredChannelAttributesHoldSave()) {
             return;
         }
 
@@ -530,7 +515,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             this.setState({showConvertAndRemoveConfirmModal: true});
             return;
         }
-        if (isPrivacyChanging && usersToRemoveCount === 0 && !serverError) {
+
+        // With required attributes the dialog is what collects their values, so
+        // a retry after a refused conversion has to go through it again.
+        if (isPrivacyChanging && usersToRemoveCount === 0 && (!serverError || this.props.channelAttributesRequiredEnabled)) {
             this.setState({showConvertConfirmModal: true});
             return;
         }
@@ -540,6 +528,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
         this.handleSubmit();
     };
+
+    // Set when a restore that carried values failed: the channel is still archived,
+    // so the next save must restore again rather than patch it.
+    private restoreNeedsRetry = false;
 
     private handleSubmit = async () => {
         const {groups: origGroups, channelID, actions, channel} = this.props;
@@ -552,6 +544,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyToggled, accessControlPolicies, accessControlPoliciesToRemove} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
+        let sentWithRestore = new Set<string>();
 
         if (this.channelToBeArchived()) {
             const result = await actions.deleteChannel(channel.id);
@@ -566,10 +559,29 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 }
             });
             return;
-        } else if (this.channelToBeRestored() && !this.state.serverError) {
-            const result = await actions.unarchiveChannel(channel.id);
+        } else if (this.channelToBeRestored() && (!this.state.serverError || this.restoreNeedsRetry)) {
+            this.restoreNeedsRetry = false;
+
+            // The server refuses to restore a channel that still lacks a required
+            // value, so the page's filled-in values travel with the restore. They
+            // are then left out of the attribute patch below, so nothing is
+            // written twice. Cleared values can't be sent that way and still go
+            // through the patch.
+            const valuesForRestore: ChannelPropertyValuePatchItems = this.props.channelAttributesRequiredEnabled ? Object.entries(this.state.channelAttributeValues).
+                filter(([, value]) => (Array.isArray(value) ? value.length > 0 : Boolean(value))).
+                map(([fieldId, value]) => ({field_id: fieldId, value})) : [];
+
+            const result = valuesForRestore.length > 0 ? await actions.unarchiveChannel(channel.id, valuesForRestore) : await actions.unarchiveChannel(channel.id);
             if ('error' in result) {
                 serverError = <FormError error={result.error.message}/>;
+                if (valuesForRestore.length > 0) {
+                    this.restoreNeedsRetry = true;
+                    this.setState({serverError, saving: false, saveNeeded: true});
+                    actions.setNavigationBlocked(true);
+                    return;
+                }
+            } else if (valuesForRestore.length > 0) {
+                sentWithRestore = new Set(valuesForRestore.map((item) => item.field_id));
             }
             this.setState({serverError, previousServerError: undefined});
         }
@@ -582,12 +594,12 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             return;
         }
 
-        const {channelAttributeValues} = this.state;
-        if (Object.keys(channelAttributeValues).length > 0) {
-            const attributeResult = await actions.patchChannelAttributeValues(
+        const channelAttributeValuesToPatch = Object.entries(this.state.channelAttributeValues).filter(([fieldId]) => !sentWithRestore.has(fieldId));
+        if (Object.keys(this.state.channelAttributeValues).length > 0) {
+            const attributeResult = channelAttributeValuesToPatch.length > 0 ? await actions.patchChannelAttributeValues(
                 channel.id,
-                Object.entries(channelAttributeValues).map(([fieldId, value]) => ({field_id: fieldId, value})),
-            );
+                channelAttributeValuesToPatch.map(([fieldId, value]) => ({field_id: fieldId, value})),
+            ) : {data: true};
             if ('error' in attributeResult) {
                 serverError = <FormError error={attributeResult.error.message}/>;
                 saveNeeded = true;
@@ -600,7 +612,17 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
         let privacyChangePromise;
         if (isPrivacyChanging) {
-            privacyChangePromise = actions.updateChannelPrivacy(channel.id, isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL);
+            const privacy = isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL;
+
+            // The page's own pending attribute values were saved above, so only
+            // what the dialog asked for travels with the privacy change.
+            const privacyPropertyValues = this.privacyPropertyValues;
+            this.privacyPropertyValues = undefined;
+            if (!isPublic && privacyPropertyValues) {
+                privacyChangePromise = actions.updateChannelPrivacy(channel.id, privacy, privacyPropertyValues);
+            } else {
+                privacyChangePromise = actions.updateChannelPrivacy(channel.id, privacy);
+            }
         }
 
         const patchChannelSyncable = groups.
@@ -1100,7 +1122,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             // and still write the hidden edits.
             newState.channelAttributeValues = {};
             newState.missingRequiredChannelAttributes = [];
-            newState.showRequiredChannelAttributeErrors = false;
+            newState.checkingRequiredChannelAttributes = false;
+            newState.requiredChannelAttributesCheckFailed = false;
         } else {
             // Reinstate server errors when unarchiving
             newState.serverError = previousServerError;
@@ -1112,6 +1135,35 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private handleMissingRequiredChannelAttributesChange = (missing: MissingRequiredChannelAttribute[]) => {
         this.setState({missingRequiredChannelAttributes: missing});
+    };
+
+    private handleCheckingRequiredChannelAttributesChange = (checking: boolean) => {
+        this.setState({checkingRequiredChannelAttributes: checking});
+    };
+
+    private handleRequiredChannelAttributesCheckFailedChange = (failed: boolean) => {
+        this.setState({requiredChannelAttributesCheckFailed: failed});
+    };
+
+    // A required attribute can't be saved empty from this page, whether it was
+    // cleared, never set, or the channel is being unarchived without it: its
+    // editor is right here. A channel that stays archived is exempt.
+    private requiredChannelAttributesBlockSave = (): boolean => {
+        return !this.state.isLocalArchived && Boolean(this.props.channelAttributesEnabled) && this.state.missingRequiredChannelAttributes.length > 0;
+    };
+
+    // Save also waits while the attributes section is still loading, e.g.
+    // right after Unarchive remounts it, so it can't restore the channel
+    // before anything missing has been found.
+    // A failed value load holds Save only when unarchiving: restoring is the
+    // one edit that must not go through with required values unknown, while
+    // other edits on an active channel shouldn't be blocked by a flaky load.
+    private requiredChannelAttributesHoldSave = (): boolean => {
+        const active = !this.state.isLocalArchived && Boolean(this.props.channelAttributesEnabled);
+        const unarchiving = active && Boolean(this.props.channel?.delete_at);
+        return this.requiredChannelAttributesBlockSave() ||
+            (active && this.state.checkingRequiredChannelAttributes) ||
+            (unarchiving && this.state.requiredChannelAttributesCheckFailed);
     };
 
     private handleChannelAttributeValuesChange = (values: Record<string, string | string[] | null>) => {
@@ -1381,12 +1433,16 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             showArchiveConfirmModal,
             policyToggled,
             accessControlPolicies,
+            missingRequiredChannelAttributes,
+            channelAttributeValues,
         } = this.state;
         const {channel, team} = this.props;
 
         if (!channel) {
             return null;
         }
+
+        const attributesBlockSave = this.requiredChannelAttributesBlockSave();
 
         const missingGroup = (og: {id: string}) => !groups.find((g: Group) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
@@ -1395,9 +1451,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 <ConvertConfirmModal
                     show={showConvertConfirmModal}
                     onCancel={this.hideConvertConfirmModal}
-                    onConfirm={this.handleSubmit}
+                    onConfirm={this.handleConvertConfirm}
                     displayName={channel.display_name || ''}
                     toPublic={isPublic}
+                    channelId={channel.id}
+                    pendingValues={channelAttributeValues}
                 />
 
                 {this.props.channelModerationEnabled &&
@@ -1423,10 +1481,12 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 <ConvertAndRemoveConfirmModal
                     show={showConvertAndRemoveConfirmModal}
                     onCancel={this.hideConvertAndRemoveConfirmModal}
-                    onConfirm={this.handleSubmit}
+                    onConfirm={this.handleConvertConfirm}
                     displayName={channel.display_name || ''}
                     toPublic={isPublic}
                     removeAmount={usersToRemoveCount}
+                    channelId={channel.id}
+                    pendingValues={channelAttributeValues}
                 />
 
                 <ChannelAccessRulesConfirmModal
@@ -1555,7 +1615,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 isDisabled={this.props.isDisabled}
                                 onChange={this.handleChannelAttributeValuesChange}
                                 onMissingRequiredChange={this.handleMissingRequiredChannelAttributesChange}
-                                showRequiredErrors={this.state.showRequiredChannelAttributeErrors}
+                                onCheckingRequiredChange={this.handleCheckingRequiredChannelAttributesChange}
+                                onRequiredCheckFailedChange={this.handleRequiredChannelAttributesCheckFailedChange}
+                                showRequiredErrors={attributesBlockSave}
                             />
                         )}
                         {!isLocalArchived && nonArchivedContent}
@@ -1566,9 +1628,27 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     saving={saving}
                     saveNeeded={saveNeeded}
                     onClick={this.onSave}
-                    serverError={serverError}
+                    serverError={attributesBlockSave ? (
+                        <>
+                            {serverError}
+                            <div data-testid='channelAttributesRequiredToSave'>
+                                <FormError
+                                    error={(
+                                        <FormattedMessage
+                                            id='admin.channel_settings.channel_detail.attributes.required_missing'
+                                            defaultMessage='Set a value for {attributes} before saving. {count, plural, one {This attribute is} other {These attributes are}} required.'
+                                            values={{
+                                                attributes: missingRequiredChannelAttributes.map((m) => m.label).join(', '),
+                                                count: missingRequiredChannelAttributes.length,
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </>
+                    ) : serverError}
                     cancelLink='/admin_console/user_management/channels'
-                    isDisabled={this.props.isDisabled}
+                    isDisabled={this.props.isDisabled || this.requiredChannelAttributesHoldSave()}
                 />
             </div>
         );

@@ -18,7 +18,7 @@ import {
     USER_OBJECT_TYPE,
 } from 'mattermost-redux/constants/properties';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {comparePropertyFieldOrder, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 // Field selectors
 
@@ -28,20 +28,8 @@ function getPropertyFieldsById(state: GlobalState) {
 
 const EMPTY_FIELDS: PropertyField[] = [];
 
-// Ties break on name, not create_at: chip order is something people are told to
-// read, so it must follow the configuration rather than insertion timing.
 function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
-    return [...fields].sort((a, b) => {
-        const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-        const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-        if (rankA !== rankB) {
-            return rankA - rankB;
-        }
-
-        // Fixed locale: the default is the viewer's, which would order equal-ranked
-        // chips differently per user. Names are ASCII slugs, so this is total.
-        return a.name.localeCompare(b.name, 'en');
-    });
+    return [...fields].sort(comparePropertyFieldOrder);
 }
 
 /**
@@ -114,6 +102,10 @@ export function makeGetPropertyValuesForTarget(): (state: GlobalState, targetId:
             return Object.values(targetValues);
         },
     );
+}
+
+export function arePropertyValuesLoadedForTarget(state: GlobalState, targetId: string): boolean {
+    return Boolean(state.entities.properties.loadedValueTargets[targetId]);
 }
 
 /**

@@ -4693,7 +4693,7 @@ func TestHookChannelWillBeRestored(t *testing.T) {
 		archived, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
 		require.Nil(t, err)
 
-		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.NotNil(t, appErr)
 		assert.Contains(t, appErr.Id, "rejected_by_plugin")
 
@@ -4735,7 +4735,7 @@ func TestHookChannelWillBeRestored(t *testing.T) {
 		archived, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
 		require.Nil(t, err)
 
-		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.Nil(t, appErr)
 
 		fetched, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
@@ -5179,7 +5179,7 @@ func TestHooksNoOpWhenNoPlugin(t *testing.T) {
 	require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id))
 	archived, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
 	require.Nil(t, err)
-	_, appErr = th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+	_, appErr = th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 	require.Nil(t, appErr)
 
 	// UpsertDraft exercises the DraftWillBeUpserted hook path with no plugin loaded.
@@ -5720,7 +5720,7 @@ func TestChannelGuardBlocksRestoreWhenPluginInactive(t *testing.T) {
 		require.Nil(t, err)
 		require.NotEqual(t, int64(0), archived.DeleteAt, "channel must be archived before restore")
 
-		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.Nil(t, appErr, "expected no error when guard plugin is active")
 
 		// Re-archive for the next subtest.
@@ -5737,7 +5737,7 @@ func TestChannelGuardBlocksRestoreWhenPluginInactive(t *testing.T) {
 		require.Nil(t, err)
 		require.NotEqual(t, int64(0), archived.DeleteAt, "channel must be archived for this subtest")
 
-		result, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		result, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.NotNil(t, appErr, "expected error when guard plugin is inactive")
 		require.Nil(t, result)
 		assert.Equal(t, "app.plugin.inactive_guard.app_error", appErr.Id)
@@ -5971,7 +5971,7 @@ func main() {
 
 		archived, err := th.App.GetChannel(th.Context, guardedCh.Id)
 		require.Nil(t, err)
-		_, appErr = th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		_, appErr = th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.guard_hook_failed.app_error", appErr.Id)
 		assert.Equal(t, 503, appErr.StatusCode)
@@ -5981,7 +5981,7 @@ func main() {
 		require.Nil(t, th.App.DeleteChannel(th.Context, unguardedCh, th.BasicUser.Id))
 		archived2, err2 := th.App.GetChannel(th.Context, unguardedCh.Id)
 		require.Nil(t, err2)
-		_, appErr2 := th.App.RestoreChannel(th.Context, archived2, th.BasicUser.Id)
+		_, appErr2 := th.App.RestoreChannel(th.Context, archived2, th.BasicUser.Id, RestoreChannelOptions{})
 		require.Nil(t, appErr2)
 	})
 }
@@ -6099,7 +6099,7 @@ func main() {
 		require.Nil(t, th.App.DeleteChannel(th.Context, restoreCh, th.BasicUser.Id))
 		archived, err := th.App.GetChannel(th.Context, restoreCh.Id)
 		require.Nil(t, err)
-		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.Nil(t, appErr)
 	})
 }
@@ -6257,7 +6257,7 @@ func main() {
 
 		archived, err := th.App.GetChannel(th.Context, ch.Id)
 		require.Nil(t, err)
-		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id, RestoreChannelOptions{})
 		require.NotNil(t, appErr)
 		assert.NotEqual(t, "app.plugin.inactive_guard.app_error", appErr.Id)
 		assert.Equal(t, "app.channel.restore_channel.rejected_by_plugin", appErr.Id)
@@ -7080,7 +7080,7 @@ func main() {
 
 		archived, err := th2.App.GetChannel(th2.Context, restoreCh.Id)
 		require.Nil(t, err)
-		_, appErr := th2.App.RestoreChannel(th2.Context, archived, th2.BasicUser.Id)
+		_, appErr := th2.App.RestoreChannel(th2.Context, archived, th2.BasicUser.Id, RestoreChannelOptions{})
 		require.Nil(t, appErr, "RestoreChannel must succeed when guard plugin doesn't implement ChannelWillBeRestored")
 	})
 }

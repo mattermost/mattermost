@@ -16,7 +16,7 @@ import {ActionTypes, RHSStates, Threads} from 'utils/constants';
 import {defaultMentionFilters} from 'utils/mention_search';
 
 import type {MMAction} from 'types/store';
-import type {MentionFilters, RhsState} from 'types/store/rhs';
+import type {EntitySelection, MentionFilters, PendingChannelAttributeEdit, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -162,6 +162,20 @@ function previousRhsStates(state: any = [], action: MMAction) {
         return newState;
     case UserTypes.LOGOUT_SUCCESS:
         return [];
+    default:
+        return state;
+    }
+}
+
+function selectedEntity(state: EntitySelection | null = null, action: MMAction): EntitySelection | null {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        return action.state === RHSStates.ENTITY ? action.entity ?? null : null;
+    case ActionTypes.SELECT_POST:
+    case ActionTypes.SELECT_POST_CARD:
+    case ActionTypes.RHS_GO_BACK:
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
     default:
         return state;
     }
@@ -431,6 +445,25 @@ function editChannelMembers(state = false, action: MMAction) {
     }
 }
 
+function pendingChannelAttributeEdit(state: PendingChannelAttributeEdit | null = null, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT:
+        return {channelId: action.channelId, fieldId: action.fieldId};
+    case ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT:
+        return null;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (!action.state) {
+            return null;
+        }
+        return state;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
 function shouldFocusRHS(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
@@ -454,6 +487,7 @@ export default combineReducers({
     highlightedPostId,
     previousRhsStates,
     filesSearchExtFilter,
+    selectedEntity,
     rhsState,
     searchTerms,
     searchTeam,
@@ -469,5 +503,6 @@ export default combineReducers({
     isSidebarExpanded,
     isMenuOpen,
     editChannelMembers,
+    pendingChannelAttributeEdit,
     shouldFocusRHS,
 });

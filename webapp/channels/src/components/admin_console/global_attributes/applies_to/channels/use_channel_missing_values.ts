@@ -12,6 +12,10 @@ export type ChannelMissingValuesSummary = {
     noAdminCount: number;
     messagePreview: string;
 
+    // Local time (ms) a notify is accepted again, or 0 when it is now. Taken
+    // from the remaining wait on receipt, so the client clock's skew doesn't matter.
+    notifyAvailableAt: number;
+
     // Whether the saved field is required. The toggle's own value is the
     // unsaved form state; the server only refuses a saved false -> true.
     required: boolean;
@@ -84,6 +88,7 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
                     uniqueAdminCount: data.unique_admin_count,
                     noAdminCount: data.channels_without_admin_count,
                     messagePreview: data.message_preview,
+                    notifyAvailableAt: data.notify_cooldown_ms > 0 ? Date.now() + data.notify_cooldown_ms : 0,
                     required: data.required,
                 },
             });

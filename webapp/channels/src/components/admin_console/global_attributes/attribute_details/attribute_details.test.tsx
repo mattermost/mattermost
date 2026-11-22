@@ -58,6 +58,7 @@ describe('AttributeDetails', () => {
             unique_admin_count: 0,
             channels_without_admin_count: 0,
             message_preview: '',
+            notify_cooldown_ms: 0,
         });
 
         // The page lists user fields and templates on mount to resolve name

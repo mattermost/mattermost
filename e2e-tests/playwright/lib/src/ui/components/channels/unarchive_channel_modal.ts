@@ -4,22 +4,28 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import RequiredAttributesForm from './required_attributes_form';
+
 /**
- * The Unarchive Channel confirmation modal. Warn-only for a required
- * channel attribute missing its value (MM-70717): the warning banner never
- * blocks the restore, it only relabels the confirm button "Unarchive anyway".
+ * The Unarchive Channel confirmation modal. It asks for the required channel
+ * attribute values the channel lacks and the person can set ("Set and
+ * unarchive"), or shows a notice when only a channel admin can set them.
  */
 export default class UnarchiveChannelModal {
     readonly container: Locator;
-    readonly missingAttributesBanner: Locator;
+    readonly requiredAttributes: Locator;
+    readonly flaggedNotice: Locator;
+    readonly attributes: RequiredAttributesForm;
     readonly cancelButton: Locator;
     readonly confirmButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
-        this.missingAttributesBanner = container.getByTestId('unarchiveChannelModalMissingAttributes');
+        this.requiredAttributes = container.getByTestId('unarchiveChannelModalRequiredAttributes');
+        this.flaggedNotice = container.getByTestId('unarchiveChannelModalFlaggedNotice');
+        this.attributes = new RequiredAttributesForm(this.requiredAttributes);
         this.cancelButton = container.getByRole('button', {name: 'Cancel', exact: true});
-        this.confirmButton = container.getByRole('button', {name: /^Unarchive/});
+        this.confirmButton = container.getByRole('button', {name: /^(Unarchive|Set and unarchive)$/});
     }
 
     async toBeVisible() {

@@ -18,6 +18,10 @@
             height: 152px;
         }
 
+        &.with-attributes {
+            height: unset;
+        }
+
         &.error {
             height: unset;
         }

@@ -2919,9 +2919,31 @@ func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, pr
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// UpdateChannelPrivacyWithPropertyValues updates channel privacy and stores the given channel attribute values.
+func (c *Client4) UpdateChannelPrivacyWithPropertyValues(ctx context.Context, channelId string, privacy ChannelType, values []PropertyValuePatchItem) (*Channel, *Response, error) {
+	requestBody := &ChannelPrivacyUpdateRequest{Privacy: string(privacy), PropertyValues: values}
+	r, err := c.doAPIPutJSON(ctx, c.channelRoute(channelId).Join("privacy"), requestBody)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channel, *Response, error) {
 	r, err := c.doAPIPost(ctx, c.channelRoute(channelId).Join("restore"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// RestoreChannelWithPropertyValues restores a previously deleted channel and stores the given channel attribute values.
+func (c *Client4) RestoreChannelWithPropertyValues(ctx context.Context, channelId string, values []PropertyValuePatchItem) (*Channel, *Response, error) {
+	requestBody := &ChannelRestoreRequest{PropertyValues: values}
+	r, err := c.doAPIPostJSON(ctx, c.channelRoute(channelId).Join("restore"), requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4608,6 +4630,47 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]any](r)
+}
+
+// GetConfigHistory returns a page of the configurations saved by a database-backed
+// config store, newest first, each with the settings changed from the one before it.
+func (c *Client4) GetConfigHistory(ctx context.Context, page, perPage int) ([]*ConfigHistoryEntry, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.configRoute().Join("history"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigHistoryEntry](r)
+}
+
+// GetHistoricalConfig returns a configuration saved by a database-backed config store,
+// with the same items sanitized as GetConfig.
+func (c *Client4) GetHistoricalConfig(ctx context.Context, configID string) (*Config, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.configRoute().Join("history", configID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Config](r)
+}
+
+// RestoreHistoricalConfig replaces the server configuration with one saved by a database-backed
+// config store, and returns the settings it changed. With dryRun, it returns the settings it
+// would change without saving anything.
+func (c *Client4) RestoreHistoricalConfig(ctx context.Context, configID string, dryRun bool) ([]*ConfigChange, *Response, error) {
+	values := url.Values{}
+	if dryRun {
+		values.Set("dry_run", "true")
+	}
+	r, err := c.doAPIPostWithQuery(ctx, c.configRoute().Join("history", configID, "restore"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigChange](r)
 }
 
 // ReloadConfig will reload the server configuration.
@@ -8738,6 +8801,27 @@ func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFil
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+// ExportHealthFindings returns the health report in format, "html" or "md", rendered in the
+// client's locale, and the filename the server suggests for it.
+func (c *Client4) ExportHealthFindings(ctx context.Context, format string) ([]byte, string, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute().Join("export"), url.Values{"format": {format}}, "")
+	if err != nil {
+		return nil, "", BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Disposition"))
+	if err != nil {
+		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
+	}
+
+	data, resp, err := ReadBytesFromResponse(r)
+	if err != nil {
+		return nil, "", resp, err
+	}
+	return data, SanitizeFilename(params["filename"]), resp, nil
 }
 
 func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {

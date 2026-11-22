@@ -6,14 +6,14 @@ import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {Switch} from '@mattermost/compass-ui/components/switch';
-import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelPropertyValuePatchItems, ChannelType} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {areManagedCategoriesEnabled, getChannelManagedCategoryName, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelAttributesRequiredEnabled, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
@@ -34,11 +34,17 @@ import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
+
 type ChannelSettingsInfoTabProps = {
     channel: Channel;
     onCancel?: () => void;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
+
+    // Only drives the explanatory banner. Every field below already reads the
+    // channel-management-aware permission selectors, so a denial disables them on its own.
+    isReadOnly?: boolean;
 };
 
 // The form seeds each field from the raw channel record and trims only when
@@ -55,6 +61,7 @@ function ChannelSettingsInfoTab({
     onCancel,
     setAreThereUnsavedChanges,
     showTabSwitchError,
+    isReadOnly = false,
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -94,6 +101,7 @@ function ChannelSettingsInfoTab({
     // (otherwise it would expose the existence of a feature the server
     // refuses to honor).
     const discoverableFeatureEnabled = useSelector(isDiscoverableChannelsEnabled);
+    const requiredAttributesEnforced = useSelector(isChannelAttributesRequiredEnabled);
     const canManageDiscoverability = useSelector((state: GlobalState) => {
         if (isDMorGroupChannel) {
             return false;
@@ -151,6 +159,7 @@ function ChannelSettingsInfoTab({
     const [channelNameError, setChannelNameError] = useState('');
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
     const [showConvertConfirmModal, setShowConvertConfirmModal] = useState(false);
+    const [convertPendingValues, setConvertPendingValues] = useState<Record<string, string | string[] | null>>();
 
     // Removed switchingTabsWithUnsaved state as we now use the showTabSwitchError prop directly
 
@@ -320,7 +329,7 @@ function ChannelSettingsInfoTab({
     }, [formatMessage]);
 
     // Validate & Save - using useCallback to ensure it has the latest state values
-    const handleSave = useCallback(async (): Promise<boolean> => {
+    const handleSave = useCallback(async (privacyValues?: ChannelPropertyValuePatchItems): Promise<boolean> => {
         if (!channel) {
             return false;
         }
@@ -330,22 +339,34 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
+        // Flushed before the channel patch, so an attribute-only change still
+        // reaches the server on this Save.
+        const flushAttributes = async (): Promise<boolean> => {
+            const saved = await attributesRef.current?.flush() ?? true;
+            if (!saved) {
+                handleServerError({
+                    message: formatMessage(messages.attributesSaveFailed[channelKind]),
+                } as ServerError);
+            }
+            return saved;
+        };
+
+        // A conversion under required attributes must see the staged values
+        // already in place, so they go first; otherwise the privacy change does.
+        if (requiredAttributesEnforced && !await flushAttributes()) {
+            return false;
+        }
+
         // write the code to validate if the channel is changing from public to private
         if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
-            const {error} = await dispatch(updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL));
+            const {error} = await dispatch(privacyValues ? updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL, privacyValues) : updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL));
             if (error) {
                 handleServerError(error as ServerError);
                 return false;
             }
         }
 
-        // Flushed before the channel patch: an attribute-only change (nothing
-        // else in `updated` below) must still reach the server on this Save.
-        const attributesSaved = await attributesRef.current?.flush() ?? true;
-        if (!attributesSaved) {
-            handleServerError({
-                message: formatMessage(messages.attributesSaveFailed[channelKind]),
-            } as ServerError);
+        if (!requiredAttributesEnforced && !await flushAttributes()) {
             return false;
         }
 
@@ -404,7 +425,7 @@ function ChannelSettingsInfoTab({
         }
 
         return true;
-    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle, channelKind]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle, channelKind, requiredAttributesEnforced]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -412,8 +433,10 @@ function ChannelSettingsInfoTab({
         const isPrivacyChanging = channel.type === Constants.OPEN_CHANNEL &&
                                  channelType === Constants.PRIVATE_CHANNEL;
 
-        // If privacy is changing, show confirmation modal
+        // If privacy is changing, show confirmation modal; staged attribute edits
+        // count as filled, so the dialog doesn't ask for them again
         if (isPrivacyChanging) {
+            setConvertPendingValues(attributesRef.current?.getPendingValues());
             setShowConvertConfirmModal(true);
             return;
         }
@@ -481,9 +504,11 @@ function ChannelSettingsInfoTab({
             <ConvertConfirmModal
                 show={showConvertConfirmModal}
                 onCancel={hideConvertConfirmModal}
-                onConfirm={async () => {
+                channelId={channel?.id}
+                pendingValues={convertPendingValues}
+                onConfirm={async (privacyValues) => {
                     hideConvertConfirmModal();
-                    const success = await handleSave();
+                    const success = await handleSave(privacyValues);
                     if (!success) {
                         setSaveChangesPanelState('error');
                         return;
@@ -493,6 +518,8 @@ function ChannelSettingsInfoTab({
                 displayName={channel?.display_name || ''}
                 toPublic={false} // Always false since we're only converting from public to private
             />
+
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
 
             {/* Channel Name Section*/}
             <div

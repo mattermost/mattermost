@@ -83,34 +83,23 @@ const Input = React.forwardRef((
     const {formatMessage} = useIntl();
 
     const [focused, setFocused] = useState(false);
-    const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
+    const [validationLabel, setValidationLabel] = useState<CustomMessageInputType>(null);
+
+    const propLabel = customMessage?.value ? customMessage : null;
+
+    // A parent-supplied error is more specific than local validation, but local errors outrank parent info/warnings.
+    const customInputLabel = propLabel?.type === ItemStatus.ERROR ? propLabel : (validationLabel ?? propLabel);
 
     const errorId = `error_${name || ''}`;
     const inputId = `input_${name || ''}`;
-
-    useEffect(() => {
-        if (customMessage === undefined || customMessage === null) {
-            if (customInputLabel !== null) {
-                // edge-use case: a consumer of this component may have its input updated
-                // from more than one place, such as by a network fetching data after load
-                // in that case, we need to remove the error according to the response
-                setCustomInputLabel(customMessage || null);
-            }
-            return;
-        }
-
-        if (customMessage !== undefined && customMessage !== null && Boolean(customMessage.value)) {
-            setCustomInputLabel(customMessage);
-        }
-    }, [customMessage]);
 
     // Re-validate input when value changes (e.g. when a parent component sets a new value,not just when the user types)
     useEffect(() => {
         // Only run validation if we're not focused (to avoid validating during typing)
         // and if there is currently an error displayed
-        if (!focused && customInputLabel?.type === 'error') {
+        if (!focused && validationLabel?.type === 'error') {
             // Clear error state when value changes
-            setCustomInputLabel(null);
+            setValidationLabel(null);
 
             // Re-run validation to check if the new value is valid
             if (value !== undefined && value !== null && value !== '') {
@@ -149,8 +138,8 @@ const Input = React.forwardRef((
     };
 
     const handleOnChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        // Clear custom messages when user types
-        setCustomInputLabel(null);
+        // Clear validation messages when user types; messages from the customMessage prop are controlled by the parent
+        setValidationLabel(null);
 
         if (onChange) {
             onChange(event);
@@ -167,7 +156,7 @@ const Input = React.forwardRef((
         if (validate) {
             const validationError = validate(value);
             if (validationError) {
-                setCustomInputLabel(validationError);
+                setValidationLabel(validationError);
                 return;
             }
         }
@@ -176,7 +165,7 @@ const Input = React.forwardRef((
         // Length validation is handled through derived values in the render function
         if (required && (value === null || value === '')) {
             const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
-            setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+            setValidationLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
             return;
         }
 
@@ -186,14 +175,14 @@ const Input = React.forwardRef((
         // Show min length error even when the input is empty (to match existing behavior in tests)
         // Generate derived error messages
         if (limitExceeded > 0) {
-            setCustomInputLabel({
+            setValidationLabel({
                 type: ItemStatus.ERROR,
                 value: formatMessage(
                     {id: 'widget.input.max_length', defaultMessage: 'Must be no more than {limit} characters'},
                     {limit},
                 )});
         } else if (minLengthNotMet > 0) {
-            setCustomInputLabel({
+            setValidationLabel({
                 type: ItemStatus.ERROR,
                 value: formatMessage(
                     {id: 'widget.input.min_length', defaultMessage: 'Must be at least {minLength} characters'},

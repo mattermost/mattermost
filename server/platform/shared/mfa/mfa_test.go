@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -74,7 +73,7 @@ func TestActivate(t *testing.T) {
 	userID := "user-id"
 	userMfaSecret := newRandomBase32String(mfaSecretSize)
 
-	token := dgoogauth.ComputeCode(userMfaSecret, time.Now().UTC().Unix()/30)
+	token := ComputeCode(userMfaSecret, time.Now().UTC().Unix()/30)
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
 		storeMock := mocks.UserStore{}
@@ -111,7 +110,7 @@ func TestActivate(t *testing.T) {
 		secret := newRandomBase32String(mfaSecretSize)
 
 		t0 := time.Now().UTC().Unix() / 30
-		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, t0))
+		code := fmt.Sprintf("%06d", ComputeCode(secret, t0))
 
 		usMock := mocks.UserStore{}
 		usMock.On("GetMfaUsedTimestamps", userID).Return([]int{}, nil).Once()
@@ -127,7 +126,7 @@ func TestActivate(t *testing.T) {
 		secret := newRandomBase32String(mfaSecretSize)
 
 		t0 := time.Now().UTC().Unix() / 30
-		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, t0))
+		code := fmt.Sprintf("%06d", ComputeCode(secret, t0))
 
 		usMock := mocks.UserStore{}
 		usMock.On("GetMfaUsedTimestamps", userID).Return([]int{int(t0)}, nil).Once()
@@ -201,7 +200,7 @@ func TestValidateToken(t *testing.T) {
 		secret := newRandomBase32String(mfaSecretSize)
 		u := &model.User{Id: id, MfaSecret: secret}
 
-		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, time.Now().UTC().Unix()/30))
+		code := fmt.Sprintf("%06d", ComputeCode(secret, time.Now().UTC().Unix()/30))
 
 		usMock := mocks.UserStore{}
 		usMock.On("GetMfaUsedTimestamps", u.Id).Return([]int{}, nil).Once()
@@ -218,7 +217,7 @@ func TestValidateToken(t *testing.T) {
 		u := &model.User{Id: id, MfaSecret: secret}
 
 		t0 := time.Now().UTC().Unix() / 30
-		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, t0))
+		code := fmt.Sprintf("%06d", ComputeCode(secret, t0))
 
 		usMock := mocks.UserStore{}
 		usMock.On("GetMfaUsedTimestamps", u.Id).Return([]int{int(t0)}, nil).Once()
