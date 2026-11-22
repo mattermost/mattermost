@@ -25,7 +25,11 @@ pilot.mjs run --target <release|main> --feature <id> [--mode explore|author|both
               [--repeat <n>] [--engine-charter <session|journey>:<name>] [--session <name>] [--run-id <id>]
 pilot.mjs run --target release --live --run-id <id> --verify-spec <repo-relative spec>
               --engine-charter session:<name> --control <id> [--agents manual|cmd:<template>] [--resume] [--keep-stack]
+              [--verifier manual|process] [--verifier-timeout <seconds>] [--image <ref@sha256:digest>]
+              [--recover-fixture] [--interrupt-after-stage <target|baseline|control|dispatch>]
               # verify an existing spec under a control, see "Verifying an existing spec"
+pilot.mjs export --run-id <id> --out <dir> | summary --run-id <id> [--github] | doctor [--no-docker]
+              # headless CI entry, see "Headless CI entry"
 pilot.mjs lesson apply <lesson.json>      # gatekeeper only, see "Lessons"
 pilot.mjs features | stages
 ```
@@ -50,6 +54,11 @@ pilot.mjs features | stages
 | `--engine-charter`                  | Run an existing engine charter (`session:bookmarks`, `journey:auto-follow`) at stages 5 and 6 instead of the selected charter. A `session:<name>` charter also selects the session stage 0 seeds (see `--session`).                                                                                                                     |
 | `--session`                         | The session stage 0 seeds: `up.sh --session=<name>` (only `bookmarks` exists). Defaults to the session of `--engine-charter session:<name>` when infra can seed it; naming a different session in both is a usage error. Without a session, stage 0 seeds the default fixture exactly as before. The session is recorded in `run.json`. |
 | `--run-id`                          | Run directory `explorer-proto/infra/.run/orch/<id>` (git-ignored) when `--out` is absent. `--resume --run-id <id>` reloads the run.                                                                                                                                                                                                     |
+| `--verifier`                        | `manual` (default: S3 halts with exit 20 for a result file) or `process` (S3 starts the deterministic verifier as a separate OS process, see "Byte-exact handoff"). Only with `--verify-spec`. Saved in `run.json`.                                                                                                                     |
+| `--verifier-timeout`                | Seconds the verifier process may run before it is killed (default 1500).                                                                                                                                                                                                                                                                |
+| `--image`                           | `<ref>@sha256:<digest>`; also read from `MATTERMOST_PILOT_IMAGE`. A reference without a digest is a usage error. See "Headless CI entry".                                                                                                                                                                                               |
+| `--recover-fixture`                 | With `--resume`: probe the fixture even though the dispatch released the stack, and start a new stage-0 attempt when it is gone (see "Lost fixture recovery").                                                                                                                                                                          |
+| `--interrupt-after-stage`           | Test hook: the coordinator sends itself SIGKILL right after the named stage completed (or was reused or up to date). The run directory and the stack stay as they are.                                                                                                                                                                  |
 | `--verify-spec`, `--control`        | Verify an existing spec instead of running the ten stages: see "Verifying an existing spec".                                                                                                                                                                                                                                            |
 
 The default `--out` is `explorer-proto/v2/orchestrator/.runs/<target>-<feature>` (git-ignored).
@@ -247,8 +256,73 @@ pilot.mjs run --resume --run-id bookmarks-handoff-1      # S4: validates the res
 | S0 `0-target`     | Live stack with the session, licence `PASS`/`FAIL`, manifest session check, fixture fingerprint, image digest; attempts and reuse as above.                                                                                                                                                                                                                                                                                   |
 | S1 `1-baseline`   | Fixture probe, then the engine's replay (`node explorer-proto/src/cli.ts replay --session=<name>`, retries 0, one worker from `explorer-proto/playwright.config.ts`) of the unchanged spec. `v2/gates/replay_judge.mjs` judges it in `pass` mode. Writes `baseline.json`.                                                                                                                                                     |
 | S2 `2-control`    | `v2/gates/mutation_control.mjs` `runControl`: precondition read, owner PATCH, read-back, the same spec replayed and judged `control-fail` at the named assertion, restore and read-back. Then a seed check (manifest session, declared titles, same fingerprint) and a replay of the restored fixture judged `pass`. Writes `control.json` and the sanitized `failure-trace.json`. The restore happens here, before dispatch. |
-| S3 `verify`       | Writes `verify/agent-task.json` (role `independent-verifier`, prompt `prompts/independent_verify.md`, task details inline in `context`), stops the stack through `down.sh`, confirms it is gone, records both in `verify/dispatch.json`, and halts the run with **exit 20**.                                                                                                                                                  |
-| S4 `collect`      | Reads `verify/agent-result.json`, validates it, cross-checks it against S0 to S2, writes `collect/collect.json`, `summary.json` and `summary.md` at the run root.                                                                                                                                                                                                                                                             |
+| S3 `verify`       | Writes `verify/agent-task.json` (role `independent-verifier`, prompt `prompts/independent_verify.md`, task details inline in `context`), stops the stack through `down.sh`, confirms it is gone, records both in `verify/dispatch.json`, and halts the run with **exit 20**. With `--verifier=process` it freezes the inputs and starts the verifier process instead (next section).                                          |
+| S4 `collect`      | Reads `verify/agent-result.json`, validates it, cross-checks it against S0 to S2, writes `collect/collect.json`, `summary.json` and `summary.md` at the run root. After a process delivery it also checks the receipt (next section).                                                                                                                                                                                         |
+
+### Byte-exact handoff to the verifier process (`--verifier=process`)
+
+A hand-copied task is a defect (a typo went through once, and the verifier lacked the failure trace). With
+`--verifier=process` the handoff is code, bound by hashes, and the receipt is checked by code:
+
+1. S3 writes `verify/agent-task.json` with a random **dispatch nonce** inside it (`context.binding`, with the run id, the
+   expected spec sha256 and the expected trace sha256), so the nonce is part of what is hashed. It then makes the task and
+   `2-control/failure-trace.json` read-only (`chmod a-w`), hashes both, and tears the stack down. The verifier starts its
+   own clean fixture, and two stacks cannot coexist on the fixed compose project name and loopback port, so the
+   coordinator's stack must be gone first (the teardown is confirmed and recorded).
+2. `verify/dispatch.json` gains a `delivery` record: run id, task id, nonce, the sha256 of the task and of the trace as
+   written, the read-only flag, the expected spec sha256, failing line and expect call, the verifier command line (with
+   `<run>` and `<scratch>` placeholders) and the delivery mode `process: same worker, artifact paths`.
+3. The verifier (`verifier/bookmarks_verifier.mjs`, plain Node, no model, no vision call) runs as a **separate OS
+   process** (`child_process.spawn`), in a scratch directory, with an allowlisted environment (`PATH`, `HOME`, locale,
+   Docker and Playwright locations, the image and port variables, and `MM_LICENSE` only so the infra scripts can start the
+   stack; `PILOT_VERIFIER_PASS_ENV` adds test-seam names) and **only paths** on its command line:
+   `--task <run>/verify/agent-task.json --trace <run>/2-control/failure-trace.json --out <run>/verify/agent-result.json
+--nonce-file <scratch>/dispatch-binding.json`. The binding file (nonce, task hash, trace hash, spec hash) lives outside
+   the run directory. The coordinator waits within `--verifier-timeout` and writes `verify/process.json` (pid, argv, the
+   environment names, exit code, signal, elapsed seconds, a post-run teardown, the blocker if any).
+4. The verifier proves its inputs first: sha256 of the task equals the binding, the nonce inside the task equals the
+   binding's, the sha256 of the trace equals the binding and the hash named in the task, the trace equals the trace
+   embedded in the task, the trace's spec hash and the spec on disk equal the task's. Any mismatch or missing file is a
+   `blocked` result (exit 3) written before any stack is touched. Otherwise it brings up its own fixture (`gate.sh --keep`,
+   `up.sh --session=bookmarks`, `verify_seed.mjs`), replays the unchanged spec (retries 0, one worker; the engine's replay
+   with a step reporter added), judges it with `v2/gates/replay_judge.mjs`, applies the control with its own owner patch
+   (`bookmark_ctl.mjs patch`, which refuses a non-owner), replays and judges `control-fail` with the task's expectation,
+   confirms one error at the expected line and records one step per awaited expect up to the failing one, restores, reads
+   back, checks the seed and that the bookmark ids are unchanged (fingerprint compare, never printed), replays and judges
+   `pass`, tears its stack down, and writes the result with a **receipt**.
+5. S4 validates by code: the result schema; `receipt.run_id`, `task_id` and `dispatch_nonce` equal the dispatch record; the
+   task and trace hashes the verifier observed equal the dispatched ones; the on-disk task and trace still hash as
+   dispatched; the failing line and expect call equal the S2 records; the existing pass conditions (one error, the same
+   first message line, one step per expect, restored read-back, same ids, seed check, restored replay); the spec hash
+   observed and after the restore equal the recorded one. A verifier `pass` can never override a deterministic mismatch.
+6. If the process did not run, crashed, timed out or produced no result, or if its result is stale (another dispatch's
+   nonce), unbound (no receipt), from another run or task, or contradicts the records, the run verdict is **incomplete**
+   (exit 30): not pass, not fail. The blocker is recorded in `collect/collect.json` and `summary.json`; a rejected result is
+   set aside as `collect/agent-result.rejected.json` with `agent-result.errors.json` (paths and rules only). A verifier
+   that reports an honest `fail` or `blocked` with a matching receipt and the right assertion is accepted as such (exit 1 or
+   3); a spec hash seen differently is a hard failure (exit 1).
+
+`summary.json` and `summary.md` report the delivery mode, the nonce sent and echoed, the task and trace hashes
+dispatched and observed, the verifier exit code and elapsed time, and which side produced each row. To dispatch again
+(for example after an incomplete run) use `run --resume --run-id <id> --from dispatch --force`: a new nonce, new hashes,
+and the earlier result is set aside as `verify/agent-result.stale.<n>.json`. Frozen files are ordinary read-only files:
+`rm -rf` of a run directory works, and `thawTree()` in `lib/verify/handoff.mjs` restores write access for tools that
+need it. The manual and `cmd:` providers are unchanged; a model-assisted review can still be plugged in that way, but a
+result without a receipt is only accepted from them.
+
+### Interruption, resume and lost fixture recovery
+
+A killed coordinator leaves the run directory and the stack as they are. `run --resume --run-id <id>` reuses stage 0
+(every stage-0 file keeps its sha256, the manifest keeps its session key, the fixture fingerprint is equal, one attempt),
+skips the stages that are up to date and continues; a stage that was cut off has no record and runs again.
+`--interrupt-after-stage <stage>` kills the coordinator with SIGKILL after that stage, for tests.
+
+**Lost fixture recovery.** After a completed run the stack is down (the dispatch released it), so a plain `--resume` of a
+completed run is a no-op. `--resume --recover-fixture` probes the fixture instead; if it is gone, stage 0 records
+`attempt-<n+1>` with the reason `fixture_lost:<code>` (attempt-1 stays byte for byte), the evidence of S1 to S4 and the
+summary move to `superseded/after-attempt-<n>/`, and every later stage runs again against the new fixture (its
+fingerprint differs; nothing proved about the old fixture is reused as proof for the new one). `summary.json` lists the
+fingerprint of every attempt and the superseded directories.
 
 **The control.** `controls/<id>.json` (`explorer-control-definition/v1`) holds the charter reference, the channel key, the
 changed title, the owner-patch requirement and the command templates (`read`, `mutate`, `restore`; the mutator is
@@ -298,15 +372,67 @@ engine's replay command and its report path. The selftest uses them with `selfte
 
 ## Exit codes
 
-| Code | Meaning                                                                                                |
-| ---- | ------------------------------------------------------------------------------------------------------ |
-| 0    | Every stage in the range is `pass` or `skipped` (dry-run skips and per-charter rejections are normal). |
-| 1    | A stage failed: a deterministic failure, a failed verdict, an invalid artifact, or a budget exceeded.  |
-| 2    | Usage error: bad flags, unknown feature, invalid configuration, `--live` with the stub agent.          |
-| 3    | Blocked: a precondition is missing (for example `MM_LICENSE`, or the engine cannot read the charter).  |
-| 20   | Awaiting an agent result (`--agents=manual`). The task and result paths are printed.                   |
-| 21   | An agent result was invalid or stale and was set aside; the task stays open.                           |
-| 22   | The agent command failed to run cleanly on every attempt.                                              |
+| Code | Meaning                                                                                                    |
+| ---- | ---------------------------------------------------------------------------------------------------------- |
+| 0    | Every stage in the range is `pass` or `skipped` (dry-run skips and per-charter rejections are normal).     |
+| 1    | A stage failed: a deterministic failure, a failed verdict, an invalid artifact, or a budget exceeded.      |
+| 2    | Usage error: bad flags, unknown feature, invalid configuration, `--live` with the stub agent.              |
+| 3    | Blocked: a precondition is missing (for example `MM_LICENSE`, or the engine cannot read the charter).      |
+| 20   | Awaiting an agent result (`--agents=manual`). The task and result paths are printed.                       |
+| 21   | An agent result was invalid or stale and was set aside; the task stays open.                               |
+| 22   | The agent command failed to run cleanly on every attempt.                                                  |
+| 30   | Pending/incomplete: the verification is missing, rejected or unbound (`--verifier=process`). Never a pass. |
+
+## Headless CI entry
+
+The contract a CI workflow can rely on. Everything below is plain Node 24 and needs no install; `doctor` says what is
+missing. The workflow supplies `MM_LICENSE` as a secret and pulls the two images by digest before the run (the infra
+scripts never pull).
+
+```bash
+node explorer-proto/v2/orchestrator/pilot.mjs doctor [--no-docker] [--image <ref@sha256:digest>]
+node explorer-proto/v2/orchestrator/pilot.mjs run --target release --live --verifier=process \
+  --run-id <id> --image <ref@sha256:digest> \
+  --verify-spec explorer-proto/sessions/bookmarks/generated/channels_bookmarks_bar_follows_switch.spec.ts \
+  --engine-charter session:bookmarks --control release-bookmark-title-changed
+node explorer-proto/v2/orchestrator/pilot.mjs export --run-id <id> --out <dir>
+node explorer-proto/v2/orchestrator/pilot.mjs summary --run-id <id> --github >> "$GITHUB_STEP_SUMMARY"
+```
+
+- **Image override.** `--image <ref@sha256:digest>` or the environment variable `MATTERMOST_PILOT_IMAGE` (the variable
+  `infra/docker-compose.yml` reads). It is validated (a reference without a `@sha256:` digest is exit 2), saved in
+  `run.json`, and forwarded to `gate.sh` and `up.sh` through that variable; with an override the orchestrator does not
+  pass `--target=` (the infra scripts' `--target=default` would unset the variable), and the verifier process inherits
+  the variable. `0-target/attempt-<n>/target.json` and `setup.json` carry the digest actually used, and the static
+  check `image_pin_matches_lib_sh` reads `info` (the pin in `lib.sh` is not in effect). Both images must already be
+  present locally by digest.
+- **Dry run.** `run ... --dry-run` (the default without `--live`) parses every flag and writes `<run>/plan.json`
+  (`explorer-run-plan/v1`: target, session, spec hash, control, image source and reference, verifier mode and command,
+  stages, the infra and engine commands, the exit-code table) without Docker, and `commands.json`.
+- **Exit codes** of `run`: `0` pass, `1` fail, `2` usage error, `3` blocked, `20` awaiting a manual agent result,
+  `21` agent result invalid (`--verifier=manual`), `22` agent command failed, `30` pending/incomplete (verification
+  missing, rejected, unbound, timed out). Only `0` is a pass.
+- **`export --run-id <id> --out <dir>`** (or `--run-dir <dir>`) copies an allowlisted, sanitized subset of the run
+  directory: `run.json`, `plan.json`, `commands.json` (the exact commands and their exit codes), `summary.json`,
+  `summary.md`, stage 0's `status.json` and every attempt's `attempt`, `setup` (the manifest session summary: session
+  name, bookmark titles, fixture fingerprint, no ids, ports or origins), `target` and `target-check`, `baseline.json`,
+  `control.json`, `failure-trace.json`, and `verify/` `agent-task.json`, `dispatch.json` (with the task and trace
+  hashes, nonce and expected assertion), `process.json`, `agent-result.json` (the verifier report), `collect/`
+  `collect.json`, plus the same files of `superseded/after-attempt-<n>/`. Logs, `.state`, `.work`, agent calls,
+  symlinks and every other file are never read. Absolute paths become `<run>`, `<repo>`, `<scratch>` or `<path>`.
+  `export-manifest.json` lists each file with its sha256, the spec path and hash, the task and trace hashes, the manifest
+  session summary and the leak scan. The copy is scanned for unsafe text and, with `infra/scripts/leak_scan.mjs`, for the
+  licence (PASS or FAIL only); a FAIL removes the copy (exit 1), and so does a missing `MM_LICENSE` to scan with (exit 3).
+  `--out` must be empty or absent and outside the run directory.
+- **`summary --run-id <id> --github`** prints a short markdown (verdict, the four rows with who produced them, hashes
+  shortened, delivery) for `$GITHUB_STEP_SUMMARY`; without `--github` it prints `summary.md`. It exits 0 whatever the
+  verdict (use the exit code of `run`).
+- **`doctor`** prints PASS, FAIL or SKIP per item and exits 0 or 3: Node 24 and TypeScript stripping, the
+  git-ignored `explorer-proto/node_modules` symlink (`ln -s ../e2e-tests/playwright/node_modules explorer-proto/node_modules`),
+  `@playwright/test` at the pinned version, the pinned browser build in the Playwright cache, `MM_LICENSE` present (by
+  name only, never its value), the fixed loopback port free (number not printed), and with Docker: server reachable as
+  linux/amd64, both images present by digest, no leftover `explorer-pilot` containers. `--no-docker` skips the Docker
+  items.
 
 ## Budgets
 
