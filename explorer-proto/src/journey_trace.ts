@@ -5,6 +5,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import type {JourneyCharter} from './journey_charter.ts';
+import {clientConfigRequestPath} from './journey_fixture.ts';
+import {
+    OBSERVATION_LOG_FILE,
+    OBSERVATION_STATS_FILE,
+    OUTCOME_REPORT_FILE,
+    outcomeTraceLines,
+    renderOutcomeReport,
+} from './journey_observations.ts';
 import {WEIGHTS, scoreChild} from './journey_score.ts';
 import type {ObservedState, SearchResult} from './journey_search.ts';
 import {describe} from './snapshot.ts';
@@ -24,7 +32,7 @@ const HEURISTIC = [
 ];
 
 /** Generic scrub of always-volatile values (loopback origin/host/port, 26-char server ids, clock times). */
-function scrubVolatile(text: string): string {
+export function scrubVolatile(text: string): string {
     let out = text;
     if (process.env.PW_BASE_URL) {
         const url = new URL(process.env.PW_BASE_URL);
@@ -46,7 +54,7 @@ function scrubVolatile(text: string): string {
 }
 
 /** Final safety net: the rendered trace must carry no loopback host, origin, port or 26-char id. */
-function assertSanitized(label: string, text: string) {
+export function assertSanitized(label: string, text: string) {
     const hits: string[] = [];
     for (const [name, needle] of [
         ['loopback host', '127.0.0.1'],
@@ -166,7 +174,7 @@ export function renderJourneyTrace(charter: JourneyCharter, result: SearchResult
         `- Stopped: ${result.stoppedReason}.`,
         '- Heuristic:',
         ...HEURISTIC.map((h) => `  ${h}`),
-        `- Server preconditions (read-only GET /config): ${result.serverPreconditions.join('; ')}`,
+        `- Server preconditions (read-only ${clientConfigRequestPath(charter) ? 'GET of the client config, unauthenticated' : 'GET /config'}): ${result.serverPreconditions.join('; ')}`,
         `- Network guard (exploration): ${result.guardViolations.length} violations.`,
         ...result.guardViolations.map((v) => `  - VIOLATION ${v}`),
         `- Best-path checkpoint progress reached: ${
@@ -176,11 +184,13 @@ export function renderJourneyTrace(charter: JourneyCharter, result: SearchResult
         }`,
         `- UI checkpoint observation methods used: ${result.observations.join(', ') || 'none'}`,
         '',
-        '## Qualified journey',
-        '',
     ];
-    if (result.qualified) {
+    if (result.outcomes) {
+        out.push(...outcomeTraceLines(result.outcomes));
+    } else if (result.qualified) {
         out.push(
+            '## Qualified journey',
+            '',
             `- QUALIFIED (${result.qualified.path.length} actions): ${result.qualified.path.map(describe).join(' > ')}`,
             `- Confirmed on a fresh fixture: yes`,
             `- Event split (actions before the teammate event): ${Object.entries(result.qualified.eventStep)
@@ -193,6 +203,8 @@ export function renderJourneyTrace(charter: JourneyCharter, result: SearchResult
         );
     } else {
         out.push(
+            '## Qualified journey',
+            '',
             '- NO qualifying journey within budget.',
             `- Best frontier remaining (path: score):`,
             ...result.bestFrontier.map((f) => `  - ${f.path || '(start)'}: ${f.score}`),
@@ -253,6 +265,17 @@ export function journeyTraceJson(charter: JourneyCharter, result: SearchResult):
         })),
         transitions: result.transitions,
         budgetSkips: result.budgetSkips,
+        ...(result.outcomes
+            ? {
+                  outcomes: {
+                      run_verdict: result.outcomes.verdict,
+                      verdict_rule: result.outcomes.verdictRule,
+                      report: OUTCOME_REPORT_FILE,
+                      observation_log: OBSERVATION_LOG_FILE,
+                      observation_entries: result.outcomes.log.length,
+                  },
+              }
+            : {}),
     };
     const text = scrubVolatile(`${JSON.stringify(json, null, 2)}\n`);
     assertSanitized('journey trace.json', text);
@@ -268,4 +291,11 @@ export function writeJourneyTrace(dir: string, charter: JourneyCharter, result: 
         path.join(dir, 'stats.json'),
         `${JSON.stringify({wall_clock_seconds: result.wallClockSeconds, counters: result.counters}, null, 2)}\n`,
     );
+    if (result.outcomes) {
+        fs.writeFileSync(path.join(dir, OUTCOME_REPORT_FILE), renderOutcomeReport(charter.journey_id, result.outcomes));
+        fs.writeFileSync(
+            path.join(dir, OBSERVATION_STATS_FILE),
+            `${JSON.stringify({settle_ms_used_by_log_seq: result.outcomes.timings}, null, 2)}\n`,
+        );
+    }
 }

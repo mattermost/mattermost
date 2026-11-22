@@ -23,13 +23,20 @@ test('explore a journey charter by heuristic best-first search over fresh fixtur
 
     const origin = allowedOrigin();
     try {
-        const result = await runSearch(pw, charter, origin);
+        const result = await runSearch(pw, charter, origin, {outDir: outDir()});
         writeJourneyTrace(outDir(), charter, result);
         // The run itself does not fail when no journey qualifies: the trace + report is the deliverable.
+        let verdict = result.qualified ? 'QUALIFIED' : 'NOT qualified';
+        if (result.outcomes) {
+            verdict = `verdict ${result.outcomes.verdict}`;
+        }
         // eslint-disable-next-line no-console
         console.log(
-            `journey ${journey}: ${result.qualified ? 'QUALIFIED' : 'NOT qualified'} (${result.counters.actions} actions, ${result.counters.replays} replays, ${result.counters.states} states, depth ${result.counters.deepest}, ${result.wallClockSeconds}s); ${result.stoppedReason}`,
+            `journey ${journey}: ${verdict} (${result.counters.actions} actions, ${result.counters.replays} replays, ${result.counters.states} states, depth ${result.counters.deepest}, ${result.wallClockSeconds}s); ${result.stoppedReason}`,
         );
+        if (result.outcomes?.setupFailure) {
+            throw new SetupFailure(`${result.outcomes.setupFailure.phase}: ${result.outcomes.setupFailure.message}`);
+        }
     } catch (error) {
         if (error instanceof SetupFailure) {
             throw new Error(`SETUP FAILURE: ${error.message}`);

@@ -451,6 +451,11 @@ export async function emitJourney(journey: string): Promise<JourneyEmission> {
 
     const location = journeySpecLocation(journey);
     try {
+        if (charter.success_criteria.outcomes) {
+            stop(
+                'the charter declares success_criteria.outcomes: its deliverable is the verdict in report.json; spec emission from an outcome run is not implemented, so no spec is written.',
+            );
+        }
         if (!trace.qualified) {
             stop(
                 `the runner did not discover a complete journey within budget (${JSON.stringify(trace.counters)}); stopped because: ${trace.stopped_reason}. No spec is written; the report is the deliverable.`,

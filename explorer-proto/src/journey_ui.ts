@@ -10,7 +10,7 @@ import type {SnapNode} from './snapshot.ts';
 import type {ClauseResult} from './journey_rest.ts';
 
 /** Inline text after the `role "name":` key on a node's own line (not its children). */
-function inlineText(node: SnapNode): string {
+export function inlineText(node: SnapNode): string {
     const idx = node.line.indexOf(':');
     if (idx < 0) {
         return '';
@@ -23,7 +23,7 @@ function inlineText(node: SnapNode): string {
 }
 
 /** All visible text of a node's subtree: inline text plus each descendant's name and inline text. */
-function subtreeText(node: SnapNode): string {
+export function subtreeText(node: SnapNode): string {
     const parts: string[] = [inlineText(node)];
     for (const child of node.children) {
         if (child.name) {
@@ -34,7 +34,7 @@ function subtreeText(node: SnapNode): string {
     return parts.filter(Boolean).join(' ');
 }
 
-function plainText(nodes: SnapNode[]): string {
+export function plainText(nodes: SnapNode[]): string {
     const parts: string[] = [];
     walk(nodes, (n) => {
         if (n.name) {
@@ -48,7 +48,7 @@ function plainText(nodes: SnapNode[]): string {
     return parts.join(' ');
 }
 
-function occurrences(haystack: string, needle: string): number {
+export function occurrences(haystack: string, needle: string): number {
     if (!needle) {
         return 0;
     }
@@ -86,7 +86,7 @@ export type ThreadsReport = {
     snapshotExposesRowText: boolean | null;
 };
 
-function urlOk(predicate: Record<string, unknown>, pathname: string, bindings: Bindings): ClauseResult | null {
+export function urlOk(predicate: Record<string, unknown>, pathname: string, bindings: Bindings): ClauseResult | null {
     if (typeof predicate.url_path_equals === 'string') {
         const want = resolveTemplate(predicate.url_path_equals, bindings);
         return {desc: `url == ${want}`, ok: pathname === want};

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nodePath from 'node:path';
+
 import type {Page} from '@playwright/test';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
@@ -9,8 +11,28 @@ import {resolveTemplate} from './journey_charter.ts';
 import type {Bindings, JourneyCharter} from './journey_charter.ts';
 import {enumerateCandidates, ESCAPE} from './journey_actions.ts';
 import type {SkippedCandidate} from './journey_actions.ts';
-import {checkServerPreconditions, createFixture, readBack} from './journey_fixture.ts';
+import {
+    SetupFailure,
+    checkClientConfigPreconditions,
+    checkServerPreconditions,
+    clientConfigRequestPath,
+    createFixture,
+    readBack,
+} from './journey_fixture.ts';
 import type {Fixture} from './journey_fixture.ts';
+import {OBSERVATION_LOG_FILE, ObservationLog} from './journey_observations.ts';
+import type {ConfirmationRecord, LogEntry, OutcomeResult, StateRecord} from './journey_observations.ts';
+import {observeUi, uiRules} from './journey_observe.ts';
+import type {UiObservation} from './journey_observe.ts';
+import {
+    CharterRuleError,
+    classify,
+    confirmationKey,
+    decideVerdict,
+    hasOutcomes,
+    validateOutcomeCharter,
+} from './journey_outcomes.ts';
+import {outDir} from './paths.ts';
 import {evalRestCheckpoint, fireEvent} from './journey_rest.ts';
 import type {CheckpointResult} from './journey_rest.ts';
 import {evalUiCheckpoint, threadsReport} from './journey_ui.ts';
@@ -120,7 +142,18 @@ export type SearchResult = {
     wallClockSeconds: number;
     checkpointProgressBest: Record<string, boolean>;
     observations: string[];
+    /** Present only for charters that declare success_criteria.outcomes. */
+    outcomes?: OutcomeResult;
 };
+
+export type SearchOptions = {
+    /** Directory for observations.jsonl (default: the journey's generated dir). */
+    outDir?: string;
+    /** Called after every observation-log append (selftests hash the log prefix here). */
+    onObservationAppend?: (file: string) => void;
+};
+
+type ReplayKind = 'start' | 'expansion' | 'confirmation';
 
 type Trajectory = {
     everTrue: Map<string, boolean>;
@@ -140,7 +173,24 @@ type ReplayOutcome = {
     terminal: ObservedState;
     trajectory: Trajectory;
     guardViolations: string[];
+    replayId: string;
+    /** Outcome mode: per-state classification by depth along the replayed path. */
+    stepClasses: Array<string | null>;
 };
+
+const SETUP_PHASES = new Set(['server preconditions', 'fixture', 'read-back', 'end-of-replay read-back']);
+
+function escapeRe(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function pathKeyOf(p: RoleName[]): string {
+    return p.map((a) => `${a.role}\u0000${a.name}`).join('\u0001');
+}
+
+function firstLine(error: unknown): string {
+    return String(error instanceof Error ? error.message : error).split('\n')[0];
+}
 
 function sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms));
@@ -233,6 +283,7 @@ export async function runSearch(
     pw: PlaywrightExtended,
     charter: JourneyCharter,
     origin: string,
+    options: SearchOptions = {},
 ): Promise<SearchResult> {
     const start = Date.now();
     const budget = charter.budget;
@@ -240,9 +291,34 @@ export async function runSearch(
     const restCheckpoints = charter.checkpoints.filter((c) => c.kind === 'rest');
     const uiCheckpoints = charter.checkpoints.filter((c) => c.kind === 'ui');
     const events = charter.events;
-    const successIds = (charter.success_criteria.qualifies_when.match(/[A-Z][A-Z0-9]*/g) ?? []).filter((id) =>
-        charter.checkpoints.some((c) => c.id === id),
+    const successIds = (charter.success_criteria.qualifies_when.match(/[A-Z][A-Z0-9-]*[A-Z0-9]|[A-Z]/g) ?? []).filter(
+        (id) => charter.checkpoints.some((c) => c.id === id),
     );
+
+    // Outcome mode (success_criteria.outcomes): classification, append-only observations, confirmation, verdict.
+    const outcomeRules = hasOutcomes(charter) ? validateOutcomeCharter(charter) : null;
+    const ui = outcomeRules ? uiRules(charter) : null;
+    const log = outcomeRules
+        ? new ObservationLog(
+              nodePath.join(options.outDir ?? outDir(), OBSERVATION_LOG_FILE),
+              options.onObservationAppend,
+          )
+        : null;
+    const clientConfigPath = clientConfigRequestPath(charter);
+    const readBackIds = restCheckpoints
+        .map((c) => c.id)
+        .filter((id) =>
+            new RegExp(`(?<![A-Za-z0-9_-])${escapeRe(id)}(?![A-Za-z0-9_-])`).test(charter.fixture.read_back ?? ''),
+        );
+    const reserved = outcomeRules?.reserved ?? 0;
+    const stateRecords: StateRecord[] = [];
+    const replayErrors: OutcomeResult['replayErrors'] = [];
+    const timings: OutcomeResult['timings'] = [];
+    const evidence: OutcomeResult['evidence'] = {};
+    let setupFailure: OutcomeResult['setupFailure'] = null;
+    let buildIdentity: Array<[string, string]> = [];
+    let confirmationReplays = 0;
+    let phase = '';
 
     const states: ObservedState[] = [];
     const byId = new Map<string, ObservedState>();
@@ -319,18 +395,69 @@ export async function runSearch(
     }
 
     /** One fresh-fixture replay that walks `path` from the start, firing events and tracking checkpoints. */
-    async function replay(path: RoleName[]): Promise<ReplayOutcome> {
+    async function replay(path: RoleName[], kind: ReplayKind = 'expansion'): Promise<ReplayOutcome> {
         replays++;
+        const replayId = `r${replays}`;
+        if (kind === 'confirmation') {
+            confirmationReplays++;
+        }
         const t0 = Date.now();
+        if (clientConfigPath) {
+            phase = 'server preconditions';
+            const pre = await checkClientConfigPreconditions(charter, origin, clientConfigPath);
+            serverPreconditions = pre.report;
+            buildIdentity = pre.buildIdentity;
+        }
+        phase = 'fixture';
         const fx = await createFixture(pw, charter);
-        serverPreconditions = await checkServerPreconditions(charter, fx.adminClient);
+        if (!clientConfigPath) {
+            phase = 'server preconditions';
+            serverPreconditions = await checkServerPreconditions(charter, fx.adminClient);
+        }
+        phase = 'read-back';
         await readBack(charter, fx);
+        const secrets = [
+            fx.slug,
+            ...Object.values(fx.bindings.actor).map((a) => a.password),
+            fx.adminClient.getToken(),
+            ...Object.values(fx.actorClients).map((c) => c.getToken()),
+        ];
+        const stepClasses: Array<string | null> = [];
+        const logReadBack = async (when: 'read-back' | 'end-of-replay read-back') => {
+            phase = when;
+            for (const id of readBackIds) {
+                const r = await evalRestCheckpoint(
+                    pw,
+                    charter,
+                    restCheckpoints.find((c) => c.id === id)!,
+                    fx,
+                );
+                log?.append(
+                    {
+                        kind: 'read_back',
+                        phase: when,
+                        replay: replayId,
+                        replay_kind: kind,
+                        fixture: '<slug>',
+                        checkpoint: id,
+                        result: r.ok,
+                        clauses: r.clauses.map((c) => ({desc: sanitize(c.desc), ok: c.ok})),
+                    },
+                    secrets,
+                );
+                if (!r.ok) {
+                    throw new SetupFailure(`${when}: checkpoint ${id} does not hold`);
+                }
+            }
+        };
+        const {normalize, sanitize} = fixtureNormalizer(fx, origin);
+        await logReadBack('read-back');
+        phase = 'session';
         const tFixture = Date.now();
         if (process.env.JOURNEY_TIMING) {
             // eslint-disable-next-line no-console
             console.log(`[timing] fixture+readback ${tFixture - t0}ms for depth ${path.length}`);
         }
-        const {normalize, sanitize} = fixtureNormalizer(fx, origin);
         const bindings: Bindings = fx.bindings;
 
         const traj: Trajectory = {
@@ -460,16 +587,44 @@ export async function runSearch(
                 }
 
                 const uiResults: UiCheckpointResult[] = [];
-                for (const cp of uiCheckpoints) {
-                    const r = await evalUiCheckpoint(page, charter, cp, bindings, raw, pathname);
-                    uiResults.push(r);
-                    r.observation.forEach((o) => observations.add(o));
-                    if (r.ok && !traj.everTrue.get(cp.id)) {
-                        traj.everTrue.set(cp.id, true);
-                        traj.becameTrue.push(cp.id);
+                let uiObservations: UiObservation[] = [];
+                if (ui) {
+                    const values: Record<string, boolean | undefined> = {};
+                    restCheckpoints.forEach((c, i) => {
+                        values[c.id] = restResults[i]?.ok;
+                    });
+                    uiObservations = await observeUi(page, charter, ui, bindings, pathname, raw, values);
+                    for (const o of uiObservations) {
+                        const r: UiCheckpointResult = {
+                            id: o.id,
+                            ok: o.ok === true,
+                            clauses: o.clauses.map((c) => ({desc: c.desc, ok: c.ok})),
+                            observation: o.clauses
+                                .filter((c) => c.string !== undefined)
+                                .map((c) => `${o.id} "${c.string}" via ${c.method}`),
+                        };
+                        uiResults.push(r);
+                        r.observation.forEach((x) => observations.add(x));
+                        if (r.ok && !traj.everTrue.get(o.id)) {
+                            traj.everTrue.set(o.id, true);
+                            traj.becameTrue.push(o.id);
+                        }
+                        if (r.ok && traj.eventFired.size > 0) {
+                            traj.everTrueAfterEvent.set(o.id, true);
+                        }
                     }
-                    if (r.ok && traj.eventFired.size > 0) {
-                        traj.everTrueAfterEvent.set(cp.id, true);
+                } else {
+                    for (const cp of uiCheckpoints) {
+                        const r = await evalUiCheckpoint(page, charter, cp, bindings, raw, pathname);
+                        uiResults.push(r);
+                        r.observation.forEach((o) => observations.add(o));
+                        if (r.ok && !traj.everTrue.get(cp.id)) {
+                            traj.everTrue.set(cp.id, true);
+                            traj.becameTrue.push(cp.id);
+                        }
+                        if (r.ok && traj.eventFired.size > 0) {
+                            traj.everTrueAfterEvent.set(cp.id, true);
+                        }
                     }
                 }
 
@@ -488,7 +643,103 @@ export async function runSearch(
                     .sort()
                     .join(',')}|ev:${[...traj.eventFired].sort().join(',')}`;
                 traj.stepStateIds[depth] = stateKey(`${sanitize(pathname)}#${trajSig}`, observed.normalized);
+                if (outcomeRules && log) {
+                    recordState(depth, sanitize(pathname), restResults, uiObservations);
+                }
                 return {observed, restResults, uiResults, report};
+            };
+
+            /** Appends this state's checkpoint evaluations and classification to the observation log. */
+            const recordState = (
+                depth: number,
+                urlPath: string,
+                restResults: CheckpointResult[],
+                uiObservations: UiObservation[],
+            ) => {
+                const values: Record<string, boolean | null> = {};
+                for (const r of restResults) {
+                    values[r.id] = r.ok;
+                }
+                for (const o of uiObservations) {
+                    values[o.id] = o.ok;
+                }
+                const {cls, matched} = classify(
+                    outcomeRules!,
+                    Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v ?? undefined])),
+                );
+                stepClasses[depth] = cls;
+                const stepPath = path.slice(0, depth);
+                const context = {
+                    replay: replayId,
+                    replay_kind: kind,
+                    fixture: '<slug>',
+                    state: traj.stepStateIds[depth],
+                    depth,
+                    url_path: urlPath,
+                    path: stepPath,
+                };
+                for (const r of restResults) {
+                    log!.append(
+                        {
+                            kind: 'checkpoint',
+                            ...context,
+                            checkpoint: r.id,
+                            checkpoint_kind: 'rest',
+                            evaluated: true,
+                            result: r.ok,
+                            clauses: r.clauses.map((c) => ({desc: sanitize(c.desc), ok: c.ok})),
+                            classification: cls,
+                        },
+                        secrets,
+                    );
+                }
+                for (const o of uiObservations) {
+                    const entry = log!.append(
+                        {
+                            kind: 'checkpoint',
+                            ...context,
+                            checkpoint: o.id,
+                            checkpoint_kind: 'ui',
+                            evaluated: o.evaluated,
+                            gate: o.gate,
+                            result: o.ok,
+                            clauses: o.clauses.map((c) => ({...c, desc: sanitize(c.desc)})),
+                            scope: o.scope,
+                            settle: o.settle,
+                            classification: cls,
+                        },
+                        secrets,
+                    );
+                    timings.push({seq: entry.seq, checkpoint: o.id, settle_ms_used: o.settleMsUsed});
+                    for (const c of o.clauses) {
+                        if (c.string !== undefined) {
+                            evidence[c.string] ??= {snapshot: 0, dom: 0, none: 0};
+                            evidence[c.string][c.method ?? 'none']++;
+                        }
+                    }
+                }
+                const stateEntry = log!.append(
+                    {
+                        kind: 'state',
+                        ...context,
+                        results: values,
+                        classification: cls,
+                        matched_classes: matched,
+                    },
+                    secrets,
+                );
+                stateRecords.push({
+                    seq: stateEntry.seq,
+                    replay: replayId,
+                    replayKind: kind,
+                    stateKey: traj.stepStateIds[depth],
+                    urlPath,
+                    path: stepPath,
+                    pathKey: pathKeyOf(stepPath),
+                    cls,
+                    matched,
+                    results: values,
+                });
             };
 
             // Terminal observation: build the full ObservedState, with candidate enumeration.
@@ -623,38 +874,86 @@ export async function runSearch(
                     return traj.everTrue.get(id) === true;
                 });
 
+            await logReadBack('end-of-replay read-back');
+            phase = 'session';
+
             guardViolations.push(...session.ledger.violations);
             return {
                 terminal: terminal!,
                 trajectory: traj,
                 guardViolations: session.ledger.violations,
+                replayId,
+                stepClasses,
             };
         } finally {
             await closeGuardedSession(session).catch((e) => guardViolations.push(String(e)));
         }
     }
 
+    /** Appends a run-level event; a message that cannot be sanitized is withheld rather than written. */
+    function logEvent(entry: Record<string, unknown> & {kind: string}) {
+        try {
+            log!.append(entry);
+        } catch {
+            log!.append({...entry, message: 'message withheld (could not be sanitized)'});
+        }
+    }
+
+    /** Outcome mode: an error in a setup phase is a setup failure; any other replay error is recorded, not thrown. */
+    async function attempt(p: RoleName[], kind: ReplayKind): Promise<ReplayOutcome | null> {
+        if (!outcomeRules) {
+            return replay(p, kind);
+        }
+        try {
+            return await replay(p, kind);
+        } catch (error) {
+            if (error instanceof CharterRuleError) {
+                throw error;
+            }
+            const message = firstLine(error);
+            const replayId = `r${replays}`;
+            if (error instanceof SetupFailure || SETUP_PHASES.has(phase)) {
+                setupFailure = {phase, message, replay: replayId};
+                logEvent({kind: 'setup_failure', replay: replayId, replay_kind: kind, phase, message});
+            } else {
+                replayErrors.push({replay: replayId, path: p, message});
+                logEvent({kind: 'replay_error', replay: replayId, replay_kind: kind, path: p, phase, message});
+            }
+            return null;
+        }
+    }
+
     // --- Start state ---
-    const first = await replay([]);
-    const s0 = first.terminal;
-    states.push(s0);
-    byId.set(s0.id, s0);
-    pushChildren(s0);
+    const first = await attempt([], 'start');
+    if (first) {
+        const s0 = first.terminal;
+        states.push(s0);
+        byId.set(s0.id, s0);
+        pushChildren(s0);
+    }
 
     const budgetLeft = () => {
-        if ((Date.now() - start) / 1000 >= budget.wall_clock_seconds) {
+        const elapsed = (Date.now() - start) / 1000;
+        // Outcome mode holds back wall clock for the reserved confirmation replays at the mean replay cost so far.
+        const reserveSeconds = reserved > 0 && replays > 0 ? (reserved * elapsed) / replays : 0;
+        if (elapsed >= budget.wall_clock_seconds - reserveSeconds) {
             return 'wall clock';
         }
         if (actions >= budget.max_actions) {
             return 'max actions';
         }
-        if (replays >= budget.max_replays) {
-            return 'max replays';
+        if (replays >= budget.max_replays - reserved) {
+            return reserved > 0 ? 'max replays (confirmation reserve held)' : 'max replays';
         }
         return '';
     };
+    const decisiveSeen = () => stateRecords.some((s) => s.cls !== null && outcomeRules!.confirmOrder.includes(s.cls));
 
-    while (frontier.length > 0) {
+    while (frontier.length > 0 && !setupFailure) {
+        if (outcomeRules && !outcomeRules.noEarlyStop && decisiveSeen()) {
+            stoppedReason = 'first classification that needs confirmation (the charter declares no no_early_stop)';
+            break;
+        }
         const limit = budgetLeft();
         if (limit) {
             stoppedReason = `budget exhausted (${limit})`;
@@ -685,7 +984,14 @@ export async function runSearch(
 
         actuationCount.set(fatigueKey(item.candidate), fatigueOf(item.candidate) + 1);
         actions++;
-        const outcome = await replay(item.path);
+        const outcome = await attempt(item.path, 'expansion');
+        if (!outcome) {
+            if (setupFailure) {
+                stoppedReason = 'setup failure';
+                break;
+            }
+            continue;
+        }
         const s = outcome.terminal;
         // eslint-disable-next-line no-console
         console.log(
@@ -707,7 +1013,7 @@ export async function runSearch(
         };
         transitions.push(transition);
 
-        if (outcome.trajectory.qualifies) {
+        if (!outcomeRules && outcome.trajectory.qualifies) {
             qualifyingReplays++;
             // Collapse any cycle (a sub-walk returning to the same state adds no actions) to the minimal path.
             const collapsed = collapsePath(item.path, outcome.trajectory.stepStateIds);
@@ -760,6 +1066,9 @@ export async function runSearch(
         pushChildren(s);
     }
 
+    if (setupFailure && !stoppedReason) {
+        stoppedReason = 'setup failure';
+    }
     if (!stoppedReason) {
         stoppedReason = frontier.length === 0 ? 'frontier exhausted' : stoppedReason;
     }
@@ -770,6 +1079,110 @@ export async function runSearch(
     if (confirmedPaths.length > 1 && qualified) {
         confirmedPaths.sort((a, b) => a.path.length - b.path.length || compareSequence(a.path, b.path));
         qualified = {...qualified, path: confirmedPaths[0].path};
+    }
+
+    let outcomes: OutcomeResult | undefined;
+    if (outcomeRules && log) {
+        outcomes = await confirmAndDecide();
+    }
+
+    /**
+     * Confirmation replays on fresh fixtures for every distinct (classification, path) that needs one, in the
+     * charter's confirmation order, then fewest actions, then lexicographic. New pairs that confirmation replays
+     * observe are confirmed too while budget remains. Then the verdict, by the charter's precedence.
+     */
+    async function confirmAndDecide(): Promise<OutcomeResult> {
+        const rules = outcomeRules!;
+        const confirmations: ConfirmationRecord[] = [];
+        const attempted = new Set<string>();
+        while (!setupFailure) {
+            const pending = new Map<string, StateRecord>();
+            for (const s of stateRecords) {
+                if (s.cls !== null && rules.confirmOrder.includes(s.cls)) {
+                    const key = confirmationKey(s.cls, s.pathKey);
+                    if (!attempted.has(key) && !pending.has(key)) {
+                        pending.set(key, s);
+                    }
+                }
+            }
+            if (pending.size === 0) {
+                break;
+            }
+            const next = [...pending.values()].sort(
+                (a, b) =>
+                    rules.confirmOrder.indexOf(a.cls!) - rules.confirmOrder.indexOf(b.cls!) ||
+                    a.path.length - b.path.length ||
+                    compareSequence(a.path, b.path),
+            )[0];
+            const key = confirmationKey(next.cls!, next.pathKey);
+            attempted.add(key);
+            const record: ConfirmationRecord = {
+                cls: next.cls!,
+                path: next.path,
+                pathKey: next.pathKey,
+                attempted: false,
+                confirmed: false,
+                replay: null,
+                reachedClass: null,
+                reason: '',
+            };
+            const wallClockOut = (Date.now() - start) / 1000 >= budget.wall_clock_seconds;
+            if (replays >= budget.max_replays || wallClockOut) {
+                record.reason = `not attempted: budget (${wallClockOut ? 'wall clock' : 'max replays'})`;
+            } else {
+                const conf = await attempt(next.path, 'confirmation');
+                record.attempted = true;
+                record.replay = conf?.replayId ?? `r${replays}`;
+                if (conf) {
+                    record.reachedClass = conf.stepClasses[next.path.length] ?? null;
+                    record.confirmed = record.reachedClass === next.cls;
+                    record.reason = record.confirmed
+                        ? 'a fresh-fixture replay of the path reached the same classification'
+                        : 'a fresh-fixture replay of the path reached a different classification';
+                } else {
+                    record.reason = setupFailure
+                        ? 'confirmation replay hit a setup failure'
+                        : 'confirmation replay error';
+                }
+            }
+            confirmations.push(record);
+            logEvent({
+                kind: 'confirmation',
+                classification: record.cls,
+                path: record.path,
+                attempted: record.attempted,
+                confirmed: record.confirmed,
+                replay: record.replay,
+                reached_classification: record.reachedClass,
+                note: record.reason,
+            });
+        }
+        const decided = decideVerdict(rules, {
+            setupFailed: setupFailure !== null,
+            classified: stateRecords.filter((s) => s.cls !== null).map((s) => ({pathKey: s.pathKey, cls: s.cls!})),
+            confirmations: new Map(
+                confirmations.filter((c) => c.attempted).map((c) => [confirmationKey(c.cls, c.pathKey), c.confirmed]),
+            ),
+        });
+        logEvent({kind: 'verdict', verdict: decided.verdict, precedence_entry: decided.rule});
+        const entries: LogEntry[] = log!.all();
+        return {
+            verdict: decided.verdict,
+            verdictRule: decided.rule,
+            setupFailure,
+            serverPreconditions,
+            buildIdentity,
+            states: stateRecords,
+            confirmations,
+            preserveClasses: rules.preserveClasses,
+            confirmOrder: rules.confirmOrder,
+            classNames: rules.classes.map((c) => c.name),
+            evidence: Object.fromEntries(Object.entries(evidence).sort(([a], [b]) => compareStrings(a, b))),
+            replayErrors,
+            reserve: {reserved, confirmationReplays, expansionReplays: replays - confirmationReplays},
+            log: entries,
+            timings,
+        };
     }
 
     const deepest = states.reduce((m, s) => Math.max(m, s.depth), 0);
@@ -804,6 +1217,7 @@ export async function runSearch(
         wallClockSeconds: Math.round((Date.now() - start) / 1000),
         checkpointProgressBest,
         observations: [...observations].sort(),
+        ...(outcomes ? {outcomes} : {}),
     };
 }
 
