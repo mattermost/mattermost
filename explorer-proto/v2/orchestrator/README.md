@@ -486,22 +486,34 @@ phrase scan of the rest) and refuses a feature that fails.
 
 ## Verified here, and not
 
-Verified by `selftest.mjs` (see the count it prints, about a minute): the stage 0 session seed, resume reuse and
+Verified by `selftest.mjs` (see the count it prints, about two minutes): the stage 0 session seed, resume reuse and
 attempts, and the verification of an existing spec end to end against a fake infra stack (S0 to S4, rejection of
-inconsistent verifier results, spec hash mismatch); the dry run end to end, no-op rerun, determinism, manual resume,
-invalid and stale results, leakage rejection, duplicate rejection and review routing, verdict constraints, the lesson
-gate, budgets, the static spec check, the gate registry, the secret scan against a synthetic value, the control judge on
-synthetic reports, adopted oracle runs, `cmd:` providers, and the metrics shape.
+inconsistent verifier results, spec hash mismatch); the byte-exact process delivery with the real verifier script as a
+separate process on the fake stack (hashes recorded equal to the bytes on disk, nonce inside the task, read-only inputs,
+paths-only command line, scrubbed environment, receipt, summary); the verifier refusing altered task bytes, altered
+trace bytes, a missing trace and a foreign nonce; the coordinator rejecting stale-nonce, other-run, other-task,
+wrong-assertion, unbound and hash-mismatching results and leaving the run `incomplete`; a verifier that never ran,
+crashed or timed out; re-dispatch with a stale result set aside; SIGKILL after a stage and in the middle of a replay
+followed by a resume; lost fixture recovery; the image override; export, `summary --github`, `doctor` and the dry-run
+plan; the dry run end to end, no-op rerun, determinism, manual resume, invalid and stale results, leakage rejection,
+duplicate rejection and review routing, verdict constraints, the lesson gate, budgets, the static spec check, the gate
+registry, the secret scan against a synthetic value, the control judge on synthetic reports, adopted oracle runs, `cmd:`
+providers, and the metrics shape.
 
-Run live once on the pinned 12.1.0 stack for the bookmarks session: stage 0 with the session, a `--resume` that reused it
-(every stage-0 file keeps its sha256, the manifest keeps its `session` key, the fixture fingerprint is equal), the
-baseline, the control with its restore, and the dispatch with the stack stopped (exit 20). Collection of a real
-independent result was rehearsed on a copy of that run directory with a synthetic result, not with a verifier.
+Run live on the pinned 12.1.0 licensed stack for the bookmarks session (run id `bookmarks-handoff-3`, one run directory,
+five invocations): stage 0 with the session, a coordinator killed with SIGKILL after the baseline (run directory and
+stack kept, stage-0 files byte for byte, one attempt), the resume that completed the chain (baseline reused, the
+control at line 45 with its restore, the dispatch through the process adapter, the verifier on its own fixture, the
+collection with the receipt checks), a plain resume of the completed run (no-op), and `--resume --recover-fixture` after
+the fixture was gone (attempt-2 `fixture_lost`, new fingerprint, attempt-1 and the old evidence kept, every stage rerun on
+the new fixture, verdict pass). `export`, `summary --github` and `doctor` ran against that run.
 
-Not verified by the selftest (nothing here runs Docker): every live path. That is stage 0's `gate.sh` and `up.sh` calls and the
-parsing of their output, the oracle runner invocation, the engine `explore` and `emit` calls and the emitted-spec path
-parsing, the replay gates and the control applier. They are written against the documented interfaces and the
-infra scripts' source.
+Not verified live: the image override (only offline: the digest reaches `gate.sh` and `up.sh` through the variable and
+the target record; live runs used the target's own pin), the verifier timeout and the rejection paths (offline only),
+and the GitHub Actions workflow that calls this contract (another owner). Nothing in the selftest runs Docker; every live
+path is the stage 0 `gate.sh` and `up.sh` calls and the parsing of their output, the oracle runner invocation, the engine
+`explore` and `emit` calls and the emitted-spec path parsing, the replay gates and the control applier, as exercised by
+the live run above for the verify-spec flow only.
 
 ## Known gaps and notes for other owners
 

@@ -491,7 +491,10 @@ export async function handoffChecks({check, assert, newDir}) {
             });
             assert(stale.status === EXIT.INCOMPLETE, `stale result: exit ${stale.status}\n${stale.stdout}`);
             assert(/dispatch_nonce|task_id/.test(json(stale.dir, 'collect', 'collect.json').blocker), 'stale blocker');
+            const frozenTask = path.join(out, 'verify', 'agent-task.json');
+            assert((fs.statSync(frozenTask).mode & 0o222) === 0, 'the dispatched task is not frozen');
             thawTree(out);
+            fs.accessSync(frozenTask, fs.constants.W_OK);
         },
     );
 
