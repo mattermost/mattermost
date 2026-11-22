@@ -87,6 +87,17 @@ Checked read-only against the `v12.0.2` and `v12.1.0` tags, then live:
 
 It never prints ids and exits 0 only when all three fields come back intact. Run it after `up.sh` (and after `verify_seed.mjs`, because it adds a channel). It validates the fixture only: the same data must be stored on the affected and the fixed build, so any difference between builds would be in how the page renders it, which this probe does not read.
 
+## Unread read-back diagnostic
+
+`node explorer-proto/infra/scripts/diag_unread_readback.mjs` (after `up.sh`, default seed) creates a fresh synthetic team with two synthetic users A and B (admin API, `adminApi()` from `api.mjs`) and public channels with both as members, then prints counts only (no ids, names, origin or credentials). All readings use A's own session: A's channel member record (`msg_count`, `msg_count_root`, `mention_count`, `mention_count_root`), `GET /users/{A}/channels/{channel}/unread`, the channel totals (`total_msg_count`, `total_msg_count_root`) and the post count by type. Cases:
+
+- one plain post by B: readings before the post, after it, and after A's `POST /channels/members/me/view`;
+- a self-join comparison (A joins on its own), which attributes the mention A has before any post to the "added to the channel" system post;
+- `mark_unread`: A's member and user notify props, then `mark_unread: 'mention'` with a plain post and a mention by B, restored to `all`, then viewed;
+- a live check of the engine's own `readChannelUnread` and `unreadReadBackProblem` (imported from `src/journey_fixture.ts`): an unviewed post is rejected, it is accepted after the view, a member record with `msg_count` equal to the total and nothing unread is accepted, and mentions-only is refused.
+
+Observed on 12.1.0, identical over two runs: the member record's `msg_count`/`msg_count_root` are the read cursor (the channel totals at the last view); the unread endpoint reports totals minus the cursor; join system posts are not in the totals, but an admin adding A to a channel gives A one unread mention until A views; with `mark_unread: 'mention'` the unread endpoint reports 0 msgs for an unviewed plain post while still counting mentions. Exit 0 only when every printed expectation is `PASS`.
+
 ## UI name survey
 
 `scripts/survey_names.mjs run --label=<name>` runs `survey_names.pw.ts` (through `survey_names.config.ts`) against the live stack as the seeded `qa-user` on `/qa-team/channels/qa-sandbox`, using `openGuardedSession` from `src/session.ts` (imported, not modified). It needs the git-ignored `explorer-proto/node_modules` symlink (see `src/README-engine.md`) and does not pass `MM_LICENSE` on. It records, from aria snapshots, the sorted accessible names of: landmarks, sidebar channel links, channel-header buttons, the Info toggle closed and open, the Info panel's landmarks and controls, the channel menu items, favorite/star controls, and the bookmark links and controls (the bookmark groups are empty unless the stack was started with `--session=bookmarks`). It opens the Info panel and the channel menu and closes them again; it changes no server data. Icon-font glyphs in names are printed as `\u{...}` code points. The result is stored as `.run/survey/<label>.json` (git-ignored) and printed as names only; the launcher refuses to print an entry that looks like an id, URL or origin. `diff <labelA> <labelB>` prints a markdown table of names present in only one survey. Not measured: the unread suffix of sidebar names, because the seed leaves both channels fully read.
@@ -97,6 +108,7 @@ It never prints ids and exits 0 only when all three fields come back intact. Run
 - `forwarder.mjs`: built-ins-only TCP pipe `127.0.0.1:${PILOT_PORT:-8065}` → Mattermost container IP `:8065` (HTTP and WebSocket). Refuses non-loopback binds, logs no payloads, exits on SIGTERM.
 - `scripts/leak_scan.mjs`: in-memory scan of stdin or paths for `MM_LICENSE` (full value and overlapping 24-char substrings). Prints only `PASS`/`FAIL` and a count. Exit 0/1, 2 if unset.
 - `scripts/probe_attachment_fields.mjs`: REST-only fixture validation of attachment fields (see above).
+- `scripts/diag_unread_readback.mjs`: the unread read-back diagnostic above (synthetic data, counts only).
 - `scripts/probe.mjs`: ping, DB status, WebSocket handshake and license probes; prints nothing, exit code only.
 - `scripts/survey_names.mjs` (+ `.pw.ts`, `.config.ts`): the read-only name survey above.
 - `scripts/seed.mjs`, `scripts/verify_seed.mjs`, `scripts/api.mjs`: API seed from `../scenarios.json` (plus `../sessions/bookmarks/charter.json` with `--session=bookmarks`), read-back, shared client.
