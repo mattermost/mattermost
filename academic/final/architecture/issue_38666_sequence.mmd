@@ -1,0 +1,21 @@
+sequenceDiagram
+    actor user as Usuario web movil
+    participant channel as Vista del canal
+    participant list as Lista virtualizada
+    participant postList as PostListVirtualized
+    participant timestamp as FloatingTimestamp
+
+    user->>channel: Abre un canal
+    channel->>list: Renderiza mensajes y solicita posicion inicial
+    list-->>postList: onScroll con scrollUpdateWasRequested igual a true
+    alt Comportamiento base
+        postList->>postList: Activa isScrolling
+        postList-->>timestamp: Muestra indicador durante la estabilizacion
+    else Comportamiento corregido
+        postList->>postList: Conserva isScrolling en false
+        postList-->>timestamp: Mantiene oculto el indicador inicial
+    end
+    user->>list: Realiza desplazamiento manual
+    list-->>postList: onScroll con scrollUpdateWasRequested igual a false
+    postList->>postList: Activa isScrolling
+    postList-->>timestamp: Muestra la fecha correspondiente al mensaje visible

@@ -1,0 +1,15 @@
+flowchart LR
+    upstreamIssue["Issue upstream"] --> base["Base fijada"]
+    base --> branch["Rama por issue"]
+    branch --> implementation["Implementacion"]
+    implementation --> tests["Pruebas locales"]
+    tests --> pullRequest["Pull request"]
+    pullRequest --> actions["GitHub Actions"]
+    actions --> documentation["Consolidacion documental"]
+    documentation --> reviewPending["Review formal pendiente"]
+    reviewPending --> mergePending["Decision de integracion pendiente"]
+
+    classDef completed fill:#d9ead3,stroke:#38761d,color:#000
+    classDef pending fill:#fff2cc,stroke:#bf9000,color:#000
+    class upstreamIssue,base,branch,implementation,tests,pullRequest,actions,documentation completed
+    class reviewPending,mergePending pending

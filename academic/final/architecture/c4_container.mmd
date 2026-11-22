@@ -1,0 +1,29 @@
+C4Container
+    title C4 nivel 2 - Contenedores relevantes de Mattermost para los issues 38666 y 26673
+
+    Person(webUser, "Usuario web movil", "Lee conversaciones desde un navegador movil.")
+    Person(mobileUser, "Usuario de RNv2", "Usa la aplicacion movil y recibe el estado actualizado de los canales.")
+
+    System_Boundary(mattermostBoundary, "Mattermost") {
+        Container(webapp, "Webapp Channels", "TypeScript, React", "Presenta mensajes y canales en el navegador. Incluye la lista virtualizada afectada por el issue 38666.")
+        Container(mobile, "Cliente movil RNv2", "TypeScript, React Native", "Presenta canales y procesa eventos WebSocket. Incluye el manejador afectado por el issue 26673.")
+        Container(server, "Mattermost Server", "Go, API REST y WebSocket", "Proporciona canales, membresias, mensajes y eventos de sincronizacion.")
+        ContainerDb(localDb, "Base local movil", "WatermelonDB sobre SQLite", "Conserva Channel, MyChannel, CategoryChannel y el estado sincronizado de RNv2.")
+        ContainerDb(serverDb, "Base de datos del servidor", "PostgreSQL 16", "Conserva el estado autoritativo de canales, membresias y mensajes.")
+    }
+
+    Rel_D(webUser, webapp, "Lee conversaciones", "HTTPS")
+    Rel_D(mobileUser, mobile, "Consulta canales", "Aplicacion movil")
+    Rel_D(webapp, server, "Consulta y sincroniza", "REST y WebSocket")
+    Rel_D(mobile, server, "Consulta y sincroniza", "REST y WebSocket")
+    Rel_D(mobile, localDb, "Lee y persiste", "WatermelonDB")
+    Rel_D(server, serverDb, "Lee y escribe", "SQL")
+
+    UpdateRelStyle(webUser, webapp, $offsetX="-45", $offsetY="-20")
+    UpdateRelStyle(mobileUser, mobile, $offsetX="55", $offsetY="-20")
+    UpdateRelStyle(webapp, server, $offsetX="-55", $offsetY="-10")
+    UpdateRelStyle(mobile, server, $offsetX="80", $offsetY="0")
+    UpdateRelStyle(mobile, localDb, $offsetX="70", $offsetY="20")
+    UpdateRelStyle(server, serverDb, $offsetX="-30", $offsetY="10")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

@@ -1,0 +1,17 @@
+flowchart LR
+    academicIssue["Issue academico con criterio de aceptacion"] --> owner["Responsable y revisor asignados"]
+    owner --> base["Base y entorno reproducibles"]
+    base --> redEvidence["Evidencia inicial o prueba roja"]
+    redEvidence --> branch["Rama y cambio acotado"]
+    branch --> tests["Pruebas y evidencia antes y despues"]
+    tests --> pullRequest["Pull request con checklist"]
+    pullRequest --> qualityGate["Quality gate definido"]
+    qualityGate --> peerReview["Review formal por otra persona"]
+    peerReview --> acceptance["Validacion de criterios de aceptacion"]
+    acceptance --> decision["Decision de fusion, cierre o no integracion"]
+    decision --> metrics["Metricas, riesgos, costos y lecciones"]
+
+    classDef control fill:#d9eaf7,stroke:#1f4e79,color:#000
+    classDef evidence fill:#d9ead3,stroke:#38761d,color:#000
+    class academicIssue,owner,base,branch,pullRequest,qualityGate,peerReview,decision,metrics control
+    class redEvidence,tests,acceptance evidence

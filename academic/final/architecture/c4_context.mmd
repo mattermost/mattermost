@@ -1,0 +1,15 @@
+C4Context
+    title C4 nivel 1 - Contexto del sistema Mattermost para las mejoras PSWE07
+
+    Person(channelUser, "Usuario de canales", "Lee conversaciones y accede a canales desde web movil o la aplicacion RNv2.")
+    Person(workspaceAdmin, "Administrador del espacio", "Gestiona el ciclo de vida de los canales, incluido su archivado y restauracion.")
+
+    System(mattermost, "Mattermost", "Plataforma de colaboracion autohospedada que ofrece mensajeria, canales y sincronizacion entre clientes.")
+
+    Rel_D(channelUser, mattermost, "Lee mensajes y consulta canales")
+    Rel_D(workspaceAdmin, mattermost, "Archiva y restaura canales")
+
+    UpdateRelStyle(channelUser, mattermost, $offsetX="-50", $offsetY="-10")
+    UpdateRelStyle(workspaceAdmin, mattermost, $offsetX="70", $offsetY="10")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

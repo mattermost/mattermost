@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor admin as Administrador
+    participant server as Mattermost Server
+    participant ws as WebSocket
+    participant handler as Manejador RNv2
+    participant localDb as WatermelonDB
+    participant api as API REST
+    participant mobileUi as Lista de canales RNv2
+
+    admin->>server: Restaura un canal archivado
+    server->>ws: Publica channel unarchived
+    ws-->>handler: Entrega evento con channel id
+    handler->>localDb: Busca el canal
+    alt Canal existente localmente
+        handler->>localDb: Actualiza deleteAt a cero
+    else Canal ausente localmente
+        handler->>handler: Agrupa eventos concurrentes por servidor y canal
+        handler->>api: Solicita canal y membresia
+        api-->>handler: Devuelve channel y membership
+        handler->>handler: Prepara Channel, MyChannel y categoria
+        handler->>localDb: Persiste modelos en una operacion batch
+        handler->>mobileUi: Publica el estado local actualizado
+    end
+    mobileUi-->>admin: El canal reaparece sin reiniciar ni recargar
