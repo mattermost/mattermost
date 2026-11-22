@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 
 import {charterPath} from './charter.ts';
@@ -29,15 +30,17 @@ export type JourneyCharter = {
     goal: string;
     fixture: Record<string, Json> & {
         slug_rule?: string;
-        server_preconditions?: {how?: string; expect?: Record<string, Json>};
+        server_preconditions?: {how?: string; source?: string; expect?: Record<string, Json>};
         team?: {name_template: string; type: string};
         actors?: JourneyActor[];
         channels?: Array<Record<string, Json>>;
+        posts?: Array<Record<string, Json> & {key: string; channel: string}>;
         preferences?: Array<Record<string, Json>>;
         viewed_last?: string;
         fixed_strings?: Record<string, string>;
         read_back?: string;
     };
+    target_release?: Record<string, Json> & {build_identity_report?: string};
     start: {actor: string; start_path: string};
     action_rules: Record<string, Json>;
     goal_terms: {derive_from: string; stopwords: string[]};
@@ -48,7 +51,13 @@ export type JourneyCharter = {
         ordering?: string;
         path_conditions?: string;
         selection?: string;
+        outcomes?: {
+            per_state_classification: Record<string, string>;
+            run_verdict: Record<string, string>;
+            precedence: string[];
+        };
     };
+    observation_policy?: Record<string, Json>;
     budget: {
         max_actions: number;
         max_depth: number;
@@ -56,6 +65,7 @@ export type JourneyCharter = {
         max_replays: number;
         wall_clock_seconds: number;
     };
+    budget_reserve?: {confirmation_replays_reserved?: number};
 };
 
 export function readJourneyCharter(journey: string): JourneyCharter {
@@ -72,7 +82,23 @@ export function readJourneyCharter(journey: string): JourneyCharter {
             throw new Error(`journey charter budget ${key} must be a positive integer.`);
         }
     }
+    const reserved = charter.budget_reserve?.confirmation_replays_reserved;
+    if (
+        reserved !== undefined &&
+        (!Number.isInteger(reserved) || reserved < 0 || reserved >= charter.budget.max_replays)
+    ) {
+        throw new Error(
+            'journey charter budget_reserve.confirmation_replays_reserved must be an integer below max_replays.',
+        );
+    }
     return charter;
+}
+
+export function charterFileSha256(journey: string): string {
+    return crypto
+        .createHash('sha256')
+        .update(fs.readFileSync(charterPath(journey)))
+        .digest('hex');
 }
 
 /**
@@ -85,6 +111,7 @@ export type Bindings = {
     channel: Record<string, {id: string; name: string; display_name: string}>;
     event: Record<string, Record<string, string>>;
     fixture: {fixed_strings: Record<string, string>};
+    post?: Record<string, {id: string}>;
 };
 
 function lookup(bindings: Bindings, dotted: string): string | undefined {
@@ -108,6 +135,59 @@ export function resolveTemplate(text: string, bindings: Bindings): string {
         }
         return value;
     });
+}
+
+/**
+ * Reads a dotted path with optional array indexes (`a.b[0].c`, `a.list.length`). A segment that does not
+ * exist yields undefined. Paths without brackets behave exactly like a plain dotted lookup.
+ */
+export function readPath(obj: unknown, dotted: string): unknown {
+    let node: unknown = obj;
+    for (const segment of dotted.split('.')) {
+        const m = /^([^[\]]*)((?:\[\d+\])+)$/.exec(segment);
+        const keys = m ? [...(m[1] ? [m[1]] : []), ...[...m[2].matchAll(/\[(\d+)\]/g)].map((x) => x[1])] : [segment];
+        for (const key of keys) {
+            if (node && typeof node === 'object' && key in (node as Record<string, unknown>)) {
+                node = (node as Record<string, unknown>)[key];
+            } else {
+                return undefined;
+            }
+        }
+    }
+    return node;
+}
+
+/** Structural equality for JSON values; key order does not matter, extra keys do. */
+export function deepEqual(a: unknown, b: unknown): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (Array.isArray(a) || Array.isArray(b)) {
+        return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => deepEqual(v, b[i]));
+    }
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+        const ka = Object.keys(a).sort();
+        const kb = Object.keys(b).sort();
+        return (
+            deepEqual(ka, kb) &&
+            ka.every((k) => deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
+        );
+    }
+    return false;
+}
+
+/** resolveTemplate applied to every string inside a JSON value (objects and arrays are copied). */
+export function resolveDeep(value: unknown, bindings: Bindings): unknown {
+    if (typeof value === 'string') {
+        return resolveTemplate(value, bindings);
+    }
+    if (Array.isArray(value)) {
+        return value.map((v) => resolveDeep(v, bindings));
+    }
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, resolveDeep(v, bindings)]));
+    }
+    return value;
 }
 
 /** True when the string carries no unresolved {template}. */

@@ -4,7 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
-import {resolveTemplate} from './journey_charter.ts';
+import {deepEqual, readPath, resolveDeep, resolveTemplate} from './journey_charter.ts';
 import type {Bindings, JourneyCharter} from './journey_charter.ts';
 import {actorClient, SetupFailure} from './journey_fixture.ts';
 import type {Fixture} from './journey_fixture.ts';
@@ -18,20 +18,10 @@ export type CheckpointResult = {
     clauses: ClauseResult[];
 };
 
-function getPath(obj: unknown, dotted: string): unknown {
-    let node: unknown = obj;
-    for (const part of dotted.split('.')) {
-        if (node && typeof node === 'object' && part in (node as Record<string, unknown>)) {
-            node = (node as Record<string, unknown>)[part];
-        } else {
-            return undefined;
-        }
-    }
-    return node;
-}
+const getPath = readPath;
 
 /** Executes one literal charter REST path (templates resolved) with the given bearer token. */
-async function restRequest(
+export async function restRequest(
     client: Client4,
     request: string,
     bindings: Bindings,
@@ -125,7 +115,10 @@ async function evalClause(
                 actual = getPath(json, key);
             }
             const resolvedExpected = typeof expected === 'string' ? resolveTemplate(expected, bindings) : expected;
-            const clauseOk = actual === resolvedExpected;
+            const clauseOk =
+                resolvedExpected !== null && typeof resolvedExpected === 'object'
+                    ? deepEqual(actual, resolveDeep(resolvedExpected, bindings))
+                    : actual === resolvedExpected;
             ok = ok && clauseOk;
             parts.push(`${key}${clauseOk ? '=ok' : '=MISS'}`);
         }

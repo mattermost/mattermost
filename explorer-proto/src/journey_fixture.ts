@@ -5,7 +5,7 @@ import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
-import {resolveTemplate} from './journey_charter.ts';
+import {resolveDeep, resolveTemplate} from './journey_charter.ts';
 import type {Bindings, JourneyActor, JourneyCharter} from './journey_charter.ts';
 
 /** A precondition or read-back mismatch: a setup failure, never a product finding. */
@@ -29,6 +29,56 @@ function getPath(obj: unknown, dotted: string): unknown {
         }
     }
     return node;
+}
+
+const CLIENT_CONFIG_REQUEST_RE = /\bGET\s+(\/api\/v4\/config\/client\S*)/;
+
+/**
+ * The client-config precondition source is selected by `server_preconditions.source: 'client_config'` or by a
+ * `how` that names a literal `GET /api/v4/config/client...` request; anything else is the admin GET /config.
+ */
+export function clientConfigRequestPath(charter: JourneyCharter): string | null {
+    const pre = charter.fixture.server_preconditions;
+    if (!pre) {
+        return null;
+    }
+    const named = CLIENT_CONFIG_REQUEST_RE.exec(pre.how ?? '');
+    if (named) {
+        return named[1].replace(/[.,;)]+$/, '');
+    }
+    return pre.source === 'client_config' ? '/api/v4/config/client?format=old' : null;
+}
+
+export type ClientConfigPreconditions = {report: string[]; buildIdentity: Array<[string, string]>};
+
+/**
+ * Read-only, unauthenticated GET of the client config (the values the webapp acts on) before any fixture exists.
+ * Declared keys are compared exactly; build identity keys named in `target_release.build_identity_report` are
+ * recorded verbatim and never asserted.
+ */
+export async function checkClientConfigPreconditions(
+    charter: JourneyCharter,
+    baseUrl: string,
+    requestPath: string,
+): Promise<ClientConfigPreconditions> {
+    const res = await fetch(`${baseUrl}${requestPath}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+    if (res.status !== 200) {
+        throw new SetupFailure(`client config read returned HTTP ${res.status}`);
+    }
+    const config = (await res.json()) as Record<string, unknown>;
+    const report: string[] = [];
+    for (const [key, expected] of Object.entries(charter.fixture.server_preconditions?.expect ?? {})) {
+        const ok = config[key] === expected;
+        report.push(`${key}: ${ok ? 'OK' : 'MISMATCH'} (expected ${JSON.stringify(expected)})`);
+        if (!ok) {
+            throw new SetupFailure(`server precondition ${key} differs from the charter (client config, read-only)`);
+        }
+    }
+    const named = (charter.target_release?.build_identity_report ?? '').match(/\b[A-Z][A-Za-z]+\b/g) ?? [];
+    const buildIdentity: Array<[string, string]> = [...new Set(named)]
+        .filter((k) => k in config)
+        .map((k) => [k, String(config[k])]);
+    return {report, buildIdentity};
 }
 
 /** Read-only GET /config and compare each declared key; any difference aborts as a setup failure. */
@@ -67,6 +117,43 @@ async function makeActorClient(
         throw new SetupFailure(`failed to log in actor ${profile.username}`);
     }
     return client;
+}
+
+/**
+ * Creates one `fixture.posts[]` entry with the client its `as` names (a fixture actor's own session, or the
+ * admin when it says admin or names no actor), the body's templates resolved. Anything but the declared status
+ * (default 201) is a setup failure.
+ */
+async function createFixturePost(
+    post: Record<string, unknown> & {key: string; channel: string},
+    bindings: Bindings,
+    adminClient: Client4,
+    clientFor: (id: string) => Promise<Client4>,
+    actors: Record<string, unknown>,
+): Promise<{id: string}> {
+    const as = String(post.as ?? '').trim();
+    const named = /^([A-Za-z0-9_-]+)/.exec(as)?.[1];
+    const client = named && named.toLowerCase() !== 'admin' && named in actors ? await clientFor(named) : adminClient;
+    const request = /^(POST|PUT)\s+(\/api\/v4\/\S+)/.exec(String(post.request ?? 'POST /api/v4/posts'));
+    if (!request) {
+        throw new SetupFailure(`fixture post ${post.key}: unsupported request`);
+    }
+    const expectedStatus = Number(/\bexpect\s+(\d{3})\b/.exec(String(post.request ?? ''))?.[1] ?? 201);
+    const body = resolveDeep(post.body ?? {}, bindings);
+    const res = await fetch(`${client.getUrl()}${resolveTemplate(request[2].replace(/[.,;]+$/, ''), bindings)}`, {
+        method: request[1],
+        headers: {
+            Authorization: `Bearer ${client.getToken()}`,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(body),
+    });
+    const json = (await res.json().catch(() => ({}))) as {id?: unknown};
+    if (res.status !== expectedStatus || typeof json.id !== 'string') {
+        throw new SetupFailure(`fixture post ${post.key}: HTTP ${res.status} (expected ${expectedStatus})`);
+    }
+    return {id: json.id};
 }
 
 /**
@@ -152,6 +239,13 @@ export async function createFixture(pw: PlaywrightExtended, charter: JourneyChar
         return actorClients[id];
     };
 
+    if (f.posts) {
+        bindings.post = {};
+        for (const post of f.posts) {
+            bindings.post[post.key] = await createFixturePost(post, bindings, adminClient, clientFor, actorById);
+        }
+    }
+
     const prefsByActor = new Map<
         string,
         Array<{
@@ -206,6 +300,10 @@ export async function readBack(charter: JourneyCharter, fx: Fixture): Promise<st
     const b = fx.bindings;
     const report: string[] = [];
     const channels = charter.fixture.channels ?? [];
+    // Checks that only some journeys declare run only when the charter's read_back names them.
+    const readBackText = charter.fixture.read_back ?? '';
+    const checksAutoFollow = /auto[-_ ]follow/i.test(readBackText);
+    const checksThreads = /\bthreads?\b/i.test(readBackText);
 
     // (1) membership and (2) auto-follow not 'on' for the UI actor's memberships.
     const viewer = (charter.fixture.actors ?? []).find((a) => a.id === charter.start.actor);
@@ -220,7 +318,7 @@ export async function readBack(charter: JourneyCharter, fx: Fixture): Promise<st
         }
         if (viewer && members.includes(viewer.id)) {
             const member = await fx.adminClient.getChannelMember(b.channel[key].id, b.actor[viewer.id].id);
-            if (member.notify_props?.channel_auto_follow_threads === 'on') {
+            if (checksAutoFollow && member.notify_props?.channel_auto_follow_threads === 'on') {
                 throw new SetupFailure(`read-back: auto-follow already on for ${key}`);
             }
             const mentions =
@@ -238,7 +336,7 @@ export async function readBack(charter: JourneyCharter, fx: Fixture): Promise<st
                 throw new SetupFailure(`read-back: ${key} not viewed clean (mentions ${mentions}, msgs ${msgs})`);
             }
         }
-        report.push(`channel ${key}: members present, auto-follow not on, viewed clean`);
+        report.push(`channel ${key}: members present, ${checksAutoFollow ? 'auto-follow not on, ' : ''}viewed clean`);
     }
 
     // (3) preferences stored.
@@ -276,7 +374,7 @@ export async function readBack(charter: JourneyCharter, fx: Fixture): Promise<st
     }
 
     // (5) the UI actor's followed-thread list is empty.
-    if (viewer) {
+    if (viewer && checksThreads) {
         const list = await fx.actorClients[viewer.id].getUserThreads(b.actor[viewer.id].id, b.team.id, {});
         if ((list.threads?.length ?? 0) !== 0) {
             throw new SetupFailure('read-back: followed-thread list is not empty');
