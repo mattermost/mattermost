@@ -414,7 +414,8 @@ func (a *App) importMarkerCleanupPending(rctx request.CTX, runMarker string) (bo
 // finishImportMarkers removes the markers of a completed import, after which
 // its accounts are treated like any other existing account. The pending row is
 // written first so that, if removal fails, a retry only finishes the removal
-// instead of setting the accounts up again.
+// instead of setting the accounts up again. Without that row, removing the
+// markers is the only way to record that the import completed.
 func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) *model.AppError {
 	if a.ch.importMarkerFieldID == "" {
 		return nil
@@ -424,13 +425,19 @@ func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) *model.App
 	}
 
 	key := importMarkerCleanupKey(runMarker)
-	if err := a.Srv().Store().System().SaveOrUpdate(&model.System{Name: key, Value: "true"}); err != nil {
-		return newErr(err)
-	}
+	saveErr := a.Srv().Store().System().SaveOrUpdate(&model.System{Name: key, Value: "true"})
 	cleared, err := a.Srv().propertyService.ClearImportMarkers(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, runMarker)
 	if err != nil {
+		if saveErr != nil {
+			rctx.Logger().Error("Failed to record the completed import and to remove its markers; running it again sets up its accounts again", mlog.Int("cleared", cleared), mlog.NamedErr("save_error", saveErr), mlog.Err(err))
+			return model.NewAppError("BulkImport", "app.import.bulk_import.import_marker_cleanup_unrecorded.app_error", nil, "", http.StatusInternalServerError).Wrap(errors.Join(saveErr, err))
+		}
 		rctx.Logger().Error("Failed to remove import markers; run the same import again to finish removing them", mlog.Int("cleared", cleared), mlog.Err(err))
 		return newErr(err)
+	}
+	if saveErr != nil {
+		rctx.Logger().Warn("Failed to record the pending marker removal, but the markers were removed", mlog.Int("cleared", cleared), mlog.Err(saveErr))
+		return nil
 	}
 	if _, err := a.Srv().Store().System().PermanentDeleteByName(key); err != nil {
 		return newErr(err)

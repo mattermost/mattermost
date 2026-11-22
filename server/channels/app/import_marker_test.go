@@ -4,6 +4,8 @@
 package app
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"os"
 	"path/filepath"
@@ -61,24 +63,60 @@ func cleanupPending(t *testing.T, th *TestHelper, runMarker string) bool {
 	return pending
 }
 
-// blockMarkerDeletion makes deleting userID's property values fail in the
-// database, so marker cleanup fails without a test seam in the app.
-func blockMarkerDeletion(t *testing.T, th *TestHelper, userID string) {
+// blockWrites makes matching row writes fail in the database, so cleanup
+// failures are exercised without a test seam in the app. It returns a function
+// that lifts the block.
+func blockWrites(t *testing.T, th *TestHelper, trigger, event, table, condition string) func() {
 	t.Helper()
-	require.True(t, model.IsValidId(userID))
-	_, err := th.SQLStore.GetMaster().Exec(`CREATE OR REPLACE FUNCTION test_block_marker_delete() RETURNS trigger AS $$
-		BEGIN RAISE EXCEPTION 'marker deletion blocked by test'; END $$ LANGUAGE plpgsql`)
+	_, err := th.SQLStore.GetMaster().Exec(`CREATE OR REPLACE FUNCTION test_block_write() RETURNS trigger AS $$
+		BEGIN RAISE EXCEPTION 'write blocked by test'; END $$ LANGUAGE plpgsql`)
 	require.NoError(t, err)
-	_, err = th.SQLStore.GetMaster().Exec(`CREATE TRIGGER test_block_marker_delete BEFORE DELETE ON PropertyValues
-		FOR EACH ROW WHEN (OLD.TargetID = '` + userID + `') EXECUTE FUNCTION test_block_marker_delete()`)
+	_, err = th.SQLStore.GetMaster().Exec(`CREATE TRIGGER ` + trigger + ` BEFORE ` + event + ` ON ` + table +
+		` FOR EACH ROW WHEN (` + condition + `) EXECUTE FUNCTION test_block_write()`)
 	require.NoError(t, err)
-	t.Cleanup(func() { unblockMarkerDeletion(t, th) })
+	unblock := func() {
+		_, err := th.SQLStore.GetMaster().Exec(`DROP TRIGGER IF EXISTS ` + trigger + ` ON ` + table)
+		require.NoError(t, err)
+	}
+	t.Cleanup(unblock)
+	return unblock
 }
 
-func unblockMarkerDeletion(t *testing.T, th *TestHelper) {
+func blockMarkerDeletion(t *testing.T, th *TestHelper, userID string) func() {
 	t.Helper()
-	_, err := th.SQLStore.GetMaster().Exec(`DROP TRIGGER IF EXISTS test_block_marker_delete ON PropertyValues`)
+	require.True(t, model.IsValidId(userID))
+	return blockWrites(t, th, "test_block_marker_delete", "DELETE", "PropertyValues", "OLD.TargetID = '"+userID+"'")
+}
+
+func blockCleanupRecord(t *testing.T, th *TestHelper, runID string) func() {
+	t.Helper()
+	sum := sha256.Sum256([]byte(runID))
+	key := importMarkerCleanupKey(hex.EncodeToString(sum[:]))
+	return blockWrites(t, th, "test_block_cleanup_record", "INSERT OR UPDATE", "Systems", "NEW.Name = '"+key+"'")
+}
+
+// interruptedMarkerImport creates the archive user and its marker without
+// completing the import.
+func interruptedMarkerImport(t *testing.T, th *TestHelper, runID string) (identityTestArchive, *model.User) {
+	t.Helper()
+	archive := markerTestArchive(archiveUserFor("archive"+model.NewId()[:10], model.SystemUserRoleId))
+	archive.postMessage = "interrupted before this"
+	archive.postCreate = model.GetMillis()
+	_, appErr := runMarkerTestImport(t, th, &truncatedErrReader{data: firstNLines(archive.jsonl(t), 4)}, runID)
+	require.NotNil(t, appErr)
+	created, err := th.App.Srv().Store().User().GetByUsername(*archive.user.Username)
 	require.NoError(t, err)
+	require.Len(t, importMarkers(t, th), 1)
+	return archive, created
+}
+
+func editFirstName(t *testing.T, th *TestHelper, userID, firstName string) {
+	t.Helper()
+	user, err := th.App.Srv().Store().User().Get(th.Context, userID)
+	require.NoError(t, err)
+	user.FirstName = firstName
+	_, appErr := th.App.UpdateUser(th.Context, user, false)
+	require.Nil(t, appErr)
 }
 
 func reportReasons(report *imports.ImportReport, username string) []string {
@@ -176,30 +214,19 @@ func TestScopedImportRunMarker(t *testing.T) {
 		th := setupIdentityTest(t)
 		runID := model.NewId() + "_export.zip"
 
-		user := archiveUserFor("archive"+model.NewId()[:10], model.SystemUserRoleId)
-		archive := markerTestArchive(user)
-		archive.postMessage = "interrupted before this"
-		archive.postCreate = model.GetMillis()
-		_, appErr := runMarkerTestImport(t, th, &truncatedErrReader{data: firstNLines(archive.jsonl(t), 4)}, runID)
-		require.NotNil(t, appErr)
-		created, err := th.App.Srv().Store().User().GetByUsername(*user.Username)
-		require.NoError(t, err)
-		require.Len(t, importMarkers(t, th), 1)
+		archive, created := interruptedMarkerImport(t, th, runID)
+		username := *archive.user.Username
 
-		blockMarkerDeletion(t, th, created.Id)
+		unblock := blockMarkerDeletion(t, th, created.Id)
 		report, appErr := runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, imports.ImportMarkerCleanupErrorID, appErr.Id)
-		assert.Equal(t, []string{"username_not_found/" + string(imports.UnmatchedUserCreatedInactive)}, reportReasons(report, *user.Username), "the failed run still reports the work it completed")
+		assert.Equal(t, []string{"username_not_found/" + string(imports.UnmatchedUserCreatedInactive)}, reportReasons(report, username), "the failed run still reports the work it completed")
 		require.Len(t, importMarkers(t, th), 1)
 		require.True(t, cleanupPending(t, th, report.RunMarker))
 
-		unblockMarkerDeletion(t, th)
-		edited, err := th.App.Srv().Store().User().Get(th.Context, created.Id)
-		require.NoError(t, err)
-		edited.FirstName = "EditedAfterImport"
-		_, appErr = th.App.UpdateUser(th.Context, edited, false)
-		require.Nil(t, appErr)
+		unblock()
+		editFirstName(t, th, created.Id, "EditedAfterImport")
 
 		archive.user.FirstName = new("Changed")
 		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
@@ -214,7 +241,57 @@ func TestScopedImportRunMarker(t *testing.T) {
 
 		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
 		require.Nil(t, appErr)
-		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, *user.Username))
+		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, username))
+	})
+
+	t.Run("a failed save of the pending cleanup still removes the markers", func(t *testing.T) {
+		th := setupIdentityTest(t)
+		runID := model.NewId() + "_export.zip"
+
+		archive, created := interruptedMarkerImport(t, th, runID)
+		username := *archive.user.Username
+
+		unblock := blockCleanupRecord(t, th, runID)
+		report, appErr := runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr, "removing the markers completes the import without the pending row")
+		assert.Equal(t, []string{"username_not_found/" + string(imports.UnmatchedUserCreatedInactive)}, reportReasons(report, username))
+		assert.Empty(t, importMarkers(t, th))
+		unblock()
+		assert.False(t, cleanupPending(t, th, report.RunMarker))
+
+		editFirstName(t, th, created.Id, "EditedAfterImport")
+		archive.user.FirstName = new("Changed")
+		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, username))
+
+		after, err := th.App.Srv().Store().User().Get(th.Context, created.Id)
+		require.NoError(t, err)
+		assert.Equal(t, "EditedAfterImport", after.FirstName, "a retry after the import completed must not update the account")
+	})
+
+	t.Run("failing to both save the pending cleanup and remove the markers is reported as unrecorded", func(t *testing.T) {
+		th := setupIdentityTest(t)
+		runID := model.NewId() + "_export.zip"
+
+		archive, created := interruptedMarkerImport(t, th, runID)
+		username := *archive.user.Username
+
+		unblockRecord := blockCleanupRecord(t, th, runID)
+		unblockMarkers := blockMarkerDeletion(t, th, created.Id)
+		report, appErr := runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.bulk_import.import_marker_cleanup_unrecorded.app_error", appErr.Id)
+		assert.NotEqual(t, imports.ImportMarkerCleanupErrorID, appErr.Id, "the error must not promise a cleanup-only retry")
+		require.Len(t, importMarkers(t, th), 1)
+		unblockRecord()
+		unblockMarkers()
+		assert.False(t, cleanupPending(t, th, report.RunMarker))
+
+		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{"username_not_found/" + string(imports.UnmatchedUserCreatedInactive)}, reportReasons(report, username), "with nothing recorded, a retry sets the account up again")
+		assert.Empty(t, importMarkers(t, th))
 	})
 
 	t.Run("a different run or a changed email is a username collision", func(t *testing.T) {
