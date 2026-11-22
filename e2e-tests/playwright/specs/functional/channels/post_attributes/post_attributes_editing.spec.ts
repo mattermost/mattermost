@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {Api, expect, settle, test, duration, type App} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test, duration} from '@mattermost/playwright-lib';
 
 import {
     activeSystemFields,
@@ -32,18 +32,6 @@ const FOURTH_QUARTER = 'Fourth quarter planning';
 // The padlock's accessible name. It is what tells a screen reader why the row can't be
 // changed, so the padlock is checked for it rather than only for being there.
 const LOCKED_REASON = "You don't have permission to modify this attribute.";
-
-// The picker builds its ids from its caller's scope at run time, so the scan reads no part for them; these two name the
-// ids the edit modal gives it.
-function modalAddButton(app: App) {
-    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the picker's trigger id is built at run time from the modal's scope, so the generated page objects have no part for it
-    return app.page.getByTestId('post_attributes_modal.add--button');
-}
-
-function modalAddItem(app: App, field: PropertyField) {
-    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the picker's item ids are built at run time from the modal's scope, so the generated page objects have no part for them
-    return app.page.getByTestId(`post_attributes_modal.add_menu.field:${field.id}--menuitem`);
-}
 
 // Everything a keyboard can land on, for checking the chip row holds none of it
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -555,7 +543,7 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
         await expect(app.postAttributesModal.attribute(caveat).locator).toHaveCount(0);
 
         // # Open the field picker
-        const add = modalAddButton(app);
+        const add = app.postAttributesModal.addButton;
 
         await expect(add).toBeVisible();
         await add.click();
@@ -563,8 +551,8 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
         // * Verify the picker offers the field the modal is not already showing, and
         // only that one. The `always` field has a row above, so offering it would be
         // a choice that changes nothing.
-        await expect(modalAddItem(app, caveat)).toBeVisible();
-        await expect(modalAddItem(app, classification)).toHaveCount(0);
+        await expect(app.postAttributesModal.addMenu.field(caveat)).toBeVisible();
+        await expect(app.postAttributesModal.addMenu.field(classification)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }
@@ -642,10 +630,10 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
         await expect(app.postAttributesModal.attribute(caveat).locator).toHaveCount(0);
 
         // # Add the first one from the picker
-        const add = modalAddButton(app);
+        const add = app.postAttributesModal.addButton;
 
-        await modalAddButton(app).click();
-        await modalAddItem(app, classification).click();
+        await app.postAttributesModal.addButton.click();
+        await app.postAttributesModal.addMenu.field(classification).click();
 
         // * Verify the row arrived with nothing in it
         await expect(app.postAttributesModal.attribute(classification).locator).toBeVisible();
@@ -664,13 +652,13 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
         // * Verify the picker stopped offering the field the moment it gained a row,
         // before any value exists to make it a row on its own
         await add.click();
-        await expect(modalAddItem(app, classification)).toHaveCount(0);
-        await expect(modalAddItem(app, caveat)).toBeVisible();
+        await expect(app.postAttributesModal.addMenu.field(classification)).toHaveCount(0);
+        await expect(app.postAttributesModal.addMenu.field(caveat)).toBeVisible();
 
         // # Add the second one too, and leave it empty. It is the control for the
         // reopen below: one added row gets a value and one does not, and only the
         // first has any reason to come back.
-        await modalAddItem(app, caveat).click();
+        await app.postAttributesModal.addMenu.field(caveat).click();
         await expect(app.postAttributesModal.attribute(caveat).locator).toBeVisible();
         await expect(app.postAttributesModal.attribute(caveat).valueButton.locator).toHaveText('');
 
@@ -711,8 +699,8 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
         // * Verify the picker offers the empty field again and still not the one with
         // a value
         await add.click();
-        await expect(modalAddItem(app, caveat)).toBeVisible();
-        await expect(modalAddItem(app, classification)).toHaveCount(0);
+        await expect(app.postAttributesModal.addMenu.field(caveat)).toBeVisible();
+        await expect(app.postAttributesModal.addMenu.field(classification)).toHaveCount(0);
 
         // * Verify nothing reloaded the page to get any of this
         expect(loads()).toBe(0);
@@ -780,7 +768,7 @@ test('omits the field picker when every field already has a row', {tag: '@post_a
         // that declares all its fields `always` would otherwise show a permanently dead
         // `+ Add attribute` on every post, which is the only control those users see
         // here.
-        await expect(modalAddButton(app)).toHaveCount(0);
+        await expect(app.postAttributesModal.addButton).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }

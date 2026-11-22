@@ -953,7 +953,12 @@ function PostComponent(props: Props) {
                             id={isRHS ? undefined : `${post.id}_message`}
                             data-testid={postTestIdScope ? `${postTestIdScope}.body` : undefined}
                         >
-                            {post.failed && <FailedPostOptions post={post}/>}
+                            {post.failed && (
+                                <FailedPostOptions
+                                    post={post}
+                                    testIdScope={postTestIdScope ? `${postTestIdScope}.failed` : undefined}
+                                />
+                            )}
                             <AutoHeightSwitcher
                                 showSlot={slotBasedOnEditOrMessageView}
                                 shouldScrollIntoView={props.isPostBeingEdited}

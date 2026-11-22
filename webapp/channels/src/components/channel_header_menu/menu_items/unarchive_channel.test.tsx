@@ -39,7 +39,7 @@ describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
         expect(modalActions.openModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
             dialogType: UnarchiveChannelModal,
-            dialogProps: {channel},
+            dialogProps: {channel, testId: 'channel_header.menu.unarchive_modal'},
         });
     });
 

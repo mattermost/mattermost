@@ -20,7 +20,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor, within} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -209,6 +209,47 @@ const baseProps = {
     loadNextMessage: jest.fn(),
     replyToLastPost: jest.fn(),
 };
+
+// The chip row and the `+` in the action row of the centre channel's and the thread sidebar's composers.
+const CENTER_ATTRIBUTES = 'center.post_create.post_attributes';
+const CENTER_ATTRIBUTES_BUTTON = 'center.post_create.post_attributes_button';
+const RHS_ATTRIBUTES = 'rhs.post_create.post_attributes';
+const RHS_ATTRIBUTES_BUTTON = 'rhs.post_create.post_attributes_button';
+
+// A chip is keyed by its field's id; the parts inside it carry no key and are found within the chip.
+function attributeChip(field: PropertyField, scope = CENTER_ATTRIBUTES) {
+    return screen.getByTestId(`${scope}.chip:${field.id}`);
+}
+
+function queryAttributeChip(field: PropertyField, scope = CENTER_ATTRIBUTES) {
+    return screen.queryByTestId(`${scope}.chip:${field.id}`);
+}
+
+function attributeTrigger(field: PropertyField, scope = CENTER_ATTRIBUTES) {
+    return within(attributeChip(field, scope)).getByTestId(`${scope}.chip.attribute.value--button`);
+}
+
+function attributeInput(field: PropertyField, scope = CENTER_ATTRIBUTES) {
+    return within(attributeChip(field, scope)).getByTestId(`${scope}.chip.attribute.value_input--textbox`);
+}
+
+function attributeRemove(field: PropertyField, scope = CENTER_ATTRIBUTES) {
+    return within(attributeChip(field, scope)).getByTestId(`${scope}.chip.remove--button`);
+}
+
+// A field's item in the menu of the `+` in the action row, and in the menu of the inline add control.
+function buttonItem(field: PropertyField, scope = CENTER_ATTRIBUTES_BUTTON) {
+    return screen.getByTestId(`${scope}.add_menu.field:${field.id}--menuitem`);
+}
+
+function inlineItem(field: PropertyField, scope = CENTER_ATTRIBUTES) {
+    return screen.getByTestId(`${scope}.add_menu.field:${field.id}--menuitem`);
+}
+
+// The ids of the open menu's items without the menu's scope, so the two menus can be compared.
+function openMenuItemIds() {
+    return screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid')?.replace(/^.*\.add_menu\./, ''));
+}
 
 describe('components/avanced_text_editor/advanced_text_editor', () => {
     afterEach(() => {
@@ -1393,10 +1434,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         // its value menu; the first option is picked there, because closing it
         // empty would un-stage the field, and the next step starts from a clean
         // page.
-        async function pickFromActionRow(fieldName: string, composerIndex = 0) {
-            await userEvent.click(screen.getAllByTestId('post-attributes-composer-add')[composerIndex]);
-            await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
-            await waitFor(() => expect(screen.getAllByTestId(`post-attribute-chip-${fieldName}`)).toHaveLength(composerIndex + 1));
+        async function pickFromActionRow(field: PropertyField, composerIndex = 0) {
+            const [button, row] = composerIndex === 0 ? [CENTER_ATTRIBUTES_BUTTON, CENTER_ATTRIBUTES] : [RHS_ATTRIBUTES_BUTTON, RHS_ATTRIBUTES];
+
+            await userEvent.click(screen.getByTestId(`${button}.add--button`));
+            await userEvent.click(buttonItem(field, button));
+            await waitFor(() => expect(attributeChip(field, row)).toBeInTheDocument());
 
             const firstOption = screen.queryAllByRole('menuitemradio')[0];
             if (firstOption) {
@@ -1413,7 +1456,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 initialState,
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).not.toBeInTheDocument();
         });
 
         // The editor never loads fields itself: `loadPostAttributeFields`, called by
@@ -1431,9 +1474,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, classificationField], 'false'),
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(CENTER_ATTRIBUTES)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES}.add--button`)).not.toBeInTheDocument();
             expect(getPropertyFields).not.toHaveBeenCalled();
 
             getPropertyFields.mockRestore();
@@ -1447,7 +1490,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).toBeInTheDocument();
         });
 
         it('is present in the RHS reply composer with the flag on', () => {
@@ -1460,7 +1503,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            expect(screen.getByTestId(`${RHS_ATTRIBUTES_BUTTON}.add--button`)).toBeInTheDocument();
         });
 
         it('is absent when editing an existing post', () => {
@@ -1472,7 +1515,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).not.toBeInTheDocument();
         });
 
         it('sits before the formatting toggle in the action row', () => {
@@ -1499,19 +1542,19 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, spareField]),
             );
 
-            const add = screen.getByTestId('post-attributes-composer-add');
+            const add = screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`);
             expect(add).not.toHaveAttribute('aria-disabled');
-            expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
+            expect(queryAttributeChip(priorityField)).not.toBeInTheDocument();
 
             await userEvent.click(add);
 
             expect(screen.getByRole('menu', {name: 'Add an attribute'})).toBeInTheDocument();
-            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+            await userEvent.click(buttonItem(priorityField));
 
             // The picked field's chip arrives with its own menu already open.
-            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument());
+            await waitFor(() => expect(attributeChip(priorityField)).toBeInTheDocument());
             expect(await screen.findByRole('menuitemradio', {name: /^SECRET/})).toBeInTheDocument();
-            expect(screen.getByTestId('post-attributes-composer-add')).not.toHaveAttribute('aria-disabled');
+            expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).not.toHaveAttribute('aria-disabled');
         });
 
         it('draws the chip row above the message box, outside its border', async () => {
@@ -1522,9 +1565,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, spareField]),
             );
 
-            await pickFromActionRow('priority');
+            await pickFromActionRow(priorityField);
 
-            const row = screen.getByTestId('post-attributes-composer');
+            const row = screen.getByTestId(CENTER_ATTRIBUTES);
             const box = document.querySelector('.AdvancedTextEditor__body') as HTMLElement;
 
             expect(box).not.toContainElement(row);
@@ -1541,19 +1584,19 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             // The inline control only exists once something is staged.
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
-            await pickFromActionRow('priority');
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES}.add--button`)).not.toBeInTheDocument();
+            await pickFromActionRow(priorityField);
 
-            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
-            const fromButton = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+            await userEvent.click(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`));
+            const fromButton = openMenuItemIds();
             await userEvent.keyboard('{Escape}');
             await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
 
-            await userEvent.click(screen.getByTestId('post-attributes-add'));
-            const fromInline = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+            await userEvent.click(screen.getByTestId(`${CENTER_ATTRIBUTES}.add--button`));
+            const fromInline = openMenuItemIds();
 
             // `classification` is declared `always` and is offered like the rest.
-            expect(fromButton).toEqual(['post-attribute-add-classification', 'post-attribute-add-spare']);
+            expect(fromButton).toEqual([`field:${classificationField.id}--menuitem`, `field:${spareField.id}--menuitem`]);
             expect(fromInline).toEqual(fromButton);
         });
 
@@ -1565,7 +1608,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([]),
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).not.toBeInTheDocument();
         });
 
         it('draws no chip for an `always` field until the user picks it, and stages nothing for it', async () => {
@@ -1576,22 +1619,22 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([classificationField]),
             );
 
-            expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(CENTER_ATTRIBUTES)).not.toBeInTheDocument();
+            expect(queryAttributeChip(classificationField)).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
-            await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
-            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument());
+            await userEvent.click(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`));
+            await userEvent.click(buttonItem(classificationField));
+            await waitFor(() => expect(attributeChip(classificationField)).toBeInTheDocument());
 
             // Picked, but empty: the chip shows the field's name while its menu
             // is open, and nothing is staged for it.
-            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('Classification');
-            expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
+            expect(attributeTrigger(classificationField)).toHaveTextContent('Classification');
+            expect(attributeTrigger(classificationField)).not.toHaveTextContent('SECRET');
 
             // Closed without a value, it goes again, as any picked option field does.
             await userEvent.keyboard('{Escape}');
-            await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            await waitFor(() => expect(queryAttributeChip(classificationField)).not.toBeInTheDocument());
+            expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).toBeInTheDocument();
         });
 
         it('stops rendering both add controls once the last field is picked', async () => {
@@ -1603,16 +1646,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             // Nothing is staged, so there is no chip row and no inline control.
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES}.add--button`)).not.toBeInTheDocument();
+            expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).toBeInTheDocument();
 
-            await pickFromActionRow('priority');
-            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+            await pickFromActionRow(priorityField);
+            expect(screen.getByTestId(`${CENTER_ATTRIBUTES}.add--button`)).toBeInTheDocument();
 
-            await pickFromActionRow('classification');
+            await pickFromActionRow(classificationField);
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${CENTER_ATTRIBUTES}.add--button`)).not.toBeInTheDocument();
         });
 
         it('adds each picked chip at the end of the row, after the ones already there', async () => {
@@ -1624,11 +1667,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             // Field order is priority, classification; pick them the other way round.
-            await pickFromActionRow('classification');
-            await pickFromActionRow('priority');
+            await pickFromActionRow(classificationField);
+            await pickFromActionRow(priorityField);
 
-            const chipNames = screen.getAllByTestId(/^post-attribute-chip-/).map((chip) => chip.dataset.testid);
-            expect(chipNames).toEqual(['post-attribute-chip-classification', 'post-attribute-chip-priority']);
+            const chipNames = screen.getAllByTestId(/^center\.post_create\.post_attributes\.chip:/).map((chip) => chip.dataset.testid);
+            expect(chipNames).toEqual([`${CENTER_ATTRIBUTES}.chip:${classificationField.id}`, `${CENTER_ATTRIBUTES}.chip:${priorityField.id}`]);
         });
 
         it('gives the two add controls their own ids and test ids', async () => {
@@ -1639,10 +1682,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, classificationField]),
             );
 
-            await pickFromActionRow('priority');
+            await pickFromActionRow(priorityField);
 
-            const inline = screen.getByTestId('post-attributes-add');
-            const button = screen.getByTestId('post-attributes-composer-add');
+            const inline = screen.getByTestId(`${CENTER_ATTRIBUTES}.add--button`);
+            const button = screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`);
 
             expect(new Set([inline.id, button.id]).size).toBe(2);
             expect(inline.id).not.toBe('');
@@ -1666,12 +1709,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             // Both composers have their add controls, and the same field is picked in each.
-            expect(screen.getAllByTestId('post-attributes-composer-add')).toHaveLength(2);
+            expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).toBeInTheDocument();
+            expect(screen.getByTestId(`${RHS_ATTRIBUTES_BUTTON}.add--button`)).toBeInTheDocument();
 
-            await pickFromActionRow('classification', 0);
-            await pickFromActionRow('classification', 1);
+            await pickFromActionRow(classificationField, 0);
+            await pickFromActionRow(classificationField, 1);
 
-            expect(screen.getAllByTestId('post-attribute-trigger-classification')).toHaveLength(2);
+            expect(attributeTrigger(classificationField, CENTER_ATTRIBUTES)).toBeInTheDocument();
+            expect(attributeTrigger(classificationField, RHS_ATTRIBUTES)).toBeInTheDocument();
 
             const ids = Array.from(document.querySelectorAll('[id^="postAttribute"]')).map((element) => element.id);
 
@@ -1698,12 +1743,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             // an input only while it is being edited, and picking in the
             // thread composer moves focus out of the centre one, so the two
             // inputs are read one after the other.
-            await pickFromActionRow('reference', 0);
-            const centreId = screen.getByTestId('post-attribute-input-reference').id;
+            await pickFromActionRow(referenceField, 0);
+            const centreId = attributeInput(referenceField).id;
 
-            await pickFromActionRow('reference', 1);
-            const inputs = screen.getAllByTestId('post-attribute-input-reference');
+            await pickFromActionRow(referenceField, 1);
+            const inputs = screen.getAllByTestId(/\.chip\.attribute\.value_input--textbox$/);
             expect(inputs).toHaveLength(1);
+            expect(inputs[0]).toBe(attributeInput(referenceField, RHS_ATTRIBUTES));
             const threadId = inputs[0].id;
 
             expect(centreId).toMatch(/^postAttributeValueInput-f_reference/);
@@ -1861,10 +1907,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         // `classification` is declared `always`, and is still only staged by
         // picking it from the `+` in the action row, like any other field.
         async function stageClassification() {
-            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
-            await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
+            await userEvent.click(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`));
+            await userEvent.click(buttonItem(alwaysField));
             await userEvent.click(await screen.findByRole('menuitemradio', {name: /^SECRET/}));
-            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET'));
+            await waitFor(() => expect(attributeTrigger(alwaysField)).toHaveTextContent('SECRET'));
         }
 
         // Stages a value on the `always` field, then picks the `when_set` field
@@ -1872,15 +1918,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         async function stageAttributes() {
             await stageClassification();
 
-            await userEvent.click(screen.getByTestId('post-attributes-add'));
-            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+            await userEvent.click(screen.getByTestId(`${CENTER_ATTRIBUTES}.add--button`));
+            await userEvent.click(inlineItem(pickedField));
             await userEvent.click(await screen.findByRole('menuitemradio', {name: /^UNCLASSIFIED/}));
-            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED'));
+            await waitFor(() => expect(attributeTrigger(pickedField)).toHaveTextContent('UNCLASSIFIED'));
         }
 
         function expectNothingStaged() {
-            expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
+            expect(queryAttributeChip(alwaysField)).not.toBeInTheDocument();
+            expect(queryAttributeChip(pickedField)).not.toBeInTheDocument();
         }
 
         it('sends the staged values and clears them with the message box', async () => {
@@ -1934,7 +1980,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             act(() => {
                 store.dispatch(action);
             });
-            await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument());
+            await waitFor(() => expect(queryAttributeChip(pickedField)).not.toBeInTheDocument());
 
             fireEvent.input(screen.getByTestId('center.post_create.message--textbox'), {target: {value: 'a message with attributes'}});
 
@@ -1967,8 +2013,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
-            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
-            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+            expect(attributeTrigger(alwaysField)).toHaveTextContent('SECRET');
+            expect(attributeTrigger(pickedField)).toHaveTextContent('UNCLASSIFIED');
         });
 
         it('keeps the staged values when a slash command is submitted', async () => {
@@ -1998,8 +2044,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 undefined,
             );
             expect(textbox).toHaveValue('');
-            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
-            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+            expect(attributeTrigger(alwaysField)).toHaveTextContent('SECRET');
+            expect(attributeTrigger(pickedField)).toHaveTextContent('UNCLASSIFIED');
         });
 
         it('keeps the staged values when a reaction is submitted', async () => {
@@ -2030,8 +2076,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 undefined,
             );
             expect(textbox).toHaveValue('');
-            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
-            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+            expect(attributeTrigger(alwaysField)).toHaveTextContent('SECRET');
+            expect(attributeTrigger(pickedField)).toHaveTextContent('UNCLASSIFIED');
         });
 
         it('does not count a staged value as draft content', async () => {
@@ -2168,7 +2214,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
                 expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
 
-                await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
+                await userEvent.click(attributeRemove(alwaysField));
 
                 await waitFor(() => expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled());
                 expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
@@ -2208,16 +2254,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 await stageClassification();
 
                 expect(burnOnReadButton()).toBeDisabled();
-                await userEvent.hover(screen.getByTestId('burn-on-read-blocked'));
+                await userEvent.hover(screen.getByTestId('center.post_create.burn_on_read_blocked--group'));
 
                 // Another control's tooltip may still be open from the click before.
                 expect((await screen.findByText('Messages with attributes can’t be burn-on-read')).closest('[role="tooltip"]')).not.toBeNull();
                 expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
 
-                await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
+                await userEvent.click(attributeRemove(alwaysField));
 
                 await waitFor(() => expect(burnOnReadButton()).toBeEnabled());
-                expect(screen.queryByTestId('burn-on-read-blocked')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('center.post_create.burn_on_read_blocked--group')).not.toBeInTheDocument();
             });
 
             it('disables burn-on-read for a staged chip that has no value yet', async () => {
@@ -2229,11 +2275,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 );
 
                 // The value menu opens on the pick; nothing is chosen yet.
-                await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
-                await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+                await userEvent.click(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`));
+                await userEvent.click(buttonItem(pickedField));
                 await screen.findByRole('menuitemradio', {name: /^SECRET/});
 
-                expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument();
+                expect(attributeChip(pickedField)).toBeInTheDocument();
                 expect(burnOnReadButton()).toBeDisabled();
             });
 
@@ -2247,22 +2293,22 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
                 await userEvent.click(burnOnReadButton());
 
-                const add = screen.getByTestId('post-attributes-composer-add');
+                const add = screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`);
                 await waitFor(() => expect(add).toBeDisabled());
 
-                await userEvent.hover(screen.getByTestId('post-attributes-composer-add-blocked'));
+                await userEvent.hover(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add_blocked--group`));
 
                 // Another control's tooltip may still be open from the click before.
                 expect((await screen.findByText('Burn-on-read messages can’t have attributes')).closest('[role="tooltip"]')).not.toBeNull();
 
                 await userEvent.click(add);
                 expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+                expect(queryAttributeChip(alwaysField)).not.toBeInTheDocument();
 
                 await userEvent.click(burnOnReadButton());
 
-                await waitFor(() => expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled());
-                expect(screen.queryByTestId('post-attributes-composer-add-blocked')).not.toBeInTheDocument();
+                await waitFor(() => expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).toBeEnabled());
+                expect(screen.queryByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add_blocked--group`)).not.toBeInTheDocument();
             });
 
             it('leaves adding attributes alone when burn-on-read is not available', async () => {
@@ -2274,10 +2320,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 );
 
                 expect(document.getElementById('burnOnReadButton')).toBeNull();
-                expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled();
+                expect(screen.getByTestId(`${CENTER_ATTRIBUTES_BUTTON}.add--button`)).toBeEnabled();
 
                 await stageClassification();
-                expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+                expect(attributeChip(alwaysField)).toBeInTheDocument();
             });
         });
     });

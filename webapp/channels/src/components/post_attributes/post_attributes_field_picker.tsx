@@ -34,16 +34,16 @@ type Props = {
     fields: PropertyField[];
     onSelect: (fieldId: string) => void;
 
-    // The trigger's DOM id and test id. The defaults are the modal's, which
-    // only ever has one picker on screen; every other caller can have several
-    // (the composer's two controls, and a composer per centre channel and
-    // thread sidebar), so it passes its own.
+    // The trigger's DOM id. The default is the modal's, which only ever has
+    // one picker on screen; every other caller can have several (the
+    // composer's two controls, and a composer per centre channel and thread
+    // sidebar), so it passes its own.
     id?: string;
-    dataTestId?: string;
 
-    // The scope of the picker's test ids, when the caller has one: the trigger is `<scope>--button`, the menu
-    // `<scope>_menu` with its fields `<scope>_menu.field:<id>--menuitem`, its search box `.search--textbox` and its
-    // empty note `.no_results--menuitem`. Without it the ids are the `dataTestId` ones.
+    // The scope of the picker's test ids: the trigger is `<scope>.add--button`, the menu `<scope>.add_menu` with its
+    // fields `<scope>.add_menu.field:<id>--menuitem`, its search box `.search--textbox` and its empty note
+    // `.no_results--menuitem`, and the tooltip wrapper of a blocked picker `<scope>.add_blocked--group`. Without a
+    // scope the picker carries no ids.
     testIdScope?: string;
 
     // Replaces the labelled `+ Add attribute` button with an icon button, such
@@ -162,46 +162,8 @@ function searchFields(fields: PropertyField[], search: string) {
 
 type ContentIds = {
     id: string;
-    dataTestId: string;
     testIdScope?: string;
 };
-
-type ItemsProps = ContentIds & Pick<PickerState, 'fields' | 'search' | 'onSelect'>;
-
-function renderFieldItems({fields, search, onSelect, id, dataTestId, testIdScope}: ItemsProps) {
-    const {searchable, term, shown} = searchFields(fields, search);
-
-    const items: ReactNode[] = shown.map((field) => (
-        <Menu.Item
-            key={field.id}
-            id={`postAttributeAdd-${field.id}`}
-            data-testid={testIdScope ? `${testIdScope}_menu.field:${field.id}--menuitem` : `post-attribute-add-${field.name}`}
-            leadingElement={<FieldTypeIcon type={field.type}/>}
-            labels={<span>{getPropertyFieldLabel(field)}</span>}
-            onClick={() => onSelect(field.id)}
-        />
-    ));
-
-    if (searchable && term && shown.length === 0) {
-        items.push(
-            <Menu.Item
-                key='noResults'
-                id={`${id}NoResults`}
-                data-testid={testIdScope ? `${testIdScope}_menu.no_results--menuitem` : `${dataTestId}-no-results`}
-                disabled={true}
-                labels={
-                    <FormattedMessage
-                        id='post_attributes.picker.no_results'
-                        defaultMessage='No matching attributes'
-                        description='Shown in the add attribute menu, under its search box, when the search text matches no attribute.'
-                    />
-                }
-            />,
-        );
-    }
-
-    return items;
-}
 
 // A click inside the search box is not a choice: in mobile view the modal
 // closes on any click that reaches its list, the header included.
@@ -228,7 +190,7 @@ type SearchBoxProps = ContentIds & {
     inList?: boolean;
 };
 
-function PickerSearchBox({search, onSearch, id, dataTestId, testIdScope, inList = false}: SearchBoxProps) {
+function PickerSearchBox({search, onSearch, id, testIdScope, inList = false}: SearchBoxProps) {
     const {formatMessage} = useIntl();
 
     const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => onSearch(event.target.value), [onSearch]);
@@ -272,7 +234,7 @@ function PickerSearchBox({search, onSearch, id, dataTestId, testIdScope, inList 
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 onClear={() => onSearch('')}
-                data-testid={testIdScope ? `${testIdScope}_menu.search--textbox` : `${dataTestId}-search`}
+                data-testid={testIdScope ? `${testIdScope}.add_menu.search--textbox` : undefined}
                 placeholder={searchLabel}
                 aria-label={searchLabel}
             />
@@ -289,7 +251,7 @@ type LiveContentProps = ContentIds & {
  * read the store rather than props, which the modal holds as they were when it
  * opened.
  */
-function LivePickerSearchBox({store, id, dataTestId, testIdScope}: LiveContentProps) {
+function LivePickerSearchBox({store, id, testIdScope}: LiveContentProps) {
     const {fields, search} = useSyncExternalStore(store.subscribe, store.get);
     const handleSearch = useCallback((value: string) => store.set({search: value}), [store]);
 
@@ -306,17 +268,46 @@ function LivePickerSearchBox({store, id, dataTestId, testIdScope}: LiveContentPr
             search={search}
             onSearch={handleSearch}
             id={id}
-            dataTestId={dataTestId}
             testIdScope={testIdScope}
             inList={true}
         />
     );
 }
 
-function LivePickerItems({store, id, dataTestId, testIdScope}: LiveContentProps) {
+function LivePickerItems({store, id, testIdScope}: LiveContentProps) {
     const {fields, search, onSelect} = useSyncExternalStore(store.subscribe, store.get);
 
-    return <>{renderFieldItems({fields, search, onSelect, id, dataTestId, testIdScope})}</>;
+    const {searchable, term, shown} = searchFields(fields, search);
+
+    return (
+        <>
+            {shown.map((field) => (
+                <Menu.Item
+                    key={field.id}
+                    id={`postAttributeAdd-${field.id}`}
+                    data-testid={testIdScope ? `${testIdScope}.add_menu.field:${field.id}--menuitem` : undefined}
+                    leadingElement={<FieldTypeIcon type={field.type}/>}
+                    labels={<span>{getPropertyFieldLabel(field)}</span>}
+                    onClick={() => onSelect(field.id)}
+                />
+            ))}
+            {searchable && term && shown.length === 0 && (
+                <Menu.Item
+                    key='noResults'
+                    id={`${id}NoResults`}
+                    data-testid={testIdScope ? `${testIdScope}.add_menu.no_results--menuitem` : undefined}
+                    disabled={true}
+                    labels={
+                        <FormattedMessage
+                            id='post_attributes.picker.no_results'
+                            defaultMessage='No matching attributes'
+                            description='Shown in the add attribute menu, under its search box, when the search text matches no attribute.'
+                        />
+                    }
+                />
+            )}
+        </>
+    );
 }
 
 /**
@@ -328,7 +319,7 @@ function LivePickerItems({store, id, dataTestId, testIdScope}: LiveContentProps)
  * in the same order, which is the channel's field order, so a field found in one
  * is where the other left it.
  */
-export default function PostAttributesFieldPicker({fields, onSelect, id = 'postAttributesAdd', dataTestId = 'post-attributes-add', testIdScope, trigger, compact, disabledReason}: Props) {
+export default function PostAttributesFieldPicker({fields, onSelect, id = 'postAttributesAdd', testIdScope, trigger, compact, disabledReason}: Props) {
     const {formatMessage} = useIntl();
     const isMobileView = useSelector(getIsMobileView);
 
@@ -360,34 +351,7 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         />
     );
 
-    let menuButton;
-    if (trigger) {
-        menuButton = {
-            id,
-            dataTestId: testIdScope ? `${testIdScope}--button` : dataTestId,
-            as: IconTrigger,
-            class: 'control',
-            'aria-label': trigger.label,
-            children: trigger.icon,
-        };
-    } else if (compact) {
-        menuButton = {
-            id,
-            dataTestId: testIdScope ? `${testIdScope}--button` : dataTestId,
-            as: ComposerAddTrigger,
-            children: addLabel,
-        };
-    } else {
-        menuButton = {
-            id,
-            dataTestId: testIdScope ? `${testIdScope}--button` : dataTestId,
-            as: ModalAddTrigger,
-            class: 'PostAttributesModal__add',
-            children: addLabel,
-        };
-    }
-
-    const ids = {id, dataTestId, testIdScope};
+    const ids = {id, testIdScope};
 
     // In mobile view the contents subscribe to the store, since the modal they
     // render in never sees this component re-render. The popover does, so its
@@ -416,12 +380,59 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
                 {...ids}
             />
         ) : undefined;
-        items = renderFieldItems({fields, search, onSelect, ...ids});
+
+        // An array of elements, not a fragment or a component: the menu list reads its children to manage focus.
+        const {term, shown} = searchFields(fields, search);
+        items = shown.map((field) => (
+            <Menu.Item
+                key={field.id}
+                id={`postAttributeAdd-${field.id}`}
+                data-testid={testIdScope ? `${testIdScope}.add_menu.field:${field.id}--menuitem` : undefined}
+                leadingElement={<FieldTypeIcon type={field.type}/>}
+                labels={<span>{getPropertyFieldLabel(field)}</span>}
+                onClick={() => onSelect(field.id)}
+            />
+        ));
+        if (searchable && term && shown.length === 0) {
+            items.push(
+                <Menu.Item
+                    key='noResults'
+                    id={`${id}NoResults`}
+                    data-testid={testIdScope ? `${testIdScope}.add_menu.no_results--menuitem` : undefined}
+                    disabled={true}
+                    labels={
+                        <FormattedMessage
+                            id='post_attributes.picker.no_results'
+                            defaultMessage='No matching attributes'
+                            description='Shown in the add attribute menu, under its search box, when the search text matches no attribute.'
+                        />
+                    }
+                />,
+            );
+        }
+    }
+
+    let Trigger: React.ComponentType<Menu.MenuButtonComponentProps> = ModalAddTrigger;
+    let triggerClass: string | undefined = 'PostAttributesModal__add';
+    if (trigger) {
+        Trigger = IconTrigger;
+        triggerClass = 'control';
+    } else if (compact) {
+        Trigger = ComposerAddTrigger;
+        triggerClass = undefined;
     }
 
     const menu = (
         <Menu.Container
-            menuButton={{...menuButton, disabled: Boolean(disabledReason)}}
+            menuButton={{
+                id,
+                testId: testIdScope ? `${testIdScope}.add` : undefined,
+                as: Trigger,
+                class: triggerClass,
+                'aria-label': trigger?.label,
+                children: trigger ? trigger.icon : addLabel,
+                disabled: Boolean(disabledReason),
+            }}
             menuButtonTooltip={trigger && !disabledReason ? {text: trigger.label} : undefined}
             menuHeader={searchBox}
 
@@ -431,7 +442,7 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
             transformOrigin={trigger ? UPWARD_TRANSFORM : undefined}
             menu={{
                 id: `${id}Menu`,
-                testId: testIdScope ? `${testIdScope}_menu` : undefined,
+                testId: testIdScope ? `${testIdScope}.add_menu` : undefined,
                 className: 'PostAttributesFieldPicker__menu',
                 width: '300px',
 
@@ -459,7 +470,7 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         <DisabledReasonTooltip
             reason={disabledReason}
             className='PostAttributesFieldPicker__blocked'
-            data-testid={testIdScope ? `${testIdScope}.blocked--group` : `${dataTestId}-blocked`}
+            data-testid={testIdScope ? `${testIdScope}.add_blocked--group` : undefined}
         >
             {menu}
         </DisabledReasonTooltip>

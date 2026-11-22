@@ -27,8 +27,8 @@ export {hasValueControl};
 
 type Props = {
 
-    // The scope of the control's test ids (`<scope>.attribute.value--button` and the rest). Without one, such as
-    // in the composer, the ids are the plain ones.
+    // The scope of the control's test ids (`<scope>.attribute.value--button` and the rest). Without one the
+    // control carries no ids.
     testIdScope?: string;
     field: PropertyField;
     value?: PropertyValue<unknown>;
@@ -239,7 +239,7 @@ function OptionMenu({testIdScope, field, value, disabled, onChange, ariaLabel, r
         <Menu.Container
             menuButton={{
                 id: `postAttributeValueTrigger-${field.id}-${instanceId}`,
-                dataTestId: testIdScope ? `${testIdScope}.attribute.value--button` : `post-attribute-trigger-${field.name}`,
+                dataTestId: testIdScope ? `${testIdScope}.attribute.value--button` : undefined,
                 class: 'PostAttributesModalRow__trigger',
                 disabled,
                 'aria-label': label,
@@ -329,7 +329,7 @@ function TextInput({testIdScope, field, value, disabled, onChange, autoOpen}: Pr
         <input
             id={`postAttributeValueInput-${field.id}-${instanceId}`}
             name={`postAttributeValueInput-${field.name}`}
-            data-testid={testIdScope ? `${testIdScope}.attribute.value_input--textbox` : `post-attribute-input-${field.name}`}
+            data-testid={testIdScope ? `${testIdScope}.attribute.value_input--textbox` : undefined}
             type='text'
             className='PostAttributesModalRow__input'
             value={draft}
@@ -474,7 +474,7 @@ function UserPicker({testIdScope, field, value, disabled, onChange, autoOpen}: P
         <div
             ref={containerRef}
             className='PostAttributesModalRow__users'
-            data-testid={testIdScope ? `${testIdScope}.attribute.users` : `post-attribute-user-${field.name}`}
+            data-testid={testIdScope ? `${testIdScope}.attribute.users` : undefined}
             onKeyDownCapture={handleKeyDownCapture}
             onBlur={handleBlur}
         >

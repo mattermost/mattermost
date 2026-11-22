@@ -94,6 +94,7 @@ describe('ChannelAttributesSettings', () => {
         const {container} = renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={jest.fn()}
             />,
         );
@@ -110,13 +111,14 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={onChange}
             />,
         );
 
-        await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByTestId('attrs.select_value:field1--button')).toBeInTheDocument());
 
-        await userEvent.click(screen.getByTestId('channelAttributesSettings-program'));
+        await userEvent.click(screen.getByTestId('attrs.select_value:field1--button'));
         await userEvent.click(await screen.findByText('ZEPHYR'));
 
         await waitFor(() => expect(onChange).toHaveBeenCalledWith({[field.id]: 'opt2'}));
@@ -153,14 +155,15 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={onChange}
             />,
         );
 
-        await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-labels')).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByTestId('attrs.select_value:field1--button')).toBeInTheDocument());
         expect(screen.getByText('AURORA')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('channelAttributesSettings-labels'));
+        await userEvent.click(screen.getByTestId('attrs.select_value:field1--button'));
         await userEvent.click(await screen.findByText('ZEPHYR'));
 
         await waitFor(() => expect(onChange).toHaveBeenCalledWith({[field.id]: ['opt1', 'opt2']}));
@@ -182,6 +185,7 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={onChange}
             />,
         );
@@ -200,6 +204,7 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={jest.fn()}
             />,
         );
@@ -227,6 +232,7 @@ describe('ChannelAttributesSettings', () => {
             renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
+                    testIdScope='attrs'
                     onChange={jest.fn()}
                     onMissingRequiredChange={onMissingRequiredChange}
                 />,
@@ -245,6 +251,7 @@ describe('ChannelAttributesSettings', () => {
             renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
+                    testIdScope='attrs'
                     onChange={jest.fn()}
                     onMissingRequiredChange={onMissingRequiredChange}
                 />,
@@ -299,12 +306,13 @@ describe('ChannelAttributesSettings', () => {
             renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
+                    testIdScope='attrs'
                     onChange={jest.fn()}
                     onMissingRequiredChange={onMissingRequiredChange}
                 />,
             );
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeEnabled());
+            await waitFor(() => expect(screen.getByTestId('attrs.select_value:field1--button')).toBeEnabled());
             expect(onMissingRequiredChange).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
         });
 
@@ -316,6 +324,7 @@ describe('ChannelAttributesSettings', () => {
             renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
+                    testIdScope='attrs'
                     onChange={jest.fn()}
                     showRequiredErrors={true}
                 />,
@@ -335,6 +344,7 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={onChange}
             />,
         );
@@ -342,7 +352,7 @@ describe('ChannelAttributesSettings', () => {
         fireEvent.keyDown(await screen.findByRole('button', {name: 'Remove AURORA'}), {key: 'Enter'});
         expect(onChange).toHaveBeenLastCalledWith({[field.id]: null});
 
-        await userEvent.click(screen.getByTestId('channelAttributesSettings-program'));
+        await userEvent.click(screen.getByTestId('attrs.select_value:field1--button'));
         await userEvent.click(await screen.findByText('AURORA'));
 
         await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({}));
@@ -365,6 +375,7 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={jest.fn()}
                 onMissingRequiredChange={onMissingRequiredChange}
             />,
@@ -372,8 +383,8 @@ describe('ChannelAttributesSettings', () => {
         );
 
         // Values have loaded once the writable field is enabled.
-        await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-notes')).toBeEnabled());
-        expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled();
+        await waitFor(() => expect(screen.getByTestId('attrs.text_value:field2--textbox')).toBeEnabled());
+        expect(screen.getByTestId('attrs.select_value:field1--button')).toBeDisabled();
         expect(onMissingRequiredChange).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
     });
 
@@ -385,11 +396,12 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={jest.fn()}
             />,
         );
 
-        await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
+        await waitFor(() => expect(screen.getByTestId('attrs.select_value:field1--button')).toBeDisabled());
     });
 
     test('a text field renders as an input and reports typed values', async () => {
@@ -401,11 +413,12 @@ describe('ChannelAttributesSettings', () => {
         renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
+                testIdScope='attrs'
                 onChange={onChange}
             />,
         );
 
-        const input = await waitFor(() => screen.getByTestId('channelAttributesSettings-notes'));
+        const input = await waitFor(() => screen.getByTestId('attrs.text_value:field1--textbox'));
         fireEvent.change(input, {target: {value: 'hello'}});
 
         expect(onChange).toHaveBeenCalledWith({[field.id]: 'hello'});
@@ -437,11 +450,16 @@ describe('ChannelAttributesSettings', () => {
                     onMissingRequiredChange={onMissing}
                     showRequiredErrors={true}
                     isDisabled={isDisabled}
+                    testIdScope='attrs'
                 />,
                 state,
             );
             return {onChange, onMissing};
         }
+
+        // makeField's id is field1 whatever the name, so every control and error below is field1's.
+        const ERROR = 'attrs.required_error:field1--text';
+        const SELECT = 'attrs.select_value:field1--button';
 
         function requiredField(overrides: Partial<PropertyField> = {}) {
             return makeField({attrs: {display_name: 'Program', required: true, options: [{id: 'opt1', name: 'AURORA'}, {id: 'opt2', name: 'ZEPHYR'}]}, ...overrides});
@@ -450,10 +468,10 @@ describe('ChannelAttributesSettings', () => {
         test('shows the error on an empty required field and reports it', async () => {
             const {onMissing} = setup(requiredField(), undefined);
 
-            const error = await screen.findByTestId('channelAttributeRequiredError-program');
+            const error = await screen.findByTestId(ERROR);
             expect(error).toHaveTextContent('This attribute is required.');
 
-            const control = screen.getByTestId('channelAttributesSettings-program');
+            const control = screen.getByTestId(SELECT);
             expect(control).toHaveAttribute('aria-invalid', 'true');
             expect(control).toHaveAttribute('aria-describedby', error.id);
             expect(control).toHaveClass('ChannelAttributesSettings__select--error');
@@ -464,13 +482,13 @@ describe('ChannelAttributesSettings', () => {
             const field = requiredField({name: 'notes', type: 'text', attrs: {display_name: 'Notes', required: true}});
             const {onMissing} = setup(field, undefined);
 
-            expect(await screen.findByTestId('channelAttributeRequiredError-notes')).toBeInTheDocument();
-            const input = screen.getByTestId('channelAttributesSettings-notes');
+            expect(await screen.findByTestId(ERROR)).toBeInTheDocument();
+            const input = screen.getByTestId('attrs.text_value:field1--textbox');
             expect(input).toHaveAttribute('aria-invalid', 'true');
 
             fireEvent.change(input, {target: {value: 'hello'}});
 
-            await waitFor(() => expect(screen.queryByTestId('channelAttributeRequiredError-notes')).not.toBeInTheDocument());
+            await waitFor(() => expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument());
             expect(input).not.toHaveAttribute('aria-invalid');
             expect(onMissing).toHaveBeenLastCalledWith([]);
         });
@@ -478,31 +496,31 @@ describe('ChannelAttributesSettings', () => {
         test('no error when the required field already has a value', async () => {
             const {onMissing} = setup(requiredField(), 'opt1');
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
-            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId(SELECT)).toBeInTheDocument());
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
             expect(onMissing).toHaveBeenLastCalledWith([]);
         });
 
         test('no error for an optional field', async () => {
             setup(makeField(), undefined);
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
-            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId(SELECT)).toBeInTheDocument());
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
         });
 
         test('a field the admin cannot edit never errors', async () => {
             const {onMissing} = setup(requiredField({permission_values: 'none'}), undefined);
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
-            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId(SELECT)).toBeDisabled());
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
             expect(onMissing).toHaveBeenLastCalledWith([]);
         });
 
         test('a field type with no editor never errors', async () => {
             const {onMissing} = setup(requiredField({name: 'when', type: 'date'}), undefined);
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-when')).toBeInTheDocument());
-            expect(screen.queryByTestId('channelAttributeRequiredError-when')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId('attrs.readonly_value:field1--text')).toBeInTheDocument());
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
             expect(onMissing).toHaveBeenLastCalledWith([]);
         });
 
@@ -511,8 +529,8 @@ describe('ChannelAttributesSettings', () => {
                 entities: {general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'false'}}},
             });
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
-            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId(SELECT)).toBeInTheDocument());
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
             expect(onMissing).toHaveBeenLastCalledWith([]);
         });
 
@@ -525,15 +543,15 @@ describe('ChannelAttributesSettings', () => {
                 },
             });
 
-            expect(await screen.findByTestId('channelAttributeRequiredError-program')).toBeInTheDocument();
+            expect(await screen.findByTestId(ERROR)).toBeInTheDocument();
             await waitFor(() => expect(onMissing).toHaveBeenLastCalledWith([{fieldId: expect.any(String), label: 'Program', cleared: false}]));
         });
 
         test('reports nothing while the page is read-only', async () => {
             const {onMissing} = setup(requiredField(), undefined, requiredState, jest.fn(), true);
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
-            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId(SELECT)).toBeDisabled());
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
             expect(onMissing).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
         });
 
@@ -563,9 +581,9 @@ describe('ChannelAttributesSettings', () => {
 
             const {onMissing} = setup(requiredField(), undefined);
 
-            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
+            await waitFor(() => expect(screen.getByTestId(SELECT)).toBeDisabled());
             expect(Client4.getPropertyValues).toHaveBeenCalled();
-            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(ERROR)).not.toBeInTheDocument();
             expect(onMissing).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
             expect(onMissing).toHaveBeenLastCalledWith([]);
         });

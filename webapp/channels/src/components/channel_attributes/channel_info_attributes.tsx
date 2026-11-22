@@ -474,7 +474,12 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                             {attribute.displayValue}
                                         </span>
                                     )}
-                                    {!attribute.displayValue && isMissing && <MissingValuePill field={field}/>}
+                                    {!attribute.displayValue && isMissing && (
+                                        <MissingValuePill
+                                            field={field}
+                                            testId={testId ? row : undefined}
+                                        />
+                                    )}
                                     {!attribute.displayValue && !isMissing && (
                                         <span
                                             className='ChannelInfoAttributes__empty'

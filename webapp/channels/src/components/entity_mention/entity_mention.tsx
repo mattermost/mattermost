@@ -26,6 +26,9 @@ type Props = {
     hasCard?: boolean;
     postId?: string;
     occurrence?: string;
+
+    /** Caller-supplied test id scope: the mention is `<scope>.link--link` or `<scope>.trigger--button`, its card `<scope>.card--tooltip`. */
+    testIdScope?: string;
     children?: React.ReactNode;
 };
 
@@ -142,7 +145,7 @@ function placeCard(anchor: DOMRect, cardBox: DOMRect) {
     return {top, left: Math.max(margin, left)};
 }
 
-export default function EntityMention({typeId, value, url, label: labelProp, title, hasCard, postId, occurrence, children}: Props) {
+export default function EntityMention({typeId, value, url, label: labelProp, title, hasCard, postId, occurrence, testIdScope, children}: Props) {
     const dispatch = useDispatch();
     const intl = useIntl();
     const timezone = useSelector(getCurrentTimezone);
@@ -251,7 +254,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
         <div
             ref={cardRef}
             role='tooltip'
-            data-testid='entity-mention-card'
+            data-testid={testIdScope ? `${testIdScope}.card--tooltip` : undefined}
             style={{...card, top: position.top, left: position.left, visibility: placed ? 'visible' : 'hidden'}}
             onMouseEnter={scheduleOpen}
             onMouseLeave={scheduleClose}
@@ -260,7 +263,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             <span style={{display: 'block', fontWeight: 600}}>{label}</span>
             <span
                 style={{display: 'block'}}
-                data-testid='entity-mention-card-primary'
+                data-testid={testIdScope ? `${testIdScope}.card.primary--text` : undefined}
             >{primary}</span>
             {localTime && value !== localTime && (
                 <span style={{display: 'block', marginTop: 4, opacity: 0.64, fontSize: 12}}>{value}</span>
@@ -288,7 +291,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
                 ref={anchorRef as React.RefObject<HTMLAnchorElement>}
                 href={safeURL}
                 className='entity-mention'
-                data-testid='entity-mention'
+                data-testid={testIdScope ? `${testIdScope}.link--link` : undefined}
                 style={{...mention, textDecorationStyle: 'solid', color: 'var(--link-color)'}}
                 onMouseEnter={showTitle ? scheduleOpen : undefined}
                 onMouseLeave={showTitle ? scheduleClose : undefined}
@@ -304,7 +307,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             ref={anchorRef as React.RefObject<HTMLButtonElement>}
             type='button'
             className='entity-mention'
-            data-testid='entity-mention'
+            data-testid={testIdScope ? `${testIdScope}.trigger--button` : undefined}
             style={mention}
             onMouseEnter={scheduleOpen}
             onMouseLeave={scheduleClose}

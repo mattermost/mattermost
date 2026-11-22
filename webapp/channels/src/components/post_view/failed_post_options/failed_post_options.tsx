@@ -16,11 +16,15 @@ type Props = {
         createPost: (post: Post, files: FileInfo[]) => void;
         removePost: (post: ExtendedPost) => void;
     };
+
+    // Where the options sit in the testid tree, e.g. `center.post_list.post.failed`: `.retry--link` and `.cancel--link`.
+    testIdScope?: string;
 };
 
 const FailedPostOptions = ({
     post,
     actions,
+    testIdScope,
 }: Props) => {
     const retryPost = useCallback((e: MouseEvent): void => {
         e.preventDefault();
@@ -41,6 +45,7 @@ const FailedPostOptions = ({
             <a
                 className='post-retry'
                 href='#'
+                data-testid={testIdScope ? `${testIdScope}.retry--link` : undefined}
                 onClick={retryPost}
             >
                 <FormattedMessage
@@ -52,6 +57,7 @@ const FailedPostOptions = ({
             <a
                 className='post-cancel'
                 href='#'
+                data-testid={testIdScope ? `${testIdScope}.cancel--link` : undefined}
                 onClick={cancelPost}
             >
                 <FormattedMessage

@@ -160,8 +160,9 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
             attributeDisplayName,
             totalCount: missingCount + sharedCount,
             sharedCount,
+            testId: testIdScope ? `${testIdScope}.channels_without_value_modal` : undefined,
         });
-    }, [openChannelsWithoutValueModal, channelFieldId, attributeDisplayName, missingCount, sharedCount]);
+    }, [openChannelsWithoutValueModal, channelFieldId, attributeDisplayName, missingCount, sharedCount, testIdScope]);
 
     const handleNotify = useCallback(async () => {
         if (!channelFieldId || !missingValues.summary) {
@@ -203,7 +204,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
             noAdminCount: missingValues.summary.noAdminCount,
             messagePreview: missingValues.summary.messagePreview,
             attributeDisplayName,
-        });
+        }, testIdScope ? `${testIdScope}.notify_channel_admins_modal` : undefined);
         if (!confirmed || !stillCurrent()) {
             return;
         }
@@ -235,7 +236,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         if (stillCurrent()) {
             missingValues.reload();
         }
-    }, [channelFieldId, missingValues, promptNotifyChannelAdmins, attributeDisplayName, formatMessage]);
+    }, [channelFieldId, missingValues, promptNotifyChannelAdmins, attributeDisplayName, formatMessage, testIdScope]);
 
     const handleChangePolicySelect = useCallback((changePolicy: ChannelChangePolicy) => {
         onChange({...value, changePolicy});
@@ -329,6 +330,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                                     bodyId={MISSING_VALUES_BANNER_BODY_ID}
                                     onNotify={handleNotify}
                                     onViewList={handleViewList}
+                                    testId={testIdScope ? `${testIdScope}.missing_values_banner` : undefined}
                                 />
                             )}
                         </div>

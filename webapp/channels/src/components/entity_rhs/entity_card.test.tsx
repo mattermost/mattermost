@@ -39,12 +39,15 @@ describe('EntityCardView', () => {
 
     it('renders the blocks body and still shows the card url', () => {
         const {getByTestId} = renderWithContext(
-            <EntityCardView card={baseCard}/>,
+            <EntityCardView
+                card={baseCard}
+                testIdScope='rhs.entity.card'
+            />,
         );
 
-        expect(getByTestId('entity-card')).toBeInTheDocument();
-        expect(getByTestId('entity-card-blocks')).toBeInTheDocument();
-        expect(getByTestId('entity-card-link')).toHaveAttribute('href', 'https://example.com/time');
+        expect(getByTestId('rhs.entity.card--region')).toBeInTheDocument();
+        expect(getByTestId('rhs.entity.card.blocks--region')).toBeInTheDocument();
+        expect(getByTestId('rhs.entity.card.link--link')).toHaveAttribute('href', 'https://example.com/time');
     });
 
     it('renders a related term as its link and opens a typed value that has none', async () => {

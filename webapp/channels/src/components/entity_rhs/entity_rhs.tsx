@@ -47,7 +47,7 @@ function isRich(card: EntityCard) {
     );
 }
 
-export default function EntityRhs() {
+export default function EntityRhs({testIdScope}: {testIdScope?: string}) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const entity = useSelector(getSelectedEntity);
@@ -122,7 +122,7 @@ export default function EntityRhs() {
     return (
         <div
             className='sidebar-right__body'
-            data-testid='entity-rhs'
+            data-testid={testIdScope ? `${testIdScope}--region` : undefined}
         >
             <div className='sidebar--right__header'>
                 <span className='sidebar--right__title'>
@@ -150,6 +150,7 @@ export default function EntityRhs() {
                 {card && isRich(card) ? (
                     <EntityCardView
                         card={card}
+                        testIdScope={testIdScope ? `${testIdScope}.card` : undefined}
                         onOpen={openEntity}
                         reload={() => setReloadKey((key) => key + 1)}
                     />
@@ -168,7 +169,7 @@ export default function EntityRhs() {
                             <ExternalLink
                                 href={url}
                                 location='entity_rhs'
-                                data-testid='entity-rhs-link'
+                                data-testid={testIdScope ? `${testIdScope}.link--link` : undefined}
                             >
                                 {url}
                             </ExternalLink>

@@ -301,6 +301,7 @@ const HealthDashboard = ({
             saving={savingAutomaticChecks}
             disabledReason={automaticChecksDisabledReason}
             onChange={saveAutomaticChecks}
+            testId='admin.health.automatic_checks'
         />
     );
 
@@ -523,7 +524,7 @@ const HealthDashboard = ({
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {automaticChecks === false && (
-                        <AutomaticChecksOffBanner/>
+                        <AutomaticChecksOffBanner testId='admin.health.automatic_checks_off'/>
                     )}
                     {automaticChecksError && (
                         <AlertBanner

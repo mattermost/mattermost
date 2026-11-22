@@ -19,6 +19,7 @@ describe('NotifyChannelAdminsModal', () => {
     it('shows the no-admin bullet only when noAdminCount > 0', () => {
         const {rerender} = renderWithContext(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={26}
                 sharedCount={0}
                 uniqueAdminCount={10}
@@ -35,6 +36,7 @@ describe('NotifyChannelAdminsModal', () => {
 
         rerender(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={24}
                 sharedCount={0}
                 uniqueAdminCount={10}
@@ -53,6 +55,7 @@ describe('NotifyChannelAdminsModal', () => {
     it('says how many admins are notified and lists shared channels only when there are some', () => {
         const {rerender} = renderWithContext(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={26}
                 sharedCount={2}
                 uniqueAdminCount={10}
@@ -70,6 +73,7 @@ describe('NotifyChannelAdminsModal', () => {
 
         rerender(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={26}
                 sharedCount={0}
                 uniqueAdminCount={10}
@@ -88,6 +92,7 @@ describe('NotifyChannelAdminsModal', () => {
     it('renders the server-supplied message preview verbatim', () => {
         renderWithContext(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={26}
                 sharedCount={0}
                 uniqueAdminCount={10}
@@ -106,6 +111,7 @@ describe('NotifyChannelAdminsModal', () => {
     it('calls onConfirm when Send notification is clicked', async () => {
         renderWithContext(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={26}
                 sharedCount={0}
                 uniqueAdminCount={10}
@@ -125,6 +131,7 @@ describe('NotifyChannelAdminsModal', () => {
     it('calls onCancel when Cancel is clicked', async () => {
         renderWithContext(
             <NotifyChannelAdminsModal
+                testId='notify_modal'
                 totalCount={26}
                 sharedCount={0}
                 uniqueAdminCount={10}

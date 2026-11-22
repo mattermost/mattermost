@@ -26,7 +26,23 @@ import PostAttributesFieldPicker from './post_attributes_field_picker';
 const GROUP_ID = 'group_id';
 const CHANNEL_ID = 'channel_id';
 
+const SCOPE = 'picker';
+
+// An item is keyed by its field's id and the tests name fields by name, so every field made is recorded here.
+const fieldIds: Record<string, string> = {};
+
+function addItemId(name: string): string {
+    return `${SCOPE}.add_menu.field:${fieldIds[name] ?? name}--menuitem`;
+}
+
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
+    const field = makeFieldWith(overrides);
+    fieldIds[field.name] = field.id;
+
+    return field;
+}
+
+function makeFieldWith(overrides: Partial<PropertyField>): PropertyField {
     return {
         id: 'field_1',
         group_id: GROUP_ID,
@@ -67,6 +83,7 @@ function iconIn(item: HTMLElement): SVGSVGElement | null {
 function renderPicker(fields: PropertyField[], onSelect: (fieldId: string) => void = jest.fn()) {
     return renderWithContext(
         <PostAttributesFieldPicker
+            testIdScope={SCOPE}
             fields={fields}
             onSelect={onSelect}
         />,
@@ -74,28 +91,28 @@ function renderPicker(fields: PropertyField[], onSelect: (fieldId: string) => vo
 }
 
 async function openPicker() {
-    await userEvent.click(screen.getByTestId('post-attributes-add'));
+    await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
 }
 
 describe('PostAttributesFieldPicker', () => {
-    test('uses the modal\'s id and test id unless given its own', () => {
+    test('uses the modal\'s id unless given its own, and carries test ids only with a scope', () => {
         const {unmount} = renderPicker([makeField()]);
 
-        expect(screen.getByTestId('post-attributes-add')).toHaveAttribute('id', 'postAttributesAdd');
+        expect(screen.getByTestId(`${SCOPE}.add--button`)).toHaveAttribute('id', 'postAttributesAdd');
 
         unmount();
 
         renderWithContext(
             <PostAttributesFieldPicker
                 id='composerAdd'
-                dataTestId='composer-add'
+                testIdScope='composer'
                 fields={[makeField()]}
                 onSelect={jest.fn()}
             />,
         );
 
-        expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
-        expect(screen.getByTestId('composer-add')).toHaveAttribute('id', 'composerAdd');
+        expect(screen.queryByTestId(`${SCOPE}.add--button`)).not.toBeInTheDocument();
+        expect(screen.getByTestId('composer.add--button')).toHaveAttribute('id', 'composerAdd');
     });
 
     test('two pickers with their own ids do not share an id, a test id or a menu id', async () => {
@@ -103,21 +120,21 @@ describe('PostAttributesFieldPicker', () => {
             <>
                 <PostAttributesFieldPicker
                     id='firstAdd'
-                    dataTestId='first-add'
+                    testIdScope='first'
                     fields={[makeField()]}
                     onSelect={jest.fn()}
                 />
                 <PostAttributesFieldPicker
                     id='secondAdd'
-                    dataTestId='second-add'
+                    testIdScope='second'
                     fields={[makeField()]}
                     onSelect={jest.fn()}
                 />
             </>,
         );
 
-        const first = screen.getByTestId('first-add');
-        const second = screen.getByTestId('second-add');
+        const first = screen.getByTestId('first.add--button');
+        const second = screen.getByTestId('second.add--button');
 
         expect(first.id).not.toBe(second.id);
         expect(first.getAttribute('aria-controls')).not.toBe(second.getAttribute('aria-controls'));
@@ -132,7 +149,7 @@ describe('PostAttributesFieldPicker', () => {
 
         renderWithContext(
             <PostAttributesFieldPicker
-                dataTestId='icon-add'
+                testIdScope={SCOPE}
                 fields={[makeField({id: 'f_a', name: 'alpha'})]}
                 onSelect={onSelect}
                 trigger={{
@@ -145,11 +162,11 @@ describe('PostAttributesFieldPicker', () => {
         expect(screen.queryByText('Add attribute')).not.toBeInTheDocument();
 
         const button = screen.getByRole('button', {name: 'Add attributes'});
-        expect(button).toHaveAttribute('data-testid', 'icon-add');
+        expect(button).toHaveAttribute('data-testid', `${SCOPE}.add--button`);
         expect(button).toContainElement(screen.getByTestId('custom-icon'));
 
         await userEvent.click(button);
-        await userEvent.click(screen.getByTestId('post-attribute-add-alpha'));
+        await userEvent.click(screen.getByTestId(addItemId('alpha')));
 
         await waitFor(() => expect(onSelect).toHaveBeenCalledWith('f_a'));
     });
@@ -171,9 +188,9 @@ describe('PostAttributesFieldPicker', () => {
         // the candidate list orders it, and the menu has to read the same way
         // the rows above it do.
         expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([
-            'post-attribute-add-caveats',
-            'post-attribute-add-alpha',
-            'post-attribute-add-beta',
+            addItemId('caveats'),
+            addItemId('alpha'),
+            addItemId('beta'),
         ]);
     });
 
@@ -199,7 +216,7 @@ describe('PostAttributesFieldPicker', () => {
         await openPicker();
 
         expected.forEach(([type], index) => {
-            const icon = iconIn(screen.getByTestId(`post-attribute-add-${type}`));
+            const icon = iconIn(screen.getByTestId(addItemId(type)));
 
             expect(icon?.querySelector('path')?.getAttribute('d')).toBe(paths[index]);
             expect(icon).toHaveAttribute('height', '18');
@@ -211,7 +228,7 @@ describe('PostAttributesFieldPicker', () => {
          * `date` control ever lands, the field becomes a candidate and this
          * assertion is what says the icon table has to grow with it.
          */
-        expect(iconIn(screen.getByTestId('post-attribute-add-date'))).toBeNull();
+        expect(iconIn(screen.getByTestId(addItemId('date')))).toBeNull();
     });
 
     test('calls onSelect once with the field id of the item clicked', async () => {
@@ -220,7 +237,7 @@ describe('PostAttributesFieldPicker', () => {
         renderPicker([makeField({id: 'f_a', name: 'alpha'}), makeField({id: 'f_b', name: 'beta'})], onSelect);
 
         await openPicker();
-        await userEvent.click(screen.getByTestId('post-attribute-add-beta'));
+        await userEvent.click(screen.getByTestId(addItemId('beta')));
 
         // A plain `menuitem` defers its `onClick` until the close animation has
         // run, so the call has not happened yet at the point the click returns.
@@ -243,7 +260,7 @@ describe('PostAttributesFieldPicker', () => {
             renderPicker(fiveFields().slice(0, 4));
             await openPicker();
 
-            expect(screen.queryByTestId('post-attributes-add-search')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${SCOPE}.add_menu.search--textbox`)).not.toBeInTheDocument();
         });
 
         test('from five fields, focuses a search box that filters by label and by name', async () => {
@@ -255,13 +272,13 @@ describe('PostAttributesFieldPicker', () => {
 
             await userEvent.type(search, 'ri');
             expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([
-                'post-attribute-add-alpha',
-                'post-attribute-add-bravo',
+                addItemId('alpha'),
+                addItemId('bravo'),
             ]);
 
             await userEvent.clear(search);
             await userEvent.type(search, 'ECHO');
-            expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual(['post-attribute-add-echo']);
+            expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([addItemId('echo')]);
         });
 
         test('a search that matches nothing says so, and the line cannot be picked', async () => {
@@ -273,13 +290,13 @@ describe('PostAttributesFieldPicker', () => {
             await waitFor(() => expect(search).toHaveFocus());
             await userEvent.type(search, 'zzz');
 
-            const noResults = screen.getByTestId('post-attributes-add-no-results');
+            const noResults = screen.getByTestId(`${SCOPE}.add_menu.no_results--menuitem`);
             expect(noResults).toHaveTextContent('No matching attributes');
             expect(noResults).toHaveAttribute('aria-disabled', 'true');
             expect(screen.getAllByRole('menuitem')).toEqual([noResults]);
 
             await userEvent.clear(search);
-            expect(screen.queryByTestId('post-attributes-add-no-results')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${SCOPE}.add_menu.no_results--menuitem`)).not.toBeInTheDocument();
             expect(onSelect).not.toHaveBeenCalled();
         });
 
@@ -292,7 +309,7 @@ describe('PostAttributesFieldPicker', () => {
             await userEvent.type(search, '   ');
 
             expect(screen.getAllByRole('menuitem')).toHaveLength(5);
-            expect(screen.queryByTestId('post-attributes-add-no-results')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${SCOPE}.add_menu.no_results--menuitem`)).not.toBeInTheDocument();
         });
 
         test('dropping below five fields while a search is active removes the search and its filter', async () => {
@@ -323,7 +340,7 @@ describe('PostAttributesFieldPicker', () => {
             await waitFor(() => expect(search).toHaveFocus());
             await userEvent.keyboard('{ArrowDown}');
 
-            expect(screen.getByTestId('post-attribute-add-alpha')).toHaveFocus();
+            expect(screen.getByTestId(addItemId('alpha'))).toHaveFocus();
         });
 
         test('Escape in the search box closes the menu and picks nothing; reopening starts a fresh search', async () => {
@@ -351,6 +368,7 @@ describe('PostAttributesFieldPicker', () => {
                 return renderWithContext(
                     <>
                         <PostAttributesFieldPicker
+                            testIdScope={SCOPE}
                             fields={fiveFields()}
                             onSelect={onSelect}
                         />
@@ -372,11 +390,11 @@ describe('PostAttributesFieldPicker', () => {
                 await userEvent.type(search, 'ri');
 
                 expect(search).toHaveValue('ri');
-                expect(modalItems()).toEqual(['post-attribute-add-alpha', 'post-attribute-add-bravo']);
+                expect(modalItems()).toEqual([addItemId('alpha'), addItemId('bravo')]);
 
                 await userEvent.clear(search);
                 await userEvent.type(search, 'zzz');
-                expect(screen.getByTestId('post-attributes-add-no-results')).toBeInTheDocument();
+                expect(screen.getByTestId(`${SCOPE}.add_menu.no_results--menuitem`)).toBeInTheDocument();
             });
 
             test('a click in the search box leaves the menu open', async () => {
@@ -395,7 +413,7 @@ describe('PostAttributesFieldPicker', () => {
                 await openPicker();
 
                 await userEvent.type(within(screen.getByRole('dialog')).getByRole('searchbox', {name: 'Search attributes'}), 'echo');
-                await userEvent.click(screen.getByTestId('post-attribute-add-echo'));
+                await userEvent.click(screen.getByTestId(addItemId('echo')));
 
                 expect(onSelect).toHaveBeenCalledTimes(1);
                 expect(onSelect).toHaveBeenCalledWith('f_e');
@@ -412,6 +430,7 @@ describe('PostAttributesFieldPicker', () => {
         renderWithContext(
             <div role='dialog'>
                 <PostAttributesFieldPicker
+                    testIdScope={SCOPE}
                     fields={[makeField({id: 'f_a', name: 'alpha'})]}
                     onSelect={jest.fn()}
                 />
@@ -430,18 +449,18 @@ describe('PostAttributesFieldPicker', () => {
                 fields={[makeField({id: 'f_a', name: 'alpha'})]}
                 onSelect={onSelect}
                 trigger={{label: 'Add attributes', icon: <span/>}}
-                dataTestId='composer-add'
+                testIdScope='composer'
                 disabledReason='Burn-on-read messages can’t have attributes'
             />,
         );
 
-        const trigger = screen.getByTestId('composer-add');
+        const trigger = screen.getByTestId('composer.add--button');
         expect(trigger).toBeDisabled();
 
         await userEvent.click(trigger);
         expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 
-        await userEvent.hover(screen.getByTestId('composer-add-blocked'));
+        await userEvent.hover(screen.getByTestId('composer.add_blocked--group'));
         expect(await screen.findByRole('tooltip')).toHaveTextContent('Burn-on-read messages can’t have attributes');
         expect(screen.queryByText('Add attributes', {selector: '[role="tooltip"] *'})).not.toBeInTheDocument();
     });
@@ -456,6 +475,7 @@ describe('PostAttributesFieldPicker', () => {
     test('a compact picker draws "Add attribute" as a Compass button that opens the menu', async () => {
         renderWithContext(
             <PostAttributesFieldPicker
+                testIdScope={SCOPE}
                 compact={true}
                 fields={[makeField({id: 'f_a', name: 'alpha'})]}
                 onSelect={jest.fn()}
@@ -463,7 +483,7 @@ describe('PostAttributesFieldPicker', () => {
         );
 
         const button = screen.getByRole('button', {name: 'Add attribute'});
-        expect(button).toHaveAttribute('data-testid', 'post-attributes-add');
+        expect(button).toHaveAttribute('data-testid', `${SCOPE}.add--button`);
         expect(button).not.toHaveClass('PostAttributesModal__add');
 
         await userEvent.click(button);
@@ -476,12 +496,13 @@ describe('PostAttributesFieldPicker', () => {
         renderWithContext(
             <>
                 <PostAttributesFieldPicker
+                    testIdScope={SCOPE}
                     fields={[makeField({id: 'f_a', name: 'alpha'})]}
                     onSelect={jest.fn()}
                 />
                 <PostAttributesFieldPicker
                     id='composerAdd'
-                    dataTestId='composer-add'
+                    testIdScope='composer'
                     compact={true}
                     fields={[makeField({id: 'f_a', name: 'alpha'})]}
                     onSelect={jest.fn()}
@@ -489,14 +510,14 @@ describe('PostAttributesFieldPicker', () => {
             </>,
         );
 
-        const modalAdd = screen.getByTestId('post-attributes-add');
+        const modalAdd = screen.getByTestId(`${SCOPE}.add--button`);
         expect(modalAdd).toHaveClass('PostAttributesModal__add');
         expect(modalAdd.className).toMatch(/button--emphasis-dim/);
         expect(modalAdd.className).not.toMatch(/button--emphasis-tertiary/);
         expect(modalAdd.className).toMatch(/button--size-small/);
         expect(modalAdd.className).toMatch(/button--compact/);
 
-        const composerAdd = screen.getByTestId('composer-add');
+        const composerAdd = screen.getByTestId('composer.add--button');
         expect(composerAdd.className).toMatch(/button--emphasis-dim/);
         expect(composerAdd.className).toMatch(/button--size-x-small/);
         expect(composerAdd.className).not.toMatch(/button--compact/);

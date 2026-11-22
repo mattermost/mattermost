@@ -104,58 +104,98 @@ describe('MissingRequiredAttributesNotice', () => {
     });
 
     test('shows the notice when a required value is missing', () => {
-        renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, makeState([field('program')]));
+        renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), makeState([field('program')]));
 
-        expect(screen.getByTestId('missingRequiredAttributesNotice')).toHaveAttribute('role', 'status');
+        expect(screen.getByTestId('fixture.notice')).toHaveAttribute('role', 'status');
         expect(screen.getByText('Channel attribute values are missing')).toBeInTheDocument();
-        expect(screen.getByTestId('missingRequiredAttributesNoticeAddValues')).toHaveTextContent('Add values');
+        expect(screen.getByTestId('fixture.notice.add_values--button')).toHaveTextContent('Add values');
     });
 
     test('shows nothing when no required field is missing a value', () => {
         const state = makeState([field('program')]);
         (state.entities!.properties!.values as {byTargetId: Record<string, unknown>}).byTargetId = {channel1: {program: value('channel1', 'program')}};
 
-        renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, state);
+        renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), state);
 
-        expect(screen.queryByTestId('missingRequiredAttributesNotice')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.notice')).not.toBeInTheDocument();
     });
 
     test('shows nothing while the required flag is off', () => {
-        renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, makeState([field('program')], {flag: 'false'}));
+        renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), makeState([field('program')], {flag: 'false'}));
 
-        expect(screen.queryByTestId('missingRequiredAttributesNotice')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.notice')).not.toBeInTheDocument();
     });
 
     test('shows nothing for a direct message', () => {
-        renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, makeState([field('program')], {channelType: 'D'}));
+        renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), makeState([field('program')], {channelType: 'D'}));
 
-        expect(screen.queryByTestId('missingRequiredAttributesNotice')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.notice')).not.toBeInTheDocument();
     });
 
     test('Add values opens the editor for the first missing field', async () => {
         const openEditor = jest.spyOn(rhsActions, 'openChannelAttributeEditor').mockReturnValue(() => ({data: true}));
 
-        renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, makeState([field('zulu'), field('alpha')]));
+        renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), makeState([field('zulu'), field('alpha')]));
 
-        await userEvent.click(screen.getByTestId('missingRequiredAttributesNoticeAddValues'));
+        await userEvent.click(screen.getByTestId('fixture.notice.add_values--button'));
 
         expect(openEditor).toHaveBeenCalledWith('channel1', 'alpha');
     });
 
     test('switching to a second loaded channel fetches neither values nor fields', () => {
-        const {rerender} = renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, makeState([field('program')]));
-        expect(screen.getByTestId('missingRequiredAttributesNotice')).toBeInTheDocument();
+        const {rerender} = renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), makeState([field('program')]));
+        expect(screen.getByTestId('fixture.notice')).toBeInTheDocument();
 
-        rerender(<MissingRequiredAttributesNotice channelId='channel2'/>);
+        rerender((
+            <MissingRequiredAttributesNotice
+                channelId='channel2'
+                testId='fixture.notice'
+            />
+        ));
 
-        expect(screen.getByTestId('missingRequiredAttributesNotice')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture.notice')).toBeInTheDocument();
         expect(getPropertyValues).not.toHaveBeenCalled();
         expect(fetchPropertyFields).not.toHaveBeenCalled();
     });
 
     test('a websocket value for the missing field hides the notice', () => {
-        const {store} = renderWithContext(<MissingRequiredAttributesNotice channelId='channel1'/>, makeState([field('program')]));
-        expect(screen.getByTestId('missingRequiredAttributesNotice')).toBeInTheDocument();
+        const {store} = renderWithContext((
+            <MissingRequiredAttributesNotice
+                channelId='channel1'
+                testId='fixture.notice'
+            />
+        ), makeState([field('program')]));
+        expect(screen.getByTestId('fixture.notice')).toBeInTheDocument();
 
         act(() => {
             store.dispatch({
@@ -164,6 +204,6 @@ describe('MissingRequiredAttributesNotice', () => {
             });
         });
 
-        expect(screen.queryByTestId('missingRequiredAttributesNotice')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.notice')).not.toBeInTheDocument();
     });
 });

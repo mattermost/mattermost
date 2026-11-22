@@ -362,81 +362,7 @@
                 }
             ]
         },
-        "strictPaths": ["channels/src/", "platform/"],
-        "strictExceptions": [
-            {
-                "path": "channels/src/components/admin_console/global_attributes/applies_to/channels/channels_missing_values_banner.tsx",
-                "reason": "New on master since this stack's base (required channel attributes): its test id is not in the grammar yet, and PR 11 gives it one together with the specs that use it."
-            },
-            {
-                "path": "channels/src/components/admin_console/global_attributes/applies_to/channels/channels_without_value_modal.tsx",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/admin_console/team_channel_settings/channel/details/channel_attributes_settings.tsx",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/entity_mention/",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/entity_rhs/",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/post_attributes/post_attribute_chip.tsx",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/post_attributes/post_attribute_value_control.tsx",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/post_attributes/post_attributes_composer.tsx",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/post_attributes/post_attributes_field_picker.tsx",
-                "reason": "New on master since this stack's base (post attributes composer and picker, entity cards and mentions, required channel attributes): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/common/disabled_reason_tooltip.tsx",
-                "reason": "Shared component whose test-id prop passes through ids from the master-new components listed beside it, so the diagnostic is raised here; it goes away when PR 11 converts those callers."
-            },
-            {
-                "path": "channels/src/components/menu/menu.tsx",
-                "reason": "Shared component whose test-id prop passes through ids from the master-new components listed beside it, so the diagnostic is raised here; it goes away when PR 11 converts those callers."
-            },
-            {
-                "path": "platform/components/src/generic_modal/generic_modal.tsx",
-                "reason": "Shared component whose test-id prop passes through ids from the master-new components listed beside it, so the diagnostic is raised here; it goes away when PR 11 converts those callers."
-            },
-            {
-                "path": "channels/src/components/admin_console/health_dashboard/automatic_checks.tsx",
-                "reason": "New on master since this stack's base (Site health automatic checks switch): its test id is not in the grammar yet, and PR 11 gives it one together with the specs that use it."
-            },
-            {
-                "path": "channels/src/components/channel_attributes/missing_required_attributes_notice.tsx",
-                "reason": "New on master since this stack's base (missing required channel attribute indicators): its test ids are not in the grammar yet, and PR 11 gives them ids together with the specs that use them."
-            },
-            {
-                "path": "channels/src/components/channel_attributes/missing_value_pill.tsx",
-                "reason": "New on master since this stack's base (missing required channel attribute indicators): its test id is not in the grammar yet, and PR 11 gives it one under the channel attribute row scope together with the specs that use it."
-            }
-        ],
-        "allow": [
-            {
-                "rule": "grammar",
-                "template": "channelAttributesRequiredToSave",
-                "reason": "New on master since this stack's base (required channel attributes in Channel Configuration): the notice's test id is not in the grammar yet, and PR 11 gives it one together with the spec that uses it."
-            },
-            {
-                "rule": "grammar",
-                "template": "channelHeaderMissingAttributeChip-{key}",
-                "reason": "New on master since this stack's base (missing required channel attribute indicators): the header's \"Set <attribute>\" chip has no grammar id yet, and PR 11 gives it one together with the specs that use it."
-            }
-        ]
+        "strictPaths": ["channels/src/", "platform/"]
     },
     "keyValues": [{"function": "timeKey", "module": "components/datetime_input/datetime_input"}],
     "pageParams": {
@@ -455,16 +381,6 @@
                 "testid": "e2e-route-${postAuthTestPluginId}",
                 "file": "functional/plugins/pre_auth_webapp_plugins.spec.ts",
                 "reason": "the marker the test webapp plugin renders on its own route, outside the webapp the scan reads."
-            },
-            {
-                "testid": "post_attributes_modal.add--button",
-                "file": "functional/channels/post_attributes/post_attributes_editing.spec.ts",
-                "reason": "the edit modal's add trigger gets its id from the picker, which builds it at run time from the modal's scope, so the scan cannot read it; a Jest test of the modal asserts the id."
-            },
-            {
-                "testid": "post_attributes_modal.add_menu.field:${field.id}--menuitem",
-                "file": "functional/channels/post_attributes/post_attributes_editing.spec.ts",
-                "reason": "the picker builds its item ids at run time from the modal's scope, so the scan cannot read them; a Jest test of the picker asserts them."
             }
         ]
     },

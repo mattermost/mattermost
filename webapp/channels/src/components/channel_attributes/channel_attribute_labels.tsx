@@ -75,7 +75,8 @@ type Props = {
     showMissingPlaceholders?: boolean;
 
     // The row's testid scope: the row is `<testId>`, its chips `<testId>.chip:<position>`, the "+N" button `<testId>.overflow--button`, and its popover
-    // `<testId>.overflow_popover` with the hidden chips at `.chip:<position>` and `.view_all--button`.
+    // `<testId>.overflow_popover` with the hidden chips at `.chip:<position>` and `.view_all--button`. A "Set {label}" chip is
+    // `.missing:<field id>--button`, in the row or in the popover.
     testId?: string;
 };
 
@@ -93,7 +94,7 @@ type ChipSpec = {
     color?: string;
 
     // A "Set {label}" prompt for a missing value instead of a value chip.
-    missingFieldId?: string;
+    missingFieldId?: PropertyField['id'];
     missingFieldName?: string;
 };
 
@@ -208,7 +209,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
         return null;
     }
 
-    const renderMissingChip = (spec: ChipSpec, fieldId: string) => (
+    const renderMissingChip = (spec: ChipSpec, fieldId: PropertyField['id'], scope: string | undefined) => (
         <button
             type='button'
             className='ChannelAttributeLabels__chipButton'
@@ -216,7 +217,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
                 dispatch(openChannelAttributeEditor(channelId, fieldId));
                 setPopoverOpen(false);
             }}
-            data-testid={`channelHeaderMissingAttributeChip-${spec.missingFieldName}`}
+            data-testid={scope ? `${scope}.missing:${fieldId}--button` : undefined}
         >
             <AttributeChip
                 label={spec.fieldLabel}
@@ -254,7 +255,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
                 ref={chipRef(id)}
                 className='ChannelAttributeLabels__item'
             >
-                {spec.missingFieldId ? renderMissingChip(spec, spec.missingFieldId) : (
+                {spec.missingFieldId ? renderMissingChip(spec, spec.missingFieldId, testId) : (
                     <WithTooltip title={spec.fieldLabel}>
                         {wrapChip(
                             <AttributeChip
@@ -331,7 +332,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
                                     <span className='ChannelAttributeLabels__popoverLabel'>
                                         {spec.fieldLabel}
                                     </span>
-                                    {spec.missingFieldId ? renderMissingChip(spec, spec.missingFieldId) : wrapChip(
+                                    {spec.missingFieldId ? renderMissingChip(spec, spec.missingFieldId, testId ? `${testId}.overflow_popover` : undefined) : wrapChip(
                                         <AttributeChip
                                             testId={testId ? `${testId}.overflow_popover.chip` : undefined}
                                             testKey={index}

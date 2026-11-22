@@ -40,7 +40,7 @@ async function renderDashboard(state: ReturnType<typeof viewedBy>) {
 }
 
 async function openMenu() {
-    await userEvent.click(screen.getByTestId('healthDashboardExportButton'));
+    await userEvent.click(screen.getByTestId('admin.health.export--button'));
 }
 
 describe('components/admin_console/health_dashboard/export_menu', () => {
@@ -64,7 +64,7 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
     test('is shown to delegated admins without manage_system', async () => {
         await renderDashboard(systemManager);
 
-        expect(screen.getByTestId('healthDashboardExportButton')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.health.export--button')).toBeInTheDocument();
     });
 
     test('lists the three export options', async () => {
@@ -140,7 +140,7 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         await openMenu();
         await userEvent.click(screen.getByRole('menuitem', {name: 'Download HTML'}));
 
-        const button = screen.getByTestId('healthDashboardExportButton');
+        const button = screen.getByTestId('admin.health.export--button');
         await waitFor(() => expect(button).toBeDisabled());
         expect(button).toHaveAccessibleName('Exporting…');
 
@@ -158,7 +158,7 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         await userEvent.click(screen.getByRole('menuitem', {name: 'Download HTML'}));
 
         expect(await screen.findByText('The health findings could not be exported. Try again.')).toBeInTheDocument();
-        expect(screen.getByTestId('healthDashboardExportButton')).toBeEnabled();
+        expect(screen.getByTestId('admin.health.export--button')).toBeEnabled();
 
         exportHealthFindings.mockResolvedValueOnce({content: 'report', filename: 'site-health.md'});
         jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});

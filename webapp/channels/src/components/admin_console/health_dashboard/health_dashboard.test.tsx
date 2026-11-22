@@ -972,7 +972,7 @@ describe('components/admin_console/health_dashboard', () => {
             expect(automaticChecksSwitch()).toBeEnabled();
             const actions = automaticChecksSwitch().closest('.HealthDashboard__actions') as HTMLElement;
             expect(within(actions).getByRole('button', {name: 'Re-run checks'})).toBeInTheDocument();
-            expect(within(actions).getByTestId('healthDashboardExportButton')).toBeInTheDocument();
+            expect(within(actions).getByTestId('admin.health.export--button')).toBeInTheDocument();
             expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             expect(screen.queryByRole('radio')).not.toBeInTheDocument();

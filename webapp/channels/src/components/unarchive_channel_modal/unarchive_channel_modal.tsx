@@ -29,9 +29,12 @@ type Props = {
     /** The kind of channel, so the modal says "board" rather than "channel" for a board. */
     channelKind?: ChannelKind;
     actions: ChannelDetailsActions;
+
+    // The modal's testid scope, from the surface that opens it.
+    testId?: string;
 };
 
-export default function UnarchiveChannelModal({onExited, channel, channelKind = 'channel', actions}: Props) {
+export default function UnarchiveChannelModal({onExited, channel, channelKind = 'channel', actions, testId}: Props) {
     const [show, setShow] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | undefined>();
@@ -98,6 +101,7 @@ export default function UnarchiveChannelModal({onExited, channel, channelKind = 
             )}
             errorText={serverError}
             compassDesign={true}
+            testId={testId}
         >
             <div className='alert alert-danger'>
                 <FormattedMessage
@@ -111,6 +115,7 @@ export default function UnarchiveChannelModal({onExited, channel, channelKind = 
             {missing.length > 0 && (
                 <AlertBanner
                     id='unarchiveChannelModalMissingAttributes'
+                    testId={testId ? `${testId}.missing_attributes` : undefined}
                     mode='warning'
                     title={(
                         <FormattedMessage

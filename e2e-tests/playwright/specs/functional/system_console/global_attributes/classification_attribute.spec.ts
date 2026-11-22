@@ -282,5 +282,44 @@ test.describe(
 
             expect(await findChannelField(adminClient, 'classification')).toBeUndefined();
         });
+
+        /**
+         * @objective Verify the missing-values banner and the notify preview call the
+         * attribute Classification, as the page does, rather than "this attribute" or
+         * its internal name.
+         */
+        test('names Classification in the missing-values banner and the notify preview', async ({pw}) => {
+            await pw.ensureFeatureFlag(FEATURE_FLAGS);
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            await setupClassificationWithChannelField(adminClient);
+            const {team} = await pw.initSetup();
+
+            // A channel with no classification, so the banner has something to count.
+            await adminClient.createChannel({
+                team_id: team.id,
+                name: `classification-missing-${pw.random.id()}`,
+                display_name: 'Classification Missing',
+                type: 'O',
+            } as Parameters<typeof adminClient.createChannel>[0]);
+
+            const {app} = await pw.testBrowser.login(adminUser);
+            const classification = await openClassificationAttribute(app);
+            const {settings} = classification.appliesTo.channel;
+
+            // * The banner names Classification
+            await expect(settings.missingValuesBanner).toContainText('a Classification value');
+            await expect(settings.missingValuesBanner).not.toContainText('this attribute');
+
+            // * So does the notify preview, formatted rather than as markdown
+            const modal = await settings.missingValuesBanner.notifyButton.clickTo(settings.notifyChannelAdminsModal);
+            await expect(modal).toContainText('a Classification value');
+            // The preview is rendered markdown, whose bold has no generated part.
+            // eslint-disable-next-line test-surface/e2e-no-literal-locators -- rendered markdown has no generated part for bold text
+            await expect(modal.previewText.locator.locator('strong')).toHaveText('Classification');
+            await expect(modal.previewText).not.toContainText('**');
+            await modal.cancelButton.click();
+            await expect(modal).not.toBeVisible();
+        });
     },
 );

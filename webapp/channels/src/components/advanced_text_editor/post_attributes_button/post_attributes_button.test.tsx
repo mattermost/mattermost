@@ -51,7 +51,7 @@ describe('PostAttributesButton', () => {
 
         // The focused element is the menu button itself, so it carries the
         // menu state that a screen reader announces.
-        expect(button).toHaveAttribute('data-testid', 'center.post_create.post_attributes--button');
+        expect(button).toHaveAttribute('data-testid', 'center.post_create.post_attributes.add--button');
         expect(button).toHaveAttribute('aria-haspopup', 'true');
         expect(button).toHaveAttribute('aria-expanded', 'false');
     });
@@ -70,11 +70,11 @@ describe('PostAttributesButton', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Add attributes'}));
 
         expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([
-            'center.post_create.post_attributes_menu.field:f_a--menuitem',
-            'center.post_create.post_attributes_menu.field:f_b--menuitem',
+            'center.post_create.post_attributes.add_menu.field:f_a--menuitem',
+            'center.post_create.post_attributes.add_menu.field:f_b--menuitem',
         ]);
 
-        await userEvent.click(screen.getByTestId('center.post_create.post_attributes_menu.field:f_b--menuitem'));
+        await userEvent.click(screen.getByTestId('center.post_create.post_attributes.add_menu.field:f_b--menuitem'));
 
         await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1));
         expect(onSelect).toHaveBeenCalledWith('f_b');
@@ -89,7 +89,7 @@ describe('PostAttributesButton', () => {
             />,
         );
 
-        expect(screen.queryByTestId('center.post_create.post_attributes--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_create.post_attributes.add--button')).not.toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
@@ -109,7 +109,7 @@ describe('PostAttributesButton', () => {
             </>,
         );
 
-        const [first, second] = screen.getAllByTestId('center.post_create.post_attributes--button');
+        const [first, second] = screen.getAllByTestId('center.post_create.post_attributes.add--button');
 
         expect(first.id).not.toBe(second.id);
         expect(first.getAttribute('aria-controls')).not.toBe(second.getAttribute('aria-controls'));

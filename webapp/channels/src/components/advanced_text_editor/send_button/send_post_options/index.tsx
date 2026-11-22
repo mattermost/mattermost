@@ -140,6 +140,7 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
         <DisabledReasonTooltip
             reason={blockedReason}
             className='send_post_options_blocked'
+            data-testid={testId ? `${testId}.blocked--group` : undefined}
         >
             {menu}
         </DisabledReasonTooltip>

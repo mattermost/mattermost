@@ -66,6 +66,7 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                             destructive={!isArchived}
                             disabled={isDisabled}
                             onClick={props.onToggleArchive}
+                            data-testid='admin.channel.profile.toggle_archive--button'
                             leadingIcon={(
                                 <Icon
                                     glyph={isArchived ? <ArchiveArrowUpOutlineIcon/> : <ArchiveOutlineIcon/>}

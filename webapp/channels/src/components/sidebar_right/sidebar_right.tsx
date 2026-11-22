@@ -328,7 +328,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
         } else if (isEntityView) {
-            content = <EntityRhs/>;
+            content = <EntityRhs testIdScope='rhs.entity'/>;
         }
 
         const isRHSLoading = Boolean(

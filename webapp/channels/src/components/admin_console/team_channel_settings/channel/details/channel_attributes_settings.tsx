@@ -57,6 +57,9 @@ type Props = {
     // Marks each attribute in onMissingRequiredChange's list while the page
     // holds back Save because of them.
     showRequiredErrors?: boolean;
+
+    // Where the section sits in the testid tree, e.g. `admin.channel.attributes`.
+    testIdScope?: string;
 };
 
 function samePropertyValue(a: unknown, b: unknown): boolean {
@@ -95,7 +98,7 @@ function selectedOptionIds(rawValue: unknown): string[] {
  * Attributes and Channel Info use: a bordered dropdown with wrapping value
  * chips for select/multiselect/rank, and the hierarchical picker for graph.
  */
-const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange, onCheckingRequiredChange, onRequiredCheckFailedChange, showRequiredErrors}: Props) => {
+const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange, onCheckingRequiredChange, onRequiredCheckFailedChange, showRequiredErrors, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -217,7 +220,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
         >
             <div
                 className='ChannelAttributesSettings AdminPanel__content'
-                data-testid='channelAttributesSettings'
+                data-testid={testIdScope}
             >
                 {attributes.map(({field, value}) => {
                     const savedRaw = value?.value;
@@ -257,7 +260,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                                 value={text}
                                 disabled={disabled}
                                 onChange={(e) => handleFieldChange(field.id, e.target.value || null)}
-                                data-testid={inputId}
+                                data-testid={testIdScope ? `${testIdScope}.text_value:${field.id}--textbox` : undefined}
                             />
                         );
                     } else if (field.type === 'graph') {
@@ -271,7 +274,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                                 onIdsChange={(next) => handleFieldChange(field.id, next.length ? next : null)}
                                 menuId={`${inputId}-menu`}
                                 buttonId={inputId}
-                                buttonDataTestId={inputId}
+                                buttonDataTestId={testIdScope ? `${testIdScope}.graph_value:${field.id}--button` : undefined}
                                 placeholder={formatMessage({id: 'admin.channel_settings.channel_detail.attributes.not_set', defaultMessage: 'Not set'})}
                                 ariaLabel={label}
                                 invalid={showRequiredError}
@@ -309,7 +312,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                             <Menu.Container
                                 menuButton={{
                                     id: inputId,
-                                    dataTestId: inputId,
+                                    dataTestId: testIdScope ? `${testIdScope}.select_value:${field.id}--button` : undefined,
                                     as: 'button',
                                     class: classNames('ChannelAttributesSettings__select', {'ChannelAttributesSettings__select--error': showRequiredError}),
                                     disabled,
@@ -331,6 +334,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                                                                     className='ChannelAttributesSettings__chipRemove'
                                                                     role='button'
                                                                     tabIndex={0}
+                                                                    data-testid={testIdScope ? `${testIdScope}.select_value_remove:${option.id}--button` : undefined}
                                                                     aria-label={formatMessage({id: 'admin.channel_settings.channel_detail.attributes.remove_value', defaultMessage: 'Remove {value}'}, {value: option.name})}
 
                                                                     // Inside the trigger button: pointerdown must be canceled
@@ -383,7 +387,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                                     <Menu.Item
                                         key={option.id}
                                         id={`${inputId}-${option.id}`}
-                                        data-testid={option === reachableOptions[0] ? inputId : undefined}
+                                        data-testid={testIdScope ? `${testIdScope}.select_option:${option.id}--menuitem` : undefined}
                                         labels={<span>{option.name}</span>}
                                         trailingElements={selectedIds.includes(option.id) ? (
                                             <CheckIcon
@@ -402,7 +406,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                         control = (
                             <span
                                 className='ChannelAttributesSettings__readOnly'
-                                data-testid={inputId}
+                                data-testid={testIdScope ? `${testIdScope}.readonly_value:${field.id}--text` : undefined}
                             >
                                 {text || formatMessage({id: 'admin.channel_settings.channel_detail.attributes.not_set', defaultMessage: 'Not set'})}
                             </span>
@@ -413,7 +417,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                         <div
                             className={classNames('ChannelAttributesSettings__row', {'ChannelAttributesSettings__row--error': showRequiredError})}
                             key={field.id}
-                            data-testid={`channelAttributesSettingsRow-${field.name}`}
+                            data-testid={testIdScope ? `${testIdScope}.row:${field.id}--group` : undefined}
                         >
                             <label htmlFor={field.type === 'date' || field.type === 'user' || field.type === 'multiuser' ? undefined : inputId}>
                                 {label}
@@ -423,7 +427,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                                 <span
                                     id={errorId}
                                     className='ChannelAttributesSettings__error'
-                                    data-testid={`channelAttributeRequiredError-${field.name}`}
+                                    data-testid={testIdScope ? `${testIdScope}.required_error:${field.id}--text` : undefined}
                                 >
                                     <FormattedMessage
                                         id='admin.channel_settings.channel_detail.attributes.required_error'

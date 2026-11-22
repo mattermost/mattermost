@@ -227,7 +227,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
                   */}
                 {addable.length > 0 && (
                     <PostAttributesFieldPicker
-                        testIdScope='post_attributes_modal.add'
+                        testIdScope='post_attributes_modal'
                         fields={addable}
                         onSelect={handleAdd}
                     />

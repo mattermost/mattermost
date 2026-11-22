@@ -79,7 +79,7 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, blocked
             <DisabledReasonTooltip
                 reason={blockedReason}
                 className='BurnOnReadButton__blocked'
-                data-testid='burn-on-read-blocked'
+                data-testid={testIdScope ? `${testIdScope}.burn_on_read_blocked--group` : undefined}
             >
                 {button}
             </DisabledReasonTooltip>

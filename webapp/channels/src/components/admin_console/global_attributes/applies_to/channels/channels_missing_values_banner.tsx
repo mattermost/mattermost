@@ -52,6 +52,9 @@ type Props = {
     bodyId: string;
     onNotify: () => void;
     onViewList: () => void;
+
+    // The banner's testid scope, from the settings it sits in.
+    testId?: string;
 };
 
 const messages = defineMessages({
@@ -111,6 +114,7 @@ export default function ChannelsMissingValuesBanner({
     bodyId,
     onNotify,
     onViewList,
+    testId,
 }: Props) {
     if (count <= 0) {
         return null;
@@ -164,7 +168,7 @@ export default function ChannelsMissingValuesBanner({
     return (
         <AlertBanner
             id='channelsMissingValuesBanner'
-            testId='channelsMissingValuesBanner'
+            testId={testId}
             mode={mode}
             title={<FormattedMessage {...messages.title}/>}
             message={message}
@@ -174,6 +178,7 @@ export default function ChannelsMissingValuesBanner({
                     className='AlertBanner__buttonLeft ChannelsMissingValuesBanner__notify'
                     disabled={status === 'notifying'}
                     onClick={onNotify}
+                    data-testid={testId ? `${testId}.notify--button` : undefined}
                 >
                     <FormattedMessage {...messages.notify}/>
                 </button>
@@ -183,6 +188,7 @@ export default function ChannelsMissingValuesBanner({
                     type='button'
                     className='AlertBanner__buttonRight ChannelsMissingValuesBanner__viewList'
                     onClick={onViewList}
+                    data-testid={testId ? `${testId}.view_list--button` : undefined}
                 >
                     <FormattedMessage {...messages.viewList}/>
                 </button>

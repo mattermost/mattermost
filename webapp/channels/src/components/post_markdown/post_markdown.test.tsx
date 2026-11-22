@@ -358,7 +358,7 @@ describe('components/PostMarkdown', () => {
             state,
         );
 
-        const mention = screen.getByTestId('entity-mention');
+        const mention = screen.getByTestId('post.entity.trigger--button');
         expect(mention.tagName).toBe('BUTTON');
         expect(mention).toHaveClass('entity-mention');
         expect(mention).toHaveTextContent('MLT');
@@ -392,7 +392,7 @@ describe('components/PostMarkdown', () => {
             state,
         );
 
-        const mention = screen.getByTestId('entity-mention');
+        const mention = screen.getByTestId('post.entity.link--link');
         expect(mention.tagName).toBe('A');
         expect(mention).toHaveAttribute('href', '/conflux/team/pages/mlt');
         expect(mention).toHaveTextContent('MLT');
@@ -424,7 +424,7 @@ describe('components/PostMarkdown', () => {
             state,
         );
 
-        expect(screen.queryByTestId('entity-mention')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(/^post\.entity\.(trigger|link)--/)).not.toBeInTheDocument();
         expect(screen.getByText('ask the team today')).toBeInTheDocument();
     });
 
