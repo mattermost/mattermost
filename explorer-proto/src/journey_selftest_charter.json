@@ -1,0 +1,161 @@
+{
+    "schema": "explorer-journey-charter/v1",
+    "journey_id": "selftest.tally:rendered-list",
+    "feature_id": ["selftest.rendered-list"],
+    "goal": "I want to check the ribbon tally shown in the showcase room, with every ribbon listed.",
+    "actors": [{"id": "viewer", "persona": "A synthetic viewer of the selftest app", "role": "member", "ui": true}],
+    "target_release": {
+        "build_identity_report": "Report Version and BuildHash verbatim from the client config; never asserted."
+    },
+    "fixture": {
+        "owner": "Synthetic fixture for the offline selftest app only.",
+        "server_preconditions": {
+            "how": "Read-only client config read before the fixture is built.",
+            "source": "client_config",
+            "expect": {"FeatureFlagRibbonTally": "true"}
+        },
+        "team": {"name_template": "tally-{slug}", "type": "O"},
+        "actors": [
+            {
+                "id": "viewer",
+                "first_name": "Ola",
+                "last_name": "Viewer",
+                "username_template": "viewer{slug}",
+                "email_template": "viewer{slug}@selftest.invalid",
+                "team_member": true
+            }
+        ],
+        "channels": [
+            {
+                "key": "lobby",
+                "name_template": "lobby-{slug}",
+                "display_name": "Lobby",
+                "api_type": "O",
+                "members": ["viewer"],
+                "seeded_posts": "None."
+            },
+            {
+                "key": "showcase",
+                "name_template": "showcase-{slug}",
+                "display_name": "Showcase",
+                "api_type": "O",
+                "members": ["viewer"],
+                "seeded_posts": "One post: fixture.posts[tally]."
+            }
+        ],
+        "posts": [
+            {
+                "key": "tally",
+                "channel": "showcase",
+                "as": "viewer, through the viewer's own REST session",
+                "request": "POST /api/v4/posts; expect 201",
+                "body": {
+                    "channel_id": "{channel.showcase.id}",
+                    "message": "Weekly ribbon tally is in.",
+                    "props": {
+                        "tally": {
+                            "heading": "Ribbon tally: spring fair",
+                            "note": "Counts are final",
+                            "items": [
+                                {"label": "Gold ribbon (2 awards)", "count": ""},
+                                {"label": "Silver ribbon (0 awards)", "count": ""},
+                                {"label": "Marker", "count": "shown"}
+                            ]
+                        }
+                    }
+                }
+            }
+        ],
+        "preferences": [{"actor": "viewer", "category": "selftest_overlay", "name": "{actor.viewer.id}", "value": "off"}],
+        "fixed_strings": {
+            "message": "Weekly ribbon tally is in.",
+            "tally_heading": "Ribbon tally: spring fair",
+            "tally_note": "Counts are final",
+            "marker_label_rendered": "Marker =",
+            "marker_value": "shown",
+            "item_a_rendered": "Gold ribbon (2 awards) =",
+            "item_b_rendered": "Silver ribbon (0 awards) ="
+        },
+        "read_back": "Before the session: (1) both rooms list the viewer; (2) the preference is stored; (3) lobby has no user post; (4) T-STORED holds; (5) both rooms are viewed clean."
+    },
+    "start": {"actor": "viewer", "start_path": "/{team.name}/channels/{channel.lobby.name}"},
+    "action_rules": {
+        "roles_in_play": ["button", "link"],
+        "key_actions": {"allowed": ["Escape"]},
+        "excluded_name_patterns": {"patterns": [{"pattern": "\\bsign ?out\\b", "why": "Ends the session."}]},
+        "uniqueness": "Exact role and name, exactly one visible enabled match."
+    },
+    "goal_terms": {"derive_from": "goal", "stopwords": ["i", "want", "to", "the", "in", "with", "every"]},
+    "checkpoints": [
+        {
+            "id": "T-STORED",
+            "kind": "rest",
+            "predicate": {
+                "request": "GET /api/v4/posts/{post.tally.id}, sent with the viewer's own REST session",
+                "expect": {
+                    "channel_id": "{channel.showcase.id}",
+                    "user_id": "{actor.viewer.id}",
+                    "message": "{fixture.fixed_strings.message}",
+                    "props.tally.items.length": 3,
+                    "props.tally.items[1]": {"label": "Silver ribbon (0 awards)", "count": ""},
+                    "props.tally.items[2].count": "shown"
+                }
+            }
+        },
+        {
+            "id": "T-SHOWN",
+            "kind": "ui",
+            "predicate": {
+                "snapshot": {
+                    "all": [
+                        {"text_contains": "{fixture.fixed_strings.tally_heading}", "count_at_least": 1},
+                        {"text_contains": "{fixture.fixed_strings.tally_note}", "count_at_least": 1},
+                        {"text_contains": "{fixture.fixed_strings.marker_label_rendered}", "count_at_least": 1},
+                        {"text_contains": "{fixture.fixed_strings.marker_value}", "count_at_least": 1}
+                    ]
+                },
+                "settle": {"rule": "Re-check the predicate for up to 1500 ms before recording it false."},
+                "post_scope": {"rule": "Inside one container: the smallest node whose subtree text contains tally_heading."}
+            }
+        },
+        {
+            "id": "T-ITEMS",
+            "kind": "ui",
+            "predicate": {
+                "evaluated_only_when": "T-SHOWN is true in the same observation.",
+                "snapshot": {
+                    "all": [
+                        {"text_contains": "{fixture.fixed_strings.item_a_rendered}", "count_at_least": 1},
+                        {"text_contains": "{fixture.fixed_strings.item_b_rendered}", "count_at_least": 1}
+                    ]
+                },
+                "settle": {"ms": 1200},
+                "post_scope": {"rule": "Same container as T-SHOWN."}
+            }
+        }
+    ],
+    "events": [],
+    "success_criteria": {
+        "qualifies_when": "T-STORED AND T-SHOWN AND T-ITEMS",
+        "outcomes": {
+            "per_state_classification": {
+                "UNSEEN": "T-SHOWN false once its window ends.",
+                "SEEN_COMPLETE": "T-SHOWN true and T-ITEMS true.",
+                "SEEN_INCOMPLETE": "T-SHOWN true and T-ITEMS false once its window ends."
+            },
+            "run_verdict": {
+                "SETUP_BROKEN": "The client-config precondition or a fixture read-back fails.",
+                "REGRESSION": "At least one reached state is SEEN_INCOMPLETE and its path, replayed for confirmation on a fresh fixture, is SEEN_INCOMPLETE again.",
+                "OK": "At least one reached state is SEEN_COMPLETE, confirmed on a fresh fixture, and no SEEN_INCOMPLETE observation exists in the run.",
+                "UNDECIDED": "Every other case."
+            },
+            "precedence": ["SETUP_BROKEN", "REGRESSION", "UNDECIDED when an unconfirmed SEEN_INCOMPLETE exists", "OK", "UNDECIDED"]
+        }
+    },
+    "observation_policy": {
+        "preserve_failures": "Copy every SEEN_INCOMPLETE observation into failing_observations.",
+        "no_early_stop": "Explore until budget or frontier exhaustion."
+    },
+    "budget": {"max_actions": 8, "max_depth": 2, "max_states": 10, "max_replays": 14, "wall_clock_seconds": 400},
+    "budget_reserve": {"confirmation_replays_reserved": 4}
+}
