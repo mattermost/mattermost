@@ -1,7 +1,7 @@
 # QA notes: acknowledge a teammate's notice (`messages.signals:acknowledge-teammate-notice`)
 
 The runner never reads this file. It holds the selection rationale, coverage evidence, budget arithmetic and
-limitations for the lead and the verifier. It contains no route. Checkout: branch head `03e3bf20ac`; product
+limitations for the lead and the verifier. It contains no route. Checkout: branch head `f8b07c3e79` (written at `03e3bf20ac`, rebased onto the read-back fix `85ff957b1b` and its diagnostic `f8b07c3e79`; neither touches product code); product
 source cited at tag `v12.1.0` (`243e3d0135`) unless marked HEAD. The directory is named `acknowledge-notice`
 instead of the suggested `journey-next`, because the journey id makes that name clearer.
 
@@ -30,7 +30,7 @@ already covers and adds a modal whose rows share the name `Join`; I rejected it.
 
 | Candidate | Verdict | Why not chosen |
 | --- | --- | --- |
-| Synced draft sent from Drafts in a second session | PARTIAL | The send-from-panel transition and server-side deletion are covered (Playwright `draft_send_from_panel.spec.ts:19`, `:84`). The current fixture factory cannot create a draft: `POST /api/v4/drafts` returns a `Draft` without `id` (`model/draft.go` `type Draft struct`), and `createFixturePost` requires one (`src/journey_fixture.ts:152-155`). The row actions are labelled only by a tooltip that exists on hover (`drafts/draft_actions/action.tsx` `aria-labelledby={draft_tooltip_<id>}`), so their snapshot names would be icon glyphs, and the delete glyph is not caught by any excluded-name pattern. |
+| Synced draft sent from Drafts in a second session | PARTIAL | The send-from-panel transition and server-side deletion are covered (Playwright `draft_send_from_panel.spec.ts:19`, `:84`). The current fixture factory cannot create a draft: `POST /api/v4/drafts` returns a `Draft` without `id` (`model/draft.go` `type Draft struct`), and `createFixturePost` requires one (`src/journey_fixture.ts:153-156`). The row actions are labelled only by a tooltip that exists on hover (`drafts/draft_actions/action.tsx` `aria-labelledby={draft_tooltip_<id>}`), so their snapshot names would be icon glyphs, and the delete glyph is not caught by any excluded-name pattern. |
 | Favorites persist after a switch and a reload | PARTIAL | Moving a channel into Favorites is covered in Cypress (three tests, section 2). The remaining gap (persistence after reload) is a personal outcome with no teammate consequence. |
 
 **Fresh candidates scanned and rejected:** scheduled message "Send now" (COVERED, Playwright
@@ -95,7 +95,7 @@ No favourites spec reloads. Beyond them: persistence across a switch and a reloa
 ### Repo index tool (data, not judgement)
 
 `node explorer-proto/v2/index/extract.mjs` (3,492 tests, 1,053/1,125 files, 3.5 s, cache
-`03e3bf20acab-9378b5ca-05238ad6`), then `coverage-check.mjs --k=5 --include-emitted` with candidates in
+`03e3bf20acab-9378b5ca-05238ad6`; re-run after the rebase with the same corpus hash and identical results), then `coverage-check.mjs --k=5 --include-emitted` with candidates in
 `explorer-proto/infra/.run/journey-next/{ack,drafts,favorites}.json` (git-ignored), written from en.json labels.
 
 | Candidate | Tool verdict | Top ranks (score) | My reading |
@@ -128,7 +128,9 @@ precondition cannot read it); button `post_view/acknowledgements/post_acknowledg
   `requested_ack: true`. No `name_format` preference, so the author's controls carry the slug and are dropped as
   non-replayable.
 - Viewed clean = the channel unread endpoint returns zero (`api4/channel.go:108`; `TotalMsgCount - member.MsgCount`,
-  `sqlstore/channel_store.go:928-936`). Member counters are not used: `msg_count` there counts messages read.
+  `sqlstore/channel_store.go:928-936`) for `msg_count`, `msg_count_root`, `mention_count` and `mention_count_root`,
+  with `mark_unread` not `mention`. Member counters are not used: `msg_count` there is the read cursor. This matches
+  the factory's read-back since `85ff957b1b` (`src/journey_fixture.ts:310-345`, `:373-383`).
 - Fixed strings checked for collisions: the notice text and the channel names match no en.json string; the
   deny list (`v2/bakeoff/deny_labels.json`) labels do not occur.
 
@@ -179,9 +181,10 @@ precondition cannot read it); button `post_view/acknowledgements/post_acknowledg
   Browse Channels `Join` rows) are skipped; glyph-prefixed badge text is matched by substring; Town Square and
   Off-Topic links may carry ` unread` (live names are used; the state key scrubs the suffix); a second actuation
   of the acknowledged control withdraws the acknowledgement within five minutes (ends PENDING, correct).
-- **Blocking engine issue:** the current read-back uses member counters (`src/journey_fixture.ts:324-337`); the
-  release channel holds a user post, so after the view call that record's `msg_count` is non-zero and the run would
-  stop as SETUP_FAILURE although the unread endpoint returns zero. Pending the separate diagnostic.
+- **Read-back (resolved during this task):** at `03e3bf20ac` the read-back used the member record's counters, so the
+  release channel (which holds a user post) would have failed as SETUP_FAILURE after the view call. The fix
+  `85ff957b1b` reads the unread endpoint with Bea's own session; `C-VIEWED` declares the same four counters. Not
+  run against a live server here.
 
 ## 7. Negative control
 
@@ -233,7 +236,7 @@ UI), urgent priority, other surfaces beyond depth 3.
 
 - No live server or Docker: every accessible name is SOURCE-DERIVED; nothing was observed.
 - The feature map itself is not in the repo; only its ids from the brief.
-- `cli.ts charter-check` (see section 10); the other agent's read-back diagnostic.
+- `cli.ts charter-check` (see section 10). The read-back diagnostic (`infra/scripts/diag_unread_readback.mjs`, commit `f8b07c3e79`) was read, not run.
 - compass-icons at the tag (lockfile 0.1.63) versus the inspected local 0.1.64.
 - Playwright 1.62.1 snapshot rendering of the post container (generic `div` with aria-label inside a listitem).
 - GitHub PR search by title only.

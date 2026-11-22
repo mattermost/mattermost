@@ -7,7 +7,7 @@
   "lane": "Browser",
   "target_release": {
     "server": "mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7 (licensed Enterprise; explorer-proto/infra/docker-compose.yml, digest as in explorer-proto/README.md). The main dev image is also licensed Enterprise.",
-    "source_tag": "v12.1.0 (commit 243e3d0135203ab9166fe8f2873b07f697b06fd4). Valid on main (HEAD 03e3bf20ac) with one added gate: main also refuses an acknowledgement without channel write access (api4/post.go acknowledgePost, requireChannelWriteAccessByID) and disables the button when the channel is write-denied (post_view/acknowledgements/index.ts isWriteDenied, post_acknowledgements.tsx aria-disabled). Neither applies to a default public channel, so the same charter is expected to hold on main. Not run on main.",
+    "source_tag": "v12.1.0 (commit 243e3d0135203ab9166fe8f2873b07f697b06fd4). Valid on main (checkout f8b07c3e79) with one added gate: main also refuses an acknowledgement without channel write access (api4/post.go acknowledgePost, requireChannelWriteAccessByID) and disables the button when the channel is write-denied (post_view/acknowledgements/index.ts isWriteDenied, post_acknowledgements.tsx aria-disabled). Neither applies to a default public channel, so the same charter is expected to hold on main. Not run on main.",
     "license_dependency": "Essential. Requesting an acknowledgement needs a Professional-or-higher licence (app/post_permission_utils.go:57-60 at v12.1.0, HTTP 501 otherwise), acknowledging needs one too (api4/post.go:1476-1479), and the webapp shows the button only when the authenticated client config carries PostAcknowledgements, which the server sets only with MinimumProfessionalLicense (config/client.go:238-240, inside GenerateClientConfig; selectors/entities/posts.ts:632-637). A licensed Enterprise server qualifies. Without a licence the fixture post is refused, which is a SETUP_FAILURE."
   },
   "goal": "I want Abe to know that I have read the change-freeze notice he posted for the team, so he does not have to chase me before the freeze starts.",
@@ -86,7 +86,7 @@
       {"actor": "bea", "category": "onboarding_task_list", "name": "onboarding_task_list_open", "value": "false", "why": "Task list overlay off."}
     ],
     "preferences_note": "No name_format preference: author names keep the slugged username, so the post's author controls are dropped as non-replayable, which keeps the notice's own controls the only post-level candidates.",
-    "viewed_last": "After the post and every membership and preference write, as bea: POST /api/v4/channels/members/me/view with {channel_id, prev_channel_id: ''} for release first and lounge last (route api4/channel.go:62 at v12.1.0; the current factory's rule, declaration order reversed). Viewed clean = the channel unread endpoint returns zero: GET /api/v4/users/{actor.bea.id}/channels/{channel.<key>.id}/unread (api4/channel.go:108) returns msg_count 0 and mention_count 0 for both channels. That endpoint computes msg_count as Channels.TotalMsgCount minus ChannelMembers.MsgCount (sqlstore/channel_store.go:928-936). The channel member record's msg_count counts messages READ, so it is not a 'viewed clean' signal and is not used here. No post, membership or preference write may follow the view calls.",
+    "viewed_last": "After the post and every membership and preference write, as bea: POST /api/v4/channels/members/me/view with {channel_id, prev_channel_id: ''} for release first and lounge last (route api4/channel.go:62 at v12.1.0; the current factory's rule, declaration order reversed). Viewed clean = the channel unread endpoint returns zero: GET /api/v4/users/{actor.bea.id}/channels/{channel.<key>.id}/unread (api4/channel.go:108) returns msg_count, msg_count_root, mention_count and mention_count_root all 0 for both channels, and Bea's mark_unread is not 'mention' (muting masks unread messages). That endpoint computes msg_count as Channels.TotalMsgCount minus ChannelMembers.MsgCount (sqlstore/channel_store.go:928-936). The channel member record's msg_count counts messages READ, so it is not a 'viewed clean' signal and is not used here. No post, membership or preference write may follow the view calls.",
     "fixed_strings": {
       "notice": "Change freeze for the 12.4 release starts on Friday evening. No merges to the release branch after that.",
       "priority_label": "Important",
@@ -171,12 +171,12 @@
     {
       "id": "C-VIEWED",
       "kind": "rest",
-      "description": "Both channels are viewed clean for Bea: the channel unread endpoint returns zero messages and zero mentions.",
+      "description": "Both channels are viewed clean for Bea: the channel unread endpoint returns zero unread messages and zero mentions, root counters included.",
       "predicate": {
         "poll": "Read at fixture read-back and at the end of every replay, as admin.",
         "all": [
-          {"request": "GET /api/v4/users/{actor.bea.id}/channels/{channel.lounge.id}/unread", "expect": {"msg_count": 0, "mention_count": 0}},
-          {"request": "GET /api/v4/users/{actor.bea.id}/channels/{channel.release.id}/unread", "expect": {"msg_count": 0, "mention_count": 0}}
+          {"request": "GET /api/v4/users/{actor.bea.id}/channels/{channel.lounge.id}/unread", "expect": {"msg_count": 0, "msg_count_root": 0, "mention_count": 0, "mention_count_root": 0}},
+          {"request": "GET /api/v4/users/{actor.bea.id}/channels/{channel.release.id}/unread", "expect": {"msg_count": 0, "msg_count_root": 0, "mention_count": 0, "mention_count_root": 0}}
         ],
         "role_note": "Setup guard for sidebar link names: no ' unread' or mention suffix at start. The channel member record's counters are not used."
       },
@@ -324,7 +324,7 @@
     "Never print, log or store passwords, tokens, the licence or session cookies. Traces hold no origin, port, slug or ids."
   ],
   "known_risks": [
-    "Engine read-back: the current factory's read-back judges 'viewed clean' from the channel member record (src/journey_fixture.ts:324-337). That record's msg_count counts messages read, so after the view call the release channel, which holds a user post, reads as non-zero and the run would stop as a SETUP_FAILURE although the unread endpoint returns zero. This charter declares the unread-endpoint semantics (C-VIEWED); the read-back fix is pending a separate diagnostic.",
+    "Read-back semantics: since 85ff957b1b the fixture read-back judges viewed clean from the channel unread endpoint with Bea's own session and refuses mark_unread 'mention' (src/journey_fixture.ts:310-345, :373-383). C-VIEWED declares the same four counters, read as admin, and is evaluated again at the end of every replay. The channel member record's counters are a read cursor and are not used.",
     "No spec emission: this is an outcome-mode charter, and the spec emitter refuses outcome charters (README-engine.md, outcome mode). A confirmed PASS yields a confirmed path and a report, not a repo-native spec, until the emitter supports outcome charters.",
     "Plain journey mode would not work: there, UI checkpoints count only after a teammate event fired (src/journey_search.ts:612-614, :868-875), and this journey has no event. That is why outcome mode is used.",
     "Shallow journey: the outcome needs very few actions once the right channel is open, so most of the budget goes to discovering it among unrelated menus and dialogs. See QA-NOTES.md for the arithmetic.",
