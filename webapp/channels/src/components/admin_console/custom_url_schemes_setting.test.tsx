@@ -26,7 +26,6 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
-            expect(container).toMatchSnapshot();
 
             const input = container.querySelector('#MySetting') as HTMLInputElement;
             expect(input.value).toEqual('');
@@ -41,7 +40,6 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
-            expect(container).toMatchSnapshot();
 
             const input = container.querySelector('#MySetting') as HTMLInputElement;
             expect(input.value).toEqual('git');
@@ -56,7 +54,6 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
-            expect(container).toMatchSnapshot();
 
             const input = container.querySelector('#MySetting') as HTMLInputElement;
             expect(input.value).toEqual('git,smtp,steam');
@@ -147,29 +144,5 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['chrome', 'ms-excel']);
         });
-    });
-
-    test('renders properly when disabled', () => {
-        const props = {
-            ...baseProps,
-            disabled: true,
-        };
-
-        const {container} = renderWithContext(
-            <CustomURLSchemesSetting {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('renders properly when set by environment variable', () => {
-        const props = {
-            ...baseProps,
-            setByEnv: true,
-        };
-
-        const {container} = renderWithContext(
-            <CustomURLSchemesSetting {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 });

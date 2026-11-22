@@ -1443,6 +1443,13 @@ func (api *apiTimerLayer) UpdateSharedChannelCursor(channelID, remoteID string, 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSharedChannelCursor(channelID, remoteID)
+	api.recordTime(startTime, "GetSharedChannelCursor", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.SyncSharedChannel(channelID)
@@ -1854,6 +1861,13 @@ func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControlBatch(userID, resourceType, action, resourceIDs)
+	api.recordTime(startTime, "EvaluateAccessControlBatch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)
@@ -1882,6 +1896,13 @@ func (api *apiTimerLayer) CheckAccessControlExpression(actingUserID, resourceTyp
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "CheckAccessControlExpressionForSearch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID, limit)
@@ -1901,4 +1922,39 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	_returnsA, _returnsB := api.apiImpl.GetAccessControlVisualAST(actingUserID, resourceType, expression)
 	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityType(t)
+	api.recordTime(startTime, "RegisterEntityType", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityMatcher(m)
+	api.recordTime(startTime, "RegisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterEntityMatcher(name string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterEntityMatcher(name)
+	api.recordTime(startTime, "UnregisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityProvider(p)
+	api.recordTime(startTime, "RegisterEntityProvider", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityTerms(typeName, terms)
+	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
+	return _returnsA
 }

@@ -21,13 +21,10 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 
 	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID, false)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetDraft", "app.draft.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetDraft", "app.draft.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetDraft", "app.draft.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return draft, nil

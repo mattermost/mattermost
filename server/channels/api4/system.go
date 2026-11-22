@@ -20,10 +20,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
@@ -379,27 +379,33 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logsJSON := make(map[string][]any)
-	var result any
+	logsJSON := make(map[string][]any, len(logs))
 	for node, logLines := range logs {
-		entries := make([]any, 0, len(logLines))
-		for _, log := range logLines {
-			err = json.Unmarshal([]byte(log), &result)
-			if err != nil {
-				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
-			} else {
-				entries = append(entries, result)
-			}
-		}
-		logsJSON[node] = entries
+		logsJSON[node] = decodeLogLines(logLines)
 	}
 
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write(model.ToJSON(logsJSON)); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// decodeLogLines decodes the JSON log lines and skips the others, as a log file holds plain-text
+// lines when LogSettings.FileJson is off. It doesn't log them: each message would be a line in
+// the log file, which a client polling the logs would read back on its next query.
+func decodeLogLines(logLines []string) []any {
+	entries := make([]any, 0, len(logLines))
+	for _, line := range logLines {
+		var entry any
+		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -419,6 +425,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
 	model.AddEventParameterToAuditRec(auditRec, "logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -523,9 +530,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, appErr := c.App.GetAnalytics(c.AppContext, name, teamId)
-	if appErr != nil {
-		c.Err = appErr
+	rows, err := c.App.GetAnalytics(c.AppContext, name, teamId)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -545,7 +552,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion(c.AppContext, app.LatestVersionURL)
+	resp, appErr := c.App.GetLatestVersion(c.AppContext, releases.LatestURL)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -593,7 +600,7 @@ func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	// after the only supported test endpoint at the time it was introduced.
 	// The new /file/test endpoint is backend-agnostic but reuses the same
 	// permission to avoid a role migration.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}
@@ -1097,7 +1104,12 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "onboarding_request", onboardingRequest)
 
-	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
+	savedSiteURL, appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
+	// The request's site_url is only what the client asked for, so record whether it was saved.
+	// Record it even on an error, since the config may have changed before a later step failed.
+	if savedSiteURL != "" {
+		model.AddEventParameterToAuditRec(auditRec, "saved_site_url", savedSiteURL)
+	}
 	if appErr != nil {
 		c.Err = appErr
 		return

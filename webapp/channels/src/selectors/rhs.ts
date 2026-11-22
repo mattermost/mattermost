@@ -20,6 +20,10 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {RhsState, FakePost, MentionFilters, SearchType} from 'types/store/rhs';
 
+export function getSelectedEntity(state: GlobalState) {
+    return state.views.rhs.selectedEntity;
+}
+
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
 }

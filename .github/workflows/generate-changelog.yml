@@ -198,7 +198,7 @@ jobs:
         run: |
           # Run the generator from this checkout even after the PR branch is checked out
           # below: that branch was cut when the PR was opened and may carry an older copy.
-          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py "$RUNNER_TEMP/"
+          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py .github/scripts/check_config_changes_ci.py "$RUNNER_TEMP/"
 
           PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "changelog/$VERSION" --state open --json number --jq '.[0].number // empty')"
           BODY_FILE=""
@@ -282,6 +282,13 @@ jobs:
             echo
             cat "$SUMMARY"
           } >> "$GITHUB_STEP_SUMMARY"
+          # A dry run's output is only read here and in the artifact; the log keeps a copy
+          # that can be read without downloading it.
+          if [ "$MODE" = "dry_run" ]; then
+            echo "::group::Run summary"
+            cat "$SUMMARY"
+            echo "::endgroup::"
+          fi
 
       - name: Upload changelog output
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -306,6 +313,7 @@ jobs:
           PUBLISH: ${{ steps.pr.outputs.publish }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           CHANGED: ${{ steps.generate.outputs.changed }}
+          BODY_CHANGED: ${{ steps.generate.outputs.body_changed }}
           ADDED_PRS: ${{ steps.generate.outputs.added_prs }}
           ADDED_DERIVED: ${{ steps.generate.outputs.added_derived }}
           CORRECTED: ${{ steps.generate.outputs.corrected }}
@@ -318,7 +326,13 @@ jobs:
             # Already on the PR branch. New commits only, never a force-push, so every
             # edit made in the PR survives.
             if [ "$CHANGED" != "true" ]; then
-              echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              # The text is unchanged, but the body may list notes the model left out.
+              if [ "$BODY_CHANGED" = "true" ]; then
+                gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+                echo "No new release notes in the text — updated the body of changelog PR #$PR_NUMBER"
+              else
+                echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              fi
               exit 0
             fi
             git add "$CHANGELOG_FILE"

@@ -1,51 +1,56 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, type JSX} from 'react';
+import React, {memo, useId, type JSX} from 'react';
 import {useIntl} from 'react-intl';
-import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import type {PropertyField} from '@mattermost/types/properties';
 
-import {IconContainer} from '../formatting_bar/formatting_icon';
+import PostAttributesFieldPicker from 'components/post_attributes/post_attributes_field_picker';
 
-// Mirrors IconContainer's [disabled] look, but without pointer-events: none so
-// the tooltip still shows on hover and the button keeps its tab stop.
-const DisabledIconContainer = styled(IconContainer)`
-    &[aria-disabled='true'] {
-        cursor: not-allowed;
-        color: rgba(var(--center-channel-color-rgb), 0.32);
+type Props = {
 
-        &:hover,
-        &:active {
-            background: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.32);
-        }
-    }
-`;
+    // The fields the picker offers. The editor works this out once and shares
+    // it with the composer's inline add control.
+    fields: PropertyField[];
+    onSelect: (fieldId: string) => void;
 
-// Placeholder until messages can be created with attributes, which comes in a
-// follow-up. Until then the button does nothing and is rendered as disabled.
-const PostAttributesButton = (): JSX.Element => {
+    // Why no attribute can be added right now; disables the button.
+    disabledReason?: string;
+};
+
+/**
+ * The `+` in the composer's action row: opens the same field picker as the
+ * inline `+ Add attribute` after the chips, so an attribute can be staged
+ * before any chip is on screen.
+ *
+ * Omitted rather than disabled when there is nothing left to offer.
+ */
+const PostAttributesButton = ({fields, onSelect, disabledReason}: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
-    const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb.'});
+    const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens a menu of attributes to add to the message being written. Plural noun after a verb.'});
+
+    // The centre channel and the thread sidebar each have an action row.
+    const instanceId = useId();
+
+    if (fields.length === 0) {
+        return null;
+    }
 
     return (
-        <WithTooltip title={label}>
-            <DisabledIconContainer
-                type='button'
-                id='postAttributesButton'
-                data-testid='post-attributes-composer-add'
-                aria-disabled='true'
-                aria-label={label}
-            >
-                <PlusIcon
-                    size={18}
-                    color={'currentColor'}
-                />
-            </DisabledIconContainer>
-        </WithTooltip>
+        <PostAttributesFieldPicker
+            id={`postAttributesButton-${instanceId}`}
+            dataTestId='post-attributes-composer-add'
+            fields={fields}
+            onSelect={onSelect}
+            disabledReason={disabledReason}
+            trigger={{
+                label,
+                icon: <Icon glyph={<PlusIcon/>}/>,
+            }}
+        />
     );
 };
 

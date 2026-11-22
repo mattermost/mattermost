@@ -699,6 +699,17 @@ func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
 }
 
+// channelAttributeMissingValuesRoute builds the route for the required-channel-
+// attribute compliance endpoints. An empty fieldID targets the field-less
+// "create mode" form, used before the attribute has been saved and thus has no
+// ID yet.
+func (c *Client4) channelAttributeMissingValuesRoute(groupName, fieldID string) clientRoute {
+	if fieldID == "" {
+		return c.propertyFieldsRoute(groupName, PropertyFieldObjectTypeChannel).Join("missing_values")
+	}
+	return c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values")
+}
+
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
 }
@@ -745,13 +756,13 @@ func (c *Client4) integrityRoute() clientRoute {
 
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
+	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
 
 // DoAPIPost makes a POST request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPost(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
+	return c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
 // DoAPIPostJSON marshals the provided data to JSON and makes a POST request to the specified URL.
@@ -761,13 +772,13 @@ func (c *Client4) DoAPIPostJSON(ctx context.Context, url string, data any) (*htt
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
 }
 
 // DoAPIPut makes a PUT request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPut(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
+	return c.DoAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
 }
 
 // DoAPIPutJSON marshals the provided data to JSON and makes a PUT request to the specified URL.
@@ -777,7 +788,7 @@ func (c *Client4) DoAPIPutJSON(ctx context.Context, url string, data any) (*http
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
 }
 
 // DoAPIPatchJSON marshals the provided data to JSON and makes a PATCH request to the specified URL.
@@ -787,13 +798,13 @@ func (c *Client4) DoAPIPatchJSON(ctx context.Context, url string, data any) (*ht
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
 }
 
 // DoAPIDelete makes a DELETE request to the specified URL.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIDelete(ctx context.Context, url string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
+	return c.DoAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
 }
 
 // DoAPIDeleteJSON marshals the provided data to JSON and makes a DELETE request to the specified URL.
@@ -803,13 +814,13 @@ func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any) (*h
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
 }
 
 // DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
+	return c.DoAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
 }
 
 func (c *Client4) doAPIRequestWithHeadersRoute(ctx context.Context, method string, route clientRoute, data string, headers map[string]string) (*http.Response, error) {
@@ -820,12 +831,16 @@ func (c *Client4) doAPIRequestWithHeadersRoute(ctx context.Context, method strin
 	return c.DoAPIRequestWithHeaders(ctx, method, routePath, data, headers)
 }
 
-func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIRequest makes an HTTP request with the specified method to a fully-qualified URL, with optional string data and ETag.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) doAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIRequestBytes makes an HTTP request with the specified method to a fully-qualified URL, with optional byte data and ETag.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 func (c *Client4) doAPIGet(ctx context.Context, route clientRoute, etag string) (*http.Response, error) {
@@ -928,10 +943,10 @@ func (c *Client4) doAPIDeleteJSON(ctx context.Context, route clientRoute, data a
 	return c.DoAPIDeleteJSON(ctx, routePath, data)
 }
 
-// doAPIRequestReader makes an HTTP request using an io.Reader for the request body and custom headers.
+// DoAPIRequestReader makes an HTTP request to a fully-qualified URL using an io.Reader for the request body, with an optional content type and custom headers.
 // This is the most flexible DoAPI method, supporting streaming data and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
-func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
+func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
 	rq, err := http.NewRequestWithContext(ctx, method, url, data)
 	if err != nil {
 		return nil, err
@@ -973,7 +988,7 @@ func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentTy
 }
 
 func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
+	r, err := c.DoAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1004,7 +1019,7 @@ func (c *Client4) doAPIRequestReaderRoute(ctx context.Context, method string, ro
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestReader(ctx, method, c.APIURL+routeStr, contentType, data, headers)
+	return c.DoAPIRequestReader(ctx, method, c.APIURL+routeStr, contentType, data, headers)
 }
 
 // Authentication Section
@@ -4595,6 +4610,47 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 	return DecodeJSONFromResponse[map[string]any](r)
 }
 
+// GetConfigHistory returns a page of the configurations saved by a database-backed
+// config store, newest first, each with the settings changed from the one before it.
+func (c *Client4) GetConfigHistory(ctx context.Context, page, perPage int) ([]*ConfigHistoryEntry, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.configRoute().Join("history"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigHistoryEntry](r)
+}
+
+// GetHistoricalConfig returns a configuration saved by a database-backed config store,
+// with the same items sanitized as GetConfig.
+func (c *Client4) GetHistoricalConfig(ctx context.Context, configID string) (*Config, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.configRoute().Join("history", configID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Config](r)
+}
+
+// RestoreHistoricalConfig replaces the server configuration with one saved by a database-backed
+// config store, and returns the settings it changed. With dryRun, it returns the settings it
+// would change without saving anything.
+func (c *Client4) RestoreHistoricalConfig(ctx context.Context, configID string, dryRun bool) ([]*ConfigChange, *Response, error) {
+	values := url.Values{}
+	if dryRun {
+		values.Set("dry_run", "true")
+	}
+	r, err := c.doAPIPostWithQuery(ctx, c.configRoute().Join("history", configID, "restore"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigChange](r)
+}
+
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.configRoute().Join("reload"), "")
@@ -5709,7 +5765,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 		return "", nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5730,7 +5786,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 		return nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5741,7 +5797,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
+	r, err := c.DoAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8386,6 +8442,43 @@ func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, obj
 	return BuildResponse(r), nil
 }
 
+// GetChannelsMissingAttributeValue returns a paginated list of active, local
+// channels that lack a value for the given channel attribute field.
+func (c *Client4) GetChannelsMissingAttributeValue(ctx context.Context, groupName, fieldID string, page, perPage int) (*ChannelsMissingAttributeValueList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelsMissingAttributeValueList](r)
+}
+
+// GetChannelAttributeComplianceSummary returns the compliance counts used by
+// the Required toggle's banner. An empty fieldID reports the count for every
+// active, local channel (create mode).
+func (c *Client4) GetChannelAttributeComplianceSummary(ctx context.Context, groupName, fieldID string) (*ChannelAttributeComplianceSummary, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID).Join("summary"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelAttributeComplianceSummary](r)
+}
+
+// NotifyChannelAdminsOfMissingAttributeValue sends a batched system-bot DM to
+// every unique channel admin of a channel missing a value for fieldID.
+func (c *Client4) NotifyChannelAdminsOfMissingAttributeValue(ctx context.Context, groupName, fieldID string) (*ChannelAttributeNotifyResult, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID).Join("notify"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelAttributeNotifyResult](r)
+}
+
 func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
 	values := url.Values{}
 	if search.PerPage > 0 {
@@ -8499,11 +8592,23 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 }
 
 func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, false, channelId...)
+}
+
+// CheckMembershipExpression is CheckExpression for a membership rule: it also
+// rejects what the membership sync can't evaluate.
+func (c *Client4) CheckMembershipExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, true, channelId...)
+}
+
+func (c *Client4) checkExpression(ctx context.Context, expression string, membership bool, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		Membership bool   `json:"membership,omitempty"`
 	}{
 		Expression: expression,
+		Membership: membership,
 	}
 	if len(channelId) > 0 && channelId[0] != "" {
 		checkExpressionRequest.ChannelId = channelId[0]
@@ -8657,6 +8762,27 @@ func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFil
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+// ExportHealthFindings returns the health report in format, "html" or "md", rendered in the
+// client's locale, and the filename the server suggests for it.
+func (c *Client4) ExportHealthFindings(ctx context.Context, format string) ([]byte, string, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute().Join("export"), url.Values{"format": {format}}, "")
+	if err != nil {
+		return nil, "", BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Disposition"))
+	if err != nil {
+		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
+	}
+
+	data, resp, err := ReadBytesFromResponse(r)
+	if err != nil {
+		return nil, "", resp, err
+	}
+	return data, SanitizeFilename(params["filename"]), resp, nil
 }
 
 func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {

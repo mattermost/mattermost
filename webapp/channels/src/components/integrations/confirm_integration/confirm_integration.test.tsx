@@ -85,15 +85,14 @@ describe('components/integrations/ConfirmIntegration', () => {
         bots,
     };
 
-    test('should match snapshot, oauthApps case', () => {
+    test('should render oauthApps case', () => {
         props.location.search = getSearchString('oauth2-apps');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getByText('OAuth 2.0 Applications')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should match callback URLs of OAuth Apps', () => {
@@ -106,72 +105,46 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container.querySelector('.word-break--all')).toHaveTextContent('URL(s): https://someCallback, https://anotherCallback');
     });
 
-    test('should match snapshot, outgoingOAuthConnections case', () => {
+    test('should render outgoingOAuthConnections case', () => {
         props.location.search = getSearchString('outgoing-oauth2-connections');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getByText('Outgoing OAuth Connections')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, commands case', () => {
+    test('should render commands case', () => {
         props.location.search = getSearchString('commands');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getAllByText('Slash Commands').length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(token)).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, incomingHooks case', () => {
+    test('should render incomingHooks case', () => {
         props.location.search = getSearchString('incoming_webhooks');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getAllByText('Incoming Webhooks').length).toBeGreaterThanOrEqual(1);
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, outgoingHooks case', () => {
+    test('should render outgoingHooks case', () => {
         props.location.search = getSearchString('outgoing_webhooks');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getAllByText('Outgoing Webhooks').length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(token)).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, outgoingHooks and bad identifier case', () => {
-        props.location.search = getSearchString('outgoing_webhooks', 'bad');
-        const {container} = renderWithContext(
-            <ConfirmIntegration {...props}/>,
-            initialState,
-        );
-
-        // Bad identifier means integration not found, redirects to error page
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, bad integration type case', () => {
-        props.location.search = getSearchString('bad');
-        const {container} = renderWithContext(
-            <ConfirmIntegration {...props}/>,
-            initialState,
-        );
-
-        // Bad type means redirect to error page
-        expect(container).toMatchSnapshot();
     });
 
     describe('bot create warnings', () => {

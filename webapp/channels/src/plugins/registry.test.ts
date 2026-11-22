@@ -301,6 +301,24 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
     });
 });
 
+describe('PluginRegistry — registerEntityCardPart', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    it('keeps a map part and a later part on the same card', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerEntityCardPart({part: 'map', component: () => null});
+        registry.registerEntityCardPart({part: 'timeline', component: () => null});
+
+        const parts = mockCurrentStore.getState().components.EntityCardPart;
+        expect(parts.map((part: {part: string}) => part.part)).toEqual(['map', 'timeline']);
+        expect(parts.every((part: {pluginId: string}) => part.pluginId === PLUGIN_ID)).toBe(true);
+    });
+});
+
 describe('PluginRegistry — registerChannelComposerBannerComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 
@@ -729,6 +747,42 @@ describe('PluginRegistry — registerProduct', () => {
         registry.registerProduct({...baseArgs, baseURL: '/boards', isTeamScoped: false});
 
         expect(getProducts()[0].isTeamScoped).toBe(false);
+    });
+});
+
+describe('PluginRegistry — registerSearchComponents', () => {
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    const baseArgs = {
+        buttonComponent: () => null,
+        suggestionsComponent: () => null,
+        hintsComponent: () => null,
+        action: jest.fn(),
+    };
+
+    test.each([
+        {name: 'defaults priority to 0', args: baseArgs, expected: 0},
+        {name: 'stores the given priority', args: {...baseArgs, priority: 10}, expected: 10},
+    ])('$name', ({args, expected}) => {
+        const registry = new PluginRegistry('test_plugin');
+        const id = registry.registerSearchComponents(args);
+
+        const [button] = mockCurrentStore.getState().components.SearchButtons;
+        expect(button).toMatchObject({id, pluginId: 'test_plugin', priority: expected});
+    });
+
+    test('unregisterComponent removes the button, suggestions and hints', () => {
+        const registry = new PluginRegistry('test_plugin');
+        const id = registry.registerSearchComponents({...baseArgs, priority: 10});
+
+        registry.unregisterComponent(id);
+
+        const {components} = mockCurrentStore.getState();
+        expect(components.SearchButtons).toHaveLength(0);
+        expect(components.SearchSuggestions).toHaveLength(0);
+        expect(components.SearchHints).toHaveLength(0);
     });
 });
 

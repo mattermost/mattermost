@@ -31,8 +31,8 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 	}
 
 	if len(removedFileIDs) > 0 {
-		if appErr := a.detachFilesFromPost(rctx, newPost.Id, removedFileIDs); appErr != nil {
-			return nil, appErr
+		if err := a.detachFilesFromPost(rctx, newPost.Id, removedFileIDs); err != nil {
+			return nil, model.AsAppError(err)
 		}
 	}
 
@@ -64,7 +64,7 @@ func (a *App) attachNewFilesToPost(rctx request.CTX, post *model.Post, addedFile
 	}
 }
 
-func (a *App) detachFilesFromPost(rctx request.CTX, postId string, removedFileIDs []string) *model.AppError {
+func (a *App) detachFilesFromPost(rctx request.CTX, postId string, removedFileIDs []string) error {
 	if err := a.Srv().Store().FileInfo().DeleteForPostByIds(rctx, postId, removedFileIDs); err != nil {
 		return model.NewAppError("app.detachFilesFromPost", "app.file_info.delete_for_post_ids.app_error", map[string]any{"post_id": postId}, "", 0).Wrap(err)
 	}

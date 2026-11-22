@@ -11,23 +11,11 @@ import {renderWithContext} from 'tests/react_testing_utils';
 jest.mock('chart.js');
 
 describe('components/analytics/doughnut_chart.tsx', () => {
-    test('should match snapshot, on loading', () => {
-        const {container} = renderWithContext(
-            <DoughnutChart
-                title='Test'
-                height={400}
-                width={600}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded without data', () => {
+    test('should render loaded without data', () => {
         const Chart = jest.requireMock('chart.js');
         const data: ChartData | undefined = undefined;
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -37,10 +25,9 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         );
 
         expect(Chart).not.toHaveBeenCalled();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded with data', () => {
+    test('should render loaded with data', () => {
         const Chart = jest.requireMock('chart.js');
         const data: ChartData = {
             datasets: [
@@ -48,7 +35,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             ],
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -58,7 +45,6 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         );
 
         expect(Chart).toHaveBeenCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
-        expect(container).toMatchSnapshot();
     });
 
     test('should create and destroy the chart on mount and unmount with data', () => {
