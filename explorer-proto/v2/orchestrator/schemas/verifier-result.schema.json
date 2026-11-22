@@ -81,6 +81,39 @@
             }
         },
         "verdict": {"enum": ["pass", "fail", "blocked"]},
-        "notes": {"type": "string", "maxLength": 1500}
+        "notes": {"type": "string", "maxLength": 1500},
+        "receipt": {
+            "description": "Binds the result to one dispatch (process delivery). Optional in the schema so older results still validate; the coordinator rejects a result without it when the dispatch demands one.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "run_id",
+                "task_id",
+                "dispatch_nonce",
+                "task_sha256_observed",
+                "trace_sha256_observed",
+                "verifier_pid_note",
+                "verifier_kind"
+            ],
+            "properties": {
+                "run_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,60}$"},
+                "task_id": {"$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/id"},
+                "dispatch_nonce": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+                "task_sha256_observed": {
+                    "anyOf": [
+                        {"$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"},
+                        {"type": "null"}
+                    ]
+                },
+                "trace_sha256_observed": {
+                    "anyOf": [
+                        {"$ref": "https://explorer-proto.invalid/v2/schemas/common.schema.json#/definitions/sha256"},
+                        {"type": "null"}
+                    ]
+                },
+                "verifier_pid_note": {"type": "string", "maxLength": 200},
+                "verifier_kind": {"const": "deterministic-process"}
+            }
+        }
     }
 }

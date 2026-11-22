@@ -4,18 +4,37 @@
 /* eslint-disable @stylistic/indent, @stylistic/multiline-ternary, @stylistic/operator-linebreak -- Prettier owns formatting and the repo config relaxes these rules for .ts/.js only */
 
 // S3, dispatch: writes the independent verifier's task (verify/agent-task.json) from the orchestrator's own records,
-// stops the stack so the verifier starts clean, records both, and halts the run with exit 20 (awaiting an agent
-// result). The verifier's result is collected by S4 on a later --resume.
+// stops the stack so the verifier starts clean, records both, and hands the task over. With --verifier=manual (default)
+// the run halts with exit 20 awaiting an agent result that S4 collects on a later --resume. With --verifier=process the
+// two input files are frozen read-only, bound to this dispatch by a nonce, and a deterministic verifier is started as a
+// separate OS process (see handoff.mjs); S4 then collects its result in the same invocation.
 import fs from 'node:fs';
 import path from 'node:path';
 
 import {loadControl} from './control_def.mjs';
+import {
+    DEFAULT_TIMEOUT_SECONDS,
+    DELIVERY_MODE,
+    ENV_POLICY,
+    freezeReadOnly,
+    isFrozen,
+    makeScratchDir,
+    newNonce,
+    portableArgv,
+    scrubbedEnv,
+    spawnVerifier,
+    thaw,
+    VERIFIER_KIND,
+    verifierArgv,
+    VERIFIER_SCRIPT,
+    writeBindingFile,
+} from './handoff.mjs';
 import {assertSpecUnchanged} from './spec.mjs';
 import {engineOf, leakScan} from './support.mjs';
 
 import {readSchema} from '../../../schemas/validator.mjs';
 import {buildTask} from '../agents.mjs';
-import {EXIT, ORCH_REPO_PATH, readJson, sha256File} from '../common.mjs';
+import {EXIT, ORCH_VERIFIER_DIR, ORCH_REPO_PATH, readJson, sha256File} from '../common.mjs';
 import {engineArgv} from '../engine.mjs';
 import {localSchemaPath} from '../schemas.mjs';
 import {releaseStackAndConfirm} from '../stages/stage0_target.mjs';
@@ -159,13 +178,89 @@ function dispatchContext({ctx, control, record, trace, setup, schema}) {
     };
 }
 
+/** Binding carried inside the task before it is hashed (process delivery). */
+function bindingContext({flags, nonce, specSha, traceSha, record}) {
+    return {
+        run_id: flags.runId,
+        dispatch_nonce: nonce,
+        expected_spec_sha256: specSha,
+        expected_trace_sha256: traceSha,
+        expected_failing_line: record.expectation.failing_line,
+        how_to_bind:
+            'Compute the sha256 of this task file and of the trace file, compare the trace hash with expected_trace_sha256 and the spec hash with expected_spec_sha256, and echo run_id, task_id and dispatch_nonce in result.receipt together with the hashes you observed. Refuse (verdict blocked) on any mismatch.',
+    };
+}
+
+function verifierHash() {
+    const dir = ORCH_VERIFIER_DIR;
+    if (!fs.existsSync(dir)) {
+        return null;
+    }
+    return fs
+        .readdirSync(dir)
+        .sort()
+        .map((f) => `${f}:${sha256File(path.join(dir, f))}`)
+        .join(',');
+}
+
+function setAsideStaleResult(resultAbs) {
+    if (!fs.existsSync(resultAbs)) {
+        return null;
+    }
+    let n = 1;
+    while (fs.existsSync(path.join(path.dirname(resultAbs), `agent-result.stale.${n}.json`))) {
+        n += 1;
+    }
+    const stale = path.join(path.dirname(resultAbs), `agent-result.stale.${n}.json`);
+    fs.renameSync(resultAbs, stale);
+    return stale;
+}
+
+function processRecord({delivery, argv, names, spawned, scratchDir, postTeardown, resultAbs}) {
+    let blocker = null;
+    if (!spawned.spawned) {
+        blocker = `the verifier process could not be started${spawned.error ? ` (${spawned.error})` : ''}`;
+    } else if (spawned.timed_out) {
+        blocker = `the verifier process exceeded its ${delivery.verifier.timeout_seconds}s time budget and was killed`;
+    } else if (spawned.signal) {
+        blocker = `the verifier process was killed by ${spawned.signal}`;
+    } else if (!fs.existsSync(resultAbs)) {
+        blocker = `the verifier process exited ${spawned.exit_code} without writing a result`;
+    }
+    return {
+        schema: 'explorer-verifier-process/v1',
+        run_id: delivery.run_id,
+        task_id: delivery.task_id,
+        dispatch_nonce: delivery.dispatch_nonce,
+        kind: VERIFIER_KIND,
+        spawned: spawned.spawned,
+        pid: spawned.pid,
+        argv,
+        env_names: names,
+        scratch_cwd: scratchDir !== null,
+        exit_code: spawned.exit_code,
+        signal: spawned.signal,
+        timed_out: spawned.timed_out,
+        elapsed_seconds: Number(spawned.elapsed_seconds.toFixed(3)),
+        result_file_present: fs.existsSync(resultAbs),
+        stdout_lines: spawned.stdout.length,
+        stderr_lines: spawned.stderr.length,
+        post_teardown: postTeardown,
+        blocker,
+    };
+}
+
 export default {
     index: 3,
     name: 'dispatch',
     ignoreOutput: (rel) => rel.startsWith('agent-result'),
 
     inputs(ctx) {
-        return [{control: dirDigest(ctx, 2)}, {spec: ctx.flags.verifySpec.sha256}];
+        return [
+            {control: dirDigest(ctx, 2)},
+            {spec: ctx.flags.verifySpec.sha256},
+            {verifier: ctx.flags.verifier === 'process' ? verifierHash() : null},
+        ];
     },
 
     async run(ctx) {
@@ -174,14 +269,29 @@ export default {
         if (!flags.live) {
             return {result: 'skipped', reason: 'skipped: not live (nothing was run, so there is nothing to dispatch)'};
         }
+        const processMode = flags.verifier === 'process';
         const control = loadControl(flags.control.id, flags.session);
         const record = ctx.readJson(2, 'control.json', 'orch#control-record');
         const trace = ctx.readJson(2, 'failure-trace.json', 'orch#failure-trace');
         const status = ctx.readJson(0, 'status.json', 'orch#stage0-status');
         const setup = ctx.readJson(0, `attempt-${status.current_attempt}/setup.json`, 'orch#stage0-setup');
         const schema = readJson(localSchemaPath(VERIFIER_SCHEMA));
+        const traceAbs = path.join(ctx.dirOf(2), 'failure-trace.json');
+        thaw(traceAbs);
+        const traceSha = sha256File(traceAbs);
+        const nonce = processMode ? newNonce() : null;
 
         const resultRel = `${ctx.stageDirName}/agent-result.json`;
+        const resultAbs = path.join(ctx.out, resultRel);
+        if (processMode) {
+            setAsideStaleResult(resultAbs);
+        }
+        const context = dispatchContext({ctx, control, record, trace, setup, schema});
+        if (processMode) {
+            context.binding = bindingContext({flags, nonce, specSha: sha, traceSha, record});
+            context.result_notes.receipt =
+                'Required: {run_id, task_id, dispatch_nonce, task_sha256_observed, trace_sha256_observed, verifier_pid_note, verifier_kind: "deterministic-process"}, copied from what you observed, never from this task.';
+        }
         const task = buildTask(
             ctx,
             {
@@ -202,7 +312,7 @@ export default {
                     },
                 ],
                 extraTools: ALLOWED_COMMANDS,
-                context: dispatchContext({ctx, control, record, trace, setup, schema}),
+                context,
             },
             resultRel,
             {
@@ -212,11 +322,50 @@ export default {
                 sha256: sha256File(localSchemaPath(VERIFIER_SCHEMA)),
             },
         );
+        const taskAbs = path.join(ctx.dir, 'agent-task.json');
+        thaw(taskAbs);
         ctx.writeJson('agent-task.json', task, 'orch#agent-task');
-        const taskScan = leakScan([path.join(ctx.dir, 'agent-task.json')], {allowSlugs: true});
+        const taskScan = leakScan([taskAbs], {allowSlugs: true});
+
+        let delivery = null;
+        if (processMode) {
+            freezeReadOnly(taskAbs);
+            freezeReadOnly(traceAbs);
+            const timeoutSeconds = flags.verifierTimeout ?? DEFAULT_TIMEOUT_SECONDS;
+            delivery = {
+                mode: DELIVERY_MODE,
+                run_id: flags.runId,
+                task_id: task.task_id,
+                dispatch_nonce: nonce,
+                task_file: `${ctx.stageDirName}/agent-task.json`,
+                trace_file: '2-control/failure-trace.json',
+                task_sha256: sha256File(taskAbs),
+                trace_sha256: sha256File(traceAbs),
+                frozen_read_only: isFrozen(taskAbs) && isFrozen(traceAbs),
+                expected: {
+                    spec_sha256: sha,
+                    failing_line: record.expectation.failing_line,
+                    expect_call: record.expectation.expected_failing_assertion_text,
+                    expects_up_to_failing: record.expectation.expects_up_to_failing,
+                },
+                verifier: {
+                    kind: VERIFIER_KIND,
+                    command: portableArgv(
+                        verifierArgv({
+                            task: taskAbs,
+                            trace: traceAbs,
+                            out: resultAbs,
+                            nonceFile: path.join('<scratch>', 'dispatch-binding.json'),
+                        }),
+                        {run: ctx.out, scratch: '<scratch>'},
+                    ),
+                    timeout_seconds: timeoutSeconds,
+                    env_policy: ENV_POLICY,
+                },
+            };
+        }
 
         const teardown = releaseStackAndConfirm();
-        const resultAbs = path.join(ctx.out, resultRel);
         ctx.writeJson(
             'dispatch.json',
             {
@@ -228,6 +377,7 @@ export default {
                 spec: {path: flags.verifySpec.path, sha256: sha},
                 task_leak_scan: taskScan,
                 teardown,
+                ...(delivery ? {delivery} : {}),
             },
             'orch#dispatch-record',
         );
@@ -237,9 +387,51 @@ export default {
         if (!teardown.confirmed) {
             return {result: 'fail', reason: 'the stack is not confirmed down, so the verifier could not start clean'};
         }
-        const halt = fs.existsSync(resultAbs)
-            ? undefined
-            : {exitCode: EXIT.AWAITING_AGENT, taskAbs: path.join(ctx.dir, 'agent-task.json'), resultAbs};
+        if (processMode) {
+            return runVerifierProcess({ctx, delivery, taskAbs, traceAbs, resultAbs});
+        }
+        const halt = fs.existsSync(resultAbs) ? undefined : {exitCode: EXIT.AWAITING_AGENT, taskAbs, resultAbs};
         return {result: 'pass', reason: 'dispatched to the independent verifier; the stack is down', halt};
     },
 };
+
+async function runVerifierProcess({ctx, delivery, taskAbs, traceAbs, resultAbs}) {
+    const scratch = makeScratchDir();
+    try {
+        const nonceFile = writeBindingFile(scratch, {
+            run_id: delivery.run_id,
+            task_id: delivery.task_id,
+            dispatch_nonce: delivery.dispatch_nonce,
+            task_sha256: delivery.task_sha256,
+            trace_sha256: delivery.trace_sha256,
+            spec_sha256: delivery.expected.spec_sha256,
+        });
+        const argv = verifierArgv({task: taskAbs, trace: traceAbs, out: resultAbs, nonceFile});
+        const {env, names} = scrubbedEnv();
+        process.stdout.write(`dispatch     starting the verifier process (${VERIFIER_SCRIPT.split('/').at(-1)})\n`);
+        const spawned = await spawnVerifier({
+            argv,
+            cwd: scratch,
+            env,
+            timeoutSeconds: delivery.verifier.timeout_seconds,
+        });
+        const postTeardown = releaseStackAndConfirm();
+        const rec = processRecord({
+            delivery,
+            argv,
+            names,
+            spawned,
+            scratchDir: scratch,
+            postTeardown,
+            resultAbs,
+        });
+        ctx.writeJson('process.json', rec, 'orch#process-record');
+        const shape = `verifier process exit ${spawned.exit_code ?? 'none'} after ${spawned.elapsed_seconds.toFixed(1)}s`;
+        if (!postTeardown.confirmed) {
+            return {result: 'fail', reason: `${shape}; the stack is not confirmed down afterwards`};
+        }
+        return {result: 'pass', reason: rec.blocker ? `${shape}; ${rec.blocker}` : shape};
+    } finally {
+        fs.rmSync(scratch, {recursive: true, force: true});
+    }
+}

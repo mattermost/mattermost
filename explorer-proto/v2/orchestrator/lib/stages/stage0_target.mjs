@@ -49,6 +49,15 @@ export function imagePin(kind) {
     return pinFromLib(kind === 'main' ? 'MM_IMAGE_MAIN' : 'MM_IMAGE_DEFAULT');
 }
 
+export function databasePin() {
+    return pinFromLib('PG_IMAGE');
+}
+
+/** The image the stack really uses: the override (`--image`, MATTERMOST_PILOT_IMAGE) or the target's pin. */
+export function effectiveImage(kind, flags) {
+    return flags.image ? flags.image.reference : imagePin(kind);
+}
+
 function gitCommitOf(ref) {
     const r = spawnSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
         cwd: REPO_ROOT,
@@ -57,17 +66,25 @@ function gitCommitOf(ref) {
     return r.status === 0 ? r.stdout.trim() : null;
 }
 
-function staticChecks(kind, target) {
+function staticChecks(kind, target, override) {
     const checks = [
         {id: 'target_schema', result: 'pass', evidence: 'explorer-target/v2 schema accepted the target file'},
     ];
     const expected = imagePin(kind);
     const actual = `${target.image.ref}@${target.image.digest}`;
-    checks.push({
-        id: 'image_pin_matches_lib_sh',
-        result: expected === actual ? 'pass' : 'fail',
-        evidence: `target image reference ${expected === actual ? 'equals' : 'differs from'} the pin in infra/scripts/lib.sh`,
-    });
+    checks.push(
+        override
+            ? {
+                  id: 'image_pin_matches_lib_sh',
+                  result: 'info',
+                  evidence: `image override in effect (digest ${override.digest}); the pin in infra/scripts/lib.sh is not used`,
+              }
+            : {
+                  id: 'image_pin_matches_lib_sh',
+                  result: expected === actual ? 'pass' : 'fail',
+                  evidence: `target image reference ${expected === actual ? 'equals' : 'differs from'} the pin in infra/scripts/lib.sh`,
+              },
+    );
     const database = pinFromLib('PG_IMAGE');
     if (target.database_image) {
         const same = `${target.database_image.ref}@${target.database_image.digest}` === database;
@@ -156,13 +173,17 @@ function writeStatus(ctx, session) {
     );
 }
 
-function currentInputs(kind, session) {
-    return {target_file_sha256: sha256File(targetFile(kind)), image_pin: imagePin(kind), session: session ?? null};
+function currentInputs(kind, session, flags) {
+    return {
+        target_file_sha256: sha256File(targetFile(kind)),
+        image_pin: effectiveImage(kind, flags),
+        session: session ?? null,
+    };
 }
 
 function dispatchReleasedStack(ctx) {
     const file = path.join(ctx.out, 'verify', 'dispatch.json');
-    if (!ctx.flags.verifySpec || !fs.existsSync(file)) {
+    if (!ctx.flags.verifySpec || ctx.flags.recoverFixture || !fs.existsSync(file)) {
         return false;
     }
     try {
@@ -178,6 +199,14 @@ function dispatchReleasedStack(ctx) {
  * directory is touched when the answer is yes.
  */
 async function liveReuse(ctx) {
+    const decision = await decideReuse(ctx);
+    if (!decision.reuse && ctx.flags.recoverFixture && decision.reason?.startsWith('probe_failed:')) {
+        return {reuse: false, reason: decision.reason.replace(/^probe_failed:/, 'fixture_lost:')};
+    }
+    return decision;
+}
+
+async function decideReuse(ctx) {
     if (dispatchReleasedStack(ctx)) {
         return {reuse: true, note: 'the stack was released by the dispatch stage and is not needed again'};
     }
@@ -196,7 +225,7 @@ async function liveReuse(ctx) {
         return {reuse: false, reason: 'no_session_fixture_to_probe'};
     }
     const setup = readJson(path.join(ctx.dir, last.dir, 'setup.json'));
-    const now = currentInputs(ctx.flags.target, session);
+    const now = currentInputs(ctx.flags.target, session, ctx.flags);
     for (const name of Object.keys(now)) {
         if (setup[name] !== now[name]) {
             return {reuse: false, reason: `inputs_changed:${name}`};
@@ -215,13 +244,17 @@ async function liveReuse(ctx) {
     return {reuse: true, holdsStack: true, note: `fixture probe ok, fingerprint ${probe.fingerprint.slice(0, 12)}`};
 }
 
+function targetArgs(kind, flags) {
+    return flags.image ? [] : [`--target=${infraTarget(kind)}`];
+}
+
 async function liveAttempt(ctx, kind, target, session) {
     const infra = infraPaths();
-    const t = infraTarget(kind);
+    const t = targetArgs(kind, ctx.flags);
     const sessionArgs = session ? [`--session=${session}`] : [];
     const commands = [
-        ['bash', GATE_SH, '--keep', `--target=${t}`],
-        ['bash', UP_SH, `--target=${t}`, ...sessionArgs],
+        ['bash', GATE_SH, '--keep', ...t],
+        ['bash', UP_SH, ...t, ...sessionArgs],
     ];
     const base = {live: true, started: false, licence: 'not_run', gate: 'not_run', commands};
     if (!process.env.MM_LICENSE) {
@@ -232,7 +265,7 @@ async function liveAttempt(ctx, kind, target, session) {
         };
     }
     state.started = true;
-    const gate = ctx.exec(['bash', infra.gate, '--keep', `--target=${t}`], {capture: true});
+    const gate = ctx.exec(['bash', infra.gate, '--keep', ...t], {capture: true});
     const parsed = parseGate(gate.stdout);
     const stack = {...base, started: true, licence: parsed.licence, gate: parsed.gate};
     if (gate.status !== 0 || parsed.gate !== 'PASS' || parsed.licence !== 'PASS') {
@@ -242,7 +275,7 @@ async function liveAttempt(ctx, kind, target, session) {
             detail: `isolation and licence gate failed (gate ${parsed.gate}, licence ${parsed.licence}); a setup failure`,
         };
     }
-    const up = ctx.exec(['bash', infra.up, `--target=${t}`, ...sessionArgs]);
+    const up = ctx.exec(['bash', infra.up, ...t, ...sessionArgs]);
     if (up.status !== 0) {
         return {stack, outcome: 'fail', detail: 'up.sh did not bring the stack up'};
     }
@@ -326,6 +359,7 @@ export default {
             {lib_sh: sha256File(LIB_SH)},
             {tag: kind === 'release' ? gitCommitOf(ref) : null},
             {session: ctx.flags.session ?? null},
+            {image: ctx.flags.image?.reference ?? null},
         ];
     },
 
@@ -348,27 +382,30 @@ export default {
         if (session && !INFRA_SESSIONS.includes(session)) {
             throw new Error(`infra cannot seed session ${session} (known: ${INFRA_SESSIONS.join(', ')})`);
         }
-        const checks = staticChecks(kind, target);
-        const t = infraTarget(kind);
+        const override = ctx.flags.image ?? null;
+        const checks = staticChecks(kind, target, override);
+        const t = targetArgs(kind, ctx.flags);
         let stack = {
             live: false,
             started: false,
             licence: 'not_run',
             gate: 'not_run',
             commands: [
-                ['bash', GATE_SH, '--keep', `--target=${t}`],
-                ['bash', UP_SH, `--target=${t}`, ...(session ? [`--session=${session}`] : [])],
+                ['bash', GATE_SH, '--keep', ...t],
+                ['bash', UP_SH, ...t, ...(session ? [`--session=${session}`] : [])],
             ],
         };
         let outcome = {result: 'skipped', reason: 'skipped: not live (target checked statically; no stack started)'};
-        let finalTarget = target;
+        let finalTarget = override
+            ? {...target, image: {...target.image, ref: override.ref, digest: override.digest}}
+            : target;
         let live = null;
 
         if (ctx.flags.live) {
             live = await liveAttempt(ctx, kind, target, session);
             stack = live.stack;
             if (live.outcome !== 'blocked') {
-                finalTarget = {...target, licence_check: stack.licence === 'PASS' ? 'PASS' : 'FAIL'};
+                finalTarget = {...finalTarget, licence_check: stack.licence === 'PASS' ? 'PASS' : 'FAIL'};
             }
             outcome =
                 live.outcome === 'pass'
@@ -394,8 +431,8 @@ export default {
         if (live) {
             const attempt = Math.max(0, ...attemptNumbers(ctx.dir)) + 1;
             const dir = `attempt-${attempt}`;
-            const inputs = currentInputs(kind, session);
-            const [, digest] = imagePin(kind).split('@');
+            const inputs = currentInputs(kind, session, ctx.flags);
+            const [, digest] = effectiveImage(kind, ctx.flags).split('@');
             ctx.writeJson(`${dir}/target.json`, finalTarget, 'target');
             ctx.writeJson(`${dir}/target-check.json`, checkDoc, 'orch#target-check');
             ctx.writeJson(

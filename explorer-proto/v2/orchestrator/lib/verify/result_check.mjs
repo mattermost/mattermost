@@ -37,16 +37,66 @@ export function passConditions(result, record) {
 }
 
 /**
- * Returns {errors, hardFailure, conditions}. `errors` are JSON-path and rule lines only (no instance data): when
+ * The byte-exact binding of a result to its dispatch (process delivery). Returns {checks, errors}: `checks` are named
+ * booleans for the collect record, `errors` are JSON-path and rule lines only.
+ */
+export function deliveryChecks(result, delivery, record) {
+    const receipt = result.receipt;
+    const checks = {
+        receipt_present: Boolean(receipt),
+        receipt_run_id: receipt?.run_id === delivery.run_id,
+        receipt_task_id: receipt?.task_id === delivery.task_id && result.task_id === delivery.task_id,
+        receipt_dispatch_nonce: receipt?.dispatch_nonce === delivery.dispatch_nonce,
+        receipt_task_sha256: receipt?.task_sha256_observed === delivery.task_sha256,
+        receipt_trace_sha256: receipt?.trace_sha256_observed === delivery.trace_sha256,
+        receipt_verifier_kind: receipt?.verifier_kind === 'deterministic-process',
+    };
+    const errors = [];
+    const rules = {
+        receipt_run_id: '/receipt/run_id: belongs to a different run',
+        receipt_task_id: '/receipt/task_id: does not match the dispatched task',
+        receipt_dispatch_nonce:
+            '/receipt/dispatch_nonce: does not match the current dispatch (stale or foreign result)',
+        receipt_task_sha256: '/receipt/task_sha256_observed: differs from the dispatched task hash',
+        receipt_trace_sha256: '/receipt/trace_sha256_observed: differs from the dispatched trace hash',
+        receipt_verifier_kind: '/receipt/verifier_kind: is not the deterministic process',
+    };
+    if (checks.receipt_present) {
+        errors.push(
+            ...Object.entries(rules)
+                .filter(([name]) => !checks[name])
+                .map(([, rule]) => rule),
+        );
+    } else {
+        errors.push('/receipt: missing, the result is not bound to this dispatch');
+    }
+    const failure = result.reproduced_failure;
+    checks.assertion_equals_orchestrator =
+        failure === null ||
+        failure === undefined ||
+        (failure.failing_line === record.failing_line &&
+            normalizeCall(failure.expect_call) === normalizeCall(record.expect_call));
+    if (!checks.assertion_equals_orchestrator) {
+        errors.push(
+            '/reproduced_failure: failing line or expect call differs from the orchestrator record (wrong assertion)',
+        );
+    }
+    return {checks, errors};
+}
+
+/**
+ * Returns {errors, hardFailure, conditions, delivery}. `errors` are JSON-path and rule lines only (no instance data): when
  * non-empty the result is set aside and the task stays open. `hardFailure` names a spec hash mismatch, which fails the
  * run instead.
  */
-export function checkVerifierResult({result, task, record, text}) {
+export function checkVerifierResult({result, task, record, text, delivery = null}) {
     const shape = validate('verifier', result);
     if (!shape.ok) {
-        return {errors: shape.errors, hardFailure: null, conditions: {}};
+        return {errors: shape.errors, hardFailure: null, conditions: {}, delivery: {}};
     }
     const errors = [];
+    const bound = delivery ? deliveryChecks(result, delivery, record) : {checks: {}, errors: []};
+    errors.push(...bound.errors);
     if (result.task_id !== task.task_id) {
         errors.push('/task_id: does not match the task (stale or foreign result)');
     }
@@ -77,5 +127,5 @@ export function checkVerifierResult({result, task, record, text}) {
     if (result.verdict !== 'pass' && allGood && !hardFailure) {
         errors.push(`/verdict: ${result.verdict} contradicts fields that all show success`);
     }
-    return {errors, hardFailure, conditions};
+    return {errors, hardFailure, conditions, delivery: bound.checks};
 }

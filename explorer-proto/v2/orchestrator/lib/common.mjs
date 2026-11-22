@@ -16,6 +16,7 @@ export const V2_DIR = path.resolve(ORCH_DIR, '..');
 export const PROTO_DIR = path.resolve(V2_DIR, '..');
 export const REPO_ROOT = path.resolve(PROTO_DIR, '..');
 export const ORCH_REPO_PATH = 'explorer-proto/v2/orchestrator';
+export const ORCH_VERIFIER_DIR = path.join(ORCH_DIR, 'verifier');
 export const INFRA_DIR = path.join(PROTO_DIR, 'infra');
 export const ORCH_RUNS_DIR = path.join(INFRA_DIR, '.run', 'orch');
 
@@ -27,6 +28,19 @@ export const EXIT = {
     AWAITING_AGENT: 20,
     AGENT_INVALID: 21,
     AGENT_FAILED: 22,
+    INCOMPLETE: 30,
+};
+
+/** What each exit code of `pilot.mjs run` means; the README's headless CI contract and the run plan print this table. */
+export const EXIT_MEANING = {
+    0: 'pass',
+    1: 'fail (a stage failed or the verifier did not reproduce the controlled failure)',
+    2: 'usage error',
+    3: 'blocked (a precondition is missing, or the verifier reported blocked)',
+    20: 'awaiting a manual agent result',
+    21: 'an agent result was invalid or stale and was set aside',
+    22: 'the agent command failed to run cleanly',
+    30: 'pending/incomplete (verification missing, rejected or unbound; never a pass)',
 };
 
 export const STAGE_NAMES = [

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable @stylistic/dot-location, @stylistic/indent, @stylistic/multiline-ternary, @stylistic/operator-linebreak, no-await-in-loop -- Prettier owns formatting and the repo config relaxes these rules for .ts/.js only; the awaits run in order by design */
+/* eslint-disable @stylistic/dot-location, @stylistic/indent, @stylistic/multiline-ternary, @stylistic/operator-linebreak, no-await-in-loop, no-process-env -- Prettier owns formatting and the repo config relaxes these rules for .ts/.js only; the awaits run in order by design */
 
 // The stage runner: resumability (a stage is skipped when its inputs hash and outputs still match its record),
 // budgets, stage records in the bakeoff/metrics.mjs shape, and exit-code mapping.
@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {parseAgents} from './agents.mjs';
+import {IMAGE_ENV} from './image.mjs';
 import {BudgetExceeded, loadBudgets} from './budgets.mjs';
 import {
     EXIT,
@@ -27,6 +28,7 @@ import {loadFeature} from './feature.mjs';
 import {validate} from './schemas.mjs';
 import {STAGES} from './stages/index.mjs';
 import {VERIFY_STAGES} from './verify/index.mjs';
+import {buildPlan} from './verify/plan.mjs';
 import {assertSpecUnchanged, SpecHashMismatch} from './verify/spec.mjs';
 
 import {countAgentCalls, stageRecord} from '../../bakeoff/metrics.mjs';
@@ -70,7 +72,15 @@ function clearStageDir(dir) {
 }
 
 export function exitFor(result) {
-    return {pass: EXIT.OK, skipped: EXIT.OK, fail: EXIT.FAIL, blocked: EXIT.BLOCKED}[result] ?? EXIT.FAIL;
+    return (
+        {
+            pass: EXIT.OK,
+            skipped: EXIT.OK,
+            fail: EXIT.FAIL,
+            blocked: EXIT.BLOCKED,
+            incomplete: EXIT.INCOMPLETE,
+        }[result] ?? EXIT.FAIL
+    );
 }
 
 const outputsOf = (ctx, stage) =>
@@ -225,8 +235,13 @@ function runConfigOf(cfg) {
         live: cfg.live,
         agents: cfg.agents,
     };
+    if (cfg.image) {
+        config.image = cfg.image.reference;
+    }
     if (cfg.verifySpec) {
         Object.assign(config, {
+            verifier: cfg.verifier ?? 'manual',
+            ...(cfg.verifierTimeout ? {verifier_timeout_seconds: cfg.verifierTimeout} : {}),
             run_id: cfg.runId,
             session: cfg.session,
             engine_charter: cfg.engineCharter,
@@ -240,10 +255,55 @@ function runConfigOf(cfg) {
     return config;
 }
 
+const STALE_TREES = ['1-baseline', '2-control', 'verify', 'collect'];
+
+/** Keeps the evidence of stages that proved something about an earlier fixture before a new fixture replaces them. */
+function archiveSuperseded(out) {
+    const file = path.join(out, '0-target', 'status.json');
+    if (!fs.existsSync(file)) {
+        return;
+    }
+    const attempts = readJson(file).attempts.length;
+    const dest = path.join(out, 'superseded', `after-attempt-${attempts - 1}`);
+    if (attempts < 2 || fs.existsSync(dest)) {
+        return;
+    }
+    for (const name of [...STALE_TREES, 'summary.json', 'summary.md']) {
+        const src = path.join(out, name);
+        if (fs.existsSync(src)) {
+            fs.cpSync(src, path.join(dest, name), {recursive: true});
+        }
+    }
+}
+
+function recordInvocation(out, cfg) {
+    const file = path.join(out, 'commands.json');
+    const doc = fs.existsSync(file)
+        ? readJson(file)
+        : {schema: 'explorer-commands-record/v1', run_id: cfg.runId, invocations: []};
+    const entry = {n: doc.invocations.length + 1, argv: cfg.argv ?? [], exit_code: null};
+    doc.invocations.push(entry);
+    writeCanonical(file, doc);
+    return (exitCode) => {
+        entry.exit_code = exitCode;
+        writeCanonical(file, doc);
+    };
+}
+
 /** Runs the selected stages in order and stops at the first one that is not pass or skipped. Returns the exit code. */
 export async function runPipeline(cfg) {
     const out = path.resolve(cfg.out);
     fs.mkdirSync(out, {recursive: true});
+    if (!cfg.verifySpec) {
+        return runStages(cfg, out);
+    }
+    const finish = recordInvocation(out, cfg);
+    const exitCode = await runStages(cfg, out);
+    finish(exitCode);
+    return exitCode;
+}
+
+async function runStages(cfg, out) {
     const runConfig = runConfigOf(cfg);
     const checked = validate('orch#run-config', runConfig);
     if (!checked.ok) {
@@ -251,6 +311,17 @@ export async function runPipeline(cfg) {
         return EXIT.USAGE;
     }
     writeCanonical(path.join(out, 'run.json'), runConfig);
+    if (cfg.image) {
+        process.env[IMAGE_ENV] = cfg.image.reference;
+    }
+    if (cfg.verifySpec && !cfg.live) {
+        const plan = buildPlan(cfg);
+        const planned = validate('orch#run-plan', plan);
+        if (!planned.ok) {
+            throw new Error(`internal: run plan invalid: ${planned.errors[0]}`);
+        }
+        writeCanonical(path.join(out, 'plan.json'), plan);
+    }
 
     let provider;
     let budgets;
@@ -278,6 +349,12 @@ export async function runPipeline(cfg) {
     }
 
     const flags = {...cfg, out};
+    const interruptAfter = (index) => {
+        if (cfg.interruptAfterIndex === index) {
+            process.stdout.write(`interrupt hook: SIGKILL after stage ${stageSet.dirs[index]}\n`);
+            process.kill(process.pid, 'SIGKILL');
+        }
+    };
     const common = {mode: cfg.mode, live: cfg.live, target: cfg.target, feature: cfg.feature, code: codeHash()};
     const from = cfg.from ?? 0;
     const to = cfg.to ?? stages.length - 1;
@@ -325,6 +402,7 @@ export async function runPipeline(cfg) {
                     stage.adoptStack?.();
                 }
                 process.stdout.write(`${ctx.stageDirName.padEnd(12)} reused          ${decision.note}\n`);
+                interruptAfter(index);
                 continue;
             }
             ctx.rerunReason = decision.reason;
@@ -334,6 +412,7 @@ export async function runPipeline(cfg) {
         }
         if (!mustRun && upToDate(ctx, stage, inputsHash)) {
             process.stdout.write(`${ctx.stageDirName.padEnd(12)} up to date\n`);
+            interruptAfter(index);
             continue;
         }
         const effective = inModes
@@ -360,6 +439,10 @@ export async function runPipeline(cfg) {
         state.retries_used = 0;
         state.invalid_results = 0;
         writeState(out, stageSet, index, state);
+        if (cfg.verifySpec && index === 0 && cfg.live) {
+            archiveSuperseded(out);
+        }
+        interruptAfter(index);
         if (halt) {
             process.stdout.write(
                 `agent task:   ${halt.taskAbs}\nresult file:  ${halt.resultAbs}\nresume:       ${resumeCommand(cfg, out)}\n`,
