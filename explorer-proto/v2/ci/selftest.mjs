@@ -13,9 +13,36 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {checkBaseChromeProject, checkConfig, checkExport} from './assert_no_capture.mjs';
-import {checkInputs} from './check_inputs.mjs';
+import {checkInputs as checkInputsFor} from './check_inputs.mjs';
+import {
+    checkEntryContract,
+    evaluateContract,
+    flagsBySubcommand,
+    parseCommands,
+    parseReadme,
+    pilotUsage,
+} from './check_entry_contract.mjs';
+import {
+    budgetPlan,
+    loadStageBudgets,
+    mapCoordinatorExit,
+    MIN_VERIFIER_SECONDS,
+    SETUP_ALLOWANCE_SECONDS,
+    summarizeDoctor,
+    TEARDOWN_RESERVE_SECONDS,
+    verifierTimeoutSeconds,
+} from './coordinator_plan.mjs';
 import {exitForOverall, overallResult, renderSummary} from './final_summary.mjs';
-import {HERE, parseArgs, readJson, REPO_ROOT, STAGES, ADVISORY_SENTENCE} from './lib.mjs';
+import {
+    ADVISORY_SENTENCE,
+    BUDGET_MINUTES,
+    COORDINATOR_TARGET_KINDS,
+    HERE,
+    parseArgs,
+    readJson,
+    REPO_ROOT,
+    STAGES,
+} from './lib.mjs';
 import {lintScripts, lintWorkflow} from './lint_workflow.mjs';
 import {buildFacts, readToolchain} from './run_facts.mjs';
 import {evaluateConvention, verifyLive, verifyTarget} from './verify_target.mjs';
@@ -33,6 +60,9 @@ const SYNTH = {
     digest: `sha256:${'a'.repeat(64)}`,
     image: `mattermostdevelopment/mattermost-enterprise-edition:abcdef0_1234567@sha256:${'a'.repeat(64)}`,
 };
+
+// The input unit tests exercise the format rules for both kinds; the coordinator-support rule has its own checks.
+const checkInputs = (env, options = {}) => checkInputsFor(env, {coordinatorKinds: ['main', 'release'], ...options});
 
 const checks = [];
 const check = (name, fn) => checks.push({name, fn});
@@ -86,7 +116,7 @@ const goodMain = (over = {}) => ({
     INPUT_SESSION: 'bookmarks',
     INPUT_CONTROL: 'release-bookmark-title-changed',
     INPUT_VERIFIER: 'process',
-    INPUT_TIME_BUDGET_MINUTES: '45',
+    INPUT_TIME_BUDGET_MINUTES: String(BUDGET_MINUTES.default),
     GITHUB_RUN_ATTEMPT: '1',
     ...over,
 });
@@ -199,19 +229,28 @@ check('inputs: session, control and verifier are allowlisted', () => {
     assert(!checkInputs(goodMain({INPUT_TARGET_KIND: 'nightly'})).ok, 'kind');
 });
 
-check('inputs: the time budget is bounded to 15..90 whole minutes, empty means 45', () => {
-    for (const budget of ['5', '14', '91', '200', '-1', 'abc', '45.5', '1e1', '045x']) {
+check('inputs: the time budget is bounded to 100..180 whole minutes, empty means 120', () => {
+    for (const budget of ['5', '45', '99', '181', '200', '-1', 'abc', '120.5', '1e2', '120x']) {
         assert(!checkInputs(goodMain({INPUT_TIME_BUDGET_MINUTES: budget})).ok, `accepted ${budget}`);
     }
     for (const [budget, expected] of [
-        ['15', 15],
-        ['90', 90],
-        ['45', 45],
-        ['', 45],
+        ['100', 100],
+        ['180', 180],
+        ['120', 120],
+        ['', 120],
     ]) {
         const result = checkInputs(goodMain({INPUT_TIME_BUDGET_MINUTES: budget}));
         assert(result.ok && result.values.time_budget_minutes === expected, `budget ${budget}`);
     }
+});
+
+check('inputs: a target kind the coordinator entry refuses is rejected before anything is pulled', async () => {
+    equal(COORDINATOR_TARGET_KINDS, ['release'], 'the coordinator verify-spec entry accepts release only');
+    const main = checkInputsFor(goodMain());
+    assert(!main.ok && main.errors.some((e) => e.includes('--target release only')), `main accepted: ${main.errors}`);
+    assert(checkInputsFor(goodRelease()).ok, 'release refused');
+    const cli = await node('check_inputs.mjs', [], {env: {...goodMain(), EXPLORER_CI_DIR: tmp()}});
+    equal(cli.code, 2, `the CLI accepted main: ${cli.out}`);
 });
 
 check('inputs: test_source_ref is empty or a full SHA', () => {
@@ -247,7 +286,7 @@ check(
         const outputFile = path.join(dir, 'out.txt');
         fs.writeFileSync(outputFile, '');
         let result = await node('check_inputs.mjs', ['--dry-run'], {
-            env: {...goodMain(), EXPLORER_CI_DIR: dir, GITHUB_OUTPUT: outputFile},
+            env: {...goodRelease(), EXPLORER_CI_DIR: dir, GITHUB_OUTPUT: outputFile},
         });
         equal(result.code, 0, 'dry run exit');
         assert(
@@ -255,7 +294,7 @@ check(
             'dry run wrote',
         );
         result = await node('check_inputs.mjs', [], {
-            env: {...goodMain(), EXPLORER_CI_DIR: dir, GITHUB_OUTPUT: outputFile},
+            env: {...goodRelease(), EXPLORER_CI_DIR: dir, GITHUB_OUTPUT: outputFile},
         });
         equal(result.code, 0, 'exit');
         const outputs = fs.readFileSync(outputFile, 'utf8');
@@ -265,7 +304,7 @@ check(
                 /^artifact_name=exploratory-/m.test(outputs),
             `outputs: ${outputs}`,
         );
-        equal(readJson(path.join(dir, 'inputs.json')).target_kind, 'main', 'inputs.json');
+        equal(readJson(path.join(dir, 'inputs.json')).target_kind, 'release', 'inputs.json');
     },
 );
 
@@ -1003,7 +1042,7 @@ check('facts: a Playwright version or browser revision off the pin, or a missing
 
 check('facts: the CLI init against the real checkout reports git HEAD when GITHUB_SHA is unset', async () => {
     const dir = tmp();
-    const inputs = await node('check_inputs.mjs', [], {env: {...goodMain(), EXPLORER_CI_DIR: dir}});
+    const inputs = await node('check_inputs.mjs', [], {env: {...goodRelease(), EXPLORER_CI_DIR: dir}});
     equal(inputs.code, 0, inputs.out);
     const result = await node('run_facts.mjs', ['init'], {env: {EXPLORER_CI_DIR: dir}});
     equal(result.code, 0, result.out);
@@ -1012,7 +1051,7 @@ check('facts: the CLI init against the real checkout reports git HEAD when GITHU
     equal([facts.coordinator_revision, facts.coordinator_revision_source], [head, 'local git HEAD'], 'revision');
     equal(
         (await node('run_facts.mjs', ['get', 'image.digest'], {env: {EXPLORER_CI_DIR: dir}})).out.trim(),
-        MAIN_PIN.image.digest,
+        RELEASE_PIN.image.digest,
         'get',
     );
     equal(
@@ -1262,7 +1301,7 @@ check('workflow: only the licence-bearing steps receive the licence, and only as
     const {secretsMap} = lintWorkflow({text: workflowText, yamlLib});
     equal(
         secretsMap.map((e) => e.step).sort(),
-        ['ci/coordinator', 'ci/leak-scan', 'ci/stack-gate', 'ci/verify-target'],
+        ['ci/coordinator', 'ci/export', 'ci/leak-scan', 'ci/stack-gate', 'ci/verify-target'],
         'steps',
     );
     for (const entry of secretsMap.filter((e) => e.step !== 'ci/verify-target')) {
@@ -1362,6 +1401,17 @@ check('workflow: unsafe edits are caught by the lint', () => {
                 '      - name: ci/final-summary\n        with:\n          triage-lanes: x\n',
             ),
         'a missing input': (t) => t.replace(/      verifier:\n[\s\S]*?(?=      time_budget_minutes:)/, ''),
+        'the old 45 minute default': (t) => t.replace('        default: 120', '        default: 45'),
+        'export without the licence': (t) =>
+            t.replace(
+                "      - name: ci/export\n        id: export\n        if: ${{ always() && steps.checkout.outcome == 'success' }}\n        env:\n          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}\n",
+                "      - name: ci/export\n        id: export\n        if: ${{ always() && steps.checkout.outcome == 'success' }}\n",
+            ),
+        'licence in the teardown': (t) =>
+            t.replace(
+                '      - name: ci/teardown\n',
+                '      - name: ci/teardown\n        env:\n          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}\n',
+            ),
     };
     for (const [label, mutate] of Object.entries(mutants)) {
         const mutated = mutate(workflowText);
@@ -1398,13 +1448,36 @@ check('scripts: every shell script parses and every module is valid JavaScript',
     }
 });
 
+const PILOT_REAL = path.join(REPO_ROOT, 'explorer-proto/v2/orchestrator/pilot.mjs');
+const ORCH_RUNS = path.join(REPO_ROOT, 'explorer-proto/infra/.run/orch');
+const SPEC = 'explorer-proto/sessions/bookmarks/generated/channels_bookmarks_bar_follows_switch.spec.ts';
+const fixtureRunDirs = [];
+
 async function readyCiDir(env = {}) {
     const dir = tmp();
-    const base = {...goodMain(), EXPLORER_CI_DIR: dir, ...env};
+    const base = {...goodRelease(), EXPLORER_CI_DIR: dir, ...env};
     equal((await node('check_inputs.mjs', [], {env: base})).code, 0, 'inputs');
     equal((await node('run_facts.mjs', ['init'], {env: {EXPLORER_CI_DIR: dir}})).code, 0, 'facts');
     return dir;
 }
+
+const runFlags = (facts, image = facts.image.ref) => [
+    'run',
+    '--target',
+    facts.target_kind,
+    '--live',
+    '--verifier=process',
+    '--run-id',
+    facts.run_id,
+    '--verify-spec',
+    facts.verify_spec,
+    '--engine-charter',
+    `session:${facts.session}`,
+    '--control',
+    facts.control,
+    '--image',
+    image,
+];
 
 check('scripts: the --dry-run sequence runs every step without Docker, npm, a registry or a licence', async () => {
     const dir = await readyCiDir();
@@ -1432,40 +1505,98 @@ check('scripts: the --dry-run sequence runs every step without Docker, npm, a re
     assert(!fs.existsSync(path.join(dir, 'ci-status.json')), 'a dry run recorded a stage');
 });
 
-check('scripts: the dry-run coordinator command is the headless entry contract', async () => {
+check('scripts: the dry-run coordinator commands are the verified headless entry, flag for flag', async () => {
     const dir = await readyCiDir();
     const result = await bash('run_coordinator.sh', ['--dry-run'], {env: {EXPLORER_CI_DIR: dir}});
+    equal(result.code, 0, result.out);
     const facts = readJson(path.join(dir, 'run-facts.json'));
-    const expected = `+ node ${path.join(REPO_ROOT, 'explorer-proto/v2/orchestrator/pilot.mjs')} run --target main --live --verifier=process --image ${MAIN_IMAGE} --run-id ${facts.run_id} --verify-spec explorer-proto/sessions/bookmarks/generated/channels_bookmarks_bar_follows_switch.spec.ts --engine-charter session:bookmarks --control release-bookmark-title-changed`;
-    equal(result.out.trim(), expected, 'command');
+    equal(
+        result.out.trim().split('\n'),
+        [
+            `+ node ${PILOT_REAL} doctor --image ${RELEASE_IMAGE}`,
+            `+ node ${PILOT_REAL} ${[...runFlags(facts), '--verifier-timeout', '2280'].join(' ')}`,
+        ],
+        'commands',
+    );
 });
 
+check(
+    'scripts: the real orchestrator accepts the workflow run command as a dry run and records its inputs',
+    async () => {
+        const dir = await readyCiDir();
+        const facts = readJson(path.join(dir, 'run-facts.json'));
+        const printed = (await bash('run_coordinator.sh', ['--dry-run'], {env: {EXPLORER_CI_DIR: dir}})).out
+            .trim()
+            .split('\n')[1];
+        const args = printed.replace(/^\+ node \S+ /, '').split(' ');
+        const dry = (list, out = path.join(tmp(), 'run')) => ({
+            out,
+            run: exec(process.execPath, [
+                PILOT_REAL,
+                ...list.map((a) => (a === '--live' ? '--dry-run' : a)),
+                '--out',
+                out,
+            ]),
+        });
+        const {out, run} = dry(args);
+        const accepted = await run;
+        equal(accepted.code, 0, accepted.out);
+        const plan = readJson(path.join(out, 'plan.json'));
+        const saved = readJson(path.join(out, 'run.json'));
+        equal(
+            [plan.image, plan.session, plan.control, plan.spec.path, plan.verifier.mode, plan.verifier.timeout_seconds],
+            [
+                {reference: RELEASE_IMAGE, source: 'override'},
+                'bookmarks',
+                facts.control,
+                facts.verify_spec,
+                'process',
+                2280,
+            ],
+            'plan',
+        );
+        equal(saved.verifier_timeout_seconds, 2280, 'verifier timeout reached run.json');
+        const infra = plan.commands.map((c) => c.join(' ')).filter((c) => /infra\/scripts\/(gate|up)\.sh/.test(c));
+        assert(infra.length === 2 && infra.every((c) => !c.includes('--target')), `infra commands: ${infra}`);
+        const swap = (from, to) => args.map((a) => (a === from ? to : a));
+        const refused = [
+            ['a main target', swap('release', 'main')],
+            ['an image without a digest', swap(RELEASE_IMAGE, RELEASE_IMAGE.split('@')[0])],
+            ['a zero verifier timeout', swap('2280', '0')],
+        ];
+        for (const [label, list] of refused) {
+            const result = await dry(list).run;
+            equal(result.code, 2, `${label}: ${result.out.split('\n')[0]}`);
+        }
+    },
+);
+
+// Stands in only for the exit code of `run` and `doctor`: the flags of `run` are replayed through the real
+// orchestrator as a dry run, so a flag the real parser refuses fails here with its own exit 2.
 function fakePilot() {
     const dir = tmp('ci-pilot-');
     const file = path.join(dir, 'pilot.mjs');
     fs.writeFileSync(
         file,
         `import fs from 'node:fs';
-import path from 'node:path';
-const [command, ...rest] = process.argv.slice(2);
-const arg = (name) => rest[rest.indexOf(name) + 1];
-if (command === 'run') {
+import {spawnSync} from 'node:child_process';
+const args = process.argv.slice(2);
+if (process.env.FAKE_LOG) {
+    fs.appendFileSync(process.env.FAKE_LOG, args.join(' ') + '\\n');
+}
+if (args[0] === 'doctor') {
+    const code = Number(process.env.FAKE_DOCTOR_EXIT ?? 0);
+    process.stdout.write(code === 0 ? 'PASS node version: v24\\ndoctor: PASS (0 failing)\\n' : 'PASS node version: v24\\nFAIL docker reachable (linux/amd64): docker server not reachable\\ndoctor: FAIL (1 failing)\\n');
+    process.exit(code);
+}
+if (args[0] === 'run') {
+    const replay = args.map((a) => (a === '--live' ? '--dry-run' : a)).concat(['--out', process.env.FAKE_OUT]);
+    const real = spawnSync(process.execPath, [process.env.FAKE_REAL_PILOT, ...replay], {encoding: 'utf8'});
+    if (real.status !== 0) {
+        process.stderr.write(real.stderr);
+        process.exit(real.status);
+    }
     process.exit(Number(process.env.FAKE_RUN_EXIT ?? 0));
-}
-if (command === 'export') {
-    if (process.env.FAKE_EXPORT_EXIT) {
-        process.exit(Number(process.env.FAKE_EXPORT_EXIT));
-    }
-    fs.mkdirSync(arg('--out'), {recursive: true});
-    fs.writeFileSync(path.join(arg('--out'), 'run.json'), '{}');
-    if (process.env.FAKE_PNG) {
-        fs.writeFileSync(path.join(arg('--out'), 'screen.png'), 'x');
-    }
-    process.exit(0);
-}
-if (command === 'summary') {
-    process.stdout.write('# fake pilot summary\\n');
-    process.exit(0);
 }
 process.exit(2);
 `,
@@ -1473,10 +1604,17 @@ process.exit(2);
     return file;
 }
 
+const fakeEnv = (dir, extra = {}) => ({
+    EXPLORER_CI_DIR: dir,
+    EXPLORER_CI_PILOT: fakePilot(),
+    FAKE_REAL_PILOT: PILOT_REAL,
+    FAKE_OUT: path.join(tmp(), 'run'),
+    ...extra,
+});
+
 check(
     'scripts: the coordinator exit code is mapped to the ledger, 3 and 30 fail the job and are not passes',
     async () => {
-        const pilot = fakePilot();
         const synthetic = `SYNTHETIC-${crypto.randomBytes(24).toString('hex')}`;
         const cases = [
             [0, 'PASS', 0],
@@ -1488,20 +1626,27 @@ check(
             [22, 'FAIL', 22],
             [2, 'FAIL', 2],
             [124, 'FAIL', 1],
+            [137, 'FAIL', 1],
+            [77, 'FAIL', 77],
         ];
         for (const [code, result, exit] of cases) {
             const dir = await readyCiDir();
+            const log = path.join(dir, 'pilot-calls.log');
             const run = await bash('run_coordinator.sh', [], {
-                env: {
-                    EXPLORER_CI_DIR: dir,
-                    EXPLORER_CI_PILOT: pilot,
-                    MM_LICENSE: synthetic,
-                    FAKE_RUN_EXIT: String(code),
-                },
+                env: fakeEnv(dir, {MM_LICENSE: synthetic, FAKE_RUN_EXIT: String(code), FAKE_LOG: log}),
             });
             equal(run.code, exit, `exit for ${code}: ${run.out}`);
-            equal(readJson(path.join(dir, 'ci-status.json')).stages.coordinator.result, result, `ledger for ${code}`);
+            const stages = readJson(path.join(dir, 'ci-status.json')).stages;
+            equal([stages.doctor.result, stages.coordinator.result], ['PASS', result], `ledger for ${code}`);
+            assert(
+                stages.coordinator.detail.startsWith(`exit ${code}:`),
+                `detail for ${code}: ${stages.coordinator.detail}`,
+            );
             assert(!run.out.includes(synthetic), 'the licence was printed');
+            const calls = fs.readFileSync(log, 'utf8').trim().split('\n');
+            equal(calls.length, 2, 'doctor, then run');
+            assert(calls[0].startsWith('doctor --image '), `doctor first: ${calls[0]}`);
+            assert(calls[1].endsWith('--verifier-timeout 2280'), `verifier timeout: ${calls[1]}`);
             if (code !== 0) {
                 assert(run.out.includes('::error title=exploratory coordinator::'), `no clear message for ${code}`);
             }
@@ -1509,12 +1654,28 @@ check(
     },
 );
 
+check('scripts: a failing doctor stops the step before the run, blocked and not a pass', async () => {
+    for (const [doctorExit, result, exit] of [
+        [3, 'BLOCKED', 3],
+        [2, 'FAIL', 1],
+    ]) {
+        const dir = await readyCiDir();
+        const log = path.join(dir, 'pilot-calls.log');
+        const run = await bash('run_coordinator.sh', [], {
+            env: fakeEnv(dir, {MM_LICENSE: 'SYNTHETIC-x', FAKE_DOCTOR_EXIT: String(doctorExit), FAKE_LOG: log}),
+        });
+        equal(run.code, exit, `exit for doctor ${doctorExit}: ${run.out}`);
+        const stages = readJson(path.join(dir, 'ci-status.json')).stages;
+        equal([stages.doctor.result, stages.coordinator.result], [result, 'SKIPPED'], 'ledger');
+        assert(stages.doctor.detail.includes('docker reachable (linux/amd64)'), `detail: ${stages.doctor.detail}`);
+        equal(fs.readFileSync(log, 'utf8').trim().split('\n').length, 1, 'run was not called');
+        assert(run.out.includes('FAIL docker reachable'), 'the per-item doctor lines are in the log');
+    }
+});
+
 check('scripts: without the licence secret the coordinator and the stack gate report blocked, not a pass', async () => {
-    const pilot = fakePilot();
     const dir = await readyCiDir();
-    const coordinator = await bash('run_coordinator.sh', [], {
-        env: {EXPLORER_CI_DIR: dir, EXPLORER_CI_PILOT: pilot, FAKE_RUN_EXIT: '0'},
-    });
+    const coordinator = await bash('run_coordinator.sh', [], {env: fakeEnv(dir, {FAKE_RUN_EXIT: '0'})});
     equal(coordinator.code, 3, 'coordinator exit');
     const gate = await bash('stack_gate.sh', [], {env: {EXPLORER_CI_DIR: dir}});
     equal(gate.code, 3, 'gate exit');
@@ -1526,15 +1687,189 @@ check('scripts: without the licence secret the coordinator and the stack gate re
     );
 });
 
-check('scripts: an exhausted time budget fails before the coordinator starts', async () => {
+check('scripts: a time budget that leaves too little for the verifier fails before doctor and the run', async () => {
     const dir = await readyCiDir();
     const factsFile = path.join(dir, 'run-facts.json');
     fs.writeFileSync(factsFile, JSON.stringify({...readJson(factsFile), started_epoch_s: 1000}));
+    const log = path.join(dir, 'pilot-calls.log');
     const run = await bash('run_coordinator.sh', [], {
-        env: {EXPLORER_CI_DIR: dir, EXPLORER_CI_PILOT: fakePilot(), MM_LICENSE: 'SYNTHETIC-x', FAKE_RUN_EXIT: '0'},
+        env: fakeEnv(dir, {MM_LICENSE: 'SYNTHETIC-x', FAKE_RUN_EXIT: '0', FAKE_LOG: log}),
     });
     equal(run.code, 1, 'exit');
     equal(readJson(path.join(dir, 'ci-status.json')).stages.coordinator.result, 'FAIL', 'ledger');
+    assert(!fs.existsSync(log), 'doctor or run was called');
+});
+
+check('plan: the time budget arithmetic follows the real stage budgets', () => {
+    const stages = loadStageBudgets();
+    const plan = budgetPlan(stages);
+    const sum = ['target', 'baseline', 'control', 'dispatch', 'collect'].reduce(
+        (n, k) => n + stages[k].time_seconds,
+        0,
+    );
+    equal(plan.coordinatorSeconds, sum, 'coordinator seconds');
+    assert(stages.dispatch.time_seconds >= 2400, 'dispatch budget is the raised one');
+    assert(plan.worstCaseMinutes > 45, `45 minutes would be feasible: ${plan.worstCaseMinutes}`);
+    assert(BUDGET_MINUTES.default >= plan.worstCaseMinutes, 'the default does not cover the worst case');
+    assert(BUDGET_MINUTES.min >= plan.minimumMinutes, 'the minimum leaves less than the default verifier timeout');
+    assert(
+        BUDGET_MINUTES.min * 60 - SETUP_ALLOWANCE_SECONDS - TEARDOWN_RESERVE_SECONDS - plan.otherStagesSeconds >= 1500,
+        'minimum window',
+    );
+    equal(plan.verifierCapSeconds, stages.dispatch.time_seconds - 120, 'cap');
+});
+
+check('plan: the verifier timeout is capped by the dispatch budget and refused below the floor', () => {
+    const plan = budgetPlan(loadStageBudgets());
+    const window = (minutes) => minutes * 60 - SETUP_ALLOWANCE_SECONDS - TEARDOWN_RESERVE_SECONDS;
+    equal(verifierTimeoutSeconds(plan, window(BUDGET_MINUTES.default)), {ok: true, seconds: 2280}, 'default');
+    equal(verifierTimeoutSeconds(plan, window(BUDGET_MINUTES.max)), {ok: true, seconds: 2280}, 'max');
+    const min = verifierTimeoutSeconds(plan, window(BUDGET_MINUTES.min));
+    assert(min.ok && min.seconds >= 1500, `min budget: ${JSON.stringify(min)}`);
+    assert(!verifierTimeoutSeconds(plan, window(45)).ok, '45 minutes was accepted');
+    assert(!verifierTimeoutSeconds(plan, plan.otherStagesSeconds + MIN_VERIFIER_SECONDS - 1).ok, 'floor');
+    assert(verifierTimeoutSeconds(plan, plan.otherStagesSeconds + MIN_VERIFIER_SECONDS).ok, 'floor is inclusive');
+    assert(!verifierTimeoutSeconds(plan, -5).ok, 'negative window');
+});
+
+check('plan: every documented exit code has its own mapping and only 0 passes', () => {
+    const expected = {
+        0: ['PASS', 0],
+        1: ['FAIL', 1],
+        2: ['FAIL', 2],
+        3: ['BLOCKED', 3],
+        20: ['FAIL', 20],
+        21: ['FAIL', 21],
+        22: ['FAIL', 22],
+        30: ['PENDING', 30],
+        124: ['FAIL', 1],
+        137: ['FAIL', 1],
+    };
+    for (const [code, [result, exit]] of Object.entries(expected)) {
+        const mapped = mapCoordinatorExit(Number(code));
+        equal([mapped.result, mapped.exit], [result, exit], `code ${code}`);
+        assert(!mapped.detail.includes('unexpected'), `code ${code} is unmapped`);
+        assert(mapped.detail.length <= 200, `detail of ${code} is too long for the ledger`);
+    }
+    assert(mapCoordinatorExit(2).message.includes('workflow bug'), 'usage is named a workflow bug');
+    assert(mapCoordinatorExit(30).message.includes('not a pass'), 'pending is not a pass');
+    assert(mapCoordinatorExit(3).message.includes('not a pass'), 'blocked is not a pass');
+    assert(mapCoordinatorExit(99).detail.includes('unexpected'), 'unknown code');
+});
+
+check('plan: the doctor output is summarised per item without values', () => {
+    const text =
+        'PASS node version: v24.11.1 (needs 24 or newer)\nFAIL explorer-proto/node_modules symlink: create: ln -s x y\nSKIP docker reachable (linux/amd64): --no-docker\ndoctor: FAIL (1 failing)\n';
+    equal(
+        summarizeDoctor(text),
+        {pass: 1, fail: 1, skip: 1, failing: ['explorer-proto/node_modules symlink'], complete: true},
+        'summary',
+    );
+    assert(!summarizeDoctor('PASS a: b\n').complete, 'a truncated doctor output is incomplete');
+});
+
+check('entry contract: the workflow scripts pass only flags the coordinator documents and prints', () => {
+    const result = checkEntryContract();
+    equal(result.errors, [], 'errors');
+    equal(
+        result.used.run,
+        [
+            'target',
+            'live',
+            'verifier',
+            'run-id',
+            'verify-spec',
+            'engine-charter',
+            'control',
+            'image',
+            'verifier-timeout',
+        ],
+        'run flags',
+    );
+    equal(
+        [result.used.export, result.used.summary, result.used.doctor],
+        [['run-id', 'out'], ['run-id', 'github'], ['image']],
+        'others',
+    );
+    equal(result.restricted, true, 'the --verify-spec restriction to release was read from pilot.mjs');
+});
+
+check('entry contract: an unknown flag, a test flag, a bad value or a missing flag is a finding', () => {
+    const root = REPO_ROOT;
+    const orch = (rel) => fs.readFileSync(path.join(root, 'explorer-proto/v2/orchestrator', rel), 'utf8');
+    const base = {
+        usage: pilotUsage(root),
+        readme: orch('README.md'),
+        pilotSource: orch('pilot.mjs'),
+        handoffSource: orch('lib/verify/handoff.mjs'),
+        coordinatorKinds: ['release'],
+    };
+    const digest = `sha256:${'a'.repeat(64)}`;
+    const runLine = `+ node /x/pilot.mjs run --target release --live --verifier=process --run-id r-1 --verify-spec s.spec.ts --engine-charter session:bookmarks --control c --image r/x:1@${digest} --verifier-timeout 2280`;
+    const lines = (...extra) =>
+        parseCommands(
+            [
+                runLine,
+                '+ node /x/pilot.mjs doctor --image r/x:1@' + digest,
+                '+ node /x/pilot.mjs export --run-id r-1 --out /o',
+                '+ node /x/pilot.mjs summary --run-id r-1 --github > /f',
+                ...extra,
+            ].join('\n'),
+        );
+    equal(evaluateContract({...base, commands: lines()}).errors, [], 'the reference commands');
+    const mutate = (from, to) =>
+        parseCommands(
+            [
+                runLine,
+                '+ node /x/pilot.mjs doctor',
+                '+ node /x/pilot.mjs export --run-id r --out o',
+                '+ node /x/pilot.mjs summary --run-id r --github',
+            ]
+                .join('\n')
+                .replace(from, to),
+        );
+    const cases = {
+        'an unknown flag': mutate('--verifier-timeout 2280', '--verifier-timeout 2280 --turbo'),
+        'a misspelt flag': mutate('--verifier=process', '--verifer=process'),
+        'a test flag': mutate('--live', '--live --recover-fixture'),
+        'a dry run': mutate('--live', '--dry-run'),
+        'a digestless image': mutate(`@${digest}`, ''),
+        'a zero timeout': mutate('--verifier-timeout 2280', '--verifier-timeout 0'),
+        'a main target': mutate('--target release', '--target main'),
+        'a missing documented flag': mutate(' --control c', ''),
+        'an unknown subcommand': mutate('doctor', 'inspect'),
+        'a flag of another subcommand': mutate('summary --run-id r --github', 'summary --run-id r --out o'),
+    };
+    for (const [label, commands] of Object.entries(cases)) {
+        assert(evaluateContract({...base, commands}).errors.length > 0, `accepted ${label}`);
+    }
+    const dropped = base.usage.replace('--verifier-timeout <seconds>', '');
+    assert(evaluateContract({...base, usage: dropped, commands: lines()}).errors.length > 0, 'usage without the flag');
+    const undocumented = base.readme.replaceAll('--verifier-timeout', '--verifier-limit');
+    assert(evaluateContract({...base, readme: undocumented, commands: lines()}).errors.length > 0, 'README without it');
+    assert(
+        evaluateContract({...base, coordinatorKinds: ['release', 'main'], commands: lines()}).errors.length > 0,
+        'main accepted although pilot.mjs refuses it',
+    );
+    assert(
+        evaluateContract({...base, handoffSource: 'const DEFAULT_TIMEOUT_SECONDS = 900;', commands: lines()}).errors
+            .length > 0,
+        'a changed default verifier timeout',
+    );
+    const documented = parseReadme(base.readme);
+    equal(
+        [documented.codes, [...documented.headlessRun].sort()],
+        [
+            [0, 1, 2, 3, 20, 21, 22, 30],
+            ['control', 'engine-charter', 'image', 'live', 'run-id', 'target', 'verifier', 'verify-spec'],
+        ],
+        'README parse',
+    );
+    const usage = flagsBySubcommand(base.usage);
+    assert(
+        usage.run.has('verifier-timeout') && usage.doctor.has('image') && usage.summary.has('github'),
+        'usage parse',
+    );
 });
 
 function fakeInfra({gateExit = 0, licenceLine = "IsLicensed === 'true': PASS", downExit = 0} = {}) {
@@ -1556,8 +1891,8 @@ async function gateCase({gateOptions, buildHash, license = 'SYNTHETIC-lic'}) {
         res.writeHead(200, {'content-type': 'application/json'});
         res.end(
             JSON.stringify({
-                BuildHash: buildHash ?? MAIN_PIN.sha,
-                BuildHashEnterprise: MAIN_PIN.image.ref.split('_')[1].padEnd(40, '0'),
+                BuildHash: buildHash ?? RELEASE_PIN.sha,
+                Version: RELEASE_PIN.server_version,
             }),
         );
     });
@@ -1602,36 +1937,78 @@ check('scripts: the stack gate records gate, licence and live provenance, and te
     equal(failedDown.run.code, 1, 'a failed teardown fails the step');
 });
 
-check(
-    'scripts: the export step builds one directory with the run facts, scans for capture and keeps the summary out',
-    async () => {
-        const pilot = fakePilot();
-        const dir = await readyCiDir();
-        await node('ci_status.mjs', ['record', 'inputs', 'PASS'], {env: {EXPLORER_CI_DIR: dir}});
-        const ok = await bash('export_run.sh', [], {env: {EXPLORER_CI_DIR: dir, EXPLORER_CI_PILOT: pilot}});
-        equal(ok.code, 0, ok.out);
-        const exported = fs.readdirSync(path.join(dir, 'export'), {recursive: true}).sort();
-        equal(exported, ['ci', 'ci/ci-status.json', 'ci/run-facts.json', 'run.json'], 'export contents');
-        assert(
-            fs.readFileSync(path.join(dir, 'pilot-summary.md'), 'utf8').includes('fake pilot summary'),
-            'summary file',
-        );
-        equal(readJson(path.join(dir, 'ci-status.json')).stages['capture-export'].result, 'PASS', 'capture ledger');
+// A real orchestrator run directory without Docker: the dry run of the exact workflow flags, under a digest nobody
+// else uses, so the directory can be removed afterwards without touching anyone's run.
+async function fixtureRun() {
+    const image = `mattermost/mattermost-enterprise-edition:12.1.0@sha256:${crypto.randomBytes(32).toString('hex')}`;
+    const dir = await readyCiDir({INPUT_IMAGE: image});
+    const facts = readJson(path.join(dir, 'run-facts.json'));
+    const runDir = path.join(ORCH_RUNS, facts.run_id);
+    assert(!fs.existsSync(runDir), `refusing to reuse the run directory ${runDir}`);
+    fixtureRunDirs.push(runDir);
+    const args = runFlags(facts).map((a) => (a === '--live' ? '--dry-run' : a));
+    const done = await exec(process.execPath, [PILOT_REAL, ...args, '--verifier-timeout', '2280']);
+    equal(done.code, 0, done.out);
+    return {dir, runDir, facts};
+}
 
-        const withPng = await bash('export_run.sh', [], {
-            env: {EXPLORER_CI_DIR: dir, EXPLORER_CI_PILOT: pilot, FAKE_PNG: '1'},
-        });
-        equal(withPng.code, 1, 'a png in the export fails');
-        equal(readJson(path.join(dir, 'ci-status.json')).stages['capture-export'].result, 'FAIL', 'png ledger');
+check('scripts: the export step runs the real pilot export and summary on a run directory', async () => {
+    const {dir} = await fixtureRun();
+    const synthetic = `SYNTHETIC-${crypto.randomBytes(24).toString('hex')}`;
+    const ok = await bash('export_run.sh', [], {env: {EXPLORER_CI_DIR: dir, MM_LICENSE: synthetic}});
+    equal(ok.code, 0, ok.out);
+    assert(!ok.out.includes(synthetic), 'the licence was printed');
+    const exported = fs.readdirSync(path.join(dir, 'export'), {recursive: true}).map((f) => String(f));
+    for (const name of [
+        'run.json',
+        'plan.json',
+        'commands.json',
+        'export-manifest.json',
+        'ci/run-facts.json',
+        'ci/ci-status.json',
+    ]) {
+        assert(exported.includes(name), `export lacks ${name}: ${exported.join(', ')}`);
+    }
+    const manifest = readJson(path.join(dir, 'export/export-manifest.json'));
+    equal(
+        [manifest.leak_scan.unsafe_text, manifest.leak_scan.licence],
+        ['PASS', 'PASS'],
+        'the orchestrator scanned its own copy',
+    );
+    const summary = fs.readFileSync(path.join(dir, 'pilot-summary.md'), 'utf8');
+    assert(/^### Explorer pilot: INCOMPLETE \(run /.test(summary), `summary: ${summary.split('\n')[0]}`);
+    assert(!exported.includes('pilot-summary.md'), 'the coordinator summary is not part of the export');
+    equal(readJson(path.join(dir, 'ci-status.json')).stages.export.result, 'PASS', 'export ledger');
+    equal(readJson(path.join(dir, 'ci-status.json')).stages['capture-export'].result, 'PASS', 'capture ledger');
+});
 
-        const failed = await bash('export_run.sh', [], {
-            env: {EXPLORER_CI_DIR: dir, EXPLORER_CI_PILOT: pilot, FAKE_EXPORT_EXIT: '1'},
-        });
-        equal(failed.code, 1, 'a failed export fails');
-        equal(readJson(path.join(dir, 'ci-status.json')).stages.export.result, 'FAIL', 'export ledger');
-        assert(fs.existsSync(path.join(dir, 'export/ci/run-facts.json')), 'the facts are still exported');
-    },
-);
+check('scripts: a missing licence is blocked (exit 3, nothing exported) and a leak is a failure (exit 1)', async () => {
+    const {dir, facts} = await fixtureRun();
+    const blocked = await bash('export_run.sh', [], {env: {EXPLORER_CI_DIR: dir}});
+    equal(blocked.code, 3, blocked.out);
+    equal(readJson(path.join(dir, 'ci-status.json')).stages.export.result, 'BLOCKED', 'blocked ledger');
+    equal(
+        fs.readdirSync(path.join(dir, 'export'), {recursive: true}).map(String).sort(),
+        ['ci', 'ci/ci-status.json', 'ci/run-facts.json'],
+        'only the ci facts remain',
+    );
+
+    const leaked = await bash('export_run.sh', [], {env: {EXPLORER_CI_DIR: dir, MM_LICENSE: facts.verify_spec}});
+    equal(leaked.code, 1, leaked.out);
+    const stages = readJson(path.join(dir, 'ci-status.json')).stages;
+    equal(stages.export.result, 'FAIL', 'leak ledger');
+    assert(!fs.existsSync(path.join(dir, 'export/run.json')), 'the leaking copy was kept');
+});
+
+check('scripts: without a coordinator run directory the export is skipped, not failed or passed', async () => {
+    const dir = await readyCiDir({
+        INPUT_IMAGE: `mattermost/mattermost-enterprise-edition:12.1.0@sha256:${crypto.randomBytes(32).toString('hex')}`,
+    });
+    const run = await bash('export_run.sh', [], {env: {EXPLORER_CI_DIR: dir, MM_LICENSE: 'SYNTHETIC-x'}});
+    equal(run.code, 0, run.out);
+    equal(readJson(path.join(dir, 'ci-status.json')).stages.export.result, 'SKIPPED', 'ledger');
+    assert(fs.readFileSync(path.join(dir, 'pilot-summary.md'), 'utf8').includes('never started'), 'summary file');
+});
 
 check(
     'scripts: image and workspace scripts refuse without facts, and the lockfile guard is part of the setup',
@@ -1680,7 +2057,7 @@ async function main() {
             process.stdout.write(`FAIL  ${name}\n      ${String(error.message).split('\n')[0].slice(0, 400)}\n`);
         }
     }
-    for (const dir of tmpDirs) {
+    for (const dir of [...tmpDirs, ...fixtureRunDirs]) {
         fs.rmSync(dir, {recursive: true, force: true});
     }
     process.stdout.write(`\nci selftest: ${passed} passed, ${failures.length} failed\n`);

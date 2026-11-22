@@ -32,7 +32,11 @@ export const ALLOWED = {
     verifier: ['process'],
 };
 
-export const BUDGET_MINUTES = {min: 15, max: 90, default: 45};
+// Derived in coordinator_plan.mjs from the orchestrator's stage budgets: see "Time budget" in README.md.
+export const BUDGET_MINUTES = {min: 100, max: 180, default: 120};
+
+// The coordinator's --verify-spec entry accepts --target release only (verifyInputs in orchestrator/pilot.mjs).
+export const COORDINATOR_TARGET_KINDS = ['release'];
 
 export const COMMIT_PATTERNS = {
     main: /^[0-9a-f]{40}$/,
@@ -58,6 +62,7 @@ export const STAGES = [
     ['gate', 'Infra isolation and licence gate'],
     ['licence', 'Licence check (IsLicensed === true)'],
     ['provenance-live', 'Server build hash equals the target commit'],
+    ['doctor', 'Coordinator preflight (pilot.mjs doctor)'],
     ['coordinator', 'Coordinator run (pilot.mjs run)'],
     ['teardown', 'Stack teardown'],
     ['export', 'Sanitized export'],
@@ -168,6 +173,9 @@ const VALUE_FLAGS = new Set([
     'pilot-summary',
     'blocked-codes',
     'pending-codes',
+    'window',
+    'budgets',
+    'field',
 ]);
 
 /** Appends key=value to $GITHUB_OUTPUT when it is set. Values are validated upstream and never contain a newline. */

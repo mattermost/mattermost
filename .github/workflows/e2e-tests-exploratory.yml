@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       target_kind:
-        description: "Target kind: main (a dev image of a master commit) or release (an official release image)"
+        description: "Target kind: release (an official release image). main is refused until the coordinator's --verify-spec entry accepts --target main."
         type: choice
         required: true
         options:
@@ -48,10 +48,10 @@ on:
         options:
           - process
       time_budget_minutes:
-        description: "Job time budget in minutes (15 to 90)"
+        description: "Job time budget in minutes (100 to 180). The orchestrator's stage budgets add up to 112 minutes with setup and teardown."
         type: number
         required: true
-        default: 45
+        default: 120
 
 permissions: {}
 
@@ -123,7 +123,8 @@ jobs:
       - name: ci/containment
         timeout-minutes: 10
         run: bash explorer-proto/v2/ci/containment.sh
-      # Only the two steps below and the leak scan receive the licence. Neither starts a model agent.
+      # Only the stack gate, the coordinator (its doctor preflight and the verifier child process), the export (pilot.mjs
+      # export scans with the licence and fails closed without it) and the leak scan receive the licence. None starts a model agent.
       - name: ci/stack-gate
         timeout-minutes: 20
         env:
@@ -139,6 +140,8 @@ jobs:
       - name: ci/export
         id: export
         if: ${{ always() && steps.checkout.outcome == 'success' }}
+        env:
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
         run: bash explorer-proto/v2/ci/export_run.sh
       - name: ci/leak-scan
         id: leak

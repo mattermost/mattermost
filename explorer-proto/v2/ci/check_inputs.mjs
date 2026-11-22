@@ -3,7 +3,8 @@
 // See LICENSE.txt for license information.
 
 // Validates the workflow_dispatch inputs (passed as INPUT_* environment variables, never interpolated into a shell
-// line) and derives the run id. Exit 0 valid, 2 invalid. With --dry-run nothing is written.
+// line) and derives the run id. Exit 0 valid, 2 invalid. With --dry-run nothing is written. A target kind the
+// coordinator's --verify-spec entry does not accept is invalid here, before any image is pulled.
 //   INPUT_TARGET_KIND INPUT_IMAGE INPUT_COMMIT_SHA INPUT_TEST_SOURCE_REF INPUT_SESSION INPUT_CONTROL
 //   INPUT_VERIFIER INPUT_TIME_BUDGET_MINUTES GITHUB_RUN_ATTEMPT
 import fs from 'node:fs';
@@ -16,6 +17,7 @@ import {
     BUDGET_MINUTES,
     ciDir,
     COMMIT_PATTERNS,
+    COORDINATOR_TARGET_KINDS,
     EXIT,
     IMAGE_REPOSITORIES,
     isMain,
@@ -45,12 +47,17 @@ function singleSpec(root, session) {
     return specs.length === 1 ? `explorer-proto/sessions/${session}/generated/${specs[0]}` : null;
 }
 
-export function checkInputs(env, {root = REPO_ROOT} = {}) {
+export function checkInputs(env, {root = REPO_ROOT, coordinatorKinds = COORDINATOR_TARGET_KINDS} = {}) {
     const errors = [];
     const input = (name) => env[`INPUT_${name}`] ?? '';
 
     const kind = input('TARGET_KIND');
     const kindOk = oneOf(errors, 'target_kind', kind, ALLOWED.target_kind);
+    if (kindOk && !coordinatorKinds.includes(kind)) {
+        errors.push(
+            `target_kind ${kind} cannot run: the coordinator's --verify-spec entry accepts --target ${coordinatorKinds.join(' or ')} only (pilot.mjs verifyInputs), so it would exit 2`,
+        );
+    }
 
     const image = parseImage(input('IMAGE'));
     if (!image) {

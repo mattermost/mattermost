@@ -13,12 +13,13 @@ import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 
-import {EXIT, isMain, parseArgs, REPO_ROOT} from './lib.mjs';
+import {BUDGET_MINUTES, EXIT, isMain, parseArgs, REPO_ROOT} from './lib.mjs';
 
 const WORKFLOW = '.github/workflows/e2e-tests-exploratory.yml';
 const SECRET_STEPS = {
     'ci/stack-gate': {secret: 'MM_E2E_TEST_LICENSE_ONPREM_ENT', env: 'MM_LICENSE'},
     'ci/coordinator': {secret: 'MM_E2E_TEST_LICENSE_ONPREM_ENT', env: 'MM_LICENSE'},
+    'ci/export': {secret: 'MM_E2E_TEST_LICENSE_ONPREM_ENT', env: 'MM_LICENSE'},
     'ci/leak-scan': {secret: 'MM_E2E_TEST_LICENSE_ONPREM_ENT', env: 'MM_LICENSE'},
 };
 const TOKEN_STEPS = {'ci/verify-target': {env: 'GITHUB_TOKEN'}};
@@ -119,7 +120,7 @@ export function lintWorkflow({text, root = REPO_ROOT, yamlLib}) {
     expectInput('session', 'choice', {default: 'bookmarks', options: ['bookmarks']});
     expectInput('control', 'string', {default: 'release-bookmark-title-changed'});
     expectInput('verifier', 'choice', {default: 'process', options: ['process']});
-    expectInput('time_budget_minutes', 'number', {default: 45});
+    expectInput('time_budget_minutes', 'number', {default: BUDGET_MINUTES.default});
     if (Object.keys(inputs).length !== 8) {
         fail('the workflow must have exactly the eight specified inputs');
     }
@@ -238,6 +239,12 @@ export function lintWorkflow({text, root = REPO_ROOT, yamlLib}) {
     for (const required of [...Object.keys(SECRET_STEPS), ...Object.keys(TOKEN_STEPS)]) {
         if (!names.has(required)) {
             fail(`step ${required} is missing`);
+        }
+    }
+    for (const [name, rule] of Object.entries(SECRET_STEPS)) {
+        const step = allSteps.find((s) => s.name === name);
+        if (step && !String(step.env?.[rule.env] ?? '').includes(`secrets.${rule.secret}`)) {
+            fail(`step ${name} must receive ${rule.secret} as ${rule.env}`);
         }
     }
     for (const name of ALWAYS_STEPS) {
