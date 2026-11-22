@@ -2464,14 +2464,19 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 			clauses := make(sq.Or, 0, len(mentionTerms)+1)
 			for _, term := range mentionTerms {
 				clauses = append(clauses, sq.And{
-					sq.Expr(searchClause, withExcludedClause(toTsQuery(term, false))),
+					sq.Expr(searchClause, toTsQuery(term, false)),
 					sq.Expr(searchType+" ~* ?", mentionTermPattern(term)),
 				})
 			}
 			if terms != "" {
-				clauses = append(clauses, sq.Expr(searchClause, withExcludedClause(toTsQuery(terms, false))))
+				clauses = append(clauses, sq.Expr(searchClause, toTsQuery(terms, false)))
 			}
 			baseQuery = baseQuery.Where(clauses)
+			// Excluded terms apply once, outside the OR: appended to a clause made only of stop words,
+			// "&!(...)" would leave a bare negation that matches nearly every post.
+			if excludedClause != "" {
+				baseQuery = baseQuery.Where("NOT ("+searchClause+")", excludedClause)
+			}
 		default:
 			// Keeping every term in one tsquery means stop words are dropped from it instead of
 			// producing a separate clause that can never match.

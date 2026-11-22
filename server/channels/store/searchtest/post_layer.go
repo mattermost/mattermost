@@ -1923,6 +1923,8 @@ func testSearchMentionTermsRequireAtSign(t *testing.T, th *SearchTestHelper) {
 		{name: "mention with excluded word", terms: `@testuser`, excludedTerms: "system", expectedIDs: []string{}},
 		{name: "mention OR keyword with word excluded from the mention", terms: `"@testuser" deploy`, excludedTerms: "system", orTerms: true, expectedIDs: []string{keyword.Id}},
 		{name: "mention OR keyword with word excluded from the keyword", terms: `"@testuser" deploy`, excludedTerms: "finished", orTerms: true, expectedIDs: []string{mention.Id}},
+		{name: "mention OR stop word with an unrelated word excluded", terms: `the @testuser`, excludedTerms: "zzz", orTerms: true, expectedIDs: []string{mention.Id}},
+		{name: "mention OR keyword with a stop word excluded", terms: `"@testuser" deploy`, excludedTerms: "the", orTerms: true, expectedIDs: []string{mention.Id, keyword.Id}},
 		{name: "word without @ still matches every post containing it", terms: `testuser`, expectedIDs: []string{mention.Id, word.Id, hashtag.Id, longerUsername.Id, email.Id}},
 	}
 
