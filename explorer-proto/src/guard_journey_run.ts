@@ -16,7 +16,7 @@ import {outDir, reportsDir} from './paths.ts';
 
 export type PlaywrightRunner = (mode: string, env?: NodeJS.ProcessEnv) => Promise<number>;
 
-async function freePort(): Promise<number> {
+export async function freePort(): Promise<number> {
     const server = net.createServer();
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     const {port} = server.address() as AddressInfo;

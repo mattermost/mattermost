@@ -9,7 +9,7 @@ if (process.env.PW_USE_TESTCONTAINERS) {
 }
 
 // The guard checks run against their own local servers only, so they need no seeded stack.
-const LOCAL_FIXTURE_MODES = ['guard-check', 'guard-race', 'guard-journey', 'guard-journey-spec'];
+const LOCAL_FIXTURE_MODES = ['guard-check', 'guard-race', 'guard-journey', 'guard-journey-spec', 'journey-selftest'];
 if (!LOCAL_FIXTURE_MODES.includes(process.env.EXPLORER_MODE ?? '')) {
     process.env.PW_BASE_URL = baseUrl();
 }

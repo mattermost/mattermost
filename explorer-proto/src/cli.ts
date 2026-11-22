@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|containment-evidence|probe-absence> [--session=<name>] [--out=<dir>] [-- <playwright args>]
+// Usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|containment-evidence|probe-absence|journey-selftest|engine-hash|charter-hash|charter-check> [--session=<name>] [--out=<dir>] [-- <playwright args>]
 import {spawn, spawnSync} from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import {charterPath} from './charter.ts';
 import {startContainmentProxy} from './containment_proxy.ts';
 import {buildEvidenceRecord, readFragment, writeJson} from './containment_report.ts';
 import type {RaceFragment} from './containment_report.ts';
@@ -14,8 +15,12 @@ import {SCRATCH_SPEC_NAME} from './containment_scratch.ts';
 import {emit} from './emit.ts';
 import {emitJourney} from './emit_journey.ts';
 import {emitSession} from './emit_session.ts';
-import {runGuardJourney} from './guard_journey_run.ts';
+import {engineHash} from './engine_hash.ts';
+import {freePort, runGuardJourney} from './guard_journey_run.ts';
+import {charterFileSha256, readJourneyCharter} from './journey_charter.ts';
 import {PROXY_PORT_ENV} from './journey_containment.ts';
+import {clientConfigRequestPath} from './journey_fixture.ts';
+import {hasOutcomes, validateOutcomeCharter} from './journey_outcomes.ts';
 import {allowedOrigin} from './manifest.ts';
 import {
     CONFIG_PATH,
@@ -48,8 +53,16 @@ delete process.env.PILOT_JOURNEY;
 if (journeyArg) {
     process.env.PILOT_JOURNEY = journeyArg.slice('--journey='.length);
 }
-const SESSION_COMMANDS = ['explore', 'emit', 'replay'];
-const JOURNEY_COMMANDS = ['explore', 'emit', 'replay', 'guard-journey', 'containment-evidence'];
+const SESSION_COMMANDS = ['explore', 'emit', 'replay', 'charter-hash'];
+const JOURNEY_COMMANDS = [
+    'explore',
+    'emit',
+    'replay',
+    'guard-journey',
+    'containment-evidence',
+    'charter-hash',
+    'charter-check',
+];
 
 const PLAYWRIGHT_BIN = path.join(PLAYWRIGHT_DIR, 'node_modules', '.bin', 'playwright');
 
@@ -133,6 +146,26 @@ function containmentEvidence(): number {
     return 0;
 }
 
+/**
+ * Offline outcome-mode selftest: a loopback fake app (synthetic charters only, no stack). The port is chosen
+ * here and handed to the child through the environment; it is never printed.
+ */
+async function journeySelftest(): Promise<number> {
+    const port = await freePort();
+    const status = await playwrightAsync('journey-selftest', {
+        PW_BASE_URL: `http://127.0.0.1:${port}`,
+        EXPLORER_SELFTEST_PORT: String(port),
+    });
+    const report = path.join(reportsDir(), 'journey-selftest.json');
+    if (fs.existsSync(report)) {
+        const stats = JSON.parse(fs.readFileSync(report, 'utf-8')).stats as Record<string, number>;
+        process.stdout.write(
+            `journey-selftest: ${status === 0 ? 'PASS' : 'FAIL'} (${stats.expected} passed, ${stats.unexpected} failed, ${stats.skipped} skipped, ${stats.flaky} flaky)\n`,
+        );
+    }
+    return status;
+}
+
 async function main(): Promise<number> {
     const session = sessionName();
     const journey = journeyName();
@@ -148,7 +181,56 @@ async function main(): Promise<number> {
         process.stderr.write('--journey and --session are mutually exclusive\n');
         return 2;
     }
+    if (own.includes('--charter-hash') || command === 'charter-hash') {
+        const name = journey || session;
+        if (!name) {
+            process.stderr.write('--charter-hash needs --journey=<name> or --session=<name>\n');
+            return 2;
+        }
+        process.stdout.write(`${charterFileSha256(name)}  ${path.relative(REPO_DIR, charterPath(name))}\n`);
+        if (command === 'charter-hash') {
+            return 0;
+        }
+    }
     switch (command) {
+        case 'engine-hash': {
+            const {files, listing, sha256} = engineHash();
+            if (own.includes('--list')) {
+                process.stdout.write(listing);
+            }
+            process.stdout.write(`engine-sha256 ${sha256} (${files.length} files)\n`);
+            return 0;
+        }
+        case 'charter-check': {
+            if (!journey) {
+                process.stderr.write('charter-check needs --journey=<name>\n');
+                return 2;
+            }
+            const charter = readJourneyCharter(journey);
+            if (!hasOutcomes(charter)) {
+                process.stdout.write(`${journey}: no success_criteria.outcomes; nothing to check\n`);
+                return 0;
+            }
+            const rules = validateOutcomeCharter(charter);
+            process.stdout.write(
+                [
+                    `${journey}: outcome rules parsed`,
+                    ...rules.classes.map(
+                        (c) => `  class ${c.name}: ${c.clauses.map((x) => `${x.checkpoint}=${x.value}`).join(' AND ')}`,
+                    ),
+                    ...rules.precedence.map(
+                        (r) =>
+                            `  precedence ${r.label}: ${r.conditions.map((c) => ('cls' in c ? `${c.kind}(${c.cls})` : c.kind)).join(' AND ')}`,
+                    ),
+                    `  confirmation order: ${rules.confirmOrder.join(', ')}; preserved: ${rules.preserveClasses.join(', ')}; no_early_stop: ${rules.noEarlyStop}; reserved replays: ${rules.reserved}`,
+                    `  precondition source: ${clientConfigRequestPath(charter) ? 'client config' : 'admin GET /config'}`,
+                    '',
+                ].join('\n'),
+            );
+            return 0;
+        }
+        case 'journey-selftest':
+            return journeySelftest();
         case 'explore':
             return playwright(journey ? 'explore-journey' : 'explore');
         case 'emit': {
@@ -197,7 +279,7 @@ async function main(): Promise<number> {
             return playwright('probe-absence');
         default:
             process.stderr.write(
-                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|containment-evidence|probe-absence> [--session=<name>|--journey=<name>] [--out=<dir>]\n',
+                'usage: node explorer-proto/src/cli.ts <explore|emit|replay|guard-check|guard-race|guard-journey|containment-evidence|probe-absence|journey-selftest|engine-hash|charter-hash|charter-check> [--session=<name>|--journey=<name>] [--out=<dir>] [--charter-hash]\n',
             );
             return 2;
     }

@@ -45,6 +45,7 @@ const testLocation = {
     'guard-journey': {testDir: SRC_DIR, testMatch: 'guard_journey.pw.ts'},
     'guard-journey-spec': {testDir: SCRATCH_DIR, testMatch: SCRATCH_SPEC_NAME},
     'explore-journey': {testDir: SRC_DIR, testMatch: 'explore_journey.pw.ts'},
+    'journey-selftest': {testDir: SRC_DIR, testMatch: 'journey_selftest.pw.ts'},
     // The emitted repo-native spec runs from the repo specs tree (it never imports explorer-proto).
     'replay-journey': {
         testDir: journeyReplay?.dir ?? SRC_DIR,
@@ -55,7 +56,15 @@ const testLocation = {
 // Plain repo-native specs (and the guard-journey scratch spec) get exact-origin containment through the
 // browser launch args; modes that run the application-level guard get the WebSocket LNA workaround.
 const THIN_MODES = ['replay-journey', 'guard-journey-spec'];
-const GUARDED_MODES = ['replay', 'explore', 'explore-journey', 'guard-check', 'guard-race', 'probe-absence'];
+const GUARDED_MODES = [
+    'replay',
+    'explore',
+    'explore-journey',
+    'guard-check',
+    'guard-race',
+    'probe-absence',
+    'journey-selftest',
+];
 
 function modeLaunchArgs(): string[] {
     if (THIN_MODES.includes(mode)) {
