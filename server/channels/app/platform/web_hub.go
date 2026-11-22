@@ -238,12 +238,7 @@ func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 
 func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
 	ps.Store.Channel().InvalidateChannel(channel.Id)
-	teamID := channel.TeamId
-	if teamID == "" {
-		teamID = "dm"
-	}
-
-	ps.Store.Channel().InvalidateChannelByName(teamID, channel.Name)
+	ps.Store.Channel().InvalidateChannelByName(channel.TeamId, channel.Name)
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembers(channelID string) {

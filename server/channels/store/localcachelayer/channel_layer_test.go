@@ -721,3 +721,36 @@ func TestChannelStoreGetAllChannelMembersForUser(t *testing.T) {
 	_, err = cachedStore.Channel().GetAllChannelMembersForUser(request.TestContext(t), "u1", true, false)
 	require.NoError(t, err)
 }
+
+func TestChannelStoreGetByNameDirectChannelInvalidation(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	dmName := "user1__user2"
+	initialChannel := &model.Channel{Id: "dm1", TeamId: "", Name: dmName, Header: "old"}
+	updatedChannel := &model.Channel{Id: "dm1", TeamId: "", Name: dmName, Header: "new"}
+
+	mockStore := getMockStore(t)
+	mockChannelStore := mockStore.Channel().(*mocks.ChannelStore)
+	mockChannelStore.On("GetByName", "", dmName, true).Return(initialChannel, nil).Once()
+	mockChannelStore.On("GetByName", "", dmName, true).Return(updatedChannel, nil).Once()
+
+	cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+	require.NoError(t, err)
+
+	got, err := cachedStore.Channel().GetByName("", dmName, true)
+	require.NoError(t, err)
+	assert.Equal(t, "old", got.Header)
+
+	// Invalidating with a synthetic "dm" team ID leaves the ""+name entry stale.
+	cachedStore.Channel().InvalidateChannelByName("dm", dmName)
+	got, err = cachedStore.Channel().GetByName("", dmName, true)
+	require.NoError(t, err)
+	assert.Equal(t, "old", got.Header)
+	mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+	// Invalidating with channel.TeamId ("") evicts the cached DM channel.
+	cachedStore.Channel().InvalidateChannelByName("", dmName)
+	got, err = cachedStore.Channel().GetByName("", dmName, true)
+	require.NoError(t, err)
+	assert.Equal(t, "new", got.Header)
+	mockChannelStore.AssertNumberOfCalls(t, "GetByName", 2)
+}
