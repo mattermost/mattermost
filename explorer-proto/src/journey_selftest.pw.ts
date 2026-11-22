@@ -14,7 +14,14 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 import {engineHash, engineHashFiles} from './engine_hash.ts';
 import {deepEqual, readPath, resolveDeep} from './journey_charter.ts';
 import type {Bindings, JourneyCharter} from './journey_charter.ts';
-import {clientConfigRequestPath} from './journey_fixture.ts';
+import {
+    clientConfigRequestPath,
+    createFixture,
+    readBack,
+    readChannelUnread,
+    SetupFailure,
+    unreadReadBackProblem,
+} from './journey_fixture.ts';
 import {OBSERVATION_LOG_FILE, ObservationLog} from './journey_observations.ts';
 import {
     CharterRuleError,
@@ -316,6 +323,75 @@ test('precondition source and read-back gating are charter-driven; legacy charte
         expect(/auto[-_ ]follow/i.test(charter.fixture.read_back ?? '')).toBe(true);
         expect(/\bthreads?\b/i.test(charter.fixture.read_back ?? '')).toBe(true);
     }
+});
+
+test('unread read-back rule: counts are unread, mentions-only is refused', () => {
+    expect(unreadReadBackProblem('k', {msg_count: 0, msg_count_root: 0, mention_count: 0}, 'all')).toBe(null);
+    expect(unreadReadBackProblem('k', {}, undefined)).toBe(null);
+    expect(unreadReadBackProblem('k', {msg_count: 1, msg_count_root: 1, mention_count: 0}, 'all')).toBe(
+        'read-back: k not viewed clean (unread mentions 0, unread msgs 2)',
+    );
+    expect(unreadReadBackProblem('k', {msg_count: 0, mention_count: 1, mention_count_root: 1}, 'all')).toBe(
+        'read-back: k not viewed clean (unread mentions 2, unread msgs 0)',
+    );
+    expect(unreadReadBackProblem('k', {msg_count: 0, msg_count_root: 0, mention_count: 0}, 'mention')).toBe(
+        "read-back: k mark_unread is 'mention' (unread msgs would be masked)",
+    );
+});
+
+test('fixture read-back against the server unread semantics (member cursor vs unread endpoint)', async () => {
+    app.reset({render: 'complete'});
+    const charter = baseCharter();
+    const fx = await createFixture(fakePw(null as unknown as Browser), charter);
+    const b = fx.bindings;
+    const viewer = fx.actorClients.viewer;
+    const showcase = b.channel.showcase.id;
+    const rejection = async () => {
+        const error = await readBack(charter, fx).then(
+            () => null,
+            (e: unknown) => e,
+        );
+        expect(error).toBeInstanceOf(SetupFailure);
+        return (error as Error).message;
+    };
+
+    // (iii) the benchmark false negative: the member cursor equals the channel total (nonzero), nothing is unread.
+    const member = await fx.adminClient.getChannelMember(showcase, b.actor.viewer.id);
+    expect([member.msg_count, (member as {msg_count_root?: number}).msg_count_root]).toEqual([1, 1]);
+    expect(await readChannelUnread(viewer, b, 'viewer', 'showcase')).toMatchObject({
+        msg_count: 0,
+        msg_count_root: 0,
+        mention_count: 0,
+        mention_count_root: 0,
+    });
+    expect(await readBack(charter, fx)).toContain('channel showcase: members present, viewed clean');
+
+    // (i) another session posts and the viewer never views it.
+    await fx.adminClient.createPost({channel_id: showcase, message: 'Unviewed plain post.'} as never);
+    expect(await rejection()).toBe('read-back: showcase not viewed clean (unread mentions 0, unread msgs 2)');
+
+    // (ii) the same fixture after the viewer views the channel.
+    await viewer.viewMyChannel(showcase);
+    expect(await readBack(charter, fx)).toContain('channel showcase: members present, viewed clean');
+
+    // (iv) mentions-only zeroes the endpoint's msg counts for an unviewed plain post; the read-back refuses it.
+    await viewer.updateChannelNotifyProps({channel_id: showcase, user_id: b.actor.viewer.id, mark_unread: 'mention'});
+    await fx.adminClient.createPost({channel_id: showcase, message: 'Second unviewed plain post.'} as never);
+    const masked = await readChannelUnread(viewer, b, 'viewer', 'showcase');
+    expect([masked.msg_count, masked.msg_count_root]).toEqual([0, 0]);
+    expect(unreadReadBackProblem('showcase', masked, 'all')).toBe(null);
+    expect(await rejection()).toBe("read-back: showcase mark_unread is 'mention' (unread msgs would be masked)");
+    await viewer.updateChannelNotifyProps({channel_id: showcase, user_id: b.actor.viewer.id, mark_unread: 'all'});
+    expect(await rejection()).toBe('read-back: showcase not viewed clean (unread mentions 0, unread msgs 2)');
+    await viewer.viewMyChannel(showcase);
+    expect(await readBack(charter, fx)).toContain('channel showcase: members present, viewed clean');
+
+    // A mention of the viewer is unread until viewed.
+    await fx.adminClient.createPost({
+        channel_id: showcase,
+        message: `@${b.actor.viewer.username} ping`,
+    } as never);
+    expect(await rejection()).toBe('read-back: showcase not viewed clean (unread mentions 2, unread msgs 2)');
 });
 
 test('observation log: append-only, hash-chained, refuses reuse and unsanitized entries', () => {

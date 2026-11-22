@@ -66,8 +66,14 @@ Every replay (including confirmation replays) builds a brand-new team, users, ch
 and viewed-last state through the repo lib's admin and per-user REST clients, exactly as `charter.fixture`
 declares (slug from `pw.random.id()`, fixed display names, fixed strings). `server_preconditions` is a read-only
 `GET /api/v4/config` (never patched; a difference aborts as a **setup failure**, never a finding). The read-backs
-(memberships, auto-follow not `on`, preferences stored, no user post, zero followed threads) and `mention/msg = 0`
-are asserted; any mismatch is a setup failure. Bea signs in with `TestBrowser.login` inside the guarded context.
+(memberships, auto-follow not `on`, preferences stored, no user post, zero followed threads) and "viewed clean"
+are asserted; any mismatch is a setup failure. Viewed clean is read with the UI actor's own session from
+`GET /api/v4/users/{user}/channels/{channel}/unread` (`readChannelUnread`, via `journey_rest.ts` `restRequest`):
+`msg_count`, `msg_count_root`, `mention_count` and `mention_count_root` must all be 0, and the member's
+`notify_props.mark_unread` must not be `mention`, because the server reports 0 unread msgs in that mode. The member
+record's `msg_count`/`msg_count_root` are the read cursor (the channel totals at the last view), not unread counts,
+so they are not used (`infra/scripts/diag_unread_readback.mjs` shows both on a live server). Bea signs in with
+`TestBrowser.login` inside the guarded context.
 
 ### REST checkpoints & events (`journey_rest.ts`)
 
@@ -288,7 +294,9 @@ the fixture factory, read-back and lib login use, plus server-rendered pages). T
 `journey_selftest_charter.json` (a ribbon-tally post; its own ids, classes and verdict names) and copies of it with
 budget, settle or scope changed per case. The real fixture factory, REST evaluator, guard, search, UI evaluator,
 log and report run against it. Cases: rules and verdict table, fail-closed grammar, matchers, log append-only and
-refusals, engine-hash list, auto-follow trace re-render; then (i) all items render, (ii) one item missing in the
+refusals, engine-hash list, auto-follow trace re-render, the unread read-back (the fake models the member cursor,
+the unread endpoint, mentions, `mark_unread` and view: an unviewed post is rejected, accepted after the view, a
+nonzero cursor with nothing unread is accepted, mentions-only is refused); then (i) all items render, (ii) one item missing in the
 room view but present on a second surface, (iii) nothing renders, (iv) delayed post / delayed rows within the
 window and a no-settle control that misclassifies them, (v) a missing item a fresh fixture does not reproduce and
 one with no budget left to confirm it, (vi) flag mismatch, rejected post and wrong stored data, (viii) item text

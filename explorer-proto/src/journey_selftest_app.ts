@@ -35,6 +35,15 @@ export type AppVariant = {
 };
 
 type User = {id: string; username: string; password: string; email: string; first_name: string; last_name: string};
+// Mirrors the server: msg_count/msg_count_root are the member's read cursor (the channel totals at its last
+// view); the unread endpoint reports totals minus the cursor, or 0 msgs under mark_unread 'mention'.
+type MemberState = {
+    msg_count: number;
+    msg_count_root: number;
+    mention_count: number;
+    mention_count_root: number;
+    notify_props: Record<string, string>;
+};
 type Post = {
     id: string;
     channel_id: string;
@@ -64,9 +73,18 @@ export class SelftestApp {
     readonly teamMembers = new Set<string>();
     readonly channels = new Map<
         string,
-        {id: string; team_id: string; name: string; display_name: string; type: string}
+        {
+            id: string;
+            team_id: string;
+            name: string;
+            display_name: string;
+            type: string;
+            total_msg_count: number;
+            total_msg_count_root: number;
+        }
     >();
     readonly channelMembers = new Map<string, Set<string>>();
+    readonly memberStates = new Map<string, MemberState>();
     readonly preferences = new Map<string, Array<Record<string, string>>>();
     readonly posts = new Map<string, Post>();
     readonly firstTeamThatOpenedRoom: string[] = [];
@@ -81,6 +99,7 @@ export class SelftestApp {
             this.teams,
             this.channels,
             this.channelMembers,
+            this.memberStates,
             this.preferences,
             this.posts,
         ]) {
@@ -229,14 +248,55 @@ export class SelftestApp {
                 name: String(body.name),
                 display_name: String(body.display_name),
                 type: String(body.type),
+                total_msg_count: 0,
+                total_msg_count_root: 0,
             };
             this.channels.set(channel.id, channel);
             this.channelMembers.set(channel.id, new Set());
             this.json(res, 201, channel);
             return;
         }
+        if (method === 'GET' && (m = /^\/channels\/(\w+)$/.exec(p))) {
+            const channel = this.channels.get(m[1]);
+            this.json(res, channel ? 200 : 404, channel ?? {message: 'no channel'});
+            return;
+        }
         if (method === 'POST' && p === '/channels/members/me/view') {
+            this.markViewed(String(body.channel_id), me.id);
             this.json(res, 200, {status: 'OK'});
+            return;
+        }
+        if (method === 'PUT' && (m = /^\/channels\/(\w+)\/members\/(\w+)\/notify_props$/.exec(p))) {
+            const state = this.memberStates.get(`${m[1]}:${m[2]}`);
+            if (!state || m[2] !== me.id) {
+                this.json(res, state ? 403 : 404, {message: 'no member'});
+                return;
+            }
+            for (const [key, value] of Object.entries(body)) {
+                if (key !== 'channel_id' && key !== 'user_id') {
+                    state.notify_props[key] = String(value);
+                }
+            }
+            this.json(res, 200, {status: 'OK'});
+            return;
+        }
+        if (method === 'GET' && (m = /^\/users\/(\w+)\/channels\/(\w+)\/unread$/.exec(p))) {
+            const state = this.memberStates.get(`${m[2]}:${m[1]}`);
+            const channel = this.channels.get(m[2]);
+            if (!state || !channel) {
+                this.json(res, 404, {message: 'no member'});
+                return;
+            }
+            const masked = state.notify_props.mark_unread === 'mention';
+            this.json(res, 200, {
+                team_id: channel.team_id,
+                channel_id: channel.id,
+                msg_count: masked ? 0 : channel.total_msg_count - state.msg_count,
+                msg_count_root: masked ? 0 : channel.total_msg_count_root - state.msg_count_root,
+                mention_count: state.mention_count,
+                mention_count_root: state.mention_count_root,
+                notify_props: {...state.notify_props},
+            });
             return;
         }
         if ((m = /^\/channels\/(\w+)\/members$/.exec(p))) {
@@ -246,7 +306,19 @@ export class SelftestApp {
                 return;
             }
             if (method === 'POST') {
-                members.add(String(body.user_id));
+                const userId = String(body.user_id);
+                if (!members.has(userId)) {
+                    members.add(userId);
+                    // Join system posts stay out of the totals; an "added to the channel" post mentions the added user.
+                    const addedByOther = userId !== me.id;
+                    this.memberStates.set(`${m[1]}:${userId}`, {
+                        msg_count: 0,
+                        msg_count_root: 0,
+                        mention_count: addedByOther ? 1 : 0,
+                        mention_count_root: addedByOther ? 1 : 0,
+                        notify_props: {mark_unread: 'all'},
+                    });
+                }
                 this.json(res, 201, {channel_id: m[1], user_id: body.user_id});
                 return;
             }
@@ -301,6 +373,21 @@ export class SelftestApp {
                 create_at: Date.now(),
             };
             this.posts.set(post.id, post);
+            const channel = this.channels.get(post.channel_id);
+            if (channel) {
+                channel.total_msg_count++;
+                channel.total_msg_count_root++;
+                for (const userId of this.channelMembers.get(channel.id) ?? []) {
+                    const username = this.users.get(userId)?.username;
+                    if (userId !== me.id && username && post.message.includes(`@${username}`)) {
+                        const state = this.memberStates.get(`${channel.id}:${userId}`)!;
+                        state.mention_count++;
+                        state.mention_count_root++;
+                    }
+                }
+                // A root post marks the channel viewed for its author.
+                this.markViewed(channel.id, me.id);
+            }
             this.json(res, 201, post);
             return;
         }
@@ -312,8 +399,25 @@ export class SelftestApp {
         this.json(res, 404, {message: `selftest app has no route ${method} ${p}`});
     }
 
+    private markViewed(channelId: string, userId: string) {
+        const state = this.memberStates.get(`${channelId}:${userId}`);
+        const channel = this.channels.get(channelId);
+        if (state && channel) {
+            state.msg_count = channel.total_msg_count;
+            state.msg_count_root = channel.total_msg_count_root;
+            state.mention_count = 0;
+            state.mention_count_root = 0;
+        }
+    }
+
     private member(channelId: string, userId: string) {
-        return {channel_id: channelId, user_id: userId, msg_count: 0, mention_count: 0, notify_props: {}};
+        const state = this.memberStates.get(`${channelId}:${userId}`);
+        return {
+            channel_id: channelId,
+            user_id: userId,
+            ...structuredClone(state ?? {msg_count: 0, msg_count_root: 0, mention_count: 0, mention_count_root: 0}),
+            notify_props: {...(state?.notify_props ?? {})},
+        };
     }
 
     private renderPost(post: Post, mode: RenderMode, delayMs: number): string {

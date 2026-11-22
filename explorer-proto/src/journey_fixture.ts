@@ -7,6 +7,7 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {resolveDeep, resolveTemplate} from './journey_charter.ts';
 import type {Bindings, JourneyActor, JourneyCharter} from './journey_charter.ts';
+import {restRequest} from './journey_rest.ts';
 
 /** A precondition or read-back mismatch: a setup failure, never a product finding. */
 export class SetupFailure extends Error {}
@@ -295,6 +296,54 @@ export async function actorClient(pw: PlaywrightExtended, fx: Fixture, actorId: 
     return fx.actorClients[actorId];
 }
 
+export type ChannelUnreadCounts = {
+    msg_count?: number;
+    msg_count_root?: number;
+    mention_count?: number;
+    mention_count_root?: number;
+};
+
+/**
+ * GET /users/{user}/channels/{channel}/unread with the given session. Its counts are unread (channel total minus
+ * the member's read cursor); the member record's msg_count/msg_count_root are the cursor itself.
+ */
+export async function readChannelUnread(
+    client: Client4,
+    bindings: Bindings,
+    actorId: string,
+    channelKey: string,
+): Promise<ChannelUnreadCounts> {
+    const {status, json} = await restRequest(
+        client,
+        `GET /api/v4/users/{actor.${actorId}.id}/channels/{channel.${channelKey}.id}/unread`,
+        bindings,
+    );
+    if (status !== 200) {
+        throw new SetupFailure(`read-back: unread read for ${channelKey} returned HTTP ${status}`);
+    }
+    return json as ChannelUnreadCounts;
+}
+
+/**
+ * Null when the channel reads back viewed clean, else the setup-failure message (counts only). Mentions-only
+ * (`mark_unread: 'mention'`) makes the endpoint report msg counts as 0, so it is refused rather than trusted.
+ */
+export function unreadReadBackProblem(
+    channelKey: string,
+    unread: ChannelUnreadCounts,
+    markUnread: unknown,
+): string | null {
+    if (markUnread === 'mention') {
+        return `read-back: ${channelKey} mark_unread is 'mention' (unread msgs would be masked)`;
+    }
+    const mentions = Number(unread.mention_count ?? 0) + Number(unread.mention_count_root ?? 0);
+    const msgs = Number(unread.msg_count ?? 0) + Number(unread.msg_count_root ?? 0);
+    if (mentions !== 0 || msgs !== 0) {
+        return `read-back: ${channelKey} not viewed clean (unread mentions ${mentions}, unread msgs ${msgs})`;
+    }
+    return null;
+}
+
 /** The five read-back checks; any mismatch is a setup failure, never a finding. Returns a sanitized report. */
 export async function readBack(charter: JourneyCharter, fx: Fixture): Promise<string[]> {
     const b = fx.bindings;
@@ -321,19 +370,16 @@ export async function readBack(charter: JourneyCharter, fx: Fixture): Promise<st
             if (checksAutoFollow && member.notify_props?.channel_auto_follow_threads === 'on') {
                 throw new SetupFailure(`read-back: auto-follow already on for ${key}`);
             }
-            const mentions =
-                Number(member.mention_count ?? 0) +
-                Number((member as {mention_count_root?: number}).mention_count_root ?? 0);
-            const msgs =
-                Number(member.msg_count ?? 0) + Number((member as {msg_count_root?: number}).msg_count_root ?? 0);
+            const unread = await readChannelUnread(fx.actorClients[viewer.id], b, viewer.id, key);
             if (process.env.JOURNEY_DEBUG) {
                 // eslint-disable-next-line no-console
                 console.log(
-                    `[readback] ${key} mention=${member.mention_count}/${(member as {mention_count_root?: number}).mention_count_root} msg=${member.msg_count}/${(member as {msg_count_root?: number}).msg_count_root}`,
+                    `[readback] ${key} unread mention=${unread.mention_count}/${unread.mention_count_root} msg=${unread.msg_count}/${unread.msg_count_root}`,
                 );
             }
-            if (mentions !== 0 || msgs !== 0) {
-                throw new SetupFailure(`read-back: ${key} not viewed clean (mentions ${mentions}, msgs ${msgs})`);
+            const problem = unreadReadBackProblem(key, unread, member.notify_props?.mark_unread);
+            if (problem) {
+                throw new SetupFailure(problem);
             }
         }
         report.push(`channel ${key}: members present, ${checksAutoFollow ? 'auto-follow not on, ' : ''}viewed clean`);
