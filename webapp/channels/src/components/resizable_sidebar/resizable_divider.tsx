@@ -280,11 +280,15 @@ function ResizableDivider({
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
 
+        // Kept for the cleanup, since containerRef is already null by then if the divider unmounted
+        const container = containerRef.current;
+
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
 
             // Covers a drag torn down before mouseup, such as the divider unmounting or being disabled
+            container?.style.removeProperty(cssVarKey);
             document.body.classList.remove('layout-changing');
         };
     }, [isActive, disabled]);

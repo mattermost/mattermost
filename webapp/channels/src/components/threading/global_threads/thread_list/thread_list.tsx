@@ -199,12 +199,24 @@ const ThreadList = ({
     }, []);
 
     // The list's column width is set on the GlobalThreads grid, so mirror the width there while dragging.
+    // The grid is kept so the override can still be cleared if the list unmounts mid-drag, when ref is already null.
+    const overriddenGrid = React.useRef<HTMLElement | null>(null);
+
     const handleResize = useCallback((_: number, cssVarProp: string, cssVarValue: string) => {
-        ref.current?.parentElement?.style.setProperty(cssVarProp, cssVarValue);
+        const grid = ref.current?.parentElement ?? null;
+        grid?.style.setProperty(cssVarProp, cssVarValue);
+        overriddenGrid.current = grid;
     }, []);
 
     const handleResizeEnd = useCallback((_: number, cssVarProp: string) => {
-        ref.current?.parentElement?.style.removeProperty(cssVarProp);
+        overriddenGrid.current?.style.removeProperty(cssVarProp);
+        overriddenGrid.current = null;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            overriddenGrid.current?.style.removeProperty(`--${CssVarKeyForResizable.THREADS_LIST}`);
+        };
     }, []);
 
     return (

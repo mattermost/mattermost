@@ -209,4 +209,27 @@ describe('components/threading/global_threads/thread_list', () => {
 
         getBoundingClientRect.mockRestore();
     });
+
+    test('should clear the grid width override if the list unmounts mid-drag', () => {
+        const getBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({width: 400} as DOMRect);
+
+        // GlobalThreads stays mounted while the list unmounts, as when the list empties during a drag
+        const {container, rerender} = renderWithContext(
+            <div className='GlobalThreads'>
+                <ThreadList {...props}/>
+            </div>,
+        );
+        const globalThreads = container.querySelector<HTMLElement>('.GlobalThreads')!;
+
+        fireEvent.mouseDown(container.querySelector('.ThreadList__resizeHandle')!, {button: 0, clientX: 400});
+        fireEvent.mouseMove(window, {clientX: 450});
+        expect(globalThreads.style.getPropertyValue('--overrideThreadsListWidth')).toBe('450px');
+
+        rerender(<div className='GlobalThreads'/>);
+
+        expect(globalThreads.style.getPropertyValue('--overrideThreadsListWidth')).toBe('');
+        expect(document.body.classList.contains('layout-changing')).toBe(false);
+
+        getBoundingClientRect.mockRestore();
+    });
 });
