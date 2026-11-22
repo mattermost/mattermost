@@ -6,84 +6,21 @@
 // Offline checks for the stage 0 session seed and resume, and for verifying an existing spec under a control: a fake
 // infra stack (selftest_fake_infra.mjs) replaces Docker, the seed and the engine's replay. No network beyond loopback,
 // no licence (a synthetic placeholder value is exported so the presence check passes).
-import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
 import {validateOutDir} from './lib/artifacts.mjs';
-import {EXIT, hashFiles, listFiles, ORCH_DIR, readJson, REPO_ROOT, sha256File} from './lib/common.mjs';
+import {EXIT, hashFiles, listFiles, readJson, REPO_ROOT, sha256File} from './lib/common.mjs';
 import {loadControl} from './lib/verify/control_def.mjs';
 import {checkVerifierResult} from './lib/verify/result_check.mjs';
 import {resolveSpec, locateAssertion, testTitleOf} from './lib/verify/spec.mjs';
 import {scrub, unsafeFindings} from './lib/verify/trace.mjs';
+import {CONTROL, createSupport, SPEC} from './selftest_support.mjs';
 
-const PILOT = path.join(ORCH_DIR, 'pilot.mjs');
-const FAKE = path.join(ORCH_DIR, 'selftest_fake_infra.mjs');
-const SPEC = 'explorer-proto/sessions/bookmarks/generated/channels_bookmarks_bar_follows_switch.spec.ts';
-const CONTROL = 'release-bookmark-title-changed';
 const SHA_A = 'a'.repeat(64);
 
 export async function verifySpecChecks({check, assert, newDir}) {
-    function fakeInfra(extraEnv = {}) {
-        const dir = newDir('fake-infra');
-        const run = path.join(dir, '.run');
-        const scripts = path.join(dir, 'scripts');
-        fs.mkdirSync(run, {recursive: true});
-        fs.mkdirSync(scripts, {recursive: true});
-        const call = (cmd) => `#!/usr/bin/env bash\nexec node "${FAKE}" ${cmd} "$@"\n`;
-        for (const cmd of ['gate', 'up', 'down']) {
-            fs.writeFileSync(path.join(scripts, `${cmd}.sh`), call(cmd), {mode: 0o755});
-        }
-        fs.writeFileSync(
-            path.join(scripts, 'bookmark_ctl.mjs'),
-            `import {spawnSync} from 'node:child_process';\nconst r = spawnSync(process.execPath, ['${FAKE}', 'ctl', ...process.argv.slice(2)], {stdio: 'inherit'});\nprocess.exit(r.status ?? 1);\n`,
-        );
-        const env = {
-            ...process.env,
-            MM_LICENSE: 'synthetic-selftest-placeholder-value',
-            PILOT_INFRA_DIR: dir,
-            FAKE_RUN: run,
-            PILOT_REPLAY_CMD: `node ${FAKE} replay`,
-            PILOT_REPLAY_REPORT: path.join(dir, 'replay-report.json'),
-            ...extraEnv,
-        };
-        const callsFile = path.join(run, 'calls.log');
-        const calls = () => {
-            return fs.existsSync(callsFile) ? fs.readFileSync(callsFile, 'utf8').trim().split('\n') : [];
-        };
-        return {dir, run, env, calls};
-    }
-
-    function pilot(args, env) {
-        const r = spawnSync('node', [PILOT, ...args], {
-            cwd: REPO_ROOT,
-            encoding: 'utf8',
-            env,
-            maxBuffer: 64 * 1024 * 1024,
-        });
-        return {status: r.status, stdout: r.stdout, stderr: r.stderr};
-    }
-
-    function verifyArgs(out, id, extra = []) {
-        return [
-            'run',
-            '--target',
-            'release',
-            '--live',
-            '--agents=manual',
-            '--verify-spec',
-            SPEC,
-            '--engine-charter',
-            'session:bookmarks',
-            '--control',
-            CONTROL,
-            '--run-id',
-            id,
-            '--out',
-            out,
-            ...extra,
-        ];
-    }
+    const {fakeInfra, pilot, verifyArgs} = createSupport({newDir});
 
     const stage0Hashes = (out) => hashFiles(path.join(out, '0-target'), listFiles(path.join(out, '0-target')));
     const attemptHashes = (out, n) => {
@@ -424,10 +361,16 @@ export async function verifySpecChecks({check, assert, newDir}) {
         run.verify_spec.sha256 = SHA_A;
         run.inputs_fingerprint = SHA_A;
         fs.writeFileSync(path.join(out, 'run.json'), JSON.stringify(run));
-        const before = hashFiles(out, listFiles(out, {skip: (rel) => rel === 'run.json' || rel.startsWith('.state')}));
+        const before = hashFiles(
+            out,
+            listFiles(out, {skip: (rel) => rel === 'run.json' || rel === 'commands.json' || rel.startsWith('.state')}),
+        );
         const r = pilot(['run', '--resume', '--out', out], flow.fake.env);
         assert(r.status === EXIT.FAIL && /spec_hash_mismatch/.test(r.stdout), `exit ${r.status}\n${r.stdout}`);
-        const after = hashFiles(out, listFiles(out, {skip: (rel) => rel === 'run.json' || rel.startsWith('.state')}));
+        const after = hashFiles(
+            out,
+            listFiles(out, {skip: (rel) => rel === 'run.json' || rel === 'commands.json' || rel.startsWith('.state')}),
+        );
         assert(JSON.stringify(before) === JSON.stringify(after), 'a stage ran after the spec hash mismatch');
         const reuse = pilot(
             verifyArgs(newDir('v-reuse-id'), 'selftest-flow').slice(0, -2).concat(['--out', out]),

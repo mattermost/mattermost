@@ -17,12 +17,15 @@ import {EXIT, hashFiles, listFiles, ORCH_DIR, readJson, REPO_ROOT, sha256Json} f
 import {assessLesson, isProtectedPath} from './lib/lessons_gate.mjs';
 import {validate} from './lib/schemas.mjs';
 import {stubResult} from './lib/stub_agent.mjs';
+import {thawTree} from './lib/verify/handoff.mjs';
 import {buildVerdict, overallOf} from './lib/verdicts.mjs';
 import {unitChecks} from './selftest_units.mjs';
+import {handoffChecks} from './selftest_handoff.mjs';
 import {verifySpecChecks} from './selftest_verify.mjs';
 
 const PILOT = path.join(ORCH_DIR, 'pilot.mjs');
 const KEEP = process.argv.includes('--keep');
+const ONLY_HANDOFF = process.argv.includes('--only=handoff');
 const WORK = fs.mkdtempSync(path.join(os.tmpdir(), 'pilot-selftest-'));
 const FEATURE = 'channels.favorites';
 
@@ -106,6 +109,10 @@ function exactTree(out) {
 const BASE = newDir('base');
 
 async function main() {
+    if (ONLY_HANDOFF) {
+        await handoffChecks({check, assert, newDir});
+        return;
+    }
     await check('setup: stages 0 and 1 (target, coverage index) run once and are reused by later checks', () => {
         const r = run(BASE, ['--agents=stub', '--to', '1']);
         assert(r.status === 0, `exit ${r.status}: ${r.stderr}`);
@@ -680,6 +687,7 @@ async function main() {
 
     await unitChecks({check, assert, WORK, newDir, envWithoutLicence, FEATURE});
     await verifySpecChecks({check, assert, newDir});
+    await handoffChecks({check, assert, newDir});
 }
 
 await main();
@@ -690,6 +698,7 @@ process.stdout.write(
 if (KEEP) {
     process.stdout.write(`kept ${WORK}\n`);
 } else {
+    thawTree(WORK);
     fs.rmSync(WORK, {recursive: true, force: true});
 }
 process.exitCode = failed.length ? 1 : 0;

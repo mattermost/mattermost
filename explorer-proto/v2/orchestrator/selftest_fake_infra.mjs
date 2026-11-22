@@ -9,6 +9,9 @@
 // makes, a seed manifest, a bookmark title state, and Playwright-shaped JSON reports. Selftest wrappers call it as
 //   node selftest_fake_infra.mjs <gate|up|down|ctl|replay|server> [args]   with FAKE_RUN=<dir>.
 // FAKE_OMIT_SESSION=1 makes `up` write a manifest without the session key (the seed defect the stage must catch).
+// FAKE_REPLAY_SLEEP=<ms> delays a coordinator replay (so a test can kill the coordinator in the middle of one);
+// FAKE_VERIFIER_SLEEP=<ms> does the same for a verifier replay (the verifier's reporter sets PILOT_STEP_OUT). `replay` also
+// writes the step file the verifier's reporter would (PILOT_STEP_OUT), and `verify_seed` stands in for verify_seed.mjs.
 import {spawn} from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -21,6 +24,7 @@ const MANIFEST = path.join(RUN ?? '.', 'seed-manifest.json');
 const PID = path.join(RUN ?? '.', 'server.pid');
 const PORT = path.join(RUN ?? '.', 'port');
 const CALLS = path.join(RUN ?? '.', 'calls.log');
+const ARGS = path.join(RUN ?? '.', 'args.log');
 const CHARTER = path.join(import.meta.dirname, '..', '..', 'sessions', 'bookmarks', 'charter.json');
 const SPEC = path.join(
     import.meta.dirname,
@@ -35,6 +39,8 @@ const SPEC = path.join(
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const write = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
 const log = (line) => fs.appendFileSync(CALLS, `${line}\n`);
+const logArgs = (cmd, args) =>
+    fs.appendFileSync(ARGS, `${cmd} [${args.join(' ')}] image=${process.env.MATTERMOST_PILOT_IMAGE ?? 'unset'}\n`);
 const rand = () => crypto.randomBytes(6).toString('hex');
 
 function serverAlive() {
@@ -88,6 +94,7 @@ function declared() {
 }
 
 async function up(args) {
+    logArgs('up', args);
     const session = args.includes('--session=bookmarks');
     log(`up${session ? ' session=bookmarks' : ''}`);
     let state = fs.existsSync(STATE) ? read(STATE) : null;
@@ -129,7 +136,8 @@ async function up(args) {
     process.stdout.write('ready\n');
 }
 
-function gate() {
+function gate(args) {
+    logArgs('gate', args);
     log('gate');
     fs.rmSync(STATE, {force: true});
     fs.rmSync(MANIFEST, {force: true});
@@ -169,8 +177,31 @@ function ctl(args) {
     process.stdout.write('PASS\n');
 }
 
-function replay() {
+function verifySeed() {
+    log('verify_seed');
+    const manifest = read(MANIFEST);
+    const ok = declared().every((d) => manifest.session?.bookmarks?.[d.channel]?.display_name === d.title);
+    const state = read(STATE);
+    const live = declared().every((d) => state.bookmarks[d.channel].title === d.title);
+    process.stdout.write(`[DIRECT  ] ${ok && live ? 'PASS' : 'FAIL'} seed\n`);
+    process.exit(ok && live ? 0 : 1);
+}
+
+function stepRows(changed) {
+    const matchers = ['toHaveURL', 'toBeVisible', 'toBeVisible', 'toHaveCount', 'toHaveCount'];
+    const lines = [33, 34, 35, 36, 37, 43, 44, 45, 46, 47];
+    const rows = lines.map((line, i) => ({line, matcher: matchers[i % 5], error: false}));
+    return changed ? rows.slice(0, 8).map((r, i) => ({...r, error: i === 7})) : rows;
+}
+
+async function replay() {
     log('replay');
+    const sleep = Number(
+        (process.env.PILOT_STEP_OUT ? process.env.FAKE_VERIFIER_SLEEP : process.env.FAKE_REPLAY_SLEEP) ?? 0,
+    );
+    if (sleep > 0) {
+        await new Promise((r) => setTimeout(r, sleep));
+    }
     const state = read(STATE);
     const titleNow = state.bookmarks['release-planning'].title;
     const changed = titleNow !== declared().find((d) => d.channel === 'release-planning').title;
@@ -231,11 +262,14 @@ function replay() {
         );
     }
     write(process.env.PILOT_REPLAY_REPORT, doc);
+    if (process.env.PILOT_STEP_OUT) {
+        fs.writeFileSync(process.env.PILOT_STEP_OUT, JSON.stringify(stepRows(changed)));
+    }
     process.exit(changed ? 1 : 0);
 }
 
 const [command, ...args] = process.argv.slice(2);
-const commands = {gate, up, down, ctl, replay, server: serve};
+const commands = {gate, up, down, ctl, replay, server: serve, verify_seed: verifySeed};
 if (!commands[command]) {
     process.stderr.write('unknown fake infra command\n');
     process.exit(2);
