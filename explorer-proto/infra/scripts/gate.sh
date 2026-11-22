@@ -3,7 +3,7 @@
 #   gate.sh          run every check, then tear everything down
 #   gate.sh --keep   run every check, leave stack + forwarder up (canary is always removed)
 #   gate.sh --down   tear down only
-#   --target=default|main (with run or --keep) selects the Mattermost image; the default is unchanged.
+#   --target=default|main|release-X.Y.Z (with run or --keep) selects the Mattermost image; the default is unchanged.
 # Each line is DIRECT (tested here) or INFERRED (reasoned from DIRECT results). Exit 1 on any FAIL.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"

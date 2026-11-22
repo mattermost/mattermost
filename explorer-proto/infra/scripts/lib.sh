@@ -15,7 +15,9 @@ PG_IMAGE='postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddc
 # Mattermost image when MATTERMOST_PILOT_IMAGE is unset; keep in sync with docker-compose.yml.
 MM_IMAGE_DEFAULT='mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7'
 MM_IMAGE_MAIN='mattermostdevelopment/mattermost-enterprise-edition:2d6c285_fc5e259@sha256:ed4bcaa423e09ddc8ddb229bc55c82178d7403299ce800d4a2b0ed79cf8b105c'
-MAIN_TARGET_FILE="$INFRA_DIR/../v2/targets/main.json"
+TARGETS_DIR="$INFRA_DIR/../v2/targets"
+MAIN_TARGET_FILE="$TARGETS_DIR/main.json"
+TARGET_VALIDATOR="$INFRA_DIR/../v2/schemas/validate.mjs"
 FORWARDER_PID="$RUN_DIR/forwarder.pid"
 FORWARDER_LOG="$RUN_DIR/forwarder.log"
 SEED_MANIFEST="$RUN_DIR/seed-manifest.json"
@@ -25,7 +27,7 @@ CANARY=explorer-pilot-canary
 # Checks the variable is exported (visible to child processes such as docker compose) without reading it out.
 license_present() { node -e 'process.exit(process.env.MM_LICENSE ? 0 : 1)'; }
 
-# apply_target <default|main>: selects the Mattermost image for the compose project (default leaves it unset).
+# apply_target <default|main|release-X.Y.Z>: selects the Mattermost image for the compose project (default leaves it unset).
 apply_target() {
     case "$1" in
     default) unset MATTERMOST_PILOT_IMAGE ;;
@@ -33,8 +35,33 @@ apply_target() {
         export MATTERMOST_PILOT_IMAGE="$MM_IMAGE_MAIN"
         main_target_file_matches || { echo "v2/targets/main.json image does not match the main pin in lib.sh" >&2; return 1; }
         ;;
-    *) echo "unknown target: $1 (expected default or main)" >&2; return 2 ;;
+    release-*) apply_release_target "$1" ;;
+    *) echo "unknown target: $1 (expected default, main or release-X.Y.Z)" >&2; return 2 ;;
     esac
+}
+
+# apply_release_target release-X.Y.Z: the image comes from v2/targets/<name>.json, which must validate against the
+# target schema, be a release of exactly that version, carry a digest, and use the pinned Postgres image.
+apply_release_target() {
+    local name=$1 file out image
+    [[ "$name" =~ ^release-[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "unknown target: $name (expected release-X.Y.Z)" >&2; return 2; }
+    file="$TARGETS_DIR/$name.json"
+    [ -f "$file" ] || { echo "v2/targets/$name.json not found" >&2; return 1; }
+    out="$(node "$TARGET_VALIDATOR" target "$file" 2>&1)" || { echo "v2/targets/$name.json does not validate against the target schema" >&2; echo "$out" >&2; return 1; }
+    image="$(node -e '
+        const [file, name, pgImage] = process.argv.slice(1);
+        const t = JSON.parse(require("fs").readFileSync(file, "utf8"));
+        const version = name.slice("release-".length);
+        const ok =
+            t.kind === "release" &&
+            t.ref === `v${version}` &&
+            t.server_version === version &&
+            /^sha256:[0-9a-f]{64}$/.test(t.image?.digest || "") &&
+            (!t.database_image || `${t.database_image.ref}@${t.database_image.digest}` === pgImage);
+        if (!ok) process.exit(1);
+        process.stdout.write(`${t.image.ref}@${t.image.digest}`);
+    ' "$file" "$name" "$PG_IMAGE")" || { echo "v2/targets/$name.json is not a digest-pinned release of that version on the pinned Postgres image" >&2; return 1; }
+    export MATTERMOST_PILOT_IMAGE="$image"
 }
 
 # A present targets/main.json must name the same pinned image as MM_IMAGE_MAIN.
@@ -46,10 +73,10 @@ main_target_file_matches() {
     ' "$MAIN_TARGET_FILE" "$MM_IMAGE_MAIN"
 }
 
-# Both images must already be pulled and carry the digest they are pinned to (the scripts never pull).
+# The configured Mattermost image (whichever target) and Postgres must already be pulled and carry the digest they are pinned to (the scripts never pull).
 image_has_pinned_digest() {
     local ref=$1
-    [[ "$ref" == *@sha256:* ]] || return 1
+    [[ "$ref" =~ @sha256:[0-9a-f]{64}$ ]] || return 1
     docker image inspect --format '{{json .RepoDigests}}' "$ref" 2>/dev/null | grep -qF "@${ref##*@}\""
 }
 

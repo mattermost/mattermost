@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Start the pilot stack and the loopback forwarder, then seed. Prints the base URL on success.
-#   up.sh [--variant=default|swap-purpose-header|no-archive] [--session=bookmarks] [--target=default|main] [--no-seed]
+#   up.sh [--variant=default|swap-purpose-header|no-archive] [--session=bookmarks] [--target=default|main|release-X.Y.Z] [--no-seed]
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
