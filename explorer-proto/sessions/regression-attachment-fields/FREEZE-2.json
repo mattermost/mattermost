@@ -1,0 +1,56 @@
+{
+  "schema": "explorer-benchmark-freeze/v1",
+  "benchmark": "MM-71128 regression-attachment-fields, measured phase 3, second attempt",
+  "attempt": "attempt-2",
+  "previous_freeze": "FREEZE.json",
+  "previous_freeze_commit": "03e3bf20acab492bddb8f1817746f3024405a333",
+  "previous_attempt": "attempt-1 (SETUP_FAILURE on both builds, read-back error 'sandbox not viewed clean (mentions 0, msgs 2)'; kept as history)",
+  "reason": "unread read-back fix (member-record counters are read cursor; unread endpoint is the source of viewed clean)",
+  "head_before_freeze_commit": "729cfaae06d1cf9313424c4eb61935f2ec8b12cd",
+  "ancestors_of_head": {
+    "85ff957b1b": true,
+    "f8b07c3e79": true,
+    "846e645a4d": true,
+    "03e3bf20ac": true
+  },
+  "engine_hash": "98c2a5d5d4d0221deea19936c4e9c074392e97a9074b61de74f7eba7b129a41e",
+  "engine_hash_files": 49,
+  "engine_hash_equals_expected": true,
+  "first_freeze_engine_hash": "e58e28897a1da3d808f0203294a6b0286a368e01ec9d3b8242368a8e08a474df",
+  "charter_hash": "0cc7a929ea918a1e8037176990308a82f52087c68a4d586644fc4d8b6a0fac29",
+  "charter_hash_equals_expected": true,
+  "charter_changed_since_first_freeze": false,
+  "files_changed_since_first_freeze": [
+    "explorer-proto/src/README-engine.md",
+    "explorer-proto/src/journey_fixture.ts",
+    "explorer-proto/src/journey_selftest.pw.ts",
+    "explorer-proto/src/journey_selftest_app.ts"
+  ],
+  "files_changed_since_first_freeze_note": "README-engine.md is not in the engine hash. No playwright config, no charter and no other engine file changed.",
+  "git_trees": {
+    "explorer-proto/src": "93f6b43cf648542e60d684f5d08803978fc1aeed",
+    "explorer-proto/playwright.config.ts": "8c47a8e66be738135a575cf39f0db6f0b3f9e0c8",
+    "e2e-tests/playwright/lib": "e2dc7abe955f1793382a24e8add220c80023ed16"
+  },
+  "sha256": {
+    "explorer-proto/infra/docker-compose.yml": "e20a377e5740603ba07e9d3112c5c791faef38f01c5ca91c87a5a4053685507f",
+    "explorer-proto/v2/targets/release-12.0.2.json": "119a9bf19f6cce5a760b8d0caf3c3ed1cf8d009994838e2c549e197bf4a17ac0",
+    "explorer-proto/v2/targets/release-12.1.0.json": "9b7749307b97ef6ddb43faae835b9bfbdbc2a961d690d8efc73b0f4f7b7de5b2"
+  },
+  "images": {
+    "affected": "mattermost/mattermost-enterprise-edition:12.0.2@sha256:d15763d5235f43b6e1833916603603300fd0650b3a6c876a2af6a7c172320427",
+    "fixed": "mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7",
+    "postgres": "postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5",
+    "resolved_digests_equal_pins": true,
+    "platform": "linux/amd64"
+  },
+  "expected_build_hash": {
+    "release-12.0.2": "13ae6c4cf1a8e73c35a4f0c8816a505506c7acdd",
+    "release-12.1.0": "243e3d0135203ab9166fe8f2873b07f697b06fd4"
+  },
+  "charter_check": "outcome rules parsed (3 classes, 4 precedence entries, no_early_stop true, 6 reserved replays, client-config precondition)",
+  "journey_selftest": "PASS (20 passed, 0 failed, 0 skipped, 0 flaky)",
+  "playwright": "@playwright/test 1.62.1; chromium_headless_shell-1234 present",
+  "node": "v24.11.1",
+  "runs": "release-12.0.2 first, then release-12.1.0; same engine and charter; each from a clean stack"
+}
