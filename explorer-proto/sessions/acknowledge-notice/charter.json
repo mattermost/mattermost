@@ -1,0 +1,340 @@
+{
+  "schema": "explorer-journey-charter/v1",
+  "qualifies": true,
+  "qualifies_reason": "No Cypress or Playwright test acknowledges a message that requested acknowledgement, and none asserts that a teammate can see the acknowledgement. Cypress has no message priority test at all. The Playwright message priority specs post a priority label as the only user and never request or give an acknowledgement. Server API tests (api4/post_test.go TestAcknowledgePost) cover the endpoint without UI. The negative control is BLOCKED on 12.1.0 (see negative_controls). Evidence: explorer-proto/sessions/acknowledge-notice/QA-NOTES.md.",
+  "journey_id": "messages.signals:acknowledge-teammate-notice",
+  "feature_id": ["messages.signals"],
+  "lane": "Browser",
+  "target_release": {
+    "server": "mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7 (licensed Enterprise; explorer-proto/infra/docker-compose.yml, digest as in explorer-proto/README.md). The main dev image is also licensed Enterprise.",
+    "source_tag": "v12.1.0 (commit 243e3d0135203ab9166fe8f2873b07f697b06fd4). Valid on main (HEAD 03e3bf20ac) with one added gate: main also refuses an acknowledgement without channel write access (api4/post.go acknowledgePost, requireChannelWriteAccessByID) and disables the button when the channel is write-denied (post_view/acknowledgements/index.ts isWriteDenied, post_acknowledgements.tsx aria-disabled). Neither applies to a default public channel, so the same charter is expected to hold on main. Not run on main.",
+    "license_dependency": "Essential. Requesting an acknowledgement needs a Professional-or-higher licence (app/post_permission_utils.go:57-60 at v12.1.0, HTTP 501 otherwise), acknowledging needs one too (api4/post.go:1476-1479), and the webapp shows the button only when the authenticated client config carries PostAcknowledgements, which the server sets only with MinimumProfessionalLicense (config/client.go:238-240, inside GenerateClientConfig; selectors/entities/posts.ts:632-637). A licensed Enterprise server qualifies. Without a licence the fixture post is refused, which is a SETUP_FAILURE."
+  },
+  "goal": "I want Abe to know that I have read the change-freeze notice he posted for the team, so he does not have to chase me before the freeze starts.",
+  "consequence": "If this breaks, Abe's view of his notice keeps showing that Bea has not acknowledged it although she did, so he chases or escalates. Or Bea's screen says she acknowledged it while Abe sees nothing, and neither of them notices the gap before the freeze.",
+  "actors": [
+    {"id": "bea", "persona": "Bea, a regular team member who must confirm to the release manager that she has read his change-freeze notice", "role": "member", "ui": true},
+    {"id": "abe", "persona": "Abe, the release manager who posted the notice and requested acknowledgement. His notice is a REST fixture post made with his own session before the session starts, and his view of the outcome is read over REST with his own session. He has no UI journey", "role": "member", "ui": false}
+  ],
+  "fixture": {
+    "owner": "One declaration consumed by the runner's fixture factory and by any verifier. Created through the REST API by the lib default admin (PW_ADMIN_USERNAME), except the calls marked 'as abe' or 'as bea', which use that user's own REST session.",
+    "fresh_per_replay": "Every replay of every candidate path, including confirmation and verifier replays, starts from a newly created fixture: new team, new users, new channels, new post. Fixtures are never reused or reset, because an acknowledgement persists on the server.",
+    "slug_rule": "One fresh lowercase alphanumeric slug per fixture (the lib's pw.random.id(), 7 characters), used only in the team name, channel names, usernames and emails. It never appears in display names, first or last names or message text, so every accessible name and fixed string below stays fixed.",
+    "server_preconditions": {
+      "how": "Read-only: GET /api/v4/config as admin before creating the fixture (route api4/config.go:35 at v12.1.0). The fixture never patches config. A difference aborts as a SETUP_FAILURE, never a finding.",
+      "expect": {
+        "ServiceSettings.PostPriority": true
+      },
+      "source": "Default PostPriority=true (server/public/model/config.go:1027-1028 at v12.1.0). It gates the priority check on create (app/post_permission_utils.go:49-51), the priority and acknowledgement metadata on read (app/post_metadata.go:268-281) and the client flag (config/client.go:149; selectors posts.ts:628-630). explorer-proto/infra/docker-compose.yml sets no MM_SERVICESETTINGS_POSTPRIORITY. The repo fixture's resetConfig patch (e2e-tests/playwright/lib/src/server/default_config.ts onPremServerConfig) does not contain the key. The licence half of the gate is not in the admin config; the pilot's licence gate (IsLicensed) and the fixture post's own licence check cover it."
+    },
+    "team": {
+      "name_template": "team-{slug}",
+      "type": "O",
+      "display_name": "Assigned by the fixture factory (it contains the slug, so the team menu name is dropped as non-replayable). Not asserted anywhere."
+    },
+    "actors": [
+      {
+        "id": "abe",
+        "first_name": "Abe",
+        "last_name": "Lindqvist",
+        "username_template": "abe{slug}",
+        "email_template": "abe{slug}@sample.mattermost.com",
+        "password": "Generated per fixture by the lib (newTestPassword). Kept in memory only, never printed, logged or written to a trace.",
+        "roles": "system_user; team_user in the fixture team",
+        "team_member": true,
+        "order_note": "Declared first on purpose: the REST evaluator resolves 'own REST session' to the first declared actor whose id occurs in the checkpoint text (src/journey_rest.ts:54-62), and only C-ACK-SEEN asks for an own session."
+      },
+      {
+        "id": "bea",
+        "first_name": "Bea",
+        "last_name": "Okafor",
+        "username_template": "bea{slug}",
+        "email_template": "bea{slug}@sample.mattermost.com",
+        "password": "Generated per fixture by the lib (newTestPassword). Kept in memory only, never printed, logged or written to a trace.",
+        "roles": "system_user; team_user in the fixture team",
+        "team_member": true
+      }
+    ],
+    "channels": [
+      {"key": "lounge", "name_template": "lounge-{slug}", "display_name": "Lounge", "type": "public", "api_type": "O", "members": ["bea", "abe"], "seeded_posts": "None. Only the system add posts the server creates when members are added."},
+      {"key": "release", "name_template": "release-coordination-{slug}", "display_name": "Release Coordination", "type": "public", "api_type": "O", "members": ["bea", "abe"], "seeded_posts": "Exactly one user post: fixture.posts[notice]. Plus the system add posts."}
+    ],
+    "posts": [
+      {
+        "key": "notice",
+        "channel": "release",
+        "as": "abe, through Abe's own REST session (never the UI, never the admin)",
+        "request": "POST /api/v4/posts (api4/post.go:25 at v12.1.0); expect 201",
+        "body": {
+          "channel_id": "{channel.release.id}",
+          "message": "Change freeze for the 12.4 release starts on Friday evening. No merges to the release branch after that.",
+          "metadata": {
+            "priority": {
+              "priority": "important",
+              "requested_ack": true
+            }
+          }
+        },
+        "body_rules": "Send exactly this body: a root post (no root_id), no props, no file_ids, no mention, no persistent_notifications. Binds {post.notice.id}.",
+        "server_accepts": "createPost runs postPriorityCheckWithContext (api4/post.go:98), which allows priority on a root post when PostPriority is on and requires a Professional-or-higher licence for requested_ack (app/post_permission_utils.go:49-60). SanitizeInput clears only metadata.embeds (model/post.go:762-768). The store writes the PostsPriority row (sqlstore/post_store.go:3230-3243). Any non-201 response is a SETUP_FAILURE."
+      }
+    ],
+    "preferences": [
+      {"actor": "bea", "category": "tutorial_step", "name": "{actor.bea.id}", "value": "999", "why": "Onboarding overlay off (same keys as e2e-tests/playwright/lib/src/server/user.ts and explorer-proto/infra/scripts/api.mjs)."},
+      {"actor": "bea", "category": "crt_thread_pane_step", "name": "{actor.bea.id}", "value": "999", "why": "Same lib key set, kept for parity."},
+      {"actor": "bea", "category": "onboarding_task_list", "name": "onboarding_task_list_show", "value": "false", "why": "Task list overlay off."},
+      {"actor": "bea", "category": "onboarding_task_list", "name": "onboarding_task_list_open", "value": "false", "why": "Task list overlay off."}
+    ],
+    "preferences_note": "No name_format preference: author names keep the slugged username, so the post's author controls are dropped as non-replayable, which keeps the notice's own controls the only post-level candidates.",
+    "viewed_last": "After the post and every membership and preference write, as bea: POST /api/v4/channels/members/me/view with {channel_id, prev_channel_id: ''} for release first and lounge last (route api4/channel.go:62 at v12.1.0; the current factory's rule, declaration order reversed). Viewed clean = the channel unread endpoint returns zero: GET /api/v4/users/{actor.bea.id}/channels/{channel.<key>.id}/unread (api4/channel.go:108) returns msg_count 0 and mention_count 0 for both channels. That endpoint computes msg_count as Channels.TotalMsgCount minus ChannelMembers.MsgCount (sqlstore/channel_store.go:928-936). The channel member record's msg_count counts messages READ, so it is not a 'viewed clean' signal and is not used here. No post, membership or preference write may follow the view calls.",
+    "fixed_strings": {
+      "notice": "Change freeze for the 12.4 release starts on Friday evening. No merges to the release branch after that.",
+      "priority_label": "Important",
+      "ack_label": "Acknowledge",
+      "ack_count_after": "1"
+    },
+    "rendered_text_source": "The notice text renders in the post body. The priority badge text is 'Important' (post_priority_label.tsx:39-44; en.json post_priority.priority.important) beside an icon-font glyph, so it is matched as a substring. The acknowledgement control is a button whose content is an SVG icon without a title plus a text: 'Acknowledge' while nobody has acknowledged and the viewer is not the author, then the count of acknowledgements (post_acknowledgements.tsx:120-146 at v12.1.0; en.json post_priority.button.acknowledge). It renders only when the client flag is on and the post requested acknowledgement (post_component.tsx:940-946). The compass-icons SVG has only a path (webapp/node_modules/@mattermost/compass-icons components/check-circle-outline.js), so it adds no text to the accessible name. SOURCE-DERIVED, not live-observed.",
+    "read_back": "Before the session starts: both channels list bea and abe as members; Bea's four preferences are stored; lounge has no post of type '' (user post); C-DATA holds; C-VIEWED holds. C-DATA and C-VIEWED are read again at the end of every replay. Any mismatch is a SETUP_FAILURE. Before the session nobody has acknowledged the notice by construction (fresh post, author is Abe); this is observed in the log at the start state, not asserted as a read-back."
+  },
+  "start": {
+    "actor": "bea",
+    "start_path": "/{team.name}/channels/{channel.lounge.name}",
+    "sign_in": "Framework login for bea (TestBrowser.login, loginByAPI) inside the guarded context. The fixture never opens either channel in the UI.",
+    "why_this_path": "Bea lands in a channel that holds no user post, the last channel she viewed. The notice lives in another channel she belongs to, so the notice cannot render until a general navigation is discovered."
+  },
+  "action_rules": {
+    "scope_note": "General policy for any journey in the channel messaging area that reads posts and responds to message signals. It names no control that a particular journey needs. Reused from sessions/regression-attachment-fields/charter.json action_rules (itself the auto-follow rules plus a per-message state-change pattern) with only this scope note changed. Against auto-follow: scope note, 'at actuation time' in the uniqueness text, the added per-message pattern, and the follow-toggle reason.",
+    "roles_in_play": ["button", "link", "menuitem", "menuitemcheckbox", "menuitemradio", "checkbox", "radio", "switch", "tab"],
+    "roles_excluded": {
+      "roles": ["textbox", "searchbox", "combobox", "listbox", "option", "slider", "spinbutton"],
+      "why": "These need typed or continuous input, which the runner does not produce."
+    },
+    "key_actions": {
+      "allowed": ["Escape"],
+      "why": "Escape only dismisses an open menu, popover or dialog. No other key action is in play."
+    },
+    "regions_in_play": [
+      "Left sidebar: team sidebar navigation, its channel and view links, and its category and channel controls with their menus",
+      "Channel header, with its menus and submenus",
+      "Right-hand panels opened in-app",
+      "Modal dialogs: see modal_policy",
+      "Center pane of any in-app view under /{team.name}/: the channel post list and its per-post controls, list views, and their detail panes. The message composer is excluded"
+    ],
+    "regions_excluded": [
+      {"region": "Global header: product switcher, global search, recent mentions, saved items, account and status menu, global settings, help", "why": "These are workspace-wide surfaces outside channel-scoped journeys. The account menu holds sign-out. Global settings can change account-wide display preferences."},
+      {"region": "Message composer: text box, formatting toolbar, emoji, attachment, priority, schedule and send controls", "why": "Content authoring is out of scope because typing is out of scope. Without typed text these controls only open formatting popovers, and they roughly double the branching of every channel view."}
+    ],
+    "excluded_name_patterns": {
+      "match": "Case-insensitive, whole word, on the accessible name.",
+      "patterns": [
+        {"pattern": "\\bdelete\\b|\\bremove\\b|\\barchive\\b|\\bunarchive\\b|\\bdeactivate\\b", "why": "Destructive or irreversible changes to shared objects."},
+        {"pattern": "\\bleave\\b", "why": "Ends membership, which removes the actor from the fixture."},
+        {"pattern": "\\blog ?out\\b|\\bsign ?out\\b", "why": "Ends the session."},
+        {"pattern": "\\bhelp\\b|\\breport\\b", "why": "Help opens documentation (often off-origin). Report opens a moderation flow."},
+        {"pattern": "\\bnew window\\b|\\bpop ?out\\b", "why": "Opens a separate browsing context that the runner does not observe."},
+        {"pattern": "\\bcopy\\b|\\bdownload\\b|\\bexport\\b", "why": "Writes to the clipboard or the file system, outside the observed app state."},
+        {"pattern": "\\bedit\\b|\\brename\\b|\\bconvert\\b", "why": "Changes names, content or channel type that fixture-derived names and fixed strings depend on."},
+        {"pattern": "^(follow|following|unfollow)$|\\bmark as unread\\b", "why": "Per-item subscription and read-state toggles. They change subscription or unread state, which renames sidebar links and adds branching without changing how a post renders."},
+        {"pattern": "\\bpin\\b|\\bunpin\\b|\\bremind\\b|\\bforward\\b|\\breactions?\\b|\\bemoji\\b|\\bsave\\b|\\bunsave\\b|\\bmove\\b", "why": "Per-message state changes. They write to the post or to the actor's saved state, or open authoring flows, and they never help anyone read or answer a post."}
+      ]
+    },
+    "origin_rule": "Exclude any link whose resolved href is outside the app origin, or that has target=_blank. The exact-origin guard aborts off-origin traffic anyway.",
+    "path_scope_rule": "If an action leaves the /{team.name}/ path prefix (another team, team creation, the System Console, another product), the runner records the resulting state, evaluates the checkpoints in it, and does not expand it.",
+    "uniqueness": "A candidate is actuated only by exact role plus exact accessible name, and only if that pair resolves to exactly one visible, enabled element at actuation time: within the topmost open dialog when one is open, otherwise on the page. Ambiguous (more than one) or missing candidates are skipped and recorded with the reason. Never fall back to a partial name, an index or a CSS locator.",
+    "modal_policy": "While a modal dialog is open, only controls inside the topmost dialog are candidates, and every actuation inside it counts as an action. The dialog can be left with Escape or with the dialog's own close or cancel control. The same exclusions apply inside dialogs.",
+    "enumeration": "Candidates come only from the live accessibility snapshot of the current state, after the rules above. They are never taken from this charter, a prior trace or a reference path."
+  },
+  "goal_terms": {
+    "derive_from": "goal",
+    "stopwords": ["i", "want", "to", "that", "have", "the", "he", "for", "so", "does", "not", "before", "a", "an", "of", "in", "my", "me", "team"]
+  },
+  "checkpoints": [
+    {
+      "id": "C-DATA",
+      "kind": "rest",
+      "description": "The stored notice is Abe's root post in the release channel with the declared text, Important priority and an acknowledgement request.",
+      "predicate": {
+        "poll": "Read at fixture read-back, after every action and at the end of every replay, as admin.",
+        "request": "GET /api/v4/posts/{post.notice.id}",
+        "expect": {
+          "channel_id": "{channel.release.id}",
+          "user_id": "{actor.abe.id}",
+          "root_id": "",
+          "message": "{fixture.fixed_strings.notice}",
+          "metadata.priority.priority": "important",
+          "metadata.priority.requested_ack": true
+        },
+        "role_note": "Independent source: the fixture's own data read back from the server. If it is false the run is a SETUP_FAILURE, so a missing button cannot be blamed on the data."
+      },
+      "source": "Seed: fixture.posts[notice]. Source: getPost prepares the post with IncludePriority (api4/post.go:591-626 at v12.1.0), which attaches metadata.priority for a root post when PostPriority is on (app/post_metadata.go:268-274). Doc: message-priority.mdx:49-53 ('Request acknowledgements')."
+    },
+    {
+      "id": "C-VIEWED",
+      "kind": "rest",
+      "description": "Both channels are viewed clean for Bea: the channel unread endpoint returns zero messages and zero mentions.",
+      "predicate": {
+        "poll": "Read at fixture read-back and at the end of every replay, as admin.",
+        "all": [
+          {"request": "GET /api/v4/users/{actor.bea.id}/channels/{channel.lounge.id}/unread", "expect": {"msg_count": 0, "mention_count": 0}},
+          {"request": "GET /api/v4/users/{actor.bea.id}/channels/{channel.release.id}/unread", "expect": {"msg_count": 0, "mention_count": 0}}
+        ],
+        "role_note": "Setup guard for sidebar link names: no ' unread' or mention suffix at start. The channel member record's counters are not used."
+      },
+      "source": "Seed: viewed_last. Source: route api4/channel.go:108; msg_count = Channels.TotalMsgCount - ChannelMembers.MsgCount and mention_count from the member row (sqlstore/channel_store.go:928-936); muting zeroes msg_count (app/channel.go:2766-2768). Sidebar unread suffix: sidebar_channel_link.tsx:152-153."
+    },
+    {
+      "id": "C-ACK-SEEN",
+      "kind": "rest",
+      "description": "Independently of Bea's UI, Abe's own view of his notice lists exactly one acknowledgement, and it is Bea's.",
+      "predicate": {
+        "poll": "Read after every action and at the end of every replay, sent with Abe's own REST session (the teammate's perspective, not the admin and not Bea).",
+        "request": "GET /api/v4/posts/{post.notice.id}",
+        "expect": {
+          "metadata.acknowledgements.length": 1,
+          "metadata.acknowledgements[0].user_id": "{actor.bea.id}",
+          "metadata.acknowledgements[0].post_id": "{post.notice.id}"
+        },
+        "absent_meaning": "Before any acknowledgement the list is absent or empty, so the predicate is false. After an acknowledgement is withdrawn the server lists none again (the store filters AcknowledgedAt != 0)."
+      },
+      "source": "Source: acknowledgements are attached to a root post's metadata on read when PostPriority is on (app/post_metadata.go:276-281 at v12.1.0) from PostAcknowledgement().GetForPost, which keeps only rows with AcknowledgedAt != 0 (sqlstore/post_acknowledgements_store.go:121-128); field names user_id, post_id, acknowledged_at, channel_id (model/post_acknowledgement.go:9-12). The acknowledgement is written by POST /api/v4/users/{user_id}/posts/{post_id}/ack (api4/post.go:50, handler :1474-1511). Doc: message-priority.mdx:53 (review who has acknowledged). Seed: Bea's id, the notice id."
+    },
+    {
+      "id": "C-NOTICE",
+      "kind": "ui",
+      "description": "The notice is rendered in the reached state: its text and its Important badge inside one post container.",
+      "predicate": {
+        "observed_in": "Any reached state under /{team.name}/ or a recorded out-of-scope state. No URL is required: the notice may render in any surface.",
+        "snapshot": {
+          "all": [
+            {"text_contains": "{fixture.fixed_strings.notice}", "count_at_least": 1},
+            {"text_contains": "{fixture.fixed_strings.priority_label}", "count_at_least": 1}
+          ]
+        },
+        "settle": {
+          "rule": "Web-first: after the engine's snapshot settle, re-evaluate for up to 1500 ms before recording false. Never a fixed sleep."
+        },
+        "post_scope": {
+          "anchor": "notice",
+          "rule": "Both strings inside one container: the smallest snapshot node of a container role whose subtree holds the notice text. Report the scope used."
+        },
+        "evidence_method": "Raw accessibility snapshot first, scoped DOM text fallback allowed, method reported per string.",
+        "report_live": "SOURCE-DERIVED. REPORT the container role and the snapshot line holding each string. The post wrapper is a generic element with an aria-label (post_aria_label_div.tsx); the container is expected to be the post list's listitem."
+      },
+      "source": "Seed: fixed_strings.notice. Source: priority badge post_component.tsx:701 and post_priority_label.tsx:39-44; en.json post_priority.priority.important. Doc: message-priority.mdx:8,18 (label shown with the message)."
+    },
+    {
+      "id": "C-ACK-UI",
+      "kind": "ui",
+      "description": "Bea's view of the notice shows it as acknowledged: no control in the notice is named Acknowledge any more, and its acknowledgement control shows the count.",
+      "predicate": {
+        "evaluated_only_when": "C-NOTICE is true in the same state and the same observation.",
+        "snapshot": {
+          "all": [
+            {"role": "button", "name_contains": "{fixture.fixed_strings.ack_label}", "count": 0},
+            {"role": "button", "name": "{fixture.fixed_strings.ack_count_after}", "count": 1}
+          ]
+        },
+        "settle": {
+          "rule": "Once C-NOTICE is true, re-evaluate for up to 2000 ms before recording false. The control re-renders from the server's response (mattermost-redux actions/posts.ts:1340-1359, CREATE_ACK_POST_SUCCESS)."
+        },
+        "post_scope": {
+          "rule": "Same container as C-NOTICE."
+        },
+        "accessible_name_note": "The absence clause matches by substring so that an unexpected glyph prefix cannot make it vacuous. The presence clause is exact; '1' is SOURCE-DERIVED (post_acknowledgements.tsx:127-129: the text becomes the list length).",
+        "report_live": "REPORT the live name of every button in the notice's container in every state where C-NOTICE holds. If the acknowledged control's live name is not exactly '1', the run must say so; a classification that depends on it is then a charter error for the lead, not a product finding. Do not weaken the predicate."
+      },
+      "source": "Source: post_acknowledgements.tsx:56-68 (current user's acknowledgement), :103-114 (click acknowledges, or withdraws within five minutes), :120-146 (button text). Doc: message-priority.mdx:53 and :58 (change your mind within five minutes). Seed: fixed_strings."
+    }
+  ],
+  "events": [],
+  "success_criteria": {
+    "qualifies_when": "C-DATA AND C-VIEWED AND C-NOTICE AND C-ACK-UI AND C-ACK-SEEN",
+    "ordering": "C-DATA and C-VIEWED are read at fixture read-back and at the end of every replay. C-ACK-SEEN is read after every action. C-NOTICE and C-ACK-UI are evaluated in every reached state, in that order, and count only together in the same state.",
+    "path_conditions": "Every action on the path follows action_rules: allowed role, allowed region, no excluded name pattern, exact name, unique at actuation time. The path starts at start.start_path on a fresh fixture. A replay counts only if it reproduces the same per-state classification on its own fresh fixture.",
+    "selection": "Among confirmed paths of the same classification, the reported representative path has the fewest actions; ties go to the lexicographically smallest action sequence (per step: accessible name first, role second).",
+    "outcomes": {
+      "per_state_classification": {
+        "ACK_SHOWN_NOT_RECORDED": "C-ACK-UI true and C-ACK-SEEN false. Bea's view of the notice says acknowledged, but Abe's view of the post does not list her acknowledgement.",
+        "ACK_RECORDED_NOT_SHOWN": "C-NOTICE true and C-ACK-SEEN true and C-ACK-UI false. Abe's view lists Bea's acknowledgement, but the notice on Bea's screen still offers to acknowledge.",
+        "ACKNOWLEDGED": "C-NOTICE true and C-ACK-UI true and C-ACK-SEEN true. Both sides agree that Bea acknowledged the notice.",
+        "PENDING": "C-NOTICE true and C-ACK-UI false and C-ACK-SEEN false. The notice is on screen and nobody has acknowledged it yet.",
+        "OUT_OF_VIEW": "C-NOTICE false. The notice is not rendered in this state; the REST result alone does not classify it."
+      },
+      "run_verdict": {
+        "SETUP_FAILURE": "A server precondition or fixture read-back fails (PostPriority not true, the notice post refused, C-DATA false, C-VIEWED false). Not a verdict on the product. Reported as an open validation item.",
+        "PRODUCT_FAILURE": "A state classified ACK_SHOWN_NOT_RECORDED or ACK_RECORDED_NOT_SHOWN is reached, and a confirmation replay of that state's recorded path on a fresh fixture again reaches the same classification.",
+        "PASS": "At least one reached state is ACKNOWLEDGED, confirmed by a replay of its path on a fresh fixture, and no ACK_SHOWN_NOT_RECORDED observation exists and no ACK_RECORDED_NOT_SHOWN observation exists, confirmed or not.",
+        "INCONCLUSIVE": "Every other case: the notice was never acknowledged within budget, a failing classification could not be confirmed, or an ACKNOWLEDGED observation could not be confirmed. Reported as an open validation item with the preserved observations."
+      },
+      "precedence": [
+        "SETUP_FAILURE",
+        "PRODUCT_FAILURE when a confirmed ACK_SHOWN_NOT_RECORDED exists",
+        "PRODUCT_FAILURE when a confirmed ACK_RECORDED_NOT_SHOWN exists",
+        "INCONCLUSIVE when an unconfirmed ACK_SHOWN_NOT_RECORDED exists",
+        "INCONCLUSIVE when an unconfirmed ACK_RECORDED_NOT_SHOWN exists",
+        "PASS",
+        "INCONCLUSIVE"
+      ]
+    }
+  },
+  "budget": {
+    "max_actions": 180,
+    "max_depth": 3,
+    "max_states": 200,
+    "max_replays": 200,
+    "wall_clock_seconds": 2400
+  },
+  "budget_reserve": {
+    "confirmation_replays_reserved": 10
+  },
+  "budget_semantics": "max_actions counts candidate actions executed as the final step of a replay (one expansion each). max_replays counts every fresh-fixture replay, including confirmation replays; ten are reserved for confirmation and never spent on expansion. max_depth counts actions from start_path. max_states counts distinct states (URL path plus trajectory plus normalized snapshot). Without no_early_stop the search stops at the first classification that needs confirmation. Running out of budget before a confirmed classification exists gives INCONCLUSIVE, never PASS and never PRODUCT_FAILURE.",
+  "negative_controls": [
+    {
+      "id": "ack-not-persisted",
+      "requested_property": "Vary one outcome-determining condition (whether Bea's acknowledgement is stored where Abe can see it) with Bea's navigation unchanged, without editing the spec or the charter and without a server build, in a way the repo fixture cannot undo.",
+      "status": "BLOCKED on v12.1.0: needs a lead decision. No server-wide setting reachable through the admin API isolates acknowledgement persistence while the button still renders and the notice can still be created.",
+      "candidates_checked": [
+        {"change": "Admin PUT /api/v4/config/patch {\"ServiceSettings\": {\"PostPriority\": false}} (api4/config.go:37).", "accepted_by_api": "Yes. PostPriority has no validation rule (model/config.go defines it at :497 and defaults it at :1027-1028; no isValid check), and resetConfig does not undo it: the repo fixture patches only onPremServerConfig (lib/src/server/default_config.ts:28-30, :57), which has no PostPriority key, and resetRoles touches roles only (lib/src/server/roles.ts:10-26).", "why_rejected": "It changes more than the outcome: the fixture post with requested_ack is refused with HTTP 403 (app/post_permission_utils.go:49-51), which is a SETUP_FAILURE, and the client hides the button (selectors posts.ts:632-637; post_component.tsx:940)."},
+        {"change": "Remove the licence.", "accepted_by_api": "Not attempted; the pilot treats an unlicensed server as a setup failure and MM_LICENSE is injected by the environment.", "why_rejected": "Same effect as above (HTTP 501 on the fixture post, button hidden)."},
+        {"change": "Archive the release channel so the acknowledgement is refused (app/post_acknowledgements.go:38-40, HTTP 403).", "accepted_by_api": "Yes, but only on a channel that exists; the spec creates its channels inside each run.", "why_rejected": "Needs a fixture edit and changes navigation: an archived channel is not listed in the sidebar of a fresh session."},
+        {"change": "Role or permission changes (read_channel_content, create_post).", "accepted_by_api": "Yes.", "why_rejected": "resetRoles restores the built-in roles before each repo-native test (lib/src/test_fixture.ts:165-185), and v12.1.0 checks only read permission on acknowledge (api4/post.go:1491-1494), which also gates seeing the notice."}
+      ],
+      "design_intent_if_feasible": {
+        "expected_failing": "C-ACK-SEEN, observed as ACK_SHOWN_NOT_RECORDED once Bea's view shows the count.",
+        "expected_passing": ["C-DATA", "C-VIEWED", "C-NOTICE", "C-ACK-UI", "Bea's navigation and the acknowledgement click"],
+        "demonstrates": "That the teammate-side REST check detects an acknowledgement that is shown to the actor but never stored. It would not show that the product regresses in general."
+      },
+      "proposed_replacement_for_lead": "Server mutant: the same frozen charter (and any emitted spec) against a server built from v12.1.0 whose acknowledgePost handler (api4/post.go:1474-1511) returns a PostAcknowledgement built in memory instead of calling SaveAcknowledgementForPost, with the same config and fixture factory. The webapp updates the button from the response (actions/posts.ts:1353-1356), so Bea's navigation and C-ACK-UI pass while C-ACK-SEEN fails. Cost and caveat: a server build and image outside this pilot's no-build constraint, and it must be built with enterprise to keep the licensed edition. Not runnable until the lead approves.",
+      "env_override_check": "explorer-proto/infra/docker-compose.yml sets no MM_SERVICESETTINGS_POSTPRIORITY."
+    }
+  ],
+  "dedupe": {
+    "key": "messages.signals:acknowledge-teammate-notice",
+    "note": "Not equivalent to Playwright MM-T5140 (message_priority/message_priority.spec.ts:160; helper :21-73; label assertion :60 via lib message_priority.ts verifyPriorityLabel): one user posts an Important message, no acknowledgement requested or given. Not MM-T5139_1/_2, MM-T5142, MM-62078 (same file :79, :131, :174, :189): composer priority UI only. Not post_attributes_composer.spec.ts:1128 (priority label with post attributes). Not content_flagging deletion-report.spec.ts:17 ('Acknowledgements' at :82 is a row label in a deletion report). Cypress: no message priority or acknowledgement test; checkbox_elements_spec.js:166-167 is an interactive-dialog checkbox labelled 'Acknowledgement'. Server TestAcknowledgePost (server/channels/api4/post_test.go:7219) covers the endpoint without UI. No webapp unit test for the component exists at v12.1.0 (one is added on main)."
+  },
+  "constraints": [
+    "No screenshots, video or Playwright traces (explorer-proto/playwright.config.ts).",
+    "Loopback origin only, http://127.0.0.1:<port>, through the exact-origin guard. Service workers blocked.",
+    "Retries 0.",
+    "Zero LLM and zero vision. Decisions come only from live accessibility snapshots, action_rules, goal_terms and checkpoint predicates, scored by the engine's generic heuristic.",
+    "No feature flags and no per-spec server config. Server config is read only, never patched.",
+    "A fresh fixture for every replay. Expected values come only from this charter, never from observed snapshots or the fixture factory's output (ids are bound as variables only).",
+    "The runner reads only this charter. It receives no reference path, no QA notes and no verifier material.",
+    "Abe's notice is a REST fixture post made with Abe's own session, and his view of the outcome is a REST read with his own session. Every report must disclose both; neither is Abe's UI.",
+    "Never print, log or store passwords, tokens, the licence or session cookies. Traces hold no origin, port, slug or ids."
+  ],
+  "known_risks": [
+    "Engine read-back: the current factory's read-back judges 'viewed clean' from the channel member record (src/journey_fixture.ts:324-337). That record's msg_count counts messages read, so after the view call the release channel, which holds a user post, reads as non-zero and the run would stop as a SETUP_FAILURE although the unread endpoint returns zero. This charter declares the unread-endpoint semantics (C-VIEWED); the read-back fix is pending a separate diagnostic.",
+    "No spec emission: this is an outcome-mode charter, and the spec emitter refuses outcome charters (README-engine.md, outcome mode). A confirmed PASS yields a confirmed path and a report, not a repo-native spec, until the emitter supports outcome charters.",
+    "Plain journey mode would not work: there, UI checkpoints count only after a teammate event fired (src/journey_search.ts:612-614, :868-875), and this journey has no event. That is why outcome mode is used.",
+    "Shallow journey: the outcome needs very few actions once the right channel is open, so most of the budget goes to discovering it among unrelated menus and dialogs. See QA-NOTES.md for the arithmetic.",
+    "Modal combinatorics: menus and dialogs opened from the sidebar and the channel header get the container bonus and are drilled before plain channel views; depth is capped to bound it.",
+    "Acknowledge toggles: within five minutes a second actuation of the acknowledged control withdraws the acknowledgement. Such a path ends PENDING, which is correct behaviour, not a failure.",
+    "REST before UI: in each state C-ACK-SEEN is read before the UI is evaluated. If the server answered later than the engine's snapshot settle, a state could read REST false and UI true and be classified ACK_SHOWN_NOT_RECORDED; a confirmation replay guards against it, but an unconfirmed one still blocks PASS.",
+    "Source-derived names: 'Acknowledge', '1' and the listitem container are read from v12.1.0 source, not observed live. A wrong '1' would classify ACK_RECORDED_NOT_SHOWN; any PRODUCT_FAILURE must be checked against the reported live names before it is accepted.",
+    "Unread suffix: an unseen post renames a sidebar link with ' unread' (sidebar_channel_link.tsx:152-153). The view calls come last, so neither fixture channel is unread at start; Town Square and Off-Topic are not fixture channels and may carry the suffix, which is harmless because candidates use live names.",
+    "Hover-only controls: the post's own menu and reactions render only on hover or keyboard focus (post_component.tsx:345-346, post_options.tsx:130), and the engine moves the mouse away before every snapshot, so they never become candidates. The notice's acknowledgement control is always rendered.",
+    "Goal wording: the goal avoids the control's label and the channel's name. 'read' overlaps 'Mark as Read' menu items, a lure toward a wrong control that the goal terms do not fix. See QA-NOTES.md.",
+    "Own-session resolution: the REST evaluator picks the first declared fixture actor whose id occurs in the checkpoint text; abe is declared first so C-ACK-SEEN uses Abe's session. Reordering the fixture actors would silently read it as Bea."
+  ]
+}
