@@ -1,0 +1,308 @@
+{
+  "schema": "explorer-journey-charter/v1",
+  "qualifies": true,
+  "qualifies_reason": "No Cypress or Playwright test posts a message attachment field that has a title and an empty value, and none asserts that such a field title is visible with Mattermost Blocks on. The closest tests use fields that all have non-empty values, or assert legacy table markup. Evidence: explorer-proto/sessions/regression-attachment-fields/QA-NOTES.md.",
+  "journey_id": "posts.attachments:empty-value-field-titles",
+  "feature_id": ["messages.compose"],
+  "feature_id_note": "The feature map is not in the repo. messages.compose is the closest id: a message attachment is part of the content a post carries (props.attachments), so it belongs with authoring and rendering message content. messages.signals (read, acknowledgement and priority signals around a message) does not describe message body content. Lead may override.",
+  "lane": "Browser",
+  "target_release": {
+    "build_pair": {
+      "affected": "mattermost/mattermost-enterprise-edition:12.0.2@sha256:d15763d5235f43b6e1833916603603300fd0650b3a6c876a2af6a7c172320427",
+      "fixed": "mattermost/mattermost-enterprise-edition:12.1.0@sha256:059c6ae272a7d54c1f38ed946fb6005aca7b02a096192800da8ee0bd79ade0e7",
+      "selection": "explorer-proto/infra/docker-compose.yml:26 reads MATTERMOST_PILOT_IMAGE. The lead sets it to one digest-pinned ref per run. This charter never selects the build itself."
+    },
+    "build_neutral": "The same charter, byte for byte, is used on both builds. Every expected value below is the documented fixed behaviour, taken from the PR #39112 description and the v12.1.0 code. None is taken from observing either build. No checkpoint names a version.",
+    "build_identity_report": "At fixture time, read GET /api/v4/config/client?format=old and REPORT Version, BuildHash, BuildHashEnterprise and BuildEnterpriseReady verbatim (keys set in server/config/client.go GenerateLimitedClientConfig, :287-291 at v12.0.2). Report only, never asserted here.",
+    "license_dependency": "None. Neither the Blocks routing (post_body_additional_content.tsx:164-174 at v12.0.2, :166-176 at v12.1.0) nor the attachment translation (block_renderer/translation/attachments.ts) checks a license."
+  },
+  "goal": "I want to see the final results of the fruit poll that closed in one of my team's channels, including how many votes each answer got.",
+  "consequence": "If this breaks, the member sees the poll's heading and text but not the answers or their vote counts, and cannot tell which option won.",
+  "actors": [
+    {"id": "member", "persona": "Rae, a regular team member who voted in the fruit poll and wants to read its final results", "role": "member", "ui": true}
+  ],
+  "fixture": {
+    "owner": "One declaration consumed by the runner's fixture factory and by any verifier. Created through the REST API by the lib default admin (PW_ADMIN_USERNAME), except the calls marked 'as member', which use the member's own REST session.",
+    "fresh_per_replay": "Every replay of every candidate path, including confirmation replays and verifier replays, starts from a newly created fixture: new team, new user, new channels, new post. Fixtures are never reused or reset.",
+    "slug_rule": "One fresh lowercase alphanumeric slug per fixture (the lib's pw.random.id(), 7 characters), used only in the team name, channel names, username and email. It never appears in display names, first or last names, message text or attachment content.",
+    "server_preconditions": {
+      "how": "Read-only: GET /api/v4/config/client?format=old (route server/channels/api4/config.go:39 on both tags) before creating the fixture. The fixture never patches config and never toggles a feature flag. A difference aborts as a SETUP_FAILURE, never a finding.",
+      "expect": {
+        "FeatureFlagMmBlocksEnabled": "true"
+      },
+      "source": "Feature flags are copied into the client config as 'FeatureFlag'+name (server/config/client.go:453-455 at v12.0.2, :454-456 at v12.1.0, inside GenerateLimitedClientConfig, which GenerateClientConfig extends at :17). Default MmBlocksEnabled = true (server/public/model/feature_flags.go:248 at v12.0.2, :260 at v12.1.0; :241 at v12.0.0). The webapp routes posts to the Blocks renderer only when getFeatureFlagValue(state, 'MmBlocksEnabled') === 'true' (post_view/post_body_additional_content/index.ts:26). explorer-proto/infra/docker-compose.yml sets no MM_FEATUREFLAGS_* variable.",
+      "proposed_extension": "The current engine reads server_preconditions from GET /api/v4/config as admin. This charter needs the client-config read above, because that is the value the webapp acts on."
+    },
+    "team": {
+      "name_template": "qa-team-{slug}",
+      "type": "O",
+      "display_name": "Assigned by the lib's createNewTeam. Not asserted anywhere."
+    },
+    "actors": [
+      {
+        "id": "member",
+        "first_name": "Rae",
+        "last_name": "Moreno",
+        "username_template": "rae{slug}",
+        "email_template": "rae{slug}@sample.mattermost.com",
+        "password": "Generated per fixture by the lib (newTestPassword). Kept in memory only, never printed, logged or written to a trace.",
+        "roles": "system_user; team_user in the fixture team",
+        "team_member": true
+      }
+    ],
+    "channels": [
+      {"key": "planning", "name_template": "release-planning-{slug}", "display_name": "Release Planning", "type": "public", "api_type": "O", "members": ["member"], "seeded_posts": "None. Only the system join/add posts the server creates when the member is added."},
+      {"key": "sandbox", "name_template": "qa-sandbox-{slug}", "display_name": "QA Sandbox", "type": "public", "api_type": "O", "members": ["member"], "seeded_posts": "Exactly one user post: fixture.posts[poll]."}
+    ],
+    "posts": [
+      {
+        "key": "poll",
+        "proposed_extension": "Fixture-created posts. The current fixture factory writes no posts. Bind the created id as {post.poll.id}.",
+        "channel": "sandbox",
+        "as": "member, through the member's own REST session (never the UI, never the admin)",
+        "request": "POST /api/v4/posts (server/channels/api4/post.go:25 on both tags); expect 201",
+        "body": {
+          "channel_id": "{channel.sandbox.id}",
+          "message": "The fruit poll has closed.",
+          "props": {
+            "attachments": [
+              {
+                "title": "Poll closed: favourite fruit",
+                "text": "Results are final",
+                "fields": [
+                  {"title": "Apple (3 votes)", "value": "", "short": true},
+                  {"title": "Pear (0 votes)", "value": "", "short": true},
+                  {"title": "Control", "value": "present", "short": false}
+                ]
+              }
+            ]
+          }
+        },
+        "body_rules": "Send exactly this body. Add no other prop, no fallback, no color, no title_link, no pretext, no actions, no root_id, no file_ids and no mention.",
+        "server_accepts": "A regular member may post props.attachments. createPost runs SanitizeInput (server/public/model/post.go:748-755 at v12.0.2) and app.CreatePost runs SanitizeProps (app/post.go:245; model/post.go:621-681 at v12.0.2, :635 at v12.1.0). Neither strips 'attachments': SanitizeProps removes only add_channel_member and the notification and identity markers (:625-670). Props JSON is capped by PostPropsMaxRunes (:609), which this body is far below. Any non-201 response is a SETUP_FAILURE."
+      }
+    ],
+    "preferences": [
+      {"actor": "member", "category": "tutorial_step", "name": "{actor.member.id}", "value": "999", "why": "Onboarding overlay off (same keys as e2e-tests/playwright/lib/src/server/user.ts and explorer-proto/infra/scripts/api.mjs)."},
+      {"actor": "member", "category": "crt_thread_pane_step", "name": "{actor.member.id}", "value": "999", "why": "Same lib key set, kept for parity."},
+      {"actor": "member", "category": "onboarding_task_list", "name": "onboarding_task_list_show", "value": "false", "why": "Task list overlay off."},
+      {"actor": "member", "category": "onboarding_task_list", "name": "onboarding_task_list_open", "value": "false", "why": "Task list overlay off."}
+    ],
+    "viewed_last": "After the post write and every membership and preference write, as member: POST /api/v4/channels/members/me/view with {channel_id, prev_channel_id: ''} for sandbox first and planning last (route server/channels/api4/channel.go:62 on both tags). This is the current factory's rule (declaration order reversed). Afterwards both channels must have msg_count and mention_count 0, so no sidebar link name carries the ' unread' suffix (sidebar_channel_link.tsx:152-153 on both tags). Viewing changes read state only. The post stays stored and the webapp loads it when its channel is opened. No post, membership or preference write may follow the view calls.",
+    "fixed_strings": {
+      "message": "The fruit poll has closed.",
+      "attachment_title": "Poll closed: favourite fruit",
+      "attachment_text": "Results are final",
+      "control_title_rendered": "Control:",
+      "control_value": "present",
+      "title_a_rendered": "Apple (3 votes):",
+      "title_b_rendered": "Pear (0 votes):"
+    },
+    "rendered_text_source": "With Blocks on, attachments are translated by translateAttachments (block_renderer/translation/attachments.ts). The attachment title becomes the markdown '**<title>**' (:59-67, :229-234). The text becomes a text block (:71-73). Each kept field emits '**<title>:**' as markdown (:261-263 at v12.0.2, :262-264 at v12.1.0) and, for a non-empty value, a separate text block (:264 at v12.0.2, :265-267 at v12.1.0). TextBlock renders each text through the Markdown component (block_renderer/text_block.tsx:28-37), so the visible text of a field title is '<title>:' in bold, for example 'Apple (3 votes):'. The v12.1.0 unit test expects exactly this form for empty-value titles ('**Great (1 vote):**', translation/index.test.ts:135-150).",
+    "read_back": "Before the session starts: (1) both channels list the member; (2) the four preferences are stored; (3) planning has no post of type '' (user post); (4) C-DATA holds; (5) both channels are viewed clean (msg_count 0, mention_count 0). Any mismatch is a SETUP_FAILURE."
+  },
+  "start": {
+    "actor": "member",
+    "start_path": "/{team.name}/channels/{channel.planning.name}",
+    "sign_in": "Framework login for member (TestBrowser.login, loginByAPI) inside the guarded context. The fixture never opens either channel in the UI.",
+    "why_this_path": "The member lands in a channel that holds no user post. The post lives in a different channel, so at least one general navigation must be discovered before it can render. The landing channel is the last one viewed, which is the order earlier seeds used."
+  },
+  "action_rules": {
+    "scope_note": "General policy for any journey in the channel messaging area that reads posts in channel, thread and list views. It names no control that a particular journey needs.",
+    "changes_from_auto_follow": "Reused from sessions/auto-follow/charter.json action_rules with these changes only: the scope_note covers reading messages instead of notifications; the uniqueness text says 'at actuation time'; one excluded pattern is added for per-message state changes (pin, reminders, forwarding, reactions, saving, moving), because they alter the post or the actor's saved state without helping anyone read a post, and they would multiply branching on every post; the follow-toggle pattern keeps its regex with a reason that fits this area.",
+    "roles_in_play": ["button", "link", "menuitem", "menuitemcheckbox", "menuitemradio", "checkbox", "radio", "switch", "tab"],
+    "roles_excluded": {
+      "roles": ["textbox", "searchbox", "combobox", "listbox", "option", "slider", "spinbutton"],
+      "why": "These need typed or continuous input, which the runner does not produce."
+    },
+    "key_actions": {
+      "allowed": ["Escape"],
+      "why": "Escape only dismisses an open menu, popover or dialog. No other key action is in play."
+    },
+    "regions_in_play": [
+      "Left sidebar: team sidebar navigation, its channel and view links, and its category and channel controls with their menus",
+      "Channel header, with its menus and submenus",
+      "Right-hand panels opened in-app",
+      "Modal dialogs: see modal_policy",
+      "Center pane of any in-app view under /{team.name}/: the channel post list and its per-post controls, list views, and their detail panes. The message composer is excluded"
+    ],
+    "regions_excluded": [
+      {"region": "Global header: product switcher, global search, recent mentions, saved items, account and status menu, global settings, help", "why": "These are workspace-wide surfaces outside channel-scoped journeys. The account menu holds sign-out. Global settings can change account-wide display preferences."},
+      {"region": "Message composer: text box, formatting toolbar, emoji, attachment, priority, schedule and send controls", "why": "Content authoring is out of scope because typing is out of scope. Without typed text these controls only open formatting popovers, and they roughly double the branching of every channel view."}
+    ],
+    "excluded_name_patterns": {
+      "match": "Case-insensitive, whole word, on the accessible name.",
+      "patterns": [
+        {"pattern": "\\bdelete\\b|\\bremove\\b|\\barchive\\b|\\bunarchive\\b|\\bdeactivate\\b", "why": "Destructive or irreversible changes to shared objects."},
+        {"pattern": "\\bleave\\b", "why": "Ends membership, which removes the actor from the fixture."},
+        {"pattern": "\\blog ?out\\b|\\bsign ?out\\b", "why": "Ends the session."},
+        {"pattern": "\\bhelp\\b|\\breport\\b", "why": "Help opens documentation (often off-origin). Report opens a moderation flow."},
+        {"pattern": "\\bnew window\\b|\\bpop ?out\\b", "why": "Opens a separate browsing context that the runner does not observe."},
+        {"pattern": "\\bcopy\\b|\\bdownload\\b|\\bexport\\b", "why": "Writes to the clipboard or the file system, outside the observed app state."},
+        {"pattern": "\\bedit\\b|\\brename\\b|\\bconvert\\b", "why": "Changes names, content or channel type that fixture-derived names and fixed strings depend on."},
+        {"pattern": "^(follow|following|unfollow)$|\\bmark as unread\\b", "why": "Per-item subscription and read-state toggles. They change subscription or unread state, which renames sidebar links and adds branching without changing how a post renders."},
+        {"pattern": "\\bpin\\b|\\bunpin\\b|\\bremind\\b|\\bforward\\b|\\breactions?\\b|\\bemoji\\b|\\bsave\\b|\\bunsave\\b|\\bmove\\b", "why": "Per-message state changes (added for this area). They write to the post or to the actor's saved state, or open authoring flows, and they never help anyone read a post."}
+      ]
+    },
+    "origin_rule": "Exclude any link whose resolved href is outside the app origin, or that has target=_blank. The exact-origin guard aborts off-origin traffic anyway.",
+    "path_scope_rule": "If an action leaves the /{team.name}/ path prefix (another team, team creation, the System Console, another product), the runner records the resulting state, evaluates the UI checkpoints in it, and does not expand it.",
+    "uniqueness": "A candidate is actuated only by exact role plus exact accessible name, and only if that pair resolves to exactly one visible, enabled element at actuation time: within the topmost open dialog when one is open, otherwise on the page. Ambiguous (more than one) or missing candidates are skipped and recorded with the reason. Never fall back to a partial name, an index or a CSS locator.",
+    "modal_policy": "While a modal dialog is open, only controls inside the topmost dialog are candidates, and every actuation inside it counts as an action. The dialog can be left with Escape or with the dialog's own close or cancel control. The same exclusions apply inside dialogs.",
+    "enumeration": "Candidates come only from the live accessibility snapshot of the current state, after the rules above. They are never taken from this charter, a prior trace or a reference path."
+  },
+  "goal_terms": {
+    "derive_from": "goal",
+    "stopwords": ["i", "want", "to", "see", "the", "a", "an", "of", "that", "in", "one", "my", "s", "team", "teams", "channel", "channels", "including", "how", "many", "each", "got"],
+    "stopword_note": "'team' and 'channel' are stopwords because they match every sidebar channel link ('<name> public channel') and the team menu alike, so they would add uniform noise. The remaining terms (final, result, fruit, poll, closed, vote, answer) match no expected control name, so discovery of the post's surface relies on novelty."
+  },
+  "checkpoints": [
+    {
+      "id": "C-DATA",
+      "kind": "rest",
+      "description": "The stored post carries the attachment exactly as declared, including both titled fields with empty values.",
+      "predicate": {
+        "poll": "Read once at fixture read-back and once at the end of every replay.",
+        "request": "GET /api/v4/posts/{post.poll.id}, sent with the member's own REST session (server/channels/api4/post.go:26 on both tags)",
+        "expect": {
+          "channel_id": "{channel.sandbox.id}",
+          "user_id": "{actor.member.id}",
+          "message": "{fixture.fixed_strings.message}",
+          "props.attachments.length": 1,
+          "props.attachments[0].title": "{fixture.fixed_strings.attachment_title}",
+          "props.attachments[0].text": "{fixture.fixed_strings.attachment_text}",
+          "props.attachments[0].fields.length": 3,
+          "props.attachments[0].fields[0]": {"title": "Apple (3 votes)", "value": "", "short": true},
+          "props.attachments[0].fields[1]": {"title": "Pear (0 votes)", "value": "", "short": true},
+          "props.attachments[0].fields[2]": {"title": "Control", "value": "present", "short": false}
+        },
+        "proposed_extension": "Nested path matchers (props.attachments[0]...) and the {post.poll.id} binding. The current REST evaluator supports top-level expect fields only."
+      },
+      "role": "Independent source: the fixture's own data read back from the server. It shows that both empty-value titles exist in the stored post, so a missing UI title cannot be blamed on the data. If C-DATA is false, the run is a SETUP_FAILURE."
+    },
+    {
+      "id": "C-RENDER-CONTROL",
+      "kind": "ui",
+      "description": "The attachment rendered at all: its title, its text and the Control field's title and value are visible in the observed state.",
+      "predicate": {
+        "observed_in": "Any reached state, on any URL path under /{team.name}/ or a recorded out-of-scope state.",
+        "snapshot": {
+          "all": [
+            {"text_contains": "{fixture.fixed_strings.attachment_title}", "count_at_least": 1},
+            {"text_contains": "{fixture.fixed_strings.attachment_text}", "count_at_least": 1},
+            {"text_contains": "{fixture.fixed_strings.control_title_rendered}", "count_at_least": 1},
+            {"text_contains": "{fixture.fixed_strings.control_value}", "count_at_least": 1}
+          ]
+        },
+        "settle": {
+          "proposed_extension": true,
+          "rule": "Web-first: after each action, re-evaluate this predicate with auto-waiting for up to 8000 ms before recording it false for the state. Never a fixed sleep."
+        },
+        "post_scope": {
+          "proposed_extension": true,
+          "rule": "When implemented, all four strings must be found inside one post container: the smallest snapshot node (or DOM element in fallback) whose subtree text contains attachment_title. Until implemented, the page-wide match stands. Report which scope was used."
+        },
+        "evidence_method": "Read from the raw accessibility snapshot text first. If the snapshot lacks a string, the engine may use its scoped DOM text fallback (journey_ui.ts text_contains: getByText). Report the method used per string per state."
+      },
+      "role": "Precondition for the next checkpoint in the same state. If it is false in a state, that state says nothing about field titles: it is NOT_RENDERED, never a product failure.",
+      "source": "Seed: fixed_strings. Source: Blocks routing for non-empty props.attachments (post_body_additional_content.tsx:164-174 at v12.0.2; translation/index.ts:51-65 hasInteractiveMessageProps); title, text and field rendering per fixture.rendered_text_source. The Control field has a non-empty value, so it is kept by parseAttachmentFields on both tags."
+    },
+    {
+      "id": "C-RENDER-TITLES",
+      "kind": "ui",
+      "description": "The two empty-value field titles are visible as rendered field titles.",
+      "predicate": {
+        "evaluated_only_when": "C-RENDER-CONTROL is true in the same state and the same observation.",
+        "snapshot": {
+          "all": [
+            {"text_contains": "{fixture.fixed_strings.title_a_rendered}", "count_at_least": 1},
+            {"text_contains": "{fixture.fixed_strings.title_b_rendered}", "count_at_least": 1}
+          ]
+        },
+        "settle": {
+          "proposed_extension": true,
+          "rule": "Once C-RENDER-CONTROL is true, re-evaluate with auto-waiting for up to 3000 ms before recording false. The attachment is translated in one synchronous pass (translatePostProps, translation/index.ts:72-93; size limits in translation/limits.ts:18-22 are far above this post), so its titles and the Control field appear in the same render."
+        },
+        "post_scope": {
+          "proposed_extension": true,
+          "rule": "Same container as C-RENDER-CONTROL when implemented."
+        },
+        "evidence_method": "Raw accessibility snapshot first, scoped DOM text fallback allowed, method reported. Expected snapshot exposure (source-derived, not live-verified): the Markdown component renders '**Apple (3 votes):**' as bold text inside the post list item, which the aria snapshot shows as text (a paragraph or strong node), not as an accessible name of any control. The run must REPORT the snapshot line that holds each title when found. If the snapshot never exposes the title text while the DOM fallback finds it, report that. Do not weaken the predicate."
+      },
+      "accessible_name_note": "No control carries these strings as its name. The titles are static text in the post body. The attachment has no title_link and no actions, so it adds no candidate controls.",
+      "source": "Doc/PR: PR #39112 description (title-only fields render; short ones side by side). Source: v12.1.0 attachments.ts:246-249 keeps a field with a title and an empty value, and :262-264 renders '**<title>:**'. Unit test translation/index.test.ts:135-150 at v12.1.0. Seed: field titles."
+    }
+  ],
+  "events": [],
+  "events_note": "None. The post is a fixture write made before the session starts, not a teammate event during it.",
+  "success_criteria": {
+    "qualifies_when": "C-DATA AND C-RENDER-CONTROL AND C-RENDER-TITLES",
+    "ordering": "C-DATA is read at fixture read-back. C-RENDER-CONTROL and C-RENDER-TITLES count only when both are evaluated in the same reached state.",
+    "path_conditions": "Every action on the path follows action_rules: allowed role, allowed region, no excluded name pattern, exact name, unique at actuation time. The path must start at start.start_path on a fresh fixture. A replay counts only if it reproduces the same per-state classification on its own fresh fixture.",
+    "selection": "Among confirmed paths of the same classification, the reported representative path has the fewest actions; ties go to the lexicographically smallest action sequence (per step: accessible name first, role second).",
+    "outcomes": {
+      "proposed_extension": true,
+      "per_state_classification": {
+        "NOT_RENDERED": "C-RENDER-CONTROL false after settling.",
+        "RENDERED_TITLES_PRESENT": "C-RENDER-CONTROL true and C-RENDER-TITLES true.",
+        "RENDERED_TITLES_MISSING": "C-RENDER-CONTROL true and C-RENDER-TITLES false after settling."
+      },
+      "run_verdict": {
+        "SETUP_FAILURE": "A server precondition or fixture read-back fails (including FeatureFlagMmBlocksEnabled not 'true' and C-DATA false). Not a verdict on the product. Reported as an open validation item.",
+        "PRODUCT_FAILURE": "At least one reached state is RENDERED_TITLES_MISSING and a confirmation replay of that state's recorded path on a fresh fixture again reaches a state classified RENDERED_TITLES_MISSING. This holds even if other states or paths are RENDERED_TITLES_PRESENT.",
+        "PASS": "At least one reached state is RENDERED_TITLES_PRESENT, confirmed by replay on a fresh fixture, and no RENDERED_TITLES_MISSING observation exists anywhere in the run, confirmed or not.",
+        "INCONCLUSIVE": "Every other case: the post never rendered in any reached state within budget; or a RENDERED_TITLES_MISSING observation could not be confirmed (budget, replay error, or the replay did not reach a rendered state); or a RENDERED_TITLES_PRESENT observation could not be confirmed. Reported as an open validation item with the preserved observations."
+      },
+      "precedence": ["SETUP_FAILURE", "PRODUCT_FAILURE", "INCONCLUSIVE when an unconfirmed RENDERED_TITLES_MISSING exists", "PASS", "INCONCLUSIVE"]
+    }
+  },
+  "observation_policy": {
+    "proposed_extension": true,
+    "record_every_evaluation": "Every evaluation of every checkpoint in every reached state on every branch and replay is appended to the run's observation log. An entry holds: replay id, fixture slug placeholder (never the slug), state key, URL path with fixture tokens replaced, the full action path from start_path (role and accessible name per step), checkpoint id, per-clause result, evidence method (snapshot or dom), settle time used and the per-state classification.",
+    "append_only": "The log is append-only. A later observation, a passing branch, a successful confirmation of another path, deduplication of states or path selection never removes, overwrites or downgrades an earlier entry.",
+    "preserve_failures": "Every RENDERED_TITLES_MISSING observation is copied into a separate 'failing_observations' list in the report, with its state and action path, whether or not it was confirmed, and whether or not another path passed.",
+    "dedupe_does_not_merge_verdicts": "States are deduplicated for expansion only. When two observations map to the same state key with different classifications, both are kept and the conflict is reported as a flakiness signal.",
+    "confirmation": "For each distinct action path that produced a RENDERED_TITLES_MISSING or RENDERED_TITLES_PRESENT classification, run at least one confirmation replay of that exact path on a fresh fixture, drawn from the reserved replays first. RENDERED_TITLES_MISSING paths are confirmed before RENDERED_TITLES_PRESENT paths. Record each confirmation's own observations under the same rules.",
+    "no_early_stop": "The search does not stop at the first rendered state or the first PASS. It runs until budget or frontier exhaustion, so other surfaces that render the post (for example a right-hand panel) are also evaluated.",
+    "report_shape": "The report lists: the run verdict; failing_observations; the confirmed representative path per classification; counts of states per classification; the evidence method per string; and the build identity values read at fixture time."
+  },
+  "budget": {
+    "max_actions": 40,
+    "max_depth": 3,
+    "max_states": 30,
+    "max_replays": 60,
+    "wall_clock_seconds": 1500
+  },
+  "budget_reserve": {
+    "proposed_extension": true,
+    "confirmation_replays_reserved": 6,
+    "rule": "Six of max_replays are held back for confirmation replays and are never spent on expansion."
+  },
+  "budget_semantics": "max_actions counts candidate actions executed as the final step of a replay (one expansion each). max_replays counts every fresh-fixture replay, including confirmation replays. max_depth counts actions from start_path. max_states counts distinct states (URL path plus trajectory plus normalized snapshot). Running out of budget before a confirmed classification exists gives INCONCLUSIVE, never PASS and never PRODUCT_FAILURE.",
+  "negative_controls": [],
+  "negative_controls_note": "None inside this charter. The control is the build pair: the same frozen charter and engine are run on the affected and the fixed build. This result is kept separate from the bookmarks session's seed-value control and from every other session.",
+  "dedupe": {
+    "key": "posts.attachments:empty-value-field-titles",
+    "note": "Not equivalent to Cypress at_mention_loading_spec.ts:144 and :169 (field values non-empty; the title is asserted as legacy 'th' markup at :165, the value link at :190). Not MM-T631 (slack_formatting_spec.js:226-268: every field has a value; legacy table selectors at :260-264). Not MM-T629/MM-T630 (slack_formatting_spec.js:154, :190: non-empty fields; asserts a link and an emoticon inside .attachment-field at :183-184, :219-220). Not MM-T633 (enterprise/integrations/incoming_webhook_spec.ts:46: one field with a value; asserts .mm-blocks-text for the attachment text at :74-75). Not Playwright post_height.spec.ts:209-227 (attachment without fields; asserts post height stability at :470-475). Not the unit test translation/index.test.ts:135 at v12.1.0 (translation output only, no UI, not on v12.0.2)."
+  },
+  "constraints": [
+    "No screenshots, video or Playwright traces (explorer-proto/playwright.config.ts).",
+    "Loopback origin only, http://127.0.0.1:<port>, through the exact-origin guard. Service workers blocked.",
+    "Retries 0.",
+    "Zero LLM and zero vision. Decisions come only from live accessibility snapshots, action_rules, goal_terms and checkpoint predicates, scored by the engine's generic heuristic.",
+    "No feature flag changes and no per-spec server config. MmBlocksEnabled is read, never set. Server config is never patched.",
+    "A fresh fixture for every replay. Expected values come only from this charter, never from observed snapshots or the fixture factory's output (ids are bound as variables only).",
+    "The runner reads only this charter. It receives no reference path, no QA notes and no verifier material.",
+    "Never print, log or store passwords, tokens, the license or session cookies. Traces hold no origin, port, slug or ids."
+  ],
+  "known_risks": [
+    "Render after load: the post appears only after the channel's posts are fetched. A snapshot taken too early shows no attachment. Mitigation: settle rules and the NOT_RENDERED classification, which is never a failure.",
+    "Blocks routing: the attachment reaches the Blocks renderer only when FeatureFlagMmBlocksEnabled is 'true' in the client config. With the flag off the legacy renderer is used, which shows these titles on both builds, so the server precondition is a hard SETUP_FAILURE.",
+    "Web-first waiting: the current engine evaluates text_contains once, with a non-waiting DOM count fallback. Without the settle extension a slow render could be recorded as NOT_RENDERED (harmless) or, in a partial render, as RENDERED_TITLES_MISSING (harmful). Translation is synchronous per post, which makes a partial render unlikely, and confirmation replays guard against it.",
+    "Unread suffix: an unseen post renames a sidebar link to '<name> public channel unread' (sidebar_channel_link.tsx:152-153). The view calls come last in the fixture, so neither channel is unread at start. Action candidates are taken from live names, so a renamed link would still be a candidate under its live name.",
+    "Early stop: a runner that stops at the first state where the post renders would see only one surface. no_early_stop forbids it.",
+    "Shallow journey: the post becomes visible after very few actions. The run exercises surface discovery only lightly; see QA-NOTES.md.",
+    "Page-wide matching: until post_scope is implemented, 'present' and 'Control:' are matched page-wide. They are only meaningful together with the attachment title, which is unique to the fixture.",
+    "Post author: the member authors the post through REST, which is unusual for a poll result (usually a bot or plugin). The renderer does not branch on the author for attachments, so the outcome does not depend on it.",
+    "Engine readiness: observation_policy, three-outcome verdicts, settle, post_scope, fixture posts, nested REST matchers and the client-config precondition are proposed extensions. Without them the current engine can only report 'qualifying path found' or 'none found', which cannot tell PRODUCT_FAILURE from INCONCLUSIVE."
+  ]
+}
