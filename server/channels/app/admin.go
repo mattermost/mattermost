@@ -207,14 +207,15 @@ func (a *App) TestSiteURL(rctx request.CTX, siteURL string) *model.AppError {
 	if err != nil {
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	defer func() {
-		_, _ = io.Copy(io.Discard, res.Body)
-		_ = res.Body.Close()
-	}()
 
+	// A non-200 body is closed without draining so a stalled body can't delay the error until the timeout.
 	if res.StatusCode != http.StatusOK {
+		_ = res.Body.Close()
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, fmt.Sprintf("status_code=%d", res.StatusCode), http.StatusBadRequest)
 	}
+
+	_, _ = io.Copy(io.Discard, res.Body)
+	_ = res.Body.Close()
 
 	return nil
 }
