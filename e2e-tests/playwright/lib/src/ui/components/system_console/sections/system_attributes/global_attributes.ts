@@ -251,7 +251,12 @@ export default class GlobalAttributes {
     optionChip(name: string) {
         return this.container
             .getByTestId('attributeOptionsValues__chip')
-            .filter({has: this.container.page().getByTestId('attributeOptionsValues__chipLabel').getByText(name, {exact: true})});
+            .filter({
+                has: this.container
+                    .page()
+                    .getByTestId('attributeOptionsValues__chipLabel')
+                    .getByText(name, {exact: true}),
+            });
     }
 
     /**
