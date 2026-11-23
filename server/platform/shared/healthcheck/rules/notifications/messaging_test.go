@@ -253,6 +253,19 @@ func TestSMTPNotConfigured(t *testing.T) {
 			want: partialWant,
 		},
 		{name: "empty server", snapshot: smtpSnapshot(true, new(""), new("10025")), want: firing},
+		{
+			// A new server: SetDefaults leaves SMTPServer and SMTPPort empty and the Support Packet skips the probe.
+			name: "defaults without SMTP values",
+			snapshot: func() *healthcheck.Snapshot {
+				cfg := &model.Config{}
+				cfg.SetDefaults()
+				s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{leaderWithEmail(model.StatusDisabled, "")})
+				s.Config = &model.SupportPacketConfig{Config: cfg}
+				s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+				return s
+			}(),
+			want: firing,
+		},
 		{name: "server unset", snapshot: smtpSnapshot(true, nil, new("10025")), want: configUnknownWant},
 		{
 			name:     "localhost relay on port 25",
@@ -310,6 +323,12 @@ func TestSMTPNotConfiguredAndUnreachableNeverFireTogether(t *testing.T) {
 			server: "localhost", port: "10025",
 			probe:         leaderWithEmail(model.StatusOk, ""),
 			notConfigured: healthcheck.StateResolved, unreachable: healthcheck.StateResolved,
+		},
+		{
+			name:   "server without a port",
+			server: "smtp.example.com", port: "",
+			probe:         leaderWithEmail(model.StatusFail, "unable to connect: SMTP server is not configured"),
+			notConfigured: healthcheck.StateResolved, unreachable: healthcheck.StateFiring,
 		},
 		{
 			name:   "configured server that fails",

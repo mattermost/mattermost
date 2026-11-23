@@ -36,6 +36,22 @@ func TestNewStoreFromDSN(t *testing.T) {
 	})
 }
 
+func TestNewTestMemoryStoreSMTPDefaults(t *testing.T) {
+	// An environment override would win over both the defaults and Set.
+	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
+	require.NoError(t, os.Unsetenv("MM_EMAILSETTINGS_SMTPSERVER"))
+
+	store := NewTestMemoryStore()
+	require.Equal(t, "localhost", *store.Get().EmailSettings.SMTPServer)
+	require.Equal(t, "10025", *store.Get().EmailSettings.SMTPPort)
+
+	cfg := store.Get().Clone()
+	*cfg.EmailSettings.SMTPPort = "5432"
+	_, _, err := store.Set(cfg)
+	require.NoError(t, err)
+	require.Equal(t, "5432", *store.Get().EmailSettings.SMTPPort, "tests must be able to change the SMTP port")
+}
+
 func TestNewStoreReadOnly(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()

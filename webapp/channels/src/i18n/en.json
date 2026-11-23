@@ -5324,7 +5324,7 @@
     "description": "Setting label (ends with a colon) for the SMTP Server Port field on the SMTP page."
   },
   "admin.environment.smtp.smtpServer.description": {
-    "defaultMessage": "Location of SMTP email server.",
+    "defaultMessage": "Location of SMTP email server. Password reset, invitations and email notifications don't work until it is set.",
     "description": "Help text for the SMTP Server setting on the System Console SMTP page."
   },
   "admin.environment.smtp.smtpServer.placeholder": {

@@ -709,7 +709,12 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
+# Sends email from a fresh development config to Inbucket in the development docker-compose. Custom defaults
+# apply only to settings the config does not set, so they stay editable in the System Console.
+DEV_CUSTOM_DEFAULTS_PATH := $(CURDIR)/build/dev-custom-defaults.json
+
 .PHONY: run-server
+run-server: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 run-server: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server.
 	@echo Running mattermost for development
 ifeq ($(MM_USE_PGVECTOR),true)
@@ -720,6 +725,7 @@ endif
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 .PHONY: run-server-faketime
+run-server-faketime: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 run-server-faketime: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server with FAKETIME.
 ifndef FAKETIME
 	$(error FAKETIME is not set. Usage: make run-server-faketime FAKETIME="+30d")

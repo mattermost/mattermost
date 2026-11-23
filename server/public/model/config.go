@@ -121,8 +121,12 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
+	// Deprecated: SMTPServer no longer has a default. EmailSMTPDefaultServer only identifies the old
+	// default, localhost:10025, still saved in the config of older servers.
 	EmailSMTPDefaultServer = "localhost"
-	EmailSMTPDefaultPort   = "10025"
+	// Deprecated: SMTPPort no longer has a default. EmailSMTPDefaultPort only identifies the old
+	// default, localhost:10025, still saved in the config of older servers.
+	EmailSMTPDefaultPort = "10025"
 
 	CacheTypeLRU   = "lru"
 	CacheTypeRedis = "redis"
@@ -2362,12 +2366,12 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.SMTPPassword = new("")
 	}
 
-	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = new(EmailSMTPDefaultServer)
+	if s.SMTPServer == nil {
+		s.SMTPServer = new("")
 	}
 
-	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = new(EmailSMTPDefaultPort)
+	if s.SMTPPort == nil {
+		s.SMTPPort = new("")
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
@@ -4984,8 +4988,11 @@ func (s *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.ReplyToAddress"}, "", http.StatusBadRequest)
 	}
 
-	if appErr := validatePortString(*s.SMTPPort, false, "EmailSettings.SMTPPort"); appErr != nil {
-		return appErr
+	// An empty port is valid: email is then not configured, and the send path reports it.
+	if *s.SMTPPort != "" {
+		if appErr := validatePortString(*s.SMTPPort, false, "EmailSettings.SMTPPort"); appErr != nil {
+			return appErr
+		}
 	}
 
 	if *s.EmailBatchingBufferSize <= 0 {

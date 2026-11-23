@@ -285,6 +285,11 @@
     "description": "Body text of the test email sent when an admin clicks Test Connection in the System Console SMTP settings."
   },
   {
+    "id": "api.admin.test_email.missing_port",
+    "translation": "SMTP Server Port is required",
+    "description": "API error in the System Console email connection test when the SMTP server port is not configured; admin-facing."
+  },
+  {
     "id": "api.admin.test_email.missing_server",
     "translation": "SMTP Server is required",
     "description": "API error in the System Console email connection test when the SMTP server address is not configured; admin-facing."
@@ -6616,6 +6621,11 @@
     "id": "api.user.send_password_reset.send.app_error",
     "translation": "Failed to send password reset email successfully.",
     "description": "API error when the password reset email fails to send."
+  },
+  {
+    "id": "api.user.send_password_reset.smtp_not_configured.app_error",
+    "translation": "Unable to send the password reset email because email is not configured on this server. Please contact your System Admin.",
+    "description": "Error shown on the password reset page when the server has no SMTP server or port set, so no email can be sent; 'System Admin' is the administrator role name."
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",

@@ -1769,7 +1769,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'EmailSettings.SMTPServer',
                             label: defineMessage({id: 'admin.environment.smtp.smtpServer.title', defaultMessage: 'SMTP Server:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpServer.placeholder', defaultMessage: 'Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'}),
-                            help_text: defineMessage({id: 'admin.environment.smtp.smtpServer.description', defaultMessage: 'Location of SMTP email server.'}),
+                            help_text: defineMessage({id: 'admin.environment.smtp.smtpServer.description', defaultMessage: 'Location of SMTP email server. Password reset, invitations and email notifications don\'t work until it is set.'}),
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),

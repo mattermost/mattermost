@@ -1746,6 +1746,21 @@ func TestNetworkProbesSMTP(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, status)
 		assert.Empty(t, errMsg)
 	})
+
+	t.Run("skips without an SMTP server", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, "", "", true)
+
+		assert.False(t, probed)
+		assert.Equal(t, model.StatusDisabled, status)
+		assert.Empty(t, errMsg)
+	})
+
+	// SMTP_UNREACHABLE reports a server without a port from the failed probe.
+	t.Run("probes a server without a port", func(t *testing.T) {
+		_, _, probed := smtpProbe(t, "smtp.example.com", "", true)
+
+		assert.True(t, probed)
+	})
 }
 
 func TestGetSupportPacketConfig(t *testing.T) {

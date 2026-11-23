@@ -1,0 +1,6 @@
+{
+  "EmailSettings": {
+    "SMTPServer": "localhost",
+    "SMTPPort": "10025"
+  }
+}

@@ -2305,6 +2305,23 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	})
 }
 
+func TestInviteNewUsersToTeamGracefullySMTPNotConfigured(t *testing.T) {
+	// CI points MM_EMAILSETTINGS_SMTPSERVER at a mail server, which would override UpdateConfig.
+	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.EmailSettings.SMTPServer = ""
+	})
+
+	memberInvite := &model.MemberInvite{Emails: []string{"idontexist@mattermost.com"}}
+	res, appErr := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+	require.Len(t, res, 1)
+	require.NotNil(t, res[0].Error)
+	assert.Equal(t, "api.team.invite_members.unable_to_send_email_with_defaults.app_error", res[0].Error.Id)
+}
+
 func TestInviteNewUsersToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

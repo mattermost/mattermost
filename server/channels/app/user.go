@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
@@ -1960,6 +1961,9 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 	}
 
 	result, eErr := a.Srv().EmailService.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL)
+	if errors.Is(eErr, mail.ErrSMTPNotConfigured) {
+		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.smtp_not_configured.app_error", nil, "", http.StatusNotImplemented).Wrap(eErr)
+	}
 	if eErr != nil {
 		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "", http.StatusInternalServerError).Wrap(eErr)
 	}

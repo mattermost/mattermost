@@ -457,12 +457,15 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	})
 
 	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
+	// With no SMTP server there is nothing to probe. The old default localhost:10025 is still probed: the
+	// SMTP_NOT_CONFIGURED health rule needs the result to tell an unused default from a working local relay.
 	mailCfg := supportPacketSMTPConfig(cfg)
-	add(model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
-		model.SafeDereference(cfg.EmailSettings.RequireEmailVerification) ||
-		model.SafeDereference(cfg.ServiceSettings.EnableEmailInvitations) ||
-		model.SafeDereference(cfg.EmailSettings.EnableSignInWithEmail) ||
-		model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername), networkProbe{
+	add(model.SafeDereference(cfg.EmailSettings.SMTPServer) != "" &&
+		(model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
+			model.SafeDereference(cfg.EmailSettings.RequireEmailVerification) ||
+			model.SafeDereference(cfg.ServiceSettings.EnableEmailInvitations) ||
+			model.SafeDereference(cfg.EmailSettings.EnableSignInWithEmail) ||
+			model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername)), networkProbe{
 		name: "smtp", section: model.SectionSMTPProbe, status: &d.Notifications.Email.Status, errMsg: &d.Notifications.Email.Error,
 		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
 	})

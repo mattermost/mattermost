@@ -116,7 +116,8 @@ func evalMaxNotificationsPerChannel(s *healthcheck.Snapshot) healthcheck.Result 
 	}
 }
 
-// smtpInUse mirrors the gate the Support Packet uses before probing SMTP.
+// smtpInUse mirrors the email features the Support Packet checks before probing SMTP. The Support Packet
+// also skips the probe when no SMTP server is set.
 func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
 	for _, get := range []func(*model.Config) *bool{
 		func(cfg *model.Config) *bool { return cfg.EmailSettings.SendEmailNotifications },
