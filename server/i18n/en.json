@@ -6813,61 +6813,6 @@
     "description": "API error when the data inside an email verification token cannot be parsed."
   },
   {
-    "id": "api.view.create.deleted_channel.app_error",
-    "translation": "Cannot create a view in a deleted channel.",
-    "description": "API error when creating a view (a saved filtered perspective of a channel's posts) in a channel that has been archived or deleted."
-  },
-  {
-    "id": "api.view.delete.channel_mismatch.app_error",
-    "translation": "View does not belong to the specified channel.",
-    "description": "API error when the view being deleted does not belong to the channel given in the request; 'view' is a saved filtered perspective of a channel's posts."
-  },
-  {
-    "id": "api.view.delete.deleted_channel.app_error",
-    "translation": "Cannot delete a view in a deleted channel.",
-    "description": "API error when deleting a view (saved channel perspective) in a channel that has been archived or deleted."
-  },
-  {
-    "id": "api.view.get.channel_mismatch.app_error",
-    "translation": "View does not belong to the specified channel.",
-    "description": "API error when the requested view does not belong to the channel given in the request; 'view' is a saved filtered perspective of a channel's posts."
-  },
-  {
-    "id": "api.view.get.deleted_channel.app_error",
-    "translation": "Cannot get a view from a deleted channel.",
-    "description": "API error when fetching a view (saved channel perspective) from a channel that has been archived or deleted."
-  },
-  {
-    "id": "api.view.get_posts.channel_mismatch.app_error",
-    "translation": "View does not belong to the specified channel.",
-    "description": "API error when fetching posts for a view that does not belong to the channel given in the request; 'view' is a saved filtered perspective of a channel's posts."
-  },
-  {
-    "id": "api.view.get_posts.deleted_channel.app_error",
-    "translation": "Cannot get posts for a view from a deleted channel.",
-    "description": "API error when fetching a view's posts from a channel that has been archived or deleted."
-  },
-  {
-    "id": "api.view.list.deleted_channel.app_error",
-    "translation": "Cannot list views for a deleted channel.",
-    "description": "API error when listing views (saved channel perspectives) for a channel that has been archived or deleted."
-  },
-  {
-    "id": "api.view.update.channel_mismatch.app_error",
-    "translation": "View does not belong to the specified channel.",
-    "description": "API error when the view being updated does not belong to the channel given in the request; 'view' is a saved filtered perspective of a channel's posts."
-  },
-  {
-    "id": "api.view.update.deleted_channel.app_error",
-    "translation": "Cannot update a view in a deleted channel.",
-    "description": "API error when updating a view (saved channel perspective) in a channel that has been archived or deleted."
-  },
-  {
-    "id": "api.view.update_sort_order.deleted_channel.app_error",
-    "translation": "Cannot update view sort order in a deleted channel.",
-    "description": "API error when reordering views (saved channel perspectives) in a channel that has been archived or deleted."
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}",
     "description": "WebSocket connection error when the request's origin is rejected by CORS policy; {{.BlockedOrigin}} is the blocked origin URL; developer/admin-facing."
@@ -11107,11 +11052,6 @@
     "description": "API error shown to an admin when the server's license tier does not include post reporting."
   },
   {
-    "id": "app.post.get_posts_for_view.app_error",
-    "translation": "Unable to get the posts for the view.",
-    "description": "API error when loading the posts to display in a channel view fails."
-  },
-  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel.",
     "description": "API error when loading a channel's posts newer than a given time fails."
@@ -13366,96 +13306,6 @@
     "id": "app.valid_password_generic.app_error",
     "translation": "Password is not valid",
     "description": "Generic fallback error when a password fails the server's password requirements and no specific message applies."
-  },
-  {
-    "id": "app.view.count_for_channel.app_error",
-    "translation": "Failed to count views for channel.",
-    "description": "API error when counting a channel's views fails; 'view' is a noun meaning a saved channel view (e.g. Kanban board), not the act of viewing."
-  },
-  {
-    "id": "app.view.create.app_error",
-    "translation": "Unable to create the view.",
-    "description": "API error when saving a new channel view fails; 'view' is a noun (a Kanban-style board view inside a channel)."
-  },
-  {
-    "id": "app.view.create.count.app_error",
-    "translation": "Failed to count views for channel.",
-    "description": "API error when checking the existing view count before creating a channel view; 'views' are Kanban-style board views, not page views."
-  },
-  {
-    "id": "app.view.create.limit.app_error",
-    "translation": "This channel has reached the maximum number of views.",
-    "description": "API error shown when a user tries to create another channel view past the per-channel maximum; 'views' are Kanban-style board views."
-  },
-  {
-    "id": "app.view.create.nil_view.app_error",
-    "translation": "View is required.",
-    "description": "API validation error when the create request has no view payload; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.delete.app_error",
-    "translation": "Unable to delete the view.",
-    "description": "API error when deleting a channel view fails; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.delete.nil_view.app_error",
-    "translation": "View is required.",
-    "description": "API validation error when the delete request has no view payload; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.delete.not_found.app_error",
-    "translation": "View not found.",
-    "description": "API error when the channel view to delete does not exist; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.get.app_error",
-    "translation": "Unable to get the view.",
-    "description": "API error when fetching a channel view fails; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.get.not_found.app_error",
-    "translation": "View not found.",
-    "description": "API error when the requested channel view does not exist; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.get_for_channel.app_error",
-    "translation": "Unable to get views for this channel.",
-    "description": "API error when listing the views of a channel fails; 'views' are Kanban-style board views."
-  },
-  {
-    "id": "app.view.get_for_channel.invalid_input.app_error",
-    "translation": "Invalid input when getting views for channel.",
-    "description": "API error when the request to list a channel's views has invalid parameters; 'views' are Kanban-style board views."
-  },
-  {
-    "id": "app.view.update.app_error",
-    "translation": "Unable to update the view.",
-    "description": "API error when saving changes to a channel view fails; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.update.nil_view.app_error",
-    "translation": "View is required.",
-    "description": "API validation error when the update request has no view payload; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.update.not_found.app_error",
-    "translation": "View not found.",
-    "description": "API error when the channel view to update does not exist; 'view' is a noun (channel board view)."
-  },
-  {
-    "id": "app.view.update_sort_order.app_error",
-    "translation": "Unable to update the view sort order.",
-    "description": "API error when reordering a channel's views fails; 'sort order' is the display position of the views in the channel."
-  },
-  {
-    "id": "app.view.update_sort_order.invalid_input.app_error",
-    "translation": "Invalid input for view sort order update.",
-    "description": "API error when the reorder request for channel views has invalid parameters (e.g. bad index)."
-  },
-  {
-    "id": "app.view.update_sort_order.not_found.app_error",
-    "translation": "View not found.",
-    "description": "API error when the channel view being reordered does not exist; 'view' is a noun (channel board view)."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -20128,86 +19978,6 @@
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode.",
     "description": "Generic low-level error when JSON data cannot be decoded; terse developer-facing message."
-  },
-  {
-    "id": "model.view.is_valid.channel_id.app_error",
-    "translation": "Invalid view channel ID.",
-    "description": "API error when a saved channel view (custom list/kanban layout) references a malformed channel ID; 'view' is a noun (a saved data view)."
-  },
-  {
-    "id": "model.view.is_valid.create_at.app_error",
-    "translation": "Invalid view create time.",
-    "description": "API error when a saved view's creation timestamp is unset; 'view' is a saved data view (noun)."
-  },
-  {
-    "id": "model.view.is_valid.creator_id.app_error",
-    "translation": "Invalid view creator ID.",
-    "description": "API error when a saved view's creator user ID is malformed."
-  },
-  {
-    "id": "model.view.is_valid.description.app_error",
-    "translation": "View description is too long.",
-    "description": "API error when a saved view's description text exceeds the maximum length."
-  },
-  {
-    "id": "model.view.is_valid.id.app_error",
-    "translation": "Invalid view ID.",
-    "description": "API error when a saved view record's ID is malformed; 'view' is a saved data view (noun)."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_column_id.app_error",
-    "translation": "Kanban column has an invalid or missing ID.",
-    "description": "API error when validating a kanban-type view whose column definition lacks a valid ID; 'Kanban' is the board layout style and stays untranslated."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_column_name.app_error",
-    "translation": "Kanban column name must not be empty.",
-    "description": "API error when a kanban view's column is defined with an empty name; the name is the column's heading on the board."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_column_options.app_error",
-    "translation": "Kanban column must have at least one option ID.",
-    "description": "API error when a kanban view's column maps to no property option IDs; 'option ID' refers to the select-field option each column groups by."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
-    "translation": "Kanban view must have at least one column.",
-    "description": "API error when a kanban view is saved with no columns defined."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
-    "translation": "Kanban view exceeds the maximum number of columns.",
-    "description": "API error when a kanban view defines more columns than the allowed maximum."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_field_id.app_error",
-    "translation": "Kanban view must reference a valid property field ID.",
-    "description": "API error when a kanban view's group-by configuration does not reference a valid property field ID."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_invalid.app_error",
-    "translation": "Kanban view has invalid props structure.",
-    "description": "API error when a kanban view's props JSON does not match the expected structure; 'props' is a technical field name."
-  },
-  {
-    "id": "model.view.is_valid.props.kanban_required.app_error",
-    "translation": "Kanban view requires props with a group_by configuration.",
-    "description": "API error when a kanban view is missing the required group-by configuration; 'group_by' is a literal configuration key."
-  },
-  {
-    "id": "model.view.is_valid.title.app_error",
-    "translation": "View title is required and must be less than 256 characters.",
-    "description": "API error when a saved view's title is empty or exceeds the length limit; the title is the view's display name."
-  },
-  {
-    "id": "model.view.is_valid.type.app_error",
-    "translation": "Invalid view type.",
-    "description": "API error when a saved view's type is not one of the supported layouts (e.g. list, kanban)."
-  },
-  {
-    "id": "model.view.is_valid.update_at.app_error",
-    "translation": "Invalid view update time.",
-    "description": "API error when a saved view's last-update timestamp is unset."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",

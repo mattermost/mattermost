@@ -79,7 +79,6 @@ type Store struct {
 	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
-	ViewStore                       mocks.ViewStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
 	HealthFindingStore              mocks.HealthFindingStore
 }
@@ -203,9 +202,6 @@ func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 func (s *Store) HealthFinding() store.HealthFindingStore {
 	return &s.HealthFindingStore
 }
-func (s *Store) View() store.ViewStore {
-	return &s.ViewStore
-}
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
@@ -269,7 +265,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ScheduledRecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
-		&s.ViewStore,
 		&s.ChannelJoinRequestStore,
 		&s.HealthFindingStore,
 	)

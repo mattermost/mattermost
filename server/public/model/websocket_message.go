@@ -111,10 +111,6 @@ const (
 
 	WebsocketEventBoardCreated WebsocketEventType = "board_created"
 
-	WebsocketEventViewCreated                WebsocketEventType = "view_created"
-	WebsocketEventViewUpdated                WebsocketEventType = "view_updated"
-	WebsocketEventViewDeleted                WebsocketEventType = "view_deleted"
-	WebsocketEventViewSorted                 WebsocketEventType = "view_sorted"
 	WebsocketEventPropertyFieldCreated       WebsocketEventType = "property_field_created"
 	WebsocketEventPropertyFieldUpdated       WebsocketEventType = "property_field_updated"
 	WebsocketEventPropertyFieldDeleted       WebsocketEventType = "property_field_deleted"

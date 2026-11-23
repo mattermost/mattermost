@@ -235,9 +235,6 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore.On("GetFieldByName", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
 	propertyFieldStore.On("GetFieldByNameForObjectType", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
 
-	viewStore := mocks.ViewStore{}
-	mockStore.On("View").Return(&viewStore)
-
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)

@@ -143,7 +143,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateUserAsAdmin
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateUserFromSignup
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateUserWithInviteId
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateUserWithToken
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateView
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateWebhookPost
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeactivateGuests
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeactivateMagicLinkGuests
@@ -193,7 +192,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeleteScheduledRe
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeleteScheme
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeleteSidebarCategory
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeleteToken
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).DeleteView
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DemoteUserToGuest
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DetachPlugin
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).DisableAutoResponder
@@ -424,7 +422,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsByIds
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsByIdsForUser
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsForChannelAroundLastUnread
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsForReporting
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsForView
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsPage
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPostsSince
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetPreferenceByCategoryAndNameForUser
@@ -566,10 +563,7 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetUsersWithInval
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetUsersWithoutTeam
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetUsersWithoutTeamPage
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetVerifyEmailToken
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetView
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetViewUsersRestrictions
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetViewsCountForChannel
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetViewsForChannel
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetVisibleManagedCategoryMappings
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).HandleCommandResponse
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).HandleCommandResponsePost
@@ -891,8 +885,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateUserAsUser
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateUserAuth
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateUserRoles
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateUserRolesWithUser
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateView
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateViewSortOrder
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).UpdateViewedProductNotices
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).UploadData
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).UploadFile
@@ -1264,7 +1256,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.PostHardenedModeCheckWit
 github.com/mattermost/mattermost/server/v8/channels/app.PostPriorityCheckWithApp
 github.com/mattermost/mattermost/server/v8/channels/app.UploadFileTask.newAppError
 github.com/mattermost/mattermost/server/v8/channels/app.appErrHookFailed
-github.com/mattermost/mattermost/server/v8/channels/app.buildBoardKanbanView
 github.com/mattermost/mattermost/server/v8/channels/app.connectionTestErrorToAppError
 github.com/mattermost/mattermost/server/v8/channels/app.distributeWebhookJSONArrayProp
 github.com/mattermost/mattermost/server/v8/channels/app.extractPlugin
