@@ -2007,7 +2007,8 @@ func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyF
 	}
 	// The plugin gets its own view of the field, as a read would give it, so
 	// a masked plugin is not shown the options the update was applied over.
-	callerView, appErr := api.app.GetPropertyField(rctx, groupID, updatedField.ID)
+	// The read is pinned to the primary: a replica may not have the update yet.
+	callerView, appErr := api.app.GetPropertyField(RequestContextWithMaster(rctx), groupID, updatedField.ID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2195,7 +2196,7 @@ func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.Prope
 	for i, field := range updatedFields {
 		ids[i] = field.ID
 	}
-	callerViews, appErr := api.app.GetPropertyFields(rctx, groupID, ids)
+	callerViews, appErr := api.app.GetPropertyFields(RequestContextWithMaster(rctx), groupID, ids)
 	if appErr != nil {
 		return nil, appErr
 	}

@@ -4,13 +4,61 @@
 package app
 
 import (
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
+
+// staleNameFieldStore simulates a read replica that has not yet received an
+// update: while lagging is set, a field read not pinned to the primary database
+// returns the field with a stale name.
+type staleNameFieldStore struct {
+	store.PropertyFieldStore
+	lagging *atomic.Bool
+}
+
+func (s *staleNameFieldStore) stale(rctx request.CTX, field *model.PropertyField) *model.PropertyField {
+	if !s.lagging.Load() || sqlstore.HasMaster(rctx.Context()) {
+		return field
+	}
+	c := *field
+	c.Name = "stale_" + field.Name
+	return &c
+}
+
+func (s *staleNameFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	field, err := s.PropertyFieldStore.Get(rctx, groupID, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.stale(rctx, field), nil
+}
+
+func (s *staleNameFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	fields, err := s.PropertyFieldStore.GetMany(rctx, groupID, ids)
+	if err != nil {
+		return nil, err
+	}
+	for i, field := range fields {
+		fields[i] = s.stale(rctx, field)
+	}
+	return fields, nil
+}
+
+type staleNameStore struct {
+	store.Store
+	fields *staleNameFieldStore
+}
+
+func (s *staleNameStore) PropertyField() store.PropertyFieldStore {
+	return s.fields
+}
 
 // cleanupCPAFields deletes all existing CPA fields to ensure a clean state
 func cleanupCPAFields(t *testing.T, th *TestHelper) {
@@ -1591,7 +1639,10 @@ func TestPluginProperties(t *testing.T) {
 // field. It is not a subtest of TestPluginProperties: run after that test's
 // earlier subtests, the plugin's grants stop matching and its updates are refused.
 func TestPluginAPIUpdatePropertyFieldReturnsCallerView(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	dbStore, sqlStore, dbSettings, searchEngine := setupStores(t)
+	var lagging atomic.Bool
+	wrapped := &staleNameStore{Store: dbStore, fields: &staleNameFieldStore{PropertyFieldStore: dbStore.PropertyField(), lagging: &lagging}}
+	th := setupTestHelper(wrapped, sqlStore, dbSettings, searchEngine, false, true, nil, nil, t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
 
@@ -1681,6 +1732,32 @@ func TestPluginAPIUpdatePropertyFieldReturnsCallerView(t *testing.T) {
 		after, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, stored.ID)
 		require.NoError(t, storeErr)
 		require.ElementsMatch(t, []string{"Alpha", "Beta"}, optionNames(after))
+	})
+
+	t.Run("UpdatePropertyField reads the update back from the primary database", func(t *testing.T) {
+		lagging.Store(true)
+		t.Cleanup(func() { lagging.Store(false) })
+
+		update := renamed(newMaskedField())
+		updated, err := api.UpdatePropertyField(group.ID, update)
+		require.NoError(t, err)
+		require.Equal(t, update.Name, updated.Name, "the return value must show the update, not the replica's copy")
+		require.Empty(t, optionNames(updated))
+	})
+
+	t.Run("UpdatePropertyFields reads the update back from the primary database", func(t *testing.T) {
+		lagging.Store(true)
+		t.Cleanup(func() { lagging.Store(false) })
+
+		first, second := newMaskedField(), newMaskedField()
+		updates := []*model.PropertyField{renamed(first), renamed(second)}
+		batch, err := api.UpdatePropertyFields(group.ID, updates)
+		require.NoError(t, err)
+		require.Len(t, batch, 2)
+		for i, field := range batch {
+			require.Equal(t, updates[i].Name, field.Name, "the return value must show the update, not the replica's copy")
+			require.Empty(t, optionNames(field))
+		}
 	})
 
 	t.Run("UpdatePropertyFields", func(t *testing.T) {

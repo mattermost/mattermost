@@ -847,8 +847,9 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// updatedField is the stored field. What the caller gets back is their own
 	// view of it, as a read would give them, so a masked caller is not shown
-	// the options the update was applied over.
-	callerView, appErr := c.App.GetPropertyField(rctx, group.ID, updatedField.ID)
+	// the options the update was applied over. Read from the primary: a replica
+	// may not have the update yet.
+	callerView, appErr := c.App.GetPropertyField(rctx.With(app.RequestContextWithMaster), group.ID, updatedField.ID)
 	if appErr != nil {
 		c.Err = appErr
 		return

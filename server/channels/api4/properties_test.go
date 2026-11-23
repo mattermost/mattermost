@@ -10,6 +10,7 @@ import (
 	"maps"
 	"net/http"
 	"reflect"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -17,7 +18,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 func TestSessionAttributesFieldEditing(t *testing.T) {
@@ -4486,6 +4490,98 @@ func TestPatchMaskedFieldAuditPriorState(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		requirePriorOptionNames(t, model.AuditEventPatchCPAField, "Alpha", "Beta")
+	})
+}
+
+// replicaLagFieldStore simulates a read replica that has not yet received an
+// update: while lagging is set, a field read not pinned to the primary database
+// returns the field with a stale name.
+type replicaLagFieldStore struct {
+	store.PropertyFieldStore
+	lagging *atomic.Bool
+}
+
+func (s *replicaLagFieldStore) stale(rctx request.CTX, field *model.PropertyField) *model.PropertyField {
+	if !s.lagging.Load() || sqlstore.HasMaster(rctx.Context()) {
+		return field
+	}
+	c := *field
+	c.Name = "stale_" + field.Name
+	return &c
+}
+
+func (s *replicaLagFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	field, err := s.PropertyFieldStore.Get(rctx, groupID, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.stale(rctx, field), nil
+}
+
+func (s *replicaLagFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	fields, err := s.PropertyFieldStore.GetMany(rctx, groupID, ids)
+	if err != nil {
+		return nil, err
+	}
+	for i, field := range fields {
+		fields[i] = s.stale(rctx, field)
+	}
+	return fields, nil
+}
+
+type replicaLagPropertyStore struct {
+	store.Store
+	fields *replicaLagFieldStore
+}
+
+func (s *replicaLagPropertyStore) PropertyField() store.PropertyFieldStore {
+	return s.fields
+}
+
+// TestMaskedPatchResponseReadsFromPrimary checks that the response to a field
+// PATCH reflects the update just written even when a replica has not received it
+// yet, and is still the caller's masked view.
+func TestMaskedPatchResponseReadsFromPrimary(t *testing.T) {
+	dbStore, dbSettings, searchEngine := setupStores(t)
+	var lagging atomic.Bool
+	wrapped := &replicaLagPropertyStore{Store: dbStore, fields: &replicaLagFieldStore{PropertyFieldStore: dbStore.PropertyField(), lagging: &lagging}}
+	th := setupTestHelper(t, wrapped, dbSettings, searchEngine, false, true, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldRank = true
+	}, nil)
+	th.InitLogin(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	requireRenameServedFromPrimary := func(t *testing.T, patch patchMaskedFieldFn, groupID string, newName func() string) {
+		t.Helper()
+		field, alphaID := createMaskedSelectField(t, th, groupID, newName())
+
+		lagging.Store(true)
+		t.Cleanup(func() { lagging.Store(false) })
+
+		renamed := newName()
+		patched, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &renamed})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, renamed, patched.Name, "the response must show the update, not the replica's copy")
+		require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
+		require.Equal(t, alphaID, patched.Attrs[model.PropertyFieldAttributeOptions].([]any)[0].(map[string]any)["id"])
+	}
+
+	t.Run("generic endpoint", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_masked_primary", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		requireRenameServedFromPrimary(t, func(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+			return th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, fieldID, patch)
+		}, group.ID, model.NewId)
+	})
+
+	t.Run("custom profile attribute endpoint", func(t *testing.T) {
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		requireRenameServedFromPrimary(t, func(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+			return th.SystemAdminClient.PatchCPAField(context.Background(), fieldID, patch)
+		}, group.ID, celSafeName)
 	})
 }
 
