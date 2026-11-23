@@ -397,7 +397,7 @@ func importMarkerCleanupKey(runMarker string) string {
 
 // importMarkerCleanupPending reports whether an earlier attempt at this import
 // completed its import work but didn't finish removing its markers.
-func (a *App) importMarkerCleanupPending(rctx request.CTX, runMarker string) (bool, *model.AppError) {
+func (a *App) importMarkerCleanupPending(rctx request.CTX, runMarker string) (bool, error) {
 	if a.ch.importMarkerFieldID == "" {
 		return false, nil
 	}
@@ -416,7 +416,7 @@ func (a *App) importMarkerCleanupPending(rctx request.CTX, runMarker string) (bo
 // written first so that, if removal fails, a retry only finishes the removal
 // instead of setting the accounts up again. Without that row, removing the
 // markers is the only way to record that the import completed.
-func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) *model.AppError {
+func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) error {
 	if a.ch.importMarkerFieldID == "" {
 		return nil
 	}

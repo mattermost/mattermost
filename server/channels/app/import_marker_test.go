@@ -58,8 +58,8 @@ func markerTestArchive(user imports.UserImportData) identityTestArchive {
 func cleanupPending(t *testing.T, th *TestHelper, runMarker string) bool {
 	t.Helper()
 	require.NotEmpty(t, runMarker)
-	pending, appErr := th.App.importMarkerCleanupPending(th.Context, runMarker)
-	require.Nil(t, appErr)
+	pending, err := th.App.importMarkerCleanupPending(th.Context, runMarker)
+	require.NoError(t, err)
 	return pending
 }
 

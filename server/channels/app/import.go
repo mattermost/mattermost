@@ -257,21 +257,21 @@ func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader,
 		sum := sha256.Sum256([]byte(opts.RunID))
 		report.RunMarker = hex.EncodeToString(sum[:])
 
-		pending, appErr := a.importMarkerCleanupPending(rctx, report.RunMarker)
-		if appErr != nil {
-			return 0, report, appErr
+		pending, err := a.importMarkerCleanupPending(rctx, report.RunMarker)
+		if err != nil {
+			return 0, report, model.AsAppError(err)
 		}
 		if pending {
 			// The accounts were fully set up by the earlier attempt; importing
 			// again would overwrite whatever changed on them since.
 			rctx.Logger().Info("An earlier attempt at this import completed but didn't remove its markers; removing them without importing again")
-			return 0, report, a.finishImportMarkers(rctx, report.RunMarker)
+			return 0, report, model.AsAppError(a.finishImportMarkers(rctx, report.RunMarker))
 		}
 	}
 
 	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ImportedUsers, opts.ResumeFromLine, opts.OnCheckpoint, report)
 	if err == nil && report.RunMarker != "" {
-		err = a.finishImportMarkers(rctx, report.RunMarker)
+		err = model.AsAppError(a.finishImportMarkers(rctx, report.RunMarker))
 	}
 	return lineNumber, report, err
 }
