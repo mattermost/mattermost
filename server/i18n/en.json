@@ -10747,6 +10747,21 @@
     "description": "API error when enabling or disabling attribute-based access control policies fails; admin-facing."
   },
   {
+    "id": "app.passkey.delete.app_error",
+    "translation": "Unable to delete the passkey.",
+    "description": "API error when deleting a user's passkey from the database fails."
+  },
+  {
+    "id": "app.passkey.get.app_error",
+    "translation": "Unable to load your passkeys.",
+    "description": "API error when listing a user's passkeys from the database fails."
+  },
+  {
+    "id": "app.passkey.not_found.app_error",
+    "translation": "Passkey not found.",
+    "description": "API error when deleting a passkey that does not exist or belongs to another user; the same error is returned for both so callers learn nothing about other users' passkeys."
+  },
+  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed to evaluate access control policy.",
     "description": "Error when the server fails to evaluate an attribute-based access control policy while deciding whether a user may access a resource."
