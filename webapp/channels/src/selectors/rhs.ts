@@ -28,6 +28,10 @@ export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
 }
 
+export function getPreviousSelectedPostId(state: GlobalState): Post['id'] {
+    return state.views.rhs.previousSelectedPostId;
+}
+
 export function getRhsSize(state: GlobalState): SidebarSize {
     return state.views.rhs.size;
 }

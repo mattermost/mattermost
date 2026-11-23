@@ -64,6 +64,21 @@ func appendHumanStringsFromMmBlockMap(m map[string]any, out []string) []string {
 		if s, ok := m["text"].(string); ok {
 			out = appendNonWhitespaceOnlyMessage(out, s)
 		}
+	case "fields":
+		if fields, ok := m["fields"].([]any); ok {
+			for _, field := range fields {
+				fm, ok := field.(map[string]any)
+				if !ok {
+					continue
+				}
+				if s, ok := fm["label"].(string); ok {
+					out = appendNonWhitespaceOnlyMessage(out, s)
+				}
+				if s, ok := fm["value"].(string); ok {
+					out = appendNonWhitespaceOnlyMessage(out, s)
+				}
+			}
+		}
 	case "container":
 		out = appendHumanStringsFromMmBlocksArray(m["content"], out)
 	case "collapsible":

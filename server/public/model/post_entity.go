@@ -19,6 +19,9 @@ type PostEntity struct {
 	// HasCard is true when a provider can open a side panel for this span.
 	// It is filled when the post is read, from the registrations active then.
 	HasCard bool `json:"has_card,omitempty"`
+	// Badge is optional leading chrome (icon or short text). A per-value badge
+	// from EntityBadges wins over the type's static badge stamped in Present.
+	Badge *EntityBadge `json:"badge,omitempty"`
 }
 
 // EntityPatternCache is the pattern detection for one message hash.

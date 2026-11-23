@@ -277,8 +277,8 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	}
 	card.TypeID = typeID
 	card.Value = value
-	qualifyEntityCardLinks(remote.Provider.Owner, card)
 	model.NormalizeEntityCard(card)
+	qualifyEntityCardLinks(remote.Provider.Owner, card)
 	if cacheable && cardCache != nil {
 		if err := cardCache.SetWithExpiry(key, card, remote.CacheTTL); err != nil {
 			rctx.Logger().Warn("Failed to cache entity card", mlog.String("type_id", typeID), mlog.Err(err))
@@ -313,6 +313,24 @@ func qualifyEntityCardLinks(owner string, card *model.EntityCard) {
 			card.Related[i].Label = term.Title
 		}
 	}
+	for i := range card.Rows {
+		if card.Rows[i].TypeID == "" {
+			continue
+		}
+		ref, ok := entities.ResolveRef(owner, card.Rows[i].TypeID)
+		if !ok {
+			card.Rows[i].TypeID = ""
+			continue
+		}
+		card.Rows[i].TypeID = ref.String()
+	}
+	card.Blocks = model.WalkEntityCardBlocks(card.Blocks, func(typeID string) string {
+		ref, ok := entities.ResolveRef(owner, typeID)
+		if !ok {
+			return ""
+		}
+		return ref.String()
+	})
 }
 
 func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) error {

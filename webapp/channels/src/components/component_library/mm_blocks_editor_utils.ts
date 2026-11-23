@@ -34,7 +34,8 @@ export type BlockTypeId =
     'column' |
     'column_set' |
     'container' |
-    'collapsible';
+    'collapsible' |
+    'fields';
 
 export type PropertyFieldType = 'string' | 'number' | 'boolean' | 'enum' | 'json';
 
@@ -55,6 +56,7 @@ export const ROOT_ADDABLE_TYPES: BlockTypeId[] = [
     'container',
     'column_set',
     'collapsible',
+    'fields',
 ];
 
 export const COLUMN_SET_ADDABLE_TYPES: BlockTypeId[] = ['column'];
@@ -69,6 +71,7 @@ const BLOCK_TYPE_LABELS: Record<BlockTypeId, string> = {
     column_set: 'Column set',
     container: 'Container',
     collapsible: 'Collapsible',
+    fields: 'Fields',
 };
 
 export function blockTypeLabel(type: BlockTypeId): string {
@@ -128,6 +131,15 @@ export function createDefaultBlock(type: BlockTypeId): MmBlock {
             type: 'collapsible',
             header: [{type: 'text', text: 'Header'}],
             content: [{type: 'text', text: 'Collapsed content'}],
+        };
+    case 'fields':
+        return {
+            type: 'fields',
+            fields: [
+                {label: 'Label', value: 'Value'},
+                {label: 'Short A', value: 'A', short: true},
+                {label: 'Short B', value: 'B', short: true},
+            ],
         };
     default:
         return {type: 'text', text: 'New text'};
@@ -455,6 +467,8 @@ export function blockSummary(block: MmBlock | MmColumnBlock): string {
         return 'Collapsible section';
     case 'divider':
         return 'Horizontal rule';
+    case 'fields':
+        return `${block.fields.length} field${block.fields.length === 1 ? '' : 's'}`;
     default:
         return 'Unknown block';
     }
@@ -530,6 +544,10 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
     case 'column_set':
         return [
             {key: 'gap', label: 'gap', type: 'enum', options: CONTAINER_GAP_OPTIONS},
+        ];
+    case 'fields':
+        return [
+            {key: 'fields', label: 'fields', type: 'json', placeholder: '[{label, value, short?, url?, type_id?, tone?}]'},
         ];
     default:
         return [];

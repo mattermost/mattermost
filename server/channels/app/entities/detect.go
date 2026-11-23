@@ -38,6 +38,7 @@ type matcher struct {
 	scope        []string
 	skipBots     bool
 	displayName  string
+	dynamicBadge bool
 }
 
 var (
@@ -67,6 +68,7 @@ type hit struct {
 	displayName string
 	title       string
 	scoped      bool
+	badge       *model.EntityBadge
 }
 
 // Detect finds pattern entities in message. Dictionary terms are not included;
@@ -160,6 +162,7 @@ func hitsToEntities(scanned string, hits []hit) []*model.PostEntity {
 			URL:         h.url,
 			DisplayName: h.displayName,
 			Title:       h.title,
+			Badge:       cloneBadge(h.badge),
 		})
 	}
 	return entities
@@ -185,9 +188,18 @@ func patternHits(scanned string, patterns []*model.PostEntity) []hit {
 			url:         entity.URL,
 			displayName: entity.DisplayName,
 			title:       entity.Title,
+			badge:       cloneBadge(entity.Badge),
 		})
 	}
 	return hits
+}
+
+func cloneBadge(badge *model.EntityBadge) *model.EntityBadge {
+	if badge == nil {
+		return nil
+	}
+	cp := *badge
+	return &cp
 }
 
 func mergeTermHits(patterns, terms []hit) []hit {

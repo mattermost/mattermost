@@ -20,6 +20,7 @@ import {makeIsEligibleForClick} from 'utils/utils';
 import {ButtonElement} from './button_element';
 import {MmBlocksChildLayoutContext} from './context';
 import {DividerBlock} from './divider_block';
+import {FieldsBlock} from './fields_block';
 import {ImageBlock} from './image_block';
 import {StaticSelectElement} from './static_select_element';
 import {TextBlock} from './text_block';
@@ -88,6 +89,8 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
                 onAction={onAction}
             />
         );
+    case 'fields':
+        return <FieldsBlock block={block}/>;
     default:
         return null;
     }

@@ -91,6 +91,12 @@ export type PostMetadata = {
     entities?: PostEntity[];
 };
 
+export type EntityBadge = {
+    text?: string;
+    icon?: string;
+    color?: 'none' | 'low' | 'medium' | 'high' | 'critical';
+};
+
 export type PostEntity = {
     id: string;
     start: number;
@@ -102,6 +108,7 @@ export type PostEntity = {
     display_name?: string;
     title?: string;
     has_card?: boolean;
+    badge?: EntityBadge;
 };
 
 export type EntityCard = {
@@ -112,9 +119,9 @@ export type EntityCard = {
     score?: string;
     severity?: string;
     exploited?: boolean;
-    rows?: Array<{label: string; value: string}>;
+    rows?: Array<{label: string; value: string; type_id?: string; short?: boolean}>;
     vector?: Array<{metric: string; value: string; severe?: boolean}>;
-    related?: Array<{label: string; text?: string; url?: string; type_id?: string}>;
+    related?: Array<{label: string; text?: string; value?: string; url?: string; type_id?: string}>;
     sections?: Array<{title: string; count: number; url?: string; items?: Array<{head?: string; text?: string; url?: string}>}>;
 
     /** Mattermost Blocks body. When set, preferred over summary/rows/vector/sections. */

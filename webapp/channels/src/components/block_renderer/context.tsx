@@ -21,3 +21,14 @@ export const MmBlocksImagesMetadataContext = createContext<Record<string, PostIm
 
 /** How the *immediate* mm_blocks parent lays out direct children (`column` = vertical stack, `row` = horizontal flow). */
 export const MmBlocksChildLayoutContext = createContext<'column' | 'row'>('column');
+
+/** Open an entity from a fields block `type_id` (entity cards); unset in posts. */
+export type MmBlocksFieldOpenTarget = {
+    typeId: string;
+    value: string;
+    label: string;
+};
+
+export type MmBlocksFieldOpenHandler = (target: MmBlocksFieldOpenTarget) => void;
+
+export const MmBlocksFieldOpenContext = createContext<MmBlocksFieldOpenHandler | undefined>(undefined);

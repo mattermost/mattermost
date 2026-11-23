@@ -149,4 +149,25 @@ describe('translateMMBlocks interactive blocks', () => {
             ],
         }]);
     });
+
+    it('should accept fields blocks and drop empty or invalid entries', () => {
+        expect(translateMMBlocks([
+            {
+                type: 'fields',
+                fields: [
+                    {label: 'State', value: 'PUBLISHED'},
+                    {label: '', value: ''},
+                    {label: 'CVSS', value: 'CVSS:3.1/AV:N', type_id: 'plugin:cvss', short: true, tone: 'danger'},
+                    {label: 'Bad', value: 'x', tone: 'purple'},
+                ],
+            },
+            {type: 'fields', fields: []},
+        ])).toEqual([{
+            type: 'fields',
+            fields: [
+                {label: 'State', value: 'PUBLISHED'},
+                {label: 'CVSS', value: 'CVSS:3.1/AV:N', type_id: 'plugin:cvss', short: true, tone: 'danger'},
+            ],
+        }]);
+    });
 });

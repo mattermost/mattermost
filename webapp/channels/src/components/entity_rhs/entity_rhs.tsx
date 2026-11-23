@@ -5,12 +5,16 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {ArrowBackIosIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {EntityCard} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {closeRightHandSide} from 'actions/views/rhs';
-import {getSelectedEntity} from 'selectors/rhs';
+import {closeEntity} from 'actions/views/rhs';
+import {getPreviousRhsState, getPreviousSelectedPostId, getSelectedEntity} from 'selectors/rhs';
 
 import {entityLabel} from 'components/entity_mention/labels';
 import ExternalLink from 'components/external_link';
@@ -51,6 +55,8 @@ export default function EntityRhs() {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const entity = useSelector(getSelectedEntity);
+    const previousSelectedPostId = useSelector(getPreviousSelectedPostId);
+    const previousRhsState = useSelector(getPreviousRhsState);
     const [card, setCard] = useState<EntityCard | null | undefined>();
     const [deeper, setDeeper] = useState<EntityFrame[]>([]);
     const [reloadKey, setReloadKey] = useState(0);
@@ -116,6 +122,20 @@ export default function EntityRhs() {
         setDeeper((stack) => [...stack, target]);
     };
 
+    const canGoBack = trail.length > 0 || Boolean(previousSelectedPostId) || Boolean(previousRhsState);
+
+    const handleBack = () => {
+        if (trail.length > 0) {
+            setDeeper((stack) => stack.slice(0, -1));
+            return;
+        }
+        dispatch(closeEntity());
+    };
+
+    const handleClose = () => {
+        dispatch(closeEntity());
+    };
+
     const entityURL = trail.length === 0 && entity.url && isAllowedEntityURL(entity.url) ? entity.url : undefined;
     const url = (card?.url && isAllowedEntityURL(card.url) ? card.url : undefined) || entityURL;
 
@@ -126,13 +146,16 @@ export default function EntityRhs() {
         >
             <div className='sidebar--right__header'>
                 <span className='sidebar--right__title'>
-                    {trail.length > 0 && (
-                        <button
-                            type='button'
-                            aria-label={formatMessage({id: 'entity_rhs.back', defaultMessage: 'Back'})}
-                            onClick={() => setDeeper((stack) => stack.slice(0, -1))}
-                            style={{background: 'none', border: 'none', padding: '0 8px 0 0', font: 'inherit', color: 'inherit', cursor: 'pointer'}}
-                        >{'‹'}</button>
+                    {canGoBack && (
+                        <WithTooltip title={formatMessage({id: 'entity_rhs.back', defaultMessage: 'Back'})}>
+                            <IconButton
+                                size='small'
+                                className='sidebar--right__back'
+                                icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
+                                onClick={handleBack}
+                                aria-label={formatMessage({id: 'entity_rhs.back', defaultMessage: 'Back'})}
+                            />
+                        </WithTooltip>
                     )}
                     <h2 id='rhsPanelTitle'>{frame?.label || entityLabel(frame?.typeId || entity.typeId, formatMessage)}</h2>
                 </span>
@@ -141,7 +164,7 @@ export default function EntityRhs() {
                     type='button'
                     className='sidebar--right__close btn btn-icon btn-sm'
                     aria-label={formatMessage({id: 'entity_rhs.close', defaultMessage: 'Close'})}
-                    onClick={() => dispatch(closeRightHandSide())}
+                    onClick={handleClose}
                 >
                     <i className='icon icon-close'/>
                 </button>

@@ -498,4 +498,91 @@ $mm-blocks-container-max-heights: (
             }
         }
     }
+
+    .mm-blocks-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .mm-blocks-fields__row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+
+        &--pair {
+            flex-direction: row;
+            gap: 16px;
+
+            > .mm-blocks-field {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+        }
+    }
+
+    .mm-blocks-field {
+        min-width: 0;
+    }
+
+    .mm-blocks-field__label {
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 16px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: $mm-blocks-text-muted;
+        margin-bottom: 2px;
+        overflow-wrap: anywhere;
+    }
+
+    .mm-blocks-field__value {
+        font-size: 13px;
+        line-height: 18px;
+        overflow-wrap: anywhere;
+
+        &--hop {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            color: var(--link-color);
+            cursor: pointer;
+            text-align: left;
+        }
+
+        &--tone-good,
+        &--tone-warning,
+        &--tone-danger,
+        &--tone-critical {
+            display: inline-block;
+            padding: 0 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            line-height: 18px;
+        }
+
+        &--tone-good {
+            background: rgba(var(--semantic-color-success-rgb, 61, 140, 80), 0.16);
+            color: rgb(var(--semantic-color-success));
+        }
+
+        &--tone-warning {
+            background: rgba(var(--semantic-color-warning-rgb, 249, 160, 9), 0.2);
+            color: rgb(var(--semantic-color-warning));
+        }
+
+        &--tone-danger {
+            background: rgba(var(--semantic-color-danger-rgb, 210, 75, 78), 0.16);
+            color: rgb(var(--semantic-color-danger));
+        }
+
+        &--tone-critical {
+            background: #cc0500;
+            color: #ffffff;
+        }
+    }
 }

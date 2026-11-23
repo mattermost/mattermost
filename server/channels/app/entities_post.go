@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/singleflight"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
@@ -212,6 +213,7 @@ func patternCacheKey(postID, hash string) string {
 
 func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generation string) []*model.PostEntity {
 	found, protected := a.scanPostPatterns(post, hash, generation)
+	a.applyEntityBadges(rctx, found)
 	merged := entities.ApplyTerms(post.Message, protected, found)
 	a.enqueuePatternWrite(rctx, patternCacheKey(post.Id, hash), model.EntityPatternCache{
 		Generation: generation,
@@ -219,6 +221,49 @@ func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generati
 		Patterns:   clonePostEntities(found),
 	})
 	return merged
+}
+
+const entityBadgeBudget = 50 * time.Millisecond
+const maxEntityBadgeItems = 100
+
+func (a *App) applyEntityBadges(rctx request.CTX, list []*model.PostEntity) {
+	byOwner := entities.DynamicBadgeHits(list)
+	if len(byOwner) == 0 {
+		return
+	}
+	env := a.GetPluginsEnvironment()
+	if env == nil {
+		return
+	}
+	for owner, items := range byOwner {
+		if len(items) > maxEntityBadgeItems {
+			items = items[:maxEntityBadgeItems]
+		}
+		hooks, err := env.HooksForPlugin(owner)
+		if err != nil {
+			continue
+		}
+		type badgeResult struct {
+			badges []*model.EntityBadge
+			err    error
+		}
+		done := make(chan badgeResult, 1)
+		go func(owner string, items []model.EntityBadgeItem) {
+			badges, lookupErr := hooks.EntityBadges(&plugin.Context{}, &model.EntityBadgeRequest{Items: items})
+			done <- badgeResult{badges: badges, err: lookupErr}
+		}(owner, items)
+		select {
+		case <-rctx.Context().Done():
+			return
+		case <-time.After(entityBadgeBudget):
+			continue
+		case result := <-done:
+			if result.err != nil {
+				continue
+			}
+			entities.ApplyBadges(list, owner, items, result.badges)
+		}
+	}
 }
 
 func (a *App) scanPostPatterns(post *model.Post, hash, generation string) ([]*model.PostEntity, [][2]int) {
@@ -304,6 +349,10 @@ func clonePostEntities(list []*model.PostEntity) []*model.PostEntity {
 		cp := *entity
 		if entity.TypeIDs != nil {
 			cp.TypeIDs = append([]string(nil), entity.TypeIDs...)
+		}
+		if entity.Badge != nil {
+			badge := *entity.Badge
+			cp.Badge = &badge
 		}
 		out[i] = &cp
 	}

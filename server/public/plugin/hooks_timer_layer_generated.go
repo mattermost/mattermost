@@ -390,6 +390,13 @@ func (hooks *hooksTimerLayer) EntityLookup(c *Context, req *model.EntityLookupRe
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) EntityBadges(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.EntityBadges(c, req)
+	hooks.recordTime(startTime, "EntityBadges", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -695,5 +702,12 @@ func (hooks *hooksTimerLayer) EntityLookupWithRPCErr(c *Context, req *model.Enti
 	startTime := timePkg.Now()
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.EntityLookupWithRPCErr(c, req)
 	hooks.recordTime(startTime, "EntityLookupWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) EntityBadgesWithRPCErr(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.EntityBadgesWithRPCErr(c, req)
+	hooks.recordTime(startTime, "EntityBadgesWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
 }
