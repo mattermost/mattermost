@@ -14,13 +14,37 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
+import {creationOptionsFromJSON, registrationToJSON} from 'utils/passkeys';
+
 const SECTION_PASSKEYS = 'passkeys';
+const MAX_PASSKEYS = 10;
+const MAX_NAME_LENGTH = 64;
 
 const messages = defineMessages({
     count: {
         id: 'user.settings.passkeys.count',
         defaultMessage: '{count, plural, =0 {No passkeys} one {# passkey} other {# passkeys}}',
         description: 'Summary under the Passkeys heading in Profile > Security when the section is collapsed; {count} is how many passkeys the user has.',
+    },
+    recentLogin: {
+        id: 'user.settings.passkeys.recentLoginRequired',
+        defaultMessage: 'For your security, sign out and sign back in, then add your passkey within 10 minutes.',
+        description: 'Error shown when adding a passkey is refused because the user did not sign in recently enough.',
+    },
+    alreadyOnDevice: {
+        id: 'user.settings.passkeys.alreadyOnDevice',
+        defaultMessage: 'This device already has a passkey for your account.',
+        description: 'Error shown when the browser reports that the chosen authenticator already holds a passkey for this account.',
+    },
+    nameLabel: {
+        id: 'user.settings.passkeys.nameLabel',
+        defaultMessage: 'Passkey name',
+        description: 'Label of the optional text field naming a passkey that is about to be added.',
+    },
+    namePlaceholder: {
+        id: 'user.settings.passkeys.namePlaceholder',
+        defaultMessage: 'e.g. Work laptop',
+        description: 'Placeholder in the passkey name field; the example is a name a user might give a passkey.',
     },
     deleteLabel: {
         id: 'user.settings.passkeys.deleteLabel',
@@ -40,18 +64,21 @@ const Day = ({value}: {value: number}) => (
 
 type Props = {
     visible: boolean;
+    canAddPasskey: boolean;
     active: boolean;
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
 };
 
-export default function PasskeySection({visible, active, areAllSectionsInactive, updateSection}: Props) {
+export default function PasskeySection({visible, canAddPasskey, active, areAllSectionsInactive, updateSection}: Props) {
     const {formatMessage} = useIntl();
     const minRef = useRef<SettingItemMinComponent>(null);
     const wasActive = useRef(active);
     const [passkeys, setPasskeys] = useState<Passkey[]>([]);
     const [serverError, setServerError] = useState<string | null>(null);
     const [toDelete, setToDelete] = useState<Passkey | null>(null);
+    const [name, setName] = useState('');
+    const [adding, setAdding] = useState(false);
 
     const load = useCallback(async () => {
         try {
@@ -88,6 +115,36 @@ export default function PasskeySection({visible, active, areAllSectionsInactive,
             return;
         }
         await load();
+    };
+
+    const addPasskey = async () => {
+        setAdding(true);
+        setServerError(null);
+        try {
+            const {ceremony_id: ceremonyId, options} = await Client4.beginPasskeyRegistration('me');
+            const credential = await navigator.credentials.create({publicKey: creationOptionsFromJSON(options.publicKey)});
+            if (!credential) {
+                return;
+            }
+            await Client4.finishPasskeyRegistration('me', ceremonyId, name.trim(), registrationToJSON(credential as PublicKeyCredential));
+            setName('');
+            await load();
+        } catch (e) {
+            const err = e as Error & {server_error_id?: string};
+            if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
+                // The user dismissed the browser prompt; the unused ceremony expires on the server.
+                return;
+            }
+            if (err.name === 'InvalidStateError') {
+                setServerError(formatMessage(messages.alreadyOnDevice));
+            } else if (err.server_error_id === 'app.passkey.recent_login_required.app_error') {
+                setServerError(formatMessage(messages.recentLogin));
+            } else {
+                setServerError(err.message);
+            }
+        } finally {
+            setAdding(false);
+        }
     };
 
     if (!visible) {
@@ -170,11 +227,67 @@ export default function PasskeySection({visible, active, areAllSectionsInactive,
         </ul>
     );
 
+    let addControl = null;
+    if (canAddPasskey) {
+        addControl = passkeys.length >= MAX_PASSKEYS ? (
+            <p>
+                <FormattedMessage
+                    id='user.settings.passkeys.limit'
+                    defaultMessage='You have reached the limit of {max} passkeys. Delete one to add another.'
+                    description='Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum.'
+                    values={{max: MAX_PASSKEYS}}
+                />
+            </p>
+        ) : (
+            <div className='pb-3'>
+                <label
+                    htmlFor='passkeyName'
+                    className='control-label'
+                >
+                    {formatMessage(messages.nameLabel)}
+                </label>
+                <input
+                    id='passkeyName'
+                    className='form-control'
+                    type='text'
+                    maxLength={MAX_NAME_LENGTH}
+                    placeholder={formatMessage(messages.namePlaceholder)}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={adding}
+                />
+                <div className='setting-list__hint'>
+                    <FormattedMessage
+                        id='user.settings.passkeys.nameHelp'
+                        defaultMessage='Leave blank to name it after this browser'
+                        description='Help text under the passkey name field: an empty name makes the server name the passkey after the browser.'
+                    />
+                </div>
+                <Button
+                    emphasis='secondary'
+                    disabled={adding}
+                    onClick={addPasskey}
+                >
+                    <FormattedMessage
+                        id='user.settings.passkeys.add'
+                        defaultMessage='Add passkey'
+                        description='Button that starts adding a new passkey to the account.'
+                    />
+                </Button>
+            </div>
+        );
+    }
+
     return (
         <>
             <SettingItemMax
                 title={title}
-                inputs={<div className='pt-2'>{list}</div>}
+                inputs={
+                    <div className='pt-2'>
+                        {addControl}
+                        {list}
+                    </div>
+                }
                 serverError={serverError}
                 updateSection={updateSection}
                 cancelButtonText={

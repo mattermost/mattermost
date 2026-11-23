@@ -3,6 +3,7 @@
 
 import {connect} from 'react-redux';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -17,6 +18,9 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         visible: getConfig(state).FeatureFlagPasskeys === 'true' && licensed,
+
+        // No passkey ceremony runs inside the desktop app.
+        canAddPasskey: getConfig(state).PasskeyEnrollmentEnabled === 'true' && !isDesktopApp(),
     };
 }
 

@@ -35407,6 +35407,14 @@
     "defaultMessage": "Notification settings",
     "description": "Header of the Notifications tab in the user Settings modal."
   },
+  "user.settings.passkeys.add": {
+    "defaultMessage": "Add passkey",
+    "description": "Button that starts adding a new passkey to the account."
+  },
+  "user.settings.passkeys.alreadyOnDevice": {
+    "defaultMessage": "This device already has a passkey for your account.",
+    "description": "Error shown when the browser reports that the chosen authenticator already holds a passkey for this account."
+  },
   "user.settings.passkeys.count": {
     "defaultMessage": "{count, plural, =0 {No passkeys} one {# passkey} other {# passkeys}}",
     "description": "Summary under the Passkeys heading in Profile > Security when the section is collapsed; {count} is how many passkeys the user has."
@@ -35439,6 +35447,22 @@
     "defaultMessage": "Last used {date}",
     "description": "Date a passkey was last used to sign in, shown on its row in the passkey list; {date} is a formatted date."
   },
+  "user.settings.passkeys.limit": {
+    "defaultMessage": "You have reached the limit of {max} passkeys. Delete one to add another.",
+    "description": "Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum."
+  },
+  "user.settings.passkeys.nameHelp": {
+    "defaultMessage": "Leave blank to name it after this browser",
+    "description": "Help text under the passkey name field: an empty name makes the server name the passkey after the browser."
+  },
+  "user.settings.passkeys.nameLabel": {
+    "defaultMessage": "Passkey name",
+    "description": "Label of the optional text field naming a passkey that is about to be added."
+  },
+  "user.settings.passkeys.namePlaceholder": {
+    "defaultMessage": "e.g. Work laptop",
+    "description": "Placeholder in the passkey name field; the example is a name a user might give a passkey."
+  },
   "user.settings.passkeys.neverUsed": {
     "defaultMessage": "Never used",
     "description": "Shown on a passkey row when the passkey has never been used to sign in."
@@ -35446,6 +35470,10 @@
   "user.settings.passkeys.none": {
     "defaultMessage": "You have no passkeys.",
     "description": "Shown in the expanded Passkeys section when the user has not added any passkey."
+  },
+  "user.settings.passkeys.recentLoginRequired": {
+    "defaultMessage": "For your security, sign out and sign back in, then add your passkey within 10 minutes.",
+    "description": "Error shown when adding a passkey is refused because the user did not sign in recently enough."
   },
   "user.settings.passkeys.title": {
     "defaultMessage": "Passkeys",
