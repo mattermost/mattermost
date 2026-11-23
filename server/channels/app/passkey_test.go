@@ -311,6 +311,81 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 	})
 }
 
+func TestBeginPasskeyLogin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+
+	// assertion mirrors the parts of the library's assertion options the tests inspect.
+	type assertion struct {
+		PublicKey struct {
+			Challenge        string `json:"challenge"`
+			RPID             string `json:"rpId"`
+			UserVerification string `json:"userVerification"`
+			AllowCredentials []struct {
+				ID string `json:"id"`
+			} `json:"allowCredentials"`
+		} `json:"publicKey"`
+	}
+	begin := func(t *testing.T) (*model.PasskeyLoginOptions, assertion) {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyLogin(th.Context)
+		require.Nil(t, appErr)
+		require.NotNil(t, opts)
+		var a assertion
+		require.NoError(t, json.Unmarshal(opts.Options, &a))
+		return opts, a
+	}
+
+	t.Run("options are usernameless and a ceremony is stored", func(t *testing.T) {
+		opts, a := begin(t)
+
+		require.Equal(t, "localhost", a.PublicKey.RPID)
+		require.Equal(t, "required", a.PublicKey.UserVerification)
+		require.NotEmpty(t, a.PublicKey.Challenge)
+		require.Empty(t, a.PublicKey.AllowCredentials)
+
+		token, err := th.App.Srv().Store().Token().GetByToken(opts.CeremonyId)
+		require.NoError(t, err)
+		require.Equal(t, model.TokenTypePasskeyLogin, token.Type)
+		var ceremony passkeyCeremony
+		require.NoError(t, json.Unmarshal([]byte(token.Extra), &ceremony))
+		require.NotNil(t, ceremony.SessionData)
+		require.Equal(t, a.PublicKey.Challenge, ceremony.SessionData.Challenge)
+		require.Empty(t, ceremony.SessionData.UserID)
+		require.Empty(t, ceremony.UserID)
+		require.Empty(t, ceremony.SessionID)
+	})
+
+	t.Run("each call gets its own ceremony and challenge", func(t *testing.T) {
+		first, a1 := begin(t)
+		second, a2 := begin(t)
+		require.NotEqual(t, first.CeremonyId, second.CeremonyId)
+		require.NotEqual(t, a1.PublicKey.Challenge, a2.PublicKey.Challenge)
+	})
+
+	t.Run("token expires after the ceremony window", func(t *testing.T) {
+		now := model.GetMillis()
+		stale := &model.Token{Type: model.TokenTypePasskeyLogin, CreateAt: now - 6*60*1000}
+		fresh := &model.Token{Type: model.TokenTypePasskeyLogin, CreateAt: now - 4*60*1000}
+		require.True(t, stale.IsExpired())
+		require.False(t, fresh.IsExpired())
+	})
+
+	t.Run("unusable Site URL passes the relying party error through", func(t *testing.T) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://chat.example.com"
+		})
+		opts, appErr := th.App.BeginPasskeyLogin(th.Context)
+		require.Nil(t, opts)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		require.Equal(t, "app.passkey.unavailable.app_error", appErr.Id)
+	})
+}
+
 func TestFinishPasskeyRegistration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

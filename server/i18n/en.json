@@ -10787,6 +10787,11 @@
     "description": "API error when finishing passkey registration with an authenticator credential that is already registered (the authenticator ignored the exclusion list)."
   },
   {
+    "id": "app.passkey.begin_login.app_error",
+    "translation": "Unable to start passkey sign-in.",
+    "description": "API error when building the WebAuthn sign-in options fails."
+  },
+  {
     "id": "app.passkey.begin_registration.app_error",
     "translation": "Unable to start passkey registration.",
     "description": "API error when building the WebAuthn registration options (or generating the user handle) fails."

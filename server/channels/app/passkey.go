@@ -197,6 +197,36 @@ func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session)
 	return &model.PasskeyRegistrationOptions{CeremonyId: token.Token, Options: options}, nil
 }
 
+// BeginPasskeyLogin starts a usernameless sign-in ceremony. It does not check the Passkeys feature
+// flag, license or settings: the API layer decides whether the caller may get here.
+func (a *App) BeginPasskeyLogin(rctx request.CTX) (*model.PasskeyLoginOptions, *model.AppError) {
+	rp, appErr := a.passkeyRelyingParty()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	assertion, sessionData, err := rp.BeginDiscoverableLogin()
+	if err != nil {
+		return nil, model.NewAppError("BeginPasskeyLogin", "app.passkey.begin_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	options, err := json.Marshal(assertion)
+	if err != nil {
+		return nil, model.NewAppError("BeginPasskeyLogin", "app.passkey.begin_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// No user or session exists yet; the authenticator names the user when it answers.
+	extra, err := json.Marshal(passkeyCeremony{SessionData: sessionData})
+	if err != nil {
+		return nil, model.NewAppError("BeginPasskeyLogin", "app.passkey.save_ceremony.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	token := model.NewToken(model.TokenTypePasskeyLogin, string(extra))
+	if err := a.Srv().Store().Token().Save(token); err != nil {
+		return nil, model.NewAppError("BeginPasskeyLogin", "app.passkey.save_ceremony.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &model.PasskeyLoginOptions{CeremonyId: token.Token, Options: options}, nil
+}
+
 func defaultPasskeyName(userAgent string) string {
 	ua := uasurfer.Parse(userAgent)
 	browser := getBrowserName(ua, userAgent)

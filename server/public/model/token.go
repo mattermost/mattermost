@@ -23,6 +23,7 @@ const (
 	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
 	TokenTypeGuestMagicLink           = "guest_magic_link"
 	TokenTypePasskeyRegistration      = "passkey_registration"
+	TokenTypePasskeyLogin             = "passkey_login"
 
 	TokenTypeOAuth           = "oauth"
 	TokenTypeSaml            = "saml"
@@ -68,7 +69,7 @@ func (t *Token) IsExpired() bool {
 	switch t.Type {
 	case TokenTypeGuestMagicLink:
 		expiryTime = MagicLinkExpiryTime
-	case TokenTypePasskeyRegistration:
+	case TokenTypePasskeyRegistration, TokenTypePasskeyLogin:
 		expiryTime = PasskeyCeremonyExpiryTime
 	case TokenTypeGuestMagicLinkInvitation:
 		expiryTime = InvitationExpiryTime

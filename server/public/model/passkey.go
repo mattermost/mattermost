@@ -87,6 +87,20 @@ type PasskeyRegistrationFinish struct {
 	Credential json.RawMessage `json:"credential"`
 }
 
+// PasskeyLoginOptions is what the client needs to run a sign-in ceremony. Options is the WebAuthn
+// library's assertion options, kept opaque here so this package does not import it.
+type PasskeyLoginOptions struct {
+	CeremonyId string          `json:"ceremony_id"`
+	Options    json.RawMessage `json:"options"`
+}
+
+// PasskeyLoginFinish is the body that completes a sign-in ceremony. Credential is the browser's
+// assertion response, kept opaque so this package does not import the WebAuthn library.
+type PasskeyLoginFinish struct {
+	CeremonyId string          `json:"ceremony_id"`
+	Credential json.RawMessage `json:"credential"`
+}
+
 // PasskeyRPID returns the WebAuthn relying-party ID for a Site URL and whether passkeys can work with it.
 func PasskeyRPID(siteURL string) (string, bool) {
 	u, err := url.Parse(siteURL)
