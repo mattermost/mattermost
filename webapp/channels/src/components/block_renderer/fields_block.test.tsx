@@ -146,6 +146,8 @@ describe('FieldsBlock', () => {
             />,
         );
 
-        expect(screen.getByText('[Build](https://example.com/build)')).toBeInTheDocument();
+        const label = screen.getByText('[Build](https://example.com/build)');
+        expect(label).toHaveAttribute('data-testid', 'markdown-mock');
+        expect(label.closest('.mm-blocks-field__label')).toBeInTheDocument();
     });
 });
