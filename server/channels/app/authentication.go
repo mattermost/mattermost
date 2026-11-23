@@ -441,6 +441,12 @@ func (a *App) MFARequired(rctx request.CTX, method string) *model.AppError {
 		return nil
 	}
 
+	// A passkey sign-in already counts as having passed MFA. Deliberately independent of the
+	// passkey settings: turning passkey login off does not end passkey sessions.
+	if session.Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey {
+		return nil
+	}
+
 	user, err := a.GetUser(rctx, session.UserId)
 	if err != nil {
 		return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

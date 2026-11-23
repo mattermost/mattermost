@@ -15,6 +15,7 @@ import (
 const (
 	SessionCookieToken                    = "MMAUTHTOKEN"
 	SessionCookieUser                     = "MMUSERID"
+	SessionCookieLoginMethod              = "MMLOGINMETHOD"
 	SessionCookieCsrf                     = "MMCSRF"
 	SessionCookieCloudUrl                 = "MMCLOUDURL"
 	SessionCacheSize                      = 35000
@@ -47,6 +48,8 @@ const (
 	// SessionLoginMethodStandard marks a session started by any interactive sign-in
 	// other than a passkey: password, LDAP, SAML, OAuth/OpenID, magic link, SSO hand-offs.
 	SessionLoginMethodStandard = "standard"
+	// SessionLoginMethodPasskey marks a session started by signing in with a passkey.
+	SessionLoginMethodPasskey = "passkey"
 )
 
 //msgp:tuple StringMap
@@ -68,6 +71,7 @@ type LoginOptions struct {
 	IsMobile     bool
 	IsOAuthUser  bool
 	IsSaml       bool
+	IsPasskey    bool
 }
 
 // Session contains the user session details.

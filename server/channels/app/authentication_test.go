@@ -826,3 +826,37 @@ func TestMigratePassword(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestMFARequiredPasskeySession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+	})
+
+	sessionWith := func(loginMethod string) *model.Session {
+		s := &model.Session{Id: model.NewId(), UserId: th.BasicUser.Id}
+		if loginMethod != "" {
+			s.AddProp(model.SessionPropLoginMethod, loginMethod)
+		}
+		return s
+	}
+
+	t.Run("passkey session passes without MFA set up", func(t *testing.T) {
+		require.Nil(t, th.App.MFARequired(th.Context.WithSession(sessionWith(model.SessionLoginMethodPasskey)), http.MethodPost))
+	})
+
+	t.Run("standard session of the same user is still required to set up MFA", func(t *testing.T) {
+		err := th.App.MFARequired(th.Context.WithSession(sessionWith(model.SessionLoginMethodStandard)), http.MethodPost)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.context.mfa_required.app_error", err.Id)
+	})
+
+	t.Run("session without a login method is still required to set up MFA", func(t *testing.T) {
+		err := th.App.MFARequired(th.Context.WithSession(sessionWith("")), http.MethodPost)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.context.mfa_required.app_error", err.Id)
+	})
+}

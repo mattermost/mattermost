@@ -364,11 +364,60 @@ func TestDoLoginMethodProp(t *testing.T) {
 		})
 	}
 
+	t.Run("passkey sign-in is marked passkey", func(t *testing.T) {
+		session, err := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, th.BasicUser, model.LoginOptions{IsPasskey: true})
+		require.Nil(t, err)
+
+		stored, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, model.SessionLoginMethodPasskey, stored.Props[model.SessionPropLoginMethod])
+	})
+
 	t.Run("personal access token session is not marked", func(t *testing.T) {
 		token := createPersonalAccessToken(t, th, th.BasicUser.Id)
 		session, err := th.App.createSessionForUserAccessToken(th.Context, token.Token)
 		require.Nil(t, err)
 		assert.NotContains(t, session.Props, model.SessionPropLoginMethod)
+	})
+}
+
+func TestAttachSessionCookies(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	attach := func(t *testing.T, loginMethod string) map[string]*http.Cookie {
+		t.Helper()
+		session := &model.Session{Token: model.NewId(), UserId: th.BasicUser.Id}
+		session.AddProp(model.SessionPropLoginMethod, loginMethod)
+		rec := httptest.NewRecorder()
+		th.App.AttachSessionCookies(th.Context.WithSession(session), rec, &http.Request{})
+
+		cookies := map[string]*http.Cookie{}
+		for _, c := range rec.Result().Cookies() {
+			cookies[c.Name] = c
+		}
+		return cookies
+	}
+
+	t.Run("passkey session sets the login method cookie like the user id cookie", func(t *testing.T) {
+		cookies := attach(t, model.SessionLoginMethodPasskey)
+
+		c := cookies[model.SessionCookieLoginMethod]
+		require.NotNil(t, c)
+		assert.Equal(t, model.SessionLoginMethodPasskey, c.Value)
+		assert.False(t, c.HttpOnly)
+		assert.Equal(t, cookies[model.SessionCookieUser].Path, c.Path)
+		assert.Equal(t, cookies[model.SessionCookieUser].MaxAge, c.MaxAge)
+		assert.Greater(t, c.MaxAge, 0)
+	})
+
+	t.Run("standard session expires the login method cookie", func(t *testing.T) {
+		cookies := attach(t, model.SessionLoginMethodStandard)
+
+		c := cookies[model.SessionCookieLoginMethod]
+		require.NotNil(t, c)
+		assert.Less(t, c.MaxAge, 0)
+		assert.Equal(t, cookies[model.SessionCookieUser].Path, c.Path)
 	})
 }
 
