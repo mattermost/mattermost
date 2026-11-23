@@ -2777,8 +2777,12 @@ func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
 		"PermissionField":   func(f *PropertyField) { f.PermissionField = new(PermissionLevelMember) },
 		"PermissionValues":  func(f *PropertyField) { f.PermissionValues = new(PermissionLevelSysadmin) },
 		"PermissionOptions": func(f *PropertyField) { f.PermissionOptions = new(PermissionLevelMember) },
-		"a sibling attr":    func(f *PropertyField) { f.Attrs["sort_order"] = 2 },
-		"an added attr":     func(f *PropertyField) { f.Attrs[PropertyAttrsProtected] = true },
+		"an added rule": func(f *PropertyField) {
+			f.Bounds = PropertyBounds{{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceParent}}
+		},
+		"Mutability":     func(f *PropertyField) { f.Mutability = PropertyFieldMutabilityWriteOnce },
+		"a sibling attr": func(f *PropertyField) { f.Attrs["sort_order"] = 2 },
+		"an added attr":  func(f *PropertyField) { f.Attrs[PropertyAttrsProtected] = true },
 		"an added grant": func(f *PropertyField) {
 			f.Permissions.Grants = []Grant{{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "userid"}, Allow: []string{PropertyActionFieldWrite}}}
 		},
@@ -2791,4 +2795,32 @@ func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
 			assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
 		})
 	}
+
+	t.Run("unstated bounds and mutability against a field with rules report true", func(t *testing.T) {
+		existing := stored()
+		existing.Bounds = PropertyBounds{{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceParent}}
+		existing.Mutability = PropertyFieldMutabilityWriteOnce
+		updated := stored()
+		changeOptions(updated)
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(existing, updated))
+	})
+
+	t.Run("stated mutability equal to an empty stored one reports true", func(t *testing.T) {
+		updated := stored()
+		changeOptions(updated)
+		updated.Mutability = PropertyFieldMutabilityMutable
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+	})
+
+	t.Run("a reordered echo of stored bounds reports true", func(t *testing.T) {
+		existing := stored()
+		existing.Bounds = PropertyBounds{
+			{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceParent},
+			{Operator: PropertyBoundsOperatorAtOrAbove, Reference: PropertyBoundsReferenceSelf},
+		}
+		updated := stored()
+		changeOptions(updated)
+		updated.Bounds = PropertyBounds{existing.Bounds[1], existing.Bounds[0]}
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(existing, updated))
+	})
 }

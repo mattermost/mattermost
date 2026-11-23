@@ -44,6 +44,49 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		assert.Nil(t, shaped.Permissions)
 	})
 
+	withBounds := func(permissions *model.Permissions) *model.PropertyField {
+		field := newField(permissions)
+		field.Bounds = model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		return field
+	}
+	session := model.Session{UserId: th.BasicUser.Id}
+
+	t.Run("serveV3 false strips bounds and mutability from a field with no permissions", func(t *testing.T) {
+		field := withBounds(nil)
+
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, false)
+		require.NotNil(t, shaped)
+		assert.Nil(t, shaped.Bounds)
+		assert.Empty(t, shaped.Mutability)
+		assert.NotNil(t, field.Bounds, "shaping must not mutate the field passed in")
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, field.Mutability)
+	})
+
+	t.Run("serveV3 false strips bounds and mutability from a field with permissions", func(t *testing.T) {
+		field := withBounds(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+		})
+
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, false)
+		require.NotNil(t, shaped)
+		assert.Nil(t, shaped.Bounds)
+		assert.Empty(t, shaped.Mutability)
+		assert.NotNil(t, field.Bounds, "shaping must not mutate the field passed in")
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, field.Mutability)
+	})
+
+	t.Run("serveV3 true serves bounds and mutability as stored", func(t *testing.T) {
+		field := withBounds(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+		})
+
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, true)
+		require.NotNil(t, shaped)
+		assert.Equal(t, field.Bounds, shaped.Bounds)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, shaped.Mutability)
+	})
+
 	t.Run("serveV3 false projects the legacy keys from permissions", func(t *testing.T) {
 		field := newField(&model.Permissions{
 			Restrictions: &model.Restrictions{
