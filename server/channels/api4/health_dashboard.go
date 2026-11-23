@@ -67,12 +67,17 @@ var complianceFindingPermissions = map[string]*model.Permission{
 	"RETENTION_TIGHT_BATCHES": model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
 }
 
-// readableFindings drops the findings the caller may not read. A compliance finding needs read
-// access to its setting's System Console page, and one whose rule isn't listed needs
-// manage_system. A job finding, whose subject is the job type, needs read access to that type's
-// jobs. Every other finding is visible to anyone who may use the dashboard.
+// readableFindings drops the findings the caller may not read. A caller with manage_system reads
+// every finding. Otherwise a compliance finding needs read access to its setting's System Console
+// page, and one whose rule isn't listed needs manage_system. A job finding, whose subject is the
+// job type, needs read access to that type's jobs. Every other finding is visible to anyone who
+// may use the dashboard.
 func readableFindings(c *Context, findings []*model.HealthFinding) []*model.HealthFinding {
 	session := *c.AppContext.Session()
+	if c.App.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		return findings
+	}
+
 	readable := make([]*model.HealthFinding, 0, len(findings))
 	for _, finding := range findings {
 		switch finding.Area {

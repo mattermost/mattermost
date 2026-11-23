@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 
 import type {Client4} from '@mattermost/client';
 
-import {duration, expect, licenseTier, test} from '@mattermost/playwright-lib';
+import {duration, expect, hasCustomPermissionsSchemesLicense, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 const PROFESSIONAL_TIER = 10;
@@ -701,9 +701,16 @@ test(
     'shows the Site health page to a system manager instead of Workspace Optimization',
     {tag: '@system_console'},
     async ({pw}) => {
-        await skipUnlessProfessional(pw);
+        await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
 
         const {adminClient, user} = await pw.initSetup();
+
+        // Assigning system_manager needs the Custom Permission Schemes license feature.
+        test.skip(
+            !hasCustomPermissionsSchemesLicense(await adminClient.getClientLicenseOld()),
+            'Skipping test - server does not have Custom Permission Schemes',
+        );
+
         await adminClient.updateUserRoles(user.id, 'system_user system_manager');
         const {systemConsolePage} = await pw.testBrowser.login(user);
 

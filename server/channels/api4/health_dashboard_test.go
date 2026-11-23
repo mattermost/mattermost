@@ -231,6 +231,42 @@ func TestHealthDashboardAccess(t *testing.T) {
 		assert.ElementsMatch(t, []string{siteURL.Fingerprint, export.Fingerprint, exportJob.Fingerprint, ldapJob.Fingerprint}, getFingerprints(th.SystemManagerClient))
 	})
 
+	t.Run("manage_system reads every finding, whatever else its role holds", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.LoginSystemManager(t)
+		export := newHealthFinding("EXPORT_GR_TIMEOUT_LOW", healthcheck.SurfaceProduct)
+		export.Area = model.AreaCompliance
+		export.Subject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
+		export.Fingerprint = healthcheck.Fingerprint(export.Code, export.Subject, "")
+		exportJob := newHealthFinding("JOB_FAILED", healthcheck.SurfaceProduct)
+		exportJob.Area = model.AreaJobs
+		exportJob.Subject = model.JobTypeMessageExport
+		exportJob.Fingerprint = healthcheck.Fingerprint(exportJob.Code, exportJob.Subject, "")
+		storeHealthFindings(t, th, export, exportJob)
+
+		getFingerprints := func(client *model.Client4) []string {
+			t.Helper()
+			list, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			return findingFingerprints(list.Findings)
+		}
+
+		th.AddPermissionToRole(t, model.PermissionManageSystem.Id, model.SystemManagerRoleId)
+		t.Cleanup(func() {
+			th.RemovePermissionFromRole(t, model.PermissionManageSystem.Id, model.SystemManagerRoleId)
+		})
+		assert.ElementsMatch(t, []string{export.Fingerprint, exportJob.Fingerprint}, getFingerprints(th.SystemManagerClient))
+
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceComplianceExport.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionReadComplianceExportJob.Id, model.SystemAdminRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceComplianceExport.Id, model.SystemAdminRoleId)
+			th.AddPermissionToRole(t, model.PermissionReadComplianceExportJob.Id, model.SystemAdminRoleId)
+		})
+		assert.ElementsMatch(t, []string{export.Fingerprint, exportJob.Fingerprint}, getFingerprints(th.SystemAdminClient))
+	})
+
 	t.Run("health check jobs follow the findings read permission", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.LoginSystemManager(t)
