@@ -763,7 +763,7 @@ func TestEvaluatePluginAccessRequestActions(t *testing.T) {
 		decisions, err := th.App.EvaluatePluginAccessRequestActions(th.Context, testAgentsPluginID, userID, resourceType, model.NewId(), distinctActions(pluginAccessControlActionsMax+1))
 		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.access_control.plugin.batch_too_large.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.plugin.actions_too_large.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Nil(t, decisions)
 

@@ -372,7 +372,7 @@ func (a *App) EvaluatePluginAccessRequestActions(rctx request.CTX, pluginID, use
 		distinct = append(distinct, action)
 	}
 	if len(distinct) > pluginAccessControlActionsMax {
-		return nil, model.NewAppError(where, "app.access_control.plugin.batch_too_large.app_error", map[string]any{"Max": pluginAccessControlActionsMax}, "", http.StatusBadRequest)
+		return nil, model.NewAppError(where, "app.access_control.plugin.actions_too_large.app_error", map[string]any{"Max": pluginAccessControlActionsMax}, "", http.StatusBadRequest)
 	}
 
 	decisions := make(map[string]*model.AccessDecision, len(distinct))
@@ -423,7 +423,6 @@ func (a *App) EvaluatePluginAccessRequestActions(rctx request.CTX, pluginID, use
 	}
 
 	if len(failed) > 0 {
-		// One line per call, not per action, as in the batch call.
 		rctx.Logger().Warn("Plugin access actions evaluation: evaluator errors; resolving policy existence",
 			mlog.String("plugin_id", pluginID),
 			mlog.String("resource_id", resourceID),

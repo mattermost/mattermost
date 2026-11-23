@@ -1924,6 +1924,11 @@ type API interface {
 	// the resource has a policy or the store is unreachable); the plugin MUST
 	// treat it as a deny for every action.
 	//
+	// Over plugin RPC an empty decisions map arrives as nil, so a nil map
+	// alone does not identify an older server unless at least one action was
+	// requested: a supporting server returns a non-nil map whenever at least
+	// one action is requested and no error is returned.
+	//
 	// @tag AccessControl
 	// Minimum server version: 12.3
 	EvaluateAccessControlActions(userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, *model.AppError)
