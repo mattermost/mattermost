@@ -105,7 +105,7 @@
         &:focus-visible:hover,
         &:focus-within:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
-            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.1);
             outline: none;
             outline-offset: 0;
         }
