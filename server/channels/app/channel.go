@@ -2629,7 +2629,7 @@ func (a *App) GetPublicChannelsByIdsForTeamForUser(rctx request.CTX, teamID, use
 		}
 	}
 
-	return a.FilterChannelListByReadAccess(rctx, userID, list), nil
+	return a.FilterChannelListByReadAccess(WithChannelAccessMemo(rctx), userID, list), nil
 }
 
 func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {

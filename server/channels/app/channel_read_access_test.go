@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"reflect"
 	"slices"
 	"testing"
 
@@ -2098,6 +2099,34 @@ func TestGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
 		channels, err = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
 		require.NoError(t, err)
 		require.Empty(t, channels)
+	})
+
+	t.Run("builds the subject once across channels when the caller has no memo", func(t *testing.T) {
+		// Plugin API contexts carry no channel-access memo; the call has to install its own.
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+
+		// A memoised subject is one shared object, so its attribute map is the same in
+		// every request; a subject rebuilt per channel has a map of its own each time.
+		attributeMaps := map[uintptr]struct{}{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) {
+				attributes := args.Get(1).(model.AccessRequest).Subject.Attributes
+				attributeMaps[reflect.ValueOf(attributes).Pointer()] = struct{}{}
+			}).
+			Return(model.AccessDecision{Decision: true}, nil)
+
+		ids := []string{h.th.BasicChannel.Id}
+		for range 2 {
+			ids = append(ids, h.th.CreateChannel(t, h.th.BasicTeam).Id)
+		}
+
+		channels, err := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+		require.NoError(t, err)
+		require.ElementsMatch(t, ids, channelIDs(channels))
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", len(ids))
+		require.Len(t, attributeMaps, 1, "the subject must be built once for the call, not once per channel")
 	})
 
 	t.Run("returns everything when access control is not enforced", func(t *testing.T) {
