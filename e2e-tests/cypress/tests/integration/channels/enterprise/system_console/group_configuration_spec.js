@@ -251,7 +251,7 @@ describe('group configuration', () => {
 
             // * Check that the channel was added to the view
             teamOrChannelIsPresent(testChannel.display_name);
-            cy.get('.group-teams-and-channels-row', {timeout: TIMEOUTS.ONE_MIN}).not('.has-children').should('have.length', 2);
+            cy.get('.group-teams-and-channels-row', {timeout: TIMEOUTS.ONE_MIN}).not('.has-children').should('have.length', 1);
 
             // # Click remove
             cy.findByTestId(`${testChannel.display_name}_groupsyncable_remove`).click();

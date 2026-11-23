@@ -416,6 +416,56 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(beginningHeading).toHaveClass('channel-intro__title');
             expect(screen.getByText('Post messages here that you want everyone to see. Everyone automatically becomes a member of this channel when they join the team.', {exact: false})).toBeInTheDocument();
         });
+
+        describe('group constrained team', () => {
+            const getState = (permissions: string[]) => ({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    users: {
+                        ...initialState.entities.users,
+                        currentUserId: 'test-user-id',
+                        profiles: {
+                            ...initialState.entities.users.profiles,
+                            'test-user-id': TestHelper.getUserMock({id: 'test-user-id', roles: 'system_user'}),
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_user: {permissions},
+                        },
+                    },
+                },
+            } as any);
+
+            test('should show add groups to team with manage team permission', () => {
+                renderWithContext(
+                    <ChannelIntroMessage
+                        {...props}
+                        enableUserCreation={true}
+                        teamIsGroupConstrained={true}
+                        stats={{total_users_count: 1}}
+                    />,
+                    getState([Permissions.INVITE_USER, Permissions.ADD_USER_TO_TEAM, Permissions.MANAGE_TEAM]),
+                );
+
+                expect(screen.getByText('Add other groups to this team')).toBeInTheDocument();
+            });
+
+            test('should not show add groups to team without manage team permission', () => {
+                renderWithContext(
+                    <ChannelIntroMessage
+                        {...props}
+                        enableUserCreation={true}
+                        teamIsGroupConstrained={true}
+                        stats={{total_users_count: 1}}
+                    />,
+                    getState([Permissions.INVITE_USER, Permissions.ADD_USER_TO_TEAM]),
+                );
+
+                expect(screen.queryByText('Add other groups to this team')).not.toBeInTheDocument();
+            });
+        });
     });
 
     describe('test OFF TOPIC Channel', () => {
