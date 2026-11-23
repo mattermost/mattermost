@@ -30,6 +30,14 @@ func TestPasskeyRPID(t *testing.T) {
 		"http loopback ipv4":          {"http://127.0.0.1:8065", "", false},
 		"https ipv6":                  {"https://[2001:db8::1]:8443", "", false},
 		"http loopback ipv6":          {"http://[::1]:8065", "", false},
+		"unicode host":                {"https://bücher.example", "xn--bcher-kva.example", true},
+		"uppercase unicode host":      {"https://BÜCHER.example/mm", "xn--bcher-kva.example", true},
+		"sharp s not transitional":    {"https://faß.example", "xn--fa-hia.example", true},
+		"already punycode":            {"https://xn--bcher-kva.example", "xn--bcher-kva.example", true},
+		"invalid punycode label":      {"https://xn--a.example", "", false},
+		"disallowed code point":       {"https://a\u2028b.example", "", false},
+		"single label host":           {"https://mattermost", "", false},
+		"trailing dot":                {"https://chat.example.com.", "", false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			rpID, ok := PasskeyRPID(tc.siteURL)

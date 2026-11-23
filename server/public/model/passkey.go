@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/url"
 	"strings"
+
+	"golang.org/x/net/idna"
 )
 
 // PasskeyRPID returns the WebAuthn relying-party ID for a Site URL and whether passkeys can work with it.
@@ -21,6 +23,16 @@ func PasskeyRPID(siteURL string) (string, bool) {
 	}
 	// Browsers only allow WebAuthn on secure origins, with localhost as the development exception.
 	if u.Scheme != "https" && host != "localhost" {
+		return "", false
+	}
+	// Browsers and authenticators use the punycode form of the host, and the WebAuthn library
+	// refuses a non-ASCII RP ID. Lookup is non-transitional, matching browsers (faß stays faß).
+	host, err = idna.Lookup.ToASCII(host)
+	if err != nil {
+		return "", false
+	}
+	// The WebAuthn library also refuses a single-label RP ID (other than localhost) and a trailing dot.
+	if strings.HasSuffix(host, ".") || (host != "localhost" && !strings.Contains(host, ".")) {
 		return "", false
 	}
 	return host, true
