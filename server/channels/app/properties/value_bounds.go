@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -394,6 +395,106 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 			if err != nil {
 				return boundsRefusal(err)
 			}
+		}
+	}
+	return h.refuseContainedValuesOutOfBounds(rctx, values, fieldMap)
+}
+
+// refuseContainedValuesOutOfBounds refuses a request that sets a channel's or the server's value
+// when the objects beneath would end up out of bounds under a child field's parent rule. Only
+// linked channel and system fields are looked at, and each pays one search per request (one more per
+// further page of child fields) for the child fields whose parent rule reads from it, even when there
+// are none; unlinked fields and other object types pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
+// neither is writing the stored value again, so re-saving a form doesn't fail on values the writer
+// didn't touch.
+func (h *BoundsHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+	// Per call only: a child field gaining a parent rule must be seen by the next write.
+	childrenOf := map[string][]*model.PropertyField{}
+	for _, v := range values {
+		field, ok := fieldMap[v.FieldID]
+		if !ok || (field.ObjectType != model.PropertyFieldObjectTypeChannel && field.ObjectType != model.PropertyFieldObjectTypeSystem) ||
+			field.LinkSourceID() == "" || v.DeleteAt != 0 || model.IsEmptyPropertyValue(v.Value) {
+			continue
+		}
+		children, seen := childrenOf[field.ID]
+		if !seen {
+			var err error
+			children, err = h.propertyService.childFieldsWithParentRule(rctx, field)
+			if err != nil {
+				return boundsRefusal(fmt.Errorf("field %s: failed to look up the child fields: %w", field.ID, err))
+			}
+			childrenOf[field.ID] = children
+		}
+		if len(children) == 0 {
+			continue
+		}
+
+		// A value beneath written between this read and the container's write can still land out of
+		// bounds; no lock spans the two objects.
+		rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
+			FieldID:   field.ID,
+			TargetIDs: []string{v.TargetID},
+			PerPage:   1,
+		})
+		if err != nil {
+			return fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, v.TargetID, err)
+		}
+		if len(rows) > 0 && samePropertyValue(rows[0].Value, v.Value) {
+			continue
+		}
+
+		ranks := buildOptionRankMap(field)
+		newRank, ok := singleOptionRank(field.Type, v.Value, ranks)
+		if !ok {
+			return boundsRefusal(fmt.Errorf("field %s: target %s: the new value can't be ranked: %w", field.ID, v.TargetID, errBoundsCheckFailed))
+		}
+		var breaches storedValueBreaches
+		var breachedFieldID string
+		for _, child := range children {
+			for _, rule := range child.Bounds {
+				if rule.Reference != model.PropertyBoundsReferenceParent {
+					continue
+				}
+				allowed, err := allowedByRule(ranks, rule.Operator, newRank)
+				if err != nil {
+					return boundsRefusal(fmt.Errorf("field %s: %w", child.ID, err))
+				}
+				// A channel's posts are those in the channel; every channel and user is held to the server.
+				var scope *store.PostValueScope
+				if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+					scope = &store.PostValueScope{ChannelID: v.TargetID}
+				}
+				n, examples, err := h.propertyService.valueStore.CountValuesOutsideOptions(child.GroupID, child.ID, allowed, scope, storedValueExamples)
+				if err != nil {
+					return fmt.Errorf("field %s: failed to count the values of field %s: %w", field.ID, child.ID, err)
+				}
+				if n > 0 && breachedFieldID == "" {
+					breachedFieldID = child.ID
+				}
+				breaches.add(n, examples)
+			}
+			if field.ObjectType != model.PropertyFieldObjectTypeSystem || child.ObjectType != model.PropertyFieldObjectTypeChannel {
+				continue
+			}
+			// Posts in channels with no value fall back to the server, but only through a channel
+			// field that carries the same rule as the post field.
+			found, firstID, err := h.propertyService.fallbackPostBreaches(rctx, child, child.Bounds, nil, func(rule model.PropertyBoundsRule) ([]string, error) {
+				return allowedByRule(ranks, rule.Operator, newRank)
+			}, nil)
+			if err != nil {
+				return boundsRefusal(err)
+			}
+			if found.Count > 0 && breachedFieldID == "" {
+				breachedFieldID = firstID
+			}
+			breaches.add(found.Count, found.Examples)
+		}
+		if breaches.Count > 0 {
+			examples := strings.Join(breaches.Examples, ", ")
+			return model.NewAppError("UpsertPropertyValues", "app.property_value.bounds_contained_values.app_error",
+				map[string]any{"Count": breaches.Count, "Examples": examples},
+				fmt.Sprintf("field %s: target %s: %d contained values of field %s out of bounds, e.g. %s", field.ID, v.TargetID, breaches.Count, breachedFieldID, examples),
+				http.StatusConflict)
 		}
 	}
 	return nil
