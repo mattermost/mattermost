@@ -5,11 +5,71 @@ package model
 
 import (
 	"net"
+	"net/http"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/net/idna"
 )
+
+const (
+	PasskeyMaxPerUser     = 10
+	PasskeyNameMaxRunes   = 64
+	PasskeyUserHandleSize = 64
+	// A WebAuthn credential id is at most 1023 bytes.
+	PasskeyCredentialIdMaxSize = 1023
+	// How recently a user must have signed in (ms) to add a passkey.
+	PasskeyRecentLoginWindow = 10 * 60 * 1000
+)
+
+// Passkey is one WebAuthn credential registered to a user. Credential material is tagged
+// json:"-" so it never reaches clients.
+type Passkey struct {
+	Id         string `json:"id"`
+	UserId     string `json:"user_id"`
+	Name       string `json:"name"`
+	CreateAt   int64  `json:"create_at"`
+	LastUsedAt int64  `json:"last_used_at"` // 0 = never used
+
+	UserHandle     []byte `json:"-"`
+	CredentialId   []byte `json:"-"`
+	PublicKey      []byte `json:"-"`
+	AAGUID         []byte `json:"-"`
+	Transports     string `json:"-"` // comma-separated, e.g. "internal,hybrid"
+	SignCount      int64  `json:"-"`
+	BackupEligible bool   `json:"-"`
+	BackupState    bool   `json:"-"`
+}
+
+func (p *Passkey) PreSave() {
+	if p.Id == "" {
+		p.Id = NewId()
+	}
+	if p.CreateAt == 0 {
+		p.CreateAt = GetMillis()
+	}
+}
+
+func (p *Passkey) IsValid() *AppError {
+	switch {
+	case !IsValidId(p.Id):
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+	case !IsValidId(p.UserId):
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	case len(p.UserHandle) == 0 || len(p.UserHandle) > PasskeyUserHandleSize:
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.user_handle.app_error", nil, "", http.StatusBadRequest)
+	case len(p.CredentialId) == 0 || len(p.CredentialId) > PasskeyCredentialIdMaxSize:
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.credential_id.app_error", nil, "", http.StatusBadRequest)
+	case len(p.PublicKey) == 0:
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.public_key.app_error", nil, "", http.StatusBadRequest)
+	case p.Name == "" || utf8.RuneCountInString(p.Name) > PasskeyNameMaxRunes:
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	case p.CreateAt == 0:
+		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
 
 // PasskeyRPID returns the WebAuthn relying-party ID for a Site URL and whether passkeys can work with it.
 func PasskeyRPID(siteURL string) (string, bool) {

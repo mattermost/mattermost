@@ -19370,6 +19370,41 @@
     "description": "API error when an outgoing OAuth connection's last-update timestamp is unset; 'Update at' names the UpdateAt field."
   },
   {
+    "id": "model.passkey.is_valid.create_at.app_error",
+    "translation": "Passkey must have a creation time.",
+    "description": "API error when a passkey record has no creation timestamp."
+  },
+  {
+    "id": "model.passkey.is_valid.credential_id.app_error",
+    "translation": "Passkey has an invalid credential ID.",
+    "description": "API error when a passkey's credential ID (the identifier the authenticator assigned to it) is empty or longer than WebAuthn allows."
+  },
+  {
+    "id": "model.passkey.is_valid.id.app_error",
+    "translation": "Invalid passkey ID.",
+    "description": "API error when a passkey record's ID is not a valid Mattermost ID."
+  },
+  {
+    "id": "model.passkey.is_valid.name.app_error",
+    "translation": "Passkey name must be between 1 and 64 characters.",
+    "description": "API error when the user-chosen display name of a passkey is empty or too long."
+  },
+  {
+    "id": "model.passkey.is_valid.public_key.app_error",
+    "translation": "Passkey must have a public key.",
+    "description": "API error when a passkey record has no public key; the public key is what verifies later sign-ins."
+  },
+  {
+    "id": "model.passkey.is_valid.user_handle.app_error",
+    "translation": "Passkey has an invalid user handle.",
+    "description": "API error when a passkey's WebAuthn user handle (an opaque per-user identifier kept by the authenticator) is empty or longer than 64 bytes."
+  },
+  {
+    "id": "model.passkey.is_valid.user_id.app_error",
+    "translation": "Invalid passkey user ID.",
+    "description": "API error when a passkey record's owning user ID is not a valid Mattermost ID."
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command.",
     "description": "Error shown to end users when a plugin-provided slash command fails while executing."

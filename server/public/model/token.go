@@ -13,6 +13,7 @@ const (
 	PasswordRecoverExpiryTime = 1000 * 60 * 60 * 24 // 24 hours
 	InvitationExpiryTime      = 1000 * 60 * 60 * 48 // 48 hours
 	MagicLinkExpiryTime       = 1000 * 60 * 5       // 5 minutes
+	PasskeyCeremonyExpiryTime = 1000 * 60 * 5       // 5 minutes
 
 	TokenTypePasswordRecovery         = "password_recovery"
 	TokenTypeVerifyEmail              = "verify_email"
@@ -21,6 +22,7 @@ const (
 	TokenTypeCWSAccess                = "cws_access_token"
 	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
 	TokenTypeGuestMagicLink           = "guest_magic_link"
+	TokenTypePasskeyRegistration      = "passkey_registration"
 
 	TokenTypeOAuth           = "oauth"
 	TokenTypeSaml            = "saml"
@@ -66,6 +68,8 @@ func (t *Token) IsExpired() bool {
 	switch t.Type {
 	case TokenTypeGuestMagicLink:
 		expiryTime = MagicLinkExpiryTime
+	case TokenTypePasskeyRegistration:
+		expiryTime = PasskeyCeremonyExpiryTime
 	case TokenTypeGuestMagicLinkInvitation:
 		expiryTime = InvitationExpiryTime
 	case TokenTypePasswordRecovery:

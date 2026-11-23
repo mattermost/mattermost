@@ -4,9 +4,15 @@
 package model
 
 import (
+	"encoding/json"
+	"maps"
+	"net/http"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPasskeyRPID(t *testing.T) {
@@ -77,4 +83,95 @@ func TestPasskeysAvailable(t *testing.T) {
 			assert.Equal(t, tc.expected, PasskeysAvailable(tc.c, tc.license))
 		})
 	}
+}
+
+func validPasskey() *Passkey {
+	return &Passkey{
+		Id:           NewId(),
+		UserId:       NewId(),
+		Name:         "My laptop",
+		CreateAt:     GetMillis(),
+		UserHandle:   make([]byte, PasskeyUserHandleSize),
+		CredentialId: []byte("credential"),
+		PublicKey:    []byte("key"),
+	}
+}
+
+func TestPasskeyPreSave(t *testing.T) {
+	t.Run("fills id and create time", func(t *testing.T) {
+		p := &Passkey{}
+		p.PreSave()
+		assert.True(t, IsValidId(p.Id))
+		assert.NotZero(t, p.CreateAt)
+	})
+
+	t.Run("keeps existing values", func(t *testing.T) {
+		p := &Passkey{Id: "existing", CreateAt: 42}
+		p.PreSave()
+		assert.Equal(t, "existing", p.Id)
+		assert.Equal(t, int64(42), p.CreateAt)
+	})
+}
+
+func TestPasskeyIsValid(t *testing.T) {
+	assert.Nil(t, validPasskey().IsValid())
+
+	for name, tc := range map[string]struct {
+		mutate func(p *Passkey)
+		id     string
+	}{
+		"bad id":              {func(p *Passkey) { p.Id = "x" }, "model.passkey.is_valid.id.app_error"},
+		"bad user id":         {func(p *Passkey) { p.UserId = "x" }, "model.passkey.is_valid.user_id.app_error"},
+		"empty user handle":   {func(p *Passkey) { p.UserHandle = nil }, "model.passkey.is_valid.user_handle.app_error"},
+		"long user handle":    {func(p *Passkey) { p.UserHandle = make([]byte, PasskeyUserHandleSize+1) }, "model.passkey.is_valid.user_handle.app_error"},
+		"empty credential id": {func(p *Passkey) { p.CredentialId = nil }, "model.passkey.is_valid.credential_id.app_error"},
+		"long credential id":  {func(p *Passkey) { p.CredentialId = make([]byte, 1024) }, "model.passkey.is_valid.credential_id.app_error"},
+		"empty public key":    {func(p *Passkey) { p.PublicKey = nil }, "model.passkey.is_valid.public_key.app_error"},
+		"empty name":          {func(p *Passkey) { p.Name = "" }, "model.passkey.is_valid.name.app_error"},
+		"name over 64 runes":  {func(p *Passkey) { p.Name = strings.Repeat("a", PasskeyNameMaxRunes+1) }, "model.passkey.is_valid.name.app_error"},
+		"zero create time":    {func(p *Passkey) { p.CreateAt = 0 }, "model.passkey.is_valid.create_at.app_error"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			p := validPasskey()
+			tc.mutate(p)
+			appErr := p.IsValid()
+			require.NotNil(t, appErr)
+			assert.Equal(t, tc.id, appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+	}
+
+	t.Run("name length counts runes, not bytes", func(t *testing.T) {
+		p := validPasskey()
+		p.Name = strings.Repeat("é", PasskeyNameMaxRunes)
+		assert.Nil(t, p.IsValid())
+		p.Name += "é"
+		assert.NotNil(t, p.IsValid())
+	})
+
+	t.Run("credential id at the 1023-byte limit", func(t *testing.T) {
+		p := validPasskey()
+		p.CredentialId = make([]byte, 1023)
+		assert.Nil(t, p.IsValid())
+	})
+}
+
+func TestPasskeyJSONOmitsCredentialMaterial(t *testing.T) {
+	p := validPasskey()
+	p.Transports = "internal"
+	p.AAGUID = []byte("aaguid")
+	b, err := json.Marshal(p)
+	require.NoError(t, err)
+	var m map[string]any
+	require.NoError(t, json.Unmarshal(b, &m))
+	assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at"}, slices.Collect(maps.Keys(m)))
+}
+
+func TestPasskeyRegistrationTokenExpiry(t *testing.T) {
+	tok := NewToken(TokenTypePasskeyRegistration, "")
+	assert.False(t, tok.IsExpired())
+
+	// Past the 5-minute ceremony window, well short of the 48h default.
+	tok.CreateAt = GetMillis() - PasskeyCeremonyExpiryTime - 1000
+	assert.True(t, tok.IsExpired())
 }
