@@ -185,7 +185,8 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 
 	t.Run("create field should succeed with PostAttributes flag", func(t *testing.T) {
 		field := &model.PropertyField{
-			Name:       model.NewId(),
+			// access_control names must be CEL identifiers, and an id can start with a digit.
+			Name:       "f_" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "system",
 		}
