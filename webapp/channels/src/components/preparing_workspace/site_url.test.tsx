@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import SiteUrl, {getHostHint, isValidSiteUrl, normalizeSiteUrl} from './site_url';
 import {Animations} from './steps';
@@ -231,27 +231,6 @@ describe('components/preparing_workspace/site_url', () => {
 
         expect(await screen.findByRole('button', {name: 'Continue'})).toBeEnabled();
         expect(screen.queryByText('Testing URL')).not.toBeInTheDocument();
-    });
-
-    test('treats a test that takes too long as failed', async () => {
-        jest.useFakeTimers();
-        try {
-            testSiteURL.mockReturnValue(new Promise(() => {}));
-            renderStep();
-
-            fireEvent.click(screen.getByRole('button', {name: 'Continue'}));
-            expect(screen.getByText('Testing URL')).toBeInTheDocument();
-
-            await act(async () => {
-                jest.advanceTimersByTime(10000);
-            });
-
-            expect(screen.getByText('Test unsuccessful. Mattermost couldn’t reach this URL.')).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Use anyway'})).toBeInTheDocument();
-            expect(next).not.toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
     });
 
     test('shows Use anyway when the test fails, and Use anyway advances', async () => {

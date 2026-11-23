@@ -31,9 +31,6 @@ const IPV4_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
 const HELP_ID = 'siteUrlHelp';
 const HINT_ID = 'siteUrlHint';
 
-// The server doesn't time out when it fetches the URL, so give up on the test after a while.
-const TEST_TIMEOUT = 10000;
-
 // Adds the browser's protocol when the URL has none, lowercases the scheme, and trims one trailing slash
 // like the server does.
 export function normalizeSiteUrl(input: string, protocol = window.location.protocol): string {
@@ -127,18 +124,12 @@ const SiteUrl = (props: Props) => {
         setStatus(SiteUrlStatuses.Testing);
         const run = ++testRun.current;
         let ok = true;
-        let timeout;
+
+        // The server gives up on the URL after 10 seconds, so the test always settles.
         try {
-            await Promise.race([
-                Client4.testSiteURL(normalizedUrl),
-                new Promise((resolve, reject) => {
-                    timeout = setTimeout(reject, TEST_TIMEOUT);
-                }),
-            ]);
+            await Client4.testSiteURL(normalizedUrl);
         } catch {
             ok = false;
-        } finally {
-            clearTimeout(timeout);
         }
         if (run !== testRun.current) {
             return;
