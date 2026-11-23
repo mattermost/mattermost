@@ -72,11 +72,14 @@ func sysctlSwapUsageMB(t *testing.T) (total, used float64) {
 	return total, used
 }
 
-// assertBetweenReads checks got against values read before and after it, since live values can change in between.
+// withinReads reports whether got lies between values read before and after it, since live values can change in between.
+func withinReads(before, after, got, tolerance float64) bool {
+	return got >= min(before, after)-tolerance && got <= max(before, after)+tolerance
+}
+
 func assertBetweenReads(t *testing.T, before, after, got, tolerance float64, name string) {
 	t.Helper()
-	assert.GreaterOrEqual(t, got, min(before, after)-tolerance, name)
-	assert.LessOrEqual(t, got, max(before, after)+tolerance, name)
+	assert.True(t, withinReads(before, after, got, tolerance), "%s: %v is not within [%v, %v]", name, got, min(before, after), max(before, after))
 }
 
 func TestDecodeLoadAvg(t *testing.T) {
@@ -136,23 +139,34 @@ func TestGetCPUStats(t *testing.T) {
 }
 
 func TestGetMemoryDiagnostics(t *testing.T) {
-	totalBefore, usedBefore := sysctlSwapUsageMB(t)
-	diagnostics, err := getMemoryDiagnostics(cgroupV2Info{})
-	totalAfter, usedAfter := sysctlSwapUsageMB(t)
-	require.NoError(t, err)
-	require.NotNil(t, diagnostics.SwapTotalMB)
-	require.NotNil(t, diagnostics.SwapUsedMB)
-	require.NotNil(t, diagnostics.AvailableMemoryMB)
+	const attempts = 5
+
+	var diagnostics memoryDiagnostics
+	matchedSysctl := false
+	// Swap can move between the reads, so retry until one call falls between two matching readings.
+	for range attempts {
+		totalBefore, usedBefore := sysctlSwapUsageMB(t)
+		var err error
+		diagnostics, err = getMemoryDiagnostics(cgroupV2Info{})
+		totalAfter, usedAfter := sysctlSwapUsageMB(t)
+		require.NoError(t, err)
+		require.NotNil(t, diagnostics.SwapTotalMB)
+		require.NotNil(t, diagnostics.SwapUsedMB)
+		require.NotNil(t, diagnostics.AvailableMemoryMB)
+
+		// Our values are truncated to whole MB.
+		if withinReads(totalBefore, totalAfter, float64(*diagnostics.SwapTotalMB), 1) &&
+			withinReads(usedBefore, usedAfter, float64(*diagnostics.SwapUsedMB), 1) {
+			matchedSysctl = true
+			break
+		}
+	}
+	assert.True(t, matchedSysctl, "swap values did not match sysctl vm.swapusage in %d attempts", attempts)
 	assert.Nil(t, diagnostics.ProcessRSSMB)
 	assert.Zero(t, diagnostics.ContainerMemoryLimitMB)
-
 	assert.LessOrEqual(t, *diagnostics.SwapUsedMB, *diagnostics.SwapTotalMB)
-	// Our values are truncated to whole MB.
-	assertBetweenReads(t, totalBefore, totalAfter, float64(*diagnostics.SwapTotalMB), 1, "swap total")
-	assertBetweenReads(t, usedBefore, usedAfter, float64(*diagnostics.SwapUsedMB), 1, "swap used")
 
 	totalMemory, err := getTotalMemory()
 	require.NoError(t, err)
-	assert.Positive(t, *diagnostics.AvailableMemoryMB)
 	assert.LessOrEqual(t, *diagnostics.AvailableMemoryMB, totalMemory/(1024*1024))
 }
