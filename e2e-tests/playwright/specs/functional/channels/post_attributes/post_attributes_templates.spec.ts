@@ -6,6 +6,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
+    GROUP,
+    HYDRATION_PARAM,
     OBJECT_TYPE,
     VALUES_ROUTE,
     addMember,
@@ -161,8 +163,18 @@ test('shows a masked value only to the user who holds it', {tag: '@post_attribut
     const b = await pw.testBrowser.login(userB);
 
     const open = async (session: typeof a) => {
+        // Arm before navigating, since the requests that matter are the ones the channel load
+        // makes. Without them, the no-chip assertions could pass on a page whose attribute
+        // data has not arrived yet.
+        const hydrated = session.page.waitForResponse((response) => response.url().includes(HYDRATION_PARAM));
+        const fieldsLoaded = session.page.waitForResponse((response) =>
+            response.url().includes(`/properties/groups/${GROUP}/${OBJECT_TYPE}/fields`),
+        );
+
         await session.channelsPage.goto(team.name, channel.name);
         await session.channelsPage.toBeVisible();
+        await Promise.all([hydrated, fieldsLoaded]);
+
         const onScreen = await session.channelsPage.centerView.getPostById(post.id);
         await expect(onScreen.container).toContainText(`masked ${suffix}`);
         return onScreen.container.getByTestId(CHIPS);
