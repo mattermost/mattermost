@@ -15,6 +15,7 @@ import {
     purgeFields,
     recordRequests,
     setPostValues,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -44,7 +45,7 @@ const TRANSPARENT = 'rgba(0, 0, 0, 0)';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders attribute chips on first paint without fetching values', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one system-scoped select field and set it on a post
@@ -93,7 +94,7 @@ test('renders attribute chips on first paint without fetching values', {tag: '@p
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('asks the posts endpoint to hydrate', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Arm the wait before the navigation that triggers the fetch
@@ -118,7 +119,7 @@ test('asks the posts endpoint to hydrate', {tag: '@post_attributes'}, async ({pw
  * it off for one browser only.
  */
 test('sends no parameter and draws no chips with the flag off', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field and set it, so the only reason no chip appears is the flag
@@ -175,7 +176,7 @@ test('sends no parameter and draws no chips with the flag off', {tag: '@post_att
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, then set it on both a root post and its reply
@@ -238,7 +239,7 @@ test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, 
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders two chips and a +1 badge for three set fields', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three ordered fields and set all three on one post
@@ -295,7 +296,7 @@ test('renders two chips and a +1 badge for three set fields', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chip for a field that is not set', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two fields and set only one of them
@@ -343,7 +344,7 @@ test('draws no chip for a field that is not set', {tag: '@post_attributes'}, asy
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('updates a chip when another session changes the value', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, set it, and open the channel
@@ -394,7 +395,7 @@ test('updates a chip when another session changes the value', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders every single-chip field type through its own renderer', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one field of each type that draws exactly one chip
@@ -496,7 +497,7 @@ test('renders every single-chip field type through its own renderer', {tag: '@po
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a multiselect and set two of its options on a post
@@ -561,7 +562,7 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws option chips in a neutral, whatever colour the option carries', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select carrying a palette colour, no colour, and a token nothing

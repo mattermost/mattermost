@@ -31,6 +31,7 @@ import {
     setPostValues,
     stageField,
     waitForCreatePost,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -52,7 +53,7 @@ function postWithMessage(scope: Locator, message: string) {
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('picks, sets and sends a select attribute', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -108,7 +109,7 @@ test('picks, sets and sends a select attribute', {tag: '@post_attributes'}, asyn
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('fills in and sends every kind of value control', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -254,7 +255,7 @@ test('fills in and sends every kind of value control', {tag: '@post_attributes'}
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('keeps staged chips in the order picked and lets them be changed', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -344,7 +345,7 @@ test('keeps staged chips in the order picked and lets them be changed', {tag: '@
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('removes a staged chip and does not send its value', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -420,7 +421,7 @@ test(
     'offers only the fields the user may set, with a search box from five',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -507,7 +508,7 @@ test.describe('in mobile view', () => {
      * @precondition The PostAttributes feature flag is enabled.
      */
     test('searches the field picker in mobile view', {tag: '@post_attributes'}, async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -584,7 +585,7 @@ test.describe('in mobile view', () => {
  * stay unstaged, so the case can only be proven on a clean server.
  */
 test('hides both add controls when every settable field is staged', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -636,7 +637,7 @@ test(
     'drops staged values on a channel or thread switch and keeps composers apart',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -730,7 +731,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('sends a reply with attributes', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -799,7 +800,7 @@ test('sends a reply with attributes', {tag: '@post_attributes'}, async ({pw}) =>
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('keeps staged values when a message becomes a reaction', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -859,7 +860,7 @@ test('keeps staged values when a message becomes a reaction', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('keeps staged values through a slash command', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -911,7 +912,7 @@ test('keeps staged values through a slash command', {tag: '@post_attributes'}, a
  * @precondition The PostAttributes feature flag is enabled and scheduled posts are on.
  */
 test('blocks scheduling while a value is staged', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -984,14 +985,14 @@ test('blocks scheduling while a value is staged', {tag: '@post_attributes'}, asy
  * burn-on-read: Enterprise Advanced, or Entry, which the webapp ranks alongside it.
  */
 test('keeps burn-on-read and attributes apart', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
     const suffix = pw.random.id();
     const created: PropertyField[] = [];
 
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
 
     const license = await adminClient.getClientLicenseOld();
     test.skip(
@@ -1082,7 +1083,7 @@ test('keeps burn-on-read and attributes apart', {tag: '@post_attributes'}, async
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('restores the message from a draft but not the staged values', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -1143,7 +1144,7 @@ test('restores the message from a draft but not the staged values', {tag: '@post
  * @precondition The PostAttributes feature flag is enabled and message priority is on.
  */
 test('sends values together with a file and a priority label', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -1225,7 +1226,7 @@ const ONE_PIXEL_PNG =
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('applies system fields in direct and group messages', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -1301,7 +1302,7 @@ test('applies system fields in direct and group messages', {tag: '@post_attribut
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('edits a message without touching its attributes', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -1382,7 +1383,7 @@ test('edits a message without touching its attributes', {tag: '@post_attributes'
  * Enterprise-level licence (Entry counts).
  */
 test('keeps the values on a post whose send was refused', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();

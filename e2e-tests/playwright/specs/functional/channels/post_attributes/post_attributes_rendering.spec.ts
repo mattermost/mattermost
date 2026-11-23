@@ -18,6 +18,7 @@ import {
     patchFieldAttrs,
     purgeFields,
     setPostValues,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -55,7 +56,7 @@ test(
     'orders chips by sort order then name on every post, and follows a reorder',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision four select fields. Two share a sort order, so only their names can
@@ -132,7 +133,7 @@ test(
     'cuts a multiselect that fills the row short and counts the rest in the badge',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision a multiselect that holds three entries, then a single select after it
@@ -194,7 +195,7 @@ test(
     'keeps always and hidden fields off the chips and the card but in the modal',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision one field per visibility level
@@ -289,7 +290,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('resolves channel, team and linked post values', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one text field per subtype
@@ -369,7 +370,7 @@ test('resolves channel, team and linked post values', {tag: '@post_attributes'},
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('caps a long text chip by width and keeps the full text in its title', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a text field and set a value far wider than a chip may be
@@ -413,7 +414,7 @@ test('caps a long text chip by width and keeps the full text in its title', {tag
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('drops a chip and its badge count when an option is deleted', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three select fields and set all three, so one lands in the badge
@@ -493,7 +494,7 @@ test('drops a chip and its badge count when an option is deleted', {tag: '@post_
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws a value on a field whose options are too many to send', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -539,7 +540,7 @@ test('draws a value on a field whose options are too many to send', {tag: '@post
  * @precondition The PostAttributes feature flag is enabled.
  */
 test("drops a deleted field's chips everywhere", {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two fields and set both on a thread root and on another post
@@ -603,7 +604,7 @@ test("drops a deleted field's chips everywhere", {tag: '@post_attributes'}, asyn
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chips on a deleted post', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, set it on a thread root that has a reply (so the deleted root
@@ -656,7 +657,7 @@ test('draws no chips on a burn-on-read post, concealed or revealed', {tag: '@pos
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // Before ensureLicense, which fails rather than skips when the server has no licence
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureLicense();
 
     // # Provision a field, and send a burn-on-read post to a second user in a DM. The
@@ -716,7 +717,7 @@ test('draws no chips on a burn-on-read post, concealed or revealed', {tag: '@pos
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chips on a system message', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, then make a system message by changing a channel's header

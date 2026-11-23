@@ -18,6 +18,7 @@ import {
     optionId,
     pickerItem,
     purgeFields,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -50,7 +51,7 @@ test(
     'lets the author and a channel admin set a console-created post field, not another member',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, adminUser, user: author, userClient: authorClient, team} = await pw.initSetup();

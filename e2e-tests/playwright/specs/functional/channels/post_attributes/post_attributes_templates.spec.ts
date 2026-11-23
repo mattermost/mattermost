@@ -22,6 +22,7 @@ import {
     optionId,
     purgeFields,
     setHolding,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -54,7 +55,7 @@ test.afterEach(async ({pw}) => {
  * Enterprise-level licence (Entry counts).
  */
 test('sets a value on a template-linked post field from the edit modal', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a template and a system post field linked to it
@@ -119,7 +120,7 @@ test('sets a value on a template-linked post field from the edit modal', {tag: '
  * and the server has an Enterprise-level licence (Entry counts).
  */
 test('shows a masked value only to the user who holds it', {tag: '@post_attributes'}, async ({pw}, testInfo) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a template, a holder user field and a post field, all linked, then turn

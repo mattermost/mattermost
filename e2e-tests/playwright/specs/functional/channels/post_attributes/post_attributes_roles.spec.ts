@@ -28,6 +28,7 @@ import {
     setPostValues,
     stageField,
     waitForCreatePost,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 // `GenericModal` renders `role='none'`, so the element id it forwards is the only stable
@@ -137,7 +138,7 @@ async function expectServerAccess(client: Client4, postId: string, fields: Level
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('locks the fields a member may not change on a post by another user', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -192,7 +193,7 @@ for (const {title, roles, editable} of ADMIN_ROLES) {
      * @precondition The PostAttributes feature flag is enabled.
      */
     test(`lets ${title} change the fields their role reaches`, {tag: '@post_attributes'}, async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
@@ -232,7 +233,7 @@ for (const {title, roles, editable} of ADMIN_ROLES) {
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('treats members of a direct and a group message as admins', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -283,10 +284,10 @@ test('treats members of a direct and a group message as admins', {tag: '@post_at
  * @precondition The PostAttributes feature flag is enabled, and the licence allows guest accounts.
  */
 test('does not make a guest an admin of a direct message', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
 
     const {adminClient, team} = await pw.initSetup();
     const restoreGuests = await enableGuestAccounts(adminClient);
@@ -329,10 +330,10 @@ test('does not make a guest an admin of a direct message', {tag: '@post_attribut
  * @precondition The PostAttributes feature flag is enabled, and the licence allows guest accounts.
  */
 test('lets a guest set member and creator fields on their own post', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
 
     const {adminClient, team} = await pw.initSetup();
     const restoreGuests = await enableGuestAccounts(adminClient);
@@ -422,7 +423,7 @@ test(
     'gives nobody a control for a field set to none, a system admin included',
     {tag: '@post_attributes'},
     async ({pw}) => {
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, userClient, team} = await pw.initSetup();

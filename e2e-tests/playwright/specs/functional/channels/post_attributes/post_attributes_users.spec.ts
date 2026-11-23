@@ -19,6 +19,7 @@ import {
     patchFieldAttrs,
     purgeFields,
     setPostValues,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -34,7 +35,7 @@ const TEXT_CHIP = 'text-property';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('shows a post and a reply from another user with their chips, live', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user: reader, team} = await pw.initSetup();
@@ -136,7 +137,7 @@ test('shows a post and a reply from another user with their chips, live', {tag: 
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('follows values added to and cleared from a post by another user', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user: reader, team} = await pw.initSetup();
@@ -207,7 +208,7 @@ test('follows values added to and cleared from a post by another user', {tag: '@
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('follows a field changing while a post by another user is on screen', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user: reader, team} = await pw.initSetup();

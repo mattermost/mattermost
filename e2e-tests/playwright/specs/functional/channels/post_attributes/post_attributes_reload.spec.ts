@@ -5,7 +5,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {HYDRATION_PARAM, createField, deleteFields, fieldName, optionId, purgeFields, setPostValues} from './support';
+import {HYDRATION_PARAM, createField, deleteFields, fieldName, optionId, purgeFields, setPostValues, skipIfNoPostAttributesLicense} from './support';
 
 const CHIPS = 'post-attributes-chips';
 
@@ -23,7 +23,7 @@ const CHIPS = 'post-attributes-chips';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('shows a value changed since the last load after a reload', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post

@@ -21,6 +21,7 @@ import {
     recordRequests,
     setPostValues,
     VALUES_ROUTE,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -44,7 +45,7 @@ const LOCKED_REASON = "You don't have permission to modify this attribute.";
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('changes a value by keyboard alone, and never tabs into the chip row', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     /*
@@ -181,7 +182,7 @@ test('changes a value by keyboard alone, and never tabs into the chip row', {tag
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('rewrites the chip behind the modal when an option is picked', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select field and set it on a post
@@ -251,7 +252,7 @@ test('rewrites the chip behind the modal when an option is picked', {tag: '@post
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('clears a value with the trash button, dropping chip and card row', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two set fields. The one being cleared is declared `always`, so its
@@ -369,7 +370,7 @@ test('clears a value with the trash button, dropping chip and card row', {tag: '
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('locks a field the user may not write, with a padlock and no way in', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three fields across the permission levels that matter here: one the
@@ -456,7 +457,7 @@ test('locks a field the user may not write, with a padlock and no way in', {tag:
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('updates an open modal when another session changes the value', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select field and set it on a post
@@ -517,7 +518,7 @@ test('updates an open modal when another session changes the value', {tag: '@pos
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('opens the modal on a post with no values, listing always fields', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one `always` field and one that only appears once set. Neither is
@@ -600,7 +601,7 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('adds an attribute from the picker and gives it a first value', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     /*
@@ -763,7 +764,7 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
  * `PW_WORKERS: 1` and starts clean.
  */
 test('omits the field picker when every field already has a row', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one `always` field, and nothing else. It is a `select` writable by
