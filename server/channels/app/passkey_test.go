@@ -37,6 +37,17 @@ func savePasskey(t *testing.T, th *TestHelper, userID, name string, createAt int
 	return saved
 }
 
+// recentSession returns a session that just signed in with a password, which is what
+// passkey registration requires.
+func recentSession(userID string) *model.Session {
+	return &model.Session{
+		Id:       model.NewId(),
+		UserId:   userID,
+		CreateAt: model.GetMillis(),
+		Props:    model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard},
+	}
+}
+
 func TestGetPasskeysForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -158,15 +169,6 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
 	})
 
-	freshSession := func(userID string) *model.Session {
-		return &model.Session{
-			Id:       model.NewId(),
-			UserId:   userID,
-			CreateAt: model.GetMillis(),
-			Props:    model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard},
-		}
-	}
-
 	// creation mirrors the parts of the library's creation options the tests inspect.
 	type creation struct {
 		PublicKey struct {
@@ -207,7 +209,7 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 
 	t.Run("fresh standard session gets options and a stored ceremony", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 
 		opts, c := begin(t, session)
 
@@ -234,7 +236,7 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 		user := th.CreateUser(t)
 		existing := savePasskey(t, th, user.Id, "existing", model.GetMillis())
 
-		_, c := begin(t, freshSession(user.Id))
+		_, c := begin(t, recentSession(user.Id))
 
 		require.Len(t, c.PublicKey.ExcludeCredentials, 1)
 		require.Equal(t, base64.RawURLEncoding.EncodeToString(existing.CredentialId), c.PublicKey.ExcludeCredentials[0].ID)
@@ -243,38 +245,38 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 
 	t.Run("display name is the full name, else the username", func(t *testing.T) {
 		user := th.CreateUser(t)
-		_, c := begin(t, freshSession(user.Id))
+		_, c := begin(t, recentSession(user.Id))
 		require.Equal(t, user.Username, c.PublicKey.User.DisplayName)
 
 		named := th.CreateUser(t)
 		named.FirstName, named.LastName = "Ada", "Lovelace"
 		_, appErr := th.App.UpdateUser(th.Context, named, false)
 		require.Nil(t, appErr)
-		_, c = begin(t, freshSession(named.Id))
+		_, c = begin(t, recentSession(named.Id))
 		require.Equal(t, "Ada Lovelace", c.PublicKey.User.DisplayName)
 	})
 
 	t.Run("session older than the window is refused", func(t *testing.T) {
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		session.CreateAt = model.GetMillis() - 11*60*1000
 		requireFails(t, session, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
 	})
 
 	t.Run("session without a login method is refused", func(t *testing.T) {
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		session.Props = nil
 		requireFails(t, session, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
 	})
 
 	t.Run("passkey login method is refused", func(t *testing.T) {
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		session.Props[model.SessionPropLoginMethod] = "passkey"
 		requireFails(t, session, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
 	})
 
 	t.Run("bot is refused", func(t *testing.T) {
 		bot := th.CreateBot(t)
-		requireFails(t, freshSession(bot.UserId), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+		requireFails(t, recentSession(bot.UserId), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
 	})
 
 	t.Run("remote user is refused", func(t *testing.T) {
@@ -282,7 +284,7 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET RemoteId = ? WHERE Id = ?`, model.NewId(), user.Id)
 		require.NoError(t, err)
 		th.App.InvalidateCacheForUser(user.Id)
-		requireFails(t, freshSession(user.Id), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+		requireFails(t, recentSession(user.Id), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
 	})
 
 	t.Run("user at the passkey limit is refused", func(t *testing.T) {
@@ -290,14 +292,14 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 		for i := range model.PasskeyMaxPerUser {
 			savePasskey(t, th, user.Id, fmt.Sprintf("key %d", i), model.GetMillis())
 		}
-		requireFails(t, freshSession(user.Id), http.StatusBadRequest, "app.passkey.limit_reached.app_error")
+		requireFails(t, recentSession(user.Id), http.StatusBadRequest, "app.passkey.limit_reached.app_error")
 	})
 
 	t.Run("internationalized Site URL gives an ASCII relying party ID", func(t *testing.T) {
 		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://bücher.example"
 		})
-		_, c := begin(t, freshSession(th.CreateUser(t).Id))
+		_, c := begin(t, recentSession(th.CreateUser(t).Id))
 		require.Equal(t, "xn--bcher-kva.example", c.PublicKey.RP.ID)
 	})
 
@@ -305,7 +307,7 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = ""
 		})
-		requireFails(t, freshSession(th.CreateUser(t).Id), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
+		requireFails(t, recentSession(th.CreateUser(t).Id), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
 	})
 }
 
@@ -318,14 +320,6 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	const origin = "http://localhost:8065"
 	const chromeOnMac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-	freshSession := func(userID string) *model.Session {
-		return &model.Session{
-			Id:       model.NewId(),
-			UserId:   userID,
-			CreateAt: model.GetMillis(),
-			Props:    model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard},
-		}
-	}
 	begin := func(t *testing.T, session *model.Session) *model.PasskeyRegistrationOptions {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
@@ -360,7 +354,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("begin then finish stores the passkey with the begin handle", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		auth := newAuthenticator(t)
 
@@ -394,7 +388,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("empty name defaults to the browser and OS of the request", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "  ", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
@@ -404,7 +398,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("empty name with an unknown browser is Passkey", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "", "", respond(t, newAuthenticator(t), opts, origin))
@@ -414,7 +408,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("too long name is refused without using up the ceremony", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		resp := respond(t, newAuthenticator(t), opts, origin)
 
@@ -428,7 +422,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("a ceremony can only be finished once", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		resp := respond(t, newAuthenticator(t), opts, origin)
 
@@ -441,7 +435,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	})
 
 	t.Run("unknown ceremony is refused", func(t *testing.T) {
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, model.NewId(), "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
@@ -450,9 +444,9 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("a ceremony begun in another session of the same user is refused", func(t *testing.T) {
 		user := th.CreateUser(t)
-		began := freshSession(user.Id)
+		began := recentSession(user.Id)
 		opts := begin(t, began)
-		other := freshSession(user.Id)
+		other := recentSession(user.Id)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, other, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
@@ -460,9 +454,9 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	})
 
 	t.Run("a ceremony begun by another user is refused", func(t *testing.T) {
-		began := freshSession(th.CreateUser(t).Id)
+		began := recentSession(th.CreateUser(t).Id)
 		opts := begin(t, began)
-		attacker := freshSession(th.CreateUser(t).Id)
+		attacker := recentSession(th.CreateUser(t).Id)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, attacker, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
@@ -470,7 +464,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("expired ceremony is refused", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-6*60*1000, opts.CeremonyId)
 		require.NoError(t, err)
@@ -482,7 +476,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("the session that began the ceremony must still be a recent sign-in", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		aged := *session
 		aged.CreateAt = model.GetMillis() - 11*60*1000
@@ -493,7 +487,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	})
 
 	t.Run("garbage credential is refused", func(t *testing.T) {
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, []byte(`{"id":`))
@@ -502,7 +496,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("authenticator that did not verify the user is refused", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin, testlib.WithoutUserVerification()))
@@ -512,7 +506,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("wrong origin is refused", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, "http://evil.example"))
@@ -531,7 +525,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("sends the passkey added email once after a successful registration", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		mockSvc := mockEmail(t)
 		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
@@ -545,7 +539,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("an email failure does not fail the registration", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		opts := begin(t, session)
 		mockSvc := mockEmail(t)
 		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "a").Return(errors.New("smtp down")).Once()
@@ -558,7 +552,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	})
 
 	t.Run("no email is sent for a refused registration", func(t *testing.T) {
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		opts := begin(t, session)
 		mockSvc := mockEmail(t)
 
@@ -569,7 +563,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 	t.Run("the same authenticator cannot be registered twice", func(t *testing.T) {
 		user := th.CreateUser(t)
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		auth := newAuthenticator(t)
 
 		opts := begin(t, session)
@@ -588,7 +582,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		for i := range model.PasskeyMaxPerUser - 1 {
 			savePasskey(t, th, user.Id, fmt.Sprintf("key %d", i), model.GetMillis())
 		}
-		session := freshSession(user.Id)
+		session := recentSession(user.Id)
 		first, second := begin(t, session), begin(t, session)
 
 		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, first.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), first, origin))
@@ -603,7 +597,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://bücher.example"
 		})
-		session := freshSession(th.CreateUser(t).Id)
+		session := recentSession(th.CreateUser(t).Id)
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, "https://xn--bcher-kva.example"))
