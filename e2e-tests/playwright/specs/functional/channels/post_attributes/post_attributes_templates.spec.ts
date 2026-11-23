@@ -162,10 +162,15 @@ test('shows a masked value only to the user who holds it', {tag: '@post_attribut
     const a = await pw.testBrowser.login(userA);
     const b = await pw.testBrowser.login(userB);
 
+    const alphaId = optionId(postField, 'Alpha');
+
+    // Opens the channel and returns the post's chip row and the values the server hydrated
+    // onto it. The no-chip assertions are only meaningful if the attribute data arrived, so
+    // both requests are waited for and checked, not just matched by URL: a failed request
+    // would also leave the chip row empty.
     const open = async (session: typeof a) => {
         // Arm before navigating, since the requests that matter are the ones the channel load
-        // makes. Without them, the no-chip assertions could pass on a page whose attribute
-        // data has not arrived yet.
+        // makes
         const hydrated = session.page.waitForResponse((response) => response.url().includes(HYDRATION_PARAM));
         const fieldsLoaded = session.page.waitForResponse((response) =>
             response.url().includes(`/properties/groups/${GROUP}/${OBJECT_TYPE}/fields`),
@@ -173,21 +178,36 @@ test('shows a masked value only to the user who holds it', {tag: '@post_attribut
 
         await session.channelsPage.goto(team.name, channel.name);
         await session.channelsPage.toBeVisible();
-        await Promise.all([hydrated, fieldsLoaded]);
+        const [hydratedResponse, fieldsResponse] = await Promise.all([hydrated, fieldsLoaded]);
+
+        // * Verify both requests succeeded and the post field's definition arrived
+        expect(hydratedResponse.ok()).toBe(true);
+        expect(fieldsResponse.ok()).toBe(true);
+        const fields = (await fieldsResponse.json()) as PropertyField[];
+        expect(fields.map((field) => field.id)).toContain(postField.id);
+
+        // * Verify the hydrated response carries the post, so an empty value list means the
+        // value was withheld and not that the post was missing
+        const hydratedPost = (await hydratedResponse.json()).posts?.[post.id];
+        expect(hydratedPost).toBeDefined();
+        expect(hydratedPost.metadata.property_values_unavailable).toBe(false);
+        const values = (hydratedPost.metadata.property_values ?? []) as Array<{value: unknown}>;
 
         const onScreen = await session.channelsPage.centerView.getPostById(post.id);
         await expect(onScreen.container).toContainText(`masked ${suffix}`);
-        return onScreen.container.getByTestId(CHIPS);
+        return {chips: onScreen.container.getByTestId(CHIPS), values: values.map((entry) => entry.value)};
     };
 
-    // * Verify A, who holds Alpha, sees the chip
-    const chipsA = await open(a);
-    await expect(chipsA.getByTestId(OPTION_CHIP)).toHaveText('Alpha');
+    // * Verify A, who holds Alpha, is sent the value and sees the chip
+    const openedA = await open(a);
+    expect(openedA.values).toContain(alphaId);
+    await expect(openedA.chips.getByTestId(OPTION_CHIP)).toHaveText('Alpha');
     await testInfo.attach('user-a-sees-chip', {body: await a.page.screenshot(), contentType: 'image/png'});
 
-    // * Verify B, who holds nothing, sees the post and no chip
-    const chipsB = await open(b);
-    await expect(chipsB).toHaveCount(0);
+    // * Verify B, who holds nothing, sees the post, is not sent the value and sees no chip
+    const openedB = await open(b);
+    expect(openedB.values).not.toContain(alphaId);
+    await expect(openedB.chips).toHaveCount(0);
     await testInfo.attach('user-b-no-chip', {body: await b.page.screenshot(), contentType: 'image/png'});
 
     // # B is given Alpha and A is moved to Bravo, then both reload
@@ -197,9 +217,11 @@ test('shows a masked value only to the user who holds it', {tag: '@post_attribut
     await b.page.reload();
 
     // * Verify the chip followed the holdings: B sees it now, A no longer does
-    const chipsBAfter = await open(b);
-    await expect(chipsBAfter.getByTestId(OPTION_CHIP)).toHaveText('Alpha');
+    const openedBAfter = await open(b);
+    expect(openedBAfter.values).toContain(alphaId);
+    await expect(openedBAfter.chips.getByTestId(OPTION_CHIP)).toHaveText('Alpha');
 
-    const chipsAAfter = await open(a);
-    await expect(chipsAAfter).toHaveCount(0);
+    const openedAAfter = await open(a);
+    expect(openedAAfter.values).not.toContain(alphaId);
+    await expect(openedAAfter.chips).toHaveCount(0);
 });
