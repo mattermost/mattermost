@@ -231,10 +231,16 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		if len(bytes.TrimSpace(item.Value)) == 0 {
 			return nil, nil, invalid("missing value")
 		}
-		// The property hook runs the same check when the values are stored, but by then the
-		// post exists and a failure removes it again, attachments included.
+		// The property hook runs the same checks when the values are stored, but by then the
+		// post exists and a failure removes it again. Its files are attached only after the
+		// values are written, so they survive unattached and a retry can reuse them.
 		if err := model.ValidatePropertyValueForFieldType(field.Type, item.Value); err != nil {
 			return nil, nil, invalid("value does not fit the field type")
+		}
+		if field.Type == model.PropertyFieldTypeText {
+			if err := model.ValidatePropertyTextValue(field, item.Value); err != nil {
+				return nil, nil, invalid("text value is not valid for the field")
+			}
 		}
 
 		seen[item.FieldID] = true

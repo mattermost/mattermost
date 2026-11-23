@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -348,6 +349,47 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 
 	t.Run("a well-formed but nonexistent field id is refused", func(t *testing.T) {
 		th.refuseInvalidAttribute(t, th.BasicChannel.Id, nil, submittedPropertyValue(model.NewId(), `"x"`))
+	})
+
+	// The access_control hook refuses a text value over the cap too, but only once the post is
+	// saved, which then has to be deleted again. Checked before the save, the refusal comes back as
+	// an invalid attribute and the uploaded file stays, unattached, for a retry to reuse.
+	t.Run("a text value over the length cap is refused before the post is saved", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		uploaded, _, err := th.Client.UploadFile(context.Background(), []byte("attachment"), th.BasicChannel.Id, "attachment.txt")
+		require.NoError(t, err)
+		require.Len(t, uploaded.FileInfos, 1)
+		fileID := uploaded.FileInfos[0].Id
+
+		post := postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"`+strings.Repeat("a", model.PropertyFieldValueTypeTextMaxLength+1)+`"`))
+		post.FileIds = model.StringArray{fileID}
+
+		_, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.invalid_attribute.app_error")
+		require.NotContains(t, err.Error(), field.Name)
+
+		posts, _, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		for _, p := range posts.Posts {
+			assert.NotEqual(t, post.Message, p.Message, "the refused post was saved")
+		}
+
+		info, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Empty(t, info.PostId)
+		assert.Zero(t, info.DeleteAt)
+
+		post.Metadata.PropertyValues = []*model.PropertyValue{
+			submittedPropertyValue(field.ID, `"`+strings.Repeat("a", model.PropertyFieldValueTypeTextMaxLength)+`"`),
+		}
+		created, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, model.StringArray{fileID}, created.FileIds)
 	})
 
 	// The author wrote the value, so the response gives it back even where the field doesn't let

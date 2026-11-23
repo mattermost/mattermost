@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -1499,6 +1500,44 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 
 	t.Run("an entry with a blank value is refused", func(t *testing.T) {
 		requireInvalid(t, submitted(channelField.ID, "  "))
+	})
+
+	// The access_control hook would refuse these too, but only after the post is saved, so
+	// they have to be caught here.
+	t.Run("a text value over the length cap is refused", func(t *testing.T) {
+		requireInvalid(t, submitted(channelField.ID, `"`+strings.Repeat("a", model.PropertyFieldValueTypeTextMaxLength+1)+`"`))
+	})
+
+	t.Run("a text value at the length cap goes through", func(t *testing.T) {
+		values, _, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+			submitted(channelField.ID, `"`+strings.Repeat("a", model.PropertyFieldValueTypeTextMaxLength)+`"`),
+		}, th.BasicChannel)
+		require.NoError(t, err)
+		require.Len(t, values, 1)
+	})
+
+	t.Run("a non-string value for a text field is refused", func(t *testing.T) {
+		requireInvalid(t, submitted(channelField.ID, `42`))
+	})
+
+	t.Run("a text value that does not fit the field's value_type is refused", func(t *testing.T) {
+		emailField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyFieldAttrValueType: model.PropertyFieldValueTypeEmail},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		requireInvalid(t, submitted(emailField.ID, `"not-an-email"`))
+
+		values, _, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+			submitted(emailField.ID, `"someone@example.com"`),
+		}, th.BasicChannel)
+		require.NoError(t, err)
+		require.Len(t, values, 1)
 	})
 
 	// One subtest per server-owned field rather than a loop, so a regression in handling any one

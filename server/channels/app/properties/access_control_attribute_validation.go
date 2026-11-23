@@ -1011,19 +1011,7 @@ func optionNamesByID(field *model.PropertyField) (map[string]string, error) {
 func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) ([]string, error) {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
-		var str string
-		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return nil, fmt.Errorf("expected string value: %w", err)
-		}
-		if len(strings.TrimSpace(str)) > model.PropertyFieldValueTypeTextMaxLength {
-			return nil, fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
-		}
-
-		valueType := model.GetPropertyFieldValueType(field)
-		if valueType == "" {
-			return nil, nil
-		}
-		return nil, model.ValidatePropertyValueForValueType(valueType, value.Value)
+		return nil, model.ValidatePropertyTextValue(field, value.Value)
 
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var str string
