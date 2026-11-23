@@ -1210,6 +1210,22 @@ describe('rhs view actions', () => {
             expect(actions[0].previousRhsState).toBeUndefined();
         });
 
+        it('emits preservePreviousRhsStates so search → thread → entity → X keeps search under the thread', async () => {
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
+            testState.views.rhs.previousSelectedPostId = previousSelectedPost.id;
+            testState.views.rhs.previousRhsStates = [RHSStates.SEARCH as RhsState];
+            const entityStore = mockStore(testState);
+
+            await entityStore.dispatch(closeEntity());
+
+            expect(entityStore.getActions()[0]).toMatchObject({
+                type: ActionTypes.SELECT_POST,
+                preservePreviousRhsStates: true,
+            });
+            expect(entityStore.getActions()[0].previousRhsState).toBeUndefined();
+        });
+
         it('closes the RHS when nothing was underneath', async () => {
             const testState = cloneDeep(initialState);
             testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
