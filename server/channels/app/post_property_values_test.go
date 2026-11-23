@@ -1162,7 +1162,7 @@ func TestUpdatePostDropsPropertyValues(t *testing.T) {
 		t.Run("PostAttributes "+strconv.FormatBool(flagEnabled), func(t *testing.T) {
 			th := setupPropertyValuesCreateTest(t, flagEnabled)
 			th.asUser(t, th.BasicUser.Id)
-			field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+			field := th.createField(t, "sensitivity")
 			post := th.post(t, th.BasicChannel)
 			th.setValue(t, post, field, `"public"`)
 
@@ -1206,7 +1206,7 @@ func TestUpdatePostDropsPropertyValues(t *testing.T) {
 			stored, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
 				TargetType: model.PropertyValueTargetTypePost,
 				TargetIDs:  []string{post.Id},
-				PerPage:    model.PostAttributesMaxApplicableFields + 1,
+				PerPage:    model.PostAttributesMaxFields + 1,
 			})
 			require.Nil(t, appErr)
 			require.Len(t, stored, 1)
