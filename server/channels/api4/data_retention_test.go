@@ -1428,6 +1428,7 @@ func TestDataRetentionDeniedMutationAuditRecord(t *testing.T) {
 	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
+	defer logFile.Close()
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
