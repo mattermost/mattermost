@@ -91,7 +91,7 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
             properties: {
                 fields: {byId, byObjectType: {post: {[GROUP_ID]: byId}}},
                 values: {byTargetId, byFieldId: {}},
-                groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'post_attributes'}}, byName: {post_attributes: {id: GROUP_ID, name: 'post_attributes'}}},
+                groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}}, byName: {access_control: {id: GROUP_ID, name: 'access_control'}}},
             },
         },
     };

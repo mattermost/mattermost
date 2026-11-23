@@ -30,7 +30,7 @@ import {imageURLForUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {canEditPostAttributeValue, isChannelPropertyAdmin} from './permissions';
+import {canEditPostAttributeValue, getCurrentUserSystemRoles, isChannelPropertyAdmin} from './permissions';
 import PostAttributesFieldPicker from './post_attributes_field_picker';
 import PostAttributesModalRow from './post_attributes_modal_row';
 import {hasPostAttributeContent, useAddableAttributes, useModalAttributes} from './utils';
@@ -54,6 +54,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
 
     const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentUserId = useSelector(getCurrentUserId);
+    const currentUserRoles = useSelector(getCurrentUserSystemRoles);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
 
     const author = useUser(post.user_id);
@@ -96,8 +97,8 @@ export default function PostAttributesModal({post, onExited}: Props) {
      */
     const canEdit = useCallback(
         (field: PropertyField) =>
-            canEditPostAttributeValue(field, post, currentUserId, isSystemAdmin, isChannelAdmin),
-        [post, currentUserId, isSystemAdmin, isChannelAdmin],
+            canEditPostAttributeValue(field, post, currentUserId, currentUserRoles, isSystemAdmin, isChannelAdmin),
+        [post, currentUserId, currentUserRoles, isSystemAdmin, isChannelAdmin],
     );
 
     const addable = useAddableAttributes(fields, values, added, canEdit);
