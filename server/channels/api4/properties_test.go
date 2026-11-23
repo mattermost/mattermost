@@ -5648,7 +5648,6 @@ func TestPatchPropertyValues(t *testing.T) {
 		// not theirs; this post is.
 		ownPost, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "mine"})
 		require.NoError(t, err)
-		targetID := ownPost.Id
 
 		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
 			Name:       model.NewId(),
@@ -5665,13 +5664,13 @@ func TestPatchPropertyValues(t *testing.T) {
 		// Another member of the post's channel is refused: at member they would not be.
 		otherMember := th.CreateClient()
 		th.LoginBasic2WithClient(t, otherMember)
-		_, resp, err = otherMember.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+		_, resp, err = otherMember.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, []model.PropertyValuePatchItem{
 			{FieldID: created.ID, Value: json.RawMessage(`"not mine"`)},
 		})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, []model.PropertyValuePatchItem{
 			{FieldID: created.ID, Value: json.RawMessage(`"annotated"`)},
 		})
 		require.NoError(t, err)
@@ -5690,7 +5689,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.Equal(t, model.PermissionLevelSysadmin, *sysadminValues.PermissionValues)
 
-		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, []model.PropertyValuePatchItem{
 			{FieldID: sysadminValues.ID, Value: json.RawMessage(`"annotated"`)},
 		})
 		require.Error(t, err)
