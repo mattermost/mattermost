@@ -88,6 +88,8 @@ func TestDoSecurityUpdateCheck(t *testing.T) {
 	})
 
 	t.Run("emails admins and marks a bulletin for the running version as seen", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-72159")
+
 		th := setup(t)
 		th.ConfigureInbucketMail()
 		require.NoError(t, mail.DeleteMailBox(th.SystemAdminUser.Email))

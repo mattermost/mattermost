@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"maps"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -191,6 +192,95 @@ func TestGetLatestVersion(t *testing.T) {
 		require.NoError(t, th.App.clearLatestVersionCache())
 		assertDisabled(t)
 		assert.Equal(t, int32(1), requests.Load())
+	})
+}
+
+// Not parallel: overrides the package-level testSiteURLTimeout.
+func TestTestSiteURL(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("valid site URL", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/api/v4/system/ping", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("non-200 response fails", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("not found"))
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "status_code=404", appErr.DetailedError)
+	})
+
+	t.Run("non-200 response with a stalled body fails without waiting for the body", func(t *testing.T) {
+		release := make(chan struct{})
+		connClosed := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Length", "100")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("partial"))
+			w.(http.Flusher).Flush()
+			select {
+			case <-r.Context().Done():
+				close(connClosed)
+			case <-release:
+			}
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, "status_code=503", appErr.DetailedError)
+		assert.Less(t, elapsed, testSiteURLTimeout/2)
+
+		select {
+		case <-connClosed:
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "response body was not closed")
+		}
+	})
+
+	t.Run("server that never responds times out", func(t *testing.T) {
+		originalTimeout := testSiteURLTimeout
+		testSiteURLTimeout = 200 * time.Millisecond
+		defer func() { testSiteURLTimeout = originalTimeout }()
+
+		release := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			<-release
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		var netErr net.Error
+		require.ErrorAs(t, appErr.Unwrap(), &netErr)
+		assert.True(t, netErr.Timeout())
+		assert.GreaterOrEqual(t, elapsed, testSiteURLTimeout)
+		assert.Less(t, elapsed, 5*time.Second)
 	})
 }
 

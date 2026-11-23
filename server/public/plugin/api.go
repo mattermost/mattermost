@@ -1979,6 +1979,46 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
+
+	// RegisterEntityType registers a type owned by the calling plugin. Its id
+	// is the plugin id, a colon, and the name. Registration is idempotent: the
+	// same name replaces the previous display name.
+	// Returns an error with id EntitiesDisabledError when entities are off.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityType(t *model.EntityType) *model.AppError
+
+	// RegisterEntityMatcher registers a RE2 pattern for a built-in type or a
+	// type this plugin registered. Registration is idempotent for the same
+	// matcher name.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError
+
+	// UnregisterEntityMatcher removes one matcher this plugin registered, by name.
+	//
+	// Minimum server version: 12.2
+	UnregisterEntityMatcher(name string) *model.AppError
+
+	// RegisterEntityProvider registers this plugin as a source of cards or
+	// links for types it is allowed to provide. HasCard asks the server to
+	// call EntityLookup when a reader opens a value of that type. The request
+	// always names the caller. A post id means the server has already checked
+	// that the caller can read the post. No post id means the plugin decides,
+	// and only a value an unscoped matcher accepts is asked. A scoped matcher
+	// is not enough. A glossary term with no matching pattern is not asked.
+	// A shared card stored for a post must not
+	// depend on the caller. Use cache "user" or "none" when it does.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityProvider(p *model.EntityProvider) *model.AppError
+
+	// RegisterEntityTerms replaces the exact tokens this plugin contributes
+	// to one type it owns, given by name. Each term is an autolink: the hover
+	// shows Title and URL. An empty list clears the type.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

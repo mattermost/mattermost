@@ -1923,3 +1923,38 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityType(t)
+	api.recordTime(startTime, "RegisterEntityType", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityMatcher(m)
+	api.recordTime(startTime, "RegisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterEntityMatcher(name string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterEntityMatcher(name)
+	api.recordTime(startTime, "UnregisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityProvider(p)
+	api.recordTime(startTime, "RegisterEntityProvider", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityTerms(typeName, terms)
+	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
+	return _returnsA
+}

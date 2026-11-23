@@ -7,7 +7,9 @@ import type {Dispatch} from 'redux';
 
 import {getHealthFindings, muteHealthFinding, unmuteHealthFinding} from 'mattermost-redux/actions/health';
 import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
+import {Permissions} from 'mattermost-redux/constants';
 import {getFindings, getLastEvaluatedAt, getMutedFindings} from 'mattermost-redux/selectors/entities/health';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store';
 
@@ -18,6 +20,7 @@ function mapStateToProps(state: GlobalState) {
         findings: getFindings(state),
         mutedFindings: getMutedFindings(state),
         lastEvaluatedAt: getLastEvaluatedAt(state),
+        canManage: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
         jobs: state.entities.jobs.jobs,
     };
 }

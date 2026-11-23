@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 
@@ -389,7 +390,8 @@ func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.
 		value.UpdatedBy = channel.CreatorId
 	}
 
-	_, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	markedCtx := properties.WithWriteMarker(rctxWithSessionCallerID(rctx), properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id})
+	_, appErr := a.UpsertPropertyValues(markedCtx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
 	if appErr == nil {
 		return nil
 	}
@@ -4855,7 +4857,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 		// Get user's categories for this team
 		categories, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, channel.TeamId)
 		if err != nil {
-			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
+			rctx.Logger().Error("Failed to get sidebar categories", mlog.String("target_user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
 			return
 		}
 		// Find or create the category
@@ -4902,7 +4904,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			}
 			_, err = a.CreateSidebarCategory(rctx, userID, channel.TeamId, targetCategory)
 			if err != nil {
-				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+				rctx.Logger().Error("Failed to create default category", mlog.String("target_user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
 		} else {
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
@@ -4912,7 +4914,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 		// Add channel to existing category
 		_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, categoriesToUpdate)
 		if err != nil {
-			mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			rctx.Logger().Error("Failed to update default category", mlog.String("target_user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 		}
 	}
 }
