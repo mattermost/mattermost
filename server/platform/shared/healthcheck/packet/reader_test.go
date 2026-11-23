@@ -339,6 +339,17 @@ func TestReadJobSummary(t *testing.T) {
 		assert.False(t, ok)
 	})
 
+	t.Run("an empty job summary is collected", func(t *testing.T) {
+		files := fixtureFiles(t, "ha")
+		files[model.SupportPacketJobsFileName] = []byte("job_summary: {}\n")
+		s := readFiles(t, files).Snapshot
+
+		assert.True(t, s.Has(model.SectionJobSummary))
+		summary, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.True(t, ok)
+		assert.Nil(t, summary)
+	})
+
 	t.Run("an unparsable jobs.yaml records no job summary", func(t *testing.T) {
 		files := fixtureFiles(t, "ha")
 		files[model.SupportPacketJobsFileName] = []byte("job_summary: [")

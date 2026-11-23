@@ -283,13 +283,13 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.SupportPacketJob
 // jobSummaryWindow is the period SupportPacketJobTypeSummary.RunsCreated and RunsFailed count runs over.
 const jobSummaryWindow = 30 * 24 * time.Hour
 
-func (a *App) getSupportPacketJobSummary(rctx request.CTX) (map[string]*model.SupportPacketJobTypeSummary, error) {
+func (a *App) getSupportPacketJobSummary(rctx request.CTX) (model.SupportPacketJobSummary, error) {
 	rows, err := a.Srv().Store().Job().GetTypeSummaries(rctx, time.Now().Add(-jobSummaryWindow).UnixMilli())
 	if err != nil {
 		return nil, errors.Wrap(err, "error while getting the job summary")
 	}
 
-	summary := make(map[string]*model.SupportPacketJobTypeSummary, len(rows))
+	summary := make(model.SupportPacketJobSummary, len(rows))
 	for _, row := range rows {
 		summary[row.Type] = &model.SupportPacketJobTypeSummary{
 			LastRunID:       row.LastRunID,

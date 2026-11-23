@@ -231,8 +231,16 @@ type SupportPacketJobList struct {
 
 	// JobSummary maps each job type with runs in the Jobs table to a summary of them.
 	// Types removed by job cleanup (CleanupJobsThresholdDays) are not listed.
-	// Absent when not collected.
-	JobSummary map[string]*SupportPacketJobTypeSummary `yaml:"job_summary,omitempty"`
+	// Absent when not collected; empty when collected from an empty Jobs table.
+	JobSummary SupportPacketJobSummary `yaml:"job_summary,omitempty"`
+}
+
+// SupportPacketJobSummary maps a job type to a summary of its runs.
+type SupportPacketJobSummary map[string]*SupportPacketJobTypeSummary
+
+// IsZero makes omitempty drop only a nil summary, so an empty one is still written as collected.
+func (s SupportPacketJobSummary) IsZero() bool {
+	return s == nil
 }
 
 // SupportPacketJobTypeSummary summarizes the runs of one job type. All timestamps are the runs' CreateAt in epoch milliseconds.

@@ -700,21 +700,25 @@ func TestGetSupportPacketJobList(t *testing.T) {
 	})
 }
 
-// failingJobSummaryStore fails only the job summary query.
-type failingJobSummaryStore struct {
+// stubJobSummaryStore replaces only the result of the job summary query.
+type stubJobSummaryStore struct {
 	store.Store
+	rows []*store.JobTypeSummary
+	err  error
 }
 
-func (s failingJobSummaryStore) Job() store.JobStore {
-	return failingJobSummaryJobStore{s.Store.Job()}
+func (s stubJobSummaryStore) Job() store.JobStore {
+	return stubJobSummaryJobStore{s.Store.Job(), s.rows, s.err}
 }
 
-type failingJobSummaryJobStore struct {
+type stubJobSummaryJobStore struct {
 	store.JobStore
+	rows []*store.JobTypeSummary
+	err  error
 }
 
-func (failingJobSummaryJobStore) GetTypeSummaries(request.CTX, int64) ([]*store.JobTypeSummary, error) {
-	return nil, errors.New("job summary query failed")
+func (s stubJobSummaryJobStore) GetTypeSummaries(request.CTX, int64) ([]*store.JobTypeSummary, error) {
+	return s.rows, s.err
 }
 
 func TestSupportPacketJobSummary(t *testing.T) {
@@ -779,7 +783,7 @@ func TestSupportPacketJobSummary(t *testing.T) {
 
 	t.Run("a failed summary query leaves the job lists and omits the summary", func(t *testing.T) {
 		original := th.App.Srv().Store()
-		th.App.Srv().SetStore(failingJobSummaryStore{original})
+		th.App.Srv().SetStore(stubJobSummaryStore{Store: original, err: errors.New("job summary query failed")})
 		t.Cleanup(func() { th.App.Srv().SetStore(original) })
 
 		jobs, body, files := readJobsFile(t)
@@ -795,6 +799,18 @@ func TestSupportPacketJobSummary(t *testing.T) {
 			}
 		}
 		assert.Contains(t, warnings, "job summary query failed")
+	})
+
+	t.Run("an empty Jobs table is written as a collected, empty summary", func(t *testing.T) {
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(stubJobSummaryStore{Store: original, rows: []*store.JobTypeSummary{}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		jobs, body, _ := readJobsFile(t)
+
+		assert.Contains(t, body, "\njob_summary: {}\n")
+		assert.NotNil(t, jobs.JobSummary)
+		assert.Empty(t, jobs.JobSummary)
 	})
 }
 
