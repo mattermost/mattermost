@@ -821,7 +821,7 @@ func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *mod
 	}
 
 	keeping := make(map[string]bool)
-	for _, option := range asOptionSlice(submitted.Attrs) {
+	for _, option := range model.PropertyFieldInlineOptions(submitted.Attrs) {
 		if id, _ := option["id"].(string); id != "" {
 			keeping[id] = true
 		}
@@ -833,7 +833,7 @@ func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *mod
 	// children, so they cannot block -- and a write to this field cannot delete them
 	// either.
 	var dropped []string
-	for _, option := range asOptionSlice(stored.Attrs) {
+	for _, option := range model.PropertyFieldInlineOptions(stored.Attrs) {
 		if id, _ := option["id"].(string); id != "" && !keeping[id] {
 			dropped = append(dropped, id)
 		}
@@ -952,14 +952,14 @@ func (ps *PropertyService) requireNamesFreeOfDependents(field *model.PropertyFie
 // somebody found the collision.
 func optionNamesAddedBy(submitted, stored model.StringInterface) []string {
 	held := make(map[string]string)
-	for _, option := range asOptionSlice(stored) {
+	for _, option := range model.PropertyFieldInlineOptions(stored) {
 		if id, _ := option["id"].(string); id != "" {
 			held[id], _ = option["name"].(string)
 		}
 	}
 
 	var added []string
-	for _, option := range asOptionSlice(submitted) {
+	for _, option := range model.PropertyFieldInlineOptions(submitted) {
 		name, _ := option["name"].(string)
 		id, _ := option["id"].(string)
 		if name == "" || held[id] == name {

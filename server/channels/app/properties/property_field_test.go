@@ -3695,7 +3695,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, []string{optAID, optCID}, linkedOptIDs, "option B should be removed from linked field")
 
 		// Verify option content (names, colors) was propagated correctly
-		linkedOpts := asOptionSlice(updatedLinked.Attrs)
+		linkedOpts := model.PropertyFieldInlineOptions(updatedLinked.Attrs)
 		require.Len(t, linkedOpts, 2)
 		assert.Equal(t, "Option A", linkedOpts[0]["name"])
 		assert.Equal(t, "red", linkedOpts[0]["color"])

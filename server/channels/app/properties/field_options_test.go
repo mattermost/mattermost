@@ -402,7 +402,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		// the options endpoint.
 		updated, _, err := th.service.UpdatePropertyField(th.Context, group.ID, without("Air"))
 		require.NoError(t, err)
-		require.Len(t, asOptionSlice(updated.Attrs), 1)
+		require.Len(t, model.PropertyFieldInlineOptions(updated.Attrs), 1)
 
 		// Leaving out a leaf was never in question: put one back under Air, then write
 		// a list without it, which is the read-modify-write a client actually performs.
@@ -414,7 +414,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 
 		reread, err := th.service.GetPropertyField(th.Context, group.ID, created.ID)
 		require.NoError(t, err)
-		require.Len(t, asOptionSlice(reread.Attrs), 2)
+		require.Len(t, model.PropertyFieldInlineOptions(reread.Attrs), 2)
 
 		edited := *reread
 		edited.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
@@ -422,7 +422,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		}}
 		final, _, err := th.service.UpdatePropertyField(th.Context, group.ID, &edited)
 		require.NoError(t, err, "leaving out the leaf Sea is allowed")
-		require.Len(t, asOptionSlice(final.Attrs), 1)
+		require.Len(t, model.PropertyFieldInlineOptions(final.Attrs), 1)
 	})
 
 	t.Run("a list that states no parents leaves the hierarchy alone, and one that does replaces them", func(t *testing.T) {
