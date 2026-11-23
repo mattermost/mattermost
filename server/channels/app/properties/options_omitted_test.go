@@ -164,13 +164,12 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 		requireWithheldOptionsHidden(t, retrieved)
 	})
 
-	t.Run("a shared_only rank field hides another user's value", func(t *testing.T) {
+	t.Run("a shared_only rank field shows another user's value to a caller who outranks it", func(t *testing.T) {
 		options := oversizedOptions(true)
 		field := newField(t, "rank-shared-value", model.PropertyFieldTypeRank, model.PropertyAccessModeSharedOnly, options)
 
-		// The caller outranks the target, so under the cap the target's value would
-		// be visible in full. With no ranks loaded there is no way to establish
-		// that, and a masking path with missing data hides.
+		// Ranks come from the store, not the inline list the cap withheld, so the
+		// caller's own rank still covers the target's.
 		callerID := model.NewId()
 		assignValue(t, field.ID, callerID, optionIDAt(t, options, len(options)-1))
 		targetID := model.NewId()
@@ -182,7 +181,8 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 			PerPage:   10,
 		})
 		require.NoError(t, err)
-		assert.Empty(t, values, "the target's rank must not be visible on ranks that were never loaded")
+		require.Len(t, values, 1)
+		assert.JSONEq(t, `"`+optionIDAt(t, options, 3)+`"`, string(values[0].Value))
 	})
 
 	t.Run("a source_only field hides every option and its count", func(t *testing.T) {

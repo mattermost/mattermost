@@ -3044,6 +3044,11 @@
     "description": "API error when reading from the database whether the first admin has already visited the plugin Marketplace."
   },
   {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "The Site URL provided for onboarding is invalid. It must be an http or https URL without a path, such as https://chat.example.com.",
+    "description": "API error during self-hosted onboarding when the Site URL sent by the onboarding wizard is not an http or https URL made of only a scheme, host, and optional port."
+  },
+  {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Error no organization name provided for self hosted onboarding.",
     "description": "API error during self-hosted onboarding when the request omits the organization name."
@@ -3332,6 +3337,11 @@
     "id": "api.get_site_url_error",
     "translation": "Could not get the instance site url",
     "description": "API error when the server's own Site URL is not configured and cannot be determined; needed for shared channels / secure connection operations."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Unable to export the health report.",
+    "description": "API error when the server fails to render the Site health report that an admin is exporting as HTML or Markdown."
   },
   {
     "id": "api.health_finding.feature_disabled.app_error",
@@ -7828,6 +7838,16 @@
     "description": "API error when checking whether a user is a member of any of a given list of channels fails."
   },
   {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Channel attribute values are missing in:{{.ChannelList}}\n\nYou're a channel admin there. Open the channel and select **Add values**, or set them in **Channel Info**.",
+    "description": "Direct message from the system bot to a user who just became channel admin of channels that are missing required channel attribute values; {{.ChannelList}} is a Markdown bullet list with one line per channel. Keep the Markdown formatting. 'Add values' is the button shown in the channel and 'Channel Info' is the channel's info panel; match the labels used in the web app."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) needs: {{.AttributeNames}}",
+    "description": "One Markdown bullet line in the new-channel-admin direct message, linking to a channel that is missing required channel attribute values; {{.TeamDisplayName}} is the channel's team and {{.AttributeNames}} is the comma-separated list of attribute names to set, already in bold. Keep the leading newline, the dash and the [text](link) syntax."
+  },
+  {
     "id": "app.channel_attributes.notify_assignment_counts.app_error",
     "translation": "Unable to count the channel admins and channels affected by this attribute.",
     "description": "Server error when counting the channel admins and channels to notify about a missing channel attribute value fails."
@@ -10935,6 +10955,11 @@
     "id": "app.plugin.remove_bundle.app_error",
     "translation": "Unable to remove plugin bundle from file store.",
     "description": "Admin console error when deleting a plugin's bundle file from the file store fails."
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded.",
+    "description": "Returned when installing or reattaching a plugin that uses the core server caller identity."
   },
   {
     "id": "app.plugin.restart.app_error",
@@ -15060,6 +15085,36 @@
     "description": "Health dashboard finding title suggesting the Redis cache for a large high availability cluster; 'Redis' is a product name and should not be translated."
   },
   {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Mattermost's reference architectures recommend high availability above 200 users, so plan for it before a node failure or upgrade takes the workspace offline.",
+    "description": "Health dashboard finding detail when a server with 200 to 1,999 registered users does not have high availability enabled; {{.users}} is the registered user count."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node.",
+    "description": "Health dashboard fix-it step when a server with 200 to 1,999 registered users does not have high availability enabled; 'ClusterSettings.Enable' and 'ClusterName' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Consider setting up high availability",
+    "description": "Health dashboard finding title when a server with 200 to 1,999 registered users does not have high availability enabled."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Any node failure, restart or upgrade takes the whole workspace offline. Mattermost's reference architectures require high availability at this scale.",
+    "description": "Health dashboard finding detail when a server with 2,000 or more registered users does not have high availability enabled; {{.users}} is the registered user count."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node.",
+    "description": "Health dashboard fix-it step when a server with 2,000 or more registered users does not have high availability enabled; 'ClusterSettings.Enable' and 'ClusterName' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "High availability is not enabled at this scale",
+    "description": "Health dashboard finding title when a server with 2,000 or more registered users does not have high availability enabled."
+  },
+  {
     "id": "health.rule.cluster_single_node.message",
     "translation": "The intended HA topology is not actually running. A single node gives no failover and hides split-brain risk.",
     "description": "Health dashboard finding detail when high availability is enabled but the cluster has only one node; 'HA' means high availability, and 'split-brain' is when cluster nodes lose contact and act independently."
@@ -15298,6 +15353,21 @@
     "id": "health.rule.db_trace_on.title",
     "translation": "SqlSettings.Trace is enabled",
     "description": "Health dashboard finding title when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper is true, so detailed error information is shown to users and clients. This setting is intended for development only.",
+    "description": "Health dashboard finding detail when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableDeveloper to false.",
+    "description": "Health dashboard fix-it step when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper is enabled",
+    "description": "Health dashboard finding title when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
   },
   {
     "id": "health.rule.env_unsupported_os.message",
@@ -16465,6 +16535,26 @@
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Email isn't configured, so emails such as password resets and notifications won't be delivered.",
+    "description": "Health dashboard finding detail when email features are on but the SMTP server was never set up (it is empty, or still the default localhost:10025 and nothing answered there)."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "No mail server answers at the default SMTP address localhost:10025 on {{.nodes}}, so emails those nodes send, such as password resets and notifications, won't be delivered. The other nodes reach a mail server there. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the SMTP server is still the default localhost:10025 and the connection test fails on some cluster nodes but not others; localhost:10025 should not be translated, {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configure an SMTP server in the System Console. If this server should not send email, turn off email notifications, email invitations and email verification, then mute this finding. Keep sign-in with email or username on: without them, users who don't sign in through SSO can't sign in.",
+    "description": "Health dashboard fix-it step when the SMTP server was never set up; SSO stands for single sign-on."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP server is not configured",
+    "description": "Health dashboard finding title when email features are on but no SMTP server was ever set up."
+  },
+  {
     "id": "health.rule.smtp_unreachable.message",
     "translation": "The connection test to the SMTP server failed: {{.error}}",
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
@@ -16483,6 +16573,36 @@
     "id": "health.rule.smtp_unreachable.title",
     "translation": "SMTP server connection test failed",
     "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting is true, so testing mode exposes test commands and endpoints that are intended for development only.",
+    "description": "Health dashboard finding detail when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableTesting to false, then restart the server. Some test endpoints are only removed on restart.",
+    "description": "Health dashboard fix-it step when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting is enabled",
+    "description": "Health dashboard finding title when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections is true, so the server does not verify TLS certificates on outgoing HTTPS connections such as outgoing webhooks, slash commands, OAuth token exchanges, link previews and plugin downloads. Anyone on the network path can read or change that traffic, including OAuth tokens.",
+    "description": "Health dashboard finding detail when the server skips TLS certificate verification on outgoing connections; 'ServiceSettings.EnableInsecureOutgoingConnections' is a config setting path and 'true' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Add the internal CA certificate to the system trust store on every Mattermost server, then set ServiceSettings.EnableInsecureOutgoingConnections to false.",
+    "description": "Health dashboard fix-it step when the server skips TLS certificate verification on outgoing connections; 'ServiceSettings.EnableInsecureOutgoingConnections' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "TLS certificate verification is off for outgoing connections",
+    "description": "Health dashboard finding title when the server skips TLS certificate verification on outgoing HTTPS connections."
   },
   {
     "id": "health.rule.version.unknown.latest",

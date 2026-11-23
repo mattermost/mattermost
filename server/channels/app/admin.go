@@ -35,6 +35,9 @@ const (
 	latestVersionFailureExpiry = 6 * time.Hour
 )
 
+// testSiteURLTimeout matches how long the webapp waits for the Site URL test before giving up.
+var testSiteURLTimeout = 10 * time.Second
+
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
@@ -205,14 +208,20 @@ func (a *App) RecycleDatabaseConnection(rctx request.CTX) {
 
 func (a *App) TestSiteURL(rctx request.CTX, siteURL string) *model.AppError {
 	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
-	res, err := http.Get(url)
-	if err != nil || res.StatusCode != 200 {
-		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
+	client := &http.Client{Timeout: testSiteURLTimeout}
+	res, err := client.Get(url)
+	if err != nil {
+		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	defer func() {
-		_, _ = io.Copy(io.Discard, res.Body)
+
+	// A non-200 body is closed without draining so a stalled body can't delay the error until the timeout.
+	if res.StatusCode != http.StatusOK {
 		_ = res.Body.Close()
-	}()
+		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, fmt.Sprintf("status_code=%d", res.StatusCode), http.StatusBadRequest)
+	}
+
+	_, _ = io.Copy(io.Discard, res.Body)
+	_ = res.Body.Close()
 
 	return nil
 }
