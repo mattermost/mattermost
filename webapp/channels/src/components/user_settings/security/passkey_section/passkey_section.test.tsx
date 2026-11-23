@@ -8,7 +8,7 @@ import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PasskeySection from './index';
 
@@ -179,6 +179,52 @@ describe('PasskeySection', () => {
         );
 
         expect(await screen.findByText('could not list passkeys')).toBeInTheDocument();
+    });
+
+    test('shows the list error again, not the empty state, when reopened after a failed fetch', async () => {
+        getPasskeys.mockRejectedValue({message: 'could not list passkeys'});
+        const {rerender} = renderWithContext(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+            enabledState,
+        );
+        expect(await screen.findByText('could not list passkeys')).toBeInTheDocument();
+
+        rerender(
+            <PasskeySection
+                {...baseProps}
+                active={false}
+            />,
+        );
+        rerender(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+        );
+
+        expect(await screen.findByText('could not list passkeys')).toBeInTheDocument();
+        expect(screen.queryByText('You have no passkeys.')).not.toBeInTheDocument();
+    });
+
+    test('does not say "No passkeys" when collapsed after a failed fetch', async () => {
+        getPasskeys.mockRejectedValue({message: 'could not list passkeys'});
+        renderWithContext(
+            <PasskeySection
+                {...baseProps}
+                active={false}
+            />,
+            enabledState,
+        );
+        await waitFor(() => expect(getPasskeys).toHaveBeenCalled());
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByText('Passkeys')).toBeInTheDocument();
+        expect(screen.queryByText('No passkeys')).not.toBeInTheDocument();
     });
 
     test('shows the empty state', async () => {

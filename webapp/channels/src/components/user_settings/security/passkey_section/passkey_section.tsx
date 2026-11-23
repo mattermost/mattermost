@@ -75,6 +75,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const minRef = useRef<SettingItemMinComponent>(null);
     const wasActive = useRef(active);
     const [passkeys, setPasskeys] = useState<Passkey[]>([]);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const [toDelete, setToDelete] = useState<Passkey | null>(null);
     const [name, setName] = useState('');
@@ -83,8 +84,10 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const load = useCallback(async () => {
         try {
             setPasskeys(await Client4.getPasskeys('me'));
+            setLoadFailed(false);
             setServerError(null);
         } catch (e) {
+            setLoadFailed(true);
             setServerError((e as Error).message);
         }
     }, []);
@@ -98,12 +101,15 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     useEffect(() => {
         if (!active) {
             setServerError(null);
+        } else if (!wasActive.current) {
+            // The collapse above cleared a failed fetch's error; re-fetch so reopening shows it again or the list.
+            load();
         }
         if (wasActive.current && !active && areAllSectionsInactive) {
             minRef.current?.focus();
         }
         wasActive.current = active;
-    }, [active, areAllSectionsInactive]);
+    }, [active, areAllSectionsInactive, load]);
 
     const confirmDelete = async () => {
         const passkey = toDelete;
@@ -166,7 +172,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
         return (
             <SettingItemMin
                 title={title}
-                describe={formatMessage(messages.count, {count: passkeys.length})}
+                describe={loadFailed ? undefined : formatMessage(messages.count, {count: passkeys.length})}
                 section={SECTION_PASSKEYS}
                 updateSection={updateSection}
                 ref={minRef}
@@ -175,11 +181,13 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     }
 
     const list = passkeys.length === 0 ? (
-        <FormattedMessage
-            id='user.settings.passkeys.none'
-            defaultMessage='You have no passkeys.'
-            description='Shown in the expanded Passkeys section when the user has not added any passkey.'
-        />
+        !loadFailed && (
+            <FormattedMessage
+                id='user.settings.passkeys.none'
+                defaultMessage='You have no passkeys.'
+                description='Shown in the expanded Passkeys section when the user has not added any passkey.'
+            />
+        )
     ) : (
         <ul className='list-unstyled'>
             {passkeys.map((passkey) => (
