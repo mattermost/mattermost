@@ -140,9 +140,17 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send CPA-specific websocket event for backwards compatibility
+	// Send CPA-specific websocket event for backwards compatibility. It goes to
+	// every connected user, and a linked field takes its option list from its
+	// template, which may be masked, so the event carries the field with any
+	// option list not everyone may read withheld.
+	broadcastCPAField, convErr := model.NewCPAFieldFromPropertyField(c.App.PropertyFieldForBroadcast(rctx, createdField))
+	if convErr != nil {
+		c.Err = model.NewAppError("createCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+		return
+	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldCreated, "", "", "", nil, "")
-	message.Add("field", cpaField)
+	message.Add("field", broadcastCPAField)
 	c.App.Publish(message)
 
 	auditRec.AddEventObjectType("property_field")

@@ -44,6 +44,48 @@ func TestCreateCPAField(t *testing.T) {
 	// add a valid license
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
+	t.Run("the field-created broadcast withholds the options a linked field takes from a masked template", func(t *testing.T) {
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+
+		rctx := app.RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
+		template, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Alpha"},
+			}},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+				},
+				Masking: &model.Masking{},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		permissionValues := model.PermissionLevelSysadmin
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name:             celSafeName(),
+			Type:             model.PropertyFieldTypeText,
+			LinkedFieldID:    &template.ID,
+			PermissionValues: &permissionValues,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		wsField := nextCPAFieldEvent(t, webSocketClient, model.WebsocketEventCPAFieldCreated, created.ID)
+		require.Empty(t, inlineOptionNames(t, &wsField))
+		require.Equal(t, true, wsField.Attrs[model.PropertyFieldAttributeOptionsOmitted])
+	})
+
 	t.Run("a user without admin permissions should not be able to create a field", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name: celSafeName(),
