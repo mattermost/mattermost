@@ -110,6 +110,26 @@ describe('PasskeySection', () => {
         expect(screen.getByText('Phone')).toBeInTheDocument();
     });
 
+    test('shows the server error when deleting fails and does not refetch', async () => {
+        deletePasskey.mockRejectedValue({message: 'could not delete passkey'});
+        renderWithContext(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+            enabledState,
+        );
+        await screen.findByText('Laptop');
+        getPasskeys.mockClear();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
+
+        expect(await screen.findByText('could not delete passkey')).toBeInTheDocument();
+        expect(getPasskeys).not.toHaveBeenCalled();
+        expect(screen.getByText('Laptop')).toBeInTheDocument();
+    });
+
     test('shows the server error when listing fails', async () => {
         getPasskeys.mockRejectedValue({message: 'could not list passkeys'});
         renderWithContext(
