@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"net/http"
 	"strings"
 	"time"
@@ -329,6 +328,9 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 	return manifest, nil
 }
 
+// GetSessionAttributes returns the unexpired cached attributes of sessionID.
+// It knows nothing about the current request, so ABAC evaluation must go
+// through BuildAccessControlSubjectForSession instead.
 func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[string]any, *model.AppError) {
 	if !a.sessionAttributesEnabled() {
 		return nil, nil
@@ -348,45 +350,6 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 	}
 
 	return filterStaleSessionAttributes(attrs, timestamps, fieldsByName), nil
-}
-
-// getSessionAttributesForEvaluation returns the attributes of rctx's session
-// for ABAC evaluation. Server-derived attributes are taken from rctx only, and
-// the cached tls_device_id is ignored: it proves only that some earlier request
-// had it.
-func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]any, *model.AppError) {
-	if !a.sessionAttributesEnabled() {
-		return nil, nil
-	}
-
-	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	// tls_device_id is cached for EnforceDeviceIDConsistency, but ABAC evaluation
-	// must use only the request-scoped value. Other server-derived attributes
-	// (IP, user agent) are no longer cached and will expire from legacy entries.
-	delete(attrs, model.SessionAttributesPropertyFieldTLSDDeviceID)
-
-	if serverDerived := ServerDerivedAttributes(rctx); len(serverDerived) > 0 {
-		if attrs == nil {
-			attrs = make(map[string]any, len(serverDerived)+1)
-		}
-		maps.Copy(attrs, serverDerived)
-	}
-
-	if deviceID := ProxyDeviceID(rctx); deviceID != "" && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
-		if attrs == nil {
-			attrs = make(map[string]any, 1)
-		}
-		attrs[model.SessionAttributesPropertyFieldTLSDDeviceID] = deviceID
-	}
-
-	if len(attrs) == 0 {
-		return nil, nil
-	}
-	return attrs, nil
 }
 
 func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*model.PropertyField) map[string]any {

@@ -2769,6 +2769,37 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldUserAgentBrowserName)
 	})
 
+	t.Run("drops cached server-derived attributes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldNetworkInterfaceType)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "10.0.0.1",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Firefox",
+			model.SessionAttributesPropertyFieldNetworkInterfaceType: "wifi",
+		}, model.GetMillis()))
+		cached, appErr := th.App.GetSessionAttributes(rctx, session.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "10.0.0.1", cached[model.SessionAttributesPropertyFieldIPAddress])
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "wifi", subject.Session[model.SessionAttributesPropertyFieldNetworkInterfaceType])
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldIPAddress)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldUserAgentBrowserName)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(th.App.ProcessSessionAttributesRequest(rctx, r), "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "192.0.2.10", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Chrome", subject.Session[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+	})
+
 	t.Run("ignores the context device ID when TrustProxyDeviceIdentityHeader is disabled", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)
