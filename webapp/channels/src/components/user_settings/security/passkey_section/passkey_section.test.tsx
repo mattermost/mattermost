@@ -218,6 +218,51 @@ describe('PasskeySection', () => {
             finishRegistration = jest.spyOn(Client4, 'finishPasskeyRegistration').mockResolvedValue(passkeys[0]);
             create = jest.fn().mockResolvedValue(rawCredential);
             Object.defineProperty(navigator, 'credentials', {value: {create}, configurable: true});
+
+            // jsdom has no WebAuthn; the add control is hidden without it.
+            Object.defineProperty(window, 'PublicKeyCredential', {value: function PublicKeyCredential() {}, configurable: true});
+        });
+
+        afterEach(() => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+        });
+
+        test('is hidden without WebAuthn support but the list still shows', async () => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            await renderExpanded();
+
+            expect(screen.queryByRole('button', {name: 'Add passkey'})).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Passkey name')).not.toBeInTheDocument();
+        });
+
+        test('clears a failed add attempt\'s error when the section is collapsed and reopened', async () => {
+            beginRegistration.mockRejectedValue({server_error_id: 'app.passkey.limit_reached.app_error', message: 'limit hit'});
+            const {rerender} = renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+            await clickAdd();
+            expect(await screen.findByText('limit hit')).toBeInTheDocument();
+
+            rerender(
+                <PasskeySection
+                    {...baseProps}
+                    active={false}
+                />,
+            );
+            rerender(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+            );
+
+            await screen.findByText('Laptop');
+            expect(screen.queryByText('limit hit')).not.toBeInTheDocument();
         });
 
         test('is hidden when enrollment is disabled but the list still shows', async () => {

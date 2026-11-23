@@ -19,8 +19,9 @@ function mapStateToProps(state: GlobalState) {
     return {
         visible: getConfig(state).FeatureFlagPasskeys === 'true' && licensed,
 
-        // No passkey ceremony runs inside the desktop app.
-        canAddPasskey: getConfig(state).PasskeyEnrollmentEnabled === 'true' && !isDesktopApp(),
+        // No passkey ceremony runs inside the desktop app. PublicKeyCredential is absent in browsers
+        // without WebAuthn and on non-secure origins, where navigator.credentials is undefined.
+        canAddPasskey: getConfig(state).PasskeyEnrollmentEnabled === 'true' && !isDesktopApp() && typeof window.PublicKeyCredential !== 'undefined',
     };
 }
 

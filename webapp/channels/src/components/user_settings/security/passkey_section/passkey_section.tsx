@@ -96,6 +96,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     }, [visible, load]);
 
     useEffect(() => {
+        if (!active) {
+            setServerError(null);
+        }
         if (wasActive.current && !active && areAllSectionsInactive) {
             minRef.current?.focus();
         }
