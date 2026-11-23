@@ -86,7 +86,7 @@ func (c *ChannelService) ListPublicChannelsForTeam(teamID string, page, perPage 
 // userID may read under access control policies. It does not check team membership, channel
 // membership or the read_public_channel permission. It returns an empty list when none match.
 //
-// Minimum server version: 12.3
+// Minimum server version: 12.2
 func (c *ChannelService) ListPublicChannelsByIdsForTeamForUser(teamID, userID string, channelIDs []string) ([]*model.Channel, error) {
 	channels, appErr := c.api.GetPublicChannelsByIdsForTeamForUser(teamID, userID, channelIDs)
 

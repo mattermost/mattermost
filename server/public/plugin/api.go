@@ -475,7 +475,7 @@ type API interface {
 	//
 	// @tag Channel
 	// @tag Team
-	// Minimum server version: 12.3
+	// Minimum server version: 12.2
 	GetPublicChannelsByIdsForTeamForUser(teamID, userID string, channelIDs []string) ([]*model.Channel, *model.AppError)
 
 	// GetChannel gets a channel.
