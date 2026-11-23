@@ -57,14 +57,11 @@ test.describe('System Console - Global Attributes duplicate', {tag: '@system_con
                     ldap: 'department',
                 },
             });
+            // Linked select fields inherit options from the template — attrs must not carry a list.
             await createLinkedDependentField(adminClient, sourceName, template.id, 'select', 'user', {
                 display_name: sourceDisplayName,
                 visibility: 'always',
                 managed: 'admin',
-                options: [
-                    {id: '', name: 'Engineering'},
-                    {id: '', name: 'Sales'},
-                ],
             });
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
