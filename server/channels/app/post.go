@@ -1170,6 +1170,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
 		// MM-67055: Strip embeds - always server-generated. Preserves Priority/Acks for Shared Channels sync.
 		newPost.Metadata.Embeds = nil
+		// Property values are never written by an edit, and newPost goes out unfiltered to every
+		// channel member in `post_edited`. They change only through the property value API.
+		newPost.Metadata.PropertyValues = nil
+		newPost.Metadata.PropertyValuesUnavailable = nil
 	} else {
 		// Restore the post metadata that was stripped by the plugin. Set it to
 		// the last known good.
