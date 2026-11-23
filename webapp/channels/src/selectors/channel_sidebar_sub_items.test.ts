@@ -238,6 +238,19 @@ describe('selectors/getChannelSidebarSubItems', () => {
         expect(items[2]).not.toHaveProperty('iconName');
     });
 
+    it('keeps an emoji alongside the glyph, trimmed, and drops a blank or non-string one', () => {
+        const state = makeState([makeRegistration([
+            makeItem({id: 'native', iconName: 'folder-outline', emoji: ' 🚨 '}),
+            makeItem({id: 'custom', emoji: ':party-parrot:'}),
+            makeItem({id: 'blank', emoji: '  '}),
+            makeItem({id: 'wrong', emoji: 5 as unknown as string}),
+        ])]);
+        const items = getChannelSidebarSubItems(state, makeChannel());
+
+        expect(items.map((i) => i.emoji)).toEqual(['🚨', ':party-parrot:', undefined, undefined]);
+        expect(items[0].iconName).toBe('folder-outline');
+    });
+
     describe('permalink-shaped sub-paths', () => {
         const subpathsKept = (subpaths: string[]) => {
             const items = subpaths.map((subpath, i) => makeItem({id: `item-${i}`, subpath}));

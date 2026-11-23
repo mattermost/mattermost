@@ -155,7 +155,7 @@ describe('Integrations', () => {
         cy.get(`#${team1.name}TeamButton`).children().should('have.class', 'active');
 
         // * The user is in the DM channel with user2
-        cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).parent().should('be.visible').and('have.class', 'active');
+        cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).closest('.SidebarChannel').should('be.visible').and('have.class', 'active');
 
         // * The last message is written by user1 and contains the correct text.
         cy.getLastPost().should('contain', firstMessage).and('contain', user1.username);
@@ -171,7 +171,7 @@ describe('Integrations', () => {
         cy.get(`#${team2.name}TeamButton`).children().should('have.class', 'active');
 
         // * The user is in the DM channel with user2
-        cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).parent().should('be.visible').and('have.class', 'active');
+        cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).closest('.SidebarChannel').should('be.visible').and('have.class', 'active');
 
         // * The last message is written by user1 and contains the correct text.
         cy.getLastPost().should('contain', secondMessage).and('contain', user1.username);

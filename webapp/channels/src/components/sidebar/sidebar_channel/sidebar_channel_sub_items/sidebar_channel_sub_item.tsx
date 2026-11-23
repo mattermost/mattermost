@@ -16,6 +16,7 @@ import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_
 import type {GlobalState} from 'types/store';
 import type {ChannelSidebarSubItemDropPosition} from 'types/store/plugins';
 
+import SidebarChannelSubItemEmoji from './sidebar_channel_sub_item_emoji';
 import SidebarChannelSubItemMenu from './sidebar_channel_sub_item_menu';
 import type {ChannelSidebarSubItemDragHandlers} from './use_channel_sidebar_sub_item_drag_and_drop';
 import {getChannelSidebarSubItemChildrenId, getChannelSidebarSubItemLink} from './use_channel_sidebar_sub_items';
@@ -114,6 +115,7 @@ export default function SidebarChannelSubItem({
         >
             <div
                 className={classNames('SidebarChannelSubItem__row', {
+                    hasToggle: item.hasChildren,
                     menuOpen: isMenuOpen,
                     hasMenu: hasActions,
                     dragging: isDragging,
@@ -130,14 +132,15 @@ export default function SidebarChannelSubItem({
                 onDrop={handleDrop}
                 onDragEnd={dragHandlers.onDragEnd}
             >
-                {toggle}
                 <Link
                     className='SidebarChannelSubItem__link'
                     to={getChannelSidebarSubItemLink(currentTeamName, channel.name, item.subpath)}
                     aria-current={isActive ? 'page' : undefined}
                     onClick={onLinkClick}
                 >
-                    {item.iconName && (
+                    {item.emoji ? (
+                        <SidebarChannelSubItemEmoji emoji={item.emoji}/>
+                    ) : item.iconName && (
                         <i
                             className={`icon icon-${item.iconName} SidebarChannelSubItem__icon`}
                             aria-hidden='true'
@@ -152,6 +155,7 @@ export default function SidebarChannelSubItem({
                         onMenuToggle={setIsMenuOpen}
                     />
                 )}
+                {toggle}
             </div>
             {children}
         </li>

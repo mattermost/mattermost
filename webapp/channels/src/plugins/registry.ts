@@ -84,6 +84,7 @@ import type {
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
     ChannelKindRegistration,
+    ProductRailChannelSectionRegistration,
     ChannelIntroRegistration,
     ChannelViewRegistration,
     ChannelSidebarSubItemsRegistration,
@@ -1661,6 +1662,59 @@ export default class PluginRegistry {
             pluginId: this.id,
             matcher,
             kind,
+        });
+        return id;
+    });
+
+    /**
+     * Register a product rail item for the channels `matcher` accepts, as Boards has one for boards.
+     * While the rail is on, choosing it narrows the channel sidebar to those channels (with any
+     * sidebar sub-items they have), and its badge counts their unreads. Unlike boards, the channels
+     * stay in Channels too. Opening one of them from somewhere other than Channels moves the
+     * sidebar to this section, and the item returns to the page last viewed under it, sub-path
+     * included.
+     *
+     * `matcher` receives the full GlobalState and a Channel, as for registerChannelKind; throws are
+     * caught and treated as no-match. `label` names the item under its icon; `icon` is a compass
+     * glyph name or an element. `emptyState` is shown at the top of the sidebar while none of the
+     * team's channels match. `sidebarMessages` renames the sidebar's list while the section is
+     * selected (category header, Add button, quick switcher), as Boards' own wording does; each is a
+     * message the plugin registered with registerTranslations. A plugin gets one section: later
+     * registrations from it are ignored.
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @example
+     * registry.registerProductRailChannelSection({
+     *     matcher: (state, channel) => isSpace(state, channel.id),
+     *     label: 'Docs',
+     *     icon: 'file-document-outline',
+     *     emptyState: <NoSpaces/>,
+     *     sidebarMessages: {categoryName: {id: 'docs.spaces', defaultMessage: 'SPACES'}},
+     * });
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerProductRailChannelSection = reArg(['matcher', 'label', 'icon', 'emptyState', 'sidebarMessages'], ({matcher, label, icon, emptyState, sidebarMessages}: {
+        matcher: ProductRailChannelSectionRegistration['matcher'];
+        label: ReactResolvable;
+        icon: ReactResolvable;
+        emptyState?: ReactResolvable;
+        sidebarMessages?: ProductRailChannelSectionRegistration['sidebarMessages'];
+    }) => {
+        const id = generateId();
+        if (typeof matcher !== 'function') {
+            // eslint-disable-next-line no-console
+            console.error(`ProductRailChannelSection: plugin '${this.id}' supplied no matcher — registration ignored.`);
+            return id;
+        }
+        this.dispatchPluginComponentWithData('ProductRailChannelSection', {
+            id,
+            pluginId: this.id,
+            matcher,
+            label: resolveReactElement(label),
+            icon: typeof icon === 'string' ? icon : resolveReactElement(icon),
+            emptyState: resolveReactElement(emptyState),
+            sidebarMessages,
         });
         return id;
     });

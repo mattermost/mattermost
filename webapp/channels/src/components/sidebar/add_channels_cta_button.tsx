@@ -17,7 +17,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
 import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
-import {getBoardPluginIds} from 'selectors/views/product_rail';
+import {getBoardPluginIds, getProductRailSectionMessages, getProductRailSectionPluginId} from 'selectors/views/product_rail';
 
 import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
@@ -40,6 +40,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const intl = useIntl();
     const productRailKind = useProductRailKind();
     const boardPluginIds = useSelector(getBoardPluginIds);
+    const sectionPluginId = useSelector(getProductRailSectionPluginId);
+    const sectionMessages = useSelector(getProductRailSectionMessages);
     const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents) as SidebarBrowseOrAddChannelMenuAction[] | undefined;
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
@@ -57,6 +59,14 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const boardMenuItems = (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel' && boardPluginIds.includes(item.pluginId));
     const showBoardMenu = productRailKind === 'board' && canCreateChannel && boardMenuItems.length > 0;
     const railKind = showBoardMenu ? 'board' : 'channel';
+
+    // A plugin's section (Docs, say) works the same way with the create item its own plugin adds,
+    // and names the button with the section's wording.
+    const sectionMenuItems = sectionPluginId ? (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel' && item.pluginId === sectionPluginId) : [];
+    const showSectionMenu = canCreateChannel && sectionMenuItems.length > 0;
+    const pluginCreateItems = showSectionMenu ? sectionMenuItems : boardMenuItems;
+    const showPluginMenu = showBoardMenu || showSectionMenu;
+    const addMessage = (showSectionMenu && sectionMessages?.addChannels) || channelKindMessages.addChannelsCta[railKind];
 
     let buttonClass = 'SidebarChannelNavigator__addChannelsCtaLhsButton';
 
@@ -97,8 +107,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             );
         }
 
-        if (showBoardMenu) {
-            for (const item of boardMenuItems) {
+        if (showPluginMenu) {
+            for (const item of pluginCreateItems) {
                 items.push(
                     <Menu.Item
                         key={item.id + '_pluginmenuitem'}
@@ -159,7 +169,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 className='icon-plus-box'
                 aria-hidden={true}
             />
-            <FormattedMessage {...channelKindMessages.addChannelsCta[railKind]}/>
+            <FormattedMessage {...addMessage}/>
         </>
     );
 
@@ -192,7 +202,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             menu={{
                 id: 'AddChannelCtaDropdown',
                 className: 'AddChannelsCtaDropdown',
-                'aria-label': intl.formatMessage(channelKindMessages.addChannelsCta[railKind]),
+                'aria-label': intl.formatMessage(addMessage),
                 onToggle: handleMenuToggle,
             }}
         >

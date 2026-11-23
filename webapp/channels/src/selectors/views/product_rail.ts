@@ -18,7 +18,8 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import type {ProductRailSection, ProductRailTab} from 'types/store/views';
+import type {ProductRailChannelSectionRegistration, ProductRailSectionMessages} from 'types/store/plugins';
+import type {PluginProductRailSection, ProductRailSection, ProductRailTab} from 'types/store/views';
 
 /**
  * A plugin's claim that the channels its matcher accepts are of a kind, such as 'board', as
@@ -111,16 +112,126 @@ export const getBoardChannelIds: (state: GlobalState) => Set<string> = (() => {
     };
 })();
 
+const emptySectionRegistrations: ProductRailChannelSectionRegistration[] = [];
+
+/** The rail section a plugin registers with registerProductRailChannelSection, by its plugin id. */
+export function pluginRailSection(pluginId: string): PluginProductRailSection {
+    return `plugin:${pluginId}`;
+}
+
+export function isPluginRailSection(section: ProductRailTab | string | null | undefined): section is PluginProductRailSection {
+    return typeof section === 'string' && section.startsWith('plugin:');
+}
+
+/** The sections plugins add to the rail (registerProductRailChannelSection), the first of each plugin's. */
+export const getPluginRailSections: (state: GlobalState) => ProductRailChannelSectionRegistration[] = createSelector(
+    'getPluginRailSections',
+    (state: GlobalState) => state.plugins?.components?.ProductRailChannelSection ?? emptySectionRegistrations,
+    (registrations) => {
+        const seen = new Set<string>();
+        const sections = registrations.filter((registration) => {
+            if (seen.has(registration.pluginId)) {
+                return false;
+            }
+            seen.add(registration.pluginId);
+            return true;
+        });
+        return sections.length === registrations.length ? registrations : sections;
+    },
+);
+
+export function getPluginRailSectionRegistration(state: GlobalState, section: ProductRailSection | null): ProductRailChannelSectionRegistration | undefined {
+    if (!isPluginRailSection(section)) {
+        return undefined;
+    }
+    return getPluginRailSections(state).find((registration) => pluginRailSection(registration.pluginId) === section);
+}
+
+/** The selected plugin section's sidebar wording, while the sidebar is narrowed to it. */
+export function getProductRailSectionMessages(state: GlobalState): ProductRailSectionMessages | undefined {
+    return getPluginRailSectionRegistration(state, getProductRailFilter(state))?.sidebarMessages;
+}
+
+/** The id of the plugin whose section narrows the sidebar, if one does. */
+export function getProductRailSectionPluginId(state: GlobalState): string | undefined {
+    return getPluginRailSectionRegistration(state, getProductRailFilter(state))?.pluginId;
+}
+
+const emptyChannelIds = new Set<string>();
+const emptySectionChannelIds = new Map<PluginProductRailSection, Set<string>>();
+
+/**
+ * The ids of the loaded channels in each plugin's rail section. Kept like getBoardChannelIds:
+ * recomputed when the channels, the registrations or the registering plugins' own state change.
+ */
+export const getPluginRailSectionChannelIds: (state: GlobalState) => Map<PluginProductRailSection, Set<string>> = (() => {
+    let lastChannels: IDMappedObjects<Channel> | undefined;
+    let lastSections: ProductRailChannelSectionRegistration[] | undefined;
+    let lastPluginStates: unknown[] = [];
+    let lastResult = emptySectionChannelIds;
+
+    return (state: GlobalState) => {
+        const channels = getAllChannels(state);
+        const sections = getPluginRailSections(state);
+        const pluginStates = sections.map((registration) => (state as unknown as Record<string, unknown>)[`plugins-${registration.pluginId}`]);
+
+        if (
+            channels === lastChannels &&
+            sections === lastSections &&
+            pluginStates.length === lastPluginStates.length &&
+            pluginStates.every((pluginState, i) => pluginState === lastPluginStates[i])
+        ) {
+            return lastResult;
+        }
+
+        const result = new Map<PluginProductRailSection, Set<string>>();
+        for (const registration of sections) {
+            const ids = new Set<string>();
+            for (const channel of Object.values(channels)) {
+                try {
+                    if (registration.matcher(state, channel) === true) {
+                        ids.add(channel.id);
+                    }
+                } catch {
+                    // Treat a failing matcher as not matching.
+                }
+            }
+            result.set(pluginRailSection(registration.pluginId), ids);
+        }
+
+        lastChannels = channels;
+        lastSections = sections;
+        lastPluginStates = pluginStates;
+        lastResult = sections.length ? result : emptySectionChannelIds;
+        return lastResult;
+    };
+})();
+
 /**
  * The section of the product rail the channel sidebar is showing, or null when the rail doesn't
- * split the sidebar: it's off, or no plugin registers boards, so there's nothing to split.
+ * split the sidebar: it's off, or no plugin registers boards or a section, so there's nothing to
+ * split. A section whose plugin has gone falls back to Channels.
  */
 export function getProductRailSection(state: GlobalState): ProductRailSection | null {
     // On mobile the rail is hidden, so there'd be no way to switch sections: show everything.
-    if (!isProductRailEnabled(state) || !hasBoardChannelKind(state) || getIsMobileView(state)) {
+    if (!isProductRailEnabled(state) || getIsMobileView(state)) {
         return null;
     }
-    return state.views.productRail.section;
+
+    const hasBoards = hasBoardChannelKind(state);
+    const pluginSections = getPluginRailSections(state);
+    if (!hasBoards && pluginSections.length === 0) {
+        return null;
+    }
+
+    const section = state.views.productRail.section;
+    if (section === 'boards' && !hasBoards) {
+        return 'channels';
+    }
+    if (isPluginRailSection(section) && !getPluginRailSectionRegistration(state, section)) {
+        return 'channels';
+    }
+    return section;
 }
 
 export type ProductRailFilter = ProductRailSection | null;
@@ -190,13 +301,41 @@ export function areProductRailLastPathsLoaded(state: GlobalState): boolean {
     return state.views.productRail.lastPathsLoaded;
 }
 
-/** Keeps the ids belonging in `section`: boards in Boards, everything else in Channels. */
-export function filterChannelIdsForSection(channelIds: string[], section: ProductRailFilter, boardChannelIds: Set<string>): string[] {
+/**
+ * The channel ids that decide what the sidebar's filter keeps: for Channels, the boards it leaves
+ * out; for Boards, the boards; for a plugin's section, its channels. Channels keeps a plugin
+ * section's channels too, so they're listed in both.
+ */
+export const getProductRailFilterChannelIds: (state: GlobalState) => Set<string> = createSelector(
+    'getProductRailFilterChannelIds',
+    getProductRailFilter,
+    getBoardChannelIds,
+    getPluginRailSectionChannelIds,
+    (filter, boardChannelIds, pluginSectionChannelIds) => {
+        if (filter === 'channels' || filter === 'boards') {
+            return boardChannelIds;
+        }
+        if (filter) {
+            return pluginSectionChannelIds.get(filter) ?? emptyChannelIds;
+        }
+        return emptyChannelIds;
+    },
+);
+
+/** Whether the sidebar's filter keeps a channel, given getProductRailFilterChannelIds. */
+export function isChannelInRailFilter(channelId: string, filter: ProductRailFilter, filterChannelIds: Set<string>): boolean {
+    if (!filter) {
+        return true;
+    }
+    return filterChannelIds.has(channelId) === (filter !== 'channels');
+}
+
+/** Keeps the ids belonging in `section`, given getProductRailFilterChannelIds. */
+export function filterChannelIdsForSection(channelIds: string[], section: ProductRailFilter, filterChannelIds: Set<string>): string[] {
     if (!section) {
         return channelIds;
     }
-    const wantBoards = section === 'boards';
-    const filtered = channelIds.filter((id) => boardChannelIds.has(id) === wantBoards);
+    const filtered = channelIds.filter((id) => isChannelInRailFilter(id, section, filterChannelIds));
     return filtered.length === channelIds.length ? channelIds : filtered;
 }
 
@@ -232,7 +371,10 @@ export type SectionUnreads = {
     unread: boolean;
 };
 
-/** Unread state for the channels and the boards of the current team, for the rail's badges. */
+/**
+ * Unread state for the channels, the boards and each plugin section of the current team, for the
+ * rail's badges. A plugin section's channels count under Channels as well, as they're listed there.
+ */
 export const getProductRailSectionUnreads: (state: GlobalState) => Record<ProductRailSection, SectionUnreads> = createSelector(
     'getProductRailSectionUnreads',
     getCurrentTeamId,
@@ -241,10 +383,19 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
     (state: GlobalState) => state.entities.channels.messageCounts,
     isCollapsedThreadsEnabled,
     getBoardChannelIds,
-    (currentTeamId, channels, memberships, messageCounts, crtEnabled, boardChannelIds) => {
+    getPluginRailSectionChannelIds,
+    (currentTeamId, channels, memberships, messageCounts, crtEnabled, boardChannelIds, pluginSectionChannelIds) => {
         const result: Record<ProductRailSection, SectionUnreads> = {
             channels: {mentions: 0, hasUrgent: false, unread: false},
             boards: {mentions: 0, hasUrgent: false, unread: false},
+        };
+        for (const section of pluginSectionChannelIds.keys()) {
+            result[section] = {mentions: 0, hasUrgent: false, unread: false};
+        }
+        const addTo = (sectionUnreads: SectionUnreads, unreads: ReturnType<typeof calculateUnreadCount>) => {
+            sectionUnreads.mentions += unreads.mentions;
+            sectionUnreads.hasUrgent = sectionUnreads.hasUrgent || unreads.hasUrgent;
+            sectionUnreads.unread = sectionUnreads.unread || unreads.showUnread;
         };
 
         for (const channel of Object.values(channels)) {
@@ -253,10 +404,12 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
             }
 
             const unreads = calculateUnreadCount(messageCounts[channel.id], memberships[channel.id], crtEnabled);
-            const sectionUnreads = result[boardChannelIds.has(channel.id) ? 'boards' : 'channels'];
-            sectionUnreads.mentions += unreads.mentions;
-            sectionUnreads.hasUrgent = sectionUnreads.hasUrgent || unreads.hasUrgent;
-            sectionUnreads.unread = sectionUnreads.unread || unreads.showUnread;
+            addTo(result[boardChannelIds.has(channel.id) ? 'boards' : 'channels'], unreads);
+            for (const [section, channelIds] of pluginSectionChannelIds) {
+                if (channelIds.has(channel.id)) {
+                    addTo(result[section], unreads);
+                }
+            }
         }
 
         return result;
@@ -275,5 +428,27 @@ export const getFirstBoardInCurrentTeam: (state: GlobalState) => Channel | undef
             map((id) => channels[id]).
             filter((channel) => channel && channel.team_id === currentTeamId && channel.delete_at === 0 && memberships[channel.id]).
             sort((a, b) => a.display_name.localeCompare(b.display_name))[0];
+    },
+);
+
+/** The first channel, by name, in each plugin section in the current team that the user is a member of, to open from the rail. */
+export const getFirstChannelInPluginRailSections: (state: GlobalState) => Map<PluginProductRailSection, Channel> = createSelector(
+    'getFirstChannelInPluginRailSections',
+    getCurrentTeamId,
+    getAllChannels,
+    getMyChannelMemberships,
+    getPluginRailSectionChannelIds,
+    (currentTeamId, channels, memberships, pluginSectionChannelIds) => {
+        const result = new Map<PluginProductRailSection, Channel>();
+        for (const [section, channelIds] of pluginSectionChannelIds) {
+            const first = [...channelIds].
+                map((id) => channels[id]).
+                filter((channel) => channel && channel.team_id === currentTeamId && channel.delete_at === 0 && memberships[channel.id]).
+                sort((a, b) => a.display_name.localeCompare(b.display_name))[0];
+            if (first) {
+                result.set(section, first);
+            }
+        }
+        return result;
     },
 );
