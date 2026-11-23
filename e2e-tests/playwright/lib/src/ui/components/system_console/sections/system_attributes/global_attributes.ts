@@ -341,6 +341,45 @@ export default class GlobalAttributes {
     }
 
     /**
+     * Create page seeded from an existing template (`?from=`). Waits for the
+     * form to finish loading the source — the page shows a spinner until then.
+     */
+    async gotoCreateFrom(fromFieldId: string) {
+        const params = new URLSearchParams({from: fromFieldId});
+        await this.container.page().goto(`${ATTRIBUTE_DETAILS_PATH}?${params.toString()}`);
+        await expect(this.displayNameInput).toBeVisible();
+    }
+
+    /**
+     * Opens the listing row's More-actions menu for `fieldId`.
+     */
+    async openRowActions(fieldId: string) {
+        await this.container.page().getByTestId(`global-attribute-actions-${fieldId}`).click();
+    }
+
+    /**
+     * Listing Duplicate → create prefilled from the source template (`?from=`).
+     */
+    async duplicateFromListing(fieldId: string) {
+        await this.openRowActions(fieldId);
+        await this.container.page().locator(`#global-attribute-actions-${fieldId}-duplicate`).click();
+        await expect(this.container.page()).toHaveURL(new RegExp(`attribute_details\\?from=${fieldId}`));
+        await expect(this.displayNameInput).toBeVisible();
+    }
+
+    get optionChips() {
+        return this.container.getByTestId('attributeOptionsValues__chip');
+    }
+
+    get appliesToUserRow() {
+        return this.container.getByTestId('attributeAppliesToRow-user');
+    }
+
+    get appliesToChannelRow() {
+        return this.container.getByTestId('attributeAppliesToRow-channel');
+    }
+
+    /**
      * Classification's own attribute page. Its definition is read-only; only the
      * Applies to card can be edited here.
      */
