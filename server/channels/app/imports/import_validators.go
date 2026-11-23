@@ -4,6 +4,7 @@
 package imports
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -890,9 +891,7 @@ func validateGuestRoles(data UserImportData) error {
 // the result does not escape the base directory. Returns the cleaned joined path (and true),
 // or an empty string (and false) if the result escapes the base.
 func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
-	if basePath == "" {
-		basePath = "."
-	}
+	basePath = cmp.Or(basePath, ".")
 
 	joined := filepath.Join(basePath, path)
 

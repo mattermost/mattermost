@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -92,10 +93,7 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	options.ReportingBaseOptions = baseOptions
-	dateRange := options.ReportingBaseOptions.DateRange
-	if dateRange == "" {
-		dateRange = "all_time"
-	}
+	dateRange := cmp.Or(options.ReportingBaseOptions.DateRange, "all_time")
 
 	startAt, endAt := model.GetReportDateRange(dateRange, time.Now())
 	if err := c.App.StartUsersBatchExport(c.AppContext, options, startAt, endAt); err != nil {

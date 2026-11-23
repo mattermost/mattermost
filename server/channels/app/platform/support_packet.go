@@ -331,10 +331,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* File store */
 	d.FileStore.Driver = ps.FileBackend().DriverName()
 	if d.FileStore.Driver == model.ImageDriverLocal {
-		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
-		if dir == "" {
-			dir = model.FileSettingsDefaultDirectory
-		}
+		dir := cmp.Or(model.SafeDereference(ps.Config().FileSettings.Directory), model.FileSettingsDefaultDirectory)
 		di, diskErr := getDiskInfo(dir)
 		if diskErr != nil {
 			fail(model.SectionFilestoreDisk, errors.Wrap(diskErr, "error while getting disk space info"))

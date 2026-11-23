@@ -801,9 +801,7 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 	if !opts.SkipFetchThreads {
 		rootId := post.RootId
 
-		if rootId == "" {
-			rootId = post.Id
-		}
+		rootId = cmp.Or(rootId, post.Id)
 
 		if rootId == "" {
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)

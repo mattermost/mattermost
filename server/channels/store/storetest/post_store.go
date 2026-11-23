@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -6243,15 +6244,11 @@ func testGetPostsSinceForSyncExcludedPostTypes(t *testing.T, rctx request.CTX, s
 // Store tests focus on SQL query logic, not parameter resolution/validation (which happens in API layer).
 func buildReportPostQueryParams(channelId, timeField, sortDirection string, perPage int, includeDeleted, excludeSystemPosts bool) model.ReportPostQueryParams {
 	// Set defaults
-	if timeField == "" {
-		timeField = model.ReportingTimeFieldCreateAt
-	}
+	timeField = cmp.Or(timeField, model.ReportingTimeFieldCreateAt)
 	if sortDirection == "" {
 		sortDirection = model.ReportingSortDirectionAsc
 	}
-	if perPage == 0 {
-		perPage = 100
-	}
+	perPage = cmp.Or(perPage, 100)
 
 	// Set initial cursor position based on sort direction
 	cursorTime := int64(0) // ASC: start from beginning

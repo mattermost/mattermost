@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -521,9 +522,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	teamId := r.URL.Query().Get("team_id")
 
-	if name == "" {
-		name = "standard"
-	}
+	name = cmp.Or(name, "standard")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetAnalytics) {
 		c.SetPermissionError(model.PermissionGetAnalytics)

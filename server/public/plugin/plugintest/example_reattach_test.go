@@ -4,6 +4,7 @@
 package plugintest_test
 
 import (
+	"cmp"
 	"context"
 	"os"
 	"testing"
@@ -68,10 +69,7 @@ func Example_unitTestingPlugins() {
 	}
 
 	// Reattaching requires a local mode client.
-	socketPath := os.Getenv("MM_LOCALSOCKETPATH")
-	if socketPath == "" {
-		socketPath = model.LocalModeSocketPath
-	}
+	socketPath := cmp.Or(os.Getenv("MM_LOCALSOCKETPATH"), model.LocalModeSocketPath)
 
 	clientLocal := model.NewAPIv4SocketClient(socketPath)
 	_, err := clientLocal.ReattachPlugin(ctx, &model.PluginReattachRequest{

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -1011,15 +1012,9 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			locale := tc.Locale
-			if locale == "" {
-				locale = "en"
-			}
+			locale := cmp.Or(tc.Locale, "en")
 
-			pushNotificationContents := tc.PushNotificationContents
-			if pushNotificationContents == "" {
-				pushNotificationContents = model.FullNotification
-			}
+			pushNotificationContents := cmp.Or(tc.PushNotificationContents, model.FullNotification)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.EmailSettings.PushNotificationContents = pushNotificationContents

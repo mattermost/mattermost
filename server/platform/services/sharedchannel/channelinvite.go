@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -371,10 +372,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
 		scs.NotifyMembershipChanged(channel.Id, "")
 	} else {
-		creatorID := channel.CreatorId
-		if creatorID == "" {
-			creatorID = invite.CreatorID
-		}
+		creatorID := cmp.Or(channel.CreatorId, invite.CreatorID)
 		scr := &model.SharedChannelRemote{
 			Id:                model.NewId(),
 			ChannelId:         channel.Id,

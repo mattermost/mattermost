@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -4248,10 +4249,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	if appErr != nil {
 		return "", appErr
 	}
-	threadRootID := anchorPost.RootId
-	if threadRootID == "" {
-		threadRootID = anchorPost.Id
-	}
+	threadRootID := cmp.Or(anchorPost.RootId, anchorPost.Id)
 
 	// Get the thread posts (only after confirming the session may read the anchor post's channel)
 	postList, appErr := a.GetPostThread(rctx, anchorPost.Id, model.GetPostsOptions{}, rctx.Session().UserId)
@@ -4325,19 +4323,13 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	var contextBuilder strings.Builder
 	contextBuilder.WriteString("Thread context:\n")
 
-	rootUsername := userMap[rootPost.UserId]
-	if rootUsername == "" {
-		rootUsername = "Unknown"
-	}
+	rootUsername := cmp.Or(userMap[rootPost.UserId], "Unknown")
 	contextBuilder.WriteString(fmt.Sprintf("Root post (%s): %s\n", rootUsername, rootPost.Message))
 
 	if len(contextReplies) > 0 {
 		contextBuilder.WriteString("\nRecent replies:\n")
 		for _, reply := range contextReplies {
-			username := userMap[reply.UserId]
-			if username == "" {
-				username = "Unknown"
-			}
+			username := cmp.Or(userMap[reply.UserId], "Unknown")
 			contextBuilder.WriteString(fmt.Sprintf("- %s: %s\n", username, reply.Message))
 		}
 	}

@@ -4,6 +4,7 @@
 package license
 
 import (
+	"cmp"
 	"fmt"
 	"go/ast"
 	"regexp"
@@ -68,9 +69,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// Validate license year
-	if licenseYear == 0 {
-		licenseYear = defaultLicenseYear
-	}
+	licenseYear = cmp.Or(licenseYear, defaultLicenseYear)
 
 	currentYear := time.Now().Year()
 	if licenseYear < defaultLicenseYear || licenseYear > currentYear {

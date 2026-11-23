@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bufio"
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -693,9 +694,7 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 		return err
 	}
 
-	if maxPostSize == 0 {
-		maxPostSize = model.PostMessageMaxRunesV2
-	}
+	maxPostSize = cmp.Or(maxPostSize, model.PostMessageMaxRunesV2)
 
 	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
 	validator := importer.NewValidator(

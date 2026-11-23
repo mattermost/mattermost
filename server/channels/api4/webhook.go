@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 
@@ -134,9 +135,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(oldHook)
 	auditRec.AddEventObjectType("incoming_webhook")
 
-	if updatedHook.TeamId == "" {
-		updatedHook.TeamId = oldHook.TeamId
-	}
+	updatedHook.TeamId = cmp.Or(updatedHook.TeamId, oldHook.TeamId)
 
 	if updatedHook.TeamId != oldHook.TeamId {
 		c.Err = model.NewAppError("updateIncomingHook", "api.webhook.team_mismatch.app_error", nil, "user_id="+c.AppContext.Session().UserId, http.StatusBadRequest)
@@ -423,9 +422,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if updatedHook.TeamId == "" {
-		updatedHook.TeamId = oldHook.TeamId
-	}
+	updatedHook.TeamId = cmp.Or(updatedHook.TeamId, oldHook.TeamId)
 
 	if updatedHook.TeamId != oldHook.TeamId {
 		c.Err = model.NewAppError("updateOutgoingHook", "api.webhook.team_mismatch.app_error", nil, "user_id="+c.AppContext.Session().UserId, http.StatusBadRequest)

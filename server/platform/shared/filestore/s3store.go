@@ -6,6 +6,7 @@ package filestore
 import (
 	"archive/zip"
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -71,11 +72,7 @@ var (
 )
 
 func getContentType(ext string) string {
-	mimeType := mime.TypeByExtension(strings.ToLower(ext))
-	if mimeType == "" {
-		mimeType = "application/octet-stream"
-	}
-	return mimeType
+	return cmp.Or(mime.TypeByExtension(strings.ToLower(ext)), "application/octet-stream")
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend and determine if we are in Mattermost cloud or not.

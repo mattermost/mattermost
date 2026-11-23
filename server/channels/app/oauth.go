@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	b64 "encoding/base64"
 	"encoding/json"
 	stderrors "errors"
@@ -219,9 +220,7 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if authRequest.Scope == "" {
-		authRequest.Scope = model.DefaultScope
-	}
+	authRequest.Scope = cmp.Or(authRequest.Scope, model.DefaultScope)
 
 	oauthApp, nErr := a.Srv().Store().OAuth().GetApp(authRequest.ClientId)
 	if nErr != nil {

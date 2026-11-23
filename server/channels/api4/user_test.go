@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
@@ -4723,14 +4724,8 @@ func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
 	}
 
 	t.Run("magic link guest password change email", func(t *testing.T) {
-		inbucketHost := os.Getenv("CI_INBUCKET_HOST")
-		if inbucketHost == "" {
-			inbucketHost = "localhost"
-		}
-		inbucketSMTPPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
-		if inbucketSMTPPort == "" {
-			inbucketSMTPPort = "10025"
-		}
+		inbucketHost := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
+		inbucketSMTPPort := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPServer = inbucketHost
 			*cfg.EmailSettings.SMTPPort = inbucketSMTPPort
@@ -4808,14 +4803,8 @@ func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
 	})
 
 	t.Run("password change email", func(t *testing.T) {
-		inbucketHost := os.Getenv("CI_INBUCKET_HOST")
-		if inbucketHost == "" {
-			inbucketHost = "localhost"
-		}
-		inbucketSMTPPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
-		if inbucketSMTPPort == "" {
-			inbucketSMTPPort = "10025"
-		}
+		inbucketHost := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
+		inbucketSMTPPort := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPServer = inbucketHost
 			*cfg.EmailSettings.SMTPPort = inbucketSMTPPort

@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -316,9 +317,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		prepareRemoteEmailForSync(user)
 		user.RemoteId = new(rc.RemoteId)
 		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
-			if originalRemoteId == "" {
-				originalRemoteId = rc.RemoteId // If no original RemoteId, use current sync sender
-			}
+			originalRemoteId = cmp.Or(originalRemoteId, rc.RemoteId) // If no original RemoteId, use current sync sender
 			user.SetProp(model.UserPropsKeyOriginalRemoteId, originalRemoteId)
 		}
 		if userSaved, err = scs.insertSyncUser(rctx, user, channel, rc); err != nil {

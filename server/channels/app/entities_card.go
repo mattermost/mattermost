@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 	"slices"
@@ -309,9 +310,7 @@ func qualifyEntityCardLinks(owner string, card *model.EntityCard) {
 			continue
 		}
 		card.Related[i].URL = term.URL
-		if card.Related[i].Label == "" {
-			card.Related[i].Label = term.Title
-		}
+		card.Related[i].Label = cmp.Or(card.Related[i].Label, term.Title)
 	}
 }
 

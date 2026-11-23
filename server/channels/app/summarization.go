@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -200,9 +201,7 @@ func buildConversationTextWithIDs(posts []*model.Post) (string, []string) {
 				username = usernameStr
 			}
 		}
-		if username == "" {
-			username = post.UserId
-		}
+		username = cmp.Or(username, post.UserId)
 		sb.WriteString(fmt.Sprintf("[%s] %s (Post ID: %s): %s\n",
 			time.UnixMilli(post.CreateAt).Format("15:04"),
 			username,

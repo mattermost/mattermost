@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"net/http"
 	"strings"
 
@@ -71,9 +72,7 @@ func (c *Compliance) PreSave() {
 		c.Id = NewId()
 	}
 
-	if c.Status == "" {
-		c.Status = ComplianceStatusCreated
-	}
+	c.Status = cmp.Or(c.Status, ComplianceStatusCreated)
 
 	c.Count = 0
 	c.Emails = NormalizeEmail(c.Emails)

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"os"
 	"testing"
 	"time"
@@ -137,10 +138,7 @@ func BenchmarkEntityPageLRU(b *testing.B) {
 
 func entityBenchRedis(tb testing.TB) cache.Cache {
 	tb.Helper()
-	addr := os.Getenv("ENTITY_REDIS_ADDR")
-	if addr == "" {
-		addr = "127.0.0.1:6379"
-	}
+	addr := cmp.Or(os.Getenv("ENTITY_REDIS_ADDR"), "127.0.0.1:6379")
 	provider, err := cache.NewRedisProvider(&cache.RedisOptions{RedisAddr: addr, DisableCache: true})
 	if err != nil {
 		tb.Skipf("redis: %v", err)

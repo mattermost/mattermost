@@ -4,6 +4,7 @@
 package metrics
 
 import (
+	"cmp"
 	"database/sql"
 	"maps"
 	"math"
@@ -2012,9 +2013,7 @@ func (mi *MetricsInterfaceImpl) IncrementWebsocketEvent(eventType model.Websocke
 }
 
 func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEvent(eventType, disconnectErrCode, originClient string) {
-	if disconnectErrCode == "" {
-		disconnectErrCode = "unknown"
-	}
+	disconnectErrCode = cmp.Or(disconnectErrCode, "unknown")
 	mi.WebSocketReconnectCounter.With(prometheus.Labels{
 		"type":                eventType,
 		"disconnect_err_code": disconnectErrCode,
@@ -2023,9 +2022,7 @@ func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEvent(eventType, disc
 }
 
 func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectFailure(reason string, isRemote bool, disconnectErrCode, originClient string) {
-	if disconnectErrCode == "" {
-		disconnectErrCode = "unknown"
-	}
+	disconnectErrCode = cmp.Or(disconnectErrCode, "unknown")
 	mi.WebSocketReconnectFailureCounter.With(prometheus.Labels{
 		"reason":              reason,
 		"is_remote":           strconv.FormatBool(isRemote),

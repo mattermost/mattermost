@@ -185,9 +185,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 	}
 
 	if isSelect {
-		if p == "" {
-			p = "Channels."
-		}
+		p = cmp.Or(p, "Channels.")
 
 		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel') AS PolicyEnforced", p))
 		autoAdd := fmt.Sprintf("COALESCE((SELECT %s FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' LIMIT 1), false)", autoAddMembersExpr("acp"), p)

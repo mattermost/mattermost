@@ -4,6 +4,7 @@
 package entities
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -28,10 +29,7 @@ func normalizeCache(mode string, ttlSeconds int) (string, time.Duration, error) 
 	if ttlSeconds < 0 || ttlSeconds > maxCacheTTLSeconds {
 		return "", 0, fmt.Errorf("cache ttl is not allowed")
 	}
-	ttl := time.Duration(ttlSeconds) * time.Second
-	if ttl == 0 {
-		ttl = defaultCacheTTL
-	}
+	ttl := cmp.Or(time.Duration(ttlSeconds)*time.Second, defaultCacheTTL)
 	return mode, ttl, nil
 }
 

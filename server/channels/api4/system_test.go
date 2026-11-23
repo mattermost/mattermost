@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -191,15 +192,9 @@ func TestEmailTest(t *testing.T) {
 		CheckErrorID(t, err, "api.admin.test_email.missing_server")
 		CheckBadRequestStatus(t, resp)
 
-		inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-		if inbucket_host == "" {
-			inbucket_host = "localhost"
-		}
+		inbucket_host := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
 
-		inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
-		if inbucket_port == "" {
-			inbucket_port = "10025"
-		}
+		inbucket_port := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 
 		*config.EmailSettings.SMTPServer = inbucket_host
 		*config.EmailSettings.SMTPPort = inbucket_port
@@ -847,15 +842,9 @@ func TestS3TestConnection(t *testing.T) {
 	th := Setup(t)
 	client := th.Client
 
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 

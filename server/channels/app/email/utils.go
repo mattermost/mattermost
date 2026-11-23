@@ -4,6 +4,8 @@
 package email
 
 import (
+	"cmp"
+
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
@@ -12,9 +14,7 @@ func (es *Service) mailServiceConfig(replyToAddress string) *mail.SMTPConfig {
 	emailSettings := es.config().EmailSettings
 	hostname := utils.GetHostnameFromSiteURL(*es.config().ServiceSettings.SiteURL)
 
-	if replyToAddress == "" {
-		replyToAddress = *emailSettings.ReplyToAddress
-	}
+	replyToAddress = cmp.Or(replyToAddress, *emailSettings.ReplyToAddress)
 
 	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,

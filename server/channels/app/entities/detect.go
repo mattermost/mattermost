@@ -218,15 +218,11 @@ func termMerged(accepted []hit, h hit) bool {
 					accepted[i].typeIDs = append(accepted[i].typeIDs, typeID)
 				}
 			}
-			if accepted[i].title == "" {
-				accepted[i].title = h.title
-			}
+			accepted[i].title = cmp.Or(accepted[i].title, h.title)
 			if accepted[i].url == "" {
 				accepted[i].url = h.url
 			}
-			if accepted[i].displayName == "" {
-				accepted[i].displayName = h.displayName
-			}
+			accepted[i].displayName = cmp.Or(accepted[i].displayName, h.displayName)
 		}
 		return true
 	}
@@ -436,10 +432,7 @@ func groupMissing(loc []int, group int) bool {
 }
 
 func groupSpan(loc []int, group, fallback int) (int, int) {
-	chosen := group
-	if chosen == 0 {
-		chosen = fallback
-	}
+	chosen := cmp.Or(group, fallback)
 	if chosen > 0 && chosen*2+1 < len(loc) && loc[chosen*2] >= 0 {
 		return loc[chosen*2], loc[chosen*2+1]
 	}

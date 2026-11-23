@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -1284,9 +1285,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if props.Limit == 0 {
-		props.Limit = model.UserSearchDefaultLimit
-	}
+	props.Limit = cmp.Or(props.Limit, model.UserSearchDefaultLimit)
 
 	if props.Term == "" {
 		c.SetInvalidParam("term")

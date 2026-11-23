@@ -19,6 +19,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -341,9 +342,7 @@ func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, val
 		Header:     w.headers,
 		Body:       io.NopCloser(bytes.NewReader(w.data)),
 	}
-	if resp.StatusCode == 0 {
-		resp.StatusCode = http.StatusOK
-	}
+	resp.StatusCode = cmp.Or(resp.StatusCode, http.StatusOK)
 
 	return resp, nil
 }
