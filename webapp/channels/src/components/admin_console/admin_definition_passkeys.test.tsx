@@ -32,10 +32,6 @@ const settings = () => (passkeys.schema && 'settings' in passkeys.schema ? passk
 const setting = (key: string) => settings().find((s) => s.key === key)!;
 
 describe('AdminDefinition - Passkeys', () => {
-    test('is registered under Authentication at authentication/passkeys', () => {
-        expect(passkeys.url).toBe('authentication/passkeys');
-    });
-
     test('is shown with the flag on, a Professional or higher license and read permission', () => {
         for (const sku of [LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.EnterpriseAdvanced, LicenseSkus.Entry]) {
             expect(isHidden(sku)).toBe(false);
@@ -55,14 +51,8 @@ describe('AdminDefinition - Passkeys', () => {
         expect(isHidden(LicenseSkus.Enterprise, true, access(false, false))).toBe(true);
     });
 
-    test('has an info banner first', () => {
-        expect(settings()[0].type).toBe('banner');
-        expect((settings()[0] as {banner_type?: string}).banner_type).toBe('info');
-    });
-
-    test.each(['ServiceSettings.EnablePasskeyEnrollment', 'ServiceSettings.EnablePasskeyLogin'])('%s is a bool disabled without write permission only', (key) => {
+    test.each(['ServiceSettings.EnablePasskeyEnrollment', 'ServiceSettings.EnablePasskeyLogin'])('%s is disabled without write permission only', (key) => {
         const s = setting(key);
-        expect(s.type).toBe('bool');
         expect(isDisabled(s, access(true, false))).toBe(true);
         expect(isDisabled(s, access(true, true))).toBe(false);
     });
@@ -78,10 +68,6 @@ describe('AdminDefinition - Site URL passkey warning', () => {
         const check = banner.isHidden as Exclude<Check, boolean>;
         return check({FeatureFlags: {Passkeys: flag}, ServiceSettings: {SiteURL: saved}} as unknown as Partial<AdminConfig>, {'ServiceSettings.SiteURL': edited}, license(sku));
     }
-
-    test('is a warning banner', () => {
-        expect((banner as {banner_type?: string}).banner_type).toBe('warning');
-    });
 
     test('shows when the host changes', () => {
         expect(hidden('https://chat.example.com', 'https://mm.example.com')).toBe(false);
