@@ -449,7 +449,8 @@ test(
 
             const channel = await adminClient.getChannelByName(team.id, 'town-square');
             const post = await userClient.createPost({channel_id: channel.id, message: `sealed ${suffix}`});
-            await setPostValues(adminClient, post.id, [{field_id: sealed.id, value: optionId(sealed, 'HIGH')}]);
+            // LOW, so the refused writes below (always HIGH) would change the value
+            await setPostValues(adminClient, post.id, [{field_id: sealed.id, value: optionId(sealed, 'LOW')}]);
             await sealField(adminClient, sealed);
             const {user: sysadmin, client: sysadminClient} = await addMember(pw, adminClient, team, [channel.id], {
                 systemAdmin: true,
@@ -471,12 +472,12 @@ test(
 
                 // * Verify the value the field already held still renders on the post
                 const onScreen = await channelsPage.centerView.getPostById(post.id);
-                await expect(onScreen.container.getByTestId('post-attributes-chips')).toContainText('HIGH');
+                await expect(onScreen.container.getByTestId('post-attributes-chips')).toContainText('LOW');
 
                 // * Verify the modal's row is there, locked, with its value and no control
                 await openModalFromPostMenu(channelsPage, onScreen, {keyboard: true});
                 await expect(page.locator(MODAL)).toBeVisible();
-                await expect(modalRow(page, sealed)).toContainText('HIGH');
+                await expect(modalRow(page, sealed)).toContainText('LOW');
                 await expect(modalRow(page, sealed).getByRole('img', {name: LOCKED_REASON})).toBeVisible();
                 await expect(modalTrigger(page, sealed)).toHaveCount(0);
                 await expect(modalTrigger(page, open)).toBeVisible();
