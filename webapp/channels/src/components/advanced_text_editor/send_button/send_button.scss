@@ -1,7 +1,7 @@
-// Channel send uses the medium corner, so the split arrow and the schedule
+// Channel send uses the IconButton corner, so the split arrow and the schedule
 // chevron share that shape.
-// Agent send adds --round: 44px wide, 32px tall, same medium corner. The
-// schedule split is hidden there.
+// Agent send adds --round: 44px wide, 32px tall, same corner. The schedule
+// split is hidden there.
 .splitSendButton {
     display: flex;
     overflow: hidden;
@@ -9,7 +9,7 @@
     height: 32px;
     flex-direction: row;
     justify-content: center;
-    border-radius: var(--radius-m);
+    border-radius: var(--radius-s);
     background: var(--button-bg);
     color: var(--button-color);
 
@@ -44,7 +44,7 @@
 
     .SendMessageButton {
         flex: 1;
-        border-radius: var(--radius-m) 0 0 var(--radius-m);
+        border-radius: var(--radius-s) 0 0 var(--radius-s);
         cursor: pointer;
         padding-inline: 7px;
         place-content: center;
@@ -66,7 +66,7 @@
         }
 
         &.singleAction {
-            border-radius: var(--radius-m);
+            border-radius: var(--radius-s);
         }
 
         &:not(.disabled):hover {
@@ -77,7 +77,7 @@
     .button_send_post_options {
         position: relative;
         width: 21px;
-        border-radius: 0 var(--radius-m) var(--radius-m) 0;
+        border-radius: 0 var(--radius-s) var(--radius-s) 0;
         border-left: none;
         padding-inline: 2px;
 
@@ -98,20 +98,20 @@
     }
 }
 
-// Agent send is 44px wide and 32px tall, with the medium corner and the
+// Agent send is 44px wide and 32px tall, with the IconButton corner and the
 // primary fill. The paper plane's mass sits left of center; 1px brings it
 // toward the middle.
 .splitSendButton--round {
     width: 44px;
     height: 32px;
-    border-radius: var(--radius-m);
+    border-radius: var(--radius-s);
 
     .SendMessageButton {
-        border-radius: var(--radius-m);
+        border-radius: var(--radius-s);
         padding-inline: 0;
 
         &.singleAction {
-            border-radius: var(--radius-m);
+            border-radius: var(--radius-s);
         }
     }
 }
