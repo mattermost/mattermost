@@ -144,7 +144,10 @@ test('shows a masked value only to the user who holds it', {tag: '@post_attribut
     made.posts.push(postField);
 
     const masked = await maskTemplateBy(adminClient, template, holder);
-    expect((masked as unknown as {permissions?: {masking?: {mask_by_field_id?: string}}}).permissions?.masking?.mask_by_field_id).toBe(holder.id);
+    expect(
+        (masked as unknown as {permissions?: {masking?: {mask_by_field_id?: string}}}).permissions?.masking
+            ?.mask_by_field_id,
+    ).toBe(holder.id);
 
     // # Two users on the same channel; only A holds Alpha
     const channel = await adminClient.getChannelByName(team.id, 'town-square');

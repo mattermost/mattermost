@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator} from '@playwright/test';
+import type {Locator, Response} from '@playwright/test';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
+    GROUP,
+    OBJECT_TYPE,
     activeSystemFields,
     chooseOption,
     composerChip,
@@ -20,6 +22,7 @@ import {
     composerTrigger,
     createField,
     deleteFields,
+    dropFieldUpdates,
     fieldName,
     optionId,
     pickerItem,
@@ -1221,79 +1224,75 @@ const ONE_PIXEL_PNG =
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
-test(
-    'applies system fields in direct and group messages',
-    {tag: '@post_attributes'},
-    async ({pw}) => {
-        await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('PostAttributes', true);
+test('applies system fields in direct and group messages', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
-        const {adminClient, user, team} = await pw.initSetup();
-        const suffix = pw.random.id();
-        const created: PropertyField[] = [];
+    const {adminClient, user, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
 
-        try {
-            await purgeFields(adminClient);
+    try {
+        await purgeFields(adminClient);
 
-            const alice = await adminClient.createUser(await pw.random.user('alice'), '', '');
-            const bob = await adminClient.createUser(await pw.random.user('bob'), '', '');
-            await adminClient.createDirectChannel([user.id, alice.id]);
-            const gm = await adminClient.createGroupChannel([user.id, alice.id, bob.id]);
+        const alice = await adminClient.createUser(await pw.random.user('alice'), '', '');
+        const bob = await adminClient.createUser(await pw.random.user('bob'), '', '');
+        await adminClient.createDirectChannel([user.id, alice.id]);
+        const gm = await adminClient.createGroupChannel([user.id, alice.id, bob.id]);
 
-            // # A select field and a text field, both system-scoped
-            const everywhere = await createField(adminClient, fieldName('everywhere', suffix), {
-                options: ['Low', 'High'],
-            });
-            const note = await createField(adminClient, fieldName('note', suffix), {type: 'text'});
-            created.push(everywhere, note);
+        // # A select field and a text field, both system-scoped
+        const everywhere = await createField(adminClient, fieldName('everywhere', suffix), {
+            options: ['Low', 'High'],
+        });
+        const note = await createField(adminClient, fieldName('note', suffix), {type: 'text'});
+        created.push(everywhere, note);
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {page, channelsPage} = await pw.testBrowser.login(user);
 
-            for (const label of ['dm', 'gm'] as const) {
-                // # Open the conversation
-                if (label === 'dm') {
-                    await channelsPage.goto(team.name, `@${alice.username}`);
-                } else {
-                    await channelsPage.gotoMessage(team.name, gm.name);
-                }
-                await channelsPage.toBeVisible();
-
-                const composer = channelsPage.centerView.postCreate;
-                const scope = composer.container;
-
-                // * Verify both system fields are offered
-                await composerPlus(scope).click();
-                await expect(pickerItem(page, everywhere)).toBeVisible();
-                await expect(pickerItem(page, note)).toBeVisible();
-                await page.keyboard.press('Escape');
-
-                // # Stage one of each and send
-                await stageField(page, scope, everywhere);
-                await chooseOption(page, 'High');
-                await stageField(page, scope, note);
-                await composerInput(scope, note).fill(`in the ${label}`);
-                await composerInput(scope, note).press('Enter');
-
-                await composer.writeMessage(`${label} ${suffix}`);
-                const request = waitForCreatePost(page);
-                await composer.sendMessage();
-
-                // * Verify both values were sent and are on the post
-                expect(sentValues(await request)).toEqual(
-                    expect.arrayContaining([
-                        {field_id: everywhere.id, value: optionId(everywhere, 'High')},
-                        {field_id: note.id, value: `in the ${label}`},
-                    ]),
-                );
-                const sent = postWithMessage(channelsPage.centerView.container, `${label} ${suffix}`);
-                await expect(sent.getByTestId(CHIPS).getByTestId(OPTION_CHIP)).toHaveText('High');
-                await expect(sent.getByTestId(CHIPS).getByTestId(TEXT_CHIP)).toHaveText(`in the ${label}`);
+        for (const label of ['dm', 'gm'] as const) {
+            // # Open the conversation
+            if (label === 'dm') {
+                await channelsPage.goto(team.name, `@${alice.username}`);
+            } else {
+                await channelsPage.gotoMessage(team.name, gm.name);
             }
-        } finally {
-            await deleteFields(adminClient, created);
+            await channelsPage.toBeVisible();
+
+            const composer = channelsPage.centerView.postCreate;
+            const scope = composer.container;
+
+            // * Verify both system fields are offered
+            await composerPlus(scope).click();
+            await expect(pickerItem(page, everywhere)).toBeVisible();
+            await expect(pickerItem(page, note)).toBeVisible();
+            await page.keyboard.press('Escape');
+
+            // # Stage one of each and send
+            await stageField(page, scope, everywhere);
+            await chooseOption(page, 'High');
+            await stageField(page, scope, note);
+            await composerInput(scope, note).fill(`in the ${label}`);
+            await composerInput(scope, note).press('Enter');
+
+            await composer.writeMessage(`${label} ${suffix}`);
+            const request = waitForCreatePost(page);
+            await composer.sendMessage();
+
+            // * Verify both values were sent and are on the post
+            expect(sentValues(await request)).toEqual(
+                expect.arrayContaining([
+                    {field_id: everywhere.id, value: optionId(everywhere, 'High')},
+                    {field_id: note.id, value: `in the ${label}`},
+                ]),
+            );
+            const sent = postWithMessage(channelsPage.centerView.container, `${label} ${suffix}`);
+            await expect(sent.getByTestId(CHIPS).getByTestId(OPTION_CHIP)).toHaveText('High');
+            await expect(sent.getByTestId(CHIPS).getByTestId(TEXT_CHIP)).toHaveText(`in the ${label}`);
         }
-    },
-);
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
 
 /**
  * @objective Verify editing a sent post's message, in the composer's edit mode, shows no
@@ -1356,6 +1355,133 @@ test('edits a message without touching its attributes', {tag: '@post_attributes'
         const reloaded = await channelsPage.centerView.getPostById(post.id);
         await expect(reloaded.container).toContainText(`edited ${suffix}`);
         await expect(reloaded.container.getByTestId(CHIPS).getByTestId(OPTION_CHIP)).toHaveText('High');
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
+
+/**
+ * @objective Verify a send the server refuses keeps its values on the failed post: the
+ * composer is already empty when the refusal lands, Retry sends the same values again, Cancel
+ * removes the post, and once the server accepts, Retry puts the chip on the post.
+ *
+ * The refusal is the server's own 403 `api.post.create_post.attribute_no_permission`. The
+ * field is linked to a template, so its `permission_values` can be patched between `member`
+ * and `sysadmin`: tightened to `sysadmin` after the user staged a value, loosened back to
+ * `member` before the last Retry.
+ *
+ * The page does not get the field's `property_field_updated` websocket event, which
+ * `dropFieldUpdates` filters out on the page's own socket. With it the composer would see the
+ * field become unsettable, drop its chip and stop sending its value, so the post would go
+ * through without the value and nothing would be refused. The filter is on the browser's
+ * socket rather than the patch going through a second client, because the update is
+ * broadcast to every session of the user and has to be kept from this page specifically;
+ * the server still enforces the tightened permission, which is what is asserted.
+ *
+ * @precondition The PostAttributes feature flag is enabled, and the server has an
+ * Enterprise-level licence (Entry counts).
+ */
+test('keeps the values on a post whose send was refused', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
+    await pw.ensureFeatureFlag('PostAttributes', true);
+
+    const {adminClient, user, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        // A member may set it when the user stages the value; the level is tightened later
+        const level = await createField(adminClient, fieldName('level', suffix), {
+            options: ['Low', 'High'],
+            permissionValues: 'member',
+        });
+        created.push(level);
+        const expected = [{field_id: level.id, value: optionId(level, 'High')}];
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await dropFieldUpdates(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const composer = channelsPage.centerView.postCreate;
+        const scope = composer.container;
+        const centre = channelsPage.centerView.container;
+
+        // The server's answer to a post creation. Arm it before the click that sends.
+        const createAnswer = () =>
+            page.waitForResponse(
+                (candidate) =>
+                    candidate.request().method() === 'POST' &&
+                    new URL(candidate.url()).pathname.endsWith('/api/v4/posts'),
+            );
+
+        // * Verify a refusal is the server's own, with its error id
+        const expectRefused = async (response: Response) => {
+            expect(response.status()).toBe(403);
+            expect((await response.json()).id).toBe('api.post.create_post.attribute_no_permission.app_error');
+        };
+
+        // # Stage the value, then take the permission away from members. The page is not told.
+        await stageField(page, scope, level);
+        await chooseOption(page, 'High');
+        await adminClient.patchPropertyField(GROUP, OBJECT_TYPE, level.id, {permission_values: 'sysadmin'});
+
+        // # Send
+        await composer.writeMessage(`refused ${suffix}`);
+        const first = waitForCreatePost(page);
+        const firstResponse = createAnswer();
+        await composer.sendMessage();
+
+        // * Verify the values were sent and the server refused them
+        expect(sentValues(await first)).toEqual(expected);
+        await expectRefused(await firstResponse);
+
+        // * Verify the composer is empty, like the message, and the post shows as failed
+        await expect(composerChips(scope)).toHaveCount(0);
+        await expect(composer.input).toHaveValue('');
+        const failed = postWithMessage(centre, `refused ${suffix}`);
+        await expect(failed.locator('a.post-retry')).toBeVisible();
+
+        // # Retry
+        let again = waitForCreatePost(page);
+        let answer = createAnswer();
+        await failed.locator('a.post-retry').click();
+
+        // * Verify the same values are sent again, and refused the same way
+        expect(sentValues(await again)).toEqual(expected);
+        await expectRefused(await answer);
+        await expect(failed.locator('a.post-retry')).toBeVisible();
+
+        // # Let members set it again, and Retry
+        await adminClient.patchPropertyField(GROUP, OBJECT_TYPE, level.id, {permission_values: 'member'});
+        again = waitForCreatePost(page);
+        answer = createAnswer();
+        await failed.locator('a.post-retry').click();
+
+        // * Verify the values are sent a third time, accepted, and the chip is on the post
+        expect(sentValues(await again)).toEqual(expected);
+        expect((await answer).status()).toBe(201);
+        await expect(
+            postWithMessage(centre, `refused ${suffix}`).getByTestId(CHIPS).getByTestId(OPTION_CHIP),
+        ).toHaveText('High');
+
+        // # Take the permission away again, send a second post and cancel it
+        await stageField(page, scope, level);
+        await chooseOption(page, 'High');
+        await adminClient.patchPropertyField(GROUP, OBJECT_TYPE, level.id, {permission_values: 'sysadmin'});
+        await composer.writeMessage(`cancelled ${suffix}`);
+        const second = waitForCreatePost(page);
+        await composer.sendMessage();
+        await second;
+
+        const cancelled = postWithMessage(centre, `cancelled ${suffix}`);
+        await expect(cancelled.locator('a.post-cancel')).toBeVisible();
+        await cancelled.locator('a.post-cancel').click();
+
+        // * Verify the post is gone
+        await expect(cancelled).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }

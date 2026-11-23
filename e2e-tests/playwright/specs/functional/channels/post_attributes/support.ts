@@ -114,7 +114,12 @@ export async function createLinkedPostField(
     adminClient: Client4,
     template: PropertyField,
     name: string,
-    {visibility, sortOrder, subType, permissionValues = 'creator'}: Pick<CreateOptions, 'visibility' | 'sortOrder' | 'subType' | 'permissionValues'> = {},
+    {
+        visibility,
+        sortOrder,
+        subType,
+        permissionValues = 'creator',
+    }: Pick<CreateOptions, 'visibility' | 'sortOrder' | 'subType' | 'permissionValues'> = {},
 ): Promise<PropertyField> {
     // No display_name: it is the template's, and a linked field that carried one of its own
     // would show it instead of its name, which a rename of the field would not change.
@@ -537,10 +542,23 @@ export function modalInput(page: Page, field: PropertyField) {
  * hovered rather than the post, so the pointer never rests on the chip row and the hover
  * card is not what opened the modal.
  */
-export async function openModalFromPostMenu(channelsPage: ChannelsPage, post: ChannelsPost) {
+export async function openModalFromPostMenu(
+    channelsPage: ChannelsPage,
+    post: ChannelsPost,
+    {keyboard = false}: {keyboard?: boolean} = {},
+) {
     await post.messageText.hover();
     await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
+
+    if (keyboard) {
+        // Opened with Enter so the pointer is not left over a menu item: on a post whose
+        // menu opens under it, the pointer lands on `Remind` and its submenu replaces the menu.
+        await post.postMenu.dotMenuButton.focus();
+        await post.postMenu.dotMenuButton.press('Enter');
+    } else {
+        await post.postMenu.dotMenuButton.click();
+    }
+
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
 }
@@ -626,7 +644,11 @@ export async function unmaskTemplate(adminClient: Client4, template: PropertyFie
  */
 export async function deleteTemplateSet(
     adminClient: Client4,
-    {posts = [], holders = [], templates = []}: {posts?: PropertyField[]; holders?: PropertyField[]; templates?: PropertyField[]},
+    {
+        posts = [],
+        holders = [],
+        templates = [],
+    }: {posts?: PropertyField[]; holders?: PropertyField[]; templates?: PropertyField[]},
 ) {
     for (const template of templates) {
         await unmaskTemplate(adminClient, template);
@@ -653,9 +675,60 @@ export async function purgeTemplateFields(adminClient: Client4): Promise<void> {
     for (const objectType of [USER_OBJECT_TYPE, TEMPLATE_OBJECT_TYPE]) {
         try {
             const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: 'system'});
-            const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
+            const stale = (fields ?? []).filter(
+                (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
+            );
 
             await deleteFieldsOf(adminClient, objectType, stale);
         } catch {} // eslint-disable-line no-empty
     }
+}
+
+/**
+ * Keeps `property_field_updated` frames from reaching the page, forwarding every other
+ * websocket message both ways. Call it before the page first loads, so the socket it opens
+ * is the filtered one.
+ *
+ * For a test that changes a field's permission while the page is looking at it and needs
+ * the page to find out only from the server's answer. The composer and the modal react to
+ * the update by taking the control away (the composer stops sending the field's value, the
+ * modal locks the row), so with the update delivered the write the test wants refused is
+ * never attempted. The filter is on the page's socket, not on the server, so the server
+ * still enforces the new permission.
+ */
+export async function dropFieldUpdates(page: Page): Promise<void> {
+    await page.routeWebSocket(/\/api\/v4\/websocket/, (ws) => {
+        const server = ws.connectToServer();
+
+        ws.onMessage((message) => server.send(message));
+        server.onMessage((message) => {
+            if (typeof message === 'string' && /"event":\s*"property_field_updated"/.test(message)) {
+                return;
+            }
+
+            ws.send(message);
+        });
+    });
+}
+
+/**
+ * Makes nobody able to write a post field's values, a system admin included, while the
+ * values it already holds stay readable. A linked field's `permission_values` can only be
+ * patched to `member` or `sysadmin`, so `none` goes through the v3 `permissions` object,
+ * which has to carry all five levels; the rest are what a post field has by default.
+ *
+ * This is how a value ends up under a `none` field: it is stored while the field is
+ * writable, then the field is sealed. Nothing stores one under a field that is `none` from
+ * the start.
+ */
+export async function sealField(adminClient: Client4, field: PropertyField): Promise<PropertyField> {
+    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {
+        permissions: {
+            restrictions: {
+                value: {read: 'everyone', write: 'none'},
+                option: {read: 'everyone', write: 'sysadmin'},
+                field: {write: 'sysadmin'},
+            },
+        },
+    });
 }

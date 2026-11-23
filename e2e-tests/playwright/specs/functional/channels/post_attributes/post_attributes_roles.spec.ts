@@ -23,6 +23,7 @@ import {
     optionId,
     pickerItem,
     purgeFields,
+    sealField,
     sentValues,
     setPostValues,
     stageField,
@@ -409,7 +410,11 @@ test('lets a guest set member and creator fields on their own post', {tag: '@pos
 /**
  * @objective Verify a `none` field gives nobody a control: a system admin and a member see
  * a padlock and no way in on the modal's row, and the composer never offers it. The server
- * refuses a write from either.
+ * refuses a write from either. A value the field already held still renders, as a chip on the
+ * post and as text on the row.
+ *
+ * A value cannot be stored under a field that is `none` from the start, so the field is
+ * created writable, given its value, and then sealed through its `permissions` object.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
@@ -431,7 +436,7 @@ test(
             // has something to offer and the absence of the first is about the first
             const sealed = await createField(adminClient, fieldName('sealed', suffix), {
                 options: ['LOW', 'HIGH'],
-                permissionValues: 'none',
+                permissionValues: 'member',
                 visibility: 'always',
                 sortOrder: 1,
             });
@@ -444,6 +449,8 @@ test(
 
             const channel = await adminClient.getChannelByName(team.id, 'town-square');
             const post = await userClient.createPost({channel_id: channel.id, message: `sealed ${suffix}`});
+            await setPostValues(adminClient, post.id, [{field_id: sealed.id, value: optionId(sealed, 'HIGH')}]);
+            await sealField(adminClient, sealed);
             const {user: sysadmin, client: sysadminClient} = await addMember(pw, adminClient, team, [channel.id], {
                 systemAdmin: true,
             });
@@ -462,10 +469,14 @@ test(
                 await expect(pickerItem(page, sealed), `${label} is not offered the sealed one`).toHaveCount(0);
                 await page.keyboard.press('Escape');
 
-                // * Verify the modal's row is there, locked, with no control
+                // * Verify the value the field already held still renders on the post
                 const onScreen = await channelsPage.centerView.getPostById(post.id);
-                await openModalFromPostMenu(channelsPage, onScreen);
+                await expect(onScreen.container.getByTestId('post-attributes-chips')).toContainText('HIGH');
+
+                // * Verify the modal's row is there, locked, with its value and no control
+                await openModalFromPostMenu(channelsPage, onScreen, {keyboard: true});
                 await expect(page.locator(MODAL)).toBeVisible();
+                await expect(modalRow(page, sealed)).toContainText('HIGH');
                 await expect(modalRow(page, sealed).getByRole('img', {name: LOCKED_REASON})).toBeVisible();
                 await expect(modalTrigger(page, sealed)).toHaveCount(0);
                 await expect(modalTrigger(page, open)).toBeVisible();
