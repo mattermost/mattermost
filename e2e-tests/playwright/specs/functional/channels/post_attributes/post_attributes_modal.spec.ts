@@ -8,10 +8,13 @@ import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
+    GROUP,
+    OBJECT_TYPE,
     activeSystemFields,
     countLoads,
     createField,
     deleteFields,
+    dropFieldUpdates,
     fieldName,
     modalClear,
     modalInput,
@@ -23,6 +26,7 @@ import {
     purgeFields,
     setPostValues,
     VALUES_ROUTE,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -74,6 +78,7 @@ async function addAttribute(page: Page, field: PropertyField) {
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('opens from the post menu and from the hover card', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post
@@ -134,6 +139,7 @@ test('opens from the post menu and from the hover card', {tag: '@post_attributes
  * give the menu something to add. It skips when the server has one.
  */
 test('offers no Attributes item when there is nothing to view or add', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one field only a system admin may write, and leave it unset. A member
@@ -202,9 +208,10 @@ test(
     'offers no Attributes item on system messages or concealed burn-on-read posts',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
         await pw.ensureLicense();
-        await pw.skipIfNoLicense();
+        await skipIfNoPostAttributesLicense();
 
         // # Provision an `always` field any member may write, so an ordinary post would offer
         // the item
@@ -294,6 +301,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('writes a text attribute on Enter and on blur', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a when_set text field and a post with no values
@@ -359,6 +367,7 @@ test(
     'writes user and multiuser attributes through a picker above the modal',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision a user and a multiuser field, two people to pick, and a post with no values
@@ -456,6 +465,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('writes select, rank and multiselect attributes', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a rank and a multiselect field, and a post with no values
@@ -559,6 +569,7 @@ test(
     'searches the field picker inside the modal, and Escape closes only the menu',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision five fields, none set on the post
@@ -653,6 +664,7 @@ test(
     'removes a cleared attribute from the card, and from the modal unless it is always',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision three fields and set all three on one post: an `always` one and a
@@ -745,6 +757,84 @@ test(
             await page.getByTestId('post-attributes-add').click();
             await expect(pickerItem(page, whenSet)).toBeVisible();
             await expect(pickerItem(page, always)).toHaveCount(0);
+        } finally {
+            await deleteFields(adminClient, created);
+        }
+    },
+);
+
+/**
+ * @objective Verify a write the server refuses while the modal is open shows the permission
+ * message on that row and leaves the chip on the post with its old value.
+ *
+ * The field is linked to a template, so its `permission_values` can be patched from `member`
+ * to `sysadmin` after the modal opened. The page does not get the field's
+ * `property_field_updated` websocket event (`dropFieldUpdates` filters it on the page's own
+ * socket): with it the modal would lock the row before the pick and no write would be
+ * attempted, so there would be nothing to refuse. The server still enforces the new level,
+ * which is what refuses the write.
+ *
+ * @precondition The PostAttributes feature flag is enabled, and the server has an
+ * Enterprise-level licence (Entry counts).
+ */
+test(
+    'shows the refusal on the row when a write is refused, and keeps the chip',
+    {tag: '@post_attributes'},
+    async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
+        await pw.ensureFeatureFlag('PostAttributes', true);
+
+        // # Provision a member-writable select field and set one value on the user's post
+        const {adminClient, user, userClient, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeFields(adminClient);
+
+            const level = await createField(adminClient, fieldName('level', suffix), {
+                options: ['Low', 'High'],
+                permissionValues: 'member',
+                visibility: 'always',
+            });
+            created.push(level);
+
+            const channel = await adminClient.getChannelByName(team.id, 'town-square');
+            const post = await userClient.createTestPost({channel_id: channel.id, message: `refused write ${suffix}`});
+            await setPostValues(adminClient, post.id, [{field_id: level.id, value: optionId(level, 'Low')}]);
+
+            const {page, channelsPage} = await pw.testBrowser.login(user);
+            await dropFieldUpdates(page);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const postOnScreen = await channelsPage.centerView.getPostById(post.id);
+            const chip = postOnScreen.container.getByTestId(CHIPS).getByTestId(OPTION_CHIP);
+            await expect(chip).toHaveText('Low');
+
+            // # Open the modal, then take the permission away from members. The page is not told.
+            await openModalFromPostMenu(channelsPage, postOnScreen);
+            await expect(page.locator(MODAL)).toBeVisible();
+            await expect(modalTrigger(page, level)).toHaveText('Low');
+            await adminClient.patchPropertyField(GROUP, OBJECT_TYPE, level.id, {permission_values: 'sysadmin'});
+
+            // # Pick the other option
+            const refused = page.waitForResponse(
+                (response) =>
+                    response.url().includes(`${VALUES_ROUTE}${post.id}`) && response.request().method() === 'PATCH',
+            );
+            await modalTrigger(page, level).click();
+            await page.getByRole('menuitemradio', {name: 'High', exact: true}).click();
+
+            // * Verify the server refused it, and the row says so
+            expect((await refused).status()).toBe(403);
+            await expect(page.getByTestId(`post-attribute-error-${level.name}`)).toHaveText(
+                'You do not have permission to change this attribute',
+            );
+
+            // * Verify the chip on the post and the row both still hold the old value
+            await expect(chip).toHaveText('Low');
+            await expect(modalTrigger(page, level)).toHaveText('Low');
         } finally {
             await deleteFields(adminClient, created);
         }
