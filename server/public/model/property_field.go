@@ -984,6 +984,69 @@ func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
 	return propertyFieldOptionCount(attrs) > 0
 }
 
+// PropertyFieldInlineOptions extracts the options from an attrs map as
+// []map[string]any via direct type assertion. By the time options reach the
+// service layer, they are always []any containing map[string]any elements
+// (from JSON deserialization, EnsureOptionIDs, or the attribute validation
+// hook's option sanitizing -- all of which normalize to this shape). Any other
+// shape yields nil.
+func PropertyFieldInlineOptions(attrs StringInterface) []map[string]any {
+	if attrs == nil {
+		return nil
+	}
+	raw, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil
+	}
+	slice, ok := raw.([]any)
+	if !ok {
+		return nil
+	}
+	result := make([]map[string]any, 0, len(slice))
+	for _, item := range slice {
+		if m, ok := item.(map[string]any); ok {
+			result = append(result, m)
+		}
+	}
+	return result
+}
+
+// PropertyFieldOptionsChanged compares the options in two attrs maps and returns
+// true if they differ. Options are matched by ID, so order does not matter, and
+// compared with reflect.DeepEqual so nested values count.
+//
+// Neither side needs a withheld-option-list branch: a non-empty list supplied
+// against a field whose list was withheld is refused outright before this runs
+// (see the option-list invariant in updatePropertyFields), and every remaining
+// shape has no list on either side and so compares unchanged.
+func PropertyFieldOptionsChanged(oldAttrs, newAttrs StringInterface) bool {
+	oldOpts := PropertyFieldInlineOptions(oldAttrs)
+	newOpts := PropertyFieldInlineOptions(newAttrs)
+
+	if len(oldOpts) != len(newOpts) {
+		return true
+	}
+	if len(oldOpts) == 0 {
+		return false
+	}
+
+	newByID := make(map[string]map[string]any, len(newOpts))
+	for _, opt := range newOpts {
+		if id, _ := opt["id"].(string); id != "" {
+			newByID[id] = opt
+		}
+	}
+
+	for _, oldOpt := range oldOpts {
+		id, _ := oldOpt["id"].(string)
+		newOpt, exists := newByID[id]
+		if !exists || !reflect.DeepEqual(oldOpt, newOpt) {
+			return true
+		}
+	}
+	return false
+}
+
 // PropertyFieldChangeIsOptionsOnly reports whether updated differs from existing
 // in nothing but its option list. An option change is gated on option.write and
 // every other change on field.write, so the enforcement hook needs the same

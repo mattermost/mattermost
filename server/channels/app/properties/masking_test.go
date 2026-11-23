@@ -1754,3 +1754,85 @@ func TestMaskOptionPage(t *testing.T) {
 		assert.ElementsMatch(t, []string{"A"}, listedNames(page), "the fallback context still filters to what the caller holds")
 	})
 }
+
+// TestMaskedCallerFieldUpdateOptions covers a field update on a masked field
+// that carries more than the option list. The caller's own view of the field
+// holds only the options they hold, so an update that changes the option list
+// would delete the ones they cannot see.
+func TestMaskedCallerFieldUpdateOptions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+		return true
+	})
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
+	options := func() []any {
+		return []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}
+	}
+	setup := func(t *testing.T, name string, masking *model.Masking, holder string) *model.PropertyField {
+		t.Helper()
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, name, model.PropertyFieldTypeSelect, options(), masking))
+		require.NoError(t, err)
+		writeValueDirect(t, th, field.ID, "user", holder, "opt_a")
+		return field
+	}
+	// renamed returns field renamed, carrying the given option list.
+	renamed := func(field *model.PropertyField, opts []any) *model.PropertyField {
+		updated := *field
+		updated.Name = field.Name + "-renamed"
+		updated.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: opts}
+		return &updated
+	}
+	droppingB := []any{map[string]any{"id": "opt_a", "name": "A"}}
+
+	t.Run("a rename that also changes the options is refused", func(t *testing.T) {
+		caller := model.NewId()
+		field := setup(t, "Update-RenameDropsOption", &model.Masking{}, caller)
+
+		_, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, renamed(field, droppingB))
+		require.ErrorIs(t, err, ErrAccessDenied)
+
+		stored, err := th.service.getPropertyField(th.Context, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, field.Name, stored.Name)
+		assert.ElementsMatch(t, []string{"opt_a", "opt_b"}, optionIDsOf(t, stored))
+	})
+
+	t.Run("a rename that leaves the options as stored is allowed", func(t *testing.T) {
+		caller := model.NewId()
+		field := setup(t, "Update-RenameKeepsOptions", &model.Masking{}, caller)
+
+		updated, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, renamed(field, options()))
+		require.NoError(t, err)
+		assert.Equal(t, field.Name+"-renamed", updated.Name)
+	})
+
+	t.Run("an options-only change is still refused", func(t *testing.T) {
+		caller := model.NewId()
+		field := setup(t, "Update-OptionsOnly", &model.Masking{}, caller)
+
+		optionsOnly := *field
+		optionsOnly.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: droppingB}
+		_, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, &optionsOnly)
+		require.ErrorIs(t, err, ErrAccessDenied)
+	})
+
+	t.Run("a caller in except may rename and change the options", func(t *testing.T) {
+		caller := model.NewId()
+		field := setup(t, "Update-Exempt", &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: caller}}}, caller)
+
+		_, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, renamed(field, droppingB))
+		require.NoError(t, err)
+	})
+
+	t.Run("an unmasked field may be renamed with its options changed", func(t *testing.T) {
+		caller := model.NewId()
+		field := setup(t, "Update-Unmasked", nil, caller)
+
+		_, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, renamed(field, droppingB))
+		require.NoError(t, err)
+	})
+}

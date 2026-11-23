@@ -867,7 +867,7 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		// fact, do not depend on which property generation the field belongs to.
 
 		// Block options changes on linked fields
-		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && optionsChanged(existing.Attrs, field.Attrs) {
+		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && model.PropertyFieldOptionsChanged(existing.Attrs, field.Attrs) {
 			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.linked_options_change.app_error",
@@ -1762,73 +1762,9 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 	return ps.deletePropertyField(rctx, groupID, id)
 }
 
-// asOptionSlice extracts the options from an attrs map as []map[string]any
-// via direct type assertion. By the time options reach the service layer,
-// they are always []any containing map[string]any elements (from JSON
-// deserialization, EnsureOptionIDs, or AccessControlAttributeValidationHook.
-// sanitizeAndValidateOptions — all of which normalize to this shape).
+// asOptionSlice is the package's name for model.PropertyFieldInlineOptions.
 func asOptionSlice(attrs model.StringInterface) []map[string]any {
-	if attrs == nil {
-		return nil
-	}
-	raw, ok := attrs[model.PropertyFieldAttributeOptions]
-	if !ok || raw == nil {
-		return nil
-	}
-	slice, ok := raw.([]any)
-	if !ok {
-		return nil
-	}
-	result := make([]map[string]any, 0, len(slice))
-	for _, item := range slice {
-		if m, ok := item.(map[string]any); ok {
-			result = append(result, m)
-		}
-	}
-	return result
-}
-
-// optionsChanged compares the options in two attrs maps and returns true if they differ.
-// Compares by building a map keyed on option ID and using reflect.DeepEqual for
-// value comparison, which correctly handles nested structures (maps, slices).
-//
-// Neither side needs a withheld-option-list branch: a non-empty list supplied
-// against a field whose list was withheld is refused outright before this runs
-// (see the option-list invariant in updatePropertyFields), and every remaining
-// shape has no list on either side and so compares unchanged.
-func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
-	oldOpts := asOptionSlice(oldAttrs)
-	newOpts := asOptionSlice(newAttrs)
-
-	if len(oldOpts) != len(newOpts) {
-		return true
-	}
-
-	// Both nil/empty means no change
-	if len(oldOpts) == 0 {
-		return false
-	}
-
-	// Build map of new options keyed by ID for lookup
-	newByID := make(map[string]map[string]any, len(newOpts))
-	for _, opt := range newOpts {
-		if id, _ := opt["id"].(string); id != "" {
-			newByID[id] = opt
-		}
-	}
-
-	for _, oldOpt := range oldOpts {
-		id, _ := oldOpt["id"].(string)
-		newOpt, exists := newByID[id]
-		if !exists {
-			return true
-		}
-		if !reflect.DeepEqual(oldOpt, newOpt) {
-			return true
-		}
-	}
-
-	return false
+	return model.PropertyFieldInlineOptions(attrs)
 }
 
 // extractOptionIDList extracts the "id" field from each option in the given options value

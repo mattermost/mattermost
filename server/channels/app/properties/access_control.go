@@ -506,8 +506,14 @@ func (h *AccessControlHook) enforceOptionWriteAccess(rctx request.CTX, field *mo
 		return fmt.Errorf("field %s refuses caller %q an option write: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
-	// Option writes resolve names against the unmasked set, so a caller the
-	// masking applies to could probe hidden option names through collisions.
+	return h.refuseMaskedOptionWrite(rctx, field, callerID)
+}
+
+// refuseMaskedOptionWrite refuses a caller the field's masking applies to. Such
+// a caller sees only some of the options, so a write of the option list would
+// delete the rest, and a write that resolves names against the unmasked set
+// would let them probe hidden option names through collisions.
+func (h *AccessControlHook) refuseMaskedOptionWrite(rctx request.CTX, field *model.PropertyField, callerID string) error {
 	fm, err := maskingContextFromRequest(rctx).resolve(h, rctx, field)
 	if err != nil {
 		return fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
@@ -1368,8 +1374,9 @@ func (h *AccessControlHook) permissionsAllowsOn(rctx request.CTX, field *model.P
 // needs a field.write grant on the stored (existing) field -- so it cannot
 // grant itself the write in the same patch that uses it -- and a human caller
 // is judged by the same permissions object, via the injected ladder checker.
-// updated is accepted but never consulted, for the same reason: judging the
-// field being written would let a caller author its own way past the check.
+// updated is never consulted for those grants, for the same reason: judging the
+// field being written would let a caller author its own way past the check. It
+// is only compared against existing to see whether the option list changed.
 func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing, updated *model.PropertyField, callerID string) error {
 	// An update that changes nothing but the option list is an option write, not
 	// a field write, and has to be answered the same way the options endpoint
@@ -1382,6 +1389,21 @@ func (h *AccessControlHook) enforceFieldUpdateAccess(rctx request.CTX, existing,
 		return h.enforceOptionWriteAccess(rctx, existing, callerID)
 	}
 
+	if err := h.enforceFieldWriteAccess(rctx, existing, callerID); err != nil {
+		return err
+	}
+
+	// A masked caller's view of the field omits options, so an update that
+	// changes the list alongside anything else must be refused just as an
+	// options-only one is.
+	if model.PropertyFieldOptionsChanged(existing.Attrs, updated.Attrs) {
+		return h.refuseMaskedOptionWrite(rctx, existing, callerID)
+	}
+	return nil
+}
+
+// enforceFieldWriteAccess answers field.write on the stored field.
+func (h *AccessControlHook) enforceFieldWriteAccess(rctx request.CTX, existing *model.PropertyField, callerID string) error {
 	if existing.Permissions != nil {
 		if isMachineCaller(h.pluginChecker, callerID) {
 			if h.permissionsGrantAllows(existing, callerID, "", model.PropertyActionFieldWrite) {
