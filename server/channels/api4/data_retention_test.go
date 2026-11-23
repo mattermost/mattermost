@@ -1341,3 +1341,82 @@ func TestDataRetentionInvalidPolicyId(t *testing.T) {
 		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
 	})
 }
+
+func TestDataRetentionInvalidPolicyIdNoPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// A caller without the data retention permission must get 403 before
+	// the policy_id is validated: on the merge-base the permission check
+	// ran after RequirePolicyId set the 400, and SetPermissionError
+	// overwrote it with 403. The guards added for #40238 returned the
+	// 400 before the permission check, leaking that the id is invalid.
+	// Regression test for review 6012957566 on PR #40260. Only the 8
+	// handlers that checked permission after RequirePolicyId are covered;
+	// getPolicy, getTeamsForPolicy and getChannelsForPolicy already
+	// checked permission first and returned 403.
+	// "bad" matches the route regex ([A-Za-z0-9]+) so it reaches the
+	// handler, but it is not a valid model id.
+	invalidPolicyID := "bad"
+
+	t.Run("PatchPolicy", func(t *testing.T) {
+		_, resp, err := th.Client.PatchDataRetentionPolicy(context.Background(), &model.RetentionPolicyWithTeamAndChannelIDs{
+			RetentionPolicy: model.RetentionPolicy{
+				ID:          invalidPolicyID,
+				DisplayName: "Updated Policy",
+			},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("DeletePolicy", func(t *testing.T) {
+		resp, err := th.Client.DeleteDataRetentionPolicy(context.Background(), invalidPolicyID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("SearchTeamsInPolicy", func(t *testing.T) {
+		_, resp, err := th.Client.SearchTeamsForRetentionPolicy(context.Background(), invalidPolicyID, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("AddTeamsToPolicy", func(t *testing.T) {
+		resp, err := th.Client.AddTeamsToRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("RemoveTeamsFromPolicy", func(t *testing.T) {
+		resp, err := th.Client.RemoveTeamsFromRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("SearchChannelsInPolicy", func(t *testing.T) {
+		_, resp, err := th.Client.SearchChannelsForRetentionPolicy(context.Background(), invalidPolicyID, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("AddChannelsToPolicy", func(t *testing.T) {
+		resp, err := th.Client.AddChannelsToRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("RemoveChannelsFromPolicy", func(t *testing.T) {
+		resp, err := th.Client.RemoveChannelsFromRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+}

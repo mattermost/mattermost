@@ -163,6 +163,15 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("policy", jsonErr)
 		return
 	}
+
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -172,11 +181,6 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &patch)
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
-		return
-	}
 
 	policy, appErr := c.App.PatchRetentionPolicy(&patch)
 	if appErr != nil {
@@ -199,6 +203,14 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -208,10 +220,6 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventDeletePolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
-		return
-	}
 
 	err := c.App.DeleteRetentionPolicy(policyId)
 	if err != nil {
@@ -254,13 +262,16 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePolicyId()
-	if c.Err != nil {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
+	c.RequirePolicyId()
+	if c.Err != nil {
 		return
 	}
 
@@ -291,6 +302,14 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -305,10 +324,6 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
-		return
-	}
 
 	appErr := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
 	if appErr != nil {
@@ -321,6 +336,14 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -335,11 +358,6 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
-		return
-	}
 
 	appErr := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
 	if appErr != nil {
@@ -382,6 +400,14 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -390,11 +416,6 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
 		return
 	}
 
@@ -426,6 +447,14 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -441,11 +470,6 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
-		return
-	}
-
 	appErr := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
 	if appErr != nil {
 		c.Err = appErr
@@ -457,6 +481,14 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Permission is checked before RequirePolicyId so a caller without
+	// the permission gets 403 even for an invalid policy_id, matching
+	// getPolicy; the 400 for a bad id is only for authorized callers.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
+		return
+	}
+
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -471,11 +503,6 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
-		return
-	}
 
 	appErr := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
 	if appErr != nil {
