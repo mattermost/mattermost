@@ -209,6 +209,43 @@ describe('PasskeySection', () => {
         expect(screen.queryByText('You have no passkeys.')).not.toBeInTheDocument();
     });
 
+    test('shows the empty state, not the old list error, when reopened after a recovered fetch', async () => {
+        getPasskeys.mockRejectedValueOnce({message: 'could not list passkeys'}).mockResolvedValue([]);
+        const {rerender} = renderWithContext(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+            enabledState,
+        );
+        expect(await screen.findByText('could not list passkeys')).toBeInTheDocument();
+
+        rerender(
+            <PasskeySection
+                {...baseProps}
+                active={false}
+            />,
+        );
+        rerender(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+        );
+
+        expect(await screen.findByText('You have no passkeys.')).toBeInTheDocument();
+        expect(screen.queryByText('could not list passkeys')).not.toBeInTheDocument();
+
+        rerender(
+            <PasskeySection
+                {...baseProps}
+                active={false}
+            />,
+        );
+
+        expect(screen.getByText('No passkeys')).toBeInTheDocument();
+    });
+
     test('does not say "No passkeys" when collapsed after a failed fetch', async () => {
         getPasskeys.mockRejectedValue({message: 'could not list passkeys'});
         renderWithContext(
@@ -294,6 +331,8 @@ describe('PasskeySection', () => {
             await clickAdd();
             expect(await screen.findByText('limit hit')).toBeInTheDocument();
 
+            // Reopening re-fetches; a re-fetch that never settles cannot clear the error, so only the collapse can.
+            getPasskeys.mockReturnValue(new Promise(() => {}));
             rerender(
                 <PasskeySection
                     {...baseProps}
@@ -307,7 +346,7 @@ describe('PasskeySection', () => {
                 />,
             );
 
-            await screen.findByText('Laptop');
+            expect(screen.getByText('Laptop')).toBeInTheDocument();
             expect(screen.queryByText('limit hit')).not.toBeInTheDocument();
         });
 
