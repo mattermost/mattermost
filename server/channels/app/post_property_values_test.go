@@ -1052,6 +1052,70 @@ func TestCreatePostPropertyValuesFeatureFlagOff(t *testing.T) {
 	th.assertPendingPostIDReleased(t, pendingPostID)
 }
 
+// An edit never writes values, yet UpdatePost sends the edited post unfiltered to every channel
+// member in `post_edited`. Values in the edit request are dropped rather than refused, so a client
+// that sends a fetched post's metadata back unchanged can still edit it.
+func TestUpdatePostDropsPropertyValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, flagEnabled := range []bool{true, false} {
+		t.Run("PostAttributes "+strconv.FormatBool(flagEnabled), func(t *testing.T) {
+			th := setupPropertyValuesCreateTest(t, flagEnabled)
+			th.asUser(t, th.BasicUser.Id)
+			field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+			post := th.post(t, th.BasicChannel)
+			th.setValue(t, post, field, `"public"`)
+
+			th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+			messages, closeWS := connectFakeWebSocket(t, th.TestHelper, th.BasicUser2.Id, "",
+				[]model.WebsocketEventType{model.WebsocketEventPostEdited})
+			defer closeWS()
+
+			edit := post.Clone()
+			edit.Message = "edited"
+			edit.Metadata = &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{
+					th.staged(field, `"confidential"`),
+					{FieldID: model.NewId(), Value: json.RawMessage(`"confidential"`)},
+				},
+				PropertyValuesUnavailable: model.NewPointer(true),
+			}
+			updated, _, appErr := th.App.UpdatePost(th.Context, edit, nil)
+			require.Nil(t, appErr)
+			assert.Equal(t, "edited", updated.Message)
+			assert.Empty(t, updated.Metadata.PropertyValues)
+			assert.Nil(t, updated.Metadata.PropertyValuesUnavailable)
+
+			var event *model.WebSocketEvent
+			select {
+			case event = <-messages:
+			case <-time.After(10 * time.Second):
+				require.FailNow(t, "timed out waiting for the post_edited event")
+			}
+			postJSON, ok := event.GetData()["post"].(string)
+			require.True(t, ok, "the post_edited event must carry the post")
+			var broadcast model.Post
+			require.NoError(t, json.Unmarshal([]byte(postJSON), &broadcast))
+			require.Equal(t, post.Id, broadcast.Id)
+			assert.Equal(t, "edited", broadcast.Message)
+			if broadcast.Metadata != nil {
+				assert.Empty(t, broadcast.Metadata.PropertyValues)
+				assert.Nil(t, broadcast.Metadata.PropertyValuesUnavailable)
+			}
+
+			stored, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
+				TargetType: model.PropertyValueTargetTypePost,
+				TargetIDs:  []string{post.Id},
+				PerPage:    model.PostAttributesMaxApplicableFields + 1,
+			})
+			require.Nil(t, appErr)
+			require.Len(t, stored, 1)
+			assert.Equal(t, field.ID, stored[0].FieldID)
+			assert.JSONEq(t, `"public"`, string(stored[0].Value))
+		})
+	}
+}
+
 const (
 	replaceWithoutValuesMessage = "replacement without values"
 	replaceWithValuesMessage    = "replacement with values"

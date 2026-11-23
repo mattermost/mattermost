@@ -87,6 +87,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		// notifications
 		"PUSH_ID_ONLY",
 		"MAX_NOTIFICATIONS_PER_CHANNEL",
+		"SMTP_NOT_CONFIGURED",
 		"SMTP_UNREACHABLE",
 		"PUSH_EMPTY_URL",
 		"PUSH_BAD_SCHEME",
@@ -94,6 +95,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"PUSH_PROXY_UNREACHABLE",
 
 		// platform
+		"DEVELOPER_MODE_ON",
 		"FILESTORE_LOCAL_IN_CLUSTER",
 		"FILESTORE_S3_NO_BUCKET",
 		"FILESTORE_S3_SSL_OFF",
@@ -121,6 +123,8 @@ func TestBuiltinRegistry(t *testing.T) {
 		"RATELIMIT_STORE_SMALL",
 		"SITE_URL_EMPTY",
 		"SITE_URL_HTTP",
+		"TESTING_MODE_ON",
+		"TLS_VERIFY_OUTGOING_OFF",
 
 		// search
 		"ES_LOCALHOST_URL",

@@ -767,6 +767,32 @@ func TestPostLog(t *testing.T) {
 	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
+
+	t.Run("system admin error is logged with request context", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnableDeveloper = false
+		msg := "admin error " + model.NewId()
+		_, _, err := th.SystemAdminClient.PostLog(context.Background(), map[string]string{"level": "ERROR", "message": msg})
+		require.NoError(t, err)
+
+		entry, raw := requireLogEntry(t, th, "Client Logs API Endpoint Message: "+msg)
+		assert.Equal(t, "error", entry["level"])
+		assert.Equal(t, "client_message", entry["type"])
+		assert.NotEmpty(t, entry["session_id"])
+		assertRequestContext(t, entry, http.MethodPost, "/api/v4/logs", th.SystemAdminUser.Id)
+		assert.Equal(t, 1, strings.Count(raw, `"user_id":`), "user_id should be logged once")
+	})
+
+	t.Run("regular user error is downgraded to debug with request context", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnableDeveloper = false
+		th.LoginBasic(t)
+		msg := "user error " + model.NewId()
+		_, _, err := th.Client.PostLog(context.Background(), map[string]string{"level": "ERROR", "message": msg})
+		require.NoError(t, err)
+
+		entry, _ := requireLogEntry(t, th, "Client Logs API Endpoint Message: "+msg)
+		assert.Equal(t, "debug", entry["level"])
+		assertRequestContext(t, entry, http.MethodPost, "/api/v4/logs", th.BasicUser.Id)
+	})
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
@@ -1813,4 +1839,27 @@ func TestCheckHasNilFields(t *testing.T) {
 		res := checkHasNilFields(&s)
 		require.True(t, res)
 	})
+}
+
+// requireLogEntry returns the first JSON entry in th.LogBuffer with the given message, parsed and raw.
+func requireLogEntry(t *testing.T, th *TestHelper, msg string) (map[string]any, string) {
+	t.Helper()
+	require.NoError(t, th.TestLogger.Flush())
+	for line := range strings.SplitSeq(th.LogBuffer.String(), "\n") {
+		var entry map[string]any
+		if json.Unmarshal([]byte(line), &entry) == nil && entry["msg"] == msg {
+			return entry, line
+		}
+	}
+	require.FailNowf(t, "log entry not found", "msg: %q", msg)
+	return nil, ""
+}
+
+func assertRequestContext(t *testing.T, entry map[string]any, method, path, userID string) {
+	t.Helper()
+	assert.NotEmpty(t, entry["request_id"])
+	assert.NotEmpty(t, entry["ip_addr"])
+	assert.Equal(t, method, entry["method"])
+	assert.Equal(t, path, entry["path"])
+	assert.Equal(t, userID, entry["user_id"])
 }

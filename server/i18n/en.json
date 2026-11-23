@@ -15300,6 +15300,21 @@
     "description": "Health dashboard finding title when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
   },
   {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper is true, so detailed error information is shown to users and clients. This setting is intended for development only.",
+    "description": "Health dashboard finding detail when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableDeveloper to false.",
+    "description": "Health dashboard fix-it step when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper is enabled",
+    "description": "Health dashboard finding title when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
+  },
+  {
     "id": "health.rule.env_unsupported_os.message",
     "translation": "The server runs on {{.os}}. Mattermost supports Linux for production; other operating systems are suitable for development only.",
     "description": "Health dashboard finding detail when the server does not run on Linux; {{.os}} is the operating system name reported by Go, such as windows or darwin."
@@ -16465,6 +16480,26 @@
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Email isn't configured, so emails such as password resets and notifications won't be delivered.",
+    "description": "Health dashboard finding detail when email features are on but the SMTP server was never set up (it is empty, or still the default localhost:10025 and nothing answered there)."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "No mail server answers at the default SMTP address localhost:10025 on {{.nodes}}, so emails those nodes send, such as password resets and notifications, won't be delivered. The other nodes reach a mail server there. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the SMTP server is still the default localhost:10025 and the connection test fails on some cluster nodes but not others; localhost:10025 should not be translated, {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configure an SMTP server in the System Console. If this server should not send email, turn off email notifications, email invitations and email verification, then mute this finding. Keep sign-in with email or username on: without them, users who don't sign in through SSO can't sign in.",
+    "description": "Health dashboard fix-it step when the SMTP server was never set up; SSO stands for single sign-on."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP server is not configured",
+    "description": "Health dashboard finding title when email features are on but no SMTP server was ever set up."
+  },
+  {
     "id": "health.rule.smtp_unreachable.message",
     "translation": "The connection test to the SMTP server failed: {{.error}}",
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
@@ -16483,6 +16518,36 @@
     "id": "health.rule.smtp_unreachable.title",
     "translation": "SMTP server connection test failed",
     "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting is true, so testing mode exposes test commands and endpoints that are intended for development only.",
+    "description": "Health dashboard finding detail when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableTesting to false, then restart the server. Some test endpoints are only removed on restart.",
+    "description": "Health dashboard fix-it step when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting is enabled",
+    "description": "Health dashboard finding title when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections is true, so the server does not verify TLS certificates on outgoing HTTPS connections such as outgoing webhooks, slash commands, OAuth token exchanges, link previews and plugin downloads. Anyone on the network path can read or change that traffic, including OAuth tokens.",
+    "description": "Health dashboard finding detail when the server skips TLS certificate verification on outgoing connections; 'ServiceSettings.EnableInsecureOutgoingConnections' is a config setting path and 'true' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Add the internal CA certificate to the system trust store on every Mattermost server, then set ServiceSettings.EnableInsecureOutgoingConnections to false.",
+    "description": "Health dashboard fix-it step when the server skips TLS certificate verification on outgoing connections; 'ServiceSettings.EnableInsecureOutgoingConnections' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "TLS certificate verification is off for outgoing connections",
+    "description": "Health dashboard finding title when the server skips TLS certificate verification on outgoing HTTPS connections."
   },
   {
     "id": "health.rule.version.unknown.latest",
