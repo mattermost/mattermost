@@ -53,10 +53,10 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		return "", gotoURL, nil
 	}
 
-	// Plugin routes on a stored post are dispatched when the post was created by
-	// a bot, incoming webhook, plugin, or OAuth app. The decision uses the markers
-	// CreatePost persists for those authors, the same classes that keep
-	// mm_blocks_actions. The check runs before DoActionRequest.
+	// Plugin routes on a stored post are dispatched when the post was created on
+	// this server by a bot, incoming webhook, or plugin. The decision uses the
+	// markers CreatePost persists for those authors. The check runs before
+	// DoActionRequest.
 	if appErr = a.pluginActionRouteError(rctx, setup); appErr != nil {
 		return "", "", appErr
 	}
@@ -139,7 +139,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 }
 
 // pluginActionRouteError reports when a stored post's action URL is a plugin
-// route and the post author is not a bot, incoming webhook, plugin, or OAuth app.
+// route and the post author is not a bot, incoming webhook, or plugin.
 // Ephemeral actions have no stored post and keep the current dispatch.
 func (a *App) pluginActionRouteError(rctx request.CTX, setup *postActionSetup) *model.AppError {
 	if setup == nil || setup.post == nil || !a.actionURLIsPluginRoute(setup.upstreamURL) {
@@ -158,14 +158,17 @@ func (a *App) pluginActionRouteError(rctx request.CTX, setup *postActionSetup) *
 }
 
 // storedPostDispatchesPluginAction reports whether the stored post was created
-// by a bot, incoming webhook, plugin, or OAuth app. Those entry points persist
-// from_bot, from_webhook, from_plugin, and from_oauth_app; a bot user is also
-// read from the author record. A normal create does not set those props.
+// on this server by a bot, incoming webhook, or plugin. Those entry points
+// persist from_bot, from_webhook, and from_plugin; a bot user is also read from
+// the author record. A normal create does not set those props. Shared Channels
+// posts keep the props sent by the remote cluster, so they never dispatch.
 func (a *App) storedPostDispatchesPluginAction(rctx request.CTX, post *model.Post) (bool, *model.AppError) {
+	if post.IsRemote() {
+		return false, nil
+	}
 	if postPropIsTrue(post, model.PostPropsFromBot) ||
 		postPropIsTrue(post, model.PostPropsFromWebhook) ||
-		postPropIsTrue(post, model.PostPropsFromPlugin) ||
-		postPropIsTrue(post, model.PostPropsFromOAuthApp) {
+		postPropIsTrue(post, model.PostPropsFromPlugin) {
 		return true, nil
 	}
 

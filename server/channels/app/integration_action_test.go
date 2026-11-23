@@ -1538,7 +1538,12 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 		{
 			name:       "oauth app relative plugin route",
 			author:     "oauth",
-			expectCall: true,
+			expectCall: false,
+		},
+		{
+			name:       "shared channel bot relative plugin route",
+			author:     "remote",
+			expectCall: false,
 		},
 		{
 			name:       "relative plugin route without leading slash",
@@ -1707,6 +1712,20 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				require.Nil(t, created.GetProp(model.PostPropsFromPlugin))
 				require.False(t, th.BasicUser.IsBot)
 				postID = created.Id
+			case "remote":
+				botUser := setupBotInChannel(t, th)
+				created, _, createErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    botUser.Id,
+				}, "", true)
+				require.Nil(t, createErr)
+				stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
+				require.NoError(t, err)
+				stored.RemoteId = model.NewPointer(model.NewId())
+				_, err = th.App.Srv().Store().Post().Overwrite(th.Context, stored)
+				require.NoError(t, err)
+				postID = created.Id
 			default:
 				t.Fatalf("unknown author %q", tc.author)
 			}
@@ -1783,6 +1802,9 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromPlugin))
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromWebhook))
+			case "remote":
+				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromBot))
+				require.True(t, reloaded.IsRemote())
 			}
 
 			clickCtx := th.Context.WithSession(clickerSession)
