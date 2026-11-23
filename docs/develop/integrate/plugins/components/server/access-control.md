@@ -151,6 +151,44 @@ func (p *Plugin) filterReports(userID string, reportIDs []string, action string)
 }
 ```
 
+### Check many actions at once
+
+To find out which of several actions one user may take on a single resource, such as the buttons to show on a report, call `EvaluateAccessControlActions(userID, resourceType, resourceID, actions)` instead of calling `EvaluateAccessControl` for each action. It needs Mattermost v12.3. Mattermost loads the user's attributes once for the whole call, and returns a `map[string]*model.AccessDecision` keyed by action.
+
+Each decision in the map means the same as a decision from `EvaluateAccessControl`, including `IsNoPolicy()`. The rules for `EvaluateAccessControlBatch` apply here too, per action instead of per resource:
+
+- You can pass up to 256 distinct actions. Duplicates are ignored. More than 256 returns an error.
+- **An action that is missing from the map must be denied.** Mattermost leaves out an action when the resource's policy couldn't be evaluated for it, or when it couldn't tell whether the resource has a policy.
+- **If the call returns an error, deny every action.** The error means the whole call failed, for example because of an invalid argument, because the store couldn't be read, or because the resource has a policy while attribute-based access control is unavailable. Also deny everything if the call returns a `nil` map without an error, which is what the plugin API returns on a server without this method.
+- When an action can't be evaluated, Mattermost checks once whether the resource has a policy. Without a policy, every such action gets the "no policy" decision; with one, they're left out of the map.
+- Mattermost loads the user's attributes once, but evaluates each action on its own. If the policy or the user's attributes change while the call is running, different actions in the same call can reflect different states.
+
+```go
+func (p *Plugin) allowedReportActions(userID, reportID string, actions []string) map[string]bool {
+	allowed := make(map[string]bool, len(actions))
+
+	decisions, appErr := p.API.EvaluateAccessControlActions(userID, reportResourceType, reportID, actions)
+	if appErr != nil {
+		p.API.LogWarn("Actions access check failed, denying all", "report_id", reportID)
+		return allowed
+	}
+
+	for _, action := range actions {
+		decision, ok := decisions[action]
+		if !ok || decision == nil {
+			// Not evaluated: deny.
+			continue
+		}
+		if decision.IsNoPolicy() {
+			allowed[action] = p.defaultReportAccess(userID, reportID, action)
+			continue
+		}
+		allowed[action] = decision.Decision
+	}
+	return allowed
+}
+```
+
 ## Build a policy editor
 
 If your plugin lets admins write rules, these methods help its UI check an expression, test it against users and list the attributes a rule can use. Each takes an `actingUserID` and runs as that user. As with saving, Mattermost doesn't check that this user may make the call, so check permissions in your plugin first.
