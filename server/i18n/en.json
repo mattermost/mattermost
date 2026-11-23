@@ -7733,6 +7733,16 @@
     "description": "API error when checking whether a user is a member of any of a given list of channels fails."
   },
   {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Channel attribute values are missing in:{{.ChannelList}}\n\nYou're a channel admin there. Open the channel and select **Add values**, or set them in **Channel Info**.",
+    "description": "Direct message from the system bot to a user who just became channel admin of channels that are missing required channel attribute values; {{.ChannelList}} is a Markdown bullet list with one line per channel. Keep the Markdown formatting. 'Add values' is the button shown in the channel and 'Channel Info' is the channel's info panel; match the labels used in the web app."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) needs: {{.AttributeNames}}",
+    "description": "One Markdown bullet line in the new-channel-admin direct message, linking to a channel that is missing required channel attribute values; {{.TeamDisplayName}} is the channel's team and {{.AttributeNames}} is the comma-separated list of attribute names to set, already in bold. Keep the leading newline, the dash and the [text](link) syntax."
+  },
+  {
     "id": "app.channel_attributes.notify_assignment_counts.app_error",
     "translation": "Unable to count the channel admins and channels affected by this attribute.",
     "description": "Server error when counting the channel admins and channels to notify about a missing channel attribute value fails."
@@ -14838,6 +14848,36 @@
     "id": "health.rule.cluster_lru_cache.title",
     "translation": "At scale, consider the Redis cache backend",
     "description": "Health dashboard finding title suggesting the Redis cache for a large high availability cluster; 'Redis' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Mattermost's reference architectures recommend high availability above 200 users, so plan for it before a node failure or upgrade takes the workspace offline.",
+    "description": "Health dashboard finding detail when a server with 200 to 1,999 registered users does not have high availability enabled; {{.users}} is the registered user count."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node.",
+    "description": "Health dashboard fix-it step when a server with 200 to 1,999 registered users does not have high availability enabled; 'ClusterSettings.Enable' and 'ClusterName' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Consider setting up high availability",
+    "description": "Health dashboard finding title when a server with 200 to 1,999 registered users does not have high availability enabled."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Any node failure, restart or upgrade takes the whole workspace offline. Mattermost's reference architectures require high availability at this scale.",
+    "description": "Health dashboard finding detail when a server with 2,000 or more registered users does not have high availability enabled; {{.users}} is the registered user count."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node.",
+    "description": "Health dashboard fix-it step when a server with 2,000 or more registered users does not have high availability enabled; 'ClusterSettings.Enable' and 'ClusterName' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "High availability is not enabled at this scale",
+    "description": "Health dashboard finding title when a server with 2,000 or more registered users does not have high availability enabled."
   },
   {
     "id": "health.rule.cluster_single_node.message",

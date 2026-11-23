@@ -18,12 +18,6 @@ import (
 
 const maxListSize = 1000
 
-// classificationChannelFieldName is the channel-linked classification field's
-// Name within the access_control property group. Classification predates
-// channel attributes and ships behind its own flag/license pair, but writes
-// through the same property-values path as channel attributes on creation.
-const classificationChannelFieldName = "classification"
-
 // rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
 // to a space channel. Space channels must use the spaces API, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
@@ -272,7 +266,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		if !ok {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "unknown field", http.StatusBadRequest)
 		}
-		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+		if !app.ChannelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 		}
 		if !canSetChannelAttributeOnCreate(c, field) {
@@ -294,7 +288,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		if !model.IsPropertyFieldRequired(field) || !canSetChannelAttributeOnCreate(c, field) {
 			continue
 		}
-		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+		if !app.ChannelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
 			continue
 		}
 		if !requiredAttributesEnforced {
@@ -309,21 +303,6 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		return nil, nil
 	}
 	return values, nil
-}
-
-// isClassificationChannelField reports whether field is the channel-scoped
-// classification linked field rather than a generic channel attribute.
-func isClassificationChannelField(field *model.PropertyField) bool {
-	return field.Name == classificationChannelFieldName && field.LinkedFieldID != nil && *field.LinkedFieldID != ""
-}
-
-// channelAttributeFieldAvailable reports whether field's own feature is on,
-// given the pre-computed availability of channel attributes and classification.
-func channelAttributeFieldAvailable(field *model.PropertyField, channelAttributesAvailable, classificationAvailable bool) bool {
-	if isClassificationChannelField(field) {
-		return classificationAvailable
-	}
-	return channelAttributesAvailable
 }
 
 // canSetChannelAttributeOnCreate reports whether the caller may set this
@@ -2451,8 +2430,8 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if _, err := c.App.UpdateChannelMemberRoles(c.AppContext, c.Params.ChannelId, c.Params.UserId, newRoles); err != nil {
-		c.Err = err
+	if _, err := c.App.UpdateChannelMemberRolesAndNotifyNewAdmin(c.AppContext, c.Params.ChannelId, c.Params.UserId, newRoles); err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -2487,8 +2466,8 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if _, err := c.App.UpdateChannelMemberSchemeRoles(c.AppContext, c.Params.ChannelId, c.Params.UserId, schemeRoles.SchemeGuest, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
-		c.Err = err
+	if _, err := c.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(c.AppContext, c.Params.ChannelId, c.Params.UserId, schemeRoles.SchemeGuest, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
+		c.SetError(err)
 		return
 	}
 

@@ -19667,6 +19667,10 @@
     "defaultMessage": "Edit {label}",
     "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."
   },
+  "channel_attributes.info.enter_a_value": {
+    "defaultMessage": "Enter a value",
+    "description": "Placeholder in a Channel Info row for a required text attribute that has no value yet. Selecting it opens the text editor."
+  },
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
@@ -19703,13 +19707,33 @@
     "defaultMessage": "Couldn't save {label}. Try again.",
     "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
   },
+  "channel_attributes.info.save_failed_required": {
+    "defaultMessage": "{label} is required. Choose a value instead of clearing it.",
+    "description": "Inline error under a channel attribute in the channel info right-hand panel when the server refuses to clear a required attribute. {label} is the attribute's display name. Retrying can't help, so it asks for a different value instead."
+  },
+  "channel_attributes.info.select_a_value": {
+    "defaultMessage": "Select a value",
+    "description": "Placeholder in a Channel Info row for a required attribute that has no value yet. Selecting it opens the list of values to choose from."
+  },
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
   },
+  "channel_attributes.labels.set_value": {
+    "defaultMessage": "Set {label}",
+    "description": "Text of a dashed chip in the channel header that prompts a channel admin to set a required channel attribute that has no value yet. {label} is the attribute's name. Opens Channel Info with that attribute in edit mode."
+  },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
+  },
+  "channel_attributes.missing_notice.add_values": {
+    "defaultMessage": "Add values",
+    "description": "Button inside the red notice under the channel header. Opens Channel Info with the first missing required channel attribute in edit mode."
+  },
+  "channel_attributes.missing_notice.text": {
+    "defaultMessage": "Channel attribute values are missing",
+    "description": "Text of the red notice shown under the channel header to channel admins when a required channel attribute has no value on the channel."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -20058,6 +20082,10 @@
   "channel_header.openChannelInfo": {
     "defaultMessage": "View Info",
     "description": "Tooltip of the info button in the channel header; opens the channel info sidebar."
+  },
+  "channel_header.openChannelInfo.missing_values": {
+    "defaultMessage": "{label}, channel attribute values are missing",
+    "description": "Accessible label of the channel info button in the channel header when the channel lacks required attribute values. {label} is the button's usual label, for example View Info."
   },
   "channel_header.otherchannel": {
     "defaultMessage": "{displayName} Channel Menu",
@@ -28394,6 +28422,54 @@
   "onboarding_wizard.self_hosted_plugins.title": {
     "defaultMessage": "What tools do you use?",
     "description": "Title question on the plugin selection step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.description": {
+    "defaultMessage": "This is the URL that users will use to access Mattermost. <a>See documentation</a> for more.",
+    "description": "Description under the title of the Site URL step of the workspace setup wizard. <a> links to the Site URL documentation."
+  },
+  "onboarding_wizard.site_url.help": {
+    "defaultMessage": "Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required",
+    "description": "Help text under the URL field on the Site URL step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.hint_ip": {
+    "defaultMessage": "An IP address works, but a domain name is easier to share and is needed for most HTTPS certificates.",
+    "description": "Hint under the URL field on the Site URL step of the workspace setup wizard, shown while the entered host is an IP address."
+  },
+  "onboarding_wizard.site_url.hint_loopback": {
+    "defaultMessage": "This address only works on this computer. Other people won’t be able to reach Mattermost at it.",
+    "description": "Hint under the URL field on the Site URL step of the workspace setup wizard, shown while the entered host is localhost or another loopback address."
+  },
+  "onboarding_wizard.site_url.invalid": {
+    "defaultMessage": "Enter only http:// or https://, a host name, and an optional port, such as https://chat.example.com.",
+    "description": "Error on the Site URL step of the workspace setup wizard when the entered URL has a path, query, or other parts besides the protocol, host, and port. Keep http://, https:// and the example URL as they are."
+  },
+  "onboarding_wizard.site_url.placeholder": {
+    "defaultMessage": "https://chat.example.com",
+    "description": "Placeholder example URL in the URL field on the Site URL step of the workspace setup wizard. Keep as is."
+  },
+  "onboarding_wizard.site_url.skip": {
+    "defaultMessage": "I’ll do this later",
+    "description": "Button on the Site URL step of the workspace setup wizard that advances without setting the Site URL."
+  },
+  "onboarding_wizard.site_url.test_successful": {
+    "defaultMessage": "Test successful. This is a valid URL.",
+    "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server reached the entered URL."
+  },
+  "onboarding_wizard.site_url.test_unsuccessful": {
+    "defaultMessage": "Test unsuccessful. Mattermost couldn’t reach this URL.",
+    "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server could not reach the entered URL."
+  },
+  "onboarding_wizard.site_url.testing": {
+    "defaultMessage": "Testing URL",
+    "description": "Status next to a spinner under the URL field on the Site URL step of the workspace setup wizard while the server tests the entered URL."
+  },
+  "onboarding_wizard.site_url.title": {
+    "defaultMessage": "Confirm your server’s URL",
+    "description": "Title on the Site URL step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.use_anyway": {
+    "defaultMessage": "Use anyway",
+    "description": "Button on the Site URL step of the workspace setup wizard, shown after a failed URL test, that keeps the entered URL and advances."
   },
   "onboarding_wizard.skip-button": {
     "defaultMessage": "Skip",
