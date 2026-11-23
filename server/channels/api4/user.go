@@ -27,6 +27,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+// loginRateLimit is shared with the passkey endpoints so they stay limited like password sign-in.
+// Each call returns fresh pointers, as RateLimitedHandler's SetDefaults writes through them.
+func loginRateLimit() model.RateLimitSettings {
+	return model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)}
+}
+
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers)).Methods(http.MethodGet)
@@ -67,7 +73,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)

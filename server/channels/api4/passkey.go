@@ -17,10 +17,10 @@ import (
 
 func (api *API) InitPasskey() {
 	api.BaseRoutes.User.Handle("/passkeys", api.APISessionRequired(getPasskeys)).Methods(http.MethodGet)
-	api.BaseRoutes.User.Handle("/passkeys/registration/begin", api.APISessionRequired(beginPasskeyRegistration)).Methods(http.MethodPost)
-	api.BaseRoutes.User.Handle("/passkeys/registration/finish", api.APISessionRequired(finishPasskeyRegistration)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/login/passkey/begin", api.APIHandler(beginPasskeyLogin)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/login/passkey/finish", api.APIHandler(finishPasskeyLogin)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/passkeys/registration/begin", api.RateLimitedHandler(api.APISessionRequired(beginPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/passkeys/registration/finish", api.RateLimitedHandler(api.APISessionRequired(finishPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/passkey/begin", api.RateLimitedHandler(api.APIHandler(beginPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/passkey/finish", api.RateLimitedHandler(api.APIHandler(finishPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/{passkey_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePasskey)).Methods(http.MethodDelete)
 }
 

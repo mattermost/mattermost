@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
@@ -786,5 +787,56 @@ func TestPasskeyLogin(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		CheckErrorID(t, err, "app.passkey.unknown_credential.app_error")
+	})
+}
+
+func TestPasskeyRateLimit(t *testing.T) {
+	// The server-wide limiter comes on with RateLimitSettings.Enable too; its limits are set out of
+	// reach so any 429 below comes from a route limiter (burst 10, so X-RateLimit-Limit is 11).
+	enableRateLimit := func(cfg *model.Config) {
+		*cfg.RateLimitSettings.Enable = true
+		*cfg.RateLimitSettings.PerSec = 1000
+		*cfg.RateLimitSettings.MaxBurst = 10000
+	}
+
+	// limited sends 20 back-to-back POSTs, more than the burst, and reports whether a route
+	// limiter answered 429 to any of them.
+	limited := func(th *TestHelper, path string) bool {
+		url := fmt.Sprintf("http://localhost:%v/api/v4%s", th.App.Srv().ListenAddr.Port, path)
+		for range 20 {
+			req, err := http.NewRequest(http.MethodPost, url, nil)
+			require.NoError(t, err)
+			req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+th.Client.AuthToken)
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			resp.Body.Close()
+
+			if resp.StatusCode == http.StatusTooManyRequests {
+				// The server-wide limiter adds its own value to this header first.
+				assert.Contains(t, resp.Header.Values("X-RateLimit-Limit"), "11")
+				return true
+			}
+		}
+		return false
+	}
+
+	t.Run("limits each passkey route when rate limiting is enabled", func(t *testing.T) {
+		th := setupPasskeyLogin(t, enableRateLimit)
+
+		for _, path := range []string{
+			"/users/login/passkey/begin",
+			"/users/login/passkey/finish",
+			"/users/me/passkeys/registration/begin",
+			"/users/me/passkeys/registration/finish",
+		} {
+			assert.True(t, limited(th, path), path)
+		}
+	})
+
+	t.Run("does not limit when rate limiting is disabled", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+
+		assert.False(t, limited(th, "/users/login/passkey/begin"))
 	})
 }
