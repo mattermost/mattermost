@@ -969,7 +969,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         return (
             <div
                 className={'banner ' + setting.banner_type}
-                key={this.props.schema.id + '_bool_' + setting.key}
+                key={this.props.schema.id + '_banner_' + (setting.key ?? (typeof setting.label === 'string' ? setting.label : setting.label.id))}
             >
                 <div className='banner__content'>
                     <span>
