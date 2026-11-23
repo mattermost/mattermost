@@ -162,13 +162,18 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         }
         setChangingLevel(true);
         setLevelChangeFailed(false);
+
+        // Like handleNotify: this instance can be re-pointed at another
+        // attribute while the patch is in flight, and the result belongs to
+        // the field that was patched.
+        const stillCurrent = () => mountedRef.current && channelFieldIdRef.current === savedField.id;
         try {
             const patched = await patchChannelFieldValueWriteToAdmin(savedField);
-            if (mountedRef.current) {
+            if (stillCurrent()) {
                 setSavedField(patched);
             }
         } catch {
-            if (mountedRef.current) {
+            if (stillCurrent()) {
                 setLevelChangeFailed(true);
             }
         }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
@@ -25,14 +25,23 @@ export default function useChannelField(args: {fieldId?: string; enabled: boolea
     // reads as the previous field's state.
     const [state, setState] = useState<PropertyField | null>(null);
 
+    // Bumped by every direct write, so a list request that started before one
+    // can't land afterwards and put back the older field.
+    const writesRef = useRef(0);
+    const setField = useCallback((field: PropertyField) => {
+        writesRef.current++;
+        setState(field);
+    }, []);
+
     useEffect(() => {
         if (!enabled || !fieldId) {
             return undefined;
         }
 
         let cancelled = false;
+        const writesAtStart = writesRef.current;
         listPropertyFields('channel').then((fields) => {
-            if (!cancelled) {
+            if (!cancelled && writesRef.current === writesAtStart) {
                 setState(fields.find((candidate) => candidate.id === fieldId) ?? null);
             }
         }).catch(() => {
@@ -47,6 +56,6 @@ export default function useChannelField(args: {fieldId?: string; enabled: boolea
 
     return {
         field: enabled && fieldId && state?.id === fieldId ? state : null,
-        setField: setState,
+        setField,
     };
 }
