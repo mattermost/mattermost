@@ -4691,6 +4691,40 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            passkeys: {
+                url: 'authentication/passkeys',
+                title: defineMessage({id: 'admin.sidebar.passkeys', defaultMessage: 'Passkeys'}),
+                isHidden: it.any(
+                    it.configIsFalse('FeatureFlags', 'Passkeys'),
+                    it.not(it.minLicenseTier(LicenseSkus.Professional)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.MFA)),
+                ),
+                schema: {
+                    id: 'ServiceSettings',
+                    name: defineMessage({id: 'admin.authentication.passkeys', defaultMessage: 'Passkeys'}),
+                    settings: [
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.passkeys.siteUrlBanner', defaultMessage: 'Passkeys work only when the Site URL uses HTTPS and a domain name, not an IP address. localhost is allowed for development.'}),
+                            banner_type: 'info',
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnablePasskeyEnrollment',
+                            label: defineMessage({id: 'admin.passkeys.enrollmentTitle', defaultMessage: 'Enable passkey enrollment:'}),
+                            help_text: defineMessage({id: 'admin.passkeys.enrollmentDesc', defaultMessage: 'When true, users can add passkeys to their account and are invited to add one after signing in. A passkey lets them sign in when their usual sign-in method, for example the identity provider, is unavailable.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.MFA)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnablePasskeyLogin',
+                            label: defineMessage({id: 'admin.passkeys.loginTitle', defaultMessage: 'Enable passkey login:'}),
+                            help_text: defineMessage({id: 'admin.passkeys.loginDesc', defaultMessage: 'When true, the login page offers "Sign in with passkey" to users who added one. Intended to be turned on while the usual sign-in method is unavailable. Turning it off does not sign out users who already signed in with a passkey.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.MFA)),
+                        },
+                    ],
+                },
+            },
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),

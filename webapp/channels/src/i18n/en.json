@@ -2267,6 +2267,10 @@
     "defaultMessage": "OpenID Connect",
     "description": "Page name for Authentication > OpenID Connect in the System Console sidebar; OpenID Connect is a protocol name."
   },
+  "admin.authentication.passkeys": {
+    "defaultMessage": "Passkeys",
+    "description": ""
+  },
   "admin.authentication.saml": {
     "defaultMessage": "SAML 2.0",
     "description": "Page name for Authentication > SAML 2.0 in the System Console sidebar; SAML 2.0 is a protocol name."
@@ -10875,6 +10879,26 @@
     "defaultMessage": "Settings",
     "description": ""
   },
+  "admin.passkeys.enrollmentDesc": {
+    "defaultMessage": "When true, users can add passkeys to their account and are invited to add one after signing in. A passkey lets them sign in when their usual sign-in method, for example the identity provider, is unavailable.",
+    "description": ""
+  },
+  "admin.passkeys.enrollmentTitle": {
+    "defaultMessage": "Enable passkey enrollment:",
+    "description": ""
+  },
+  "admin.passkeys.loginDesc": {
+    "defaultMessage": "When true, the login page offers \"Sign in with passkey\" to users who added one. Intended to be turned on while the usual sign-in method is unavailable. Turning it off does not sign out users who already signed in with a passkey.",
+    "description": ""
+  },
+  "admin.passkeys.loginTitle": {
+    "defaultMessage": "Enable passkey login:",
+    "description": ""
+  },
+  "admin.passkeys.siteUrlBanner": {
+    "defaultMessage": "Passkeys work only when the Site URL uses HTTPS and a domain name, not an IP address. localhost is allowed for development.",
+    "description": ""
+  },
   "admin.password.enableForgotLink.description": {
     "defaultMessage": "When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>",
     "description": "Admin console help text for the Enable Forgot Password Link toggle; <a></a> wraps a link to the Site Configuration > Customization page."
@@ -15638,6 +15662,10 @@
   "admin.sidebar.openid": {
     "defaultMessage": "OpenID Connect",
     "description": "Navigation item in the System Console sidebar under Authentication; 'OpenID Connect' is a protocol name, should not be translated; compact space."
+  },
+  "admin.sidebar.passkeys": {
+    "defaultMessage": "Passkeys",
+    "description": ""
   },
   "admin.sidebar.password": {
     "defaultMessage": "Password",
