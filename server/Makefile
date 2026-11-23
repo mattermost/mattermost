@@ -755,6 +755,7 @@ run-server-pgvector: ## Starts the server with pgvector PostgreSQL image.
 	@MM_USE_PGVECTOR=true $(MAKE) run-server
 
 .PHONY: debug-server
+debug-server: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 debug-server: setup-go-work start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
@@ -766,6 +767,7 @@ debug-server: setup-go-work start-docker ## Compile and start server using delve
 		-tags '$(BUILD_TAGS)'"
 
 .PHONY: debug-server-headless
+debug-server-headless: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 debug-server-headless: setup-go-work start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\

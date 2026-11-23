@@ -195,7 +195,6 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 }
 
-// Not parallel: overrides the package-level testSiteURLTimeout.
 func TestTestEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -217,6 +216,7 @@ func TestTestEmail(t *testing.T) {
 	}
 }
 
+// Not parallel: overrides the package-level testSiteURLTimeout.
 func TestTestSiteURL(t *testing.T) {
 	th := Setup(t)
 

@@ -1937,6 +1937,11 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 }
 
 func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError) {
+	// Checked before the user lookup, so every address gets the same answer and no unusable token is created.
+	if emailSettings := a.Config().EmailSettings; *emailSettings.SMTPServer == "" || *emailSettings.SMTPPort == "" {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.smtp_not_configured.app_error", nil, "", http.StatusNotImplemented).Wrap(mail.ErrSMTPNotConfigured)
+	}
+
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return false, nil
@@ -1961,9 +1966,6 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 	}
 
 	result, eErr := a.Srv().EmailService.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL)
-	if errors.Is(eErr, mail.ErrSMTPNotConfigured) {
-		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.smtp_not_configured.app_error", nil, "", http.StatusNotImplemented).Wrap(eErr)
-	}
 	if eErr != nil {
 		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "", http.StatusInternalServerError).Wrap(eErr)
 	}

@@ -327,7 +327,7 @@ func TestSMTPNotConfiguredAndUnreachableNeverFireTogether(t *testing.T) {
 		{
 			name:   "server without a port",
 			server: "smtp.example.com", port: "",
-			probe:         leaderWithEmail(model.StatusFail, "unable to connect: SMTP server is not configured"),
+			probe:         leaderWithEmail(model.StatusFail, "unable to connect: SMTP server or port is not configured"),
 			notConfigured: healthcheck.StateResolved, unreachable: healthcheck.StateFiring,
 		},
 		{

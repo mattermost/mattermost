@@ -29,7 +29,7 @@ const (
 )
 
 // ErrSMTPNotConfigured is returned, before dialing, when the SMTP server or port is empty.
-var ErrSMTPNotConfigured = errors.New("SMTP server is not configured")
+var ErrSMTPNotConfigured = errors.New("SMTP server or port is not configured")
 
 type SMTPConfig struct {
 	ConnectionSecurity                string

@@ -3920,4 +3920,10 @@ func TestSendPasswordResetSMTPNotConfigured(t *testing.T) {
 	assert.False(t, sent)
 	assert.Equal(t, "api.user.send_password_reset.smtp_not_configured.app_error", appErr.Id)
 	assert.ErrorIs(t, appErr, mail.ErrSMTPNotConfigured)
+
+	// An unknown address gets the same answer, so the error does not reveal which accounts exist.
+	sent, appErr = th.App.SendPasswordReset(th.Context, "idontexist@example.com", "http://localhost:8065")
+	require.NotNil(t, appErr)
+	assert.False(t, sent)
+	assert.Equal(t, "api.user.send_password_reset.smtp_not_configured.app_error", appErr.Id)
 }
