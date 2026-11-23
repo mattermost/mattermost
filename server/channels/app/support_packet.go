@@ -123,7 +123,7 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 		// Otherwise, just call the hook as the plugin decided to always include it in the Support Packet.
 		pluginData, err := hooks.GenerateSupportData(pluginContext)
 		if err != nil {
-			rctx.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.String("plugin", manifest.Id), mlog.Err(err))
+			rctx.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.String("plugin_id", manifest.Id), mlog.Err(err))
 			warnings = multierror.Append(warnings, err)
 			return true
 		}

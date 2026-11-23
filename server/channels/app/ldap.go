@@ -247,7 +247,7 @@ func (a *App) MigrateIdLDAP(rctx request.CTX, toAttribute string) *model.AppErro
 	return model.NewAppError("IdMigrateLDAP", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
-func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *model.AppError {
+func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) error {
 	file, err := fileData.Open()
 	if err != nil {
 		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -269,7 +269,7 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 
 func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
 	if err := a.writeLdapFile(model.LdapPublicCertificateName, fileData); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -286,7 +286,7 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 
 func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
 	if err := a.writeLdapFile(model.LdapPrivateKeyName, fileData); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -301,7 +301,7 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 	return nil
 }
 
-func (a *App) removeLdapFile(filename string) *model.AppError {
+func (a *App) removeLdapFile(filename string) error {
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -310,7 +310,7 @@ func (a *App) removeLdapFile(filename string) *model.AppError {
 
 func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 	if err := a.removeLdapFile(*a.Config().LdapSettings.PublicCertificateFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -327,7 +327,7 @@ func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 
 func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
 	if err := a.removeLdapFile(*a.Config().LdapSettings.PrivateKeyFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	cfg := a.Config().Clone()

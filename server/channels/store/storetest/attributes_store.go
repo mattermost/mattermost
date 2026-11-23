@@ -361,7 +361,7 @@ func testAttributesStoreEmptyMultiselect(t *testing.T, rctx request.CTX, ss stor
 	})
 }
 
-// testAttributesStoreDeletedOptions pins migration 000243 (MM-71837): an attribute whose value names
+// testAttributesStoreDeletedOptions pins migration 000244 (MM-71837): an attribute whose value names
 // an option that is not live is left out of the views, so a deleted option can never be the reason
 // a rule passes, under a negation either. Leaving it out rather than projecting what is left of the
 // value costs the options a multiselect or graph still holds; a value naming no option at all

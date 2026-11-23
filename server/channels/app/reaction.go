@@ -79,13 +79,10 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 	reaction.ChannelId = post.ChannelId
 	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if post.RootId == "" {

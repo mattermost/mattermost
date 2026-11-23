@@ -556,3 +556,123 @@ describe('Menu — isMenuOpen control transition matrix', () => {
         });
     });
 });
+
+describe('Menu with openOnHover', () => {
+    // Only a menu opened by a click hides the rest of the page from assistive technology.
+    const teamsButton = () => screen.getByRole('button', {name: 'Teams', hidden: true});
+
+    function renderHoverMenu() {
+        const onItemClick = jest.fn();
+        renderWithContext(
+            <>
+                <input aria-label='Message'/>
+                <Menu
+                    menuButton={{id: 'hover-menu-button', children: 'Teams'}}
+                    menu={{id: 'hover-menu', 'aria-label': 'Teams menu', openOnHover: true}}
+                >
+                    <MenuItem
+                        id='hover-menu-item'
+                        labels={<span>{'Alpha'}</span>}
+                        onClick={onItemClick}
+                    />
+                </Menu>
+            </>,
+        );
+        return {onItemClick};
+    }
+
+    test('should open on hover without taking focus, and close when the pointer leaves', async () => {
+        renderHoverMenu();
+        const message = screen.getByRole('textbox', {name: 'Message'});
+        message.focus();
+
+        await userEvent.hover(teamsButton());
+
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+        expect(message).toHaveFocus();
+
+        // The page stays available to assistive technology under a menu opened by hovering.
+        expect(screen.getByRole('textbox', {name: 'Message'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Teams'})).toBeInTheDocument();
+
+        await userEvent.unhover(teamsButton());
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+    });
+
+    test('should stay open while the pointer moves onto the menu, and run its items', async () => {
+        const {onItemClick} = renderHoverMenu();
+
+        await userEvent.hover(teamsButton());
+        const item = await screen.findByRole('menuitem', {name: 'Alpha'});
+        await userEvent.unhover(teamsButton());
+        await userEvent.hover(item);
+        await userEvent.click(item);
+
+        await waitFor(() => expect(onItemClick).toHaveBeenCalled());
+    });
+
+    test('should stay open after the pointer leaves when opened by a click', async () => {
+        renderHoverMenu();
+
+        await userEvent.click(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+
+        await userEvent.unhover(teamsButton());
+        await new Promise((resolve) => setTimeout(resolve, 400));
+
+        expect(screen.getByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+    });
+
+    test('should close on Escape while focus stays outside it', async () => {
+        renderHoverMenu();
+        screen.getByRole('textbox', {name: 'Message'}).focus();
+
+        await userEvent.hover(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+        expect(screen.getByRole('textbox', {name: 'Message'})).toHaveFocus();
+    });
+
+    test('should behave as a click-opened menu once a click takes over, and return focus to the trigger', async () => {
+        renderHoverMenu();
+
+        await userEvent.hover(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+        await userEvent.click(teamsButton());
+
+        // Like a click-opened menu, it now hides the rest of the page from assistive technology.
+        await waitFor(() => expect(screen.queryByRole('button', {name: 'Teams'})).not.toBeInTheDocument());
+        expect(screen.getByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+        expect(teamsButton()).toHaveFocus();
+    });
+
+    test('should leave focus alone after a click took over, when the menu opts out of restoring it', async () => {
+        renderWithContext(
+            <Menu
+                menuButton={{id: 'hover-menu-button', children: 'Teams'}}
+                menu={{id: 'hover-menu', 'aria-label': 'Teams menu', openOnHover: true, disableRestoreFocus: true}}
+            >
+                <MenuItem
+                    id='hover-menu-item'
+                    labels={<span>{'Alpha'}</span>}
+                />
+            </Menu>,
+        );
+
+        await userEvent.hover(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+        await userEvent.click(teamsButton());
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+        expect(teamsButton()).not.toHaveFocus();
+    });
+});

@@ -1041,3 +1041,30 @@ func TestCreateJobRequiresARegisteredType(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, model.JobTypeHealthCheck, job.Type)
 }
+
+func TestCreateJobOnce(t *testing.T) {
+	setup := func(t *testing.T) (*JobServer, *storetest.Store) {
+		jobServer, mockStore := makeTeamEditionJobServer(t)
+		jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, NewPeriodicScheduler(jobServer, model.JobTypeHealthCheck, time.Hour, func(*model.Config) bool { return true }))
+		return jobServer, mockStore
+	}
+
+	t.Run("returns the job it saved", func(t *testing.T) {
+		jobServer, mockStore := setup(t)
+		mockStore.JobStore.On("SaveOnce", mock.AnythingOfType("*model.Job")).Return(func(job *model.Job) *model.Job { return job }, nil).Once()
+
+		job, appErr := jobServer.CreateJobOnce(request.TestContext(t), model.JobTypeHealthCheck, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, job)
+		require.Equal(t, model.JobTypeHealthCheck, job.Type)
+	})
+
+	t.Run("returns nil when a job of the type is already pending or in progress", func(t *testing.T) {
+		jobServer, mockStore := setup(t)
+		mockStore.JobStore.On("SaveOnce", mock.AnythingOfType("*model.Job")).Return(nil, nil).Once()
+
+		job, appErr := jobServer.CreateJobOnce(request.TestContext(t), model.JobTypeHealthCheck, nil)
+		require.Nil(t, appErr)
+		require.Nil(t, job)
+	})
+}
