@@ -2524,6 +2524,256 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/passkeys":
+    get:
+      tags:
+        - users
+      summary: Get a user's passkeys
+      description: >
+        Get the passkeys registered to a user, oldest first. Only the passkey's
+        name and timestamps are returned, never any credential material.
+
+
+        Passkeys are available only when the `Passkeys` feature flag is on and the
+        server has a Professional or higher license; otherwise the endpoint
+        responds with 501. This works whatever the "Enable passkey enrollment" and
+        "Enable passkey login" settings are, so users can still see passkeys they
+        already have.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403.
+      operationId: GetPasskeysForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Passkeys retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Passkey"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/{passkey_id}":
+    delete:
+      tags:
+        - users
+      summary: Delete a passkey
+      description: >
+        Delete one of the user's passkeys. Deleting a passkey does not end any
+        session, including sessions that were started with it.
+
+
+        Passkeys are available only when the `Passkeys` feature flag is on and the
+        server has a Professional or higher license; otherwise the endpoint
+        responds with 501. This works whatever the "Enable passkey enrollment" and
+        "Enable passkey login" settings are.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403.
+      operationId: DeletePasskey
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+        - name: passkey_id
+          in: path
+          description: Passkey GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Passkey deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: The passkey does not exist or does not belong to the user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/registration/begin":
+    post:
+      tags:
+        - users
+      summary: Begin registering a passkey
+      description: >
+        Start a passkey registration. Returns a ceremony ID and the WebAuthn
+        `PublicKeyCredentialCreationOptions` to pass to `navigator.credentials.create()`.
+        The authenticator must perform user verification. Finish the registration
+        with `POST /api/v4/users/{user_id}/passkeys/registration/finish`, using
+        the same session, within 5 minutes.
+
+
+        Passkeys are available only when the `Passkeys` feature flag is on and the
+        server has a Professional or higher license. The "Enable passkey enrollment"
+        setting must also be on, and the Site URL must be HTTPS (or
+        `http://localhost`) with a domain name as its host. Otherwise the
+        endpoint responds with 501.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403. The session must
+        have been started within the last 10 minutes by a sign-in that did not
+        use a passkey; otherwise the endpoint responds with 403 and the user must
+        sign out and sign back in. Bot and remote users cannot register passkeys
+        (403).
+      operationId: BeginPasskeyRegistration
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Registration started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ceremony_id:
+                    description: Identifies this registration; pass it to the finish request
+                    type: string
+                  options:
+                    description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
+                      form, with binary fields base64url-encoded
+                    type: object
+        "400":
+          description: The user already has the maximum of 10 passkeys.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/registration/finish":
+    post:
+      tags:
+        - users
+      summary: Finish registering a passkey
+      description: >
+        Complete a registration started with
+        `POST /api/v4/users/{user_id}/passkeys/registration/begin`. The request must
+        come from the same session that began it, within 5 minutes. On success the
+        user is sent a "passkey added" email.
+
+
+        The same availability conditions as the begin request apply (501 otherwise).
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403. The session must
+        still be within 10 minutes of a sign-in that did not use a passkey;
+        otherwise the endpoint responds with 403.
+      operationId: FinishPasskeyRegistration
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ceremony_id
+                - credential
+              properties:
+                ceremony_id:
+                  description: The `ceremony_id` returned by the begin request
+                  type: string
+                name:
+                  description: A name for the passkey, at most 64 characters. Defaults
+                    to "<browser> on <OS>" taken from the request's User-Agent.
+                  type: string
+                credential:
+                  description: The browser's registration response (the result of
+                    `navigator.credentials.create()`) in WebAuthn JSON form
+                  type: object
+        required: true
+      responses:
+        "201":
+          description: Passkey registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passkey"
+        "400":
+          description: >
+            The request body is invalid, or `ceremony_id` or `credential` is
+            missing. Also returned when the ceremony is unknown, already used,
+            expired or begun by another session, the credential is invalid or
+            already registered, the name is over 64 characters, or the user
+            already has 10 passkeys.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/users/tokens:
     get:
       tags:
