@@ -72,14 +72,11 @@ func sysctlSwapUsageMB(t *testing.T) (total, used float64) {
 	return total, used
 }
 
-// withinReads reports whether got lies between values read before and after it, since live values can change in between.
-func withinReads(before, after, got, tolerance float64) bool {
-	return got >= min(before, after)-tolerance && got <= max(before, after)+tolerance
-}
-
+// assertBetweenReads checks got against values read before and after it, since live values can change in between.
 func assertBetweenReads(t *testing.T, before, after, got, tolerance float64, name string) {
 	t.Helper()
-	assert.True(t, withinReads(before, after, got, tolerance), "%s: %v is not within [%v, %v]", name, got, min(before, after), max(before, after))
+	assert.GreaterOrEqual(t, got, min(before, after)-tolerance, name)
+	assert.LessOrEqual(t, got, max(before, after)+tolerance, name)
 }
 
 func TestDecodeLoadAvg(t *testing.T) {
@@ -142,8 +139,8 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 	const attempts = 5
 
 	var diagnostics memoryDiagnostics
-	matchedSysctl := false
-	// Swap can move between the reads, so retry until one call falls between two matching readings.
+	comparedToSysctl := false
+	// Swap can change during the call, so only compare with sysctl when it held steady around the call.
 	for range attempts {
 		totalBefore, usedBefore := sysctlSwapUsageMB(t)
 		var err error
@@ -154,14 +151,18 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.SwapUsedMB)
 		require.NotNil(t, diagnostics.AvailableMemoryMB)
 
-		// Our values are truncated to whole MB.
-		if withinReads(totalBefore, totalAfter, float64(*diagnostics.SwapTotalMB), 1) &&
-			withinReads(usedBefore, usedAfter, float64(*diagnostics.SwapUsedMB), 1) {
-			matchedSysctl = true
-			break
+		if totalBefore != totalAfter || usedBefore != usedAfter {
+			continue
 		}
+		comparedToSysctl = true
+		// Our values are truncated to whole MB.
+		assert.InDelta(t, totalBefore, float64(*diagnostics.SwapTotalMB), 1, "swap total")
+		assert.InDelta(t, usedBefore, float64(*diagnostics.SwapUsedMB), 1, "swap used")
+		break
 	}
-	assert.True(t, matchedSysctl, "swap values did not match sysctl vm.swapusage in %d attempts", attempts)
+	if !comparedToSysctl {
+		t.Logf("swap changed during all %d attempts; skipped comparison with sysctl vm.swapusage", attempts)
+	}
 	assert.Nil(t, diagnostics.ProcessRSSMB)
 	assert.Zero(t, diagnostics.ContainerMemoryLimitMB)
 	assert.LessOrEqual(t, *diagnostics.SwapUsedMB, *diagnostics.SwapTotalMB)
