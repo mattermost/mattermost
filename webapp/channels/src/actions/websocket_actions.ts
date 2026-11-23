@@ -1566,8 +1566,11 @@ function isUserAttributeField(state: GlobalState, field: PropertyField): boolean
  * (options_omitted). The cached options restored below come from the field's
  * own custom profile attribute entry; caching the stripped definition would
  * blank the options for every reader, so only fall back to a refetch when the
- * slice has no prior copy to draw on. storeIfUncached also stores the event's
- * field in that case, for the events that are the only thing carrying it.
+ * slice has no prior copy to draw on. storeIfUncached also puts the event's
+ * field in that slice before the refetch lands. The custom_profile_attributes_*
+ * socket events pass it because they are the only thing that writes the field
+ * there; the property field event does not, because it already stored the field
+ * in the properties slice and leaves this one to the refetch.
  */
 function keepCachedCustomAttributeOptions(field: PropertyField, storeIfUncached = false): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
