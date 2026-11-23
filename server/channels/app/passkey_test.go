@@ -680,3 +680,317 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		require.NotNil(t, pk)
 	})
 }
+
+func TestFinishPasskeyLogin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+	const origin = "http://localhost:8065"
+
+	// register stores a passkey for the user through the real registration ceremony.
+	register := func(t *testing.T, user *model.User, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) {
+		t.Helper()
+		session := recentSession(user.Id)
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+		resp, err := auth.CreateResponse(opts.Options, origin, authOpts...)
+		require.NoError(t, err)
+		_, appErr = th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", "", resp)
+		require.Nil(t, appErr)
+	}
+	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
+		t.Helper()
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		return auth
+	}
+	// registered returns a user with one passkey and the authenticator holding it.
+	registered := func(t *testing.T, authOpts ...testlib.SoftAuthenticatorOption) (*model.User, *testlib.SoftAuthenticator) {
+		t.Helper()
+		user, auth := th.CreateUser(t), newAuthenticator(t)
+		register(t, user, auth, authOpts...)
+		return user, auth
+	}
+	begin := func(t *testing.T) *model.PasskeyLoginOptions {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyLogin(th.Context)
+		require.Nil(t, appErr)
+		return opts
+	}
+	finish := func(t *testing.T, auth *testlib.SoftAuthenticator, origin string, authOpts ...testlib.SoftAuthenticatorOption) (*model.User, *model.AppError) {
+		t.Helper()
+		opts := begin(t)
+		resp, err := auth.GetAssertion(opts.Options, origin, authOpts...)
+		require.NoError(t, err)
+		return th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+	}
+	requireFails := func(t *testing.T, user *model.User, appErr *model.AppError, status int, id string) {
+		t.Helper()
+		require.Nil(t, user)
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+	requireSucceeds := func(t *testing.T, want *model.User, got *model.User, appErr *model.AppError) {
+		t.Helper()
+		require.Nil(t, appErr)
+		require.NotNil(t, got)
+		require.Equal(t, want.Id, got.Id)
+	}
+	storedPasskey := func(t *testing.T, userID string) *model.Passkey {
+		t.Helper()
+		passkeys, appErr := th.App.GetPasskeysForUser(userID)
+		require.Nil(t, appErr)
+		require.Len(t, passkeys, 1)
+		return passkeys[0]
+	}
+	setFailedAttempts := func(t *testing.T, userID string, n int) {
+		t.Helper()
+		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(userID, n))
+		th.App.InvalidateCacheForUser(userID)
+	}
+	failedAttempts := func(t *testing.T, userID string) int {
+		t.Helper()
+		user, err := th.App.Srv().Store().User().Get(th.Context, userID)
+		require.NoError(t, err)
+		return user.FailedAttempts
+	}
+
+	t.Run("signs in the passkey's user and records the use", func(t *testing.T) {
+		user, auth := registered(t)
+		require.Zero(t, storedPasskey(t, user.Id).LastUsedAt)
+
+		got, appErr := finish(t, auth, origin)
+		requireSucceeds(t, user, got, appErr)
+		require.Positive(t, storedPasskey(t, user.Id).LastUsedAt)
+	})
+
+	t.Run("the counter must increase", func(t *testing.T) {
+		user, auth := registered(t)
+
+		auth.SignCount = 5
+		got, appErr := finish(t, auth, origin)
+		requireSucceeds(t, user, got, appErr)
+		require.EqualValues(t, 5, storedPasskey(t, user.Id).SignCount)
+
+		auth.SignCount = 3
+		got, appErr = finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.counter_regressed.app_error")
+		require.EqualValues(t, 5, storedPasskey(t, user.Id).SignCount)
+
+		auth.SignCount = 5
+		got, appErr = finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.counter_regressed.app_error")
+		require.EqualValues(t, 5, storedPasskey(t, user.Id).SignCount)
+
+		auth.SignCount = 0
+		got, appErr = finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.counter_regressed.app_error")
+
+		auth.SignCount = 6
+		got, appErr = finish(t, auth, origin)
+		requireSucceeds(t, user, got, appErr)
+		require.EqualValues(t, 6, storedPasskey(t, user.Id).SignCount)
+	})
+
+	t.Run("a counter that stays at zero is accepted", func(t *testing.T) {
+		user, auth := registered(t)
+
+		for range 2 {
+			got, appErr := finish(t, auth, origin)
+			requireSucceeds(t, user, got, appErr)
+		}
+		require.Zero(t, storedPasskey(t, user.Id).SignCount)
+	})
+
+	t.Run("a synced passkey signs in", func(t *testing.T) {
+		user, auth := registered(t, testlib.WithBackupEligible())
+
+		got, appErr := finish(t, auth, origin, testlib.WithBackupEligible())
+		requireSucceeds(t, user, got, appErr)
+	})
+
+	t.Run("a passkey the server does not know is refused as unknown", func(t *testing.T) {
+		registered(t)
+		stranger := newAuthenticator(t)
+		// A real authenticator always answers with a user handle; the library refuses a blank one first.
+		stranger.UserHandle = []byte("some other server's handle")
+
+		got, appErr := finish(t, stranger, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.unknown_credential.app_error")
+	})
+
+	t.Run("a deleted passkey is refused as unknown", func(t *testing.T) {
+		user, auth := registered(t)
+		require.Nil(t, th.App.DeletePasskey(user.Id, storedPasskey(t, user.Id).Id))
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.unknown_credential.app_error")
+	})
+
+	t.Run("a user handle that is not the passkey's is refused", func(t *testing.T) {
+		user, auth := registered(t)
+		auth.UserHandle = append([]byte{}, auth.UserHandle...)
+		auth.UserHandle[0] ^= 0xff
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.invalid_credential.app_error")
+		require.Zero(t, storedPasskey(t, user.Id).LastUsedAt)
+	})
+
+	t.Run("wrong origin is refused", func(t *testing.T) {
+		_, auth := registered(t)
+
+		got, appErr := finish(t, auth, "http://evil.example")
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.invalid_credential.app_error")
+	})
+
+	t.Run("an assertion without user verification is refused", func(t *testing.T) {
+		_, auth := registered(t)
+
+		got, appErr := finish(t, auth, origin, testlib.WithoutUserVerification())
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.invalid_credential.app_error")
+	})
+
+	t.Run("garbage credential is refused", func(t *testing.T) {
+		got, appErr := th.App.FinishPasskeyLogin(th.Context, begin(t).CeremonyId, []byte(`{"id":`))
+		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
+	})
+
+	t.Run("a ceremony can only be finished once", func(t *testing.T) {
+		user, auth := registered(t)
+		opts := begin(t)
+		resp, err := auth.GetAssertion(opts.Options, origin)
+		require.NoError(t, err)
+
+		got, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		requireSucceeds(t, user, got, appErr)
+
+		got, appErr = th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("unknown ceremony is refused", func(t *testing.T) {
+		_, auth := registered(t)
+		resp, err := auth.GetAssertion(begin(t).Options, origin)
+		require.NoError(t, err)
+
+		got, appErr := th.App.FinishPasskeyLogin(th.Context, model.NewId(), resp)
+		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("expired ceremony is refused", func(t *testing.T) {
+		_, auth := registered(t)
+		opts := begin(t)
+		resp, err := auth.GetAssertion(opts.Options, origin)
+		require.NoError(t, err)
+		_, err = th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-6*60*1000, opts.CeremonyId)
+		require.NoError(t, err)
+
+		got, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("a registration ceremony cannot finish a sign-in", func(t *testing.T) {
+		_, auth := registered(t)
+		reg, appErr := th.App.BeginPasskeyRegistration(th.Context, recentSession(th.CreateUser(t).Id))
+		require.Nil(t, appErr)
+		resp, err := auth.GetAssertion(begin(t).Options, origin)
+		require.NoError(t, err)
+
+		got, appErr := th.App.FinishPasskeyLogin(th.Context, reg.CeremonyId, resp)
+		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("a deactivated user is refused as inactive", func(t *testing.T) {
+		user, auth := registered(t)
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.login.inactive.app_error")
+		require.Zero(t, storedPasskey(t, user.Id).LastUsedAt)
+	})
+
+	t.Run("a user converted to a bot is refused", func(t *testing.T) {
+		user, auth := registered(t)
+		_, appErr := th.App.ConvertUserToBot(th.Context, user)
+		require.Nil(t, appErr)
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.login.bot_login_forbidden.app_error")
+	})
+
+	t.Run("a user locked out by failed password attempts is refused", func(t *testing.T) {
+		user, auth := registered(t)
+		setFailedAttempts(t, user.Id, *th.App.Config().ServiceSettings.MaximumLoginAttempts)
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.check_user_login_attempts.too_many.app_error")
+	})
+
+	t.Run("an LDAP user is locked out at the LDAP threshold", func(t *testing.T) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+			*cfg.LdapSettings.MaximumLoginAttempts = 3
+		})
+		t.Cleanup(func() {
+			th.UpdateConfig(t, func(cfg *model.Config) { *cfg.LdapSettings.MaximumLoginAttempts = 10 })
+		})
+		ldapUser, ldapAuth := registered(t)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET AuthService = ?, AuthData = ?, Password = '' WHERE Id = ?`, model.UserAuthServiceLdap, model.NewId(), ldapUser.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(ldapUser.Id)
+		setFailedAttempts(t, ldapUser.Id, 5)
+		emailUser, emailAuth := registered(t)
+		setFailedAttempts(t, emailUser.Id, 5)
+
+		got, appErr := finish(t, ldapAuth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.check_user_login_attempts.too_many_ldap.app_error")
+
+		got, appErr = finish(t, emailAuth, origin)
+		requireSucceeds(t, emailUser, got, appErr)
+	})
+
+	t.Run("an unverified email is refused when verification is required", func(t *testing.T) {
+		user, auth := registered(t)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET EmailVerified = false WHERE Id = ?`, user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+
+		got, appErr := finish(t, auth, origin)
+		requireSucceeds(t, user, got, appErr)
+
+		th.UpdateConfig(t, func(cfg *model.Config) { *cfg.EmailSettings.RequireEmailVerification = true })
+		t.Cleanup(func() {
+			th.UpdateConfig(t, func(cfg *model.Config) { *cfg.EmailSettings.RequireEmailVerification = false })
+		})
+		got, appErr = finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.login.not_verified.app_error")
+	})
+
+	t.Run("a user with MFA active signs in without a code", func(t *testing.T) {
+		user, auth := registered(t)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET MfaActive = true WHERE Id = ?`, user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+
+		got, appErr := finish(t, auth, origin)
+		requireSucceeds(t, user, got, appErr)
+	})
+
+	t.Run("failed password attempts are left alone by a failure and by a success", func(t *testing.T) {
+		user, auth := registered(t)
+		setFailedAttempts(t, user.Id, 2)
+
+		got, appErr := finish(t, auth, "http://evil.example")
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.invalid_credential.app_error")
+		require.Equal(t, 2, failedAttempts(t, user.Id))
+
+		got, appErr = finish(t, auth, origin)
+		requireSucceeds(t, user, got, appErr)
+		require.Equal(t, 2, failedAttempts(t, user.Id))
+	})
+}

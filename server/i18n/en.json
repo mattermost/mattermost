@@ -10798,13 +10798,23 @@
   },
   {
     "id": "app.passkey.ceremony_invalid.app_error",
-    "translation": "This passkey registration has expired or is no longer valid. Start again.",
-    "description": "API error when finishing passkey registration with a ceremony that is unknown, already used, expired, or begun by a different session or user."
+    "translation": "This passkey request has expired or is no longer valid. Start again.",
+    "description": "API error when finishing passkey registration or sign-in with a ceremony that is unknown, already used, expired, or (for registration) begun by a different session or user."
+  },
+  {
+    "id": "app.passkey.counter_regressed.app_error",
+    "translation": "This passkey could not be used to sign in. Sign in another way and check your passkeys under Profile > Security.",
+    "description": "API error when a passkey sign-in presents a signature counter that did not increase (a possibly cloned authenticator), or when the passkey was used or deleted by another sign-in at the same moment. The user can sign in with another method; Profile > Security is a menu path, match the translated UI labels."
   },
   {
     "id": "app.passkey.delete.app_error",
     "translation": "Unable to delete the passkey.",
     "description": "API error when deleting a user's passkey from the database fails."
+  },
+  {
+    "id": "app.passkey.finish_login.app_error",
+    "translation": "Unable to finish passkey sign-in.",
+    "description": "API error when consuming the stored sign-in ceremony, reading the passkey or checking the account fails for a reason other than a normal refusal."
   },
   {
     "id": "app.passkey.finish_registration.app_error",
@@ -10819,7 +10829,7 @@
   {
     "id": "app.passkey.invalid_credential.app_error",
     "translation": "The passkey could not be verified. Try again.",
-    "description": "API error when the authenticator response to a registration is malformed or fails verification (wrong origin, relying party, challenge, or user verification missing)."
+    "description": "API error when the authenticator response to a registration or sign-in is malformed or fails verification (wrong origin, relying party, challenge, signature, or user verification missing)."
   },
   {
     "id": "app.passkey.limit_reached.app_error",
@@ -10855,6 +10865,16 @@
     "id": "app.passkey.unavailable.app_error",
     "translation": "Passkeys are not available on this server.",
     "description": "API error when a passkey ceremony is started but the Site URL cannot serve as a WebAuthn relying party (unset, not HTTPS, an IP address, or rejected by the WebAuthn library)."
+  },
+  {
+    "id": "app.passkey.unknown_credential.app_error",
+    "translation": "This passkey isn't registered on this server.",
+    "description": "API error when a passkey sign-in presents a passkey the server does not know, for example one that was deleted from the account but is still saved on the device."
+  },
+  {
+    "id": "app.passkey.update_usage.app_error",
+    "translation": "Unable to finish passkey sign-in.",
+    "description": "API error when recording a passkey sign-in (its new counter and last-used time) in the database fails."
   },
   {
     "id": "app.passkey.user_not_allowed.app_error",

@@ -107,7 +107,17 @@ func (u *passkeyUser) WebAuthnDisplayName() string {
 func (u *passkeyUser) WebAuthnCredentials() []webauthn.Credential {
 	creds := make([]webauthn.Credential, 0, len(u.passkeys))
 	for _, p := range u.passkeys {
-		cred := webauthn.Credential{ID: p.CredentialId, PublicKey: p.PublicKey}
+		// The flags and counter are what sign-in checks the authenticator's response against: without
+		// them a synced passkey is refused as inconsistent and a cloned one is never noticed.
+		cred := webauthn.Credential{
+			ID:        p.CredentialId,
+			PublicKey: p.PublicKey,
+			Flags:     webauthn.CredentialFlags{BackupEligible: p.BackupEligible, BackupState: p.BackupState},
+			Authenticator: webauthn.Authenticator{
+				AAGUID:    p.AAGUID,
+				SignCount: uint32(p.SignCount),
+			},
+		}
 		if p.Transports != "" {
 			for t := range strings.SplitSeq(p.Transports, ",") {
 				cred.Transport = append(cred.Transport, protocol.AuthenticatorTransport(t))
@@ -335,4 +345,114 @@ func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session
 		rctx.Logger().Error("Unable to send passkey added email", mlog.Err(err), mlog.String("user_id", user.Id))
 	}
 	return saved, nil
+}
+
+// FinishPasskeyLogin verifies the authenticator's response to a ceremony begun by BeginPasskeyLogin
+// and returns the passkey's user after the account checks password sign-in applies. It creates no
+// session, checks no MFA code and leaves the user's failed-attempt count alone: a failed assertion is
+// not a failed password attempt, and a passkey sign-in is not a reason to forgive earlier ones.
+func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential []byte) (*model.User, *model.AppError) {
+	const where = "FinishPasskeyLogin"
+
+	invalidCeremony := func() *model.AppError {
+		return model.NewAppError(where, "app.passkey.ceremony_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyLogin, ceremonyID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil, invalidCeremony()
+		}
+		return nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+	var ceremony passkeyCeremony
+	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil || ceremony.SessionData == nil {
+		return nil, invalidCeremony()
+	}
+
+	invalidCredential := func(err error) *model.AppError {
+		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+	}
+	counterRegressed := func(err error) *model.AppError {
+		return model.NewAppError(where, "app.passkey.counter_regressed.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+	}
+	parsed, err := protocol.ParseCredentialRequestResponseBytes(credential)
+	if err != nil {
+		return nil, model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	rp, appErr := a.passkeyRelyingParty()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// The library wraps whatever the handler returns, so the reason is carried out in these.
+	var passkey *model.Passkey
+	var unknownCredential bool
+	var handlerAppErr *model.AppError
+	handler := func(rawID, _ []byte) (webauthn.User, error) {
+		var getErr error
+		if passkey, getErr = a.Srv().Store().Passkey().GetByCredentialId(rawID); getErr != nil {
+			if _, ok := errors.AsType[*store.ErrNotFound](getErr); ok {
+				unknownCredential = true
+			} else {
+				handlerAppErr = model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+			}
+			return nil, getErr
+		}
+		user, appErr := a.GetUser(rctx, passkey.UserId)
+		if appErr != nil {
+			handlerAppErr = appErr
+			return nil, appErr
+		}
+		return &passkeyUser{user: user, handle: passkey.UserHandle, passkeys: []*model.Passkey{passkey}}, nil
+	}
+	// The library checks that the user handle belongs to the passkey, the origin, RP ID hash,
+	// challenge, signature and that user verification was performed.
+	wu, cred, err := rp.ValidatePasskeyLogin(handler, *ceremony.SessionData, parsed)
+	if err != nil {
+		switch {
+		case handlerAppErr != nil:
+			return nil, handlerAppErr
+		case unknownCredential:
+			return nil, model.NewAppError(where, "app.passkey.unknown_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+		}
+		return nil, invalidCredential(err)
+	}
+	user := wu.(*passkeyUser).user
+
+	// A counter that does not increase means the authenticator may have been cloned. The library flags
+	// it; the explicit comparison is kept because UpdateUsage only compares the previous value, so a
+	// flag the library stopped raising would let a replayed counter through. A counter that stays at 0
+	// is normal for synced passkeys.
+	presented := parsed.Response.AuthenticatorData.Counter
+	if cred.Authenticator.CloneWarning || (presented != 0 && int64(presented) <= passkey.SignCount) {
+		return nil, counterRegressed(errors.New("authenticator counter did not increase"))
+	}
+
+	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
+	if user.AuthService == model.UserAuthServiceLdap {
+		maxAttempts = *a.Config().LdapSettings.MaximumLoginAttempts
+	}
+	for _, err := range []error{
+		checkUserNotDisabled(user),
+		checkUserNotBot(user),
+		checkUserLoginAttempts(user, maxAttempts),
+		a.CheckUserPostflightAuthenticationCriteria(rctx, user),
+	} {
+		if err == nil {
+			continue
+		}
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis()); err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, counterRegressed(err)
+		}
+		return nil, model.NewAppError(where, "app.passkey.update_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return user, nil
 }
