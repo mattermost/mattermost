@@ -177,7 +177,7 @@ function relatedHopValue(link: NonNullable<EntityCard['related']>[number]): stri
         return text;
     }
     const token = id[1];
-    return /^T/i.test(token) ? `T${token.slice(1)}` : token.toUpperCase();
+    return (/^T/i).test(token) ? `T${token.slice(1)}` : token.toUpperCase();
 }
 
 function RelatedValue({
@@ -420,17 +420,23 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                         {section.items && section.items.length > 0 ? section.items.map((item, index) => {
                             const label = sectionItemLabel(item);
                             const textIsURL = Boolean(item.url && item.text && item.text === item.url);
+                            let heading: React.ReactNode = null;
+                            if (item.url && label) {
+                                heading = (
+                                    <ExternalLink
+                                        href={item.url}
+                                        location='entity_card'
+                                    >{label}</ExternalLink>
+                                );
+                            } else if (label) {
+                                heading = <span style={{fontWeight: 600}}>{label}</span>;
+                            }
                             return (
                                 <div
                                     key={`${item.url || ''}-${item.head || ''}-${index}`}
                                     style={{padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
                                 >
-                                    {item.url && label ? (
-                                        <ExternalLink
-                                            href={item.url}
-                                            location='entity_card'
-                                        >{label}</ExternalLink>
-                                    ) : label ? <span style={{fontWeight: 600}}>{label}</span> : null}
+                                    {heading}
                                     {item.text && !textIsURL && (
                                         <div style={{opacity: 0.72, whiteSpace: 'pre-line', marginTop: label ? 2 : 0}}>{item.text}</div>
                                     )}

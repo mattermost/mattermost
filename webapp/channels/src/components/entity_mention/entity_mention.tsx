@@ -79,7 +79,12 @@ function MentionBadge({text, icon, color}: {text?: string; icon?: string; color?
             data-testid='entity-mention-badge'
             style={{...badgeChip, ...palette}}
         >
-            {hasIcon ? <i className={`icon icon-${icon}`} style={{fontSize: 12, margin: 0}}/> : text}
+            {hasIcon ? (
+                <i
+                    className={`icon icon-${icon}`}
+                    style={{fontSize: 12, margin: 0}}
+                />
+            ) : text}
         </span>
     );
 }

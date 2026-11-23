@@ -10,7 +10,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import EntityRhs from './entity_rhs';
 
-const mockCloseEntity = jest.fn(() => ({type: 'MOCK_CLOSE_ENTITY'}));
+const mockCloseEntity = jest.fn((..._args: unknown[]) => ({type: 'MOCK_CLOSE_ENTITY'}));
 
 jest.mock('actions/views/rhs', () => ({
     closeEntity: (...args: unknown[]) => mockCloseEntity(...args),
