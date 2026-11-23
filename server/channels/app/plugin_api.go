@@ -2227,6 +2227,13 @@ func (api *PluginAPI) EvaluateAccessControlBatch(userID, resourceType, action st
 	return decisions, model.AsAppError(err)
 }
 
+func (api *PluginAPI) EvaluateAccessControlActions(userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, *model.AppError) {
+	// Same attribution as EvaluateAccessControl: the subject build reads
+	// properties on the plugin's behalf.
+	decisions, err := api.app.EvaluatePluginAccessRequestActions(api.psaPluginContext(), api.id, userID, resourceType, resourceID, actions)
+	return decisions, model.AsAppError(err)
+}
+
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	// Tagged with the plugin's ID so the existence probe's policy read is
 	// attributed to the plugin; api.ctx carries no caller. The save itself runs

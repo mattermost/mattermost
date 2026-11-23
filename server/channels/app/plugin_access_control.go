@@ -29,6 +29,10 @@ const (
 // probe to a single query.
 const pluginAccessControlBatchMax = 500
 
+// pluginAccessControlActionsMax caps the distinct actions a single
+// EvaluatePluginAccessRequestActions call may evaluate.
+const pluginAccessControlActionsMax = 256
+
 // pluginAccessControlScopeCheck validates resourceType's format and that its
 // plugin-ID prefix matches pluginID.
 func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string) error {
@@ -322,6 +326,137 @@ func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginI
 		}
 		decision := model.NewNoPolicyAccessDecision()
 		decisions[id] = &decision
+	}
+	return decisions, nil
+}
+
+// EvaluatePluginAccessRequestActions evaluates whether userID may perform each
+// of actions on the plugin-owned resource (resourceType, resourceID) and
+// returns the decisions keyed by action. The subject is built once; each
+// action is then evaluated through the engine against the same resource.
+//
+// The subject is a snapshot but each action is evaluated on its own, so a
+// policy or attribute change during a call can give a mixed view across the
+// actions.
+//
+// An action absent from the result could not be evaluated and must be treated
+// as a deny by the caller. Whole-call failures (bad arguments, too many
+// actions, store unreachable or a policy existing while the engine is
+// unavailable) are returned as an error and likewise mean deny-all.
+//
+// Failures are handled like the single-action call: when evaluation is
+// impossible, or the engine errors for some actions, existence is resolved
+// once for the resource with resolvePluginPolicyExistence. Without a policy of
+// resourceType every affected action is no_policy; with one, the call fails
+// (evaluation impossible) or the failed actions are omitted (evaluator errors).
+func (a *App) EvaluatePluginAccessRequestActions(rctx request.CTX, pluginID, userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, error) {
+	const where = "EvaluatePluginAccessRequestActions"
+
+	if err := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); err != nil {
+		return nil, err
+	}
+	if !model.IsValidId(userID) || !model.IsValidId(resourceID) {
+		return nil, model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	distinct := make([]string, 0, len(actions))
+	seen := make(map[string]struct{}, len(actions))
+	for _, action := range actions {
+		if !model.IsValidPolicyAction(action) {
+			return nil, model.NewAppError(where, "app.access_control.plugin.invalid_action.app_error", nil, "action="+action, http.StatusBadRequest)
+		}
+		if _, dup := seen[action]; dup {
+			continue
+		}
+		seen[action] = struct{}{}
+		distinct = append(distinct, action)
+	}
+	if len(distinct) > pluginAccessControlActionsMax {
+		return nil, model.NewAppError(where, "app.access_control.plugin.batch_too_large.app_error", map[string]any{"Max": pluginAccessControlActionsMax}, "", http.StatusBadRequest)
+	}
+
+	decisions := make(map[string]*model.AccessDecision, len(distinct))
+	if len(distinct) == 0 {
+		return decisions, nil
+	}
+
+	if !a.pluginAccessControlAvailable() {
+		return a.resolvePluginPolicyExistenceActions(rctx, where, pluginID, resourceType, resourceID, distinct, "abac_unavailable")
+	}
+
+	user, appErr := a.GetUser(rctx, userID)
+	if appErr != nil {
+		rctx.Logger().Warn("Plugin access actions evaluation: failed to load user; resolving policy existence",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr))
+		return a.resolvePluginPolicyExistenceActions(rctx, where, pluginID, resourceType, resourceID, distinct, "user_load_failed")
+	}
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
+	if appErr != nil {
+		rctx.Logger().Warn("Plugin access actions evaluation: failed to build subject; resolving policy existence",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr))
+		return a.resolvePluginPolicyExistenceActions(rctx, where, pluginID, resourceType, resourceID, distinct, "subject_build_failed")
+	}
+
+	acs := a.Srv().ch.AccessControl
+	resource := model.Resource{ID: resourceID, Type: resourceType}
+	var failed []string
+	var firstEvalErr error
+	for _, action := range distinct {
+		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+			Subject:  *subject,
+			Resource: resource,
+			Action:   action,
+		})
+		if evalErr != nil {
+			if firstEvalErr == nil {
+				firstEvalErr = evalErr
+			}
+			failed = append(failed, action)
+			continue
+		}
+		d := decision
+		decisions[action] = &d
+	}
+
+	if len(failed) > 0 {
+		// One line per call, not per action, as in the batch call.
+		rctx.Logger().Warn("Plugin access actions evaluation: evaluator errors; resolving policy existence",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("resource_id", resourceID),
+			mlog.Int("failed_count", len(failed)),
+			mlog.Int("action_count", len(distinct)),
+			mlog.Err(firstEvalErr))
+
+		// A policy of the caller's type, or a failed read (logged by the
+		// resolver), leaves the failed actions out: the deny the single-action
+		// call returns as an error.
+		if _, existErr := a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "evaluator_error"); existErr == nil {
+			for _, action := range failed {
+				decision := model.NewNoPolicyAccessDecision()
+				decisions[action] = &decision
+			}
+		}
+	}
+
+	return decisions, nil
+}
+
+// resolvePluginPolicyExistenceActions is the multi-action form of
+// resolvePluginPolicyExistence for a call that cannot be evaluated: existence
+// is resolved once for the resource and applies to every action.
+func (a *App) resolvePluginPolicyExistenceActions(rctx request.CTX, where, pluginID, resourceType, resourceID string, actions []string, reason string) (map[string]*model.AccessDecision, error) {
+	if _, appErr := a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, reason); appErr != nil {
+		return nil, appErr
+	}
+
+	decisions := make(map[string]*model.AccessDecision, len(actions))
+	for _, action := range actions {
+		decision := model.NewNoPolicyAccessDecision()
+		decisions[action] = &decision
 	}
 	return decisions, nil
 }
