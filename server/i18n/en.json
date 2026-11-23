@@ -16440,6 +16440,26 @@
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Email isn't configured, so emails such as password resets and notifications won't be delivered.",
+    "description": "Health dashboard finding detail when email features are on but the SMTP server was never set up (it is empty, or still the default localhost:10025 and nothing answered there)."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "No mail server answers at the default SMTP address localhost:10025 on {{.nodes}}, so emails those nodes send, such as password resets and notifications, won't be delivered. The other nodes reach a mail server there. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the SMTP server is still the default localhost:10025 and the connection test fails on some cluster nodes but not others; localhost:10025 should not be translated, {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configure an SMTP server in the System Console. If this server should not send email, turn off email notifications, email invitations and email verification, then mute this finding. Keep sign-in with email or username on: without them, users who don't sign in through SSO can't sign in.",
+    "description": "Health dashboard fix-it step when the SMTP server was never set up; SSO stands for single sign-on."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP server is not configured",
+    "description": "Health dashboard finding title when email features are on but no SMTP server was ever set up."
+  },
+  {
     "id": "health.rule.smtp_unreachable.message",
     "translation": "The connection test to the SMTP server failed: {{.error}}",
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
