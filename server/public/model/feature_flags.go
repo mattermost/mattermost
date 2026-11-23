@@ -213,6 +213,9 @@ type FeatureFlags struct {
 	// WebserverMode to be "gzip".
 	EnableBrotliCompression bool
 
+	// Passkeys enables passkey (WebAuthn) enrollment and login settings.
+	Passkeys bool
+
 	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
 	// OpenID Connect attribute sync is proven in production. Gates syncing user
 	// attributes from OpenID Connect claims at sign-in: when off, no claims are
@@ -303,6 +306,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.HealthDashboard = true
 
 	f.EnableBrotliCompression = false
+
+	f.Passkeys = false
 
 	f.OpenIdAttributeSync = true
 }
