@@ -367,7 +367,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("non-admin should have permissions forced to member", func(t *testing.T) {
+	t.Run("non-admin should have permissions forced to the post defaults", func(t *testing.T) {
 		th.LoginBasic(t)
 
 		sysadminLevel := model.PermissionLevelSysadmin
@@ -385,11 +385,12 @@ func TestCreatePropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		// Non-admin should have permissions forced to member
+		// Non-admin should have permissions forced to the defaults: member for
+		// the definition slots, creator for a post field's values
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
 	})
@@ -409,17 +410,18 @@ func TestCreatePropertyField(t *testing.T) {
 		// for the definition slots, so those default to sysadmin: a globally
 		// scoped field must not be renameable, retypeable or deletable by
 		// everyone. Values are the exception -- they are gated by the value's
-		// own target rather than the field's, so they keep the member default
-		// and stay writable by the people the value's target admits.
+		// own target rather than the field's, so they keep the object type's
+		// default, creator for a post field, and stay writable by the people
+		// the value's target admits.
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
 	})
 
-	t.Run("admin should get member defaults on a channel target when not specified", func(t *testing.T) {
+	t.Run("admin should get the post defaults on a channel target when not specified", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeText,
@@ -432,11 +434,12 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		// A narrower target keeps the object type default on all three slots:
-		// the member level there resolves to channel membership, not everyone.
+		// member for the definition slots, which there resolves to channel
+		// membership rather than everyone, and creator for a post field's values.
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
 	})
@@ -559,7 +562,7 @@ func TestCreatePropertyField(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 
 			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
-			require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 			require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 		})
 
@@ -651,7 +654,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionField)
-		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 	})
 
@@ -1288,8 +1291,9 @@ func TestCreatePropertyField(t *testing.T) {
 		// Only a caller who administers the field's scope may configure
 		// permission levels; everyone else has all three pinned to the object
 		// type's default, so a submitted creator level is discarded rather
-		// than honoured. th.BasicUser is a plain channel_user in
-		// th.BasicChannel here.
+		// than honoured. For a post field creator is also the values default,
+		// so the definition slots are what show the discard. th.BasicUser is a
+		// plain channel_user in th.BasicChannel here.
 		th.LoginBasic(t)
 
 		creatorLevel := model.PermissionLevelCreator
@@ -1308,7 +1312,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionField)
-		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 	})
 
@@ -5634,11 +5638,17 @@ func TestPatchPropertyValues(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
-	// A system target defaults every slot to sysadmin, values included, so a
-	// field created with omitted levels is sysadmin-only end to end. Callers
-	// that want members to write values must pin permission_values themselves.
-	t.Run("member can set values on a system-scoped field created with default levels", func(t *testing.T) {
+	// A system target defaults the definition slots to sysadmin, but a post
+	// field's values default to creator: they are gated by the post, so the
+	// post's author may write them and another channel member may not.
+	t.Run("the post's author can set values on a system-scoped field created with default levels", func(t *testing.T) {
 		th.LoginBasic(t)
+
+		// th.BasicPost is created before th.BasicUser joins the team, so it is
+		// not theirs; this post is.
+		ownPost, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "mine"})
+		require.NoError(t, err)
+		targetID := ownPost.Id
 
 		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
 			Name:       model.NewId(),
@@ -5650,7 +5660,16 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.NotNil(t, created.PermissionField)
 		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 		require.NotNil(t, created.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
+
+		// Another member of the post's channel is refused: at member they would not be.
+		otherMember := th.CreateClient()
+		th.LoginBasic2WithClient(t, otherMember)
+		_, resp, err = otherMember.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"not mine"`)},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
 		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
 			{FieldID: created.ID, Value: json.RawMessage(`"annotated"`)},

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"encoding/json"
 	"slices"
 	"testing"
@@ -203,4 +204,148 @@ func TestMigration000244(t *testing.T) {
 		assert.Equal(t, before, snapshotGroup(t, store, model.AccessControlPropertyGroupName))
 		assert.Zero(t, snapshotGroup(t, store, postAttributesGroupName).total(), "down must not recreate the group")
 	})
+
+	t.Run("moves access_control post fields at member to creator and nothing else", func(t *testing.T) {
+		accessControl := getOrRegisterGroup(t, store, model.AccessControlPropertyGroupName)
+		other := getOrRegisterGroup(t, store, "other_"+model.NewId())
+
+		// A field not yet converted carries its level in the column only.
+		legacyMember := createLeveledField(t, store, accessControl, model.PropertyFieldObjectTypePost, model.PermissionLevelMember, nil)
+		// A converted field carries it in the permissions object, which wins on read.
+		convertedMember := createLeveledField(t, store, accessControl, model.PropertyFieldObjectTypePost, "",
+			restrictionsWithValueWrite(model.PermissionLevelMember))
+		convertedAdmin := createLeveledField(t, store, accessControl, model.PropertyFieldObjectTypePost, "",
+			restrictionsWithValueWrite(model.PermissionLevelAdmin))
+		legacyAdmin := createLeveledField(t, store, accessControl, model.PropertyFieldObjectTypePost, model.PermissionLevelAdmin, nil)
+		userMember := createLeveledField(t, store, accessControl, model.PropertyFieldObjectTypeUser, model.PermissionLevelMember, nil)
+		otherGroupMember := createLeveledField(t, store, other, model.PropertyFieldObjectTypePost, model.PermissionLevelMember,
+			restrictionsWithValueWrite(model.PermissionLevelMember))
+
+		convertedBefore := storedPermissions(t, store, convertedMember)
+		updateAtsBefore := storedUpdateAts(t, store, legacyMember, convertedMember)
+
+		_, err := store.GetMaster().ExecNoTimeout(upSQL)
+		require.NoError(t, err)
+
+		column, write := storedLevels(t, store, legacyMember)
+		assert.Equal(t, "creator", column, "an unconverted member field moves in the column")
+		assert.False(t, write.Valid, "an unconverted field gains no permissions object")
+
+		column, write = storedLevels(t, store, convertedMember)
+		assert.Equal(t, "creator", column, "a converted member field moves in the column")
+		assert.Equal(t, "creator", write.String, "a converted member field moves in the permissions object")
+
+		// Only value.write changes: the rest of the permissions object is kept as it was.
+		convertedAfter := storedPermissions(t, store, convertedMember)
+		convertedBefore.Restrictions.Value.Write = model.PermissionLevelCreator
+		assert.Equal(t, convertedBefore, convertedAfter)
+
+		for name, id := range map[string]string{"converted admin": convertedAdmin, "legacy admin": legacyAdmin} {
+			column, write = storedLevels(t, store, id)
+			assert.Equal(t, "admin", column, "%s stays at admin", name)
+			if write.Valid {
+				assert.Equal(t, "admin", write.String, "%s stays at admin", name)
+			}
+		}
+
+		column, _ = storedLevels(t, store, userMember)
+		assert.Equal(t, "member", column, "a user field is not a post field")
+
+		column, write = storedLevels(t, store, otherGroupMember)
+		assert.Equal(t, "member", column, "a post field in another group is left alone")
+		assert.Equal(t, "member", write.String, "a post field in another group is left alone")
+
+		assert.Equal(t, updateAtsBefore, storedUpdateAts(t, store, legacyMember, convertedMember),
+			"the move does not bump UpdateAt")
+
+		// Running it again matches nothing at member, so nothing changes.
+		_, err = store.GetMaster().ExecNoTimeout(upSQL)
+		require.NoError(t, err)
+		assert.Equal(t, convertedAfter, storedPermissions(t, store, convertedMember))
+		column, _ = storedLevels(t, store, legacyMember)
+		assert.Equal(t, "creator", column)
+	})
+}
+
+func getOrRegisterGroup(t *testing.T, s *SqlStore, name string) *model.PropertyGroup {
+	t.Helper()
+
+	group, err := s.PropertyGroup().Get(name)
+	if err != nil {
+		group, err = s.PropertyGroup().Register(&model.PropertyGroup{Name: name, Version: model.PropertyGroupVersionV1})
+		require.NoError(t, err)
+	}
+	return group
+}
+
+func restrictionsWithValueWrite(level model.PermissionLevel) *model.Permissions {
+	return &model.Permissions{
+		Restrictions: &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: level},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+			Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+		},
+		Grants: []model.Grant{},
+	}
+}
+
+// createLeveledField stores a text field at value level `column` (left NULL when
+// empty), with `permissions` when given, which the store projects into the column.
+func createLeveledField(t *testing.T, s *SqlStore, group *model.PropertyGroup, objectType string, column model.PermissionLevel, permissions *model.Permissions) string {
+	t.Helper()
+
+	field := &model.PropertyField{
+		GroupID:     group.ID,
+		Name:        "leveled_" + model.NewId(),
+		Type:        model.PropertyFieldTypeText,
+		ObjectType:  objectType,
+		TargetType:  string(model.PropertyFieldTargetLevelSystem),
+		Permissions: permissions,
+	}
+	if column != "" {
+		field.PermissionValues = model.NewPointer(column)
+	}
+
+	created, err := s.PropertyField().Create(field)
+	require.NoError(t, err)
+	return created.ID
+}
+
+// storedLevels reads a field's value level as stored, bypassing the store's
+// projection: the PermissionValues column and the permissions object's
+// restrictions.value.write leaf, NULL when the field has no permissions object.
+func storedLevels(t *testing.T, s *SqlStore, fieldID string) (string, sql.NullString) {
+	t.Helper()
+
+	var row struct {
+		Column string         `db:"column"`
+		Write  sql.NullString `db:"write"`
+	}
+	require.NoError(t, s.GetMaster().Get(&row,
+		`SELECT PermissionValues AS column, Permissions #>> '{restrictions,value,write}' AS write FROM PropertyFields WHERE ID = $1`,
+		fieldID))
+	return row.Column, row.Write
+}
+
+func storedPermissions(t *testing.T, s *SqlStore, fieldID string) model.Permissions {
+	t.Helper()
+
+	var raw string
+	require.NoError(t, s.GetMaster().Get(&raw, `SELECT Permissions::text FROM PropertyFields WHERE ID = $1`, fieldID))
+
+	var permissions model.Permissions
+	require.NoError(t, json.Unmarshal([]byte(raw), &permissions))
+	return permissions
+}
+
+func storedUpdateAts(t *testing.T, s *SqlStore, fieldIDs ...string) []int64 {
+	t.Helper()
+
+	updateAts := make([]int64, 0, len(fieldIDs))
+	for _, id := range fieldIDs {
+		var updateAt int64
+		require.NoError(t, s.GetMaster().Get(&updateAt, `SELECT UpdateAt FROM PropertyFields WHERE ID = $1`, id))
+		updateAts = append(updateAts, updateAt)
+	}
+	return updateAts
 }

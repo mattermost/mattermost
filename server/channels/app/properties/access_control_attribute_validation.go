@@ -708,12 +708,16 @@ func pinFieldPermission(field, existing *model.PropertyField) {
 // that any member reading the channel would otherwise be able to overwrite,
 // and these values are expected to feed access-control policy decisions, so
 // the safer default is channel-admin (or sysadmin) rather than membership.
+// Post fields default to creator for the same reason: at member, anyone who can
+// read the channel could set the values on anyone's post there.
 func defaultPermissionValuesForObjectType(objectType string) model.PermissionLevel {
 	switch objectType {
 	case model.PropertyFieldObjectTypeSystem, model.PropertyFieldObjectTypeTemplate:
 		return model.PermissionLevelSysadmin
 	case model.PropertyFieldObjectTypeChannel:
 		return model.PermissionLevelAdmin
+	case model.PropertyFieldObjectTypePost:
+		return model.PermissionLevelCreator
 	default:
 		return model.PermissionLevelMember
 	}
