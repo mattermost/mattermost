@@ -51,7 +51,7 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 	now := model.GetMillis()
 	dueRecaps, err := s.store.ScheduledRecap().GetDueBefore(now, 100)
 	if err != nil {
-		mlog.Error("Failed to get due scheduled recaps", mlog.Err(err))
+		rctx.Logger().Error("Failed to get due scheduled recaps", mlog.Err(err))
 		return nil, nil
 	}
 
@@ -68,13 +68,13 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 			map[string]string{"scheduled_recap_id": sr.Id},
 		)
 		if jobErr != nil {
-			mlog.Warn("Scheduled recap job creation failed",
+			rctx.Logger().Warn("Scheduled recap job creation failed",
 				mlog.String("scheduled_recap_id", sr.Id),
 				mlog.Err(jobErr))
 			continue
 		}
 		if job == nil {
-			mlog.Debug("Scheduled recap job already queued",
+			rctx.Logger().Debug("Scheduled recap job already queued",
 				mlog.String("scheduled_recap_id", sr.Id))
 		}
 	}

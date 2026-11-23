@@ -120,7 +120,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdScheduledPost); err != nil {
-		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
+		c.Logger.Error("failed to encode scheduled post to return API response", mlog.Err(err))
 		return
 	}
 }
@@ -164,7 +164,7 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		mlog.Error("failed to encode scheduled posts to return API response", mlog.Err(err))
+		c.Logger.Error("failed to encode scheduled posts to return API response", mlog.Err(err))
 		return
 	}
 }
@@ -242,6 +242,13 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// omit type would otherwise skip the burn-on-read checks entirely.
 	scheduledPost.Type = existingScheduledPost.Type
 
+	// Likewise the channel and thread: the update is saved to the stored channel whatever the
+	// client sends, so the permission and channel-access checks below must run against it.
+	// Checking the client's channel_id would let a user denied writing to the stored channel
+	// keep editing the post by naming one they can write to.
+	scheduledPost.ChannelId = existingScheduledPost.ChannelId
+	scheduledPost.RootId = existingScheduledPost.RootId
+
 	if len(scheduledPost.FileIds) > 0 {
 		originalPost, err := existingScheduledPost.ToPost()
 		if err != nil {
@@ -271,7 +278,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(updatedScheduledPost); err != nil {
-		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
+		c.Logger.Error("failed to encode scheduled post to return API response", mlog.Err(err))
 		return
 	}
 }
@@ -321,7 +328,7 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(deletedScheduledPost); err != nil {
-		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
+		c.Logger.Error("failed to encode scheduled post to return API response", mlog.Err(err))
 		return
 	}
 }
