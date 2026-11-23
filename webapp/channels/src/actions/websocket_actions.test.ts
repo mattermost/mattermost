@@ -2099,6 +2099,68 @@ describe('handleCustomAttributeCRUD', () => {
             expect(user.custom_profile_attributes![field1.id]).toEqual('some value');
         });
     });
+
+    describe('events that withhold the option list', () => {
+        const options = [{id: 'opt1', name: 'One'}, {id: 'opt2', name: 'Two'}];
+        const cached = {...field1, type: 'select', attrs: {options, options_count: 2}};
+        const withheld = (event: object) => ({
+            ...field1,
+            type: 'select',
+            name: 'Renamed',
+            attrs: {options: [], options_omitted: true},
+            ...event,
+        });
+
+        beforeEach(() => {
+            jest.mocked(getCustomProfileAttributeFields).mockClear();
+        });
+
+        function seeded() {
+            return realConfigureStore({
+                entities: {general: {customProfileAttributes: {[field1.id]: cached}}},
+            } as unknown as DeepPartial<GlobalState>);
+        }
+
+        test.each([
+            ['created', () => handleCustomAttributesCreated({data: {field: withheld({})}} as unknown as WebSocketMessages.CPAFieldCreated)],
+            ['updated', () => handleCustomAttributesUpdated({data: {field: withheld({})}} as unknown as WebSocketMessages.CPAFieldUpdated)],
+        ])('%s event keeps the cached options and takes the new name', (_, action) => {
+            const testStore = seeded();
+
+            testStore.dispatch(action());
+
+            const stored = getCustomProfileAttributes(testStore.getState())[0];
+            expect(stored.name).toEqual('Renamed');
+            expect(stored.attrs?.options).toEqual(options);
+            expect(stored.attrs?.options_count).toEqual(2);
+            expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            ['created', () => handleCustomAttributesCreated({data: {field: withheld({})}} as unknown as WebSocketMessages.CPAFieldCreated)],
+            ['updated', () => handleCustomAttributesUpdated({data: {field: withheld({})}} as unknown as WebSocketMessages.CPAFieldUpdated)],
+        ])('%s event with no cached copy stores the field and refetches', (_, action) => {
+            const testStore = realConfigureStore(makeInitialState());
+
+            // The default mock's payload-less action would crash the real reducer.
+            jest.mocked(getCustomProfileAttributeFields).mockReturnValueOnce({type: 'NOOP'} as unknown as ReturnType<typeof getCustomProfileAttributeFields>);
+            testStore.dispatch(action());
+
+            expect(getCustomProfileAttributes(testStore.getState())[0].name).toEqual('Renamed');
+            expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        });
+
+        test('an event without the flag replaces the options', () => {
+            const testStore = seeded();
+
+            testStore.dispatch(handleCustomAttributesUpdated({
+                data: {field: {...cached, attrs: {options: [options[0]], options_count: 1}}},
+            } as unknown as WebSocketMessages.CPAFieldUpdated));
+
+            expect(getCustomProfileAttributes(testStore.getState())[0].attrs?.options).toEqual([options[0]]);
+            expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe('handleChannelConvertedEvent', () => {

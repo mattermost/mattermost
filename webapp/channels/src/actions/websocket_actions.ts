@@ -1561,6 +1561,49 @@ function isUserAttributeField(state: GlobalState, field: PropertyField): boolean
     return Boolean(groupId) && field.group_id === groupId;
 }
 
+/*
+ * A custom profile attribute field event whose option list was withheld
+ * (options_omitted). The cached options restored below come from the field's
+ * own custom profile attribute entry; caching the stripped definition would
+ * blank the options for every reader, so only fall back to a refetch when the
+ * slice has no prior copy to draw on. storeIfUncached also stores the event's
+ * field in that case, for the events that are the only thing carrying it.
+ */
+function keepCachedCustomAttributeOptions(field: PropertyField, storeIfUncached = false): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const cached = doGetState().entities.general.customProfileAttributes[field.id];
+        if (cached) {
+            doDispatch({
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                data: {
+                    ...field,
+                    attrs: {
+                        ...field.attrs,
+                        options: cached.attrs?.options,
+                        options_count: cached.attrs?.options_count,
+                    },
+                },
+            });
+
+            // User Management skips its mount fetch while this
+            // slice is nonempty, so a restored list would otherwise
+            // stay until reconnect. Follow with a refetch only for
+            // admins who can open that page (the same
+            // SYSCONSOLE_WRITE_USERMANAGEMENT_USERS gate as
+            // getShowManageUserSettings). Other clients keep the restored
+            // list.
+            if (haveISystemPermission(doGetState(), {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS})) {
+                doDispatch(getCustomProfileAttributeFields());
+            }
+        } else {
+            if (storeIfUncached) {
+                doDispatch({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+            }
+            doDispatch(getCustomProfileAttributeFields());
+        }
+    };
+}
+
 export function handlePropertyFieldCreatedOrUpdated(
     msg:
     | WebSocketMessages.PropertyFieldCreated |
@@ -1636,41 +1679,7 @@ export function handlePropertyFieldCreatedOrUpdated(
 
         if (isUserAttributeField(doGetState(), field)) {
             if (optionsOmitted) {
-                // The broadcast withheld this field's option list. The cached
-                // options restored above come from the properties slice, which a
-                // session that only loaded user attributes never populates, so
-                // restore them from the field's own custom profile attribute
-                // entry instead and patch it in place. Caching the stripped
-                // definition would blank the options for every reader; only fall
-                // back to a refetch when the slice has no prior copy to draw on.
-                const cached = doGetState().entities.general.customProfileAttributes[field.id];
-                if (cached) {
-                    doDispatch({
-                        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
-                        data: {
-                            ...field,
-                            attrs: {
-                                ...field.attrs,
-                                options: cached.attrs?.options,
-                                options_count: cached.attrs?.options_count,
-                            },
-                        },
-                    });
-
-                    // User Management skips its mount fetch while this
-                    // slice is nonempty, so a restored list would otherwise
-                    // stay until reconnect. Follow with a refetch only for
-                    // admins who can open that page (the same
-                    // SYSCONSOLE_WRITE_USERMANAGEMENT_USERS gate as
-                    // getShowManageUserSettings; license is already required
-                    // to reach this branch). Other clients keep the restored
-                    // list.
-                    if (haveISystemPermission(doGetState(), {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS})) {
-                        doDispatch(getCustomProfileAttributeFields());
-                    }
-                } else {
-                    doDispatch(getCustomProfileAttributeFields());
-                }
+                doDispatch(keepCachedCustomAttributeOptions(field));
             } else {
                 doDispatch({
                     type: msg.event === WebSocketEvents.PropertyFieldCreated ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
@@ -2703,10 +2712,17 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
     };
 }
 
-export function handleCustomAttributesCreated(msg: WebSocketMessages.CPAFieldCreated) {
-    return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
-        data: msg.data.field,
+export function handleCustomAttributesCreated(msg: WebSocketMessages.CPAFieldCreated): ThunkActionFunc<void> {
+    return (dispatch) => {
+        const field = msg.data.field;
+        if (field.attrs?.options_omitted === true) {
+            dispatch(keepCachedCustomAttributeOptions(field, true));
+            return;
+        }
+        dispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
+            data: field,
+        });
     };
 }
 
@@ -2721,6 +2737,11 @@ export function handleCustomAttributesUpdated(msg: WebSocketMessages.CPAFieldUpd
                 type: UserTypes.CLEAR_CPA_VALUES,
                 data: {fieldId: field.id},
             });
+        }
+
+        if (field.attrs?.options_omitted === true) {
+            dispatch(keepCachedCustomAttributeOptions(field, true));
+            return;
         }
 
         // Update the field
