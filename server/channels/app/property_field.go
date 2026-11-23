@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"maps"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,22 +15,26 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
-// propertyFieldOptionsEqual reports whether two values from
-// PropertyField.Attrs[options] are equivalent. Used to detect a no-op options
-// patch on a linked field — see UpdatePropertyFields' linked-field invariants.
-// Both nil/zero forms compare equal; otherwise reflect.DeepEqual handles the
-// nested map/slice shape produced by JSON unmarshalling.
+// restoreEchoedOptions replaces f's option list with the stored one when f only
+// sends back the list its caller was served (the view). A masked caller's view
+// lists just the options they may see, so a read-modify-write of it would
+// otherwise read as deleting the rest. Any other difference from the view is a
+// change and is left as sent.
 //
-// A field read above model.PropertyFieldMaxHydratedOptions has no options key,
-// so a read-modify-write of one compares nil against nil and is allowed through
-// to leave its options untouched. A caller that supplies a real list for such a
-// field is refused before reaching the store, by the option-list invariant in
-// the property service's UpdatePropertyFields.
-func propertyFieldOptionsEqual(a, b any) bool {
-	if a == nil && b == nil {
-		return true
+// A view that carries no list (withheld, options_omitted) is never an echo, and
+// neither is one that matches the stored list, where there is nothing to restore.
+func restoreEchoedOptions(f, view, stored *model.PropertyField) {
+	if !view.Type.SupportsOptions() ||
+		model.PropertyFieldOptionsOmitted(view.Attrs) || model.PropertyFieldOptionsOmitted(stored.Attrs) ||
+		!model.PropertyFieldOptionsChanged(stored.Attrs, view.Attrs) ||
+		model.PropertyFieldOptionsChanged(view.Attrs, f.Attrs) {
+		return
 	}
-	return reflect.DeepEqual(a, b)
+	// A copy: f.Attrs may be a map the caller still holds.
+	attrs := make(model.StringInterface, len(f.Attrs)+1)
+	maps.Copy(attrs, f.Attrs)
+	attrs[model.PropertyFieldAttributeOptions] = stored.Attrs[model.PropertyFieldAttributeOptions]
+	f.Attrs = attrs
 }
 
 // checkRequiredAttributeTransition blocks flipping a channel attribute to
@@ -492,6 +495,18 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		existingByID[ex.ID] = ex
 	}
 
+	// existingFields is the caller's view, which lists only the options a masked
+	// caller may see. The stored fields are what the options an echo stands for
+	// come from, and what the linked-field rule judges against.
+	storedFields, err := a.Srv().Store().PropertyField().GetMany(rctx, groupID, ids)
+	if err != nil {
+		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	storedByID := make(map[string]*model.PropertyField, len(storedFields))
+	for _, stored := range storedFields {
+		storedByID[stored.ID] = stored
+	}
+
 	for _, f := range fields {
 		existing, ok := existingByID[f.ID]
 		if !ok {
@@ -499,6 +514,11 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			// any input ID is missing, so this branch is defensive.
 			continue
 		}
+		stored, ok := storedByID[f.ID]
+		if !ok {
+			continue
+		}
+		restoreEchoedOptions(f, existing, stored)
 
 		// Rank-type gate: block converting a field to rank while the feature
 		// flag is off (shares the create-path check).
@@ -525,15 +545,9 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 					http.StatusBadRequest,
 				)
 			}
-			// Compare the options portion of Attrs.
-			var existingOpts, incomingOpts any
-			if existing.Attrs != nil {
-				existingOpts = existing.Attrs[model.PropertyFieldAttributeOptions]
-			}
-			if f.Attrs != nil {
-				incomingOpts = f.Attrs[model.PropertyFieldAttributeOptions]
-			}
-			if !propertyFieldOptionsEqual(existingOpts, incomingOpts) {
+			// Against the stored list, not the caller's view: a masked caller's
+			// view omits options the link's template still carries.
+			if model.PropertyFieldOptionsChanged(stored.Attrs, f.Attrs) {
 				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.linked_options_change.app_error",

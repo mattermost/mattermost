@@ -1666,6 +1666,23 @@ func TestPluginAPIUpdatePropertyFieldReturnsCallerView(t *testing.T) {
 		require.ElementsMatch(t, []string{"Alpha", "Beta"}, optionNames(after))
 	})
 
+	t.Run("writing back the field as the plugin read it keeps the options it cannot see", func(t *testing.T) {
+		stored := newMaskedField()
+
+		read, err := api.GetPropertyField(group.ID, stored.ID)
+		require.NoError(t, err)
+		require.Empty(t, optionNames(read))
+		read.Name = "renamed_" + model.NewId()
+
+		updated, err := api.UpdatePropertyField(group.ID, read)
+		require.NoError(t, err)
+		require.Equal(t, read.Name, updated.Name)
+
+		after, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, stored.ID)
+		require.NoError(t, storeErr)
+		require.ElementsMatch(t, []string{"Alpha", "Beta"}, optionNames(after))
+	})
+
 	t.Run("UpdatePropertyFields", func(t *testing.T) {
 		first, second := newMaskedField(), newMaskedField()
 		updates := []*model.PropertyField{renamed(first), renamed(second)}

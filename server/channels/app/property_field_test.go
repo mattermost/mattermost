@@ -2042,3 +2042,232 @@ func TestCheckRequiredAttributeTransitionStaleRequiredRead(t *testing.T) {
 	require.ErrorAs(t, err, &conflict)
 	assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", conflict.Id)
 }
+
+// TestUpdatePropertyField_MaskedCallerEcho covers a caller whose view of a
+// masked field lists only some of its options. Sending that view back with an
+// edit is not a change to the option list, so the options the caller cannot see
+// survive; anything else in the list is a change, and is refused.
+func TestUpdatePropertyField_MaskedCallerEcho(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldRank = true
+	})
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "test_masked_echo_" + model.NewId(),
+		Version: model.PropertyGroupVersionV3,
+	})
+	require.Nil(t, appErr)
+	groupID := group.ID
+
+	callerCtx := RequestContextWithCallerID(th.Context, th.SystemAdminUser.Id)
+	adminCtx := RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
+
+	maskedPermissions := func() *model.Permissions {
+		return &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+			},
+			Masking: &model.Masking{},
+		}
+	}
+
+	// newField stores a masked field with options Alpha and Beta. When holdsAlpha
+	// is set the system admin holds Alpha, so their view of the field lists it
+	// alone; otherwise their view lists nothing.
+	newField := func(t *testing.T, fieldType model.PropertyFieldType, holdsAlpha bool) (*model.PropertyField, string) {
+		t.Helper()
+		options := []any{map[string]any{"name": "Alpha"}, map[string]any{"name": "Beta"}}
+		if fieldType == model.PropertyFieldTypeRank {
+			options = []any{map[string]any{"name": "Alpha", "rank": 1}, map[string]any{"name": "Beta", "rank": 2}}
+		}
+		created, appErr := th.App.CreatePropertyField(adminCtx, &model.PropertyField{
+			GroupID:     groupID,
+			Name:        "masked_" + model.NewId(),
+			Type:        fieldType,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  "system",
+			Attrs:       model.StringInterface{model.PropertyFieldAttributeOptions: options},
+			Permissions: maskedPermissions(),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		stored, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
+		require.NoError(t, err)
+		alphaID := optionIDByName(t, stored, "Alpha")
+		if holdsAlpha {
+			_, err = th.Store.PropertyValue().Create(&model.PropertyValue{
+				GroupID:    groupID,
+				FieldID:    stored.ID,
+				TargetType: "user",
+				TargetID:   th.SystemAdminUser.Id,
+				Value:      json.RawMessage(`"` + alphaID + `"`),
+			})
+			require.NoError(t, err)
+		}
+		return stored, alphaID
+	}
+	// servedView is the field as the caller reads it, round-tripped through JSON
+	// the way a request body arrives.
+	servedView := func(t *testing.T, id string) *model.PropertyField {
+		t.Helper()
+		served, appErr := th.App.GetPropertyField(callerCtx, groupID, id)
+		require.Nil(t, appErr)
+		var decoded model.PropertyField
+		body, err := json.Marshal(served)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &decoded))
+		return &decoded
+	}
+	requireStoredOptions := func(t *testing.T, id string, names ...string) {
+		t.Helper()
+		stored, err := th.Store.PropertyField().Get(th.Context, groupID, id)
+		require.NoError(t, err)
+		var got []string
+		for _, option := range stored.Attrs[model.PropertyFieldAttributeOptions].([]any) {
+			got = append(got, option.(map[string]any)["name"].(string))
+		}
+		require.ElementsMatch(t, names, got)
+	}
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank} {
+		t.Run(string(fieldType)+": renaming with the served options keeps the hidden ones", func(t *testing.T) {
+			stored, _ := newField(t, fieldType, true)
+			update := servedView(t, stored.ID)
+			require.Len(t, update.Attrs[model.PropertyFieldAttributeOptions], 1)
+			update.Name = "renamed_" + model.NewId()
+
+			updated, _, appErr := th.App.UpdatePropertyField(callerCtx, groupID, update, false, "")
+			require.Nil(t, appErr)
+			require.Equal(t, update.Name, updated.Name)
+			requireStoredOptions(t, stored.ID, "Alpha", "Beta")
+		})
+	}
+
+	t.Run("a caller holding nothing renames with an empty list", func(t *testing.T) {
+		stored, _ := newField(t, model.PropertyFieldTypeSelect, false)
+		update := servedView(t, stored.ID)
+		require.Empty(t, update.Attrs[model.PropertyFieldAttributeOptions])
+		update.Name = "renamed_" + model.NewId()
+
+		_, _, appErr := th.App.UpdatePropertyField(callerCtx, groupID, update, false, "")
+		require.Nil(t, appErr)
+		requireStoredOptions(t, stored.ID, "Alpha", "Beta")
+	})
+
+	t.Run("a new option alongside the served ones is refused", func(t *testing.T) {
+		stored, _ := newField(t, model.PropertyFieldTypeSelect, true)
+		update := servedView(t, stored.ID)
+		update.Attrs[model.PropertyFieldAttributeOptions] = append(update.Attrs[model.PropertyFieldAttributeOptions].([]any), map[string]any{"name": "Gamma"})
+
+		_, _, appErr := th.App.UpdatePropertyField(callerCtx, groupID, update, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		requireStoredOptions(t, stored.ID, "Alpha", "Beta")
+	})
+
+	t.Run("relabelling a served option is refused", func(t *testing.T) {
+		stored, _ := newField(t, model.PropertyFieldTypeSelect, true)
+		update := servedView(t, stored.ID)
+		update.Attrs[model.PropertyFieldAttributeOptions].([]any)[0].(map[string]any)["name"] = "Relabelled"
+
+		_, _, appErr := th.App.UpdatePropertyField(callerCtx, groupID, update, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		requireStoredOptions(t, stored.ID, "Alpha", "Beta")
+	})
+
+	t.Run("a batch judges each field on its own", func(t *testing.T) {
+		echoed, _ := newField(t, model.PropertyFieldTypeSelect, true)
+		changed, _ := newField(t, model.PropertyFieldTypeSelect, true)
+		echoUpdate := servedView(t, echoed.ID)
+		echoUpdate.Name = "renamed_" + model.NewId()
+		changeUpdate := servedView(t, changed.ID)
+		changeUpdate.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+
+		_, _, appErr := th.App.UpdatePropertyFields(callerCtx, groupID, []*model.PropertyField{echoUpdate, changeUpdate}, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		requireStoredOptions(t, changed.ID, "Alpha", "Beta")
+
+		_, _, appErr = th.App.UpdatePropertyFields(callerCtx, groupID, []*model.PropertyField{echoUpdate}, false, "")
+		require.Nil(t, appErr)
+		requireStoredOptions(t, echoed.ID, "Alpha", "Beta")
+	})
+
+	t.Run("a linked field on a masked template renames with or without the served list", func(t *testing.T) {
+		template, appErr := th.App.CreatePropertyField(adminCtx, &model.PropertyField{
+			GroupID:     groupID,
+			Name:        "tmpl_" + model.NewId(),
+			Type:        model.PropertyFieldTypeSelect,
+			ObjectType:  model.PropertyFieldObjectTypeTemplate,
+			TargetType:  "system",
+			Attrs:       model.StringInterface{model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Alpha"}, map[string]any{"name": "Beta"}}},
+			Permissions: maskedPermissions(),
+		}, false, "")
+		require.Nil(t, appErr)
+		templateID := template.ID
+		newLinked := func(t *testing.T, holdsAlpha bool) *model.PropertyField {
+			t.Helper()
+			linked, linkedErr := th.App.CreatePropertyField(adminCtx, &model.PropertyField{
+				GroupID:       groupID,
+				Name:          "linked_" + model.NewId(),
+				Type:          model.PropertyFieldTypeSelect,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    "system",
+				LinkedFieldID: &templateID,
+			}, false, "")
+			require.Nil(t, linkedErr)
+			if holdsAlpha {
+				stored, err := th.Store.PropertyField().Get(th.Context, groupID, linked.ID)
+				require.NoError(t, err)
+				_, err = th.Store.PropertyValue().Create(&model.PropertyValue{
+					GroupID:    groupID,
+					FieldID:    linked.ID,
+					TargetType: "user",
+					TargetID:   th.SystemAdminUser.Id,
+					Value:      json.RawMessage(`"` + optionIDByName(t, stored, "Alpha") + `"`),
+				})
+				require.NoError(t, err)
+			}
+			return linked
+		}
+
+		holder := newLinked(t, true)
+		withList := servedView(t, holder.ID)
+		require.Len(t, withList.Attrs[model.PropertyFieldAttributeOptions], 1)
+		withList.Name = "renamed_" + model.NewId()
+		_, _, appErr = th.App.UpdatePropertyField(callerCtx, groupID, withList, false, "")
+		require.Nil(t, appErr)
+		requireStoredOptions(t, holder.ID, "Alpha", "Beta")
+
+		changed := servedView(t, holder.ID)
+		changed.Attrs[model.PropertyFieldAttributeOptions] = []any{map[string]any{"name": "Gamma"}}
+		_, _, appErr = th.App.UpdatePropertyField(callerCtx, groupID, changed, false, "")
+		require.NotNil(t, appErr)
+		requireStoredOptions(t, holder.ID, "Alpha", "Beta")
+
+		empty := newLinked(t, false)
+		withoutList := servedView(t, empty.ID)
+		delete(withoutList.Attrs, model.PropertyFieldAttributeOptions)
+		withoutList.Name = "renamed_" + model.NewId()
+		_, _, appErr = th.App.UpdatePropertyField(callerCtx, groupID, withoutList, false, "")
+		require.Nil(t, appErr)
+		requireStoredOptions(t, empty.ID, "Alpha", "Beta")
+	})
+}
+
+func optionIDByName(t *testing.T, field *model.PropertyField, name string) string {
+	t.Helper()
+	for _, option := range field.Attrs[model.PropertyFieldAttributeOptions].([]any) {
+		if entry := option.(map[string]any); entry["name"] == name {
+			return entry["id"].(string)
+		}
+	}
+	require.FailNow(t, "option not found", name)
+	return ""
+}
