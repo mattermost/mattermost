@@ -534,6 +534,35 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	return channels, err
 }
 
+func (api *PluginAPI) GetPublicChannelsByIdsForTeam(teamID, userID string, channelIDs []string) ([]*model.Channel, *model.AppError) {
+	if !model.IsValidId(teamID) {
+		return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "api.context.invalid_param.app_error", map[string]any{"Name": "team_id"}, "", http.StatusBadRequest)
+	}
+	if !model.IsValidId(userID) {
+		return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
+	}
+	for _, channelID := range channelIDs {
+		if !model.IsValidId(channelID) {
+			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "api.context.invalid_param.app_error", map[string]any{"Name": "channel_id"}, "", http.StatusBadRequest)
+		}
+	}
+	if len(channelIDs) == 0 {
+		return []*model.Channel{}, nil
+	}
+
+	channels, appErr := api.app.GetPublicChannelsByIdsForTeamForUser(api.ctx, teamID, userID, channelIDs)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return []*model.Channel{}, nil
+		}
+		return nil, appErr
+	}
+	if channels == nil {
+		return []*model.Channel{}, nil
+	}
+	return channels, nil
+}
+
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
 	return api.app.GetChannel(api.ctx, channelID)
 }

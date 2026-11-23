@@ -2611,6 +2611,12 @@ func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID strin
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
+	return a.GetPublicChannelsByIdsForTeamForUser(rctx, teamID, rctx.Session().UserId, channelIDs)
+}
+
+// GetPublicChannelsByIdsForTeamForUser returns the team's active public channels among channelIDs
+// that userID may read under access control policies. It returns a 404 when nothing matches.
+func (a *App) GetPublicChannelsByIdsForTeamForUser(rctx request.CTX, teamID, userID string, channelIDs []string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store().Channel().GetPublicChannelsByIdsForTeam(teamID, channelIDs)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2622,8 +2628,7 @@ func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, cha
 		}
 	}
 
-	// No userID parameter; every caller of this is session-driven.
-	return a.FilterChannelListByReadAccess(rctx, rctx.Session().UserId, list), nil
+	return a.FilterChannelListByReadAccess(rctx, userID, list), nil
 }
 
 func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {

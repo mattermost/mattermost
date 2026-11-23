@@ -468,6 +468,16 @@ type API interface {
 	// Minimum server version: 5.2
 	GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError)
 
+	// GetPublicChannelsByIdsForTeam returns the team's active public channels among channelIDs that
+	// userID may read under access control policies. It does not check team membership, channel
+	// membership or the read_public_channel permission; callers check those themselves. It returns
+	// an empty list when none match.
+	//
+	// @tag Channel
+	// @tag Team
+	// Minimum server version: 12.3
+	GetPublicChannelsByIdsForTeam(teamID, userID string, channelIDs []string) ([]*model.Channel, *model.AppError)
+
 	// GetChannel gets a channel.
 	//
 	// @tag Channel
