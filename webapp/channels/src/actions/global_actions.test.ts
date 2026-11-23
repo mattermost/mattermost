@@ -574,6 +574,66 @@ describe('actions/global_actions', () => {
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');
         });
+
+        it('should redirect to a readable channel rather than /select_team when town-square is hidden by a read policy', async () => {
+            // The last viewed channel was just denied, and town-square is denied too: the
+            // server leaves both out of the user's channels. The user can join public
+            // channels, which used to send them to town-square, then to /select_team.
+            const userId = 'user1';
+            const store = mockStore({
+                entities: {
+                    general: {
+                        config: {
+                            DefaultClientLocale: 'en',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_user: {name: 'system_user', permissions: ['join_public_channels']},
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                    teams: {
+                        teams: {
+                            team1: {id: 'team1', display_name: 'Team 1', name: 'team1', delete_at: 0},
+                        },
+                        myMembers: {
+                            team1: {team_id: 'team1'},
+                        },
+                    },
+                    channels: {
+                        myMembers: {
+                            'readable-channel': {},
+                        },
+                        channels: {
+                            'readable-channel': {
+                                id: 'readable-channel',
+                                team_id: 'team1',
+                                name: 'readable-channel',
+                            },
+                        },
+                        channelsInTeam: {
+                            team1: new Set(['readable-channel']),
+                        },
+                    },
+                    users: {
+                        currentUserId: userId,
+                        profiles: {
+                            [userId]: {id: userId, roles: 'system_user'},
+                        },
+                    },
+                },
+            });
+
+            getState.mockImplementation(store.getState);
+            LocalStorageStore.setPreviousTeamId(userId, 'team1');
+            LocalStorageStore.setPreviousChannelName(userId, 'team1', 'denied-channel');
+
+            await redirectUserToDefaultTeam();
+            expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/readable-channel');
+        });
     });
 
     test('toggleSideBarRightMenuAction', () => {
