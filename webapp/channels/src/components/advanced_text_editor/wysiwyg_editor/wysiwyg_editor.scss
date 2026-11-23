@@ -31,7 +31,7 @@
 
         .is-editor-empty:first-child::before {
             height: 0;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             content: attr(data-placeholder);
             float: left;
             pointer-events: none;

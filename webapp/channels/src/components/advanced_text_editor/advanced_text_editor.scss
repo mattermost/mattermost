@@ -47,6 +47,11 @@
         padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button));
         box-shadow: none;
 
+        &::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            opacity: 1;
+        }
+
         &:focus {
             box-shadow: none;
         }
