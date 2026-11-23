@@ -1681,6 +1681,13 @@ func (a *App) AppendABACEtag(rctx request.CTX, base string, channelID string) st
 				mlog.String("session_id", sessionID),
 				mlog.Err(err))
 		}
+
+		// Request-scoped attributes are never cached, so the epoch above doesn't move when they change.
+		if a.sessionAttributesEnabled() {
+			if fingerprint := requestScopedSessionAttributesFingerprint(a.requestScopedSessionAttributes(rctx)); fingerprint != "" {
+				sessionEpoch += "-" + fingerprint
+			}
+		}
 	}
 
 	return fmt.Sprintf("%s.%s.%s.%s", base, policyEpoch, cpaEpoch, sessionEpoch)

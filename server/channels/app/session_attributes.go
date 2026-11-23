@@ -5,11 +5,15 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -115,6 +119,39 @@ func ServerDerivedAttributes(rctx request.CTX) map[string]any {
 func WithWebSocketRequestAttributes(rctx request.CTX, proxyDeviceID string, serverDerivedAttrs map[string]any) request.CTX {
 	rctx = WithProxyDeviceID(rctx, proxyDeviceID)
 	return WithServerDerivedAttributes(rctx, serverDerivedAttrs)
+}
+
+// requestScopedSessionAttributes returns the session attributes proven by the
+// request rctx serves: the server-derived ones and, while the proxy header is
+// trusted, tls_device_id.
+func (a *App) requestScopedSessionAttributes(rctx request.CTX) map[string]any {
+	serverDerived := ServerDerivedAttributes(rctx)
+	deviceID := ProxyDeviceID(rctx)
+	useDeviceID := deviceID != "" && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader
+	if len(serverDerived) == 0 && !useDeviceID {
+		return nil
+	}
+
+	attrs := make(map[string]any, len(serverDerived)+1)
+	maps.Copy(attrs, serverDerived)
+	if useDeviceID {
+		attrs[model.SessionAttributesPropertyFieldTLSDDeviceID] = deviceID
+	}
+	return attrs
+}
+
+// requestScopedSessionAttributesFingerprint returns a stable hash of attrs, or
+// "" when there are none. It must be deterministic across cluster nodes.
+func requestScopedSessionAttributesFingerprint(attrs map[string]any) string {
+	if len(attrs) == 0 {
+		return ""
+	}
+
+	h := sha256.New()
+	for _, name := range slices.Sorted(maps.Keys(attrs)) {
+		fmt.Fprintf(h, "%s=%v\x00", name, attrs[name])
+	}
+	return hex.EncodeToString(h.Sum(nil))[:16]
 }
 
 // ProcessSessionAttributesRequest refreshes the session's cached attributes

@@ -86,6 +86,15 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		ServerDerivedAttributes: app.ServerDerivedAttributes(c.AppContext),
 	}
 
+	if c.AppContext.Session().UserId == "" {
+		// The handler blocks in wc.Pump() for the connection's lifetime, so r and
+		// c.AppContext remain valid when the authentication challenge arrives.
+		cfg.ResolveRequestAttributes = func(session *model.Session) (string, map[string]any) {
+			rctx := c.App.ProcessSessionAttributesRequest(c.AppContext.WithSession(session), r)
+			return app.ProxyDeviceID(rctx), app.ServerDerivedAttributes(rctx)
+		}
+	}
+
 	disconnectErrCode := r.URL.Query().Get(disconnectErrCodeParam)
 	if codeValid := validateDisconnectErrCode(disconnectErrCode); codeValid {
 		cfg.DisconnectErrCode = disconnectErrCode

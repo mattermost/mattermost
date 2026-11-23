@@ -56,6 +56,15 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
+		// Must happen before HubRegister: broadcast hooks read these without locking.
+		if conn.resolveRequestAttributes != nil {
+			conn.ProxyDeviceID, conn.ServerDerivedAttributes = conn.resolveRequestAttributes(session)
+			// Device ID consistency enforcement may have revoked the session.
+			if _, err := conn.Suite.GetSession(token); err != nil {
+				conn.WebSocket.Close()
+				return
+			}
+		}
 
 		nErr := conn.Platform.HubRegister(conn)
 		if nErr != nil {

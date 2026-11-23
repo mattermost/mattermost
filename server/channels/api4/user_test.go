@@ -12666,14 +12666,19 @@ func TestSessionAttributesProxyDeviceIDIsRequestScoped(t *testing.T) {
 	// the device header. The same session token used directly carries none.
 	serverURL, err := url.Parse(th.Client.URL)
 	require.NoError(t, err)
-	reverseProxy := httputil.NewSingleHostReverseProxy(serverURL)
-	direct := reverseProxy.Director
-	reverseProxy.Director = func(r *http.Request) {
-		direct(r)
-		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, managedDeviceID)
+	newDeviceProxy := func(t *testing.T, deviceID string) *httptest.Server {
+		t.Helper()
+		reverseProxy := httputil.NewSingleHostReverseProxy(serverURL)
+		direct := reverseProxy.Director
+		reverseProxy.Director = func(r *http.Request) {
+			direct(r)
+			r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, deviceID)
+		}
+		proxyServer := httptest.NewServer(reverseProxy)
+		t.Cleanup(proxyServer.Close)
+		return proxyServer
 	}
-	proxyServer := httptest.NewServer(reverseProxy)
-	t.Cleanup(proxyServer.Close)
+	proxyServer := newDeviceProxy(t, managedDeviceID)
 
 	managedClient := model.NewAPIv4Client(proxyServer.URL)
 	managedClient.SetToken(th.Client.AuthToken)
@@ -12711,16 +12716,21 @@ func TestSessionAttributesProxyDeviceIDIsRequestScoped(t *testing.T) {
 			awaitWebSocketEvent(t, client, model.WebsocketEventHello)
 			return client
 		}
+		// Connections that authenticate after the upgrade still take the device
+		// ID from their upgrade request.
+		connectWithChallenge := func(t *testing.T, baseURL string) *model.WebSocketClient {
+			t.Helper()
+			client, err := model.NewWebSocketClient4("ws"+strings.TrimPrefix(baseURL, "http"), th.Client.AuthToken)
+			require.NoError(t, err)
+			t.Cleanup(client.Close)
+			client.Listen()
+			awaitWebSocketEvent(t, client, model.WebsocketEventHello)
+			return client
+		}
 		managedWS := connect(t, proxyServer.URL)
 		directWS := connect(t, th.Client.URL)
-
-		// Authenticating after the upgrade leaves the upgrade request without a
-		// session, so the connection never gets a device ID even through the proxy.
-		challengeWS, err := model.NewWebSocketClient4("ws"+strings.TrimPrefix(proxyServer.URL, "http"), th.Client.AuthToken)
-		require.NoError(t, err)
-		t.Cleanup(challengeWS.Close)
-		challengeWS.Listen()
-		awaitWebSocketEvent(t, challengeWS, model.WebsocketEventHello)
+		managedChallengeWS := connectWithChallenge(t, proxyServer.URL)
+		directChallengeWS := connectWithChallenge(t, th.Client.URL)
 
 		post := th.CreatePostInChannelWithFiles(t, th.BasicChannel, uploadFile(t))
 
@@ -12736,10 +12746,11 @@ func TestSessionAttributesProxyDeviceIDIsRequestScoped(t *testing.T) {
 			}
 		}
 
-		managedPost := postedOn(t, managedWS)
-		assert.Len(t, managedPost.FileIds, 1)
+		for _, client := range []*model.WebSocketClient{managedWS, managedChallengeWS} {
+			assert.Len(t, postedOn(t, client).FileIds, 1)
+		}
 
-		for _, client := range []*model.WebSocketClient{directWS, challengeWS} {
+		for _, client := range []*model.WebSocketClient{directWS, directChallengeWS} {
 			deniedPost := postedOn(t, client)
 			assert.Empty(t, deniedPost.FileIds)
 			require.NotNil(t, deniedPost.Metadata)
@@ -12775,7 +12786,49 @@ func TestSessionAttributesProxyDeviceIDIsRequestScoped(t *testing.T) {
 		}
 
 		assert.NotNil(t, bookmarkCreatedOn(t, managedWS).FileInfo)
+		assert.NotNil(t, bookmarkCreatedOn(t, managedChallengeWS).FileInfo)
 		assert.Nil(t, bookmarkCreatedOn(t, directWS).FileInfo)
+		assert.Nil(t, bookmarkCreatedOn(t, directChallengeWS).FileInfo)
+	})
+
+	t.Run("an authentication challenge that fails device ID consistency closes the connection", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.EnforceDeviceIDConsistency = true })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.EnforceDeviceIDConsistency = false })
+		})
+
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		viaManagedProxy := model.NewAPIv4Client(proxyServer.URL)
+		viaManagedProxy.SetToken(client.AuthToken)
+		_, _, err = viaManagedProxy.GetMe(context.Background(), "")
+		require.NoError(t, err)
+
+		otherProxy := newDeviceProxy(t, "other-device")
+		ws, err := model.NewWebSocketClient4("ws"+strings.TrimPrefix(otherProxy.URL, "http"), client.AuthToken)
+		require.NoError(t, err)
+		t.Cleanup(ws.Close)
+		ws.Listen()
+
+		timeout := time.After(5 * time.Second)
+	waitForClose:
+		for {
+			select {
+			case event, ok := <-ws.EventChannel:
+				if !ok {
+					break waitForClose
+				}
+				require.NotEqual(t, model.WebsocketEventHello, event.EventType(), "connection must not be registered")
+			case <-timeout:
+				require.FailNow(t, "timed out waiting for the websocket to close")
+			}
+		}
+
+		_, resp, err := client.GetMe(context.Background(), "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
 	})
 }
 

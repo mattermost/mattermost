@@ -2943,18 +2943,11 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 	}
 	delete(attrs, model.SessionAttributesPropertyFieldTLSDDeviceID)
 
-	if serverDerived := ServerDerivedAttributes(rctx); len(serverDerived) > 0 {
+	if requestAttrs := a.requestScopedSessionAttributes(rctx); len(requestAttrs) > 0 {
 		if attrs == nil {
-			attrs = make(map[string]any, len(serverDerived)+1)
+			attrs = make(map[string]any, len(requestAttrs))
 		}
-		maps.Copy(attrs, serverDerived)
-	}
-
-	if deviceID := ProxyDeviceID(rctx); deviceID != "" && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
-		if attrs == nil {
-			attrs = make(map[string]any, 1)
-		}
-		attrs[model.SessionAttributesPropertyFieldTLSDDeviceID] = deviceID
+		maps.Copy(attrs, requestAttrs)
 	}
 
 	if len(attrs) > 0 {

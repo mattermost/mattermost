@@ -7553,6 +7553,41 @@ func TestAppendABACEtag(t *testing.T) {
 		}, 3000))
 		assert.NotEqual(t, first, th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id))
 	})
+
+	t.Run("changes when the request's own session attributes change", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = model.NewPointer(true)
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+		etagFor := func(rctx request.CTX) string {
+			return th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
+		}
+		withIP := func(ip string) request.CTX {
+			return WithServerDerivedAttributes(rctx, map[string]any{model.SessionAttributesPropertyFieldIPAddress: ip})
+		}
+
+		noRequestAttrs := etagFor(rctx)
+		office := etagFor(withIP("10.0.0.1"))
+		assert.NotEqual(t, noRequestAttrs, office)
+		assert.NotEqual(t, office, etagFor(withIP("203.0.113.7")))
+		assert.Equal(t, office, etagFor(withIP("10.0.0.1")), "the same request attributes must give the same ETag")
+
+		managedDevice := etagFor(WithProxyDeviceID(rctx, "managed-device"))
+		assert.NotEqual(t, noRequestAttrs, managedDevice)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = model.NewPointer(false)
+		})
+		assert.Equal(t, noRequestAttrs, etagFor(WithProxyDeviceID(rctx, "managed-device")),
+			"an untrusted device ID is not evaluated, so it must not change the ETag")
+	})
 }
 
 // replicaLagPostStore simulates a read replica that has not yet received one specific
