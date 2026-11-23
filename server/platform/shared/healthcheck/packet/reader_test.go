@@ -134,6 +134,7 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
+				{Code: "CLUSTER_NOT_ENABLED", State: healthcheck.StateFiring, Subject: "ClusterSettings.Enable"},
 				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
 				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateFiring, Subject: "Database.PostsDeadTuples"},
 				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},

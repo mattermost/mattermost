@@ -13,7 +13,8 @@ import (
 )
 
 func init() {
-	healthcheck.Register(clusterGossipUnencrypted, clusterLRUCache, clusterSingleNode, clusterBadAdvertise, clusterConfigWritable)
+	healthcheck.Register(clusterGossipUnencrypted, clusterLRUCache, clusterSingleNode, clusterBadAdvertise, clusterConfigWritable,
+		clusterNotEnabled, clusterNotEnabledAtScale)
 }
 
 const (
@@ -21,6 +22,10 @@ const (
 	haDocsURL     = "https://mattermost.com/pl/high-availability-cluster"
 
 	redisRecommendedUsers = 100_000
+
+	// The reference architectures first require HA at 200 users; 2,000 is the ceiling of the smallest HA tier.
+	haRecommendedUsers = 200
+	haRequiredUsers    = 2_000
 )
 
 var clusterGossipUnencrypted = healthcheck.Rule{
@@ -100,6 +105,38 @@ var clusterConfigWritable = healthcheck.Rule{
 	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterConfigWritable)),
 }
 
+var clusterNotEnabled = healthcheck.Rule{
+	Code:     "CLUSTER_NOT_ENABLED",
+	Area:     model.AreaCluster,
+	Severity: healthcheck.SeverityInfo,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.cluster_not_enabled.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.cluster_not_enabled.remediation"),
+		DocsURL:       haDocsURL,
+		ConsolePath:   haConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityThreshold,
+	Subject:    "ClusterSettings.Enable",
+	Eval:       clusterLicensed(healthcheck.Gate(haDisabled, healthcheck.ReasonConfigUnavailable, evalClusterNotEnabled)),
+}
+
+var clusterNotEnabledAtScale = healthcheck.Rule{
+	Code:     "CLUSTER_NOT_ENABLED_AT_SCALE",
+	Area:     model.AreaCluster,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.cluster_not_enabled_at_scale.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.cluster_not_enabled_at_scale.remediation"),
+		DocsURL:       haDocsURL,
+		ConsolePath:   haConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityThreshold,
+	Subject:    "ClusterSettings.Enable",
+	Eval:       clusterLicensed(healthcheck.Gate(haDisabled, healthcheck.ReasonConfigUnavailable, evalClusterNotEnabledAtScale)),
+}
+
 func clusterLicensed(eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
 	return healthcheck.Licensed(healthcheck.FeatureCluster, eval)
 }
@@ -113,6 +150,38 @@ func haRunning(s *healthcheck.Snapshot) (running, ok bool) {
 
 	name, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.ClusterSettings.ClusterName })
 	return name != "", ok
+}
+
+// haDisabled ignores ClusterName: an enabled cluster without one is left to CLUSTER_SINGLE_NODE.
+func haDisabled(s *healthcheck.Snapshot) (disabled, ok bool) {
+	enabled, ok := s.ClusterEnabled()
+	return !enabled, ok
+}
+
+func evalClusterNotEnabled(s *healthcheck.Snapshot) healthcheck.Result {
+	return evalUsersWithoutHA(s, healthcheck.TranslationId("health.rule.cluster_not_enabled.message"), func(users int64) bool {
+		return users >= haRecommendedUsers && users < haRequiredUsers
+	})
+}
+
+func evalClusterNotEnabledAtScale(s *healthcheck.Snapshot) healthcheck.Result {
+	return evalUsersWithoutHA(s, healthcheck.TranslationId("health.rule.cluster_not_enabled_at_scale.message"), func(users int64) bool {
+		return users >= haRequiredUsers
+	})
+}
+
+func evalUsersWithoutHA(s *healthcheck.Snapshot, messageID string, fires func(users int64) bool) healthcheck.Result {
+	users, ok := s.RegisteredUsers()
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)
+	case fires(users):
+		return healthcheck.Firing(messageID).
+			WithDetail("users", strconv.FormatInt(users, 10)).
+			WithValue(float64(users))
+	default:
+		return healthcheck.Resolved().WithValue(float64(users))
+	}
 }
 
 func evalClusterGossipUnencrypted(s *healthcheck.Snapshot) healthcheck.Result {
