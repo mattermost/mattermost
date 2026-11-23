@@ -7,6 +7,7 @@ package platform
 
 import (
 	"encoding/binary"
+	"math"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -186,6 +187,18 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 	require.NoError(t, err)
 	totalMemoryMB := totalMemory / (1024 * 1024)
 	assert.LessOrEqual(t, *diagnostics.AvailableMemoryMB, totalMemoryMB)
-	// The free page count changes constantly, so allow 5% of total memory between the reads.
-	assert.InDelta(t, sysctlAvailableMemoryMB(t), float64(*diagnostics.AvailableMemoryMB), float64(totalMemoryMB)/20, "available memory")
+
+	// The free page count changes constantly and other processes can allocate between the reads,
+	// so allow 5% of total memory and retry, failing only if no attempt matches.
+	tolerance := float64(totalMemoryMB) / 20
+	var got, want float64
+	for range attempts {
+		diagnostics, err = getMemoryDiagnostics(cgroupV2Info{})
+		require.NoError(t, err)
+		got, want = float64(*diagnostics.AvailableMemoryMB), sysctlAvailableMemoryMB(t)
+		if math.Abs(got-want) <= tolerance {
+			break
+		}
+	}
+	assert.InDelta(t, want, got, tolerance, "available memory did not match sysctl in %d attempts", attempts)
 }
