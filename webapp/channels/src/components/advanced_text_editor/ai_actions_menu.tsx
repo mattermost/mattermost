@@ -7,7 +7,7 @@ import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronRightIcon, CreationOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 
@@ -294,7 +294,7 @@ const AIActionsMenu = ({
                 <Menu.Item
                     id='ai-action-rewrite'
                     role='menuitem'
-                    leadingElement={<PencilOutlineIcon size={18}/>}
+                    leadingElement={<CreationOutlineIcon size={18}/>}
                     labels={(
                         <FormattedMessage
                             id='texteditor.rewrite'
