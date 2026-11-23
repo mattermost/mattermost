@@ -35407,6 +35407,50 @@
     "defaultMessage": "Notification settings",
     "description": "Header of the Notifications tab in the user Settings modal."
   },
+  "user.settings.passkeys.count": {
+    "defaultMessage": "{count, plural, =0 {No passkeys} one {# passkey} other {# passkeys}}",
+    "description": "Summary under the Passkeys heading in Profile > Security when the section is collapsed; {count} is how many passkeys the user has."
+  },
+  "user.settings.passkeys.created": {
+    "defaultMessage": "Created {date}",
+    "description": "Date a passkey was added, shown on its row in the passkey list; {date} is a formatted date."
+  },
+  "user.settings.passkeys.delete": {
+    "defaultMessage": "Delete",
+    "description": "Button on a passkey row that starts deleting that passkey."
+  },
+  "user.settings.passkeys.deleteConfirm": {
+    "defaultMessage": "Delete",
+    "description": "Confirm button of the dialog for deleting a passkey."
+  },
+  "user.settings.passkeys.deleteLabel": {
+    "defaultMessage": "Delete passkey {name}",
+    "description": "Accessible name of the Delete button on one row of the passkey list; {name} is the passkey name the user gave it."
+  },
+  "user.settings.passkeys.deleteMessage": {
+    "defaultMessage": "You will no longer be able to sign in with \"{name}\". This doesn't sign you out anywhere.",
+    "description": "Body of the confirmation dialog for deleting a passkey; {name} is the passkey name."
+  },
+  "user.settings.passkeys.deleteTitle": {
+    "defaultMessage": "Delete passkey?",
+    "description": "Title of the confirmation dialog for deleting a passkey."
+  },
+  "user.settings.passkeys.lastUsed": {
+    "defaultMessage": "Last used {date}",
+    "description": "Date a passkey was last used to sign in, shown on its row in the passkey list; {date} is a formatted date."
+  },
+  "user.settings.passkeys.neverUsed": {
+    "defaultMessage": "Never used",
+    "description": "Shown on a passkey row when the passkey has never been used to sign in."
+  },
+  "user.settings.passkeys.none": {
+    "defaultMessage": "You have no passkeys.",
+    "description": "Shown in the expanded Passkeys section when the user has not added any passkey."
+  },
+  "user.settings.passkeys.title": {
+    "defaultMessage": "Passkeys",
+    "description": "Heading of the Passkeys section in Profile > Security."
+  },
   "user.settings.plugins.title": {
     "defaultMessage": "{pluginName} Settings",
     "description": "Header of a plugin-provided settings tab in the user Settings modal; {pluginName} is the plugin's display name."
