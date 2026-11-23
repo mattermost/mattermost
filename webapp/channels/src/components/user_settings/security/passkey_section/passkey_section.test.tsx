@@ -8,7 +8,7 @@ import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PasskeySection from './index';
 
@@ -255,10 +255,7 @@ describe('PasskeySection', () => {
             />,
             enabledState,
         );
-        await waitFor(() => expect(getPasskeys).toHaveBeenCalled());
-        await act(async () => {
-            await Promise.resolve();
-        });
+        await waitFor(() => expect(screen.queryByText('No passkeys')).not.toBeInTheDocument());
 
         expect(screen.getByText('Passkeys')).toBeInTheDocument();
         expect(screen.queryByText('No passkeys')).not.toBeInTheDocument();
@@ -398,8 +395,8 @@ describe('PasskeySection', () => {
             const options = create.mock.calls[0][0].publicKey;
             expect(options.challenge).toBeInstanceOf(ArrayBuffer);
             expect(finishRegistration).toHaveBeenCalledWith('me', 'cer1', 'Work laptop', expect.objectContaining({id: 'cred1', rawId: 'AQI'}));
-            await waitFor(() => expect(getPasskeys).toHaveBeenCalledWith('me'));
-            expect(screen.getByLabelText('Passkey name')).toHaveValue('');
+            await waitFor(() => expect(screen.getByLabelText('Passkey name')).toHaveValue(''));
+            expect(getPasskeys).toHaveBeenCalledWith('me');
         });
 
         test('disables the button while the ceremony runs', async () => {
