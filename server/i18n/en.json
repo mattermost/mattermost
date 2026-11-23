@@ -10772,6 +10772,11 @@
     "description": "API error when deleting a passkey that does not exist or belongs to another user; the same error is returned for both so callers learn nothing about other users' passkeys."
   },
   {
+    "id": "app.passkey.unavailable.app_error",
+    "translation": "Passkeys are not available on this server.",
+    "description": "API error when a passkey ceremony is started but the Site URL cannot serve as a WebAuthn relying party (unset, not HTTPS, an IP address, or rejected by the WebAuthn library)."
+  },
+  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed to evaluate access control policy.",
     "description": "Error when the server fails to evaluate an attribute-based access control policy while deciding whether a user may access a resource."
