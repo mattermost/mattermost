@@ -15275,6 +15275,21 @@
     "description": "Health dashboard finding title when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
   },
   {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper is true, so detailed error information is shown to users and clients. This setting is intended for development only.",
+    "description": "Health dashboard finding detail when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableDeveloper to false.",
+    "description": "Health dashboard fix-it step when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper is enabled",
+    "description": "Health dashboard finding title when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
+  },
+  {
     "id": "health.rule.env_unsupported_os.message",
     "translation": "The server runs on {{.os}}. Mattermost supports Linux for production; other operating systems are suitable for development only.",
     "description": "Health dashboard finding detail when the server does not run on Linux; {{.os}} is the operating system name reported by Go, such as windows or darwin."
@@ -16478,6 +16493,21 @@
     "id": "health.rule.smtp_unreachable.title",
     "translation": "SMTP server connection test failed",
     "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting is true, so testing mode exposes test commands and endpoints that are intended for development only.",
+    "description": "Health dashboard finding detail when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableTesting to false, then restart the server. Some test endpoints are only removed on restart.",
+    "description": "Health dashboard fix-it step when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting is enabled",
+    "description": "Health dashboard finding title when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
   },
   {
     "id": "health.rule.tls_verify_outgoing_off.message",
