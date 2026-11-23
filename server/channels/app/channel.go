@@ -180,10 +180,6 @@ func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if channel.IsBoard() {
-		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
-	}
-
 	if channel.IsSpace() {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.space_type.app_error", nil, "use CreateChannel instead", http.StatusBadRequest)
 	}
@@ -258,10 +254,6 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 }
 
 func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool, propertyValues ...*model.PropertyValue) (*model.Channel, *model.AppError) {
-	if channel.IsBoard() {
-		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
-	}
-
 	if channel.IsSpace() && !a.Config().FeatureFlags.EnableDocs {
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
@@ -2294,20 +2286,6 @@ func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *m
 			mlog.String("channel_id", channelID),
 			mlog.Err(appErr),
 		)
-	}
-	return channel, nil
-}
-
-func (a *App) GetBoardChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store().Channel().GetBoardChannel(channelID)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
-		}
 	}
 	return channel, nil
 }

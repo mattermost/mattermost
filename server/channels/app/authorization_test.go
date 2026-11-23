@@ -797,33 +797,6 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			expected:                true,
 			isAdmin:                 true,
 		},
-		{
-			name:                    "Can read open board if team permissions and compliance disabled",
-			configComplianceEnabled: false,
-			channelDeleted:          false,
-			canReadChannel:          false,
-			channelType:             model.ChannelTypeOpenBoard,
-			canReadPublicChannel:    true,
-			expected:                true,
-		},
-		{
-			name:                    "Cannot read open board if compliance enabled",
-			configComplianceEnabled: true,
-			channelDeleted:          false,
-			canReadChannel:          false,
-			channelType:             model.ChannelTypeOpenBoard,
-			canReadPublicChannel:    true,
-			expected:                false,
-		},
-		{
-			name:                    "Cannot read private board if not member",
-			configComplianceEnabled: false,
-			channelDeleted:          false,
-			canReadChannel:          false,
-			channelType:             model.ChannelTypePrivateBoard,
-			canReadPublicChannel:    false,
-			expected:                false,
-		},
 	}
 
 	for _, tc := range ttcc {
@@ -845,26 +818,6 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 
 			var channel *model.Channel
 			switch tc.channelType {
-			case model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard:
-				kanban := &model.KanbanProps{
-					GroupBy: model.KanbanGroupBy{
-						FieldID: model.NewId(),
-						Columns: []model.KanbanColumn{
-							{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
-						},
-					},
-				}
-				viewProps, _ := kanban.ToProps()
-				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board", Props: viewProps}
-				ch, _, storeErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
-					TeamId:      team.Id,
-					DisplayName: "Board " + model.NewId(),
-					Name:        "board-" + model.NewId(),
-					Type:        tc.channelType,
-					CreatorId:   th.SystemAdminUser.Id,
-				}, -1, view)
-				require.NoError(t, storeErr)
-				channel = ch
 			case model.ChannelTypeOpen:
 				channel = th.CreateChannel(t, team)
 			default:
@@ -938,14 +891,6 @@ func TestHasPermissionToResolveChannelMention(t *testing.T) {
 			expected:                false,
 		},
 		{
-			name:                    "open board, team member, compliance ON -> resolves",
-			configComplianceEnabled: true,
-			channelType:             model.ChannelTypeOpenBoard,
-			isChannelMember:         false,
-			isTeamMember:            true,
-			expected:                true,
-		},
-		{
 			name:                    "private, channel member -> resolves",
 			configComplianceEnabled: false,
 			channelType:             model.ChannelTypePrivate,
@@ -985,26 +930,6 @@ func TestHasPermissionToResolveChannelMention(t *testing.T) {
 
 			var channel *model.Channel
 			switch tc.channelType {
-			case model.ChannelTypeOpenBoard:
-				kanban := &model.KanbanProps{
-					GroupBy: model.KanbanGroupBy{
-						FieldID: model.NewId(),
-						Columns: []model.KanbanColumn{
-							{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
-						},
-					},
-				}
-				viewProps, _ := kanban.ToProps()
-				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board", Props: viewProps}
-				ch, _, storeErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
-					TeamId:      team.Id,
-					DisplayName: "Board " + model.NewId(),
-					Name:        "board-" + model.NewId(),
-					Type:        tc.channelType,
-					CreatorId:   th.SystemAdminUser.Id,
-				}, -1, view)
-				require.NoError(t, storeErr)
-				channel = ch
 			case model.ChannelTypePrivate:
 				channel = th.CreatePrivateChannel(t, team)
 			default:

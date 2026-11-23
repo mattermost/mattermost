@@ -395,11 +395,6 @@
     "description": "API error when adding a user to a channel type that does not accept members this way (e.g. a direct message channel)."
   },
   {
-    "id": "api.channel.board_channel.app_error",
-    "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead.",
-    "description": "API error steering integrators away from using the channels API on board-type channels; '/channels' and '/boards' are literal API endpoint paths."
-  },
-  {
     "id": "api.channel.bookmark.board.readonly.app_error",
     "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, or deleted through the bookmarks API.",
     "description": "API error when a client tries to modify a channel bookmark that is auto-managed by the boards feature; 'bookmarks API' refers to the REST endpoints."
@@ -7313,31 +7308,6 @@
     "description": "Internal error when counting a channel's urgent-priority posts after a given timestamp fails; 'urgent' is a message priority level."
   },
   {
-    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
-    "translation": "The Integrated Boards feature is not enabled.",
-    "description": "API error when creating a board-linked channel while the Integrated Boards (kanban boards) feature is disabled."
-  },
-  {
-    "id": "app.channel.create_board_channel.internal_error",
-    "translation": "Unable to create the board channel.",
-    "description": "Internal API error when creating the channel associated with a board (kanban project) fails."
-  },
-  {
-    "id": "app.channel.create_board_channel.invalid.app_error",
-    "translation": "Invalid board channel data.",
-    "description": "API error when the data submitted to create a board-linked channel fails validation."
-  },
-  {
-    "id": "app.channel.create_board_channel.limit.app_error",
-    "translation": "The maximum number of channels per team has been reached.",
-    "description": "API error when creating a board channel would exceed the maximum number of channels allowed per team."
-  },
-  {
-    "id": "app.channel.create_channel.board_type.app_error",
-    "translation": "Board channels cannot be created via CreateChannel. Use the /boards API instead.",
-    "description": "API/developer error returned when code tries to create a Boards-type channel through the generic channel creation endpoint; 'CreateChannel' and '/boards' are API names and should not be translated."
-  },
-  {
     "id": "app.channel.create_channel.internal_error",
     "translation": "Unable to save channel.",
     "description": "Generic API error returned when saving a newly created channel to the database fails."
@@ -7736,11 +7706,6 @@
     "id": "app.channel.restore_channel.rejected_by_plugin",
     "translation": "Channel restore rejected by plugin: {{.Reason}}",
     "description": "API error returned when a plugin blocks unarchiving (restoring) a channel; {{.Reason}} is the explanation supplied by the plugin."
-  },
-  {
-    "id": "app.channel.save_member.app_error",
-    "translation": "Unable to save channel member.",
-    "description": "Internal error when saving a channel membership record to the database fails."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -17228,21 +17193,6 @@
     "id": "model.channel.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time.",
     "description": "API validation error when saving a channel whose last-update timestamp field (UpdateAt) is unset."
-  },
-  {
-    "id": "model.channel.is_valid_board.display_name.app_error",
-    "translation": "Board display name must not be empty.",
-    "description": "API validation error when creating a board-type channel (Boards feature) with an empty display name."
-  },
-  {
-    "id": "model.channel.is_valid_board.team_id.app_error",
-    "translation": "Board channels must belong to a team.",
-    "description": "API validation error when creating a board-type channel (Boards feature) without a team ID; boards cannot exist outside a team."
-  },
-  {
-    "id": "model.channel.is_valid_board.type.app_error",
-    "translation": "Channel type must be BO (open board) or BP (private board).",
-    "description": "API validation error when creating a board-type channel; 'BO' and 'BP' are literal channel type codes and must not be translated."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.file_id.app_error",

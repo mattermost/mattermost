@@ -90,7 +90,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).CountPropertyFiel
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CountPropertyFieldsForTarget
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateAccessControlSyncJob
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateAccessControlTeamSyncJob
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateBoardChannel
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateBot
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateChannel
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CreateChannelBookmark
@@ -262,7 +261,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetAuditsPage
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetAuthorizationCode
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetAuthorizationServerMetadata
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetAuthorizedAppsForUser
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetBoardChannel
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetBookmark
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetBot
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetBots
