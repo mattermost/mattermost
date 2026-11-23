@@ -1354,7 +1354,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(within(tourPoint).getByRole('button', {name: 'Open tip'}));
 
             expect(screen.getByText('Message options moved here')).toBeInTheDocument();
-            expect(screen.getByText('Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
+            expect(screen.getByText('Attach files from this button. Emoji, message priority, and AI actions are in the formatting bar.')).toBeInTheDocument();
         });
 
         it('tells the plus tour that emoji and priority are in the menu when the formatting bar is hidden', async () => {
@@ -1576,7 +1576,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(burnIndex).toBe(priorityIndex + 1);
         };
 
-        it('puts emoji, priority, and burn-on-read in the formatting bar, and the rest in the left plus', async () => {
+        it('puts emoji, priority, burn-on-read, and AI actions in the formatting bar, and the rest in the left plus', async () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 chromeState,
@@ -1587,7 +1587,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('button', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'select an emoji'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'AI Actions'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
             const channelSend = screen.getByTestId('SendMessageButton').closest('.splitSendButton');
@@ -1605,13 +1605,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(bar).toContainElement(screen.getByRole('button', {name: 'Message priority'}));
             expect(bar).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
             expect(bar).toContainElement(screen.getByRole('button', {name: /burn-on-read/i}));
+            expect(bar).toContainElement(screen.getByRole('button', {name: 'AI Actions'}));
             expectBurnBesidePriority();
 
             await openMenu();
             expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Emoji'})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
-            expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Use a skill'})).not.toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
         });
 
@@ -1836,8 +1837,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(bar).toContainElement(screen.getByRole('button', {name: 'Message priority'}));
             expect(bar).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
             expect(bar).toContainElement(screen.getByRole('button', {name: /burn-on-read/i}));
+            expect(bar).toContainElement(screen.getByRole('button', {name: 'AI Actions'}));
             expectBurnBesidePriority();
-            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Use a skill'})).not.toBeInTheDocument();
             expect(savePreferences).not.toHaveBeenCalledWith(currentUserId, expect.arrayContaining([
                 expect.objectContaining({category: Preferences.ADVANCED_TEXT_EDITOR}),
             ]));

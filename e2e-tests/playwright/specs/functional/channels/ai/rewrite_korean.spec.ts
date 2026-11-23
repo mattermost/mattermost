@@ -38,11 +38,11 @@ test('AI Rewrite custom prompt handles Korean IME input correctly', {tag: '@ai_r
     // # Write a draft message so the Rewrite options become available.
     await channelsPage.centerView.postCreate.writeMessage('Draft message to rewrite');
 
-    // # Open the + menu and reveal the Rewrite submenu with the custom prompt.
-    await channelsPage.centerView.postCreate.openPlusMenu();
-    await page.getByRole('menuitem', {name: 'Rewrite'}).hover();
+    // # Open AI Actions from the formatting bar and choose Rewrite.
+    await page.getByRole('button', {name: 'AI Actions'}).click();
+    await page.getByRole('menuitem', {name: 'Rewrite'}).click();
 
-    // # Focus the custom prompt input inside the Rewrite submenu.
+    // # Focus the custom prompt input inside the Rewrite menu.
     const promptInput = page.getByRole('textbox', {name: 'Ask AI to edit message...'});
     await expect(promptInput).toBeVisible();
     await promptInput.focus();

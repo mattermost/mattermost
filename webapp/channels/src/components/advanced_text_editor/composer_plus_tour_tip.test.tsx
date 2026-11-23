@@ -25,10 +25,10 @@ describe('ComposerPlusTourTip', () => {
         const tour = screen.getByTestId('composer-plus-tour');
         expect(tour).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
         expect(tour).toHaveAttribute('data-pointer-position', 'bottom-left');
-        expect(screen.queryByText('Message options moved here')).not.toBeInTheDocument();
+        expect(screen.getByText('Message options moved here')).toBeInTheDocument();
     });
 
-    it('says emoji and priority are in the formatting bar when that bar is open', async () => {
+    it('says emoji, priority, and AI actions are in the formatting bar when that bar is open', () => {
         renderWithContext(
             <>
                 <button id='agentComposerMenuButton'>{'Message options'}</button>
@@ -36,9 +36,7 @@ describe('ComposerPlusTourTip', () => {
             </>,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Open tip'}));
-
-        expect(screen.getByText('Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
+        expect(screen.getByText('Attach files from this button. Emoji, message priority, and AI actions are in the formatting bar.')).toBeInTheDocument();
     });
 
     it('saves that the tip was seen when it is dismissed', async () => {
@@ -56,7 +54,6 @@ describe('ComposerPlusTourTip', () => {
             },
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Open tip'}));
         await userEvent.click(screen.getByRole('button', {name: 'Got it'}));
 
         await waitFor(() => {

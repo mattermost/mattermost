@@ -114,7 +114,6 @@ const AnchoredTourPoint = ({
                 <style>{passThroughStyles}</style>
                 <TourPoint
                     className={className}
-                    defaultOpen={false}
                     title={title}
                     pointerPosition={position}
                     media={media}

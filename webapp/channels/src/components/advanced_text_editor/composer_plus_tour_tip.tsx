@@ -37,7 +37,7 @@ const closedBarScreen = (
 const openBarScreen = (
     <FormattedMessage
         id='textbox.plus_tour.description_formatting_open'
-        defaultMessage='Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.'
+        defaultMessage='Attach files from this button. Emoji, message priority, and AI actions are in the formatting bar.'
     />
 );
 

@@ -71,6 +71,7 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import AgentComposerMenu from './agent_composer_menu';
+import AIActionsMenu from './ai_actions_menu';
 import ComposerPlusTourTip, {COMPOSER_PLUS_TOUR_TIP_PREFERENCE, hasSeenComposerPlusTourTip} from './composer_plus_tour_tip';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
@@ -928,9 +929,9 @@ const AdvancedTextEditor = ({
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
     const agentLinkEditor = agentLinkPopoverOpen ? wysiwygRef.current?.getEditor() ?? null : null;
 
-    // Emoji, message priority, and burn-on-read sit in the formatting bar while
-    // it is open, and fall back to the + menu while it is hidden. Burn-on-read
-    // stays beside message priority.
+    // Emoji, message priority, burn-on-read, and AI actions sit in the
+    // formatting bar while it is open, and fall back to the + menu while it is
+    // hidden. Burn-on-read stays beside message priority.
     const controlsInToolbar = showFormattingBar;
     const additionalControls = useMemo(() => {
         const controls = (pluginItems || []).filter(Boolean);
@@ -946,6 +947,30 @@ const AdvancedTextEditor = ({
         ].filter(Boolean);
     }, [burnOnReadAdditionalControl, controlsInToolbar, emojiPicker, hideBurnOnRead, hidePriority, isInEditMode, pluginItems, priorityAdditionalControl]);
 
+    const aiActionsProps = useMemo(() => {
+        if (!hasAIActionsMenu) {
+            return null;
+        }
+
+        return {
+            draft,
+            getSelectedText,
+            updateText,
+            channelId,
+            isRHS: location === Locations.RHS_COMMENT,
+            rewriteMenuProps,
+            aiRewriteEnabled,
+        };
+    }, [aiRewriteEnabled, channelId, draft, getSelectedText, hasAIActionsMenu, location, rewriteMenuProps, updateText]);
+
+    const aiActionsMenu = useMemo(() => {
+        if (!controlsInToolbar || !aiActionsProps) {
+            return null;
+        }
+
+        return <AIActionsMenu {...aiActionsProps}/>;
+    }, [aiActionsProps, controlsInToolbar]);
+
     const formattingBar = (
         <AutoHeightSwitcher
             showSlot={showFormattingBar ? 1 : 2}
@@ -956,6 +981,7 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
+                    aiActionsMenu={aiActionsMenu}
                     getEditor={wysiwygEnabled ? () => wysiwygRef.current?.getEditor() ?? null : undefined}
                 />
             )}
@@ -1062,15 +1088,7 @@ const AdvancedTextEditor = ({
                     disabled: showPreview,
                     onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
                 } : null}
-                aiActions={hasAIActionsMenu ? {
-                    draft,
-                    getSelectedText,
-                    updateText,
-                    channelId,
-                    isRHS: location === Locations.RHS_COMMENT,
-                    rewriteMenuProps,
-                    aiRewriteEnabled,
-                } : null}
+                aiActions={controlsInToolbar ? null : aiActionsProps}
                 onOpen={showComposerPlusTour ? dismissComposerPlusTour : undefined}
             />
             {priorityMenuPopover}

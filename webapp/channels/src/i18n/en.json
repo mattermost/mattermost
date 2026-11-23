@@ -32760,8 +32760,8 @@
     "description": "Body of the one-time tour tip on the center-channel composer + button when the formatting bar is hidden. Emoji, message priority, and formatting are in that menu."
   },
   "textbox.plus_tour.description_formatting_open": {
-    "defaultMessage": "Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.",
-    "description": "Body of the one-time tour tip on the center-channel composer + button when the formatting bar is open. Emoji and message priority are in that bar, not in the + menu."
+    "defaultMessage": "Attach files from this button. Emoji, message priority, and AI actions are in the formatting bar.",
+    "description": "Body of the one-time tour tip on the center-channel composer + button when the formatting bar is open. Emoji, message priority, and AI actions are in that bar, not in the + menu."
   },
   "textbox.plus_tour.title": {
     "defaultMessage": "Message options moved here",

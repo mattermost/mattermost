@@ -183,8 +183,9 @@ const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemPro
 
 /**
  * The one + on the host composer. It sits on the left. Attach, attributes,
- * skills, rewrite, and formatting are items in this menu. Emoji, message
- * priority, and burn-on-read are here only while the formatting bar is hidden.
+ * and formatting are items in this menu. Emoji, message priority,
+ * burn-on-read, skills, and rewrite are here only while the formatting bar is
+ * hidden.
  */
 const AgentComposerMenu = (props: Props) => {
     return (
@@ -216,7 +217,7 @@ const AgentComposerMenuContents = ({
     const label = formatMessage({
         id: 'textbox.agent_menu',
         defaultMessage: 'Message options',
-        description: 'Accessible name of the + button on the composer. Opens a menu of attach, emoji, attributes, priority, burn-on-read, skills, rewrite, and formatting.',
+        description: 'Accessible name of the + button on the composer. Opens a menu of attach, attributes, and formatting. Emoji, priority, burn-on-read, skills, and rewrite join this menu while the formatting bar is hidden.',
     });
     const claim = useCallback((id: string) => () => {
         claimRow(id);
