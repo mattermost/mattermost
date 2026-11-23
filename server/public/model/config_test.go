@@ -724,6 +724,36 @@ func TestEmailSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestEmailSettingsIsSMTPConfigured(t *testing.T) {
+	t.Run("defaults are not configured", func(t *testing.T) {
+		settings := &EmailSettings{}
+		settings.SetDefaults(false)
+
+		assert.False(t, settings.IsSMTPConfigured())
+	})
+
+	for _, tc := range []struct {
+		name       string
+		server     *string
+		port       *string
+		configured bool
+	}{
+		{name: "server unset", configured: false},
+		{name: "empty server", server: NewPointer(""), port: NewPointer("587"), configured: false},
+		{name: "default server and port", server: NewPointer("localhost"), port: NewPointer("10025"), configured: false},
+		{name: "localhost relay on port 25", server: NewPointer("localhost"), port: NewPointer("25"), configured: true},
+		{name: "loopback address on the default port", server: NewPointer("127.0.0.1"), port: NewPointer("10025"), configured: true},
+		{name: "remote server", server: NewPointer("smtp.example.com"), port: NewPointer("587"), configured: true},
+		{name: "remote server without port", server: NewPointer("smtp.example.com"), configured: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &EmailSettings{SMTPServer: tc.server, SMTPPort: tc.port}
+
+			assert.Equal(t, tc.configured, settings.IsSMTPConfigured())
+		})
+	}
+}
+
 func TestServiceSettingsCompressResponses(t *testing.T) {
 	for mode, expected := range map[string]struct {
 		compress bool
