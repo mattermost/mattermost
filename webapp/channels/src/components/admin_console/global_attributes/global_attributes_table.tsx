@@ -34,6 +34,7 @@ import {
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
 import {useInstalledPluginIds, useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
@@ -55,7 +56,7 @@ import type {NameConflict} from './name_conflict';
 import {nameConflictText} from './name_conflict';
 import useGlobalAttributesListing from './use_global_attributes_listing';
 import {useOwnersLabel} from './use_owners_label';
-import {deleteAttributeField, syncUserAttributeFieldDelete} from './utils';
+import {deleteAttributeField, isAttributeFieldType, syncUserAttributeFieldDelete} from './utils';
 
 import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable, type TableMeta} from '../list_table';
@@ -332,9 +333,17 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
     const isViewOnly = disabled || isPluginOwned;
     const isDeleteDisabled = disabled || isPluginManaged || isOwnerManaged;
 
-    // Duplicate opens create prefilled from this template; plugin-owned and
-    // non-template rows are not offered (create would not reproduce ownership).
-    const canDuplicate = !disabled && !isPluginOwned && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+    // Duplicate opens create prefilled from this template. Match the create
+    // page's ?from= loader: plugin-owned / non-template / unrepresentable type
+    // (e.g. date) / graph with PropertyFieldGraph off all redirect, so hide
+    // the action instead of a dead-end navigation.
+    const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
+    const canDuplicate =
+        !disabled &&
+        !isPluginOwned &&
+        field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE &&
+        isAttributeFieldType(field.type) &&
+        !(field.type === 'graph' && !isGraphEnabled);
 
     let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
     if (isOwned) {

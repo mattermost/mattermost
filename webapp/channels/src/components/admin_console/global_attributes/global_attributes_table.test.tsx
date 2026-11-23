@@ -1015,6 +1015,41 @@ describe('GlobalAttributesTable', () => {
             });
         });
 
+        it('hides Duplicate for a date template (create ?from= cannot represent the type)', async () => {
+            mockListing([makeField({type: 'date'})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).
+                toBeUndefined();
+        });
+
+        it('hides Duplicate for a graph template when PropertyFieldGraph is off', async () => {
+            mockListing([makeField({type: 'graph'})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).
+                toBeUndefined();
+        });
+
+        it('offers Duplicate for a graph template when PropertyFieldGraph is on', async () => {
+            mockListing([makeField({type: 'graph'})]);
+
+            const state = getBaseState();
+            state.entities!.general = {
+                config: {FeatureFlagPropertyFieldGraph: 'true'},
+            } as EntitiesPartial['general'];
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).
+                toBeDefined();
+        });
+
         it('enables View (not Edit) and navigates to the edit page for a plugin-owned row (the edit page itself now handles the read-only rendering)', async () => {
             mockListing([makeField({
                 attrs: {source_plugin_id: 'com.example.plugin', protected: true},

@@ -101,6 +101,21 @@ export async function getGlobalAttributeFieldByName(adminClient: Client4, name: 
 }
 
 /**
+ * Live template field ids — used to assert Duplicate left the server unchanged
+ * until Save (compare before vs after opening create with ?from=).
+ */
+export async function listLiveGlobalAttributeTemplateIds(adminClient: Client4): Promise<string[]> {
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+        targetType: TARGET_TYPE,
+        perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+    });
+    return fields
+        .filter((field) => field.delete_at === 0)
+        .map((field) => field.id)
+        .sort();
+}
+
+/**
  * Lists a field's options including graph parents. Field GET omits parents from
  * the inlined attrs.options list on purpose (a field read-modify-write must not
  * flatten the hierarchy); the dedicated options route is what reports them.

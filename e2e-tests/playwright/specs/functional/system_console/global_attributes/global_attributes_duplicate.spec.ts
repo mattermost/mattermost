@@ -18,6 +18,7 @@ import {
     deleteGlobalAttributeFieldIfExists,
     fetchLinkedFieldsForTemplate,
     getGlobalAttributeFieldByName,
+    listLiveGlobalAttributeTemplateIds,
     requireGlobalAttributesEnabled,
 } from './global_attributes_helpers';
 
@@ -42,6 +43,8 @@ test.describe('System Console - Global Attributes duplicate', {tag: '@system_con
         const sourceName = `e2e_dup_${timestamp}`;
         const sourceDisplayName = `PW Dup ${timestamp}`;
         const copyDisplayName = `Copy of ${sourceDisplayName}`;
+        // Auto-slug from Copy of … before the admin renames (slugifyForCEL).
+        const draftName = `copy_of_pw_dup_${timestamp}`;
         const renamedDisplayName = `PW Dup New ${timestamp}`;
         const renamedName = `pw_dup_new_${timestamp}`;
 
@@ -63,6 +66,10 @@ test.describe('System Console - Global Attributes duplicate', {tag: '@system_con
                 visibility: 'always',
                 managed: 'admin',
             });
+            const templateIdsBeforeDuplicate = await listLiveGlobalAttributeTemplateIds(adminClient);
+            const sourceOptionIds = (
+                (template.attrs?.options as Array<{id: string; name: string}> | undefined) ?? []
+            ).map((option) => option.id);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
@@ -94,9 +101,11 @@ test.describe('System Console - Global Attributes duplicate', {tag: '@system_con
             );
             await expect(page.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
 
-            // * Nothing persisted yet — only the source template exists under its name,
-            // and no renamed copy exists (listing would be dirty if we navigated away)
+            // * Nothing persisted yet — same template ids as before Duplicate, and neither
+            // the draft auto-slug nor the post-rename name exists as a new field
+            expect(await listLiveGlobalAttributeTemplateIds(adminClient)).toEqual(templateIdsBeforeDuplicate);
             expect(await getGlobalAttributeFieldByName(adminClient, sourceName)).toBeDefined();
+            expect(await getGlobalAttributeFieldByName(adminClient, draftName)).toBeUndefined();
             expect(await getGlobalAttributeFieldByName(adminClient, renamedName)).toBeUndefined();
             const sourceLinkedBefore = await fetchLinkedFieldsForTemplate(adminClient, template.id);
             expect(sourceLinkedBefore.filter((field) => field.object_type === 'user')).toHaveLength(1);
@@ -112,8 +121,12 @@ test.describe('System Console - Global Attributes duplicate', {tag: '@system_con
             expect(copy!.type).toBe('select');
             expect(copy!.attrs?.display_name).toBe(renamedDisplayName);
             expect(copy!.attrs?.ldap).toBeUndefined();
-            const copyOptions = copy!.attrs?.options as Array<{name: string}> | undefined;
+            const copyOptions = copy!.attrs?.options as Array<{id: string; name: string}> | undefined;
             expect(copyOptions?.map((option) => option.name)).toEqual(['Engineering', 'Sales']);
+            // Fresh option ids — not reused from the source template
+            const copyOptionIds = (copyOptions ?? []).map((option) => option.id);
+            expect(copyOptionIds.every((id) => Boolean(id))).toBe(true);
+            expect(copyOptionIds.some((id) => sourceOptionIds.includes(id))).toBe(false);
 
             const sourceAfter = await getGlobalAttributeFieldByName(adminClient, sourceName);
             expect(sourceAfter?.attrs?.ldap).toBe('department');
