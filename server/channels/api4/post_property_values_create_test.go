@@ -437,6 +437,52 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 		assert.Equal(t, field.ID, stored[0].FieldID)
 	})
 
+	// A value.write grant admits a write the tier does not, and a value set on a new post goes
+	// through the same rule as one written after the post exists.
+	t.Run("a value.write grant lets a member set a value no tier allows", func(t *testing.T) {
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+					Allow:    []string{model.PropertyActionValueWrite},
+				}},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, th.groupID, field.ID, true, ""))
+		})
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"granted"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{field.ID: `"granted"`})
+
+		// The grant names BasicUser only, so BasicUser2 is refused before anything is saved.
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+		otherClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, otherClient)
+
+		_, resp, err = otherClient.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"not granted"`),
+		))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.attribute_no_permission.app_error")
+	})
+
 	t.Run("a post with no metadata stores no property values", func(t *testing.T) {
 		// A field exists for this channel, so a stored value would mean createPost looked it up
 		// despite the request submitting nothing.

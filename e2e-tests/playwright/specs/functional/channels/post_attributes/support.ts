@@ -4,7 +4,7 @@
 import type {Locator, Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
-import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyIdentity, PropertyPermissionLevel} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -729,5 +729,20 @@ export async function sealField(adminClient: Client4, field: PropertyField): Pro
                 field: {write: 'sysadmin'},
             },
         },
+    });
+}
+
+/**
+ * Grants value.write on a post field to each identity given, a user or a role, replacing
+ * the field's grants. A grant admits the write whatever the field's tier says, so the
+ * tier stays as it is.
+ */
+export async function grantValueWrite(
+    adminClient: Client4,
+    field: PropertyField,
+    identities: PropertyIdentity[],
+): Promise<PropertyField> {
+    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {
+        permissions: {grants: identities.map((identity) => ({...identity, allow: ['value.write']}))},
     });
 }

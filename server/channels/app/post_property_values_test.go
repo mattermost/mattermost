@@ -605,8 +605,9 @@ func TestCanSetPostPropertyValueOnCreate(t *testing.T) {
 
 	dm := th.CreateDmChannel(t, plainMember)
 
-	// The field is never read from the store — only its PermissionValues is —
-	// so an in-memory field carrying the level under test is the whole input.
+	// The field is never read from the store — only its Permissions, or its
+	// PermissionValues when it has none — so an in-memory field carrying the
+	// level under test is the whole input.
 	fieldAt := func(level model.PermissionLevel) *model.PropertyField {
 		return &model.PropertyField{
 			ID:               model.NewId(),
@@ -621,6 +622,26 @@ func TestCanSetPostPropertyValueOnCreate(t *testing.T) {
 
 	noLevel := fieldAt(model.PermissionLevelMember)
 	noLevel.PermissionValues = nil
+
+	// A field the way access_control stores one: value.write in Permissions,
+	// optionally with grants, and no PermissionValues of its own.
+	fieldWithPermissions := func(write model.PermissionLevel, grants ...model.Grant) *model.PropertyField {
+		field := fieldAt(write)
+		field.PermissionValues = nil
+		field.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Value: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: write}},
+			Grants:       grants,
+		}
+		return field
+	}
+	grantTo := func(ownerType, id string, actions ...string) model.Grant {
+		return model.Grant{Identity: model.Identity{Type: ownerType, ID: id}, Allow: actions}
+	}
+
+	// A PermissionValues left behind from before the field had Permissions,
+	// which the Permissions tier must win over.
+	staleColumn := fieldWithPermissions(model.PermissionLevelSysadmin)
+	staleColumn.PermissionValues = model.NewPointer(model.PermissionLevelMember)
 
 	testCases := []struct {
 		name    string
@@ -672,6 +693,35 @@ func TestCanSetPostPropertyValueOnCreate(t *testing.T) {
 		{"no level set, sysadmin", th.SystemAdminUser.Id, noLevel, th.BasicChannel, false},
 		{"nil field, sysadmin", th.SystemAdminUser.Id, nil, th.BasicChannel, false},
 		{"nil channel, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevelCreator), nil, false},
+
+		// A field with Permissions takes its tier from there, whatever PermissionValues says.
+		{"permissions creator, plain member", plainMember.Id, fieldWithPermissions(model.PermissionLevelCreator), th.BasicChannel, true},
+		{"permissions everyone, outsider", outsider.Id, fieldWithPermissions(model.PermissionLevelEveryone), th.BasicChannel, true},
+		{"permissions sysadmin, plain member", plainMember.Id, fieldWithPermissions(model.PermissionLevelSysadmin), th.BasicChannel, false},
+		{"permissions none, sysadmin", th.SystemAdminUser.Id, fieldWithPermissions(model.PermissionLevelNone), th.BasicChannel, false},
+		{"permissions win over a stale column, plain member", plainMember.Id, staleColumn, th.BasicChannel, false},
+		{"permissions win over a stale column, sysadmin", th.SystemAdminUser.Id, staleColumn, th.BasicChannel, true},
+
+		// A value.write grant admits the write whatever the tier says, as it does for a value
+		// written after the post exists.
+		{"user grant, grantee", plainMember.Id,
+			fieldWithPermissions(model.PermissionLevelNone, grantTo(model.PropertyOwnerTypeUser, plainMember.Id, model.PropertyActionValueWrite)),
+			th.BasicChannel, true},
+		{"user grant, someone else", outsider.Id,
+			fieldWithPermissions(model.PermissionLevelNone, grantTo(model.PropertyOwnerTypeUser, plainMember.Id, model.PropertyActionValueWrite)),
+			th.BasicChannel, false},
+		{"user grant for another action, grantee", plainMember.Id,
+			fieldWithPermissions(model.PermissionLevelNone, grantTo(model.PropertyOwnerTypeUser, plainMember.Id, model.PropertyActionValueRead)),
+			th.BasicChannel, false},
+		{"role grant, holder of the role", plainMember.Id,
+			fieldWithPermissions(model.PermissionLevelNone, grantTo(model.PropertyOwnerTypeRole, model.SystemUserRoleId, model.PropertyActionValueWrite)),
+			th.BasicChannel, true},
+		{"role grant, user without the role", plainMember.Id,
+			fieldWithPermissions(model.PermissionLevelNone, grantTo(model.PropertyOwnerTypeRole, model.SystemAdminRoleId, model.PropertyActionValueWrite)),
+			th.BasicChannel, false},
+		{"user grant on a sysadmin tier, grantee", plainMember.Id,
+			fieldWithPermissions(model.PermissionLevelSysadmin, grantTo(model.PropertyOwnerTypeUser, plainMember.Id, model.PropertyActionValueWrite)),
+			th.BasicChannel, true},
 	}
 
 	for _, tc := range testCases {
