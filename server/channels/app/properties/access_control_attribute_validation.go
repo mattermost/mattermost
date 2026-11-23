@@ -751,10 +751,10 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+	if err = h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 		return nil, err
 	}
-	if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
+	if err = h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
 		return nil, err
 	}
 
@@ -762,7 +762,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 	if err != nil {
 		return nil, err
 	}
-	if err := h.checkRequiredFillable(rctx, field, existing); err != nil {
+	if err = h.checkRequiredFillable(rctx, field, existing); err != nil {
 		return nil, err
 	}
 	return field, nil

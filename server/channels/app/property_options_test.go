@@ -135,8 +135,8 @@ func TestDeletePropertyFieldOptionsInUse(t *testing.T) {
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
-	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "options_delete_in_use", Version: model.PropertyGroupVersionV2})
-	require.Nil(t, appErr)
+	group, groupErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "options_delete_in_use", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, groupErr)
 
 	rctx := th.Context
 	system := string(model.PropertyFieldTargetLevelSystem)
@@ -319,7 +319,7 @@ func TestDeletePropertyFieldOptionsInUse(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, inUse)
 
-		_, appErr = th.App.DeletePropertyFieldOptions(rctx, group.ID, field.ID, []string{ids[0]}, "")
+		_, appErr := th.App.DeletePropertyFieldOptions(rctx, group.ID, field.ID, []string{ids[0]}, "")
 		require.Nil(t, appErr)
 		require.ElementsMatch(t, []string{ids[1], ids[2]}, optionIDs(t, field.ID))
 	})
@@ -346,7 +346,7 @@ func TestDeletePropertyFieldOptionsInUse(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, inUse)
 
-		_, appErr = th.App.DeletePropertyFieldOptions(rctx, group.ID, field.ID, []string{ids[0]}, "")
+		_, appErr := th.App.DeletePropertyFieldOptions(rctx, group.ID, field.ID, []string{ids[0]}, "")
 		require.Nil(t, appErr)
 	})
 }
