@@ -1254,7 +1254,9 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		return nil, appErr
 	}
 
-	renderMessage := actorDecisionMessage("app.data_spillage.reviewer_message.removed", actorUser.Username, comment)
+	renderMessage := actorDecisionMessage(func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.reviewer_message.removed", map[string]any{"Username": actorUser.Username})
+	}, comment)
 	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
@@ -1264,7 +1266,9 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		return nil, appErr
 	}
 
-	renderMessage := actorDecisionMessage("app.data_spillage.reviewer_message.retained", actorUser.Username, comment)
+	renderMessage := actorDecisionMessage(func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.reviewer_message.retained", map[string]any{"Username": actorUser.Username})
+	}, comment)
 	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
@@ -1594,10 +1598,10 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 
 // actorDecisionMessage renders a reviewer's keep or remove decision, followed by their
 // comment when one was given. The comment is passed as template data, which text/template
-// inserts verbatim.
-func actorDecisionMessage(messageID, actorUsername, comment string) func(i18n.TranslateFunc) string {
+// inserts verbatim. renderDecision calls T with a literal ID so i18n-extract can find it.
+func actorDecisionMessage(renderDecision func(i18n.TranslateFunc) string, comment string) func(i18n.TranslateFunc) string {
 	return func(T i18n.TranslateFunc) string {
-		message := T(messageID, map[string]any{"Username": actorUsername})
+		message := renderDecision(T)
 		if comment == "" {
 			return message
 		}

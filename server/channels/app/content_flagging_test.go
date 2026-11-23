@@ -3466,8 +3466,8 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 		_, appErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{Locale: model.NewPointer("de")}, false)
 		require.Nil(t, appErr)
 		t.Cleanup(func() {
-			_, appErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{Locale: model.NewPointer("en")}, false)
-			require.Nil(t, appErr)
+			_, cleanupErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{Locale: model.NewPointer("en")}, false)
+			require.Nil(t, cleanupErr)
 		})
 
 		const messageID = "app.data_spillage.report.attachments_omitted.notification"

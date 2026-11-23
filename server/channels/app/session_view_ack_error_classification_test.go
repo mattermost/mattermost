@@ -201,6 +201,12 @@ func TestSessionStoreErrorClassification(t *testing.T) {
 func TestPostAcknowledgementStoreErrorClassification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	// Creating the post below starts an async outgoing-webhook lookup. Turn
+	// outgoing webhooks off so that goroutine can't reach the mock store
+	// swapped in afterwards, which doesn't expect Webhook().
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	})
 
 	post, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,

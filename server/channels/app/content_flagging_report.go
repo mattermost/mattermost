@@ -486,16 +486,22 @@ func decodePropertyInt64(rctx request.CTX, byName map[string]json.RawMessage, fi
 // cannot alter the checksum seen by other reviewers, letting them verify any
 // copy of the report shared with them.
 func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) error {
-	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "app.data_spillage.report.checksum_notification", fileName, sha256Hex)
+	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, fileName, sha256Hex, func(T i18n.TranslateFunc, data map[string]any) string {
+		return T("app.data_spillage.report.checksum_notification", data)
+	})
 }
 
 // NotifyReviewersOfPostExposureReportGeneration is the exposure report counterpart of
 // NotifyReviewersOfFlaggedPostReportGeneration.
 func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) error {
-	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "app.data_spillage.exposure.checksum_notification", fileName, sha256Hex)
+	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, fileName, sha256Hex, func(T i18n.TranslateFunc, data map[string]any) string {
+		return T("app.data_spillage.exposure.checksum_notification", data)
+	})
 }
 
-func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageID, fileName, sha256Hex string) error {
+// notifyReviewersOfReportGeneration's translate callback calls T with a literal ID so
+// i18n-extract can find it.
+func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string, translate func(T i18n.TranslateFunc, data map[string]any) string) error {
 	groupID, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
@@ -507,7 +513,7 @@ func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID,
 	}
 
 	renderMessage := func(T i18n.TranslateFunc) string {
-		return T(messageID, map[string]any{
+		return translate(T, map[string]any{
 			"Username": generator.Username,
 			"FileName": fileName,
 			"Checksum": sha256Hex,
