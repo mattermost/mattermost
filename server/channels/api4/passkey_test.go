@@ -278,6 +278,17 @@ func registerPasskey(t *testing.T, th *TestHelper, userID, name string) (*model.
 	})
 }
 
+// ageSession backdates the client's session past the recent sign-in window.
+func ageSession(t *testing.T, th *TestHelper, client *model.Client4) {
+	t.Helper()
+
+	_, err := th.Server.Store().GetInternalMasterDB().Exec(
+		`UPDATE Sessions SET CreateAt = $1 WHERE Token = $2`,
+		model.GetMillis()-model.PasskeyRecentLoginWindow-1000, client.AuthToken)
+	require.NoError(t, err)
+	th.App.ClearSessionCacheForUser(th.BasicUser.Id)
+}
+
 func TestPasskeyRegistration(t *testing.T) {
 	t.Run("registers a passkey through me and the explicit id", func(t *testing.T) {
 		th := setupPasskeyRegistration(t)
@@ -422,11 +433,7 @@ func TestPasskeyRegistration(t *testing.T) {
 
 	t.Run("session older than ten minutes is refused", func(t *testing.T) {
 		th := setupPasskeyRegistration(t)
-		_, err := th.Server.Store().GetInternalMasterDB().Exec(
-			`UPDATE Sessions SET CreateAt = $1 WHERE Token = $2`,
-			model.GetMillis()-model.PasskeyRecentLoginWindow-1000, th.Client.AuthToken)
-		require.NoError(t, err)
-		th.App.ClearSessionCacheForUser(th.BasicUser.Id)
+		ageSession(t, th, th.Client)
 
 		_, resp, err := th.Client.BeginPasskeyRegistration(context.Background(), model.Me)
 		require.Error(t, err)
@@ -434,5 +441,53 @@ func TestPasskeyRegistration(t *testing.T) {
 		var appErr *model.AppError
 		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.passkey.recent_login_required.app_error", appErr.Id)
+	})
+
+	t.Run("recency is judged on the request's own session", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		fresh := th.CreateClient()
+		th.LoginBasicWithClient(t, fresh)
+		ageSession(t, th, th.Client)
+
+		_, resp, err := th.Client.BeginPasskeyRegistration(context.Background(), model.Me)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.passkey.recent_login_required.app_error", appErr.Id)
+
+		opts, _, err := fresh.BeginPasskeyRegistration(context.Background(), model.Me)
+		require.NoError(t, err)
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		credential, err := auth.CreateResponse(opts.Options, "http://localhost:8065")
+		require.NoError(t, err)
+		_, resp, err = fresh.FinishPasskeyRegistration(context.Background(), model.Me, &model.PasskeyRegistrationFinish{
+			CeremonyId: opts.CeremonyId, Credential: credential,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("finish from another session of the same user is refused", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		other := th.CreateClient()
+		th.LoginBasicWithClient(t, other)
+
+		opts, _, err := th.Client.BeginPasskeyRegistration(context.Background(), model.Me)
+		require.NoError(t, err)
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		credential, err := auth.CreateResponse(opts.Options, "http://localhost:8065")
+		require.NoError(t, err)
+
+		_, resp, err := other.FinishPasskeyRegistration(context.Background(), model.Me, &model.PasskeyRegistrationFinish{
+			CeremonyId: opts.CeremonyId, Credential: credential,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.passkey.ceremony_invalid.app_error", appErr.Id)
 	})
 }
