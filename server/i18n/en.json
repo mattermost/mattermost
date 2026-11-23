@@ -15045,6 +15045,36 @@
     "description": "Health dashboard finding title suggesting the Redis cache for a large high availability cluster; 'Redis' is a product name and should not be translated."
   },
   {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Mattermost's reference architectures recommend high availability above 200 users, so plan for it before a node failure or upgrade takes the workspace offline.",
+    "description": "Health dashboard finding detail when a server with 200 to 1,999 registered users does not have high availability enabled; {{.users}} is the registered user count."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node.",
+    "description": "Health dashboard fix-it step when a server with 200 to 1,999 registered users does not have high availability enabled; 'ClusterSettings.Enable' and 'ClusterName' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Consider setting up high availability",
+    "description": "Health dashboard finding title when a server with 200 to 1,999 registered users does not have high availability enabled."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Any node failure, restart or upgrade takes the whole workspace offline. Mattermost's reference architectures require high availability at this scale.",
+    "description": "Health dashboard finding detail when a server with 2,000 or more registered users does not have high availability enabled; {{.users}} is the registered user count."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node.",
+    "description": "Health dashboard fix-it step when a server with 2,000 or more registered users does not have high availability enabled; 'ClusterSettings.Enable' and 'ClusterName' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "High availability is not enabled at this scale",
+    "description": "Health dashboard finding title when a server with 2,000 or more registered users does not have high availability enabled."
+  },
+  {
     "id": "health.rule.cluster_single_node.message",
     "translation": "The intended HA topology is not actually running. A single node gives no failover and hides split-brain risk.",
     "description": "Health dashboard finding detail when high availability is enabled but the cluster has only one node; 'HA' means high availability, and 'split-brain' is when cluster nodes lose contact and act independently."
