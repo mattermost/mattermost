@@ -2052,6 +2052,28 @@ func (c *Client4) DeletePasskey(ctx context.Context, userID, passkeyID string) (
 	return BuildResponse(r), nil
 }
 
+// BeginPasskeyRegistration starts a passkey registration ceremony for the user and returns the
+// options to hand to the browser. Only the user themselves, from a recent sign-in, may do this.
+func (c *Client4) BeginPasskeyRegistration(ctx context.Context, userID string) (*PasskeyRegistrationOptions, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.userRoute(userID).Join("passkeys", "registration", "begin"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyRegistrationOptions](r)
+}
+
+// FinishPasskeyRegistration completes the ceremony begun by BeginPasskeyRegistration and returns
+// the new passkey.
+func (c *Client4) FinishPasskeyRegistration(ctx context.Context, userID string, finish *PasskeyRegistrationFinish) (*Passkey, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.userRoute(userID).Join("passkeys", "registration", "finish"), finish)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Passkey](r)
+}
+
 // RotateUserAccessToken generates a new secret for the token identified by tokenId,
 // sets a new expiry, and immediately invalidates the old secret and its sessions.
 // The returned token carries the new secret (shown once, like CreateUserAccessToken).

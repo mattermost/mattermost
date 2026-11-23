@@ -79,6 +79,14 @@ type PasskeyRegistrationOptions struct {
 	Options    json.RawMessage `json:"options"`
 }
 
+// PasskeyRegistrationFinish is the body that completes a registration ceremony. Credential is the
+// browser's registration response, kept opaque so this package does not import the WebAuthn library.
+type PasskeyRegistrationFinish struct {
+	CeremonyId string          `json:"ceremony_id"`
+	Name       string          `json:"name"`
+	Credential json.RawMessage `json:"credential"`
+}
+
 // PasskeyRPID returns the WebAuthn relying-party ID for a Site URL and whether passkeys can work with it.
 func PasskeyRPID(siteURL string) (string, bool) {
 	u, err := url.Parse(siteURL)

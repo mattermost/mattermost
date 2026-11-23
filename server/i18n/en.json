@@ -3779,6 +3779,11 @@
     "description": "API error shown when someone tries to use or manage outgoing webhooks while the admin has turned the feature off; outgoing webhooks send channel messages to external services."
   },
   {
+    "id": "api.passkey.enrollment_disabled.app_error",
+    "translation": "Adding passkeys is not enabled.",
+    "description": "API error when a user tries to register a passkey while the admin has turned passkey enrollment off."
+  },
+  {
     "id": "api.passkey.feature_disabled.app_error",
     "translation": "Passkeys are not enabled.",
     "description": "API error when a passkey endpoint is called while the passkeys feature flag is off."
@@ -3787,6 +3792,11 @@
     "id": "api.passkey.license.app_error",
     "translation": "Passkeys require a Professional license or higher.",
     "description": "API error when a passkey endpoint is called on a server without at least a Professional license."
+  },
+  {
+    "id": "api.passkey.unavailable.app_error",
+    "translation": "Passkeys are not available with this server's Site URL.",
+    "description": "API error when a user tries to register a passkey but the Site URL is unset, not HTTPS, an IP address, or otherwise unusable as a WebAuthn relying party."
   },
   {
     "id": "api.payload.parse.error",
