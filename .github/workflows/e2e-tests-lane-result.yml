@@ -130,21 +130,6 @@ jobs:
           target-url: ${{ inputs.report_url }}
           triage-status-context: ${{ steps.lanes.outputs.aggregate }}
           triage-lanes: ${{ steps.lanes.outputs.lanes }}
-      - name: ci/fail-empty-identity
-        # When prepare-run failed after claiming `pending` (before emitting composite_identity_json),
-        # mark the claimed lane status failed so the PR does not stay stuck pending forever.
-        if: ${{ !cancelled() && inputs.composite_identity_json == '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_NAME: ${{ inputs.context_name }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
-        run: |
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
-            -f state="failure" \
-            -f context="${CONTEXT_NAME}" \
-            -f description="prepare-run failed before starting E2E" \
-            -f target_url="${RUN_URL}"
       # Answers from earlier runs on the same PR (the same commit on master), so a
       # re-run does not pay for the same question twice. The file also keeps this
       # lane's AI spend on the PR, for the per-PR budget (pr-budget-usd, $2 by
