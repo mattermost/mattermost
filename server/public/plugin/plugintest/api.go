@@ -3512,6 +3512,38 @@ func (_m *API) GetPublicChannelsForTeam(teamID string, page int, perPage int) ([
 	return r0, r1
 }
 
+// GetPublicChannelsNotMemberForTeam provides a mock function with given fields: teamID, userID, channelIDs, page, perPage
+func (_m *API) GetPublicChannelsNotMemberForTeam(teamID string, userID string, channelIDs []string, page int, perPage int) ([]*model.Channel, *model.AppError) {
+	ret := _m.Called(teamID, userID, channelIDs, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPublicChannelsNotMemberForTeam")
+	}
+
+	var r0 []*model.Channel
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, []string, int, int) ([]*model.Channel, *model.AppError)); ok {
+		return rf(teamID, userID, channelIDs, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []string, int, int) []*model.Channel); ok {
+		r0 = rf(teamID, userID, channelIDs, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []string, int, int) *model.AppError); ok {
+		r1 = rf(teamID, userID, channelIDs, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetReactions provides a mock function with given fields: postId
 func (_m *API) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
 	ret := _m.Called(postId)

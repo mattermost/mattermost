@@ -82,6 +82,16 @@ func (c *ChannelService) ListPublicChannelsForTeam(teamID string, page, perPage 
 	return channels, normalizeAppErr(appErr)
 }
 
+// ListPublicChannelsNotMemberForTeam gets the open channels of a team, limited to the given
+// channel IDs, that the user is not a member of and can read.
+//
+// Minimum server version: 12.3
+func (c *ChannelService) ListPublicChannelsNotMemberForTeam(teamID, userID string, channelIDs []string, page, perPage int) ([]*model.Channel, error) {
+	channels, appErr := c.api.GetPublicChannelsNotMemberForTeam(teamID, userID, channelIDs, page, perPage)
+
+	return channels, normalizeAppErr(appErr)
+}
+
 // Search returns the channels on a team matching the provided search term.
 //
 // Minimum server version: 5.6

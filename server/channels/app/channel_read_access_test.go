@@ -704,6 +704,44 @@ func TestGetPublicChannelsForTeamFillsPagesPastDeniedChannels(t *testing.T) {
 	}
 }
 
+func TestGetPublicChannelsNotMemberForTeamAppliesReadAccessForExplicitUser(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	team := h.th.CreateTeam(t)
+	ids := make([]string, 0, 4)
+	for range 4 {
+		ids = append(ids, h.th.CreateChannel(t, team).Id)
+	}
+	reader := h.th.BasicUser2
+	require.NotEqual(t, h.rctx.Session().UserId, reader.Id)
+
+	all, appErr := h.th.App.GetPublicChannelsNotMemberForTeam(h.rctx, team.Id, reader.Id, ids, 0, 100)
+	require.Nil(t, appErr)
+	require.Len(t, all, len(ids))
+
+	denied := all[1]
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	var evaluatedUsers []string
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Resource.ID == denied.Id
+	})).Run(func(args mock.Arguments) {
+		evaluatedUsers = append(evaluatedUsers, args.Get(1).(model.AccessRequest).Subject.ID)
+	}).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	got, appErr := h.th.App.GetPublicChannelsNotMemberForTeam(h.rctx, team.Id, reader.Id, ids, 0, 2)
+	require.Nil(t, appErr)
+	require.Len(t, got, 2, "the page is topped up past the denied channel")
+	for _, channel := range got {
+		require.NotEqual(t, denied.Id, channel.Id)
+	}
+	require.NotEmpty(t, evaluatedUsers)
+	for _, subjectID := range evaluatedUsers {
+		require.Equal(t, reader.Id, subjectID, "access is evaluated for the given user, not the session user")
+	}
+}
+
 // The fill gives up after putils.FetchUntilMaxRounds (10) rounds. With one row per page
 // and every row denied but the one at raw index 10, only the cap stops the fill before
 // it reaches that row: without the cap, or with a higher one, the page would hold it.

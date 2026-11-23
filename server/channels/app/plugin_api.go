@@ -534,6 +534,46 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	return channels, err
 }
 
+const (
+	pluginAPIMaxChannelsPerPage = 200
+	pluginAPIMaxChannelIDs      = 10000
+)
+
+func (api *PluginAPI) GetPublicChannelsNotMemberForTeam(teamID, userID string, channelIDs []string, page, perPage int) ([]*model.Channel, *model.AppError) {
+	const where = "GetPublicChannelsNotMemberForTeam"
+	invalid := func(name string) *model.AppError {
+		return model.NewAppError(where, "api.context.invalid_param.app_error", map[string]any{"Name": name}, "", http.StatusBadRequest)
+	}
+
+	if !model.IsValidId(teamID) {
+		return nil, invalid("team_id")
+	}
+	if !model.IsValidId(userID) {
+		return nil, invalid("user_id")
+	}
+	if len(channelIDs) > pluginAPIMaxChannelIDs {
+		return nil, invalid("channel_ids")
+	}
+	for _, id := range channelIDs {
+		if !model.IsValidId(id) {
+			return nil, invalid("channel_ids")
+		}
+	}
+	if page < 0 {
+		return nil, invalid("page")
+	}
+	if perPage < 1 {
+		return nil, invalid("per_page")
+	}
+	perPage = min(perPage, pluginAPIMaxChannelsPerPage)
+
+	channels, err := api.app.GetPublicChannelsNotMemberForTeam(api.ctx, teamID, userID, channelIDs, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+	return channels, nil
+}
+
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
 	return api.app.GetChannel(api.ctx, channelID)
 }

@@ -518,6 +518,13 @@ func (api *apiTimerLayer) GetPublicChannelsForTeam(teamID string, page, perPage 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetPublicChannelsNotMemberForTeam(teamID, userID string, channelIDs []string, page, perPage int) ([]*model.Channel, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPublicChannelsNotMemberForTeam(teamID, userID, channelIDs, page, perPage)
+	api.recordTime(startTime, "GetPublicChannelsNotMemberForTeam", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetChannel(channelId)

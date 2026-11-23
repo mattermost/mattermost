@@ -1855,6 +1855,58 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	assert.ElementsMatch(t, expectedChannels, channels)
 }
 
+func TestGetPublicChannelsNotMemberForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	team := th.CreateTeam(t)
+	otherTeam := th.CreateTeam(t)
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, team)
+
+	joinable := th.CreateChannel(t, team, func(c *model.Channel) { c.DisplayName = "A joinable" })
+	otherJoinable := th.CreateChannel(t, team, func(c *model.Channel) { c.DisplayName = "B joinable" })
+	joined := th.CreateChannel(t, team)
+	th.AddUserToChannel(t, user, joined)
+	archived := th.CreateChannel(t, team)
+	appErr := th.App.DeleteChannel(th.Context, archived, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	private := th.CreatePrivateChannel(t, team)
+	elsewhere := th.CreateChannel(t, otherTeam)
+	notRequested := th.CreateChannel(t, team)
+
+	ids := []string{joinable.Id, otherJoinable.Id, joined.Id, archived.Id, private.Id, elsewhere.Id}
+
+	t.Run("returns only joinable requested public channels", func(t *testing.T) {
+		got, appErr := th.App.GetPublicChannelsNotMemberForTeam(th.Context, team.Id, user.Id, ids, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, got, 2)
+		require.Equal(t, joinable.Id, got[0].Id)
+		require.Equal(t, otherJoinable.Id, got[1].Id)
+		for _, channel := range got {
+			require.NotEqual(t, notRequested.Id, channel.Id)
+		}
+	})
+
+	t.Run("pages", func(t *testing.T) {
+		got, appErr := th.App.GetPublicChannelsNotMemberForTeam(th.Context, team.Id, user.Id, ids, 1, 1)
+		require.Nil(t, appErr)
+		require.Len(t, got, 1)
+		require.Equal(t, otherJoinable.Id, got[0].Id)
+	})
+
+	t.Run("empty ids returns nothing", func(t *testing.T) {
+		got, appErr := th.App.GetPublicChannelsNotMemberForTeam(th.Context, team.Id, user.Id, nil, 0, 100)
+		require.Nil(t, appErr)
+		require.Empty(t, got)
+	})
+
+	t.Run("a member no longer sees the channel", func(t *testing.T) {
+		got, appErr := th.App.GetPublicChannelsNotMemberForTeam(th.Context, team.Id, th.BasicUser.Id, ids, 0, 100)
+		require.Nil(t, appErr)
+		require.Empty(t, got)
+	})
+}
+
 func TestGetPrivateChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

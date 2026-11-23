@@ -5610,6 +5610,79 @@ func TestPluginAPIGetChannelOfType(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
 
+func TestPluginAPIGetPublicChannelsNotMemberForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+
+	joinable := th.CreateChannel(t, th.BasicTeam)
+	joined := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, user, joined)
+	ids := []string{joinable.Id, joined.Id}
+
+	t.Run("returns the joinable channel", func(t *testing.T) {
+		channels, appErr := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, ids, 0, 10)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 1)
+		require.Equal(t, joinable.Id, channels[0].Id)
+	})
+
+	t.Run("no channel ids returns an empty list", func(t *testing.T) {
+		channels, appErr := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, nil, 0, 10)
+		require.Nil(t, appErr)
+		require.Empty(t, channels)
+	})
+
+	t.Run("oversized perPage is capped", func(t *testing.T) {
+		channels, appErr := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, ids, 0, 100000)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 1)
+	})
+
+	t.Run("rejects invalid arguments", func(t *testing.T) {
+		tooMany := make([]string, pluginAPIMaxChannelIDs+1)
+		for i := range tooMany {
+			tooMany[i] = model.NewId()
+		}
+
+		for name, call := range map[string]func() *model.AppError{
+			"team id": func() *model.AppError {
+				_, err := api.GetPublicChannelsNotMemberForTeam("bad", user.Id, ids, 0, 10)
+				return err
+			},
+			"user id": func() *model.AppError {
+				_, err := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, "", ids, 0, 10)
+				return err
+			},
+			"channel id": func() *model.AppError {
+				_, err := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, []string{"bad"}, 0, 10)
+				return err
+			},
+			"too many ids": func() *model.AppError {
+				_, err := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, tooMany, 0, 10)
+				return err
+			},
+			"page": func() *model.AppError {
+				_, err := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, ids, -1, 10)
+				return err
+			},
+			"per page": func() *model.AppError {
+				_, err := api.GetPublicChannelsNotMemberForTeam(th.BasicTeam.Id, user.Id, ids, 0, 0)
+				return err
+			},
+		} {
+			t.Run(name, func(t *testing.T) {
+				appErr := call()
+				require.NotNil(t, appErr)
+				require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			})
+		}
+	})
+}
+
 func TestPluginAPIResolveSpaceChannelNotFound(t *testing.T) {
 	mainHelper.Parallel(t)
 

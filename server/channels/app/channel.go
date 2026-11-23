@@ -2610,6 +2610,18 @@ func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID strin
 	return channels, nil
 }
 
+// GetPublicChannelsNotMemberForTeam returns the open channels of the team, limited to channelIDs,
+// that userID has not joined and is allowed to read.
+func (a *App) GetPublicChannelsNotMemberForTeam(rctx request.CTX, teamID, userID string, channelIDs []string, offset, limit int) (model.ChannelList, *model.AppError) {
+	channels, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetMoreChannelsByIds(teamID, userID, channelIDs, off, lim)
+	})
+	if err != nil {
+		return nil, model.NewAppError("GetPublicChannelsNotMemberForTeam", "app.channel.get_more_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return channels, nil
+}
+
 func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store().Channel().GetPublicChannelsByIdsForTeam(teamID, channelIDs)
 	if err != nil {

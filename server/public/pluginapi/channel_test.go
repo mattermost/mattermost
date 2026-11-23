@@ -157,6 +157,34 @@ func TestGetPublicTeamChannels(t *testing.T) {
 	})
 }
 
+func TestListPublicChannelsNotMemberForTeam(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetPublicChannelsNotMemberForTeam", "1", "2", []string{"3", "4"}, 5, 6).Return([]*model.Channel{{Id: "3"}, {Id: "4"}}, nil)
+
+		channels, err := client.Channel.ListPublicChannelsNotMemberForTeam("1", "2", []string{"3", "4"}, 5, 6)
+		require.NoError(t, err)
+		require.Equal(t, []*model.Channel{{Id: "3"}, {Id: "4"}}, channels)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+
+		api.On("GetPublicChannelsNotMemberForTeam", "1", "2", []string{"3"}, 0, 1).Return(nil, appErr)
+
+		channels, err := client.Channel.ListPublicChannelsNotMemberForTeam("1", "2", []string{"3"}, 0, 1)
+		require.Equal(t, appErr, err)
+		require.Len(t, channels, 0)
+	})
+}
+
 func TestCreateChannel(t *testing.T) {
 	t.Run("create channel with no replicas", func(t *testing.T) {
 		api := &plugintest.API{}

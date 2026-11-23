@@ -468,6 +468,19 @@ type API interface {
 	// Minimum server version: 5.2
 	GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError)
 
+	// GetPublicChannelsNotMemberForTeam gets the open channels of a team, limited to
+	// the given channel IDs, that the user is not a member of and can read. Archived
+	// channels and channels the user cannot read because of access control policies
+	// are excluded. The result is ordered by display name. An empty channelIDs
+	// returns an empty list. At most 10000 channel IDs may be given, and perPage is
+	// capped at 200.
+	//
+	// @tag Channel
+	// @tag Team
+	// @tag User
+	// Minimum server version: 12.3
+	GetPublicChannelsNotMemberForTeam(teamID, userID string, channelIDs []string, page, perPage int) ([]*model.Channel, *model.AppError)
+
 	// GetChannel gets a channel.
 	//
 	// @tag Channel
