@@ -127,6 +127,11 @@ interface Props extends WrappedComponentProps {
     // API calls. The two callbacks are no-ops on the parent if the FF is
     // off (children never render the affordance in that case).
     showDiscoverableFilters?: boolean;
+
+    // Whether rows offer Request to Join for discoverable private channels, when that differs from
+    // showing the filters: Browse Boards hides the filters but its rows still request access.
+    // Defaults to showDiscoverableFilters.
+    discoverableEnabled?: boolean;
     myPendingJoinRequests?: Record<string, ChannelJoinRequest>;
     handleRequestToJoin?: (channel: Channel, done: () => void) => void;
     handleWithdrawRequest?: (channel: Channel, done: () => void) => void;
@@ -246,7 +251,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     // member. The combined check folds the FF gate into one place so the
     // row rendering code stays linear.
     private isDiscoverableNonMember(channel: Channel) {
-        return Boolean(this.props.showDiscoverableFilters) &&
+        return Boolean(this.props.discoverableEnabled ?? this.props.showDiscoverableFilters) &&
             channel.type === Constants.PRIVATE_CHANNEL &&
             channel.discoverable === true &&
             !this.isMemberOfChannel(channel.id);

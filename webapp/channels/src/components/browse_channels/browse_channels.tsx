@@ -482,6 +482,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
     getChannelsWithoutArchived = (channelList: Channel[]) => channelList.filter((channel) => channel.delete_at === 0);
 
+    // As 'board', the lists narrow to boards. They don't rely on the public channels paged in from the
+    // server: a board plugin keeps the team's boards the user can join in the store, along with the
+    // boards the user is in (the Boards plugin loads them with the team's boards), so every board is
+    // listed however many other channels the team has, and paging only moves through those boards.
     getActiveChannels = () => {
         const channels = this.getActiveChannelsOfAnyKind();
         if (!this.isBoardList()) {
@@ -633,6 +637,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     loading={search ? searching : channelsRequestStarted}
                     showRecommendedFilter={this.props.accessControlEnabled && kind === 'channel'}
                     showDiscoverableFilters={this.props.discoverableFeatureEnabled && kind === 'channel'}
+                    discoverableEnabled={this.props.discoverableFeatureEnabled}
                     kind={kind}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
