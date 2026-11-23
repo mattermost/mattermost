@@ -1691,7 +1691,9 @@ func TestPluginAPIUpdatePropertyFieldReturnsCallerView(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, updated, 2)
 
-		for _, field := range updated {
+		for i, field := range updated {
+			require.Equal(t, updates[i].ID, field.ID)
+			require.Equal(t, updates[i].Name, field.Name)
 			require.Empty(t, optionNames(field))
 		}
 		for _, stored := range []*model.PropertyField{first, second} {

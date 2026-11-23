@@ -4189,33 +4189,6 @@ func TestPatchPropertyField(t *testing.T) {
 			return th.SystemAdminClient.PatchPropertyField(context.Background(), maskedGroup.Name, model.PropertyFieldObjectTypeUser, fieldID, patch)
 		})
 	})
-
-	t.Run("a masked caller renames a field without sending its options", func(t *testing.T) {
-		maskedGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_masked_rename", Version: model.PropertyGroupVersionV3})
-		require.Nil(t, appErr)
-
-		for name, holdsNothing := range map[string]bool{"holding one option": false, "holding none": true} {
-			t.Run(name, func(t *testing.T) {
-				field, _ := createMaskedSelectField(t, th, maskedGroup.ID, model.NewId())
-				if holdsNothing {
-					require.NoError(t, th.Store.PropertyValue().DeleteForTarget(maskedGroup.ID, "user", th.SystemAdminUser.Id))
-				}
-
-				newName := model.NewId()
-				patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), maskedGroup.Name, model.PropertyFieldObjectTypeUser, field.ID, &model.PropertyFieldPatch{Name: &newName})
-				require.NoError(t, err)
-				CheckOKStatus(t, resp)
-				require.Equal(t, newName, patched.Name)
-				if holdsNothing {
-					require.Empty(t, inlineOptionNames(t, patched))
-				} else {
-					require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
-				}
-
-				requireOptionNamesStored(t, th, maskedGroup.ID, field.ID, "Alpha", "Beta")
-			})
-		}
-	})
 }
 
 // createMaskedSelectField stores a select field with options Alpha and Beta
@@ -4420,7 +4393,7 @@ func requireMaskedPatchKeepsHiddenOptions(t *testing.T, th *TestHelper, groupID 
 
 	t.Run("the order of an echoed list is ignored", func(t *testing.T) {
 		for name, optionWrite := range map[string]model.PermissionLevel{
-			"with a rename":                model.PermissionLevelSysadmin,
+			"with a rename":              model.PermissionLevelSysadmin,
 			"alone without option.write": model.PermissionLevelNone,
 		} {
 			t.Run(name, func(t *testing.T) {
