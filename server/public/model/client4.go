@@ -8764,6 +8764,27 @@ func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFil
 	return DecodeJSONFromResponse[*HealthFindingList](r)
 }
 
+// ExportHealthFindings returns the health report in format, "html" or "md", rendered in the
+// client's locale, and the filename the server suggests for it.
+func (c *Client4) ExportHealthFindings(ctx context.Context, format string) ([]byte, string, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute().Join("export"), url.Values{"format": {format}}, "")
+	if err != nil {
+		return nil, "", BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Disposition"))
+	if err != nil {
+		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
+	}
+
+	data, resp, err := ReadBytesFromResponse(r)
+	if err != nil {
+		return nil, "", resp, err
+	}
+	return data, SanitizeFilename(params["filename"]), resp, nil
+}
+
 func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
 	if err != nil {

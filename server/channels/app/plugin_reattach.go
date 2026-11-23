@@ -15,6 +15,10 @@ func (a *App) ReattachPlugin(manifest *model.Manifest, pluginReattachConfig *mod
 
 // ReattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
 func (ch *Channels) ReattachPlugin(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) *model.AppError {
+	if model.IsReservedPluginID(manifest.Id) {
+		return model.NewAppError("ReattachPlugin", "app.plugin.reserved_id.app_error", map[string]any{"ID": manifest.Id}, "", http.StatusBadRequest)
+	}
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("ReattachPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
