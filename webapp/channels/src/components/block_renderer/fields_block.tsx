@@ -100,9 +100,21 @@ function FieldValue({field, postId}: {field: MmField; postId: string}) {
 }
 
 function FieldCell({field, postId}: {field: MmField; postId: string}) {
+    const {mmBlocksActionCookie, integrationFormat} = useContext(MmBlocksInlineMarkdownActionsContext);
+    const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     return (
         <div className='mm-blocks-field'>
-            {field.label ? <div className='mm-blocks-field__label'>{field.label}</div> : null}
+            {field.label ? (
+                <div className='mm-blocks-field__label'>
+                    <Markdown
+                        message={field.label}
+                        postId={postId}
+                        allowInlineActions={!interactionsDisabled}
+                        mmBlocksActionCookie={mmBlocksActionCookie}
+                        integrationFormat={integrationFormat}
+                    />
+                </div>
+            ) : null}
             {(field.value || field.url || field.type_id) ? (
                 <FieldValue
                     field={field}

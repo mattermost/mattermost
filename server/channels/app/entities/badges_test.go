@@ -66,16 +66,17 @@ func TestDynamicBadgeHits(t *testing.T) {
 		Value: "TICKET-2002",
 	}, hits[ownerB][0])
 
-	t.Run("uses TypeIDs[0] when set", func(t *testing.T) {
+	t.Run("uses matcher type even when TypeIDs[0] differs", func(t *testing.T) {
 		entity := &model.PostEntity{
 			MatcherID: ownerA + ":mark.scan",
 			Value:     "BADGE-7777",
-			TypeIDs:   []string{ownerA + ":mark", "ignored"},
+			TypeIDs:   []string{ownerB + ":ticket", ownerA + ":mark"},
 		}
 		hits := DynamicBadgeHits([]*model.PostEntity{entity})
 		require.Len(t, hits[ownerA], 1)
 		assert.Equal(t, "mark", hits[ownerA][0].Type)
 		assert.Equal(t, "BADGE-7777", hits[ownerA][0].Value)
+		assert.Empty(t, hits[ownerB])
 	})
 
 	t.Run("empty list returns nil", func(t *testing.T) {

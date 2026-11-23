@@ -1164,6 +1164,7 @@ describe('rhs view actions', () => {
                 state: RHSStates.ENTITY,
                 entity,
                 previousSelectedPostId: '',
+                previousPluggableId: '',
             }]);
         });
 
@@ -1185,7 +1186,32 @@ describe('rhs view actions', () => {
                 state: RHSStates.ENTITY,
                 entity,
                 previousSelectedPostId: 'post1',
+                previousPluggableId: '',
                 preservePreviousRhsStates: true,
+            }]);
+        });
+
+        it('remembers the covered plugin panel id', () => {
+            const entity: EntitySelection = {
+                typeId: 'mm:time',
+                value: '16:30',
+                label: 'Time',
+            };
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.PLUGIN as RhsState;
+            testState.views.rhs.pluggableId = pluggableId;
+            testState.views.rhs.selectedPostId = '';
+            const pluginStore = mockStore(testState);
+
+            pluginStore.dispatch(showEntity(entity));
+
+            expect(pluginStore.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.ENTITY,
+                entity,
+                previousSelectedPostId: '',
+                previousPluggableId: pluggableId,
+                previousRhsState: RHSStates.PLUGIN,
             }]);
         });
     });
@@ -1250,6 +1276,23 @@ describe('rhs view actions', () => {
                         timestamp: 0,
                     },
                 ],
+            }]);
+        });
+
+        it('restores the covered plugin panel with its pluggableId', async () => {
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
+            testState.views.rhs.previousSelectedPostId = '';
+            testState.views.rhs.previousRhsStates = [RHSStates.PLUGIN as RhsState];
+            testState.views.rhs.previousPluggableId = pluggableId;
+            const entityStore = mockStore(testState);
+
+            await entityStore.dispatch(closeEntity());
+
+            expect(entityStore.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.PLUGIN,
+                pluggableId,
             }]);
         });
     });

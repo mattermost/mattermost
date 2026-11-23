@@ -247,6 +247,7 @@ func (a *App) applyEntityBadges(rctx request.CTX, list []*model.PostEntity) bool
 		}
 		hooks, err := env.HooksForPlugin(owner)
 		if err != nil {
+			complete = false
 			continue
 		}
 		type badgeResult struct {

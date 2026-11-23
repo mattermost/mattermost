@@ -723,17 +723,13 @@ func DynamicBadgeHits(entities []*model.PostEntity) map[string][]model.EntityBad
 		if !ok || !stored.dynamicBadge {
 			continue
 		}
-		typeID := stored.typeID
-		if len(entity.TypeIDs) > 0 {
-			typeID = entity.TypeIDs[0]
-		}
-		key := stored.ref.Owner + "\n" + typeID + "\n" + entity.Value
+		key := stored.ref.Owner + "\n" + stored.typeID + "\n" + entity.Value
 		if _, ok := seen[key]; ok {
 			continue
 		}
 		seen[key] = struct{}{}
 		out[stored.ref.Owner] = append(out[stored.ref.Owner], model.EntityBadgeItem{
-			Type:  LocalRef(stored.ref.Owner, typeID),
+			Type:  LocalRef(stored.ref.Owner, stored.typeID),
 			Value: entity.Value,
 		})
 	}
@@ -769,11 +765,7 @@ func ApplyBadges(entities []*model.PostEntity, owner string, items []model.Entit
 		if !ok || !stored.dynamicBadge || stored.ref.Owner != owner {
 			continue
 		}
-		typeID := stored.typeID
-		if len(entity.TypeIDs) > 0 {
-			typeID = entity.TypeIDs[0]
-		}
-		if badge, ok := byKey[typeID+"\n"+entity.Value]; ok {
+		if badge, ok := byKey[stored.typeID+"\n"+entity.Value]; ok {
 			entity.Badge = badge
 		}
 	}

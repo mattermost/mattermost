@@ -192,6 +192,25 @@ function previousSelectedPostId(state = '', action: MMAction) {
     }
 }
 
+// previousPluggableId remembers the plugin panel covered by the entity RHS. goBack only
+// restores the PLUGIN enum; without this id getActiveRhsComponent has nothing to mount.
+function previousPluggableId(state = '', action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state === RHSStates.ENTITY) {
+            return action.previousPluggableId ?? '';
+        }
+        return '';
+    case ActionTypes.SELECT_POST:
+    case ActionTypes.SELECT_POST_CARD:
+    case ActionTypes.RHS_GO_BACK:
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
 function selectedEntity(state: EntitySelection | null = null, action: MMAction): EntitySelection | null {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_STATE:
@@ -492,6 +511,7 @@ export default combineReducers({
     selectedChannelId,
     highlightedPostId,
     previousSelectedPostId,
+    previousPluggableId,
     previousRhsStates,
     filesSearchExtFilter,
     selectedEntity,

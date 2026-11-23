@@ -130,6 +130,22 @@ describe('FieldsBlock', () => {
             />,
         );
 
-        expect(screen.getByTestId('markdown-mock').parentElement).toHaveClass('mm-blocks-field__value--tone-danger');
+        const value = screen.getByText('9.8');
+        expect(value).toHaveAttribute('data-testid', 'markdown-mock');
+        expect(value.parentElement).toHaveClass('mm-blocks-field__value--tone-danger');
+    });
+
+    it('renders field labels through Markdown', () => {
+        renderWithContext(
+            <FieldsBlock
+                block={{
+                    type: 'fields',
+                    fields: [{label: '[Build](https://example.com/build)', value: 'ok'}],
+                }}
+                postId='post-1'
+            />,
+        );
+
+        expect(screen.getByText('[Build](https://example.com/build)')).toBeInTheDocument();
     });
 });

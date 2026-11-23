@@ -38,6 +38,7 @@ describe('Reducers.RHS', () => {
         searchTeam: null,
         selectedEntity: null,
         previousSelectedPostId: '',
+        previousPluggableId: '',
         mentionFilters: defaultMentionFilters,
     };
 
@@ -719,6 +720,7 @@ describe('Reducers.RHS', () => {
             searchTeam: null,
             selectedEntity: null,
             previousSelectedPostId: '',
+            previousPluggableId: '',
             mentionFilters: defaultMentionFilters,
         };
 

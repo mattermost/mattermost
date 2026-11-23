@@ -467,8 +467,10 @@ export function blockSummary(block: MmBlock | MmColumnBlock): string {
         return 'Collapsible section';
     case 'divider':
         return 'Horizontal rule';
-    case 'fields':
-        return `${block.fields.length} field${block.fields.length === 1 ? '' : 's'}`;
+    case 'fields': {
+        const count = Array.isArray(block.fields) ? block.fields.length : 0;
+        return `${count} field${count === 1 ? '' : 's'}`;
+    }
     default:
         return 'Unknown block';
     }
@@ -605,6 +607,11 @@ export function setPropertyValue(
             const parsed = JSON.parse(raw);
             if (key === 'options' && Array.isArray(parsed)) {
                 next[key] = parsed as MmStaticSelectOption[];
+            } else if (key === 'fields') {
+                if (!Array.isArray(parsed)) {
+                    return block;
+                }
+                next[key] = parsed;
             } else if (key === 'query' && typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
                 next[key] = parsed as Record<string, string>;
             } else {

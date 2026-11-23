@@ -35,6 +35,8 @@ import {
     getFilesSearchExtFilter,
     getPreviousRhsState,
     getPreviousSelectedPostId,
+    getPreviousPluggableId,
+    getSelectedEntity,
     getSelectedPostId,
     getSearchTeam,
 } from 'selectors/rhs';
@@ -541,12 +543,15 @@ export function showEntity(entity: EntitySelection): ActionFunc<boolean> {
         // Threads are selectedPostId with a null rhsState. Remember the thread so Back can
         // restore it; when already on an entity card, keep any thread we came from.
         const previousSelectedPostId = selectedPostId || (alreadyEntity ? getPreviousSelectedPostId(state) : '');
+        const previousPluggableId = (rhsState === RHSStates.PLUGIN && getPluggableId(state)) ||
+            (alreadyEntity ? getPreviousPluggableId(state) : '');
 
         const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: RHSStates.ENTITY,
             entity,
             previousSelectedPostId,
+            previousPluggableId,
         };
 
         if (selectedPostId) {
@@ -590,8 +595,10 @@ export function closeRightHandSide(): ActionFunc {
 export function closeEntity(): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
+        const closingEntity = getSelectedEntity(state);
         const returnPostId = getPreviousSelectedPostId(state);
         const previousRhsState = getPreviousRhsState(state);
+        const previousPluggableId = getPreviousPluggableId(state);
 
         if (returnPostId) {
             const post = getPost(state, returnPostId);
@@ -601,11 +608,29 @@ export function closeEntity(): ActionFuncAsync<boolean> {
                 dispatch(selectPostPreservingRhsStack(post));
                 return {data: true};
             }
-            const result = await dispatch(selectPostById(returnPostId, {preservePreviousRhsStates: true}));
-            if (result.data) {
+            const fetched = (await dispatch(fetchPost(returnPostId))).data as Post | undefined;
+            const stillClosingSameEntity = getRhsState(getState()) === RHSStates.ENTITY &&
+                getSelectedEntity(getState()) === closingEntity;
+            if (!stillClosingSameEntity) {
+                return {data: true};
+            }
+            const restored = fetched && fetched.state !== 'DELETED' && fetched.delete_at === 0 ? fetched : undefined;
+            if (restored) {
+                const channel = getChannelSelector(getState(), restored.channel_id);
+                if (!channel) {
+                    await dispatch(getChannel(restored.channel_id));
+                }
+                if (getRhsState(getState()) !== RHSStates.ENTITY || getSelectedEntity(getState()) !== closingEntity) {
+                    return {data: true};
+                }
+                dispatch(selectPostPreservingRhsStack(restored));
                 return {data: true};
             }
             dispatch(closeRightHandSide());
+            return {data: true};
+        }
+        if (previousRhsState === RHSStates.PLUGIN && previousPluggableId) {
+            dispatch(showRHSPlugin(previousPluggableId));
             return {data: true};
         }
         if (previousRhsState) {
