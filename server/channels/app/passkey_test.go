@@ -4,6 +4,9 @@
 package app
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -142,4 +145,162 @@ func TestPasskeyRelyingParty(t *testing.T) {
 			require.Equal(t, 5*time.Minute, cfg.Timeouts.Login.Timeout)
 		})
 	}
+}
+
+func TestBeginPasskeyRegistration(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+
+	freshSession := func(userID string) *model.Session {
+		return &model.Session{
+			Id:       model.NewId(),
+			UserId:   userID,
+			CreateAt: model.GetMillis(),
+			Props:    model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard},
+		}
+	}
+
+	// creation mirrors the parts of the library's creation options the tests inspect.
+	type creation struct {
+		PublicKey struct {
+			RP struct {
+				ID string `json:"id"`
+			} `json:"rp"`
+			User struct {
+				ID          string `json:"id"`
+				Name        string `json:"name"`
+				DisplayName string `json:"displayName"`
+			} `json:"user"`
+			AuthenticatorSelection struct {
+				ResidentKey      string `json:"residentKey"`
+				UserVerification string `json:"userVerification"`
+			} `json:"authenticatorSelection"`
+			ExcludeCredentials []struct {
+				ID string `json:"id"`
+			} `json:"excludeCredentials"`
+		} `json:"publicKey"`
+	}
+	begin := func(t *testing.T, session *model.Session) (*model.PasskeyRegistrationOptions, creation) {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+		require.NotNil(t, opts)
+		var c creation
+		require.NoError(t, json.Unmarshal(opts.Options, &c))
+		return opts, c
+	}
+	requireFails := func(t *testing.T, session *model.Session, status int, id string) {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, opts)
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+
+	t.Run("fresh standard session gets options and a stored ceremony", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+
+		opts, c := begin(t, session)
+
+		require.Equal(t, "localhost", c.PublicKey.RP.ID)
+		require.Equal(t, "required", c.PublicKey.AuthenticatorSelection.UserVerification)
+		require.Equal(t, "required", c.PublicKey.AuthenticatorSelection.ResidentKey)
+		require.Equal(t, user.Username, c.PublicKey.User.Name)
+		handle, err := base64.RawURLEncoding.DecodeString(c.PublicKey.User.ID)
+		require.NoError(t, err)
+		require.Len(t, handle, model.PasskeyUserHandleSize)
+		require.Empty(t, c.PublicKey.ExcludeCredentials)
+
+		token, err := th.App.Srv().Store().Token().GetByToken(opts.CeremonyId)
+		require.NoError(t, err)
+		require.Equal(t, model.TokenTypePasskeyRegistration, token.Type)
+		var ceremony passkeyCeremony
+		require.NoError(t, json.Unmarshal([]byte(token.Extra), &ceremony))
+		require.Equal(t, user.Id, ceremony.UserID)
+		require.Equal(t, session.Id, ceremony.SessionID)
+		require.NotNil(t, ceremony.SessionData)
+	})
+
+	t.Run("existing passkey is excluded and its handle reused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		existing := savePasskey(t, th, user.Id, "existing", model.GetMillis())
+
+		_, c := begin(t, freshSession(user.Id))
+
+		require.Len(t, c.PublicKey.ExcludeCredentials, 1)
+		require.Equal(t, base64.RawURLEncoding.EncodeToString(existing.CredentialId), c.PublicKey.ExcludeCredentials[0].ID)
+		require.Equal(t, base64.RawURLEncoding.EncodeToString(existing.UserHandle), c.PublicKey.User.ID)
+	})
+
+	t.Run("display name is the full name, else the username", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, c := begin(t, freshSession(user.Id))
+		require.Equal(t, user.Username, c.PublicKey.User.DisplayName)
+
+		named := th.CreateUser(t)
+		named.FirstName, named.LastName = "Ada", "Lovelace"
+		_, appErr := th.App.UpdateUser(th.Context, named, false)
+		require.Nil(t, appErr)
+		_, c = begin(t, freshSession(named.Id))
+		require.Equal(t, "Ada Lovelace", c.PublicKey.User.DisplayName)
+	})
+
+	t.Run("session older than the window is refused", func(t *testing.T) {
+		session := freshSession(th.CreateUser(t).Id)
+		session.CreateAt = model.GetMillis() - 11*60*1000
+		requireFails(t, session, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("session without a login method is refused", func(t *testing.T) {
+		session := freshSession(th.CreateUser(t).Id)
+		session.Props = nil
+		requireFails(t, session, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("passkey login method is refused", func(t *testing.T) {
+		session := freshSession(th.CreateUser(t).Id)
+		session.Props[model.SessionPropLoginMethod] = "passkey"
+		requireFails(t, session, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("bot is refused", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		requireFails(t, freshSession(bot.UserId), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+	})
+
+	t.Run("remote user is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET RemoteId = ? WHERE Id = ?`, model.NewId(), user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+		requireFails(t, freshSession(user.Id), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+	})
+
+	t.Run("user at the passkey limit is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		for i := range model.PasskeyMaxPerUser {
+			savePasskey(t, th, user.Id, fmt.Sprintf("key %d", i), model.GetMillis())
+		}
+		requireFails(t, freshSession(user.Id), http.StatusBadRequest, "app.passkey.limit_reached.app_error")
+	})
+
+	t.Run("internationalized Site URL gives an ASCII relying party ID", func(t *testing.T) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://bücher.example"
+		})
+		_, c := begin(t, freshSession(th.CreateUser(t).Id))
+		require.Equal(t, "xn--bcher-kva.example", c.PublicKey.RP.ID)
+	})
+
+	t.Run("unusable Site URL passes the relying party error through", func(t *testing.T) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = ""
+		})
+		requireFails(t, freshSession(th.CreateUser(t).Id), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
+	})
 }

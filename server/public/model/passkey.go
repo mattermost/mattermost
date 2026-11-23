@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"net"
 	"net/http"
 	"net/url"
@@ -69,6 +70,13 @@ func (p *Passkey) IsValid() *AppError {
 		return NewAppError("Passkey.IsValid", "model.passkey.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
+}
+
+// PasskeyRegistrationOptions is what the client needs to run a registration ceremony. Options is
+// the WebAuthn library's creation options, kept opaque here so this package does not import it.
+type PasskeyRegistrationOptions struct {
+	CeremonyId string          `json:"ceremony_id"`
+	Options    json.RawMessage `json:"options"`
 }
 
 // PasskeyRPID returns the WebAuthn relying-party ID for a Site URL and whether passkeys can work with it.
