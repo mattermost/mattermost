@@ -90,7 +90,12 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             />
         );
     case 'fields':
-        return <FieldsBlock block={block}/>;
+        return (
+            <FieldsBlock
+                block={block}
+                postId={postId}
+            />
+        );
     default:
         return null;
     }

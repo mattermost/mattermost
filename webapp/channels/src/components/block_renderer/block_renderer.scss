@@ -566,17 +566,17 @@ $mm-blocks-container-max-heights: (
         }
 
         &--tone-good {
-            background: rgba(var(--semantic-color-success-rgb, 61, 140, 80), 0.16);
+            background: rgba(var(--semantic-color-success), 0.16);
             color: rgb(var(--semantic-color-success));
         }
 
         &--tone-warning {
-            background: rgba(var(--semantic-color-warning-rgb, 249, 160, 9), 0.2);
+            background: rgba(var(--semantic-color-warning), 0.2);
             color: rgb(var(--semantic-color-warning));
         }
 
         &--tone-danger {
-            background: rgba(var(--semantic-color-danger-rgb, 210, 75, 78), 0.16);
+            background: rgba(var(--semantic-color-danger), 0.16);
             color: rgb(var(--semantic-color-danger));
         }
 

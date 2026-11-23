@@ -213,28 +213,34 @@ func patternCacheKey(postID, hash string) string {
 
 func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generation string) []*model.PostEntity {
 	found, protected := a.scanPostPatterns(post, hash, generation)
-	a.applyEntityBadges(rctx, found)
+	found = clonePostEntities(found)
+	badgesOK := a.applyEntityBadges(rctx, found)
 	merged := entities.ApplyTerms(post.Message, protected, found)
-	a.enqueuePatternWrite(rctx, patternCacheKey(post.Id, hash), model.EntityPatternCache{
-		Generation: generation,
-		Protected:  append([][2]int(nil), protected...),
-		Patterns:   clonePostEntities(found),
-	})
+	if badgesOK {
+		a.enqueuePatternWrite(rctx, patternCacheKey(post.Id, hash), model.EntityPatternCache{
+			Generation: generation,
+			Protected:  append([][2]int(nil), protected...),
+			Patterns:   clonePostEntities(found),
+		})
+	}
 	return merged
 }
 
 const entityBadgeBudget = 50 * time.Millisecond
 const maxEntityBadgeItems = 100
 
-func (a *App) applyEntityBadges(rctx request.CTX, list []*model.PostEntity) {
+// applyEntityBadges fills dynamic badges on list. It returns false when a lookup
+// timed out or errored so the caller can skip caching an incomplete result.
+func (a *App) applyEntityBadges(rctx request.CTX, list []*model.PostEntity) bool {
 	byOwner := entities.DynamicBadgeHits(list)
 	if len(byOwner) == 0 {
-		return
+		return true
 	}
 	env := a.GetPluginsEnvironment()
 	if env == nil {
-		return
+		return true
 	}
+	complete := true
 	for owner, items := range byOwner {
 		if len(items) > maxEntityBadgeItems {
 			items = items[:maxEntityBadgeItems]
@@ -254,16 +260,19 @@ func (a *App) applyEntityBadges(rctx request.CTX, list []*model.PostEntity) {
 		}(owner, items)
 		select {
 		case <-rctx.Context().Done():
-			return
+			return false
 		case <-time.After(entityBadgeBudget):
+			complete = false
 			continue
 		case result := <-done:
 			if result.err != nil {
+				complete = false
 				continue
 			}
 			entities.ApplyBadges(list, owner, items, result.badges)
 		}
 	}
+	return complete
 }
 
 func (a *App) scanPostPatterns(post *model.Post, hash, generation string) ([]*model.PostEntity, [][2]int) {

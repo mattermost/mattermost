@@ -124,11 +124,6 @@ function sectionItemLabel(item: {head?: string; url?: string}) {
     return item.head || host;
 }
 
-function entityOwner(typeId: string) {
-    const i = typeId.indexOf(':');
-    return i > 0 ? typeId.slice(0, i) : '';
-}
-
 function externalHref(value: string) {
     if (value.startsWith('https://') || value.startsWith('http://')) {
         return value;
@@ -269,14 +264,9 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const timezone = useSelector(getCurrentTimezone);
     const military = useSelector(isUseMilitaryTime);
     const parts = useSelector((state: GlobalState) => state.plugins.components.EntityCardPart);
-    const owner = entityOwner(card.type_id);
-    const ownedParts = useMemo(
-        () => (owner ? parts.filter((part) => part.pluginId === owner) : []),
-        [parts, owner],
-    );
-    const mapParts = ownedParts.filter((part) => part.part === 'map');
-    const clockParts = ownedParts.filter((part) => part.part === 'clocks');
-    const extraParts = ownedParts.filter((part) => part.part !== 'map' && part.part !== 'clocks');
+    const mapParts = parts.filter((part) => part.part === 'map');
+    const clockParts = parts.filter((part) => part.part === 'clocks');
+    const extraParts = parts.filter((part) => part.part !== 'map' && part.part !== 'clocks');
     const severityKey = (card.severity || '').toLowerCase();
     const severity = severityKey && Object.hasOwn(severityStyle, severityKey) ? severityKey : '';
     const cardHref = card.url ? externalHref(card.url) : '';

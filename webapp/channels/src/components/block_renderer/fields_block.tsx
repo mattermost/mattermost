@@ -7,11 +7,13 @@ import React, {useContext, useMemo} from 'react';
 import type {MmField, MmFieldsBlock} from '@mattermost/types/mm_blocks';
 
 import ExternalLink from 'components/external_link';
+import Markdown from 'components/markdown';
 
-import {MmBlocksFieldOpenContext} from './context';
+import {MmBlocksFieldOpenContext, MmBlocksInlineMarkdownActionsContext, MmBlocksInteractionsDisabledContext} from './context';
 
 type FieldsBlockProps = {
     block: MmFieldsBlock;
+    postId: string;
 };
 
 function externalHref(value: string) {
@@ -51,8 +53,10 @@ function layoutFields(fields: MmField[]): FieldRow[] {
     return rows;
 }
 
-function FieldValue({field}: {field: MmField}) {
+function FieldValue({field, postId}: {field: MmField; postId: string}) {
     const onOpen = useContext(MmBlocksFieldOpenContext);
+    const {mmBlocksActionCookie, integrationFormat} = useContext(MmBlocksInlineMarkdownActionsContext);
+    const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     const href = field.url ? externalHref(field.url) : '';
     const toneClass = field.tone && field.tone !== 'default' ? `mm-blocks-field__value--tone-${field.tone}` : undefined;
     const valueClass = classNames('mm-blocks-field__value', toneClass);
@@ -79,19 +83,37 @@ function FieldValue({field}: {field: MmField}) {
             </ExternalLink>
         );
     }
-    return <span className={valueClass}>{field.value}</span>;
+    if (!field.value) {
+        return null;
+    }
+    return (
+        <span className={valueClass}>
+            <Markdown
+                message={field.value}
+                postId={postId}
+                allowInlineActions={!interactionsDisabled}
+                mmBlocksActionCookie={mmBlocksActionCookie}
+                integrationFormat={integrationFormat}
+            />
+        </span>
+    );
 }
 
-function FieldCell({field}: {field: MmField}) {
+function FieldCell({field, postId}: {field: MmField; postId: string}) {
     return (
         <div className='mm-blocks-field'>
             {field.label ? <div className='mm-blocks-field__label'>{field.label}</div> : null}
-            {(field.value || field.url || field.type_id) ? <FieldValue field={field}/> : null}
+            {(field.value || field.url || field.type_id) ? (
+                <FieldValue
+                    field={field}
+                    postId={postId}
+                />
+            ) : null}
         </div>
     );
 }
 
-export const FieldsBlock = ({block}: FieldsBlockProps) => {
+export const FieldsBlock = ({block, postId}: FieldsBlockProps) => {
     const rows = useMemo(() => layoutFields(block.fields || []), [block.fields]);
     if (rows.length === 0) {
         return null;
@@ -108,8 +130,14 @@ export const FieldsBlock = ({block}: FieldsBlockProps) => {
                             key={i}
                             className='mm-blocks-fields__row mm-blocks-fields__row--pair'
                         >
-                            <FieldCell field={row.left}/>
-                            <FieldCell field={row.right}/>
+                            <FieldCell
+                                field={row.left}
+                                postId={postId}
+                            />
+                            <FieldCell
+                                field={row.right}
+                                postId={postId}
+                            />
                         </div>
                     );
                 }
@@ -118,7 +146,10 @@ export const FieldsBlock = ({block}: FieldsBlockProps) => {
                         key={i}
                         className='mm-blocks-fields__row'
                     >
-                        <FieldCell field={row.field}/>
+                        <FieldCell
+                            field={row.field}
+                            postId={postId}
+                        />
                     </div>
                 );
             })}
