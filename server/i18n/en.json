@@ -3779,6 +3779,16 @@
     "description": "API error shown when someone tries to use or manage outgoing webhooks while the admin has turned the feature off; outgoing webhooks send channel messages to external services."
   },
   {
+    "id": "api.passkey.feature_disabled.app_error",
+    "translation": "Passkeys are not enabled.",
+    "description": "API error when a passkey endpoint is called while the passkeys feature flag is off."
+  },
+  {
+    "id": "api.passkey.license.app_error",
+    "translation": "Passkeys require a Professional license or higher.",
+    "description": "API error when a passkey endpoint is called on a server without at least a Professional license."
+  },
+  {
     "id": "api.payload.parse.error",
     "translation": "An error occurred while parsing the payload.",
     "description": "Generic API error returned when a request body sent to the server cannot be parsed; 'payload' is the request body, audience is API clients/developers."

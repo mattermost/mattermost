@@ -2031,6 +2031,27 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
+// GetPasskeysForUser returns the passkeys registered to the user, oldest first. Credential
+// material is never returned. Only the user themselves may list their passkeys.
+func (c *Client4) GetPasskeysForUser(ctx context.Context, userID string) ([]*Passkey, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.userRoute(userID).Join("passkeys"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Passkey](r)
+}
+
+// DeletePasskey removes one of the user's passkeys. Only the user themselves may delete it.
+func (c *Client4) DeletePasskey(ctx context.Context, userID, passkeyID string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.userRoute(userID).Join("passkeys", passkeyID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // RotateUserAccessToken generates a new secret for the token identified by tokenId,
 // sets a new expiry, and immediately invalidates the old secret and its sessions.
 // The returned token carries the new secret (shown once, like CreateUserAccessToken).
