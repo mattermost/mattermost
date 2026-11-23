@@ -15171,6 +15171,10 @@
     "defaultMessage": "E.g.: \"http://example.com:8065\"",
     "description": "Placeholder example value for the Site URL input on the System Console Web Server page."
   },
+  "admin.service.siteURLPasskeyWarning": {
+    "defaultMessage": "Changing the Site URL's host name will stop existing passkeys from working. Users will need to add new passkeys.",
+    "description": ""
+  },
   "admin.service.ssoSessionHours": {
     "defaultMessage": "Session Length SSO (hours):",
     "description": "Label of a numeric input in the System Console > Session Lengths page; SSO refers to single sign-on authentication (SAML, GitLab, OAuth)."

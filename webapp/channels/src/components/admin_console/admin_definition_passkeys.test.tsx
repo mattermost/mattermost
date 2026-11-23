@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ClientLicense} from '@mattermost/types/config';
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
@@ -65,5 +65,48 @@ describe('AdminDefinition - Passkeys', () => {
         expect(s.type).toBe('bool');
         expect(isDisabled(s, access(true, false))).toBe(true);
         expect(isDisabled(s, access(true, true))).toBe(false);
+    });
+});
+
+describe('AdminDefinition - Site URL passkey warning', () => {
+    const webServer = AdminDefinition.environment.subsections.web_server.schema as {settings: AdminDefinitionSetting[]};
+    const banner = webServer.settings.find(
+        (s) => s.type === 'banner' && 'label' in s && (s.label as {id: string}).id === 'admin.service.siteURLPasskeyWarning',
+    ) as AdminDefinitionSetting;
+
+    function hidden(saved: string, edited: string | undefined, sku: string | undefined = LicenseSkus.Professional, flag = true) {
+        const check = banner.isHidden as Exclude<Check, boolean>;
+        return check({FeatureFlags: {Passkeys: flag}, ServiceSettings: {SiteURL: saved}} as unknown as Partial<AdminConfig>, {'ServiceSettings.SiteURL': edited}, license(sku));
+    }
+
+    test('is a warning banner', () => {
+        expect((banner as {banner_type?: string}).banner_type).toBe('warning');
+    });
+
+    test('shows when the host changes', () => {
+        expect(hidden('https://chat.example.com', 'https://mm.example.com')).toBe(false);
+    });
+
+    test.each([
+        'https://chat.example.com',
+        'https://chat.example.com:8443/mm',
+        'http://chat.example.com',
+        'https://CHAT.example.com',
+    ])('stays hidden when %s differs only by scheme, port, path or case', (edited) => {
+        expect(hidden('https://chat.example.com', edited)).toBe(true);
+    });
+
+    test('stays hidden when the saved URL is empty', () => {
+        expect(hidden('', 'https://mm.example.com')).toBe(true);
+    });
+
+    test.each(['', undefined, 'not a url', 'https://'])('stays hidden for edited value %p', (edited) => {
+        expect(hidden('https://chat.example.com', edited)).toBe(true);
+    });
+
+    test('is hidden when the flag is off or the license is below Professional', () => {
+        expect(hidden('https://chat.example.com', 'https://mm.example.com', LicenseSkus.Professional, false)).toBe(true);
+        expect(hidden('https://chat.example.com', 'https://mm.example.com', LicenseSkus.Starter)).toBe(true);
+        expect(hidden('https://chat.example.com', 'https://mm.example.com', '')).toBe(true);
     });
 });

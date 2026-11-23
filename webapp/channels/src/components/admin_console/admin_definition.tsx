@@ -293,6 +293,15 @@ const adminDefinitionMessages = defineMessages({
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 
+// Passkeys are bound to the Site URL's host name. Unparseable or empty values (an admin mid-typing) never count as a change.
+function siteURLHostChanged(saved?: string, edited?: string) {
+    try {
+        return Boolean(saved && edited) && new URL(saved!).hostname !== new URL(edited!).hostname;
+    } catch {
+        return false;
+    }
+}
+
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
     it.not(it.minLicenseTier(LicenseSkus.Professional)),
@@ -1048,6 +1057,16 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                            ),
+                        },
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.service.siteURLPasskeyWarning', defaultMessage: 'Changing the Site URL\'s host name will stop existing passkeys from working. Users will need to add new passkeys.'}),
+                            banner_type: 'warning',
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'Passkeys'),
+                                it.not(it.minLicenseTier(LicenseSkus.Professional)),
+                                (config, state) => !siteURLHostChanged(config.ServiceSettings?.SiteURL, state['ServiceSettings.SiteURL']),
                             ),
                         },
                         {
