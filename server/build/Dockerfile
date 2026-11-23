@@ -8,9 +8,6 @@ FROM ${BASE_IMAGE} AS base
 FROM ${BUILDER_IMAGE} AS builder
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]
 
-# Build Arguments
-ARG PUID=2000
-ARG PGID=2000
 # MM_PACKAGE build arguments controls which version of mattermost to install, defaults to latest stable enterprise
 # e.g. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
@@ -54,13 +51,13 @@ RUN curl -fsSL --retry 3 --connect-timeout 30 --max-time 120 \
         "/tmp/poppler-data-${POPPLER_DATA_VERSION}/COPYING.gpl2" /base-chroot/usr/share/licenses/poppler-data/ \
   && rm -rf /tmp/poppler-data.tar.gz "/tmp/poppler-data-${POPPLER_DATA_VERSION}"
 
-RUN chown -R "${PUID}:${PGID}" /base-chroot/etc/ssl/certs \
+RUN chown -R 2000:2000 /base-chroot/etc/ssl/certs \
   && chmod 1777 /base-chroot/var/tmp
 
 # Download Mattermost
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   && curl -L $MM_PACKAGE | tar -xvz \
-  && chown -R ${PUID}:${PGID} /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+  && chown -R 2000:2000 /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
 # Create PostgreSQL client SSL directory structure for ssl_mode=require
 RUN mkdir -p /mattermost/.postgresql \
