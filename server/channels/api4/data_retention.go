@@ -164,6 +164,12 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The audit record is created before the permission check so a denied
+	// request is still logged as a failed audit event, as on the
+	// merge-base; only its event parameters are added after validation.
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Permission is checked before RequirePolicyId so a caller without
 	// the permission gets 403 even for an invalid policy_id, matching
 	// getPolicy; the 400 for a bad id is only for authorized callers.
@@ -178,8 +184,6 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	patch.ID = c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchPolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &patch)
 
 	policy, appErr := c.App.PatchRetentionPolicy(&patch)
@@ -203,6 +207,12 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// The audit record is created before the permission check so a denied
+	// request is still logged as a failed audit event, as on the
+	// merge-base; only its event parameters are added after validation.
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Permission is checked before RequirePolicyId so a caller without
 	// the permission gets 403 even for an invalid policy_id, matching
 	// getPolicy; the 400 for a bad id is only for authorized callers.
@@ -217,8 +227,6 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	policyId := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventDeletePolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 
 	err := c.App.DeleteRetentionPolicy(policyId)
@@ -302,6 +310,12 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// The audit record is created before the permission check so a denied
+	// request is still logged as a failed audit event, as on the
+	// merge-base; only its event parameters are added after validation.
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamsToPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Permission is checked before RequirePolicyId so a caller without
 	// the permission gets 403 even for an invalid policy_id, matching
 	// getPolicy; the 400 for a bad id is only for authorized callers.
@@ -320,8 +334,6 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamsToPolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
 
@@ -336,6 +348,12 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// The audit record is created before the permission check so a denied
+	// request is still logged as a failed audit event, as on the
+	// merge-base; only its event parameters are added after validation.
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamsFromPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Permission is checked before RequirePolicyId so a caller without
 	// the permission gets 403 even for an invalid policy_id, matching
 	// getPolicy; the 400 for a bad id is only for authorized callers.
@@ -354,8 +372,6 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamsFromPolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
 
@@ -447,6 +463,12 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// The audit record is created before the permission check so a denied
+	// request is still logged as a failed audit event, as on the
+	// merge-base; only its event parameters are added after validation.
+	auditRec := c.MakeAuditRecord(model.AuditEventAddChannelsToPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Permission is checked before RequirePolicyId so a caller without
 	// the permission gets 403 even for an invalid policy_id, matching
 	// getPolicy; the 400 for a bad id is only for authorized callers.
@@ -465,8 +487,6 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord(model.AuditEventAddChannelsToPolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 
@@ -481,6 +501,12 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// The audit record is created before the permission check so a denied
+	// request is still logged as a failed audit event, as on the
+	// merge-base; only its event parameters are added after validation.
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveChannelsFromPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Permission is checked before RequirePolicyId so a caller without
 	// the permission gets 403 even for an invalid policy_id, matching
 	// getPolicy; the 400 for a bad id is only for authorized callers.
@@ -499,8 +525,6 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord(model.AuditEventRemoveChannelsFromPolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 

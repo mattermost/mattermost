@@ -5,7 +5,9 @@ package api4
 
 import (
 	"context"
+	"io"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -14,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -1419,4 +1422,72 @@ func TestDataRetentionInvalidPolicyIdNoPermission(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
+}
+
+func TestDataRetentionDeniedMutationAuditRecord(t *testing.T) {
+	logFile, err := os.CreateTemp("", "adv.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+	}).InitBasic(t)
+
+	// A caller without the data retention permission must get 403 before
+	// the policy_id is validated, and the denied attempt must still be
+	// recorded in the audit log. On the merge-base the audit record was
+	// created before the permission check, so a denied mutation was logged
+	// as a failed audit event; moving the permission check ahead of
+	// MakeAuditRecord dropped that record. Regression test for the
+	// CodeRabbit review on PR #40260.
+	// "bad" matches the route regex ([A-Za-z0-9]+) so it reaches the
+	// handler, but it is not a valid model id.
+	invalidPolicyID := "bad"
+
+	_, resp, err := th.Client.PatchDataRetentionPolicy(context.Background(), &model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			ID:          invalidPolicyID,
+			DisplayName: "Updated Policy",
+		},
+	})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.Client.DeleteDataRetentionPolicy(context.Background(), invalidPolicyID)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.Client.AddTeamsToRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.Client.RemoveTeamsFromRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.Client.AddChannelsToRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.Client.RemoveChannelsFromRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Audit.Flush()
+	require.NoError(t, err)
+
+	require.NoError(t, logFile.Sync())
+
+	data, err := io.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+
+	for _, event := range []string{"patchPolicy", "deletePolicy", "addTeamsToPolicy", "removeTeamsFromPolicy", "addChannelsToPolicy", "removeChannelsFromPolicy"} {
+		entry := FindAuditEntry(string(data), event, th.BasicUser.Id)
+		require.NotNil(t, entry, "should find a %s audit entry for the denied request", event)
+		assert.Equal(t, model.AuditStatusFail, entry.Status, "denied %s attempt should be logged as failed", event)
+	}
 }
