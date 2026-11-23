@@ -4391,31 +4391,39 @@ func requireMaskedPatchKeepsHiddenOptions(t *testing.T, th *TestHelper, groupID 
 		requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
 	})
 
-	t.Run("the order of an echoed list is ignored", func(t *testing.T) {
-		for name, optionWrite := range map[string]model.PermissionLevel{
-			"with a rename":              model.PermissionLevelSysadmin,
-			"alone without option.write": model.PermissionLevelNone,
-		} {
-			t.Run(name, func(t *testing.T) {
-				field := createMaskedOptionsField(t, th, groupID, newName(), model.PropertyFieldTypeMultiselect, optionWrite, []string{"Alpha", "Beta", "Gamma"}, []string{"Alpha", "Beta"})
-				first := newName()
-				served, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &first})
-				require.NoError(t, err)
-				CheckOKStatus(t, resp)
-				require.ElementsMatch(t, []string{"Alpha", "Beta"}, inlineOptionNames(t, served))
+	// reorderServed renames the field so the caller has a served view, then
+	// sends that view back in reverse order, with or without a rename.
+	reorderServed := func(t *testing.T, optionWrite model.PermissionLevel, withRename bool) (*model.PropertyField, *model.Response, error) {
+		t.Helper()
+		field := createMaskedOptionsField(t, th, groupID, newName(), model.PropertyFieldTypeMultiselect, optionWrite, []string{"Alpha", "Beta", "Gamma"}, []string{"Alpha", "Beta"})
+		first := newName()
+		served, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &first})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{"Alpha", "Beta"}, inlineOptionNames(t, served))
 
-				reversed := options(servedOption(t, served, "Beta"), servedOption(t, served, "Alpha"))
-				p := &model.PropertyFieldPatch{Attrs: reversed}
-				if optionWrite == model.PermissionLevelSysadmin {
-					renamed := newName()
-					p.Name = &renamed
-				}
-				_, resp, err = patch(field.ID, p)
-				require.NoError(t, err)
-				CheckOKStatus(t, resp)
-				requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta", "Gamma")
-			})
+		p := &model.PropertyFieldPatch{Attrs: options(servedOption(t, served, "Beta"), servedOption(t, served, "Alpha"))}
+		if withRename {
+			renamed := newName()
+			p.Name = &renamed
 		}
+		patched, resp, err := patch(field.ID, p)
+		stored, storeErr := th.Store.PropertyField().Get(th.Context, groupID, field.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, []string{"Alpha", "Beta", "Gamma"}, inlineOptionNames(t, stored))
+		return patched, resp, err
+	}
+
+	t.Run("a reorder of the served list with a rename keeps the stored list", func(t *testing.T) {
+		_, resp, err := reorderServed(t, model.PermissionLevelSysadmin, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("a reorder of the served list alone needs option.write", func(t *testing.T) {
+		_, resp, err := reorderServed(t, model.PermissionLevelNone, false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("a console save of the served attrs with a new name keeps the hidden options", func(t *testing.T) {
@@ -4727,6 +4735,35 @@ func TestPropertyFieldPermissionsLockout(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, created.Permissions.Restrictions, patched.Permissions.Restrictions)
+	})
+
+	t.Run("a reorder of the options needs only option.write", func(t *testing.T) {
+		air, sea := model.NewId(), model.NewId()
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": air, "name": "Air"}, {"id": sea, "name": "Sea"}},
+			},
+			Permissions: &model.Permissions{Restrictions: restrictions(model.PermissionLevelSysadmin)},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		reordered := &model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"id": sea, "name": "Sea"}, {"id": air, "name": "Air"}},
+		}
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", created.ID, &model.PropertyFieldPatch{Attrs: reordered})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		stored, err := th.Store.PropertyField().Get(th.Context, group.ID, created.ID)
+		require.NoError(t, err)
+		require.Equal(t, []string{"Sea", "Air"}, inlineOptionNames(t, stored))
 	})
 
 	t.Run("callers outside the HTTP API may still leave field.write at none", func(t *testing.T) {

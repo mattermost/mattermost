@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"maps"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -222,8 +223,8 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// when the submitted option list differs from the one the caller was served.
 	optionsChanged := false
 	if patch.Attrs != nil {
-		if _, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
-			optionsChanged = model.PropertyFieldOptionsChanged(existingField.Attrs, *patch.Attrs)
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
 		}
 	}
 

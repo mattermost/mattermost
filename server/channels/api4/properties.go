@@ -8,6 +8,7 @@ import (
 	"errors"
 	"maps"
 	"net/http"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -744,8 +745,8 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// only the options they may see, and sending that back is not a change.
 	optionsChanged := false
 	if patch.Attrs != nil {
-		if _, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
-			optionsChanged = model.PropertyFieldOptionsChanged(existingField.Attrs, *patch.Attrs)
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
 		}
 	}
 
