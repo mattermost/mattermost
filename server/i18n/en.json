@@ -5683,6 +5683,21 @@
     "description": "Heading of the email confirming multi-factor authentication was removed from the account."
   },
   {
+    "id": "api.templates.passkey_added_body.info",
+    "translation": "A passkey named \"{{ .PasskeyName }}\" was added to your account on {{ .SiteURL }}. If you did not add it, sign in, remove it under Profile > Security, and contact your system administrator.",
+    "description": "Body text of the security email alerting the user that a passkey was added to their account; {{ .PasskeyName }} is the name the passkey was given, {{ .SiteURL }} the server URL. 'Profile > Security' is a menu path; match the translated UI labels."
+  },
+  {
+    "id": "api.templates.passkey_added_body.title",
+    "translation": "Passkey added to your account",
+    "description": "Heading of the security email alerting the user that a passkey (a sign-in credential stored on their device or password manager) was added to their account."
+  },
+  {
+    "id": "api.templates.passkey_added_subject",
+    "translation": "[{{ .SiteName }}] Passkey added to your account",
+    "description": "Subject line of the email about a new passkey on the account; {{ .SiteName }} is the site name."
+  },
+  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.",
     "description": "Body text of the password-change confirmation email; {{.TeamDisplayName}} is the site/team name, {{ .TeamURL }} its URL, and {{.Method}} how it changed (e.g. by you, by an admin)."

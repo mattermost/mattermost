@@ -18,6 +18,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -300,6 +301,10 @@ func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session
 			return nil, validationErr
 		}
 		return nil, model.NewAppError(where, "app.passkey.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().EmailService.SendPasskeyAddedEmail(user.Email, user.Locale, a.GetSiteURL(), saved.Name); err != nil {
+		rctx.Logger().Error("Unable to send passkey added email", mlog.Err(err), mlog.String("user_id", user.Id))
 	}
 	return saved, nil
 }

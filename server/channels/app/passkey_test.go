@@ -13,9 +13,11 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -516,6 +518,53 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, "http://evil.example"))
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
 		require.Empty(t, stored(t, user.Id))
+	})
+
+	mockEmail := func(t *testing.T) *emailmocks.ServiceInterface {
+		t.Helper()
+		mockSvc := &emailmocks.ServiceInterface{}
+		orig := th.App.Srv().EmailService
+		th.App.Srv().EmailService = mockSvc
+		t.Cleanup(func() { th.App.Srv().EmailService = orig })
+		return mockSvc
+	}
+
+	t.Run("sends the passkey added email once after a successful registration", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		mockSvc := mockEmail(t)
+		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "My laptop", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+		mockSvc.AssertNumberOfCalls(t, "SendPasskeyAddedEmail", 1)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("an email failure does not fail the registration", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		mockSvc := mockEmail(t)
+		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "a").Return(errors.New("smtp down")).Once()
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+		require.Len(t, stored(t, user.Id), 1)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("no email is sent for a refused registration", func(t *testing.T) {
+		session := freshSession(th.CreateUser(t).Id)
+		opts := begin(t, session)
+		mockSvc := mockEmail(t)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, model.NewId(), "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+		mockSvc.AssertNotCalled(t, "SendPasskeyAddedEmail")
 	})
 
 	t.Run("the same authenticator cannot be registered twice", func(t *testing.T) {
