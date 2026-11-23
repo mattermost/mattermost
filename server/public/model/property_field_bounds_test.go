@@ -258,3 +258,17 @@ func TestPropertyFieldIsValidBounds(t *testing.T) {
 		})
 	}
 }
+
+func TestPropertyFieldParentObjectType(t *testing.T) {
+	for objectType, want := range map[string]string{
+		PropertyFieldObjectTypePost:     PropertyFieldObjectTypeChannel,
+		PropertyFieldObjectTypeChannel:  PropertyFieldObjectTypeSystem,
+		PropertyFieldObjectTypeUser:     PropertyFieldObjectTypeSystem,
+		PropertyFieldObjectTypeSystem:   "",
+		PropertyFieldObjectTypeTemplate: "",
+		PropertyFieldObjectTypeSession:  "",
+		"unknown":                       "",
+	} {
+		assert.Equal(t, want, PropertyFieldParentObjectType(objectType), objectType)
+	}
+}
