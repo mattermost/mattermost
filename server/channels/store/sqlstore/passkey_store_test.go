@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"errors"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
 func newTestPasskey(userID string) *model.Passkey {
@@ -95,6 +98,80 @@ func TestPasskeyStore(t *testing.T) {
 			got, err := ss.Passkey().GetForUser(userID)
 			require.NoError(t, err)
 			assert.Len(t, got, 2)
+		})
+
+		t.Run("ConcurrentSavesByDifferentUsersAllSucceed", func(t *testing.T) {
+			userIDs := make([]string, 2)
+			for i := range userIDs {
+				u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+				require.NoError(t, err)
+				userIDs[i] = u.Id
+			}
+
+			const perUser = 4
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			errs := make(chan error, perUser*len(userIDs))
+			for _, userID := range userIDs {
+				for range perUser {
+					wg.Go(func() {
+						<-start
+						_, err := ss.Passkey().SaveIfUnderLimit(newTestPasskey(userID), model.PasskeyMaxPerUser)
+						errs <- err
+					})
+				}
+			}
+			close(start)
+			wg.Wait()
+			close(errs)
+
+			for err := range errs {
+				require.NoError(t, err)
+			}
+			for _, userID := range userIDs {
+				got, err := ss.Passkey().GetForUser(userID)
+				require.NoError(t, err)
+				assert.Len(t, got, perUser)
+			}
+		})
+
+		t.Run("ConcurrentSavesForOneUserHoldTheLimit", func(t *testing.T) {
+			u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			require.NoError(t, err)
+
+			const attempts, limit = 8, 3
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			errs := make(chan error, attempts)
+			for range attempts {
+				wg.Go(func() {
+					<-start
+					_, saveErr := ss.Passkey().SaveIfUnderLimit(newTestPasskey(u.Id), limit)
+					errs <- saveErr
+				})
+			}
+			close(start)
+			wg.Wait()
+			close(errs)
+
+			var saved, limited int
+			for err := range errs {
+				var limitErr *store.ErrLimitExceeded
+				switch {
+				case err == nil:
+					saved++
+				case errors.As(err, &limitErr):
+					limited++
+				default:
+					require.NoError(t, err)
+				}
+			}
+			assert.Equal(t, limit, saved)
+			assert.Equal(t, attempts-limit, limited)
+
+			got, err := ss.Passkey().GetForUser(u.Id)
+			require.NoError(t, err)
+			assert.Len(t, got, limit)
 		})
 
 		t.Run("DuplicateCredentialIdConflicts", func(t *testing.T) {

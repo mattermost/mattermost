@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -32,13 +30,18 @@ func (s *SqlPasskeyStore) SaveIfUnderLimit(passkey *model.Passkey, limit int) (*
 		return nil, appErr
 	}
 
-	// SERIALIZABLE prevents the COUNT/INSERT check from racing under READ COMMITTED;
-	// the retry layer retries the serialization failures this can surface.
-	tx, err := s.GetMaster().BeginWithIsolation(&sql.TxOptions{Isolation: sql.LevelSerializable})
+	// Locking the owner's row serializes this user's saves so the COUNT/INSERT check cannot race.
+	// SERIALIZABLE would instead abort overlapping saves from different users with 40001.
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction for passkey SaveIfUnderLimit")
 	}
 	defer finalizeTransactionX(tx, &err)
+
+	lock := s.getQueryBuilder().Select("Id").From("Users").Where(sq.Eq{"Id": passkey.UserId}).Suffix("FOR UPDATE")
+	if _, err = tx.ExecBuilder(lock); err != nil {
+		return nil, errors.Wrapf(err, "failed to lock user for passkey SaveIfUnderLimit userId=%s", passkey.UserId)
+	}
 
 	var count int
 	countQuery := s.getQueryBuilder().Select("COUNT(*)").From("passkeys").Where(sq.Eq{"userid": passkey.UserId})
