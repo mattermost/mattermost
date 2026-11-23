@@ -2,4 +2,4 @@
 // See LICENSE.txt for license information.
 
 export {default} from './attribute_details';
-export {ATTRIBUTE_DETAILS_ROUTE, attributeDetailsRoute} from '../constants';
+export {ATTRIBUTE_DETAILS_ROUTE, attributeDetailsCreateFromRoute, attributeDetailsRoute} from '../constants';

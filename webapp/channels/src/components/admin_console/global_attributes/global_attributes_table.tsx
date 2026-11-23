@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -49,7 +49,7 @@ import {externalSourceMessages} from './attribute_details/external_source';
 import type {AttributeTypeId} from './attribute_type';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTypeDescriptor, getTypeLabelForField} from './attribute_type';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
-import {attributeDetailsRoute} from './constants';
+import {GLOBAL_ATTRIBUTES_OBJECT_TYPE, attributeDetailsCreateFromRoute, attributeDetailsRoute} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import type {NameConflict} from './name_conflict';
 import {nameConflictText} from './name_conflict';
@@ -332,6 +332,10 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
     const isViewOnly = disabled || isPluginOwned;
     const isDeleteDisabled = disabled || isPluginManaged || isOwnerManaged;
 
+    // Duplicate opens create prefilled from this template; plugin-owned and
+    // non-template rows are not offered (create would not reproduce ownership).
+    const canDuplicate = !disabled && !isPluginOwned && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+
     let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
     if (isOwned) {
         orphanInfo = {ownerPluginIds: owners.map((owner) => owner.id)};
@@ -405,6 +409,14 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
                 labels={<FormattedMessage {...(isViewOnly ? actionsLabels.view : actionsLabels.edit)}/>}
             />
+            {canDuplicate && (
+                <Menu.Item
+                    id={`${menuId}-duplicate`}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    onClick={() => getHistory().push(attributeDetailsCreateFromRoute(field.id))}
+                    labels={<FormattedMessage {...actionsLabels.duplicate}/>}
+                />
+            )}
             <Menu.Item
                 id={`${menuId}-delete`}
                 disabled={isDeleteDisabled}
@@ -753,6 +765,7 @@ export const actionsLabels = defineMessages({
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
     view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
+    duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
     ownerManaged: {id: 'admin.global_attributes.table.actions.owner_managed', defaultMessage: 'Managed by {owners}'},

@@ -11,6 +11,15 @@ export const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
 export const GLOBAL_ATTRIBUTES_LIST_ROUTE = '/admin_console/system_attributes/manage_attributes';
 export const ATTRIBUTE_DETAILS_ROUTE = `${GLOBAL_ATTRIBUTES_LIST_ROUTE}/attribute_details`;
 
+// Query key on the create URL that seeds an unsaved draft from an existing
+// template. The create page reads it; Save is still what persists anything.
+export const ATTRIBUTE_DETAILS_FROM_QUERY = 'from';
+
 export function attributeDetailsRoute(fieldId: string): string {
     return `${ATTRIBUTE_DETAILS_ROUTE}/${fieldId}`;
+}
+
+export function attributeDetailsCreateFromRoute(fromFieldId: string): string {
+    const params = new URLSearchParams({[ATTRIBUTE_DETAILS_FROM_QUERY]: fromFieldId});
+    return `${ATTRIBUTE_DETAILS_ROUTE}?${params.toString()}`;
 }

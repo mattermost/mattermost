@@ -7007,6 +7007,10 @@
     "defaultMessage": "Delete attribute",
     "description": "Menu item in the per-row \"More actions\" menu of the attributes table. Verb phrase."
   },
+  "admin.global_attributes.table.actions.duplicate": {
+    "defaultMessage": "Duplicate attribute",
+    "description": "Menu item in the per-row \"More actions\" menu of the attributes table; opens the create-attribute page prefilled from this template without saving yet. Verb phrase."
+  },
   "admin.global_attributes.table.actions.edit": {
     "defaultMessage": "Edit attribute",
     "description": "Menu item in the per-row \"More actions\" menu of the attributes table (currently disabled). Verb phrase."
