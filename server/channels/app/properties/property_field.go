@@ -1762,10 +1762,6 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 	return ps.deletePropertyField(rctx, groupID, id)
 }
 
-func asOptionSlice(attrs model.StringInterface) []map[string]any {
-	return model.PropertyFieldInlineOptions(attrs)
-}
-
 // extractOptionIDList extracts the "id" field from each option in the given options value
 // using direct type assertions (no JSON marshaling).
 func extractOptionIDList(options any) []string {
