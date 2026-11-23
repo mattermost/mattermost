@@ -28,13 +28,15 @@ function momentToLocalDate(m: Moment): Date {
 }
 
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
-    const diff = value.minute() % roundedTo;
-    if (diff === 0) {
-        // Always return a new moment for consistency, even if no rounding needed
-        return moment(value).seconds(0).milliseconds(0);
+    const truncated = moment(value).seconds(0).milliseconds(0);
+    const diff = truncated.minute() % roundedTo;
+    const isAlreadyRounded = diff === 0 && truncated.isSame(value);
+    if (isAlreadyRounded) {
+        return truncated;
     }
-    const remainder = roundedTo - diff;
-    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
+
+    // Never round backwards: a time past the interval boundary moves to the next one
+    return truncated.add(roundedTo - diff, 'm');
 }
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
@@ -335,7 +337,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     useEffect(() => {
         if (time && !manualTimeEntry) {
             const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
-            const rounded = getRoundedTime(time, interval);
+            const rounded = getRoundedTime(moment(time).startOf('minute'), interval);
 
             // Only update if the time actually needs rounding
             if (!rounded.isSame(time, 'minute')) {
@@ -356,6 +358,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
         // For scheduling (allowPastDates=false), restrict to current time if today
         if (!allowPastDates && currentTime.isSame(timeForOptions, 'date')) {
             startTime = getRoundedTime(currentTime, timePickerInterval);
+
+            // Rounding up crossed midnight, so nothing is left to pick today
+            if (!startTime.isSame(currentTime, 'day')) {
+                setTimeOptions([]);
+                return;
+            }
         }
 
         let options = getTimeInIntervals(startTime, timePickerInterval);
@@ -374,28 +382,47 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         // Use existing time if available, otherwise use current time in display timezone
-        let effectiveTime = displayTime;
-        if (!effectiveTime) {
-            // Get current time in the display timezone
+        const getEffectiveTime = (): Moment => {
+            if (displayTime) {
+                return displayTime;
+            }
             const nowInTimezone = getCurrentMomentForTimezone(timezone);
 
             // For manual entry, use exact time (no rounding)
             // For dropdown, use rounded time
-            effectiveTime = manualTimeEntry ?
-                nowInTimezone :
-                getRoundedTime(nowInTimezone, timePickerInterval || 60);
-        }
+            if (manualTimeEntry) {
+                return nowInTimezone;
+            }
+            return getRoundedTime(nowInTimezone, timePickerInterval || 60);
+        };
 
         // Past dates are allowed, so today has no earliest time and keeps the one already chosen
         let result: Moment;
         if (modifiers.today && !allowPastDates) {
-            const baseTime = getCurrentMomentForTimezone(timezone);
-            if (isBeforeTime(baseTime, effectiveTime)) {
-                baseTime.hour(effectiveTime.hours());
-                baseTime.minute(effectiveTime.minutes());
+            const now = getCurrentMomentForTimezone(timezone);
+
+            // Keep the chosen clock time if it is still ahead, otherwise the next interval after now
+            let base = now;
+            if (displayTime) {
+                const candidate = now.clone().hour(displayTime.hour()).minute(displayTime.minute()).second(0).millisecond(0);
+                if (isBeforeTime(now, candidate)) {
+                    base = candidate;
+                }
             }
-            result = getRoundedTime(baseTime, timePickerInterval);
+            if (manualTimeEntry) {
+                // Typed times are exact, so a future one is kept as is; only "now" falls back to the current minute
+                result = base === now ? now.clone().second(0).millisecond(0) : base;
+            } else {
+                result = getRoundedTime(base, timePickerInterval);
+
+                // Rounding up crossed midnight, so there is no valid time left today
+                if (!result.isSame(now, 'day')) {
+                    return;
+                }
+            }
         } else if (timezone) {
+            const effectiveTime = getEffectiveTime();
+
             // Use moment.tz array syntax to create moment directly in timezone
             // This is the same pattern used by manual entry (which works correctly)
             const dayMoment = moment(day);
@@ -409,6 +436,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 0,
             ], timezone);
         } else {
+            const effectiveTime = getEffectiveTime();
             day.setHours(effectiveTime.hour(), effectiveTime.minute());
             result = moment(day);
         }

@@ -162,26 +162,20 @@ func (a *App) populateUpstreamRequestIdentity(
 
 	ur := <-userChan
 	if ur.NErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(ur.NErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](ur.NErr); ok {
 			return model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
-		default:
-			return model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
+		return model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 	}
 	upstreamRequest.UserName = ur.Data.Username
 
 	if teamChan != nil {
 		if tr, ok := <-teamChan; ok {
 			if tr.NErr != nil {
-				var nfErr *store.ErrNotFound
-				switch {
-				case errors.As(tr.NErr, &nfErr):
+				if _, ok := errors.AsType[*store.ErrNotFound](tr.NErr); ok {
 					return model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
-				default:
-					return model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 				}
+				return model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 			}
 			upstreamRequest.TeamName = tr.Data.Name
 		}
@@ -217,20 +211,16 @@ func (a *App) resolvePostActionSetupFromCookies(
 	postResult store.StoreResult[*model.Post],
 ) (*postActionSetup, string, *model.AppError) {
 	if legacyCookie == nil && mmBlocksCookie == nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(postResult.NErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](postResult.NErr); ok {
 			return nil, "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(postResult.NErr)
-		default:
-			return nil, "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(postResult.NErr)
 		}
+		return nil, "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(postResult.NErr)
 	}
 	if legacyCookie != nil && mmBlocksCookie != nil {
 		return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "multiple action cookies set", http.StatusBadRequest)
 	}
 
-	var nfPost *store.ErrNotFound
-	ephemeral := errors.As(postResult.NErr, &nfPost)
+	_, ephemeral := errors.AsType[*store.ErrNotFound](postResult.NErr)
 
 	if legacyCookie != nil {
 		return a.setupFromLegacyCookie(postID, legacyCookie, upstreamRequest, ephemeral)
@@ -403,13 +393,10 @@ func (a *App) channelForPostAction(channelID string) (*model.Channel, error) {
 	channel, err := a.Srv().Store().Channel().Get(channelID, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": channelID}
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channel, nil
 }

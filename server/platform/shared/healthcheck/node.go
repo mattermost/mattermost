@@ -72,17 +72,6 @@ func releaseVersion(gossip string) string {
 	return strings.Join(parts[:3], ".")
 }
 
-func (n *NodeSnapshot) SchemaVersion() (string, bool) {
-	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.SchemaVersion != "" {
-		return n.ClusterInfo.SchemaVersion, true
-	}
-	if diag, ok := n.Diag(); ok && model.SafeDereference(diag.Database.SchemaVersion) != "" && n.sectionOK(model.SectionDatabaseIdentity) {
-		return *diag.Database.SchemaVersion, true
-	}
-
-	return "", false
-}
-
 // SectionDiag returns the node's diagnostics, or ok=false when they were not collected or section recorded an error.
 func (n *NodeSnapshot) SectionDiag(section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
 	if !n.sectionOK(section) {

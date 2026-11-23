@@ -13,8 +13,14 @@
     padding: 8px 0;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
+    animation: post-attributes-hover-card-in var(--duration-quick) var(--ease-entrance);
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
+    transform-origin: top left;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
 
     &__header {
         display: flex;
@@ -73,5 +79,12 @@
         font-weight: 600;
         line-height: 16px;
         text-align: right;
+    }
+}
+
+@keyframes post-attributes-hover-card-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
     }
 }
