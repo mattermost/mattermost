@@ -70,8 +70,8 @@ const BookmarkItemDotMenu = ({
         openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
     }
 
-    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit') && bookmark.type !== 'board';
-    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete') && bookmark.type !== 'board';
+    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
+    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
     const canGetPublicLink = useCanGetPublicLink();
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});

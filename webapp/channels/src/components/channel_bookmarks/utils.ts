@@ -28,7 +28,7 @@ import {copyToClipboard} from 'utils/utils';
 export const MAX_BOOKMARKS_PER_CHANNEL = 50;
 
 export function bookmarkHasLinkUrl(bookmark: ChannelBookmark): boolean {
-    return (bookmark.type === 'link' || bookmark.type === 'board') && Boolean(bookmark.link_url);
+    return bookmark.type === 'link' && Boolean(bookmark.link_url);
 }
 
 export function shouldOpenBookmarkInNewTab(bookmark: ChannelBookmark, siteURL?: string): boolean {

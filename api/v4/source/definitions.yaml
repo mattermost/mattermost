@@ -350,10 +350,7 @@ components:
           type: string
         type:
           type: string
-          enum: [link, file, board]
-        target_id:
-          type: string
-          description: Mattermost 26-character ID of a referenced Mattermost entity when the bookmark includes one.
+          enum: [link, file]
         original_id:
           description: The ID of the original channel bookmark
           type: string
@@ -374,72 +371,6 @@ components:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
         deleted:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
-    View:
-      type: object
-      properties:
-        id:
-          type: string
-          description: The unique identifier of the view
-        channel_id:
-          type: string
-          description: The ID of the channel this view belongs to
-        type:
-          type: string
-          enum: [kanban]
-        creator_id:
-          type: string
-          description: The ID of the user who created this view
-        title:
-          type: string
-          description: The title of the view
-        description:
-          type: string
-          description: The description of the view
-        sort_order:
-          type: integer
-          description: The display order of the view within the channel
-        props:
-          type: object
-          description: Arbitrary key-value properties for the view
-          additionalProperties: true
-        create_at:
-          description: The time in milliseconds the view was created
-          type: integer
-          format: int64
-        update_at:
-          description: The time in milliseconds the view was last updated
-          type: integer
-          format: int64
-        delete_at:
-          description: The time in milliseconds the view was deleted
-          type: integer
-          format: int64
-    ViewPatch:
-      type: object
-      description: Fields that can be updated on a view via PATCH
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        sort_order:
-          type: integer
-        props:
-          type: object
-          description: Arbitrary key-value properties for the view
-          additionalProperties: true
-    ViewsWithCount:
-      type: object
-      description: Paginated list of views with total count
-      properties:
-        views:
-          type: array
-          items:
-            $ref: "#/components/schemas/View"
-        total_count:
-          type: integer
-          format: int64
-          description: Total number of views matching the query (ignoring pagination)
     Post:
       type: object
       properties:
