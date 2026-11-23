@@ -42,7 +42,6 @@ import {
     getPluginRailSectionRegistration,
     getProductRailFilter,
     isPluginRailSection,
-    isProductRailShown,
 } from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
@@ -78,7 +77,6 @@ function mapStateToProps(state: GlobalState) {
         hasUnreadThreads,
         markAllAsReadWithoutConfirm: getmarkAllAsReadWithoutConfirm(state) === 'true',
         markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
-        isProductRailShown: isProductRailShown(state),
         showNoBoards: railFilter === 'boards' && !getFirstBoardInCurrentTeam(state),
         pluginSectionEmptyState: isPluginRailSection(railFilter) && !getFirstChannelInPluginRailSections(state).has(railFilter) ? getPluginRailSectionRegistration(state, railFilter)?.emptyState : undefined,
         categoryIdsHiddenByProductRail: getCategoryIdsHiddenByProductRail(state),

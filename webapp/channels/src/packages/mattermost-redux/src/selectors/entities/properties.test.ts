@@ -23,6 +23,7 @@ import {
     getUnlinkedSystemFieldsForGroup,
     makeGetResolvedChannelAttributes,
     makeGetPostAttributeFields,
+    arePropertyValuesLoadedForTarget,
 } from './properties';
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -886,5 +887,23 @@ describe('makeGetPostAttributeFields', () => {
         ]);
 
         expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['first', 'second']);
+    });
+});
+
+describe('arePropertyValuesLoadedForTarget', () => {
+    const state = {
+        entities: {
+            properties: {
+                loadedValueTargets: {c1: true},
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('is true for a target marked as loaded', () => {
+        expect(arePropertyValuesLoadedForTarget(state, 'c1')).toBe(true);
+    });
+
+    test('is false for a target that was never loaded', () => {
+        expect(arePropertyValuesLoadedForTarget(state, 'c2')).toBe(false);
     });
 });

@@ -190,6 +190,22 @@ describe('isTeamSidebarHidden', () => {
     test('should keep the team sidebar on mobile, where the rail\'s team menu is hidden', () => {
         expect(isTeamSidebarHidden(withTeamSidebarHidden('mobileView'))).toBe(false);
     });
+
+    test('should collapse the team sidebar by default with the rail on', () => {
+        const state = getState();
+        expect(isTeamSidebarHidden({...state, views: {...state.views, browser: {windowSize: 'desktopView'}}} as unknown as GlobalState)).toBe(true);
+    });
+
+    test('should keep the team sidebar for a user who brought it back', () => {
+        const state = withTeamSidebarHidden('desktopView');
+        state.entities.preferences.myPreferences['sidebar_settings--hide_team_sidebar'].value = 'false';
+        expect(isTeamSidebarHidden(state)).toBe(false);
+    });
+
+    test('should keep the team sidebar with the rail off', () => {
+        const state = getState({enabled: false});
+        expect(isTeamSidebarHidden({...state, views: {...state.views, browser: {windowSize: 'desktopView'}}} as unknown as GlobalState)).toBe(false);
+    });
 });
 
 describe('isProductRailShown', () => {

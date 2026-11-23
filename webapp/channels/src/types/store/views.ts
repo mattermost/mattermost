@@ -238,8 +238,8 @@ export type ViewsState = {
 export type ProductRailSection = 'channels' | 'boards' | PluginProductRailSection;
 export type PluginProductRailSection = `plugin:${string}`;
 
-// A rail item that remembers where the user was: a section, Threads, or a product as `product:<id>`.
-export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}`;
+// A rail item that remembers where the user was: a section, or a product as `product:<id>`.
+export type ProductRailTab = ProductRailSection | `product:${string}`;
 
 export type PendingQuote = {
     channelId: string;
