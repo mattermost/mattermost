@@ -227,6 +227,7 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	bname := getBrowserName(ua, r.UserAgent())
 	bversion := getBrowserVersion(ua, r.UserAgent())
 
+	session.AddProp(model.SessionPropLoginMethod, model.SessionLoginMethodStandard)
 	session.AddProp(model.SessionPropPlatform, plat)
 	session.AddProp(model.SessionPropOs, os)
 	session.AddProp(model.SessionPropBrowser, fmt.Sprintf("%v/%v", bname, bversion))

@@ -39,6 +39,16 @@ const (
 	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
 )
 
+const (
+	// SessionPropLoginMethod records how an interactive sign-in started the session.
+	// Sessions not created by an interactive sign-in (access tokens, OAuth apps,
+	// plugins) don't carry it.
+	SessionPropLoginMethod = "login_method"
+	// SessionLoginMethodStandard marks a session started by any interactive sign-in
+	// other than a passkey: password, LDAP, SAML, OAuth/OpenID, magic link, SSO hand-offs.
+	SessionLoginMethodStandard = "standard"
+)
+
 //msgp:tuple StringMap
 type StringMap map[string]string
 

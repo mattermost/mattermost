@@ -345,6 +345,33 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 }
 
+func TestDoLoginMethodProp(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	for name, opts := range map[string]model.LoginOptions{
+		"web":    {},
+		"mobile": {IsMobile: true},
+	} {
+		t.Run(name+" sign-in is marked standard", func(t *testing.T) {
+			session, err := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, th.BasicUser, opts)
+			require.Nil(t, err)
+
+			stored, err := th.App.GetSession(session.Token)
+			require.Nil(t, err)
+			assert.Equal(t, model.SessionLoginMethodStandard, stored.Props[model.SessionPropLoginMethod])
+		})
+	}
+
+	t.Run("personal access token session is not marked", func(t *testing.T) {
+		token := createPersonalAccessToken(t, th, th.BasicUser.Id)
+		session, err := th.App.createSessionForUserAccessToken(th.Context, token.Token)
+		require.Nil(t, err)
+		assert.NotContains(t, session.Props, model.SessionPropLoginMethod)
+	})
+}
+
 func TestDoLoginVoIPDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
