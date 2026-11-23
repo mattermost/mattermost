@@ -851,3 +851,563 @@ func TestBoundsEnforced(t *testing.T) {
 		})
 	}
 }
+
+// displayName is how a refusal lists a held field: its name and object type.
+func displayName(f *model.PropertyField) string {
+	return f.Name + " (" + f.ObjectType + ")"
+}
+
+func TestRefuseDeletingHeldOptions(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	const refusedID = "app.property_field.option_delete_locked_values.app_error"
+	team := th.CreateTeam(t)
+	once, onSet, mutable := model.PropertyFieldMutabilityWriteOnce, model.PropertyFieldMutabilitySetOnCreate, model.PropertyFieldMutabilityMutable
+
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+	selectField := func(t *testing.T, fieldType model.PropertyFieldType, objectType string, m model.PropertyFieldMutability) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:     groupID,
+			ObjectType:  objectType,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        fieldType,
+			Name:        "Select " + model.NewId(),
+			Mutability:  m,
+			Permissions: openPermissions(),
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "o1", "name": "One"},
+				map[string]any{"id": "o2", "name": "Two"},
+			}},
+		})
+	}
+	linkedTo := func(t *testing.T, template *model.PropertyField, m model.PropertyFieldMutability) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeSelect,
+			Name:          "Linked " + model.NewId(),
+			Mutability:    m,
+			Permissions:   openPermissions(),
+			LinkedFieldID: &template.ID,
+		})
+	}
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
+		t.Helper()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: f.GroupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	deleteOptions := func(f *model.PropertyField, ids ...string) error {
+		_, err := th.service.DeleteFieldOptions(rctx, f.GroupID, f.ID, ids)
+		return err
+	}
+	liveOptions := func(f *model.PropertyField) []string {
+		got, err := th.dbStore.PropertyField().GetExistingOptionIDs(f, []string{"o1", "o2"})
+		require.NoError(t, err)
+		slices.Sort(got)
+		return got
+	}
+	examplesOf := func(err error) []string {
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		_, list, ok := strings.Cut(appErr.DetailedError, "e.g. ")
+		require.True(t, ok, appErr.DetailedError)
+		return strings.Split(list, ", ")
+	}
+	assertFieldNames := func(t *testing.T, err error, names ...string) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		got := appErr.SystemMessage(func(_ string, args ...any) string {
+			names, _ := args[0].(map[string]any)["FieldNames"].(string)
+			return names
+		})
+		assert.ElementsMatch(t, names, strings.Split(got, ", "))
+	}
+	requireRefused := func(t *testing.T, err error, fieldName, count string, examples ...string) {
+		t.Helper()
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), count+" locked values")
+		assertFieldNames(t, err, fieldName)
+		assert.Equal(t, examples, examplesOf(err))
+		assert.NotContains(t, err.Error(), "o2")
+	}
+
+	for _, m := range []model.PropertyFieldMutability{once, onSet} {
+		t.Run(string(m)+" value holding the option refuses its deletion", func(t *testing.T) {
+			f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, m)
+			target := model.NewId()
+			seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+
+			requireRefused(t, deleteOptions(f, "o2"), displayName(f), "1", target)
+			assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
+
+			require.NoError(t, deleteOptions(f, "o1"))
+			assert.Equal(t, []string{"o2"}, liveOptions(f))
+		})
+	}
+
+	t.Run("a multiselect value holding the option refuses its deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeChannel, once)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `["o1","o2"]`)
+		requireRefused(t, deleteOptions(f, "o2"), displayName(f), "1", target)
+	})
+
+	t.Run("one held option refuses the whole request", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		requireAppErrorID(t, deleteOptions(f, "o1", "o2"), refusedID, http.StatusConflict)
+		assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
+	})
+
+	t.Run("the count totals every value holding any of the options", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		for _, raw := range []string{`"o1"`, `"o2"`} {
+			seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), raw)
+		}
+		requireAppErrorID(t, deleteOptions(f, "o1", "o2"), refusedID, http.StatusConflict)
+		err := deleteOptions(f, "o1", "o2")
+		assert.Contains(t, err.Error(), "2 locked values")
+		assert.Len(t, examplesOf(err), 2)
+	})
+
+	t.Run("a locked field linked to a template refuses deleting the template's option", func(t *testing.T) {
+		template := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
+		linked := linkedTo(t, template, once)
+		target := model.NewId()
+		seed(linked, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+		requireRefused(t, deleteOptions(template, "o2"), displayName(linked), "1", target)
+		assert.Equal(t, []string{"o1", "o2"}, liveOptions(template))
+
+		// An unlocked linked field's value is left alone.
+		template = selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
+		linked = linkedTo(t, template, mutable)
+		seed(linked, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		require.NoError(t, deleteOptions(template, "o2"))
+	})
+
+	t.Run("every locked field linked to a template is named, each name beside its own ID", func(t *testing.T) {
+		template := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
+		// Four fields, so names and IDs listed in unrelated orders would almost never match up by chance.
+		var linked []*model.PropertyField
+		var names []string
+		for range 4 {
+			f := linkedTo(t, template, once)
+			seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+			linked = append(linked, f)
+			names = append(names, displayName(f))
+		}
+		err := deleteOptions(template, "o2")
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), "4 locked values")
+		assertFieldNames(t, err, names...)
+
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		gotNames := strings.Split(appErr.SystemMessage(func(_ string, args ...any) string {
+			names, _ := args[0].(map[string]any)["FieldNames"].(string)
+			return names
+		}), ", ")
+		_, rest, _ := strings.Cut(appErr.DetailedError, "locked values of field ")
+		ids, _, _ := strings.Cut(rest, " hold them")
+		gotIDs := strings.Split(ids, ", ")
+		require.Len(t, gotIDs, len(linked))
+		for i, id := range gotIDs {
+			idx := slices.IndexFunc(linked, func(f *model.PropertyField) bool { return f.ID == id })
+			require.GreaterOrEqual(t, idx, 0, id)
+			assert.Equal(t, displayName(linked[idx]), gotNames[i])
+		}
+	})
+
+	t.Run("a mutable field's values don't block the deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, "")
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		require.NoError(t, deleteOptions(f, "o2"))
+	})
+
+	t.Run("a value on a deleted post doesn't block the deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypePost, once)
+		channel := th.CreateChannel(t, team.Id)
+		post, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "m"})
+		require.NoError(t, err)
+		seed(f, model.PropertyValueTargetTypePost, post.Id, `"o2"`)
+		requireRefused(t, deleteOptions(f, "o2"), displayName(f), "1", post.Id)
+
+		require.NoError(t, th.dbStore.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
+		require.NoError(t, deleteOptions(f, "o2"))
+	})
+
+	t.Run("a value on an archived channel blocks the deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		channel := th.CreateChannel(t, team.Id)
+		seed(f, model.PropertyValueTargetTypeChannel, channel.Id, `"o2"`)
+		require.NoError(t, th.dbStore.Channel().Delete(channel.Id, model.GetMillis()))
+		requireRefused(t, deleteOptions(f, "o2"), displayName(f), "1", channel.Id)
+	})
+
+	t.Run("nothing is checked unless the license is Enterprise Advanced", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		prev := th.service.licenseProvider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		th.service.licenseProvider = func() *model.License { return nil }
+		require.NoError(t, deleteOptions(f, "o2"))
+	})
+
+	// freshWithout reads f back and drops the given options from its list, the way a client
+	// saving the field with an edited list does.
+	freshWithout := func(f *model.PropertyField, drop ...string) *model.PropertyField {
+		t.Helper()
+		c, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+		require.NoError(t, err)
+		var kept []any
+		for _, o := range asOptionSlice(c.Attrs) {
+			if id, _ := o["id"].(string); !slices.Contains(drop, id) {
+				kept = append(kept, o)
+			}
+		}
+		c.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: kept}
+		return c
+	}
+	save := func(c *model.PropertyField) error {
+		_, _, err := th.service.UpdatePropertyField(rctx, c.GroupID, c)
+		return err
+	}
+	setMutability := func(f *model.PropertyField, m model.PropertyFieldMutability) {
+		t.Helper()
+		c, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+		require.NoError(t, err)
+		c.Mutability = m
+		require.NoError(t, save(c))
+	}
+
+	t.Run("a save that drops a held option is refused", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+
+		requireRefused(t, save(freshWithout(f, "o2")), displayName(f), "1", target)
+		assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
+
+		require.NoError(t, save(freshWithout(f, "o1")))
+		assert.Equal(t, []string{"o2"}, liveOptions(f))
+	})
+
+	t.Run("a save that drops no option passes whatever is held", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		c := freshWithout(f)
+		c.Name = "Renamed " + model.NewId()
+		require.NoError(t, save(c))
+	})
+
+	t.Run("a rank template's option held by a locked linked field can't be dropped", func(t *testing.T) {
+		_, _, createDirect := boundsSetup(t, th, rctx)
+		linked := createDirect(model.PropertyFieldObjectTypeChannel)
+		template, err := th.service.GetPropertyField(rctx, linked.GroupID, *linked.LinkedFieldID)
+		require.NoError(t, err)
+		setMutability(linked, once)
+		target := model.NewId()
+		seed(linked, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+
+		err = save(freshWithout(template, "optmid"))
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Equal(t, []string{target}, examplesOf(err))
+
+		// Once the linked field is mutable the same save goes through.
+		setMutability(linked, mutable)
+		require.NoError(t, save(freshWithout(template, "optmid")))
+	})
+
+	t.Run("a linked field in the same call is judged by its copy there", func(t *testing.T) {
+		for _, tc := range []struct {
+			name     string
+			start    model.PropertyFieldMutability
+			callSets model.PropertyFieldMutability
+			unlink   bool
+			refused  bool
+		}{
+			{"locked field unlocked in the call", once, mutable, false, false},
+			{"mutable field locked in the call", mutable, once, false, true},
+			{"locked field unlinked in the call", once, once, true, false},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, _, createDirect := boundsSetup(t, th, rctx)
+				linked := createDirect(model.PropertyFieldObjectTypeChannel)
+				template, err := th.service.GetPropertyField(rctx, linked.GroupID, *linked.LinkedFieldID)
+				require.NoError(t, err)
+				setMutability(linked, tc.start)
+				seed(linked, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+
+				inCall, err := th.service.GetPropertyField(rctx, linked.GroupID, linked.ID)
+				require.NoError(t, err)
+				inCall.Mutability = tc.callSets
+				if tc.unlink {
+					inCall.LinkedFieldID = model.NewPointer("")
+				}
+				_, _, _, err = th.service.UpdatePropertyFields(rctx, linked.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
+				if tc.refused {
+					requireAppErrorID(t, err, refusedID, http.StatusConflict)
+					return
+				}
+				require.NoError(t, err)
+				if tc.unlink {
+					// The unlinked field kept its own copy of the option its value names.
+					got, err := th.dbStore.PropertyField().GetExistingOptionIDs(inCall, []string{"optmid"})
+					require.NoError(t, err)
+					assert.Equal(t, []string{"optmid"}, got)
+				}
+			})
+		}
+	})
+
+	// Container cases: a rank template's option held by the system's or a channel's value while a
+	// child field's parent rule compares against that value.
+	const containerRefusedID = "app.property_field.option_delete_container_values.app_error"
+	belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	requireContainerRefused := func(t *testing.T, err error, fieldName, count string, examples ...string) {
+		t.Helper()
+		requireAppErrorID(t, err, containerRefusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), count+" values")
+		assertFieldNames(t, err, fieldName)
+		assert.Equal(t, examples, examplesOf(err))
+		assert.NotContains(t, err.Error(), "optmid")
+	}
+	dropMid := func(t *testing.T, f *model.PropertyField) error {
+		t.Helper()
+		template, err := th.service.GetPropertyField(rctx, f.GroupID, *f.LinkedFieldID)
+		require.NoError(t, err)
+		return save(freshWithout(template, "optmid"))
+	}
+
+	t.Run("a system value held by a field a channel rule compares against refuses the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeChannel, belowParent)
+		requireContainerRefused(t, dropMid(t, system), displayName(system), "1", model.PropertyValueSystemTargetID)
+	})
+
+	t.Run("a system value nothing compares against doesn't block the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, dropMid(t, system))
+	})
+
+	t.Run("a user field's rule reads the system value too", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeUser, belowParent)
+		requireContainerRefused(t, dropMid(t, system), displayName(system), "1", model.PropertyValueSystemTargetID)
+	})
+
+	t.Run("a channel value read by a post rule refuses the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		channelField := create(model.PropertyFieldObjectTypeChannel, nil)
+		channelID := model.NewId()
+		seed(channelField, model.PropertyValueTargetTypeChannel, channelID, `"optmid"`)
+
+		postField := create(model.PropertyFieldObjectTypePost, belowParent)
+		requireContainerRefused(t, dropMid(t, channelField), displayName(channelField), "1", channelID)
+
+		// Without the rule the same deletion goes through.
+		postField.Bounds = model.PropertyBounds{} // nil would leave the rule as stored
+		require.NoError(t, save(postField))
+		require.NoError(t, dropMid(t, channelField))
+	})
+
+	t.Run("a rule changed in the same call is judged by its copy there", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			start   model.PropertyBounds
+			callSet model.PropertyBounds
+			refused bool
+		}{
+			{"rule removed in the call", belowParent, model.PropertyBounds{}, false},
+			{"rule added in the call", nil, belowParent, true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, create, _ := boundsSetup(t, th, rctx)
+				system := create(model.PropertyFieldObjectTypeSystem, nil)
+				seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+				child := create(model.PropertyFieldObjectTypeChannel, tc.start)
+				template, err := th.service.GetPropertyField(rctx, system.GroupID, *system.LinkedFieldID)
+				require.NoError(t, err)
+
+				inCall, err := th.service.GetPropertyField(rctx, child.GroupID, child.ID)
+				require.NoError(t, err)
+				inCall.Bounds = tc.callSet
+				_, _, _, err = th.service.UpdatePropertyFields(rctx, child.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
+				if tc.refused {
+					requireContainerRefused(t, err, displayName(system), "1", model.PropertyValueSystemTargetID)
+				} else {
+					require.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("the locked-values error wins when both refuse", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		channelField := create(model.PropertyFieldObjectTypeChannel, nil)
+		create(model.PropertyFieldObjectTypePost, belowParent)
+		setMutability(channelField, once)
+		channelID := model.NewId()
+		seed(channelField, model.PropertyValueTargetTypeChannel, channelID, `"optmid"`)
+		err := dropMid(t, channelField)
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Equal(t, []string{channelID}, examplesOf(err))
+		assertFieldNames(t, err, displayName(channelField))
+	})
+
+	t.Run("a capped value naming a deleted option is not a container case", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		create(model.PropertyFieldObjectTypeSystem, nil)
+		capped := create(model.PropertyFieldObjectTypeChannel, belowParent)
+		seed(capped, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		require.NoError(t, dropMid(t, capped))
+	})
+
+	// Self-rule cases: a raise-only or lower-only value naming a dropped option can't be ranked, so
+	// every later change to it would be refused.
+	const selfRefusedID = "app.property_field.option_delete_self_rule_values.app_error"
+	raiseOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	lowerOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}}
+	requireSelfRefused := func(t *testing.T, err error, fieldName, count string, examples ...string) {
+		t.Helper()
+		requireAppErrorID(t, err, selfRefusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), count+" values of field")
+		assertFieldNames(t, err, fieldName)
+		assert.Equal(t, examples, examplesOf(err))
+		assert.NotContains(t, err.Error(), "optmid")
+	}
+
+	for name, bounds := range map[string]model.PropertyBounds{"raise-only": raiseOnly, "lower-only": lowerOnly} {
+		t.Run("a "+name+" value holding the option refuses the deletion", func(t *testing.T) {
+			_, create, _ := boundsSetup(t, th, rctx)
+			f := create(model.PropertyFieldObjectTypeChannel, bounds)
+			target := model.NewId()
+			seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+
+			requireSelfRefused(t, dropMid(t, f), displayName(f), "1", target)
+			live, err := th.dbStore.PropertyField().GetExistingOptionIDs(f, []string{"optmid"})
+			require.NoError(t, err)
+			assert.Equal(t, []string{"optmid"}, live)
+		})
+	}
+
+	t.Run("a value without a self rule doesn't block the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypeChannel, nil)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		require.NoError(t, dropMid(t, f))
+	})
+
+	t.Run("a self rule changed in the same call is judged by its copy there", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			start   model.PropertyBounds
+			callSet model.PropertyBounds
+			refused bool
+		}{
+			{"rule removed in the call", raiseOnly, model.PropertyBounds{}, false},
+			{"rule added in the call", nil, raiseOnly, true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, create, _ := boundsSetup(t, th, rctx)
+				f := create(model.PropertyFieldObjectTypeChannel, tc.start)
+				target := model.NewId()
+				seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+				template, err := th.service.GetPropertyField(rctx, f.GroupID, *f.LinkedFieldID)
+				require.NoError(t, err)
+
+				inCall, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+				require.NoError(t, err)
+				inCall.Bounds = tc.callSet
+				_, _, _, err = th.service.UpdatePropertyFields(rctx, f.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
+				if tc.refused {
+					requireSelfRefused(t, err, displayName(f), "1", target)
+				} else {
+					require.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("the self-rule error wins over the container one", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypeChannel, raiseOnly)
+		create(model.PropertyFieldObjectTypePost, belowParent)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+		requireSelfRefused(t, dropMid(t, f), displayName(f), "1", target)
+	})
+
+	t.Run("a raise-only value on a deleted post doesn't block the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypePost, raiseOnly)
+		channel := th.CreateChannel(t, team.Id)
+		post, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "m"})
+		require.NoError(t, err)
+		seed(f, model.PropertyValueTargetTypePost, post.Id, `"optmid"`)
+		requireSelfRefused(t, dropMid(t, f), displayName(f), "1", post.Id)
+
+		require.NoError(t, th.dbStore.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
+		require.NoError(t, dropMid(t, f))
+	})
+
+	t.Run("a self-rule deletion is allowed unless the license is Enterprise Advanced", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypeChannel, raiseOnly)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		prev := th.service.licenseProvider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		th.service.licenseProvider = func() *model.License { return nil }
+		require.NoError(t, dropMid(t, f))
+	})
+
+	t.Run("a container deletion is allowed unless the license is Enterprise Advanced", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeChannel, belowParent)
+		prev := th.service.licenseProvider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		th.service.licenseProvider = func() *model.License { return nil }
+		require.NoError(t, dropMid(t, system))
+	})
+}
+
+func TestDroppedOptionIDs(t *testing.T) {
+	opts := func(ids ...string) model.StringInterface {
+		var list []any
+		for _, id := range ids {
+			list = append(list, map[string]any{"id": id, "name": id})
+		}
+		return model.StringInterface{model.PropertyFieldAttributeOptions: list}
+	}
+	stored := &model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: opts("o1", "o2")}
+
+	omitted := opts()
+	omitted[model.PropertyFieldAttributeOptionsOmitted] = true
+
+	for name, tc := range map[string]struct {
+		submitted *model.PropertyField
+		want      []string
+	}{
+		"options omitted":      {&model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: omitted}, nil},
+		"type without options": {&model.PropertyField{Type: model.PropertyFieldTypeText, Attrs: opts()}, nil},
+		"one option missing":   {&model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: opts("o1")}, []string{"o2"}},
+		"one option added":     {&model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: opts("o1", "o2", "o3")}, nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, droppedOptionIDs(tc.submitted, stored))
+		})
+	}
+}

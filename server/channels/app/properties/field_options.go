@@ -459,8 +459,16 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID
 // branch of a hierarchy is one call even though every option in it but the
 // lowest has options below it.
 //
-// Values pointing at a removed option are left alone. A value naming an option
-// that no longer exists is ignored everywhere it is read, which is how the
+// Deleting an option is refused while a value of this field, or of a field linked
+// to it, holds it and:
+//   - the value is write-once or set-on-create, so it can't be moved to another option;
+//   - the value is raise-only or lower-only, so it could no longer be ranked and
+//     every later change or clear would be refused;
+//   - it is the system's or a channel's value and a child field's parent rule
+//     compares against it, so every capped write below it would be refused.
+//
+// Otherwise a value pointing at a removed option is left alone. A value naming an
+// option that no longer exists is ignored everywhere it is read, which is how the
 // property system has always treated one.
 //
 // Resolves a concurrent edit last-writer-wins, per the package comment above.
@@ -508,6 +516,10 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, groupID, fieldID
 	}
 	if at >= 0 {
 		return nil, optionsChangeError(at, "names option %q, which option %q is still below; remove that one too or move it first", optionIDs[at], childID)
+	}
+
+	if err := ps.refuseDeletingHeldOptions(rctx, "DeleteFieldOptions", field, optionIDs, nil); err != nil {
+		return nil, err
 	}
 
 	if err := ps.fieldStore.DeleteOptions(field.GroupID, field.ID, field.UpdateAt, optionIDs); err != nil {
@@ -796,26 +808,18 @@ func (ps *PropertyService) blockingChildBelow(field *model.PropertyField, option
 	return -1, "", nil
 }
 
-// requireDroppedOptionsAreLeaves refuses a field update whose option list leaves
-// out an option that still has options below it.
-//
-// A field write states the field's option list in full, so an option missing from
-// the list is an option being deleted: the store soft-deletes every option of the
-// field's own that the list no longer carries, and deletes that option's parent
-// links with it. Asking for that is asking for the removal the options endpoint
-// refuses, by omission rather than by name, and it gets the same answer.
-//
-// Only for a field that already exists. A field being created has no options to
-// leave out.
-func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *model.PropertyField) error {
-	if submitted == nil || stored == nil || stored.Type != model.PropertyFieldTypeGraph {
+// droppedOptionIDs lists the options stored holds that submitted's option list leaves out. The store
+// soft-deletes each of them when the field is saved, so this is the set of options a save deletes.
+// It is empty in the cases where the store's option reconciliation deletes nothing: a type without
+// options, and a list that was left out rather than stated.
+func droppedOptionIDs(submitted, stored *model.PropertyField) []string {
+	if submitted == nil || stored == nil || !submitted.Type.SupportsOptions() {
 		return nil
 	}
 
 	// A field with more options than are inlined reads back without its option list,
 	// and writing that copy back is not a request to drop every option. The store
-	// skips the option reconciliation entirely for one, so nothing is dropped and
-	// there is nothing to check.
+	// skips the option reconciliation entirely for one, so nothing is dropped.
 	if model.PropertyFieldOptionsOmitted(submitted.Attrs) {
 		return nil
 	}
@@ -838,6 +842,26 @@ func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *mod
 			dropped = append(dropped, id)
 		}
 	}
+	return dropped
+}
+
+// requireDroppedOptionsAreLeaves refuses a field update whose option list leaves
+// out an option that still has options below it.
+//
+// A field write states the field's option list in full, so an option missing from
+// the list is an option being deleted: the store soft-deletes every option of the
+// field's own that the list no longer carries, and deletes that option's parent
+// links with it. Asking for that is asking for the removal the options endpoint
+// refuses, by omission rather than by name, and it gets the same answer.
+//
+// Only for a field that already exists. A field being created has no options to
+// leave out.
+func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *model.PropertyField) error {
+	if submitted == nil || stored == nil || stored.Type != model.PropertyFieldTypeGraph {
+		return nil
+	}
+
+	dropped := droppedOptionIDs(submitted, stored)
 
 	at, childID, err := ps.blockingChildBelow(stored, dropped)
 	if err != nil {
