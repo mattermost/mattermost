@@ -235,8 +235,6 @@
             accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
             support for requesting more than one group per request.
 
-            Passing `access_control` on a server without an Enterprise license returns 501.
-
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
           required: false
@@ -262,13 +260,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          description: >
-            `propertyGroup=access_control` was passed and the server has no Enterprise license.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
     delete:
       tags:
         - posts
@@ -550,8 +541,6 @@
             accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
             support for requesting more than one group per request.
 
-            Passing `access_control` on a server without an Enterprise license returns 501.
-
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
           required: false
@@ -572,13 +561,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          description: >
-            `propertyGroup=access_control` was passed and the server has no Enterprise license.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
   "/api/v4/users/{user_id}/posts/flagged":
     get:
       tags:
@@ -836,8 +818,6 @@
             accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
             support for requesting more than one group per request.
 
-            Passing `access_control` on a server without an Enterprise license returns 501.
-
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
           required: false
@@ -858,13 +838,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          description: >
-            `propertyGroup=access_control` was passed and the server has no Enterprise license.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
   "/api/v4/users/{user_id}/channels/{channel_id}/posts/unread":
     get:
       tags:
@@ -938,8 +911,6 @@
             accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
             support for requesting more than one group per request.
 
-            Passing `access_control` on a server without an Enterprise license returns 501.
-
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
           required: false
@@ -960,13 +931,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          description: >
-            `propertyGroup=access_control` was passed and the server has no Enterprise license.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
   "/api/v4/teams/{team_id}/posts/search":
     post:
       tags:
