@@ -11,6 +11,7 @@ package healthchecktest
 // value or details read such a measurement belongs here too.
 var SampledCodes = []string{
 	"DB_POOL_SATURATED",
+	"DB_POSTS_DEAD_TUPLES",
 	"FILESTORE_DISK_FULL",
 	"FILESTORE_DISK_LOW",
 	"NODE_CONTAINER_MEMORY_PRESSURE",

@@ -321,7 +321,6 @@ func (c *parityCluster) GenerateSupportPacket(rctx request.CTX, options *model.S
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
-	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-72153")
 	t.Run("standalone", func(t *testing.T) {
 		testHealthSnapshotLiveOfflineParity(t, Setup(t), nil)
 	})

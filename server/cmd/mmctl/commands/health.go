@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -58,6 +60,17 @@ var HealthCheckCmd = &cobra.Command{
 	RunE:    healthCheckRunE,
 }
 
+var HealthExportCmd = &cobra.Command{
+	Use:   "export <html|md>",
+	Short: "Export health findings as an HTML or Markdown report",
+	Long: "Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with --output. The report includes resolved and muted findings. --json can't be used with this command.\n\n" +
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed.",
+	Example:   "  health export html --output health-report.html\n  health export md --packet mm_support_packet.zip",
+	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	ValidArgs: []string{"html", "md"},
+	RunE:      healthExportRunE,
+}
+
 var HealthRunCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run the health check now and report its findings",
@@ -74,8 +87,10 @@ func init() {
 	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
 	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
+	HealthExportCmd.Flags().StringP("output", "o", "", "File to write the report to, instead of stdout")
+	HealthExportCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
 
-	HealthCmd.AddCommand(HealthCheckCmd, HealthRunCmd)
+	HealthCmd.AddCommand(HealthCheckCmd, HealthRunCmd, HealthExportCmd)
 	RootCmd.AddCommand(HealthCmd)
 }
 
@@ -103,6 +118,43 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return printHealthFindings(list, includeResolved, report.Options{GeneratedAt: time.Now()})
+}
+
+// healthExportRunE dispatches before any client is built, as healthCheckRunE does.
+func healthExportRunE(cmd *cobra.Command, args []string) error {
+	if printer.GetFormat() == printer.FormatJSON {
+		return errors.New("--json cannot be used with health export")
+	}
+
+	packetPath, _ := cmd.Flags().GetString("packet")
+	if packetPath == "" {
+		return withClient(healthExportCmdF)(cmd, args)
+	}
+
+	// An export is meant to be shared, so it leaves out the findings meant for support engineers.
+	list, opts, err := evaluateHealthPacket(cmd.Context(), packetPath, model.HealthFindingFilter{Surfaces: []string{string(healthcheck.SurfaceProduct)}})
+	if err != nil {
+		return err
+	}
+	return exportHealthReport(cmd, args[0], list, opts)
+}
+
+func healthExportCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	list, _, err := c.GetHealthFindings(context.TODO(), model.HealthFindingFilter{Muted: model.MutedIncluded})
+	if err != nil {
+		return fmt.Errorf("failed to get health findings: %w", err)
+	}
+
+	opts := report.Options{GeneratedAt: time.Now()}
+	if config, _, configErr := c.GetClientConfig(context.TODO(), ""); configErr == nil {
+		opts.SiteURL = config["SiteURL"]
+		opts.ServerVersion = config["Version"]
+	}
+	if license, _, licenseErr := c.GetOldClientLicense(context.TODO(), ""); licenseErr == nil && license["IsLicensed"] == "true" {
+		opts.License = model.LicenseSkuDisplayName(license["SkuShortName"], license["IsGovSku"] == "true")
+		opts.Company = license["Company"]
+	}
+	return exportHealthReport(cmd, args[0], list, opts)
 }
 
 func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -159,8 +211,6 @@ func runHealthCheckAndWait(ctx context.Context, c client.Client, timeout time.Du
 	}
 }
 
-// healthCheckPacketCmdF evaluates a Support Packet with the same engine and reconciler the
-// server uses, against an in-memory store, and renders with the English catalog built into mmctl.
 func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	packetPath, _ := cmd.Flags().GetString("packet")
 	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
@@ -168,13 +218,24 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("--include-muted cannot be used with --packet: findings evaluated from a packet are never muted")
 	}
 
+	list, opts, err := evaluateHealthPacket(cmd.Context(), packetPath, model.HealthFindingFilter{})
+	if err != nil {
+		return err
+	}
+	return printHealthFindings(list, includeResolved, opts)
+}
+
+// evaluateHealthPacket evaluates a Support Packet with the same engine and reconciler the server
+// uses, against an in-memory store, and renders the findings filter selects with the English
+// catalog built into mmctl. The returned options describe the packet's server.
+func evaluateHealthPacket(ctx context.Context, packetPath string, filter model.HealthFindingFilter) (*model.HealthFindingList, report.Options, error) {
 	p, err := packet.ReadFile(packetPath)
 	if err != nil {
-		return fmt.Errorf("failed to read Support Packet: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to read Support Packet: %w", err)
 	}
 
 	notes := []string{healthPacketDisclaimer}
-	if note := fillLatestVersion(cmd.Context(), p.Snapshot); note != "" {
+	if note := fillLatestVersion(ctx, p.Snapshot); note != "" {
 		notes = append(notes, note)
 	}
 	notes = append(notes, p.Warnings...)
@@ -195,16 +256,16 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Now: now})
 	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Registry: registry, Now: now})
 	if _, err = reconciler.Reconcile(engine.Evaluate(p.Snapshot)); err != nil {
-		return fmt.Errorf("failed to evaluate Support Packet: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to evaluate Support Packet: %w", err)
 	}
 
-	stored, err := store.List(model.HealthFindingFilter{})
+	stored, err := store.List(filter)
 	if err != nil {
-		return fmt.Errorf("failed to list health findings: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to list health findings: %w", err)
 	}
 
 	if err = i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
-		return fmt.Errorf("failed to load translations: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to load translations: %w", err)
 	}
 
 	findings := make([]*model.HealthFinding, 0, len(stored))
@@ -214,11 +275,48 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	return printHealthFindings(&model.HealthFindingList{EvaluatedAt: collectedAt, Findings: findings}, includeResolved, report.Options{
+	list := &model.HealthFindingList{EvaluatedAt: collectedAt, Findings: findings}
+	opts := report.Options{
 		GeneratedAt: time.Now(),
 		PointInTime: true,
 		Notes:       notes,
-	})
+	}
+	opts.SiteURL, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.ServiceSettings.SiteURL })
+	opts.ServerVersion = p.Snapshot.Version.Current
+	if license, ok := p.Snapshot.License(); ok {
+		opts.License = model.LicenseSkuDisplayName(license.SkuShortName, license.IsGovSKU)
+		opts.Company = license.Company
+	}
+	return list, opts, nil
+}
+
+// exportHealthReport renders the report as format, to the --output file or to stdout.
+func exportHealthReport(cmd *cobra.Command, format string, list *model.HealthFindingList, opts report.Options) error {
+	output, _ := cmd.Flags().GetString("output")
+
+	r, err := buildHealthReport(list, opts)
+	if err != nil {
+		return err
+	}
+
+	write := r.WriteHTML
+	if format == "md" {
+		write = r.WriteMarkdown
+	}
+	var b bytes.Buffer
+	if err := write(&b); err != nil {
+		return fmt.Errorf("failed to render the health report: %w", err)
+	}
+
+	if output == "" {
+		printer.Print(strings.TrimSuffix(b.String(), "\n"))
+		return nil
+	}
+	if err := os.WriteFile(output, b.Bytes(), 0600); err != nil {
+		return fmt.Errorf("failed to write the health report: %w", err)
+	}
+	printer.PrintT("Wrote the health report to {{ .file }}", map[string]string{"file": output})
+	return nil
 }
 
 // fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.
@@ -262,14 +360,23 @@ func printHealthFindings(list *model.HealthFindingList, includeResolved bool, op
 		return nil
 	}
 
+	r, err := buildHealthReport(list, opts)
+	if err != nil {
+		return err
+	}
+	printer.Print(formatHealthReport(r))
+	return nil
+}
+
+// buildHealthReport builds the report with the English catalog built into mmctl, showing times
+// in this machine's time zone.
+func buildHealthReport(list *model.HealthFindingList, opts report.Options) (*report.Report, error) {
 	if err := i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
-		return fmt.Errorf("failed to load translations: %w", err)
+		return nil, fmt.Errorf("failed to load translations: %w", err)
 	}
 	opts.T = i18n.T
 	opts.Location = time.Local
-
-	printer.Print(formatHealthReport(report.Build(list, opts)))
-	return nil
+	return report.Build(list, opts), nil
 }
 
 func formatHealthReport(r *report.Report) string {
