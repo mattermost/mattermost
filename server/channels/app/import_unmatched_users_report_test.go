@@ -112,3 +112,21 @@ func TestScopedImportReportsUnmatchedUsers(t *testing.T) {
 	require.Equal(t, "channel_not_found", reasonByUser[existingUser+"|"+realTeam+"|"+ghostChan])
 	require.Equal(t, "team_not_found", reasonByUser[existingUser+"|"+ghostTeam+"|"])
 }
+
+func TestScopedImportReportsRepeatedUsernameMatchOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	existing := createUserInDB(t, th, "rep.repeated."+model.NewId()[:8])
+	reader := channelScopedJSONL(t, model.NewRandomTeamName(), model.NewId(), nil,
+		[]string{existing.Username, existing.Username})
+
+	_, report, appErr := th.App.BulkImportWithPathAndOpts(th.Context, reader, nil, false, true, 1, "",
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+	require.Nil(t, appErr)
+	require.NotNil(t, report)
+
+	require.Equal(t, []imports.UnmatchedUser{
+		{Username: existing.Username, Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting},
+	}, report.UnmatchedUsers.All())
+}

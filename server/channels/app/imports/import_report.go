@@ -75,14 +75,39 @@ type UnmatchedUser struct {
 
 // unmatchedUsers is a concurrency-safe accumulator; import workers run in parallel.
 type unmatchedUsers struct {
-	mu sync.Mutex
-	s  []UnmatchedUser
+	mu   sync.Mutex
+	s    []UnmatchedUser
+	seen map[UnmatchedUser]struct{}
 }
 
+// Add records rec unless an identical entry, ignoring username letter case, was
+// already recorded: a username repeated in an archive resolves to the same account.
 func (u *unmatchedUsers) Add(rec UnmatchedUser) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	key := rec
+	key.Username = strings.ToLower(rec.Username)
+	if _, ok := u.seen[key]; ok {
+		return
+	}
+	if u.seen == nil {
+		u.seen = make(map[UnmatchedUser]struct{})
+	}
+	u.seen[key] = struct{}{}
 	u.s = append(u.s, rec)
+}
+
+// CountAction returns the number of recorded entries with the given action.
+func (u *unmatchedUsers) CountAction(action UnmatchedUserAction) int {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	n := 0
+	for _, rec := range u.s {
+		if rec.Action == action {
+			n++
+		}
+	}
+	return n
 }
 
 // All returns a copy of the accumulated entries, safe to read after the import.

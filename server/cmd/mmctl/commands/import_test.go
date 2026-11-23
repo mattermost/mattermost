@@ -176,6 +176,80 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.Contains(printer.GetLines()[2], "import/abc.zip.unmatched-users.csv")
 	})
 
+	s.Run("surfaces accounts linked by username separately from unmatched entries", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"unmatched_users_count":       "2",
+				"linked_existing_users_count": "4",
+				"unmatched_users_report":      "import/abc.zip.unmatched-users.csv",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 4)
+		s.Contains(printer.GetLines()[1], "2 import entries could not be matched")
+		s.Equal("\n4 import users or bots matched existing accounts on this server by username and were linked without changing those accounts.", printer.GetLines()[2])
+		s.Equal("See the report for details: import/abc.zip.unmatched-users.csv", printer.GetLines()[3])
+	})
+
+	s.Run("only linked accounts prints no unmatched notice", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"linked_existing_users_count": "3",
+				"unmatched_users_report":      "import/abc.zip.unmatched-users.csv",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 3)
+		s.Contains(printer.GetLines()[1], "3 import users or bots matched existing accounts")
+		s.Contains(printer.GetLines()[2], "import/abc.zip.unmatched-users.csv")
+	})
+
+	s.Run("singular wording for one linked account", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"linked_existing_users_count": "1",
+				"unmatched_users_report":      "import/abc.zip.unmatched-users.csv",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 3)
+		s.Equal("\n1 import user or bot matched an existing account on this server by username and was linked without changing that account.", printer.GetLines()[1])
+		s.Contains(printer.GetLines()[2], "import/abc.zip.unmatched-users.csv")
+	})
+
 	s.Run("no unmatched-users notice when count is zero", func() {
 		printer.Clean()
 		mockJob := &model.Job{

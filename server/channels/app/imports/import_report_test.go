@@ -6,6 +6,7 @@ package imports
 import (
 	"bytes"
 	"encoding/csv"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -54,14 +55,51 @@ func TestWriteUnmatchedUsersCSV(t *testing.T) {
 	assert.Equal(t, []string{"bob", "", "engineering", "off-topic", "channel_not_found", "membership_skipped"}, rows[2])
 }
 
+func TestUnmatchedUsers_CountAction(t *testing.T) {
+	var report ImportReport
+	assert.Equal(t, 0, report.UnmatchedUsers.CountAction(UnmatchedUserLinkedExisting))
+
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "alice", Reason: "username_matched_existing", Action: UnmatchedUserLinkedExisting})
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "bob", Reason: "username_not_found", Action: UnmatchedUserCreatedActive})
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "carol", Reason: "bot_username_matched_user", Action: UnmatchedUserLinkedExisting})
+
+	assert.Equal(t, 2, report.UnmatchedUsers.CountAction(UnmatchedUserLinkedExisting))
+	assert.Equal(t, 1, report.UnmatchedUsers.CountAction(UnmatchedUserCreatedActive))
+	assert.Equal(t, 0, report.UnmatchedUsers.CountAction(UnmatchedUserMembershipSkipped))
+}
+
+func TestUnmatchedUsers_IdenticalEntriesRecordedOnce(t *testing.T) {
+	var report ImportReport
+	base := UnmatchedUser{Username: "alice", AuthService: "saml", Team: "eng", Channel: "town", Reason: "channel_not_found", Action: UnmatchedUserMembershipSkipped}
+	report.UnmatchedUsers.Add(base)
+	report.UnmatchedUsers.Add(base)
+	upper := base
+	upper.Username = "ALICE"
+	report.UnmatchedUsers.Add(upper)
+
+	variants := []UnmatchedUser{base, base, base, base, base}
+	variants[0].AuthService = "ldap"
+	variants[1].Team = "ops"
+	variants[2].Channel = "random"
+	variants[3].Reason = "team_not_found"
+	variants[4].Action = UnmatchedUserCreatedInactive
+	for _, v := range variants {
+		report.UnmatchedUsers.Add(v)
+	}
+
+	assert.Equal(t, append([]UnmatchedUser{base}, variants...), report.UnmatchedUsers.All())
+}
+
 func TestUnmatchedUsers_ConcurrentAdd(t *testing.T) {
 	var report ImportReport
 	var wg sync.WaitGroup
-	for range 50 {
+	for i := range 50 {
 		wg.Go(func() {
-			report.UnmatchedUsers.Add(UnmatchedUser{Username: "u", Reason: "username_not_found", Action: UnmatchedUserCreatedActive})
+			report.UnmatchedUsers.Add(UnmatchedUser{Username: fmt.Sprintf("u%d", i), Reason: "username_not_found", Action: UnmatchedUserCreatedActive})
+			report.UnmatchedUsers.Add(UnmatchedUser{Username: "shared", Reason: "username_matched_existing", Action: UnmatchedUserLinkedExisting})
 		})
 	}
 	wg.Wait()
-	assert.Len(t, report.UnmatchedUsers.All(), 50)
+	assert.Len(t, report.UnmatchedUsers.All(), 51)
+	assert.Equal(t, 1, report.UnmatchedUsers.CountAction(UnmatchedUserLinkedExisting))
 }
