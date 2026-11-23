@@ -598,9 +598,8 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
         });
 
-        // No licence here: Posts is gated on its flag alone, unlike Channels.
-        it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
-            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}}}});
+        it('is offered with the PostAttributes feature flag and an Enterprise licence, and adds a Posts row', async () => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license: {IsLicensed: 'true', SkuShortName: 'enterprise'}}}});
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
@@ -608,6 +607,19 @@ describe('AttributeDetails', () => {
             await userEvent.click(screen.getByRole('menuitem', {name: 'Posts'}));
 
             expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
+        });
+
+        // The server refuses access_control post requests below Enterprise (501),
+        // so an unlicensed or Professional admin is not offered Posts.
+        it.each([
+            ['no licence', {IsLicensed: 'false'}],
+            ['a Professional licence', {IsLicensed: 'true', SkuShortName: 'professional'}],
+        ])('is not offered with the PostAttributes feature flag and %s', async (_name, license) => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license}}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
         });
     });
 
