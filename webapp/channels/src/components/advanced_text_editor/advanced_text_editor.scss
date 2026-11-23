@@ -84,16 +84,16 @@
     }
 
     // The body is the composer box, in agent mode and in a channel composer.
-    // The large corner stays the same as the box grows. Resting shadow lifts
-    // it; focus lifts it further. Hover and focus darken the border.
+    // The corner stays the same as the box grows. Resting shadow lifts it;
+    // focus lifts it further. Hover and focus darken the border.
     &__body {
         position: relative;
         max-width: 100%;
         flex: 1;
-        border: var(--border-default);
-        border-radius: var(--radius-l);
+        border: solid 1px rgba(var(--center-channel-color-rgb), 0.14);
+        border-radius: var(--radius-m);
         background-color: var(--center-channel-bg);
-        box-shadow: var(--elevation-4);
+        box-shadow: var(--elevation-3);
         transition: border-color var(--duration-quick) var(--ease-transition), box-shadow var(--duration-quick) var(--ease-transition);
 
         &:hover {
