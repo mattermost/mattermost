@@ -501,25 +501,25 @@ $mm-blocks-container-max-heights: (
 
     .mm-blocks-fields {
         display: flex;
-        flex-direction: column;
-        gap: 10px;
         width: 100%;
         min-width: 0;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .mm-blocks-fields__row {
         display: flex;
+        min-width: 0;
         flex-direction: column;
         gap: 10px;
-        min-width: 0;
 
         &--pair {
             flex-direction: row;
             gap: 16px;
 
             > .mm-blocks-field {
-                flex: 1 1 0;
                 min-width: 0;
+                flex: 1 1 0;
             }
         }
     }
@@ -529,14 +529,14 @@ $mm-blocks-container-max-heights: (
     }
 
     .mm-blocks-field__label {
+        margin-bottom: 2px;
+        color: $mm-blocks-text-muted;
         font-size: 11px;
         font-weight: 600;
-        line-height: 16px;
         letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: $mm-blocks-text-muted;
-        margin-bottom: 2px;
+        line-height: 16px;
         overflow-wrap: anywhere;
+        text-transform: uppercase;
     }
 
     .mm-blocks-field__value {
@@ -545,12 +545,12 @@ $mm-blocks-container-max-heights: (
         overflow-wrap: anywhere;
 
         &--hop {
-            background: none;
-            border: none;
             padding: 0;
-            font: inherit;
+            border: none;
+            background: none;
             color: var(--link-color);
             cursor: pointer;
+            font: inherit;
             text-align: left;
         }
 

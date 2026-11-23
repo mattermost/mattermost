@@ -566,8 +566,8 @@ type EntityCardMetric struct {
 }
 
 type EntityCardLink struct {
-	Label  string `json:"label"`
-	Text   string `json:"text,omitempty"`
+	Label string `json:"label"`
+	Text  string `json:"text,omitempty"`
 	// Value is the hop identity when TypeID is set. Text stays the display label
 	// (often id + name). When Value is empty, clients hop on Text.
 	Value  string `json:"value,omitempty"`
