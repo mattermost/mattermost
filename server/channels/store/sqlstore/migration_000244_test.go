@@ -5,7 +5,7 @@ package sqlstore
 
 import (
 	"encoding/json"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,7 +49,7 @@ func snapshotGroup(t *testing.T, s *SqlStore, name string) groupRows {
 	}
 	for _, q := range queries {
 		require.NoError(t, s.GetMaster().Select(q.dst, q.query, name))
-		sort.Strings(*q.dst)
+		slices.Sort(*q.dst)
 	}
 	return rows
 }
