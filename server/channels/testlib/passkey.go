@@ -24,7 +24,6 @@ type SoftAuthenticator struct {
 	AAGUID       []byte
 }
 
-// NewSoftAuthenticator returns an authenticator with a fresh P-256 key and credential id.
 func NewSoftAuthenticator() (*SoftAuthenticator, error) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -45,7 +44,6 @@ type softOptions struct {
 	userVerified bool
 }
 
-// SoftAuthenticatorOption changes how a SoftAuthenticator answers a ceremony.
 type SoftAuthenticatorOption func(*softOptions)
 
 // WithoutUserVerification leaves the user-verified flag out of the response, like an
