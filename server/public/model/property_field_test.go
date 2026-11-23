@@ -2953,7 +2953,7 @@ func TestPropertyFieldOptionsChanged(t *testing.T) {
 		// Producers in this codebase normalize attrs["options"] to []any of
 		// map[string]any (see EnsureOptionIDs, AccessControlAttributeValidationHook.
 		// sanitizeAndValidateOptions). If a non-canonical shape ever sneaks in,
-		// PropertyFieldInlineOptions returns nil, which makes optionsChanged report "changed"
+		// PropertyFieldInlineOptions returns nil, which makes PropertyFieldOptionsChanged report "changed"
 		// against any populated side — the safe failure mode that surfaces the
 		// contract violation instead of silently passing.
 		dbForm := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
