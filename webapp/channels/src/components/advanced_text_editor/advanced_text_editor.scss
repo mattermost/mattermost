@@ -93,7 +93,7 @@
         border: solid 1px rgba(var(--center-channel-color-rgb), 0.14);
         border-radius: var(--radius-m);
         background-color: var(--center-channel-bg);
-        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.06);
         transition: border-color var(--duration-quick) var(--ease-transition), box-shadow var(--duration-quick) var(--ease-transition);
 
         &:hover {
