@@ -102,7 +102,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
         if (!active) {
             setServerError(null);
         } else if (!wasActive.current) {
-            // The collapse above cleared a failed fetch's error; re-fetch so reopening shows it again or the list.
+            // Collapsing clears serverError, so re-fetch on expand: a still-failing fetch shows its error again instead of an empty list.
             load();
         }
         if (wasActive.current && !active && areAllSectionsInactive) {
