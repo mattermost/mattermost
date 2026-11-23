@@ -87,7 +87,6 @@ func (a *App) passkeyRelyingParty() (*webauthn.WebAuthn, *model.AppError) {
 	return rp, nil
 }
 
-// passkeyUser adapts a user and their existing passkeys to the WebAuthn library's User interface.
 type passkeyUser struct {
 	user     *model.User
 	handle   []byte
@@ -198,7 +197,6 @@ func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session)
 	return &model.PasskeyRegistrationOptions{CeremonyId: token.Token, Options: options}, nil
 }
 
-// defaultPasskeyName names a passkey after the browser and OS that registered it.
 func defaultPasskeyName(userAgent string) string {
 	ua := uasurfer.Parse(userAgent)
 	browser := getBrowserName(ua, userAgent)
@@ -243,7 +241,7 @@ func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session
 		return nil, invalidCeremony()
 	}
 
-	// The ceremony may have been begun at minute 9.
+	// Checked again here: the session may have been recent when the ceremony began but not by now.
 	if !passkeySignedInRecently(session) {
 		return nil, model.NewAppError(where, "app.passkey.recent_login_required.app_error", nil, "", http.StatusForbidden)
 	}

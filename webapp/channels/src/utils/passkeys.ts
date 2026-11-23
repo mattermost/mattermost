@@ -4,7 +4,7 @@
 import type {PasskeyRegistrationCredential} from '@mattermost/types/passkeys';
 
 // Hand-written rather than PublicKeyCredential.parseCreationOptionsFromJSON / toJSON(), which
-// are missing from browsers older than Safari 18.4 and its contemporaries.
+// are missing from older browsers (Safari before 18.4, for one).
 
 export function base64urlEncode(buffer: ArrayBuffer): string {
     let binary = '';
