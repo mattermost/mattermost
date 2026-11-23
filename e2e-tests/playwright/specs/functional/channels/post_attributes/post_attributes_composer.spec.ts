@@ -1245,8 +1245,10 @@ test('applies system fields in direct and group messages', {tag: '@post_attribut
         const everywhere = await createField(adminClient, fieldName('everywhere', suffix), {
             options: ['Low', 'High'],
         });
+        created.push(everywhere);
+
         const note = await createField(adminClient, fieldName('note', suffix), {type: 'text'});
-        created.push(everywhere, note);
+        created.push(note);
 
         const {page, channelsPage} = await pw.testBrowser.login(user);
 
