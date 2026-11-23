@@ -108,6 +108,7 @@ import type {
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
 import type {MfaSecret} from '@mattermost/types/mfa';
+import type {Passkey, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 import type {
     ClientPluginManifest,
     PluginManifest,
@@ -1331,6 +1332,34 @@ export default class Client4 {
         return this.doFetch<UserAccessToken>(
             `${this.getUserRoute(userId)}/tokens`,
             {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    getPasskeys = (userId: string) => {
+        return this.doFetch<Passkey[]>(
+            `${this.getUserRoute(userId)}/passkeys`,
+            {method: 'get'},
+        );
+    };
+
+    deletePasskey = (userId: string, passkeyId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getUserRoute(userId)}/passkeys/${passkeyId}`,
+            {method: 'delete'},
+        );
+    };
+
+    beginPasskeyRegistration = (userId: string) => {
+        return this.doFetch<PasskeyRegistrationOptions>(
+            `${this.getUserRoute(userId)}/passkeys/registration/begin`,
+            {method: 'post'},
+        );
+    };
+
+    finishPasskeyRegistration = (userId: string, ceremonyId: string, name: string, credential: PasskeyRegistrationCredential) => {
+        return this.doFetch<Passkey>(
+            `${this.getUserRoute(userId)}/passkeys/registration/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, name, credential})},
         );
     };
 
