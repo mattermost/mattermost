@@ -308,6 +308,7 @@ func (ch *Channels) Start() error {
 	})
 
 	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+	ch.AddConfigListener(ch.clearLatestVersionCacheOnFlip)
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {

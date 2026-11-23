@@ -46,7 +46,7 @@ import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState, ThunkActionFunc} from 'types/store';
-import type {MentionFilters, MentionType, RhsState} from 'types/store/rhs';
+import type {EntitySelection, MentionFilters, MentionType, RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -529,6 +529,18 @@ export function showChannelInfo(channelId: string) {
     };
 }
 
+export function showEntity(entity: EntitySelection): ActionFunc<boolean> {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            state: RHSStates.ENTITY,
+            entity,
+        });
+
+        return {data: true};
+    };
+}
+
 export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
         const actionsBatch: AnyAction[] = [
@@ -678,6 +690,9 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
             const post = getPost(getState(), previous.selectedPostCardId);
             return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
+        if (previous.isEntityView && previous.selectedEntity) {
+            return dispatch(showEntity(previous.selectedEntity));
+        }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());
         }
@@ -704,6 +719,24 @@ export function setEditChannelMembers(active: boolean) {
     return {
         type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
         active,
+    };
+}
+
+export function openChannelAttributeEditor(channelId: string, fieldId: string): ActionFunc {
+    return (dispatch) => {
+        dispatch(showChannelInfo(channelId));
+        dispatch({
+            type: ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT,
+            channelId,
+            fieldId,
+        });
+        return {data: true};
+    };
+}
+
+export function clearPendingChannelAttributeEdit() {
+    return {
+        type: ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT,
     };
 }
 

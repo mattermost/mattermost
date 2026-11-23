@@ -11,6 +11,7 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import Constants from 'utils/constants';
+import {replaceTextboxValue} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -62,7 +63,10 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
     const applyMarkdownMode = (params: ApplyMarkdownOptions) => {
         const res = applyMarkdown(params);
 
-        setCommentAsync(res.message).then(() => {
+        const input = textboxRef.current?.getInputBox();
+        const updated = input && replaceTextboxValue(input, res.message) ? Promise.resolve() : setCommentAsync(res.message);
+
+        updated.then(() => {
             const textbox = textboxRef.current?.getInputBox();
             if (textbox) {
                 Utils.setSelectionRange(

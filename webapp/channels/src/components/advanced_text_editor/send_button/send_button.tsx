@@ -23,13 +23,14 @@ import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import './send_button.scss';
 
 type SendButtonProps = {
-    handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
+    handleSubmit: (schedulingInfo?: SchedulingInfo) => Promise<{error?: string}>;
     disabled: boolean;
     channelId: string;
     repeatDisabledReason?: RepeatDisabledReason;
+    schedulingBlockedReason?: string;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, schedulingBlockedReason}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
@@ -91,6 +92,7 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: S
                     onSelect={handleSubmit}
                     channelId={channelId}
                     repeatDisabledReason={repeatDisabledReason}
+                    blockedReason={schedulingBlockedReason}
                 />
             }
         </div>

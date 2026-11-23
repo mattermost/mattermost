@@ -6,7 +6,8 @@ import React from 'react';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 
 import PostAttachmentContainer from './post_attachment_container';
 import type {Props} from './post_attachment_container';
@@ -125,5 +126,79 @@ describe('PostAttachmentContainer', () => {
         expect(() => {
             button.onclick?.(mockEvent);
         }).not.toThrow();
+    });
+
+    describe('navigation on click', () => {
+        const history = getHistory();
+
+        beforeEach(() => {
+            jest.mocked(history.push).mockClear();
+        });
+
+        const renderWithChildren = (children: React.ReactElement) => {
+            renderWithContext(
+                <PostAttachmentContainer
+                    {...baseProps}
+                    link='/test/pl/post1'
+                >
+                    {children}
+                </PostAttachmentContainer>,
+                initialState,
+            );
+        };
+
+        test('should navigate to the permalink when clicking non-interactive content', async () => {
+            renderWithChildren(<p>{'plain text'}</p>);
+
+            await userEvent.click(screen.getByText('plain text'));
+
+            expect(history.push).toHaveBeenCalledWith('/test/pl/post1');
+        });
+
+        test('should not navigate when clicking formatted text inside a link', async () => {
+            renderWithChildren(
+                <p>
+                    <a href='https://example.com'><strong>{'bold link'}</strong></a>
+                </p>,
+            );
+
+            await userEvent.click(screen.getByText('bold link'));
+
+            expect(history.push).not.toHaveBeenCalled();
+        });
+
+        test('should not navigate when clicking content of a link preview card', async () => {
+            renderWithChildren(
+                <a href='https://example.com'>
+                    <div className='PostAttachmentOpenGraph__body'>
+                        <span className='title'>{'Preview title'}</span>
+                    </div>
+                </a>,
+            );
+
+            await userEvent.click(screen.getByText('Preview title'));
+
+            expect(history.push).not.toHaveBeenCalled();
+        });
+
+        test('should not navigate when clicking content inside a nested button', async () => {
+            renderWithChildren(
+                <button><span>{'button label'}</span></button>,
+            );
+
+            await userEvent.click(screen.getByText('button label'));
+
+            expect(history.push).not.toHaveBeenCalled();
+        });
+
+        test('should not navigate when clicking content inside a nested role="button" element', async () => {
+            renderWithChildren(
+                <div role='button'><span>{'role button label'}</span></div>,
+            );
+
+            await userEvent.click(screen.getByText('role button label'));
+
+            expect(history.push).not.toHaveBeenCalled();
+        });
     });
 });

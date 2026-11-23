@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {renderHook} from '@testing-library/react';
+import {act, renderHook} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -579,6 +579,65 @@ describe('useBurnOnRead', () => {
 
             expect(result.current.handleRemoveBurnOnRead).toBeDefined();
             expect(typeof result.current.handleRemoveBurnOnRead).toBe('function');
+        });
+
+        it('does not turn burn-on-read on while it is blocked, from any caller', () => {
+            (getChannel as jest.Mock).mockReturnValue(createMockChannel('O'));
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                    'Remove the attributes to use burn-on-read',
+                ),
+                {wrapper},
+            );
+
+            act(() => result.current.handleBurnOnReadApply(true));
+
+            expect(mockHandleDraftChange).not.toHaveBeenCalled();
+        });
+
+        it('still turns burn-on-read off while it is blocked', () => {
+            (getChannel as jest.Mock).mockReturnValue(createMockChannel('O'));
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(PostTypes.BURN_ON_READ),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                    'Remove the attributes to use burn-on-read',
+                ),
+                {wrapper},
+            );
+
+            act(() => result.current.handleRemoveBurnOnRead());
+
+            expect(mockHandleDraftChange).toHaveBeenCalledWith(expect.objectContaining({type: undefined}), {instant: true});
+        });
+
+        it('turns burn-on-read on when nothing blocks it', () => {
+            (getChannel as jest.Mock).mockReturnValue(createMockChannel('O'));
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            act(() => result.current.handleBurnOnReadApply(true));
+
+            expect(mockHandleDraftChange).toHaveBeenCalledWith(expect.objectContaining({type: PostTypes.BURN_ON_READ}), {instant: true});
         });
     });
 });
