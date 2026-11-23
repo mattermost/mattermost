@@ -681,6 +681,79 @@ func TestPatchCPAField(t *testing.T) {
 
 		requireOptionNamesStored(t, th, cpaGroup.ID, field.ID, "Alpha", "Beta")
 	})
+
+	t.Run("the field-updated broadcast withholds the options of a masked field", func(t *testing.T) {
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field, _ := createMaskedSelectField(t, th, cpaGroup.ID, celSafeName())
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		newName := celSafeName()
+		_, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), field.ID, &model.PropertyFieldPatch{
+			Name:  &newName,
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: field.Attrs[model.PropertyFieldAttributeOptions]},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		wsField := nextCPAFieldEvent(t, webSocketClient, model.WebsocketEventCPAFieldUpdated, field.ID)
+		require.Equal(t, newName, wsField.Name)
+		require.Empty(t, inlineOptionNames(t, &wsField))
+		require.Equal(t, true, wsField.Attrs[model.PropertyFieldAttributeOptionsOmitted])
+	})
+
+	t.Run("the field-updated broadcast keeps the options of a field everyone may read", func(t *testing.T) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "Alpha"},
+				map[string]any{"name": "Beta"},
+			}},
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		newName := celSafeName()
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		wsField := nextCPAFieldEvent(t, webSocketClient, model.WebsocketEventCPAFieldUpdated, created.ID)
+		require.Equal(t, []string{"Alpha", "Beta"}, inlineOptionNames(t, &wsField))
+		require.NotContains(t, wsField.Attrs, model.PropertyFieldAttributeOptionsOmitted)
+	})
+}
+
+// nextCPAFieldEvent returns the field carried by the next eventType event for
+// fieldID on the connection, failing if none arrives.
+func nextCPAFieldEvent(t *testing.T, ws *model.WebSocketClient, eventType model.WebsocketEventType, fieldID string) model.PropertyField {
+	t.Helper()
+
+	var wsField model.PropertyField
+	require.Eventually(t, func() bool {
+		select {
+		case event := <-ws.EventChannel:
+			if event.EventType() != eventType {
+				return false
+			}
+			fieldData, err := json.Marshal(event.GetData()["field"])
+			require.NoError(t, err)
+			var candidate model.PropertyField
+			require.NoError(t, json.Unmarshal(fieldData, &candidate))
+			if candidate.ID != fieldID {
+				return false
+			}
+			wsField = candidate
+			return true
+		default:
+			return false
+		}
+	}, 5*time.Second, 100*time.Millisecond)
+	return wsField
 }
 
 func TestDeleteCPAField(t *testing.T) {

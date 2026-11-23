@@ -114,22 +114,14 @@ func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) 
 	}
 }
 
-func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.WebsocketEventType, field *model.PropertyField, connectionID string) {
-	if field == nil || field.IsPSAv1() {
-		return
-	}
-	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
-	if !ok {
-		return
-	}
-	// A broadcast has no single caller to shape permissions for, and no target
-	// narrow enough to make a partial payload safe (a system-scoped field
-	// broadcasts to every connected client) -- so the event drops permissions
-	// entirely rather than shaping them, the same answer the CPA payload and
-	// the access-control autocomplete give. Copy first: field is the object the
-	// caller who triggered this event is about to get back themselves.
+// PropertyFieldForBroadcast returns a copy of field safe to send to every
+// client an event reaches as far as its options go: a field whose option list
+// not everyone may read comes back with none at all. Permissions are left on
+// the copy for the caller to drop or project, as the payload it builds needs.
+func (a *App) PropertyFieldForBroadcast(rctx request.CTX, field *model.PropertyField) *model.PropertyField {
+	// Copy first: field is the object the caller who triggered this event is
+	// about to get back themselves.
 	broadcastField := *field
-	broadcastField.Permissions = nil
 
 	// It has no recipient to filter options against either, so a field whose
 	// option list not everyone may read must go out with none at all — a
@@ -148,8 +140,26 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 		// count is controlled information too.
 		broadcastField.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
 	}
+	return &broadcastField
+}
 
-	fieldJSON, err := json.Marshal(&broadcastField)
+func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.WebsocketEventType, field *model.PropertyField, connectionID string) {
+	if field == nil || field.IsPSAv1() {
+		return
+	}
+	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
+	if !ok {
+		return
+	}
+	// A broadcast has no single caller to shape permissions for, and no target
+	// narrow enough to make a partial payload safe (a system-scoped field
+	// broadcasts to every connected client) -- so the event drops permissions
+	// entirely rather than shaping them, the same answer the CPA payload and
+	// the access-control autocomplete give.
+	broadcastField := a.PropertyFieldForBroadcast(rctx, field)
+	broadcastField.Permissions = nil
+
+	fieldJSON, err := json.Marshal(broadcastField)
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
 		return

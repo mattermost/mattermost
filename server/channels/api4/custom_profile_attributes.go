@@ -269,8 +269,15 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// pre-PSAv2 webapp clients to clear cached values for this field; PSAv2
 	// clients receive the same signal via WebsocketEventPropertyValuesUpdated
 	// fired by App.UpdatePropertyField.
+	// The event goes to every connected user, so it carries the field with any
+	// option list not everyone may read withheld.
+	broadcastCPAField, convErr := model.NewCPAFieldFromPropertyField(c.App.PropertyFieldForBroadcast(rctx, updatedField))
+	if convErr != nil {
+		c.Err = model.NewAppError("patchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+		return
+	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
-	message.Add("field", cpaField)
+	message.Add("field", broadcastCPAField)
 	message.Add("delete_values", len(clearedIDs) > 0)
 	c.App.Publish(message)
 
