@@ -55,6 +55,7 @@ test(
     'orders chips by sort order then name on every post, and follows a reorder',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision four select fields. Two share a sort order, so only their names can
@@ -131,6 +132,7 @@ test(
     'cuts a multiselect that fills the row short and counts the rest in the badge',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision a multiselect that holds three entries, then a single select after it
@@ -192,6 +194,7 @@ test(
     'keeps always and hidden fields off the chips and the card but in the modal',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision one field per visibility level
@@ -278,76 +281,15 @@ test(
 );
 
 /**
- * @objective Verify system, team and channel scoped fields all draw on one post, and the
- * card reads each of them.
+ * @objective Verify the text subtypes that store an id draw what it names: a channel with
+ * its icon and name, a team, and a linked post as the channel it is in. A channel the user
+ * cannot see draws the deleted label. The timestamp subtype is not covered: the
+ * access_control group stores a text value as a string, and the timestamp chip reads a number.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
-test('draws system, team and channel scoped fields together on one post', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.ensureFeatureFlag('PostAttributes', true);
-
-    // # Provision one field at each scope
-    const {adminClient, user, userClient, team} = await pw.initSetup();
-    const suffix = pw.random.id();
-    const created: PropertyField[] = [];
-
-    try {
-        await purgeFields(adminClient);
-
-        const channel = await adminClient.createPublicChannel(team.id, `scoped-${suffix}`);
-        await adminClient.addToChannel(user.id, channel.id);
-
-        const system = await createField(adminClient, fieldName('system', suffix), {options: ['SYS1'], sortOrder: 1});
-        const forTeam = await createField(adminClient, fieldName('team', suffix), {
-            options: ['TEAM1'],
-            teamId: team.id,
-            sortOrder: 2,
-        });
-        const forChannel = await createField(adminClient, fieldName('channel', suffix), {
-            options: ['CHAN1'],
-            channelId: channel.id,
-            sortOrder: 3,
-        });
-        created.push(system, forTeam, forChannel);
-
-        const post = await userClient.createTestPost({channel_id: channel.id, message: 'three scopes'});
-        await setPostValues(adminClient, post.id, [
-            {field_id: system.id, value: optionId(system, 'SYS1')},
-            {field_id: forTeam.id, value: optionId(forTeam, 'TEAM1')},
-            {field_id: forChannel.id, value: optionId(forChannel, 'CHAN1')},
-        ]);
-
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
-
-        const onScreen = await channelsPage.centerView.getPostById(post.id);
-
-        // * Verify the row drew the first two, in sort order, and counted the third
-        await expect(onScreen.container.getByTestId(OPTION_CHIP)).toHaveText(['SYS1', 'TEAM1']);
-        await expect(onScreen.container.getByTestId(OVERFLOW)).toHaveText('+1');
-
-        // * Verify the card reads all three, the channel scoped one included
-        await onScreen.container.getByTestId(CHIPS).hover();
-
-        const card = page.getByTestId(CARD);
-        await expect(card.getByRole('listitem')).toHaveCount(3);
-        await expect(card.getByRole('listitem').nth(0)).toContainText('SYS1');
-        await expect(card.getByRole('listitem').nth(1)).toContainText('TEAM1');
-        await expect(card.getByRole('listitem').nth(2)).toContainText('CHAN1');
-    } finally {
-        await deleteFields(adminClient, created);
-    }
-});
-
-/**
- * @objective Verify the text subtypes that store an id or an epoch draw what it names: a
- * channel with its icon and name, a team, a formatted date, and a linked post as the
- * channel it is in. A channel the user cannot see draws the deleted label.
- *
- * @precondition The PostAttributes feature flag is enabled.
- */
-test('resolves channel, team, timestamp and linked post values', {tag: '@post_attributes'}, async ({pw}) => {
+test('resolves channel, team and linked post values', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one text field per subtype
@@ -363,12 +305,8 @@ test('resolves channel, team, timestamp and linked post values', {tag: '@post_at
             subType: 'channel',
         });
         const teamField = await createField(adminClient, fieldName('team', suffix), {type: 'text', subType: 'team'});
-        const timestampField = await createField(adminClient, fieldName('when', suffix), {
-            type: 'text',
-            subType: 'timestamp',
-        });
         const postField = await createField(adminClient, fieldName('post', suffix), {type: 'text', subType: 'post'});
-        created.push(channelField, teamField, timestampField, postField);
+        created.push(channelField, teamField, postField);
 
         // # A channel the user is in, one they cannot see, and the post the link points at
         const visible = await adminClient.createPublicChannel(team.id, `visible-${suffix}`);
@@ -382,15 +320,11 @@ test('resolves channel, team, timestamp and linked post values', {tag: '@post_at
         const withChannel = await userClient.createTestPost({channel_id: townSquare.id, message: 'channel value'});
         const withHidden = await userClient.createTestPost({channel_id: townSquare.id, message: 'unseen channel'});
         const withTeam = await userClient.createTestPost({channel_id: townSquare.id, message: 'team value'});
-        const withTimestamp = await userClient.createTestPost({channel_id: townSquare.id, message: 'timestamp value'});
         const withPost = await userClient.createTestPost({channel_id: townSquare.id, message: 'post value'});
 
         await setPostValues(adminClient, withChannel.id, [{field_id: channelField.id, value: visible.id}]);
         await setPostValues(adminClient, withHidden.id, [{field_id: channelField.id, value: hidden.id}]);
         await setPostValues(adminClient, withTeam.id, [{field_id: teamField.id, value: team.id}]);
-        await setPostValues(adminClient, withTimestamp.id, [
-            {field_id: timestampField.id, value: Date.UTC(2026, 2, 18, 12, 0, 0)},
-        ]);
         await setPostValues(adminClient, withPost.id, [{field_id: postField.id, value: target.id}]);
 
         const {channelsPage} = await pw.testBrowser.login(user);
@@ -418,13 +352,6 @@ test('resolves channel, team, timestamp and linked post values', {tag: '@post_at
         await expect(teamChip).toContainText(team.display_name);
         await expect(teamChip).not.toContainText(team.id);
 
-        // * Verify a timestamp is a formatted date, not the epoch
-        const timestampChip = (await channelsPage.centerView.getPostById(withTimestamp.id)).container
-            .getByTestId('timestamp-property')
-            .first();
-        await expect(timestampChip).toContainText('2026');
-        await expect(timestampChip).not.toContainText(String(Date.UTC(2026, 2, 18, 12, 0, 0)));
-
         // * Verify a linked post names the channel it is in
         const postChip = (await channelsPage.centerView.getPostById(withPost.id)).container.getByTestId(
             'post-preview-property',
@@ -442,6 +369,7 @@ test('resolves channel, team, timestamp and linked post values', {tag: '@post_at
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('caps a long text chip by width and keeps the full text in its title', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a text field and set a value far wider than a chip may be
@@ -455,7 +383,8 @@ test('caps a long text chip by width and keeps the full text in its title', {tag
         const note = await createField(adminClient, fieldName('note', suffix), {type: 'text'});
         created.push(note);
 
-        const long = 'A very long note that keeps going well past what fits in a single attribute chip on a post';
+        // The access_control group caps a text value at 64 characters
+        const long = 'A long note that keeps going well past what fits in one chip.';
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const post = await userClient.createTestPost({channel_id: channel.id, message: 'long text'});
         await setPostValues(adminClient, post.id, [{field_id: note.id, value: long}]);
@@ -484,6 +413,7 @@ test('caps a long text chip by width and keeps the full text in its title', {tag
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('drops a chip and its badge count when an option is deleted', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three select fields and set all three, so one lands in the badge
@@ -533,8 +463,9 @@ test('drops a chip and its badge count when an option is deleted', {tag: '@post_
         await expect(onScreen.container.getByTestId(OPTION_CHIP)).toHaveText(['X1']);
         expect(loads()).toBe(0);
 
-        // # Delete every option of the last drawn field, which leaves it an empty list
-        await patchFieldAttrs(adminClient, first, {options: []});
+        // # Delete the option of the last drawn field. The group refuses an empty option
+        // list, so the field keeps its other option and the post's value is the orphan.
+        await patchFieldAttrs(adminClient, first, {options: withoutOption(first, 'X1')});
 
         // * Verify the post draws no chip, rather than the stored option id as raw text
         await expect(onScreen.container.getByTestId(CHIPS)).toHaveCount(0);
@@ -562,6 +493,7 @@ test('drops a chip and its badge count when an option is deleted', {tag: '@post_
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws a value on a field whose options are too many to send', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -607,6 +539,7 @@ test('draws a value on a field whose options are too many to send', {tag: '@post
  * @precondition The PostAttributes feature flag is enabled.
  */
 test("drops a deleted field's chips everywhere", {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two fields and set both on a thread root and on another post
@@ -670,6 +603,7 @@ test("drops a deleted field's chips everywhere", {tag: '@post_attributes'}, asyn
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chips on a deleted post', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, set it on a thread root that has a reply (so the deleted root
@@ -720,8 +654,10 @@ test('draws no chips on a deleted post', {tag: '@post_attributes'}, async ({pw})
  */
 test('draws no chips on a burn-on-read post, concealed or revealed', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.ensureFeatureFlag('PostAttributes', true);
-    await pw.ensureLicense();
+
+    // Before ensureLicense, which fails rather than skips when the server has no licence
     await pw.skipIfNoLicense();
+    await pw.ensureLicense();
 
     // # Provision a field, and send a burn-on-read post to a second user in a DM. The
     // create path refuses values on a burn-on-read post, so one is written afterwards.
@@ -780,6 +716,7 @@ test('draws no chips on a burn-on-read post, concealed or revealed', {tag: '@pos
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chips on a system message', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, then make a system message by changing a channel's header

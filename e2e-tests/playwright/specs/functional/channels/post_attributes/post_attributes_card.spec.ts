@@ -18,6 +18,7 @@ const CARD = 'post-attributes-card';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('reads every attribute from the hover card, overflow included', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision four ordered fields and set all four on one post, so two of them
@@ -111,6 +112,7 @@ test('reads every attribute from the hover card, overflow included', {tag: '@pos
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('closes when the pointer leaves, and Edit opens the modal', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post

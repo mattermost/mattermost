@@ -74,6 +74,7 @@ async function addAttribute(page: Page, field: PropertyField) {
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('opens from the post menu and from the hover card', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post
@@ -134,6 +135,7 @@ test('opens from the post menu and from the hover card', {tag: '@post_attributes
  * give the menu something to add. It skips when the server has one.
  */
 test('offers no Attributes item when there is nothing to view or add', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one field only a system admin may write, and leave it unset. A member
@@ -202,6 +204,7 @@ test(
     'offers no Attributes item on system messages or concealed burn-on-read posts',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
@@ -294,6 +297,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('writes a text attribute on Enter and on blur', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a when_set text field and a post with no values
@@ -359,6 +363,7 @@ test(
     'writes user and multiuser attributes through a picker above the modal',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision a user and a multiuser field, two people to pick, and a post with no values
@@ -456,6 +461,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('writes select, rank and multiselect attributes', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a rank and a multiselect field, and a post with no values
@@ -559,6 +565,7 @@ test(
     'searches the field picker inside the modal, and Escape closes only the menu',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision five fields, none set on the post
@@ -653,6 +660,7 @@ test(
     'removes a cleared attribute from the card, and from the modal unless it is always',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         // # Provision three fields and set all three on one post: an `always` one and a

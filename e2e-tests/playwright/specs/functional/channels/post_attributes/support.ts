@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ChannelsPage, ChannelsPost, PlaywrightExtended} from '@mattermost/playwright-lib';
 
-export const GROUP = 'post_attributes';
+export const GROUP = 'access_control';
 export const OBJECT_TYPE = 'post';
 
 // Prefix on every field these specs create, so cleanup never touches a real one.
@@ -35,12 +35,6 @@ type CreateOptions = {
     // ids, so an unrecognised token reaches the client exactly as written.
     options?: Array<string | {name: string; color: string}>;
 
-    // Omitted means system-scoped, which applies to every channel. A channel id
-    // scopes the field to that channel only, and a team id to that team's channels
-    // (and so never to a direct or group message).
-    channelId?: string;
-    teamId?: string;
-
     visibility?: 'always' | 'when_set' | 'hidden';
     sortOrder?: number;
 
@@ -48,38 +42,83 @@ type CreateOptions = {
     // epoch the chip resolves, and any other string is shown as plain text.
     subType?: string;
 
-    // Who may write a value. Omitted means the server's default, which for a
-    // post-object field is `member` — so a field created without this is already
-    // writable by any member of the channel, and only a field that needs to render
-    // as read-only has to say anything here. `none` is the one level nobody
-    // satisfies, including a system admin over HTTP.
+    // Who may write a value. Omitted means `creator`, what the System Console gives the
+    // post field of an attribute that applies to posts: the post's author and an admin
+    // of its channel. A test that needs another level says so. `none` is the one level
+    // nobody satisfies, including a system admin over HTTP.
     permissionValues?: PropertyPermissionLevel;
 };
 
+// What the field's template is, by the id of the linked post field made from it. A linked
+// field takes its type and options from the template and refuses options of its own, so
+// whatever edits or deletes options has to find the template behind the field.
+const templatesByPostField = new Map<string, PropertyField>();
+
 /**
- * Creates one post attribute field.
- *
- * Provisioned through the API rather than the UI because there is no admin UI for
- * post attribute fields yet — and the local `/post-attributes-seed` slash command must
- * never be committed, so it cannot back an E2E spec.
+ * The template a post field made by `createField` is linked to.
  */
-export async function createField(
+export function templateOf(field: PropertyField): PropertyField {
+    const template = templatesByPostField.get(field.id);
+    if (!template) {
+        throw new Error(`no template recorded for ${field.name}`);
+    }
+
+    return template;
+}
+
+type OptionInput = string | {name: string; color: string};
+
+// The server fills in the ids; what comes back is the authority on them. A rank field's
+// options each need a rank.
+function toOptionAttrs(options: OptionInput[], type: FieldType) {
+    return options.map((option, index) => {
+        const rank = type === 'rank' ? {rank: index + 1} : {};
+
+        if (typeof option === 'string') {
+            return {id: '', name: option, ...rank};
+        }
+
+        return {id: '', name: option.name, color: option.color, ...rank};
+    });
+}
+
+/**
+ * Creates a system-scoped template, the way the Global Attributes admin page does. It is
+ * the definition: type and options live here, and the post field linked to it serves them.
+ */
+export async function createTemplate(
     adminClient: Client4,
     name: string,
-    {type, options = [], channelId, teamId, visibility, sortOrder, subType, permissionValues}: CreateOptions = {},
+    options: OptionInput[] = [],
+    type: FieldType = 'select',
 ): Promise<PropertyField> {
-    const attrs: Record<string, unknown> = {};
-
+    const attrs: Record<string, unknown> = {display_name: name};
     if (options.length) {
-        // The server fills in the ids; what comes back is the authority on them.
-        attrs.options = options.map((option) => {
-            if (typeof option === 'string') {
-                return {id: '', name: option};
-            }
-
-            return {id: '', name: option.name, color: option.color};
-        });
+        attrs.options = toOptionAttrs(options, type);
     }
+
+    return adminClient.createPropertyField(GROUP, TEMPLATE_OBJECT_TYPE, {
+        name,
+        type,
+        target_type: 'system',
+        target_id: '',
+        attrs,
+    });
+}
+
+/**
+ * Creates the post field linked to a template, the second request the Global Attributes
+ * page sends. The type and options come from the template and are not sent.
+ */
+export async function createLinkedPostField(
+    adminClient: Client4,
+    template: PropertyField,
+    name: string,
+    {visibility, sortOrder, subType, permissionValues = 'creator'}: Pick<CreateOptions, 'visibility' | 'sortOrder' | 'subType' | 'permissionValues'> = {},
+): Promise<PropertyField> {
+    // No display_name: it is the template's, and a linked field that carried one of its own
+    // would show it instead of its name, which a rename of the field would not change.
+    const attrs: Record<string, unknown> = {};
     if (visibility) {
         attrs.visibility = visibility;
     }
@@ -90,19 +129,49 @@ export async function createField(
         attrs.subType = subType;
     }
 
-    const field: Record<string, unknown> = {
+    return adminClient.createPropertyField(GROUP, OBJECT_TYPE, {
         name,
-        type: type ?? (options.length ? 'select' : 'text'),
-        target_type: (channelId && 'channel') || (teamId && 'team') || 'system',
-        target_id: channelId ?? teamId ?? '',
+        type: template.type,
+        target_type: 'system',
+        target_id: '',
+        linked_field_id: template.id,
+        permission_values: permissionValues,
         attrs,
-    };
+    } as Parameters<Client4['createPropertyField']>[2]);
+}
 
-    if (permissionValues) {
-        field.permission_values = permissionValues;
+/**
+ * Creates one post attribute field the way Global Attributes does: a template holding the
+ * type and options, then the post field linked to it. Returns the linked post field, the
+ * one chips, the modal and values are keyed on; `templateOf` finds the template, for a
+ * test that edits options. The template shares the field's name, and `deleteFields` and
+ * `purgeFields` remove the pair, field first.
+ *
+ * Provisioned through the API rather than the UI to seed a starting state without driving
+ * the console; post_attributes_creator.spec.ts covers the console itself.
+ */
+export async function createField(
+    adminClient: Client4,
+    name: string,
+    {type, options = [], visibility, sortOrder, subType, permissionValues}: CreateOptions = {},
+): Promise<PropertyField> {
+    const fieldType = type ?? (options.length ? 'select' : 'text');
+    const template = await createTemplate(adminClient, name, options, fieldType);
+
+    try {
+        const field = await createLinkedPostField(adminClient, template, name, {
+            visibility,
+            sortOrder,
+            subType,
+            permissionValues,
+        });
+        templatesByPostField.set(field.id, template);
+
+        return field;
+    } catch (error) {
+        await deleteFieldsOf(adminClient, TEMPLATE_OBJECT_TYPE, [template]);
+        throw error;
     }
-
-    return adminClient.createPropertyField(GROUP, OBJECT_TYPE, field as Parameters<Client4['createPropertyField']>[2]);
 }
 
 export function optionId(field: PropertyField, name: string): string {
@@ -130,25 +199,42 @@ export async function setPostValues(
 
 /**
  * Changes some of a field's attrs, keeping the rest. A patch replaces `attrs` as a whole,
- * so the field's current ones are sent back with the change applied.
+ * so the current ones are sent back with the change applied. The options of a linked field
+ * belong to its template, so they are patched there and the template's other attrs kept;
+ * everything else (sort order, visibility) is the post field's own.
  */
 export async function patchFieldAttrs(
     adminClient: Client4,
     field: PropertyField,
     attrs: Record<string, unknown>,
 ): Promise<PropertyField> {
-    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: {...field.attrs, ...attrs}});
+    const {options, ...own} = attrs;
+
+    if (options !== undefined) {
+        const template = templateOf(field);
+        const patched = await adminClient.patchPropertyField(GROUP, TEMPLATE_OBJECT_TYPE, template.id, {
+            attrs: {...template.attrs, options},
+        });
+        templatesByPostField.set(field.id, patched);
+
+        if (!Object.keys(own).length) {
+            return field;
+        }
+    }
+
+    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: {...field.attrs, ...own}});
 }
 
 // The most options one request to the options endpoint may carry.
 const OPTIONS_PER_REQUEST = 200;
 
 /**
- * Adds options to a field through its options endpoint, as many requests as the count
- * takes. The client has no method for that endpoint, so it is called directly.
+ * Adds options to a field's template through its options endpoint, as many requests as
+ * the count takes. The client has no method for that endpoint, so it is called directly.
  */
 export async function addFieldOptions(adminClient: Client4, field: PropertyField, names: string[]): Promise<void> {
-    const route = adminClient.getPropertyFieldOptionsRoute(GROUP, OBJECT_TYPE, field.id);
+    const template = templateOf(field);
+    const route = adminClient.getPropertyFieldOptionsRoute(GROUP, TEMPLATE_OBJECT_TYPE, template.id);
 
     for (let start = 0; start < names.length; start += OPTIONS_PER_REQUEST) {
         const batch = names.slice(start, start + OPTIONS_PER_REQUEST).map((name) => ({name}));
@@ -268,28 +354,47 @@ export async function enableGuestAccounts(adminClient: Client4): Promise<(() => 
     };
 }
 
+/**
+ * Deletes post fields made by `createField`, then their templates: the server refuses to
+ * delete a template that has a linked field, and one a masking rule points at needs the
+ * rule off first.
+ */
 export async function deleteFields(adminClient: Client4, fields: PropertyField[]): Promise<void> {
+    const templates: PropertyField[] = [];
     for (const field of fields) {
-        try {
-            await adminClient.deletePropertyField(GROUP, OBJECT_TYPE, field.id);
-        } catch {} // eslint-disable-line no-empty
+        const template = templatesByPostField.get(field.id);
+        if (template) {
+            templates.push(template);
+        }
+    }
+
+    await deleteFieldsOf(adminClient, OBJECT_TYPE, fields);
+    for (const template of templates) {
+        await unmaskTemplate(adminClient, template);
+    }
+    await deleteFieldsOf(adminClient, TEMPLATE_OBJECT_TYPE, templates);
+    for (const field of fields) {
+        templatesByPostField.delete(field.id);
     }
 }
 
 /**
  * Best-effort cleanup of fields an interrupted run left behind.
  *
- * Only the system scope is swept: a channel-scoped field belongs to a channel this run
- * created, so it dies with the fixture, while a system-scoped one applies everywhere
- * and would leak chips into an unrelated spec.
+ * Post fields are system-scoped, so one left behind applies to every channel and would
+ * leak chips into an unrelated spec, and it counts toward the 50-field cap and the
+ * group's 200-field limit. Only fields with the suite's prefix are touched.
  */
 export async function purgeFields(adminClient: Client4): Promise<void> {
     try {
         const fields = await adminClient.getPropertyFields(GROUP, OBJECT_TYPE, {targetType: 'system'});
         const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
 
-        await deleteFields(adminClient, stale);
+        await deleteFieldsOf(adminClient, OBJECT_TYPE, stale);
     } catch {} // eslint-disable-line no-empty
+
+    // Their templates, and any holder fields, now that nothing is linked to them
+    await purgeTemplateFields(adminClient);
 }
 
 /**
@@ -438,4 +543,119 @@ export async function openModalFromPostMenu(channelsPage: ChannelsPage, post: Ch
     await post.postMenu.dotMenuButton.click();
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
+}
+
+// Templates and the user fields linked to them live in the same group as post fields, and
+// count toward its 200-field limit, so a spec that makes them must delete them.
+export const TEMPLATE_OBJECT_TYPE = 'template';
+export const USER_OBJECT_TYPE = 'user';
+
+/**
+ * Creates the user field a masking template reads each viewer's holdings from, linked to
+ * the template. Only a sysadmin may write it: a field that filters people cannot be
+ * writable by the people it filters.
+ */
+export async function createHolderField(
+    adminClient: Client4,
+    name: string,
+    template: PropertyField,
+): Promise<PropertyField> {
+    return adminClient.createPropertyField(GROUP, USER_OBJECT_TYPE, {
+        name,
+        type: 'select',
+        target_type: 'system',
+        target_id: '',
+        linked_field_id: template.id,
+        permission_values: 'sysadmin',
+        attrs: {},
+    });
+}
+
+/**
+ * Turns masking on for a template, keyed on the user field that holds each viewer's
+ * options. Done after the fields are linked, the order an admin would follow.
+ */
+export async function maskTemplateBy(
+    adminClient: Client4,
+    template: PropertyField,
+    holder: PropertyField,
+): Promise<PropertyField> {
+    // The admin driving the spec is exempt: a masked holder field hides each user's holding
+    // from everyone who does not hold the same option, and the server refuses a write over a
+    // value the caller cannot read, so without this the admin could not change a holding.
+    const admin = await adminClient.getMe();
+
+    return adminClient.patchPropertyField(GROUP, TEMPLATE_OBJECT_TYPE, template.id, {
+        permissions: {masking: {mask_by_field_id: holder.id, except: [{type: 'user', id: admin.id}]}},
+    });
+}
+
+/**
+ * Sets what one user holds in a holder field. The value is an option id.
+ */
+export async function setHolding(adminClient: Client4, userId: string, holder: PropertyField, value: string) {
+    await adminClient.patchPropertyValues(GROUP, USER_OBJECT_TYPE, userId, [{field_id: holder.id, value}]);
+}
+
+/**
+ * Deletes fields of any object type, ignoring the ones already gone.
+ */
+export async function deleteFieldsOf(adminClient: Client4, objectType: string, fields: PropertyField[]) {
+    for (const field of fields) {
+        try {
+            await adminClient.deletePropertyField(GROUP, objectType, field.id);
+        } catch {} // eslint-disable-line no-empty
+    }
+}
+
+/**
+ * Takes masking off a template, so the holder field it names can be deleted: the server
+ * refuses to delete a field a template masks by, and a template cannot go while a linked
+ * field is on it, so without this a masking template and its holder outlive the spec.
+ */
+export async function unmaskTemplate(adminClient: Client4, template: PropertyField) {
+    try {
+        await adminClient.patchPropertyField(GROUP, TEMPLATE_OBJECT_TYPE, template.id, {permissions: {masking: null}});
+    } catch {} // eslint-disable-line no-empty
+}
+
+/**
+ * Deletes what a template spec made, in the only order the server allows: masking comes
+ * off the templates first, then the post and holder fields go, and a template, which
+ * cannot be deleted while a linked field is on it, goes last.
+ */
+export async function deleteTemplateSet(
+    adminClient: Client4,
+    {posts = [], holders = [], templates = []}: {posts?: PropertyField[]; holders?: PropertyField[]; templates?: PropertyField[]},
+) {
+    for (const template of templates) {
+        await unmaskTemplate(adminClient, template);
+    }
+    await deleteFieldsOf(adminClient, OBJECT_TYPE, posts);
+    await deleteFieldsOf(adminClient, USER_OBJECT_TYPE, holders);
+    await deleteFieldsOf(adminClient, TEMPLATE_OBJECT_TYPE, templates);
+}
+
+/**
+ * Best-effort sweep of the templates and holder fields an interrupted run left behind.
+ * Call it after `purgeFields`, so the linked post fields are already gone.
+ */
+export async function purgeTemplateFields(adminClient: Client4): Promise<void> {
+    // Masking first: a holder field cannot be deleted while a template masks by it, and the
+    // holders are listed before the templates below.
+    try {
+        const templates = await adminClient.getPropertyFields(GROUP, TEMPLATE_OBJECT_TYPE, {targetType: 'system'});
+        for (const template of (templates ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX))) {
+            await unmaskTemplate(adminClient, template);
+        }
+    } catch {} // eslint-disable-line no-empty
+
+    for (const objectType of [USER_OBJECT_TYPE, TEMPLATE_OBJECT_TYPE]) {
+        try {
+            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: 'system'});
+            const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
+
+            await deleteFieldsOf(adminClient, objectType, stale);
+        } catch {} // eslint-disable-line no-empty
+    }
 }

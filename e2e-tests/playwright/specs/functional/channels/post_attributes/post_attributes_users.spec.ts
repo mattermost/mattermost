@@ -7,6 +7,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
+    GROUP,
+    OBJECT_TYPE,
     addMember,
     countLoads,
     createField,
@@ -32,6 +34,7 @@ const TEXT_CHIP = 'text-property';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('shows a post and a reply from another user with their chips, live', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user: reader, team} = await pw.initSetup();
@@ -133,6 +136,7 @@ test('shows a post and a reply from another user with their chips, live', {tag: 
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('follows values added to and cleared from a post by another user', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user: reader, team} = await pw.initSetup();
@@ -203,6 +207,7 @@ test('follows values added to and cleared from a post by another user', {tag: '@
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('follows a field changing while a post by another user is on screen', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user: reader, team} = await pw.initSetup();
@@ -247,7 +252,7 @@ test('follows a field changing while a post by another user is on screen', {tag:
 
         // # The field is renamed
         const renamed = `${classification.name}_renamed`;
-        await adminClient.patchPropertyField('post_attributes', 'post', classification.id, {name: renamed});
+        await adminClient.patchPropertyField(GROUP, OBJECT_TYPE, classification.id, {name: renamed});
 
         // * Verify the hover card, the one place a chip's field name is read, shows it
         await chips.hover();

@@ -49,6 +49,7 @@ function postWithMessage(scope: Locator, message: string) {
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('picks, sets and sends a select attribute', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -104,6 +105,7 @@ test('picks, sets and sends a select attribute', {tag: '@post_attributes'}, asyn
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('fills in and sends every kind of value control', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -249,6 +251,7 @@ test('fills in and sends every kind of value control', {tag: '@post_attributes'}
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('keeps staged chips in the order picked and lets them be changed', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -338,6 +341,7 @@ test('keeps staged chips in the order picked and lets them be changed', {tag: '@
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('removes a staged chip and does not send its value', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -413,6 +417,7 @@ test(
     'offers only the fields the user may set, with a search box from five',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -499,6 +504,7 @@ test.describe('in mobile view', () => {
      * @precondition The PostAttributes feature flag is enabled.
      */
     test('searches the field picker in mobile view', {tag: '@post_attributes'}, async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -575,6 +581,7 @@ test.describe('in mobile view', () => {
  * stay unstaged, so the case can only be proven on a clean server.
  */
 test('hides both add controls when every settable field is staged', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -626,6 +633,7 @@ test(
     'drops staged values on a channel or thread switch and keeps composers apart',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -719,6 +727,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('sends a reply with attributes', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -787,6 +796,7 @@ test('sends a reply with attributes', {tag: '@post_attributes'}, async ({pw}) =>
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('keeps staged values when a message becomes a reaction', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -846,6 +856,7 @@ test('keeps staged values when a message becomes a reaction', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('keeps staged values through a slash command', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -897,6 +908,7 @@ test('keeps staged values through a slash command', {tag: '@post_attributes'}, a
  * @precondition The PostAttributes feature flag is enabled and scheduled posts are on.
  */
 test('blocks scheduling while a value is staged', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -969,6 +981,7 @@ test('blocks scheduling while a value is staged', {tag: '@post_attributes'}, asy
  * burn-on-read: Enterprise Advanced, or Entry, which the webapp ranks alongside it.
  */
 test('keeps burn-on-read and attributes apart', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -1066,6 +1079,7 @@ test('keeps burn-on-read and attributes apart', {tag: '@post_attributes'}, async
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('restores the message from a draft but not the staged values', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -1126,6 +1140,7 @@ test('restores the message from a draft but not the staged values', {tag: '@post
  * @precondition The PostAttributes feature flag is enabled and message priority is on.
  */
 test('sends values together with a file and a priority label', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, team} = await pw.initSetup();
@@ -1201,15 +1216,16 @@ const ONE_PIXEL_PNG =
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 /**
- * @objective Verify a direct and a group message offer system- and channel-scoped fields, and
- * never a team-scoped one, and send values.
+ * @objective Verify a direct and a group message offer system-scoped fields and send values.
+ * Post fields are system-scoped only, so a conversation has no field of its own.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
 test(
-    'applies system and channel fields in direct and group messages, not team ones',
+    'applies system fields in direct and group messages',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -1221,27 +1237,19 @@ test(
 
             const alice = await adminClient.createUser(await pw.random.user('alice'), '', '');
             const bob = await adminClient.createUser(await pw.random.user('bob'), '', '');
-            const dm = await adminClient.createDirectChannel([user.id, alice.id]);
+            await adminClient.createDirectChannel([user.id, alice.id]);
             const gm = await adminClient.createGroupChannel([user.id, alice.id, bob.id]);
 
-            // # A system field, a team field, and a field scoped to each message
+            // # A select field and a text field, both system-scoped
             const everywhere = await createField(adminClient, fieldName('everywhere', suffix), {
                 options: ['Low', 'High'],
             });
-            const teamOnly = await createField(adminClient, fieldName('teamonly', suffix), {
-                type: 'text',
-                teamId: team.id,
-            });
-            const inDm = await createField(adminClient, fieldName('indm', suffix), {type: 'text', channelId: dm.id});
-            const inGm = await createField(adminClient, fieldName('ingm', suffix), {type: 'text', channelId: gm.id});
-            created.push(everywhere, teamOnly, inDm, inGm);
+            const note = await createField(adminClient, fieldName('note', suffix), {type: 'text'});
+            created.push(everywhere, note);
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
 
-            for (const [label, scoped] of [
-                ['dm', inDm],
-                ['gm', inGm],
-            ] as const) {
+            for (const label of ['dm', 'gm'] as const) {
                 // # Open the conversation
                 if (label === 'dm') {
                     await channelsPage.goto(team.name, `@${alice.username}`);
@@ -1253,19 +1261,18 @@ test(
                 const composer = channelsPage.centerView.postCreate;
                 const scope = composer.container;
 
-                // * Verify the system and channel fields are offered and the team field is not
+                // * Verify both system fields are offered
                 await composerPlus(scope).click();
                 await expect(pickerItem(page, everywhere)).toBeVisible();
-                await expect(pickerItem(page, scoped)).toBeVisible();
-                await expect(pickerItem(page, teamOnly)).toHaveCount(0);
+                await expect(pickerItem(page, note)).toBeVisible();
                 await page.keyboard.press('Escape');
 
                 // # Stage one of each and send
                 await stageField(page, scope, everywhere);
                 await chooseOption(page, 'High');
-                await stageField(page, scope, scoped);
-                await composerInput(scope, scoped).fill(`in the ${label}`);
-                await composerInput(scope, scoped).press('Enter');
+                await stageField(page, scope, note);
+                await composerInput(scope, note).fill(`in the ${label}`);
+                await composerInput(scope, note).press('Enter');
 
                 await composer.writeMessage(`${label} ${suffix}`);
                 const request = waitForCreatePost(page);
@@ -1275,7 +1282,7 @@ test(
                 expect(sentValues(await request)).toEqual(
                     expect.arrayContaining([
                         {field_id: everywhere.id, value: optionId(everywhere, 'High')},
-                        {field_id: scoped.id, value: `in the ${label}`},
+                        {field_id: note.id, value: `in the ${label}`},
                     ]),
                 );
                 const sent = postWithMessage(channelsPage.centerView.container, `${label} ${suffix}`);
@@ -1295,6 +1302,7 @@ test(
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('edits a message without touching its attributes', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();

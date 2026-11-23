@@ -23,6 +23,7 @@ const CHIPS = 'post-attributes-chips';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('shows a value changed since the last load after a reload', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfNoLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post
