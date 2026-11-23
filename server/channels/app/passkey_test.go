@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -993,4 +994,59 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		requireSucceeds(t, user, got, appErr)
 		require.Equal(t, 2, failedAttempts(t, user.Id))
 	})
+
+	// The sequential counter tests above never reach UpdateUsage's compare-and-set failing,
+	// because the library's clone check refuses first. Swapping the store is the only way to
+	// make two sign-ins race deterministically.
+	t.Run("a sign-in that loses the race to record its use is refused", func(t *testing.T) {
+		_, auth := registered(t)
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: &racingPasskeyStore{
+			PasskeyStore: original.Passkey(),
+			updateUsage: func(next func() error, id string, prev, _, at int64) error {
+				// Another sign-in records its use between this one's verification and update.
+				require.NoError(t, original.Passkey().UpdateUsage(id, prev, prev+1, at))
+				return next()
+			},
+		}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.counter_regressed.app_error")
+	})
+
+	t.Run("a failure to record the use is a server error", func(t *testing.T) {
+		_, auth := registered(t)
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: &racingPasskeyStore{
+			PasskeyStore: original.Passkey(),
+			updateUsage: func(func() error, string, int64, int64, int64) error {
+				return errors.New("db down")
+			},
+		}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusInternalServerError, "app.passkey.update_usage.app_error")
+	})
+}
+
+type passkeyStoreWrapper struct {
+	store.Store
+	passkeys store.PasskeyStore
+}
+
+func (w *passkeyStoreWrapper) Passkey() store.PasskeyStore { return w.passkeys }
+
+// racingPasskeyStore lets a test run code around, or instead of, UpdateUsage. Every other
+// call passes through to the real store.
+type racingPasskeyStore struct {
+	store.PasskeyStore
+	updateUsage func(next func() error, id string, prevSignCount, signCount, lastUsedAt int64) error
+}
+
+func (s *racingPasskeyStore) UpdateUsage(id string, prevSignCount, signCount, lastUsedAt int64) error {
+	return s.updateUsage(func() error {
+		return s.PasskeyStore.UpdateUsage(id, prevSignCount, signCount, lastUsedAt)
+	}, id, prevSignCount, signCount, lastUsedAt)
 }
