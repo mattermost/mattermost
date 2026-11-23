@@ -11,7 +11,9 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"unicode/utf8"
 
+	"github.com/avct/uasurfer"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
@@ -193,4 +195,111 @@ func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session)
 	}
 
 	return &model.PasskeyRegistrationOptions{CeremonyId: token.Token, Options: options}, nil
+}
+
+// defaultPasskeyName names a passkey after the browser and OS that registered it.
+func defaultPasskeyName(userAgent string) string {
+	ua := uasurfer.Parse(userAgent)
+	browser := getBrowserName(ua, userAgent)
+	os := getOSName(ua, userAgent)
+	switch {
+	case browser == "Unknown":
+		return "Passkey"
+	case os == "":
+		return browser
+	}
+	return browser + " on " + os
+}
+
+// FinishPasskeyRegistration verifies the authenticator's response to a ceremony begun by
+// BeginPasskeyRegistration and stores the new passkey. Like begin, it leaves the feature flag and
+// license to the API layer. The ceremony is bound to the session that began it, and that same
+// session must still be a recent sign-in: another session of the same user does not qualify.
+func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, *model.AppError) {
+	const where = "FinishPasskeyRegistration"
+
+	name = strings.TrimSpace(name)
+	if utf8.RuneCountInString(name) > model.PasskeyNameMaxRunes {
+		return nil, model.NewAppError(where, "app.passkey.name_too_long.app_error", nil, "", http.StatusBadRequest)
+	}
+	if name == "" {
+		name = defaultPasskeyName(userAgent)
+	}
+
+	invalidCeremony := func() *model.AppError {
+		return model.NewAppError(where, "app.passkey.ceremony_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyRegistration, ceremonyID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil, invalidCeremony()
+		}
+		return nil, model.NewAppError(where, "app.passkey.finish_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+	var ceremony passkeyCeremony
+	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil ||
+		ceremony.SessionData == nil || ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
+		return nil, invalidCeremony()
+	}
+
+	// The ceremony may have been begun at minute 9.
+	if !passkeySignedInRecently(session) {
+		return nil, model.NewAppError(where, "app.passkey.recent_login_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	invalidCredential := func(err error) *model.AppError {
+		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	parsed, err := protocol.ParseCredentialCreationResponseBytes(credential)
+	if err != nil {
+		return nil, invalidCredential(err)
+	}
+
+	user, appErr := a.GetUser(rctx, session.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	passkeys, appErr := a.GetPasskeysForUser(user.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+	rp, appErr := a.passkeyRelyingParty()
+	if appErr != nil {
+		return nil, appErr
+	}
+	// The library checks origin, RP ID hash, challenge and that user verification was performed.
+	cred, err := rp.CreateCredential(&passkeyUser{user: user, handle: ceremony.SessionData.UserID, passkeys: passkeys}, *ceremony.SessionData, parsed)
+	if err != nil {
+		return nil, invalidCredential(err)
+	}
+
+	transports := make([]string, len(cred.Transport))
+	for i, t := range cred.Transport {
+		transports[i] = string(t)
+	}
+	saved, err := a.Srv().Store().Passkey().SaveIfUnderLimit(&model.Passkey{
+		UserId:         user.Id,
+		UserHandle:     ceremony.SessionData.UserID,
+		CredentialId:   cred.ID,
+		PublicKey:      cred.PublicKey,
+		AAGUID:         cred.Authenticator.AAGUID,
+		Transports:     strings.Join(transports, ","),
+		SignCount:      int64(cred.Authenticator.SignCount),
+		BackupEligible: cred.Flags.BackupEligible,
+		BackupState:    cred.Flags.BackupState,
+		Name:           name,
+	}, model.PasskeyMaxPerUser)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrLimitExceeded](err); ok {
+			return nil, model.NewAppError(where, "app.passkey.limit_reached.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if _, ok := errors.AsType[*store.ErrConflict](err); ok {
+			return nil, model.NewAppError(where, "app.passkey.already_registered.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if validationErr, ok := errors.AsType[*model.AppError](err); ok {
+			return nil, validationErr
+		}
+		return nil, model.NewAppError(where, "app.passkey.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return saved, nil
 }

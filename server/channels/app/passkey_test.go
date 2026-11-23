@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func savePasskey(t *testing.T, th *TestHelper, userID, name string, createAt int64) *model.Passkey {
@@ -302,5 +304,261 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = ""
 		})
 		requireFails(t, freshSession(th.CreateUser(t).Id), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
+	})
+}
+
+func TestFinishPasskeyRegistration(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+	const origin = "http://localhost:8065"
+	const chromeOnMac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+	freshSession := func(userID string) *model.Session {
+		return &model.Session{
+			Id:       model.NewId(),
+			UserId:   userID,
+			CreateAt: model.GetMillis(),
+			Props:    model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard},
+		}
+	}
+	begin := func(t *testing.T, session *model.Session) *model.PasskeyRegistrationOptions {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+		return opts
+	}
+	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
+		t.Helper()
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		return auth
+	}
+	respond := func(t *testing.T, auth *testlib.SoftAuthenticator, opts *model.PasskeyRegistrationOptions, origin string, authOpts ...testlib.SoftAuthenticatorOption) []byte {
+		t.Helper()
+		resp, err := auth.CreateResponse(opts.Options, origin, authOpts...)
+		require.NoError(t, err)
+		return resp
+	}
+	requireFails := func(t *testing.T, pk *model.Passkey, appErr *model.AppError, status int, id string) {
+		t.Helper()
+		require.Nil(t, pk)
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+	stored := func(t *testing.T, userID string) []*model.Passkey {
+		t.Helper()
+		passkeys, appErr := th.App.GetPasskeysForUser(userID)
+		require.Nil(t, appErr)
+		return passkeys
+	}
+
+	t.Run("begin then finish stores the passkey with the begin handle", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		auth := newAuthenticator(t)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, " My laptop ", chromeOnMac, respond(t, auth, opts, origin))
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+		require.Equal(t, "My laptop", pk.Name)
+
+		passkeys := stored(t, user.Id)
+		require.Len(t, passkeys, 1)
+		require.Equal(t, pk.Id, passkeys[0].Id)
+		require.Equal(t, user.Id, passkeys[0].UserId)
+		require.Equal(t, auth.CredentialID, passkeys[0].CredentialId)
+		require.Equal(t, auth.AAGUID, passkeys[0].AAGUID)
+		require.NotEmpty(t, passkeys[0].PublicKey)
+		require.Equal(t, "internal", passkeys[0].Transports)
+		require.Zero(t, passkeys[0].LastUsedAt)
+
+		var c struct {
+			PublicKey struct {
+				User struct {
+					ID string `json:"id"`
+				} `json:"user"`
+			} `json:"publicKey"`
+		}
+		require.NoError(t, json.Unmarshal(opts.Options, &c))
+		handle, err := base64.RawURLEncoding.DecodeString(c.PublicKey.User.ID)
+		require.NoError(t, err)
+		require.Equal(t, handle, passkeys[0].UserHandle)
+	})
+
+	t.Run("empty name defaults to the browser and OS of the request", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "  ", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		require.Nil(t, appErr)
+		require.Equal(t, "Chrome on Mac OS", pk.Name)
+	})
+
+	t.Run("empty name with an unknown browser is Passkey", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "", "", respond(t, newAuthenticator(t), opts, origin))
+		require.Nil(t, appErr)
+		require.Equal(t, "Passkey", pk.Name)
+	})
+
+	t.Run("too long name is refused without using up the ceremony", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		resp := respond(t, newAuthenticator(t), opts, origin)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, strings.Repeat("é", model.PasskeyNameMaxRunes+1), chromeOnMac, resp)
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.name_too_long.app_error")
+
+		pk, appErr = th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, strings.Repeat("é", model.PasskeyNameMaxRunes), chromeOnMac, resp)
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+	})
+
+	t.Run("a ceremony can only be finished once", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		resp := respond(t, newAuthenticator(t), opts, origin)
+
+		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, resp)
+		require.Nil(t, appErr)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, resp)
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("unknown ceremony is refused", func(t *testing.T) {
+		session := freshSession(th.CreateUser(t).Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, model.NewId(), "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("a ceremony begun in another session of the same user is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		began := freshSession(user.Id)
+		opts := begin(t, began)
+		other := freshSession(user.Id)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, other, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("a ceremony begun by another user is refused", func(t *testing.T) {
+		began := freshSession(th.CreateUser(t).Id)
+		opts := begin(t, began)
+		attacker := freshSession(th.CreateUser(t).Id)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, attacker, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("expired ceremony is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-6*60*1000, opts.CeremonyId)
+		require.NoError(t, err)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("the session that began the ceremony must still be a recent sign-in", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+		aged := *session
+		aged.CreateAt = model.GetMillis() - 11*60*1000
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, &aged, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
+		requireFails(t, pk, appErr, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("garbage credential is refused", func(t *testing.T) {
+		session := freshSession(th.CreateUser(t).Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, []byte(`{"id":`))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
+	})
+
+	t.Run("authenticator that did not verify the user is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin, testlib.WithoutUserVerification()))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("wrong origin is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, "http://evil.example"))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("the same authenticator cannot be registered twice", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := freshSession(user.Id)
+		auth := newAuthenticator(t)
+
+		opts := begin(t, session)
+		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, auth, opts, origin))
+		require.Nil(t, appErr)
+
+		// The soft authenticator ignores excludeCredentials, as a misbehaving client might.
+		opts = begin(t, session)
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "b", chromeOnMac, respond(t, auth, opts, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.already_registered.app_error")
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("the limit holds against two ceremonies begun below it", func(t *testing.T) {
+		user := th.CreateUser(t)
+		for i := range model.PasskeyMaxPerUser - 1 {
+			savePasskey(t, th, user.Id, fmt.Sprintf("key %d", i), model.GetMillis())
+		}
+		session := freshSession(user.Id)
+		first, second := begin(t, session), begin(t, session)
+
+		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, first.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), first, origin))
+		require.Nil(t, appErr)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, second.CeremonyId, "b", chromeOnMac, respond(t, newAuthenticator(t), second, origin))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.limit_reached.app_error")
+		require.Len(t, stored(t, user.Id), model.PasskeyMaxPerUser)
+	})
+
+	t.Run("internationalized Site URL registers against the punycode origin", func(t *testing.T) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://bücher.example"
+		})
+		session := freshSession(th.CreateUser(t).Id)
+		opts := begin(t, session)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, "https://xn--bcher-kva.example"))
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
 	})
 }
