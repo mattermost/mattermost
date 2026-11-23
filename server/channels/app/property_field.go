@@ -467,9 +467,10 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	}
 
 	// Load existing fields once. Used for: protected-check (gated by
-	// bypassProtectedCheck), linked-field diff invariants (always-on).
+	// bypassProtectedCheck), linked-field diff invariants (always-on), and
+	// detecting removed options, which a lagging replica would hide.
 
-	existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
+	existingFields, err := a.Srv().propertyService.GetPropertyFields(RequestContextWithMaster(rctx), groupID, ids)
 	if err != nil {
 		if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
 			return nil, nil, appErr
