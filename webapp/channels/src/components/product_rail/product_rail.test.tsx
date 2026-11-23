@@ -559,6 +559,18 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
         });
 
+        test('should not return to a channel that was renamed or left since', () => {
+            localStorage.setItem(`product_rail_last_paths_${user.id}`, JSON.stringify({
+                boards: {[team.id]: '/team-one/channels/old-board-name'},
+                channels: {[team.id]: '/team-one/channels/left-channel/post1'},
+            }));
+
+            renderAt('/team-one/threads', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
         test('should ignore saved paths of the wrong shape', () => {
             localStorage.setItem(`product_rail_last_paths_${user.id}`, 'null');
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));

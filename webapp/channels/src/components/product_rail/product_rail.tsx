@@ -16,7 +16,7 @@ import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {getCurrentChannel, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsNameMapInCurrentTeam, getCurrentChannel, getMyChannelMemberships, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -242,9 +242,26 @@ export default function ProductRail() {
     const currentTeamId = currentTeam?.id ?? '';
     const lastPaths = useSelector(getProductRailLastPaths);
     const lastPathsLoaded = useSelector(areProductRailLastPathsLoaded);
-    const lastChannelPath = leavingThreads(useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId)));
-    const lastBoardPath = leavingThreads(useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId)));
+    const savedChannelPath = leavingThreads(useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId)));
+    const savedBoardPath = leavingThreads(useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId)));
     const defaultChannelName = useSelector((state: GlobalState) => (currentTeamId ? getRedirectChannelNameForTeam(state, currentTeamId) : ''));
+
+    // A saved path is only followed while it still opens a channel the user is in. Channels are
+    // saved by name, so after a rename, a leave or a delete the item falls back to its default
+    // instead of landing on "Channel Not Found".
+    const channelsByName = useSelector(getChannelsNameMapInCurrentTeam);
+    const myMemberships = useSelector(getMyChannelMemberships);
+    const usablePath = (path: string | undefined) => {
+        const saved = path ? matchPath<{path: string; identifier: string}>(path, {path: channelRoutePath}) : null;
+        if (!path || !saved || saved.params.path !== 'channels') {
+            return path;
+        }
+        const {identifier} = saved.params;
+        const channelId = channelsByName[identifier]?.id ?? identifier;
+        return myMemberships[channelId] ? path : undefined;
+    };
+    const lastChannelPath = usablePath(savedChannelPath);
+    const lastBoardPath = usablePath(savedBoardPath);
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
     const inThreads = matchPath(pathname, {path: threadsRoutePath}) !== null;
@@ -515,7 +532,7 @@ export default function ProductRail() {
             entries.push({
                 itemId: key,
                 elementId: `product-rail-item-${registration.pluginId}`,
-                to: lastPaths[key]?.[currentTeam.id] ?? (first ? `/${currentTeam.name}/channels/${first.name}` : pathname),
+                to: usablePath(lastPaths[key]?.[currentTeam.id]) ?? (first ? `/${currentTeam.name}/channels/${first.name}` : pathname),
                 onClick: () => dispatch(setProductRailSection(key)),
                 icon: renderSectionIcon(registration),
                 label: registration.label,
