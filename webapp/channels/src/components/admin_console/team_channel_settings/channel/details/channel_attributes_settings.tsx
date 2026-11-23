@@ -40,6 +40,9 @@ export type MissingRequiredChannelAttribute = {
 type Props = {
     channelId: string;
     isDisabled?: boolean;
+
+    /** Locks the controls during a save without changing what is reported as missing. */
+    isSaving?: boolean;
     onChange: (values: Record<string, PendingChannelAttributeValue>) => void;
 
     // Required attributes this page can edit that would be saved without a
@@ -95,7 +98,7 @@ function selectedOptionIds(rawValue: unknown): string[] {
  * Attributes and Channel Info use: a bordered dropdown with wrapping value
  * chips for select/multiselect/rank, and the hierarchical picker for graph.
  */
-const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange, onCheckingRequiredChange, onRequiredCheckFailedChange, showRequiredErrors}: Props) => {
+const ChannelAttributesSettings = ({channelId, isDisabled, isSaving, onChange, onMissingRequiredChange, onCheckingRequiredChange, onRequiredCheckFailedChange, showRequiredErrors}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -235,7 +238,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
 
                     // Without the saved values an edit can't be merged with them, so a
                     // multiselect change would drop the options already stored.
-                    const disabled = Boolean(isDisabled) || locked || !valuesLoaded || valuesFailed;
+                    const disabled = Boolean(isDisabled) || Boolean(isSaving) || locked || !valuesLoaded || valuesFailed;
                     const showRequiredError = Boolean(showRequiredErrors) && missingRequiredIds.has(field.id);
 
                     const rawValue = field.id in pending ? pending[field.id] : (savedRaw ?? null);

@@ -277,7 +277,7 @@ describe('components/unarchive_channel_modal', () => {
                 />,
             );
 
-            expect(screen.getByText('Some required attributes on this channel can only be set by its channel admins. They\'ll be notified after you unarchive it.')).toBeInTheDocument();
+            expect(screen.getByText('You can\'t set some required attributes on this channel. Channel admins who can set them will be notified after you unarchive it.')).toBeInTheDocument();
             expect(screen.queryByTestId('unarchiveChannelModalRequiredAttributes')).not.toBeInTheDocument();
             expect(screen.queryByText(/anyway/i)).not.toBeInTheDocument();
 
@@ -322,7 +322,7 @@ describe('components/unarchive_channel_modal', () => {
             );
 
             expect(screen.getByTestId('unarchiveChannelModalRequiredAttributes')).toBeInTheDocument();
-            expect(screen.getByText('Some required attributes on this channel can only be set by its channel admins. They\'ll be notified after you unarchive it.')).toBeInTheDocument();
+            expect(screen.getByText('You can\'t set some required attributes on this channel. Channel admins who can set them will be notified after you unarchive it.')).toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'Fill f1'}));
             await userEvent.click(screen.getByRole('button', {name: 'Set and unarchive'}));

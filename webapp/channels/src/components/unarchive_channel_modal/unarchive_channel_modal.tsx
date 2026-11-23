@@ -177,7 +177,7 @@ export default function UnarchiveChannelModal({onExited, channel, channelKind = 
                     message={(
                         <FormattedMessage
                             id='unarchive_channel.flagged_notice'
-                            defaultMessage={'Some required attributes on this channel can only be set by its channel admins. They\'ll be notified after you unarchive it.'}
+                            defaultMessage={'You can\'t set some required attributes on this channel. Channel admins who can set them will be notified after you unarchive it.'}
                         />
                     )}
                 />

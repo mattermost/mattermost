@@ -146,6 +146,22 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			assert.JSONEq(t, `"ALPHA"`, string(res.ValuesToWrite[0].Value))
 		})
 
+		t.Run("a sent value the channel already holds is not written again", func(t *testing.T) {
+			th, channel, admin, _ := newExisting(t)
+			field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
+			other := createMissingAttributesField(t, th, "Other", true, model.PermissionLevelAdmin)
+			setChannelPropertyValue(t, th, field.GroupID, field.ID, channel.Id, `"ALPHA"`)
+
+			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, []model.PropertyValuePatchItem{
+				{FieldID: field.ID, Value: json.RawMessage(`"ALPHA"`)},
+				{FieldID: other.ID, Value: json.RawMessage(`"BETA"`)},
+			})
+			require.NoError(t, appErr)
+			assert.Empty(t, res.Missing)
+			require.Len(t, res.ValuesToWrite, 1)
+			assert.Equal(t, other.ID, res.ValuesToWrite[0].FieldID)
+		})
+
 		t.Run("a sent empty or whitespace value leaves the field missing", func(t *testing.T) {
 			th, channel, admin, _ := newExisting(t)
 			field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
@@ -797,11 +813,12 @@ func TestConvertGroupMessageToChannelRequiredAttributes(t *testing.T) {
 		t.Run("on", func(t *testing.T) {
 			th := setupMissingAttributes(t)
 			gm, guest := newGuestGM(t, th)
+			members := memberIDsOf(t, th, gm)
 
 			_, appErr := th.App.ConvertGroupMessageToChannel(requiredAttributesSessionCtx(th, guest, model.SystemGuestRoleId), guest.Id, conversion(gm, th.BasicTeam))
 			require.NotNil(t, appErr)
 
-			requireStillGM(t, th, gm, memberIDsOf(t, th, gm))
+			requireStillGM(t, th, gm, members)
 			assert.Zero(t, conversionPosts(t, th, gm))
 		})
 

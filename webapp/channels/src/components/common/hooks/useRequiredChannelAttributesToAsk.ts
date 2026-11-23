@@ -9,7 +9,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
+import {isPropertyFieldRequired, isPropertyFieldSourceManaged} from 'mattermost-redux/utils/property_utils';
 
 import {hasEditor} from 'components/channel_attributes/channel_attribute_editor_support';
 
@@ -122,6 +122,11 @@ export default function useRequiredChannelAttributesToAsk({channelId}: RequiredC
                     return false;
                 }
                 if (field.permission_values === 'none' || field.permission_values === undefined) {
+                    return false;
+                }
+
+                // The server refuses a person's value for these on creation and conversion.
+                if (isPropertyFieldSourceManaged(field)) {
                     return false;
                 }
                 if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
