@@ -8,7 +8,7 @@ import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermos
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getAdminClient, hasEnterpriseLicense, test} from '@mattermost/playwright-lib';
+import {getAdminClient, test} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ChannelsPost, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GROUP = 'access_control';
@@ -29,16 +29,20 @@ export const VALUES_ROUTE = `/api/v4/properties/groups/${GROUP}/${OBJECT_TYPE}/v
 // The query parameter that asks a posts endpoint to hydrate.
 export const HYDRATION_PARAM = `propertyGroup=${GROUP}`;
 
+// The SKUs the webapp's `isPostAttributesEnabled` accepts. `hasEnterpriseLicense` is not
+// used because it also accepts the legacy E20 SKU, which the webapp rejects.
+const POST_ATTRIBUTES_SKUS = ['enterprise', 'advanced', 'entry'];
+
 /**
  * Skips unless the server's licence enables post attributes. Mirrors the webapp's
- * `isPostAttributesEnabled`, which needs Enterprise, Enterprise Advanced or Entry, so a
- * Professional server skips instead of timing out on a chip that never renders.
+ * `isPostAttributesEnabled`, so a Professional or E20 server skips instead of timing out
+ * on a chip that never renders.
  */
 export async function skipIfNoPostAttributesLicense() {
     const {adminClient} = await getAdminClient();
     const license = await adminClient.getClientLicenseOld();
     test.skip(
-        license.IsLicensed !== 'true' || !hasEnterpriseLicense(license.SkuShortName),
+        license.IsLicensed !== 'true' || !POST_ATTRIBUTES_SKUS.includes(license.SkuShortName),
         'Skipping test - server needs an Enterprise, Enterprise Advanced or Entry licence',
     );
 }
