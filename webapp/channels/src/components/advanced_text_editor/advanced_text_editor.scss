@@ -97,14 +97,13 @@
         transition: border-color var(--duration-quick) var(--ease-transition), box-shadow var(--duration-quick) var(--ease-transition);
 
         &:hover {
-            border: var(--border-dark);
+            border-color: rgba(var(--center-channel-color-rgb), 0.18);
         }
 
         &:focus-visible,
         &:focus-within,
         &:focus-visible:hover,
         &:focus-within:hover {
-            border: var(--border-dark);
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
             outline: none;
