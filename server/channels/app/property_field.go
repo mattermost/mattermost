@@ -347,7 +347,7 @@ func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*mode
 // filters a masked caller's option list. It is for a caller that edits the field
 // and must patch the whole stored field, not the caller's view of it. Never
 // return the result to a caller; serve GetPropertyField's view instead.
-func (a *App) GetStoredPropertyField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, *model.AppError) {
+func (a *App) GetStoredPropertyField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, error) {
 	field, err := a.Srv().Store().PropertyField().Get(rctx, groupID, fieldID)
 	if err != nil {
 		if appErr := mapPropertyServiceError("GetStoredPropertyField", err); appErr != nil {

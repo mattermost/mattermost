@@ -252,9 +252,9 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// (existingField), so a masked caller's edit keeps the options they were not
 	// served. The read hook only filters a read and refuses nothing, so skipping
 	// it here loses no check.
-	storedField, appErr := c.App.GetStoredPropertyField(rctx, group.ID, c.Params.FieldId)
-	if appErr != nil {
-		c.Err = appErr
+	storedField, err := c.App.GetStoredPropertyField(rctx, group.ID, c.Params.FieldId)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
