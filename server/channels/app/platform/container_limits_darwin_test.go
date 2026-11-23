@@ -1,0 +1,158 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+//go:build darwin
+
+package platform
+
+import (
+	"encoding/binary"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// rawLoadAvg lays out struct loadavg as the C ABI does: ldavg at offsets 0, 4, 8 and fscale at 16.
+func rawLoadAvg(ldavg [3]uint32, fscale int64) []byte {
+	raw := make([]byte, 24)
+	for i, load := range ldavg {
+		binary.NativeEndian.PutUint32(raw[i*4:], load)
+	}
+	binary.NativeEndian.PutUint64(raw[16:], uint64(fscale))
+	return raw
+}
+
+// rawSwapUsage lays out struct xsw_usage as the C ABI does: total, avail and used at offsets 0, 8 and 16.
+func rawSwapUsage(total, avail, used uint64) []byte {
+	raw := make([]byte, 32)
+	binary.NativeEndian.PutUint64(raw[0:], total)
+	binary.NativeEndian.PutUint64(raw[8:], avail)
+	binary.NativeEndian.PutUint64(raw[16:], used)
+	binary.NativeEndian.PutUint32(raw[24:], 16384)
+	return raw
+}
+
+func sysctlOutput(t *testing.T, name string) string {
+	t.Helper()
+	out, err := exec.Command("sysctl", "-n", name).Output()
+	require.NoError(t, err)
+	return strings.TrimSpace(string(out))
+}
+
+// sysctlLoadAvg parses output like "{ 1.23 1.45 1.67 }".
+func sysctlLoadAvg(t *testing.T) [3]float64 {
+	t.Helper()
+	fields := strings.Fields(strings.Trim(sysctlOutput(t, "vm.loadavg"), "{} "))
+	require.Len(t, fields, 3)
+	var loads [3]float64
+	for i, field := range fields {
+		var err error
+		loads[i], err = strconv.ParseFloat(field, 64)
+		require.NoError(t, err)
+	}
+	return loads
+}
+
+var swapUsagePattern = regexp.MustCompile(`total = ([\d.]+)M\s+used = ([\d.]+)M`)
+
+// sysctlSwapUsageMB parses output like "total = 2048.00M  used = 1024.50M  free = 1023.50M  (encrypted)".
+func sysctlSwapUsageMB(t *testing.T) (total, used float64) {
+	t.Helper()
+	matches := swapUsagePattern.FindStringSubmatch(sysctlOutput(t, "vm.swapusage"))
+	require.Len(t, matches, 3)
+	total, err := strconv.ParseFloat(matches[1], 64)
+	require.NoError(t, err)
+	used, err = strconv.ParseFloat(matches[2], 64)
+	require.NoError(t, err)
+	return total, used
+}
+
+// assertBetweenReads checks got against values read before and after it, since live values can change in between.
+func assertBetweenReads(t *testing.T, before, after, got, tolerance float64, name string) {
+	t.Helper()
+	assert.GreaterOrEqual(t, got, min(before, after)-tolerance, name)
+	assert.LessOrEqual(t, got, max(before, after)+tolerance, name)
+}
+
+func TestDecodeLoadAvg(t *testing.T) {
+	t.Run("divides each load by fscale", func(t *testing.T) {
+		loads, err := decodeLoadAvg(rawLoadAvg([3]uint32{4096, 1024, 512}, 2048))
+		require.NoError(t, err)
+		assert.Equal(t, [3]float64{2, 0.5, 0.25}, loads)
+	})
+
+	t.Run("rejects zero fscale", func(t *testing.T) {
+		_, err := decodeLoadAvg(rawLoadAvg([3]uint32{1, 2, 3}, 0))
+		require.Error(t, err)
+	})
+
+	t.Run("rejects truncated input", func(t *testing.T) {
+		_, err := decodeLoadAvg(rawLoadAvg([3]uint32{1, 2, 3}, 2048)[:16])
+		require.Error(t, err)
+	})
+}
+
+func TestDecodeSwapUsage(t *testing.T) {
+	t.Run("decodes total and used", func(t *testing.T) {
+		usage, err := decodeSwapUsage(rawSwapUsage(3<<30, 2<<30, 1<<30))
+		require.NoError(t, err)
+		assert.Equal(t, uint64(3<<30), usage.Total)
+		assert.Equal(t, uint64(2<<30), usage.Avail)
+		assert.Equal(t, uint64(1<<30), usage.Used)
+	})
+
+	t.Run("rejects used greater than total", func(t *testing.T) {
+		_, err := decodeSwapUsage(rawSwapUsage(1, 0, 2))
+		require.Error(t, err)
+	})
+
+	t.Run("rejects truncated input", func(t *testing.T) {
+		_, err := decodeSwapUsage(rawSwapUsage(3, 2, 1)[:20])
+		require.Error(t, err)
+	})
+}
+
+func TestGetCPUStats(t *testing.T) {
+	before := sysctlLoadAvg(t)
+	stats, err := getCPUStats(cgroupV2Info{})
+	after := sysctlLoadAvg(t)
+	require.NoError(t, err)
+	require.NotNil(t, stats.LoadAverage1m)
+	require.NotNil(t, stats.LoadAverage5m)
+	require.NotNil(t, stats.LoadAverage15m)
+	assert.Nil(t, stats.ContainerCPUPeriods)
+	assert.Nil(t, stats.ContainerCPUThrottledPeriods)
+	assert.Nil(t, stats.ContainerCPUThrottledSeconds)
+
+	// sysctl prints two decimals.
+	for i, got := range []float64{*stats.LoadAverage1m, *stats.LoadAverage5m, *stats.LoadAverage15m} {
+		assertBetweenReads(t, before[i], after[i], got, 0.01, "load average "+strconv.Itoa(i))
+	}
+}
+
+func TestGetMemoryDiagnostics(t *testing.T) {
+	totalBefore, usedBefore := sysctlSwapUsageMB(t)
+	diagnostics, err := getMemoryDiagnostics(cgroupV2Info{})
+	totalAfter, usedAfter := sysctlSwapUsageMB(t)
+	require.NoError(t, err)
+	require.NotNil(t, diagnostics.SwapTotalMB)
+	require.NotNil(t, diagnostics.SwapUsedMB)
+	require.NotNil(t, diagnostics.AvailableMemoryMB)
+	assert.Nil(t, diagnostics.ProcessRSSMB)
+	assert.Zero(t, diagnostics.ContainerMemoryLimitMB)
+
+	assert.LessOrEqual(t, *diagnostics.SwapUsedMB, *diagnostics.SwapTotalMB)
+	// Our values are truncated to whole MB.
+	assertBetweenReads(t, totalBefore, totalAfter, float64(*diagnostics.SwapTotalMB), 1, "swap total")
+	assertBetweenReads(t, usedBefore, usedAfter, float64(*diagnostics.SwapUsedMB), 1, "swap used")
+
+	totalMemory, err := getTotalMemory()
+	require.NoError(t, err)
+	assert.Positive(t, *diagnostics.AvailableMemoryMB)
+	assert.LessOrEqual(t, *diagnostics.AvailableMemoryMB, totalMemory/(1024*1024))
+}
