@@ -33696,8 +33696,8 @@
     "description": "Inline error in the unarchive channel modal when restoring a channel fails after the person was asked for required channel attribute values; {message} is the server's reason."
   },
   "unarchive_channel.flagged_notice": {
-    "defaultMessage": "Some required attributes on this channel can only be set by its channel admins. They'll be notified after you unarchive it.",
-    "description": "Info notice in the unarchive channel modal when the channel lacks required attribute values that only its channel admins can set; they are notified after the restore."
+    "defaultMessage": "You can't set some required attributes on this channel. Channel admins who can set them will be notified after you unarchive it.",
+    "description": "Info notice in the unarchive channel modal when the channel lacks required attribute values the person restoring it can't set; channel admins who can set them are notified after the restore."
   },
   "unarchive_channel.required_attributes.intro": {
     "defaultMessage": "This channel has no value for these required attributes:",

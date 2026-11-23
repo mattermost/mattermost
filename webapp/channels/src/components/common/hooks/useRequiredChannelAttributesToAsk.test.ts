@@ -127,6 +127,17 @@ describe('useRequiredChannelAttributesToAsk', () => {
             expect(result.current.fields.map((f) => f.id)).toEqual(['program']);
         });
 
+        test('leaves out source-managed fields, which the server refuses a person\'s value for', () => {
+            const attrs = {required: true, options: [{id: 'o1', name: 'One'}]};
+            useFields([
+                field('protected', {attrs: {...attrs, protected: true}}),
+                field('owned', {attrs: {...attrs, owners: [{id: 'plugin1', type: 'plugin', scopes: []}]}}),
+                field('program'),
+            ]);
+
+            expect(render(makeState({isSystemAdmin: true})).result.current.fields.map((f) => f.id)).toEqual(['program']);
+        });
+
         test('a sysadmin-level field is asked of system admins only', () => {
             useFields([field('program', {permission_values: 'sysadmin'})]);
 

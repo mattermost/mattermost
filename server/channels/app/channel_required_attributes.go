@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // requiredChannelAttributeResolution is what a person has to supply, and may
@@ -167,7 +168,15 @@ func (a *App) resolveRequiredChannelAttributes(rctx request.CTX, userID string, 
 		}
 	}
 
-	resolution := &requiredChannelAttributeResolution{ValuesToWrite: values}
+	toWrite := values
+	if !pending {
+		toWrite, err = a.withoutUnchangedChannelAttributeValues(rctx, groupID, fields, channel, values)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	resolution := &requiredChannelAttributeResolution{ValuesToWrite: toWrite}
 	for _, field := range withoutValue {
 		if value, ok := supplied[field.ID]; ok && !model.IsEmptyPropertyValue(value) {
 			continue
@@ -185,6 +194,47 @@ func (a *App) resolveRequiredChannelAttributes(rctx request.CTX, userID string, 
 		}
 	}
 	return resolution, nil
+}
+
+// withoutUnchangedChannelAttributeValues drops the values channel already holds.
+// Rewriting one is a no-op at best, and a change policy refuses it outright, so a
+// retry after an action that stored its values but then failed would never pass.
+func (a *App) withoutUnchangedChannelAttributeValues(rctx request.CTX, groupID string, fields []*model.PropertyField, channel *model.Channel, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+
+	stored, err := a.Srv().Store().PropertyValue().SearchPropertyValues(store.RequestContextWithMaster(rctx), model.PropertyValueSearchOpts{
+		GroupID:    groupID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		TargetIDs:  []string{channel.Id},
+		PerPage:    model.AccessControlGroupFieldLimit + 5,
+	})
+	if err != nil {
+		return nil, model.NewAppError("withoutUnchangedChannelAttributeValues", "app.property_value.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(stored) == 0 {
+		return values, nil
+	}
+
+	storedByField := make(map[string]*model.PropertyValue, len(stored))
+	for _, value := range stored {
+		storedByField[value.FieldID] = value
+	}
+	typeByField := make(map[string]model.PropertyFieldType, len(fields))
+	for _, field := range fields {
+		typeByField[field.ID] = field.Type
+	}
+
+	changed := make([]*model.PropertyValue, 0, len(values))
+	for _, value := range values {
+		current, ok := storedByField[value.FieldID]
+		if ok && !propertyValueChanged(typeByField[value.FieldID], current, value.Value) {
+			continue
+		}
+		changed = append(changed, value)
+	}
+	return changed, nil
 }
 
 // channelAttributeActionAllowed answers decidePropertyFieldPermission for a

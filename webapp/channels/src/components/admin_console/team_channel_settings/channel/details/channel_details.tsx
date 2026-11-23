@@ -1613,6 +1613,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 key={channel.id}
                                 channelId={channel.id}
                                 isDisabled={this.props.isDisabled}
+
+                                // An edit made during the save would be cleared with the saved values.
+                                isSaving={saving}
                                 onChange={this.handleChannelAttributeValuesChange}
                                 onMissingRequiredChange={this.handleMissingRequiredChannelAttributesChange}
                                 onCheckingRequiredChange={this.handleCheckingRequiredChannelAttributesChange}

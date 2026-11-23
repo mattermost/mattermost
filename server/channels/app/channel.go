@@ -4611,6 +4611,17 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 		converterWasAdmin = converter.SchemeAdmin
 	}
 
+	// Loaded before anything changes, so a failed lookup leaves the group message
+	// as it was and the conversion can be retried.
+	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
+		InChannelId: gmConversionRequest.ChannelID,
+		Page:        0,
+		PerPage:     model.ChannelGroupMaxUsers,
+	}, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	updatedChannel, appErr := a.UpdateChannel(rctx, toUpdate)
 	if appErr != nil {
 		return nil, appErr
@@ -4624,9 +4635,7 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 	if appErr != nil {
 		if !a.requiredChannelAttributesEnabled() {
 			// As before required attributes existed: the channel stays converted.
-			if finishErr := a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest); finishErr != nil {
-				return nil, model.AsAppError(finishErr)
-			}
+			a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest, users)
 			return nil, appErr
 		}
 		a.revertConvertedGroupMessage(rctx, originalChannel, updatedChannel, nil, appErr)
@@ -4645,29 +4654,16 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, convertedByUserId, gmConversionRequest.ChannelID)
 	}
 
-	if err := a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest); err != nil {
-		return nil, model.AsAppError(err)
-	}
+	a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest, users)
 
 	return updatedChannel, nil
 }
 
 // finishGroupMessageConversion puts the converted channel in its members'
 // sidebars and posts the conversion message.
-func (a *App) finishGroupMessageConversion(rctx request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) error {
-	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
-		InChannelId: gmConversionRequest.ChannelID,
-		Page:        0,
-		PerPage:     model.ChannelGroupMaxUsers,
-	}, false)
-	if appErr != nil {
-		return appErr
-	}
-
+func (a *App) finishGroupMessageConversion(rctx request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody, users []*model.User) {
 	_ = a.setSidebarCategoriesForConvertedGroupMessage(rctx, gmConversionRequest, users)
 	_ = a.postMessageForConvertGroupMessageToChannel(rctx, gmConversionRequest.ChannelID, convertedByUserId, users)
-
-	return nil
 }
 
 // channelRoleRestore is the admin role a member had before a conversion changed it.
