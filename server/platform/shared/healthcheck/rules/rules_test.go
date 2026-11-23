@@ -42,6 +42,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"SAML_ID_IS_EMAIL",
 		"SAML_ID_MUTABLE",
 		"SESSION_EXTEND_OFF",
+		"OPEN_SIGNUP_UNVERIFIED",
 
 		// cluster
 		"CLUSTER_GOSSIP_UNENCRYPTED",
@@ -120,6 +121,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"RATELIMIT_STORE_SMALL",
 		"SITE_URL_EMPTY",
 		"SITE_URL_HTTP",
+		"TLS_VERIFY_OUTGOING_OFF",
 
 		// search
 		"ES_LOCALHOST_URL",

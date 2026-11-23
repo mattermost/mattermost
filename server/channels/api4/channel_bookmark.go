@@ -45,6 +45,20 @@ func stripBookmarkFileInfoIfDenied(c *Context, channelID string, bookmarks []*mo
 	return stripped
 }
 
+func clearRemovedBookmarkStoredFields(bookmarks []*model.ChannelBookmarkWithFileInfo) {
+	for _, bookmark := range bookmarks {
+		if bookmark == nil || bookmark.ChannelBookmark == nil || bookmark.DeleteAt <= 0 {
+			continue
+		}
+		bookmark.LinkUrl = ""
+		bookmark.ImageUrl = ""
+		bookmark.Emoji = ""
+		bookmark.DisplayName = ""
+		bookmark.FileId = ""
+		bookmark.FileInfo = nil
+	}
+}
+
 func (api *API) InitChannelBookmarks() {
 	api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods(http.MethodPatch)
@@ -371,7 +385,12 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 	auditRec.Success()
 	c.LogAudit("")
 
-	bookmarks = stripBookmarkFileInfoIfDenied(c, c.Params.ChannelId, bookmarks)
+	// The response lists every bookmark in the channel, not just the one moved.
+	if sessionCanReadChannel(c, c.Params.ChannelId) {
+		bookmarks = stripBookmarkFileInfoIfDenied(c, c.Params.ChannelId, bookmarks)
+	} else {
+		bookmarks = []*model.ChannelBookmarkWithFileInfo{}
+	}
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -521,6 +540,7 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	bookmarks = stripBookmarkFileInfoIfDenied(c, c.Params.ChannelId, bookmarks)
+	clearRemovedBookmarkStoredFields(bookmarks)
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

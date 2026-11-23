@@ -36,9 +36,13 @@ The following data is collected once every 24 hours:
 - Whether or not the unit tests have been run
 - Date and time of the last check for security updates
 
+### Latest release check
+
+To report whether the server is running the latest Mattermost release, the server also requests the latest release from GitHub (`api.github.com`).
+
 ### Opt out
 
-To opt out, you can disable this security update check feature for self-hosted deployments in the System Console by going to **Environment \> SMTP \> Enable Security Alerts**. See the [enable security alerts](/administration-guide/configure/environment-configuration-settings#enable-security-alerts) documentation for details. When this feature is disabled, you will not receive any security alerts.
+To opt out, you can disable this security update check feature for self-hosted deployments in the System Console by going to **Environment \> SMTP \> Enable Security Alerts**. See the [enable security alerts](/administration-guide/configure/environment-configuration-settings#enable-security-alerts) documentation for details. When this feature is disabled, you will not receive any security alerts, and the server doesn't check GitHub for the latest release.
 
 ## Error and diagnostics reporting feature
 

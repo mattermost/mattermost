@@ -105,15 +105,15 @@ func TestRunHealthCheckGating(t *testing.T) {
 		assert.Empty(t, listHealthFindings(t, th))
 	})
 
-	t.Run("license below Enterprise fails and writes nothing", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	t.Run("license below Professional fails and writes nothing", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
 
 		require.Error(t, th.App.runHealthCheck(th.Context, svc))
 		assert.Empty(t, listHealthFindings(t, th))
 	})
 
-	t.Run("an Enterprise license applied at runtime takes effect on the next call", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	t.Run("a Professional license applied at runtime takes effect on the next call", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.NotEmpty(t, listHealthFindings(t, th))

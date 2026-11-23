@@ -7,6 +7,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
@@ -41,7 +42,7 @@ func (a *App) GetSamlMetadata(rctx request.CTX) (string, *model.AppError) {
 	return result, nil
 }
 
-func readSamlFile(fileData *multipart.FileHeader) ([]byte, *model.AppError) {
+func readSamlFile(fileData *multipart.FileHeader) ([]byte, error) {
 	file, err := fileData.Open()
 	if err != nil {
 		return nil, model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -112,26 +113,38 @@ func (a *App) addSamlCertificate(rctx request.CTX, filename string, data []byte,
 }
 
 func (a *App) AddSamlPublicCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	data, appErr := readSamlFile(fileData)
-	if appErr != nil {
-		return appErr
+	data, err := readSamlFile(fileData)
+	if err != nil {
+		return model.AsAppError(err)
 	}
 
 	if err := validateSamlSpCertificate(data); err != nil {
 		return model.NewAppError("AddSamlPublicCertificate", "api.admin.saml.invalid_public_certificate_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	if key := a.samlSpKeyPairCounterpart(*a.Config().SamlSettings.PrivateKeyFile); key != nil {
+		if _, err := tls.X509KeyPair(data, key); err != nil {
+			return model.NewAppError("AddSamlPublicCertificate", "api.admin.saml.mismatched_sp_key_pair.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
 	return a.addSamlCertificate(rctx, SamlPublicCertificateName, data, func(s *model.SamlSettings) *string { return s.PublicCertificateFile })
 }
 
 func (a *App) AddSamlPrivateCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	data, appErr := readSamlFile(fileData)
-	if appErr != nil {
-		return appErr
+	data, err := readSamlFile(fileData)
+	if err != nil {
+		return model.AsAppError(err)
 	}
 
 	if err := validateSamlSpPrivateKey(data); err != nil {
 		return model.NewAppError("AddSamlPrivateCertificate", "api.admin.saml.invalid_private_key_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if cert := a.samlSpKeyPairCounterpart(*a.Config().SamlSettings.PublicCertificateFile); cert != nil {
+		if _, err := tls.X509KeyPair(cert, data); err != nil {
+			return model.NewAppError("AddSamlPrivateCertificate", "api.admin.saml.mismatched_sp_key_pair.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 	}
 
 	return a.addSamlCertificate(rctx, SamlPrivateKeyName, data, func(s *model.SamlSettings) *string { return s.PrivateKeyFile })
@@ -141,9 +154,7 @@ func (a *App) AddSamlPrivateCertificate(rctx request.CTX, fileData *multipart.Fi
 //
 // The SP certificate and key are validated the way tls.X509KeyPair parses them when the SAML
 // implementation loads the key pair, so anything rejected here would also fail to load. Invalid
-// data must be rejected, since the SP would otherwise keep using the previous key pair until a
-// restart. They aren't checked against each other: during a rotation they're uploaded one at a
-// time, so the first upload always mismatches the file still on disk.
+// data must be rejected, since the SAML implementation drops the SP when it fails to load.
 func validateSamlSpCertificate(pemData []byte) error {
 	for {
 		var block *pem.Block
@@ -173,6 +184,23 @@ func validateSamlSpPrivateKey(pemData []byte) error {
 	}
 }
 
+// samlSpKeyPairCounterpart returns the stored SP certificate or key that an upload of the other
+// half must match, or nil if there is none to match. The SAML implementation only loads the key
+// pair while encryption is on, so a rotation with encryption off may upload the halves one at a
+// time. A counterpart that can't be read is skipped, so that uploading the other half can repair it.
+func (a *App) samlSpKeyPairCounterpart(filename string) []byte {
+	if !*a.Config().SamlSettings.Encrypt || filename == "" {
+		return nil
+	}
+
+	data, err := a.GetConfigFile(filename)
+	if err != nil {
+		return nil
+	}
+
+	return data
+}
+
 func parseSamlSpPrivateKey(der []byte) error {
 	if _, err := x509.ParsePKCS1PrivateKey(der); err == nil {
 		return nil
@@ -195,7 +223,7 @@ func parseSamlSpPrivateKey(der []byte) error {
 func (a *App) AddSamlIdpCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
 	data, appErr := readSamlFile(fileData)
 	if appErr != nil {
-		return appErr
+		return model.AsAppError(appErr)
 	}
 
 	der, err := parseSamlIdpCertificate(data)
@@ -232,7 +260,7 @@ func (a *App) setSamlIdpCertificate(rctx request.CTX, der []byte) *model.AppErro
 	return a.saveSamlCertificateConfig(rctx, SamlIdpCertificateName, func(s *model.SamlSettings) *string { return s.IdpCertificateFile })
 }
 
-func (a *App) removeSamlFile(filename string) *model.AppError {
+func (a *App) removeSamlFile(filename string) error {
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -242,7 +270,7 @@ func (a *App) removeSamlFile(filename string) *model.AppError {
 
 func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 	if err := a.removeSamlFile(*a.Config().SamlSettings.PublicCertificateFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return a.saveSamlSettings(func(s *model.SamlSettings) {
@@ -253,7 +281,7 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 
 func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 	if err := a.removeSamlFile(*a.Config().SamlSettings.PrivateKeyFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return a.saveSamlSettings(func(s *model.SamlSettings) {
@@ -262,15 +290,20 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 	})
 }
 
-func (a *App) RemoveSamlIdpCertificate() *model.AppError {
+// The certificate is already deleted, so reload even if saving the config fails.
+func (a *App) RemoveSamlIdpCertificate(rctx request.CTX) *model.AppError {
 	if err := a.removeSamlFile(*a.Config().SamlSettings.IdpCertificateFile); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
-	return a.saveSamlSettings(func(s *model.SamlSettings) {
+	appErr := a.saveSamlSettings(func(s *model.SamlSettings) {
 		*s.IdpCertificateFile = ""
 		*s.Enable = false
 	})
+
+	a.reloadSaml(rctx)
+
+	return appErr
 }
 
 func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {

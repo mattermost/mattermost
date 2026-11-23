@@ -833,7 +833,7 @@ func (a *App) checkTeamMemberLimits(rctx request.CTX, zipReader *zip.Reader, sou
 
 	accounts, appErr := a.resolveImportedUsers(slices.Collect(maps.Keys(allUsers)), scoped)
 	if appErr != nil {
-		return appErr
+		return model.AsAppError(appErr)
 	}
 
 	for _, teamName := range slices.Sorted(maps.Keys(usersByTeam)) {
@@ -888,7 +888,7 @@ type importedAccount struct {
 // lookups as importUser: SSO users by auth_data, falling back to username only in
 // a full import, and everyone else by username. Users missing from the result
 // get a new account.
-func (a *App) resolveImportedUsers(users []importedTeamUser, scoped bool) (map[importedTeamUser]importedAccount, *model.AppError) {
+func (a *App) resolveImportedUsers(users []importedTeamUser, scoped bool) (map[importedTeamUser]importedAccount, error) {
 	accounts := make(map[importedTeamUser]importedAccount, len(users))
 	byUsername := map[string][]importedTeamUser{}
 	for _, u := range users {

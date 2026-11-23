@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -108,6 +110,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
+		a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 		a.Publish(message)
 	}
 
@@ -133,11 +136,11 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 	if channel.Name == model.DefaultChannelName {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(rctx, user, channel); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		} else {
 			if err := a.postAddToTeamMessage(rctx, requestor, user, channel, ""); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		}
 	} else {
@@ -387,7 +390,8 @@ func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.
 		value.UpdatedBy = channel.CreatorId
 	}
 
-	_, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	markedCtx := properties.WithWriteMarker(rctxWithSessionCallerID(rctx), properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id})
+	_, appErr := a.UpsertPropertyValues(markedCtx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
 	if appErr == nil {
 		return nil
 	}
@@ -969,7 +973,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		if _, err = a.UpdateChannel(rctx, channel); err != nil {
 			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
-		return channel, postErr
+		return channel, model.AsAppError(postErr)
 	}
 
 	// Now that the conversion is fully committed, cancel pending join
@@ -995,7 +999,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	return channel, nil
 }
 
-func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	var authorId string
 	var authorUsername string
 	if user != nil {
@@ -1875,11 +1879,10 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Archiving a channel tears down the membership policy attached to it.
-	// If the channel is later restored the admin can re-apply policies;
-	// leaving the policy row behind would otherwise keep the sync job
-	// processing an archived channel.
-	a.cleanupChannelAccessControlPolicy(rctx, channel)
+	// The channel's policy outlives the archive: an archived channel stays readable,
+	// so its read rules must keep applying, and a restore brings the policy back with
+	// the channel. The membership sync skips archived channels. Only a permanent
+	// delete removes the policy row.
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
@@ -2035,6 +2038,7 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
+	a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 	a.Publish(message)
 
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
@@ -2277,9 +2281,9 @@ func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID strin
 }
 
 func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr != nil {
-		return nil, appErr
+	channel, err := a.Srv().getChannel(rctx, channelID)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate policy action set so consumers can distinguish a membership
 	// policy from a permission-only policy without a second round-trip.
@@ -2325,7 +2329,7 @@ func (a *App) GetChannelOfType(rctx request.CTX, channelID string, channelType m
 	return channel, nil
 }
 
-func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, error) {
 	channel, err := s.Store().Channel().Get(channelID, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2445,7 +2449,7 @@ func (a *App) GetChannelByNameForTeamName(rctx request.CTX, channelName, teamNam
 	return result, nil
 }
 
-func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
 	list, err := s.Store().Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2461,9 +2465,9 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
-	if appErr != nil {
-		return nil, appErr
+	channels, err := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate the policy action set so the frontend can distinguish a
 	// membership policy from a permission-only one (e.g. file upload) without
@@ -2477,6 +2481,8 @@ func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID 
 			mlog.Err(appErr),
 		)
 	}
+
+	channels = a.FilterChannelListByReadAccess(rctx, userID, channels)
 	return channels, nil
 }
 
@@ -2539,8 +2545,48 @@ func (a *App) GetAllChannelsCount(rctx request.CTX, opts model.ChannelSearchOpts
 	return count, nil
 }
 
+func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (model.ChannelList, error)) (model.ChannelList, error) {
+	if !a.ChannelAccessEnforcementActive() {
+		return fetch(offset, limit)
+	}
+
+	kept, truncated, err := putils.FetchUntil(offset, limit,
+		func(from int) ([]*model.Channel, error) {
+			page, err := fetch(from, limit)
+			if err == nil {
+				a.PrepareChannelReadAccess(rctx, userID, page)
+			}
+			return page, err
+		},
+		func(channel *model.Channel) bool {
+			return a.HasChannelReadAccess(rctx, userID, channel)
+		},
+		// FetchUntil hands advance only the page it just read, so the offset has to
+		// accumulate here rather than being derived from the cursor.
+		func(page []*model.Channel) int {
+			offset += len(page)
+			return offset
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of channels; the policy denies most of what this query returns",
+			mlog.String("user_id", userID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	return kept, nil
+}
+
 func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
+	// An archived channel keeps its policy, so its read rules hide it here as they
+	// would while it was active.
+	list, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetDeleted(teamID, off, lim, userID, skipTeamMembershipCheck)
+	})
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2555,7 +2601,9 @@ func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, li
 }
 
 func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	channels, err := a.Srv().Store().Channel().GetMoreChannels(teamID, userID, offset, limit)
+	channels, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetMoreChannels(teamID, userID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2574,11 +2622,14 @@ func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, cha
 		}
 	}
 
-	return list, nil
+	// No userID parameter; every caller of this is session-driven.
+	return a.FilterChannelListByReadAccess(rctx, rctx.Session().UserId, list), nil
 }
 
 func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetPublicChannelsForTeam(teamID, offset, limit)
+	list, err := a.fillChannelPage(rctx, rctx.Session().UserId, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetPublicChannelsForTeam(teamID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2853,7 +2904,7 @@ func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel
 	return nil
 }
 
-func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
@@ -2983,7 +3034,7 @@ func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedU
 	return nil
 }
 
-func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
@@ -3040,7 +3091,7 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 // removeChannelMembership strips a user's channel membership and the associated
 // thread memberships. Keeping these together ensures channel access cannot be
 // revoked without also dropping the thread state that depends on it.
-func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) *model.AppError {
+func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) error {
 	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
 		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3084,8 +3135,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		return err
 	}
 
-	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
-		return appErr
+	if err := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); err != nil {
+		return model.AsAppError(err)
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3146,9 +3197,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
 	message.Add("user_id", userIDToRemove)
 	message.Add("remover_id", removerUserId)
+	a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 	a.Publish(message)
 
-	// because the removed user no longer belongs to the channel we need to send a separate websocket event
+	// because the removed user no longer belongs to the channel we need to send a separate websocket event.
+	// Not gated on channel_read_access: it is how their client drops the channel.
 	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
@@ -3408,6 +3461,8 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil, "")
 			message.Add("thread", string(payload))
 			a.markPostDeliveryForBroadcast(rctx, message, thread.Post)
+			// Carries the thread's root post, so it must not reach a user the channel's policy denies.
+			a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 			a.Publish(message)
 		}
 	}
@@ -3451,6 +3506,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 	if appErr != nil {
 		return nil, appErr
 	}
+	channelList, _ = a.FilterChannelListWithTeamDataByReadAccess(rctx, userID, channelList)
 	return channelList, nil
 }
 
@@ -3467,6 +3523,8 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.FilterChannelListByReadAccess(rctx, userID, channelList)
 
 	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
@@ -3485,6 +3543,8 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	channelList = a.FilterChannelListByReadAccess(rctx, userID, channelList)
+
 	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
@@ -3498,7 +3558,7 @@ func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, use
 		return nil, model.NewAppError("AutocompleteChannelsForSearch", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListByReadAccess(rctx, userID, channelList), nil
 }
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
@@ -3548,6 +3608,9 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// No userID parameter; every caller of this is session-driven.
+	channelList = a.FilterChannelListByReadAccess(rctx, rctx.Session().UserId, channelList)
+
 	// Hydrate policy actions so search results carry the same action map as the
 	// bootstrap channel list; otherwise a search would overwrite a hydrated
 	// channel in the frontend store with an unhydrated copy. No-op without a
@@ -3571,6 +3634,8 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.FilterChannelListByReadAccess(rctx, userID, channelList)
 
 	// Hydrate policy actions so search results carry the same action map as the
 	// bootstrap channel list; otherwise a search would overwrite a hydrated
@@ -3618,6 +3683,19 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Dropping a hidden channel here leaves its unread and mention counts intact, so
+	// they are waiting when access returns. times feeds the thread update, the
+	// websocket payload and the response, so filtering it covers all three.
+	if a.ChannelAccessEnforcementActive() {
+		channelsToView = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToView)
+		channelsToClearPushNotifications = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToClearPushNotifications)
+		for channelID := range times {
+			if !a.HasChannelReadAccessByID(rctx, userID, channelID) {
+				delete(times, channelID)
+			}
+		}
 	}
 
 	// times already contains every channel the user belongs to in this team, including
@@ -4604,11 +4682,11 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 }
 
 // cleanupChannelAccessControlPolicy removes the channel-scope ABAC policy row,
-// if any, for a channel being archived or permanently deleted. Orphan policy
-// rows left behind would still be picked up by the sync job and surface in
-// searches that filter by AccessControlPolicyEnforced. Failures are logged
-// but not returned — deleting/archiving a channel must not be blocked by an
-// ABAC cleanup error.
+// if any, for a channel being permanently deleted. Orphan policy rows left
+// behind would still be picked up by the sync job and surface in searches that
+// filter by AccessControlPolicyEnforced. An archived channel keeps its row; see
+// DeleteChannel. Failures are logged but not returned — deleting a channel must
+// not be blocked by an ABAC cleanup error.
 //
 // We intentionally do NOT gate this on channel.PolicyEnforced: that flag is
 // computed from the AccessControlPolicies table via the channel store and can
@@ -4636,7 +4714,7 @@ func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model
 		case http.StatusNotImplemented, http.StatusNotAcceptable:
 			useStoreFallback = true
 		default:
-			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel permanent delete",
 				mlog.String("channel_id", channel.Id),
 				mlog.Err(appErr),
 			)
@@ -4645,7 +4723,7 @@ func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model
 
 	if useStoreFallback {
 		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, channel.Id); err != nil {
-			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel permanent delete",
 				mlog.String("channel_id", channel.Id),
 				mlog.Err(err),
 			)
@@ -4768,7 +4846,9 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		recommended = append(recommended, &channel.Channel)
 	}
 
-	return recommended, nil
+	// A channel's policy can hold a membership rule the user meets and a read rule that
+	// denies them; recommending it would show them a channel every other list hides.
+	return a.FilterChannelListByReadAccess(rctx, userID, recommended), nil
 }
 
 func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, channel *model.Channel) {
@@ -4777,7 +4857,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 		// Get user's categories for this team
 		categories, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, channel.TeamId)
 		if err != nil {
-			mlog.Error("Failed to get sidebar categories", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
+			rctx.Logger().Error("Failed to get sidebar categories", mlog.String("target_user_id", userID), mlog.String("team_id", channel.TeamId), mlog.Err(err))
 			return
 		}
 		// Find or create the category
@@ -4824,7 +4904,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			}
 			_, err = a.CreateSidebarCategory(rctx, userID, channel.TeamId, targetCategory)
 			if err != nil {
-				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+				rctx.Logger().Error("Failed to create default category", mlog.String("target_user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
 		} else {
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
@@ -4834,7 +4914,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 		// Add channel to existing category
 		_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, categoriesToUpdate)
 		if err != nil {
-			mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			rctx.Logger().Error("Failed to update default category", mlog.String("target_user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 		}
 	}
 }
