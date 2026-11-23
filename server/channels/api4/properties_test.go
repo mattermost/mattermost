@@ -129,9 +129,13 @@ func TestSessionAttributesFeatureFlagGate(t *testing.T) {
 func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	// Routes should be available when ClassificationMarkings=true even with IntegratedBoards=false
+	// Routes should be available when ClassificationMarkings=true alone, with
+	// every other peer property flag off.
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = false
 		cfg.FeatureFlags.ClassificationMarkings = true
 	}).InitBasic(t)
 
@@ -171,10 +175,10 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 	// server.go); only the generic Properties API route registration is
 	// gated by the OR condition in InitProperties.
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = false
 		cfg.FeatureFlags.ManagedChannelCategories = false
 		cfg.FeatureFlags.ClassificationMarkings = false
 		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = false
 		cfg.FeatureFlags.PostAttributes = true
 	}).InitBasic(t)
 
@@ -237,7 +241,6 @@ func TestPropertyRoutesAbsentWithoutGateFlags(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = false
 		cfg.FeatureFlags.ManagedChannelCategories = false
 		cfg.FeatureFlags.ClassificationMarkings = false
 		cfg.FeatureFlags.SessionAttributes = false
@@ -291,7 +294,6 @@ func TestPropertyRoutesWithChannelAttributesFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = false
 		cfg.FeatureFlags.ManagedChannelCategories = false
 		cfg.FeatureFlags.ClassificationMarkings = false
 		cfg.FeatureFlags.SessionAttributes = false
@@ -325,9 +327,7 @@ func TestPropertyRoutesWithChannelAttributesFlag(t *testing.T) {
 
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// Register a property group for testing
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties", Version: model.PropertyGroupVersionV2})
@@ -1402,7 +1402,6 @@ func TestCreatePropertyField(t *testing.T) {
 func TestServePropertyFieldPermissionsPayload(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
 	}).InitBasic(t)
 
@@ -1644,9 +1643,7 @@ func findPropertyFieldByID(fields []*model.PropertyField, id string) *model.Prop
 
 func TestGetPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// Register property groups for testing
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get", Version: model.PropertyGroupVersionV2})
@@ -2256,9 +2253,7 @@ func TestGetPropertyFields(t *testing.T) {
 
 func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_scope", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -2366,9 +2361,7 @@ func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 
 func TestGetPropertyFieldsFiltering(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_filter", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -2493,9 +2486,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 
 func TestSearchPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_search", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -2945,7 +2936,6 @@ func TestSearchPropertyFields(t *testing.T) {
 func TestPatchPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.PropertyFieldRank = true
 	}).InitBasic(t)
 
@@ -4164,7 +4154,6 @@ func TestPatchPropertyField(t *testing.T) {
 func TestPropertyFieldPermissionsLockout(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
 	}).InitBasic(t)
 
@@ -4492,9 +4481,7 @@ func TestPermissionsLockOutSystemAdmins(t *testing.T) {
 
 func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// Register property groups for testing
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_delete", Version: model.PropertyGroupVersionV2})
@@ -4884,9 +4871,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 
 func TestGetPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_get", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -5565,9 +5550,7 @@ func TestPatchPropertyValuesPostCreator(t *testing.T) {
 
 func TestPatchPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_patch", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -6066,9 +6049,7 @@ func TestPatchPropertyValues(t *testing.T) {
 
 func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_get_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -6148,9 +6129,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 
 func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_patch_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -6211,9 +6190,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 
 func TestPatchPropertyValuesBotTargetAccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	defaultPerms := th.SaveDefaultRolePermissions(t)
@@ -6311,9 +6288,7 @@ func TestPatchPropertyValuesBotTargetAccess(t *testing.T) {
 
 func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_get_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
@@ -6430,9 +6405,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 
 func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_patch_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
@@ -6675,7 +6648,6 @@ func TestPatchPropertyValuesChannelAdminTier(t *testing.T) {
 	// ChannelAttributes is the only enabled gate flag, so this also asserts it
 	// opens the channel *value* routes and not just the field routes.
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = false
 		cfg.FeatureFlags.ManagedChannelCategories = false
 		cfg.FeatureFlags.ClassificationMarkings = false
 		cfg.FeatureFlags.SessionAttributes = false
@@ -6834,9 +6806,7 @@ func TestPatchPropertyValuesChannelAdminTier(t *testing.T) {
 
 func TestCreatePropertyFieldTeamScopedBroadcast(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_team_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -7112,9 +7082,7 @@ func TestPropertyValuesUpdatedPayloadShapes(t *testing.T) {
 
 func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_channel_val_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -7166,9 +7134,7 @@ func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
 
 func TestPatchPropertyValuesUserObjectTypeBroadcast(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_val_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -7220,9 +7186,7 @@ func TestPatchPropertyValuesUserObjectTypeBroadcast(t *testing.T) {
 
 func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// PSAv1 fields must live in a v1 group; the marker v2 field uses a separate v2 group.
 	psav1Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v1", Version: model.PropertyGroupVersionV1})
@@ -7302,9 +7266,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 
 func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_multi_val_payload", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -7376,9 +7338,7 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 }
 func TestLinkedProperties(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_linked_properties", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -8018,9 +7978,7 @@ func TestLinkedProperties(t *testing.T) {
 
 func TestSystemObjectType(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_system_object_type", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
@@ -8878,9 +8836,7 @@ func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
 
 func TestPatchPropertyFieldLegacyAttrs(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_legacy_attrs", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
@@ -9189,7 +9145,6 @@ func TestPatchAccessControlFieldPermissionsEcho(t *testing.T) {
 func TestPatchPropertyFieldNullGrantsEcho(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
 	}).InitBasic(t)
 
