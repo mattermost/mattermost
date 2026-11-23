@@ -19,7 +19,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3)
 
 	boundsEnabled := false
-	th.service.AddHook(NewBoundsHook(th.service, func() bool { return boundsEnabled }, nil))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return boundsEnabled }, nil, nil))
 
 	const disabledErrID = "app.property_field.bounds_disabled.app_error"
 	raiseOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
@@ -156,8 +156,116 @@ func TestBoundsHookFlag(t *testing.T) {
 		requireAppError(t, updateErr, disabledErrID)
 	})
 
+	t.Run("on: adding a rule or write_once needs Enterprise Advanced, removing never does", func(t *testing.T) {
+		const licenseErrID = "app.property_field.bounds_license.app_error"
+		requireLicenseError := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, licenseErrID, appErr.Id)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		}
+		setLicense := func(t *testing.T, sku string) {
+			prev := th.service.licenseProvider
+			th.service.licenseProvider = func() *model.License {
+				if sku == "" {
+					return nil
+				}
+				return model.NewTestLicenseSKU(sku)
+			}
+			t.Cleanup(func() { th.service.licenseProvider = prev })
+		}
+		// Stored while Enterprise Advanced is licensed, then the license drops to Enterprise.
+		setLicense(t, model.LicenseShortSkuEnterpriseAdvanced)
+		ruled := create(t, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
+			f.Bounds = model.PropertyBounds{raiseOnly}
+		}))
+		locked := create(t, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
+			f.Mutability = model.PropertyFieldMutabilityWriteOnce
+		}))
+		plain := create(t, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {}))
+		rankPlain := create(t, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {}))
+		boundsEnabled = true // create resets it
+		defer func() { boundsEnabled = false }()
+
+		for _, sku := range []string{"", model.LicenseShortSkuEnterprise} {
+			setLicense(t, sku)
+
+			_, createErr := th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
+				f.Bounds = model.PropertyBounds{raiseOnly}
+			}))
+			requireLicenseError(t, createErr)
+
+			_, createErr = th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
+				f.Mutability = model.PropertyFieldMutabilityWriteOnce
+			}))
+			requireLicenseError(t, createErr)
+
+			adding := stored(t, rankPlain.ID)
+			adding.Bounds = model.PropertyBounds{raiseOnly}
+			_, _, updateErr := th.service.UpdatePropertyField(rctx, group.ID, adding)
+			requireLicenseError(t, updateErr)
+
+			changed := stored(t, ruled.ID)
+			changed.Bounds = model.PropertyBounds{lowerOnly}
+			_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, changed)
+			requireLicenseError(t, updateErr)
+
+			locking := stored(t, plain.ID)
+			locking.Mutability = model.PropertyFieldMutabilityWriteOnce
+			_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, locking)
+			requireLicenseError(t, updateErr)
+
+			// Resaving what is stored, and unstated bounds and mutability, add nothing.
+			echo := stored(t, ruled.ID)
+			echo.Name = "renamed_" + model.NewId()
+			_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, echo)
+			require.NoError(t, updateErr)
+			echo = stored(t, locked.ID)
+			echo.Name = "renamed_" + model.NewId()
+			_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, echo)
+			require.NoError(t, updateErr)
+			unstated := stored(t, ruled.ID)
+			unstated.Bounds, unstated.Mutability = nil, ""
+			_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, unstated)
+			require.NoError(t, updateErr)
+		}
+
+		setLicense(t, "")
+		lifted := stored(t, locked.ID)
+		lifted.Mutability = model.PropertyFieldMutabilityMutable
+		_, _, updateErr := th.service.UpdatePropertyField(rctx, group.ID, lifted)
+		require.NoError(t, updateErr)
+
+		removing := stored(t, ruled.ID)
+		removing.Bounds = model.PropertyBounds{}
+		_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, removing)
+		require.NoError(t, updateErr)
+		assert.Empty(t, stored(t, ruled.ID).Bounds)
+
+		setLicense(t, model.LicenseShortSkuEnterpriseAdvanced)
+		adding := stored(t, rankPlain.ID)
+		adding.Bounds = model.PropertyBounds{raiseOnly}
+		_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, adding)
+		require.NoError(t, updateErr)
+		locking := stored(t, plain.ID)
+		locking.Mutability = model.PropertyFieldMutabilityWriteOnce
+		_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, locking)
+		require.NoError(t, updateErr)
+	})
+	t.Run("off: the flag error wins over the license error", func(t *testing.T) {
+		prev := th.service.licenseProvider
+		th.service.licenseProvider = func() *model.License { return nil }
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+
+		_, createErr := th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
+			f.Bounds = model.PropertyBounds{raiseOnly}
+		}))
+		requireAppError(t, createErr, disabledErrID)
+	})
+
 	t.Run("a nil provider is off", func(t *testing.T) {
-		hook := NewBoundsHook(th.service, nil, nil)
+		hook := NewBoundsHook(th.service, nil, nil, nil)
 		err := hook.validateBoundsChange(&model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil)
 		requireAppError(t, err, disabledErrID)
 	})
@@ -176,7 +284,7 @@ func TestBoundsHookFlag(t *testing.T) {
 
 	t.Run("a v2 group's field passes the hook untouched", func(t *testing.T) {
 		v2 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
-		hook := NewBoundsHook(th.service, func() bool { return false }, nil)
+		hook := NewBoundsHook(th.service, func() bool { return false }, nil, nil)
 		field := newFieldIn(v2.ID, model.PropertyFieldTypeRank, func(f *model.PropertyField) {
 			f.Bounds = model.PropertyBounds{raiseOnly}
 			f.Mutability = model.PropertyFieldMutabilitySetOnCreate
@@ -188,7 +296,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	})
 
 	t.Run("a group that does not resolve fails the hook, never passes it", func(t *testing.T) {
-		hook := NewBoundsHook(th.service, func() bool { return true }, nil)
+		hook := NewBoundsHook(th.service, func() bool { return true }, nil, nil)
 		field := newFieldIn(model.NewId(), model.PropertyFieldTypeRank, func(f *model.PropertyField) {})
 
 		got, err := hook.PreCreatePropertyField(rctx, field)
@@ -215,7 +323,7 @@ func TestBoundsHookFlag(t *testing.T) {
 	})
 
 	t.Run("an update naming a field the group does not hold surfaces the lookup error", func(t *testing.T) {
-		hook := NewBoundsHook(th.service, func() bool { return true }, nil)
+		hook := NewBoundsHook(th.service, func() bool { return true }, nil, nil)
 		ghost := newField(model.PropertyFieldTypeText, func(f *model.PropertyField) { f.ID = model.NewId() })
 
 		_, err := hook.PreUpdatePropertyField(rctx, group.ID, ghost)

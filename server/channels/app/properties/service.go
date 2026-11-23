@@ -27,6 +27,7 @@ type PropertyService struct {
 	hooks                   []PropertyHook
 	callerIDExtractor       CallerIDExtractor
 	requestOptionsExtractor RequestOptionsExtractor
+	licenseProvider         LicenseProvider
 	groupCache              sync.Map // name -> *model.PropertyGroup
 	groupIDCache            sync.Map // id -> *model.PropertyGroup
 }
@@ -37,6 +38,8 @@ type ServiceConfig struct {
 	PropertyValueStore      store.PropertyValueStore
 	CallerIDExtractor       CallerIDExtractor
 	RequestOptionsExtractor RequestOptionsExtractor
+	// License is optional. When unset, bounds and mutability are always enforced.
+	License LicenseProvider
 }
 
 func New(c ServiceConfig) (*PropertyService, error) {
@@ -50,6 +53,7 @@ func New(c ServiceConfig) (*PropertyService, error) {
 		valueStore:              c.PropertyValueStore,
 		callerIDExtractor:       c.CallerIDExtractor,
 		requestOptionsExtractor: c.RequestOptionsExtractor,
+		licenseProvider:         c.License,
 	}, nil
 }
 
@@ -75,4 +79,12 @@ func (ps *PropertyService) extractRequestOptions(rctx request.CTX) model.Propert
 		return model.PropertyRequestOptions{}
 	}
 	return ps.requestOptionsExtractor(rctx)
+}
+
+// boundsEnforced reports whether bounds and mutability rules are enforced: only with Enterprise
+// Advanced or higher. With no license provider it is always true, so a service built without one
+// (tests, embedded callers) keeps refusing. The license is read on every call so a change applies
+// without a restart.
+func (ps *PropertyService) boundsEnforced() bool {
+	return ps.licenseProvider == nil || model.MinimumEnterpriseAdvancedLicense(ps.licenseProvider())
 }
