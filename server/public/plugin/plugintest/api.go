@@ -3480,12 +3480,12 @@ func (_m *API) GetPropertyValues(groupID string, ids []string) ([]*model.Propert
 	return r0, r1
 }
 
-// GetPublicChannelsByIdsForTeam provides a mock function with given fields: teamID, userID, channelIDs
-func (_m *API) GetPublicChannelsByIdsForTeam(teamID string, userID string, channelIDs []string) ([]*model.Channel, *model.AppError) {
+// GetPublicChannelsByIdsForTeamForUser provides a mock function with given fields: teamID, userID, channelIDs
+func (_m *API) GetPublicChannelsByIdsForTeamForUser(teamID string, userID string, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(teamID, userID, channelIDs)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetPublicChannelsByIdsForTeam")
+		panic("no return value specified for GetPublicChannelsByIdsForTeamForUser")
 	}
 
 	var r0 []*model.Channel

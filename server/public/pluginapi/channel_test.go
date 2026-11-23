@@ -157,15 +157,15 @@ func TestGetPublicTeamChannels(t *testing.T) {
 	})
 }
 
-func TestListPublicChannelsByIdsForTeam(t *testing.T) {
+func TestListPublicChannelsByIdsForTeamForUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		api.On("GetPublicChannelsByIdsForTeam", "1", "2", []string{"3", "4"}).Return([]*model.Channel{{Id: "3"}, {Id: "4"}}, nil)
+		api.On("GetPublicChannelsByIdsForTeamForUser", "1", "2", []string{"3", "4"}).Return([]*model.Channel{{Id: "3"}, {Id: "4"}}, nil)
 
-		channels, err := client.Channel.ListPublicChannelsByIdsForTeam("1", "2", []string{"3", "4"})
+		channels, err := client.Channel.ListPublicChannelsByIdsForTeamForUser("1", "2", []string{"3", "4"})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Channel{{Id: "3"}, {Id: "4"}}, channels)
 	})
@@ -177,9 +177,9 @@ func TestListPublicChannelsByIdsForTeam(t *testing.T) {
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetPublicChannelsByIdsForTeam", "1", "2", []string{"3"}).Return(nil, appErr)
+		api.On("GetPublicChannelsByIdsForTeamForUser", "1", "2", []string{"3"}).Return(nil, appErr)
 
-		channels, err := client.Channel.ListPublicChannelsByIdsForTeam("1", "2", []string{"3"})
+		channels, err := client.Channel.ListPublicChannelsByIdsForTeamForUser("1", "2", []string{"3"})
 		require.Equal(t, appErr, err)
 		require.Len(t, channels, 0)
 	})

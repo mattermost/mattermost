@@ -534,16 +534,16 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	return channels, err
 }
 
-func (api *PluginAPI) GetPublicChannelsByIdsForTeam(teamID, userID string, channelIDs []string) ([]*model.Channel, *model.AppError) {
+func (api *PluginAPI) GetPublicChannelsByIdsForTeamForUser(teamID, userID string, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	if !model.IsValidId(teamID) {
-		return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "api.context.invalid_param.app_error", map[string]any{"Name": "team_id"}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetPublicChannelsByIdsForTeamForUser", "api.context.invalid_param.app_error", map[string]any{"Name": "team_id"}, "", http.StatusBadRequest)
 	}
 	if !model.IsValidId(userID) {
-		return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetPublicChannelsByIdsForTeamForUser", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
 	}
 	for _, channelID := range channelIDs {
 		if !model.IsValidId(channelID) {
-			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "api.context.invalid_param.app_error", map[string]any{"Name": "channel_id"}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("GetPublicChannelsByIdsForTeamForUser", "api.context.invalid_param.app_error", map[string]any{"Name": "channel_id"}, "", http.StatusBadRequest)
 		}
 	}
 	if len(channelIDs) == 0 {

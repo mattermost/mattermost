@@ -5610,7 +5610,7 @@ func TestPluginAPIGetChannelOfType(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
 
-func TestPluginAPIGetPublicChannelsByIdsForTeam(t *testing.T) {
+func TestPluginAPIGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
@@ -5632,7 +5632,7 @@ func TestPluginAPIGetPublicChannelsByIdsForTeam(t *testing.T) {
 	}
 
 	t.Run("returns the team's active public channels", func(t *testing.T) {
-		channels, appErr := api.GetPublicChannelsByIdsForTeam(th.BasicTeam.Id, th.BasicUser.Id, []string{th.BasicChannel.Id, secondChannel.Id})
+		channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, []string{th.BasicChannel.Id, secondChannel.Id})
 		require.Nil(t, appErr)
 		require.ElementsMatch(t, []string{th.BasicChannel.Id, secondChannel.Id}, ids(channels))
 	})
@@ -5640,13 +5640,13 @@ func TestPluginAPIGetPublicChannelsByIdsForTeam(t *testing.T) {
 	t.Run("does not require the user to be a team or channel member", func(t *testing.T) {
 		outsider := th.CreateUser(t)
 
-		channels, appErr := api.GetPublicChannelsByIdsForTeam(th.BasicTeam.Id, outsider.Id, []string{th.BasicChannel.Id})
+		channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, outsider.Id, []string{th.BasicChannel.Id})
 		require.Nil(t, appErr)
 		require.Equal(t, []string{th.BasicChannel.Id}, ids(channels))
 	})
 
 	t.Run("excludes private, archived and other team channels", func(t *testing.T) {
-		channels, appErr := api.GetPublicChannelsByIdsForTeam(th.BasicTeam.Id, th.BasicUser.Id, []string{
+		channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, []string{
 			th.BasicChannel.Id, privateChannel.Id, archivedChannel.Id, otherTeamChannel.Id,
 		})
 		require.Nil(t, appErr)
@@ -5663,7 +5663,7 @@ func TestPluginAPIGetPublicChannelsByIdsForTeam(t *testing.T) {
 			"other team only": {otherTeamChannel.Id},
 		} {
 			t.Run(name, func(t *testing.T) {
-				channels, appErr := api.GetPublicChannelsByIdsForTeam(th.BasicTeam.Id, th.BasicUser.Id, channelIDs)
+				channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, channelIDs)
 				require.Nil(t, appErr)
 				require.NotNil(t, channels)
 				require.Empty(t, channels)
@@ -5686,7 +5686,7 @@ func TestPluginAPIGetPublicChannelsByIdsForTeam(t *testing.T) {
 			"invalid with none": {"junk", th.BasicUser.Id, nil, "team_id"},
 		} {
 			t.Run(name, func(t *testing.T) {
-				channels, appErr := api.GetPublicChannelsByIdsForTeam(args.teamID, args.userID, args.channelIDs)
+				channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(args.teamID, args.userID, args.channelIDs)
 				require.NotNil(t, appErr)
 				require.Nil(t, channels)
 				require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -5699,7 +5699,7 @@ func TestPluginAPIGetPublicChannelsByIdsForTeam(t *testing.T) {
 	})
 }
 
-func TestPluginAPIGetPublicChannelsByIdsForTeamReadAccess(t *testing.T) {
+func TestPluginAPIGetPublicChannelsByIdsForTeamForUserReadAccess(t *testing.T) {
 	h := setupChannelReadAccessTest(t)
 	mockACS := h.mockACS(t)
 	governed(mockACS)
@@ -5712,12 +5712,12 @@ func TestPluginAPIGetPublicChannelsByIdsForTeamReadAccess(t *testing.T) {
 	api := h.th.SetupPluginAPI()
 	ids := []string{h.th.BasicChannel.Id}
 
-	channels, appErr := api.GetPublicChannelsByIdsForTeam(h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+	channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
 	require.Nil(t, appErr)
 	require.Len(t, channels, 1)
 	require.Equal(t, h.th.BasicChannel.Id, channels[0].Id)
 
-	channels, appErr = api.GetPublicChannelsByIdsForTeam(h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
+	channels, appErr = api.GetPublicChannelsByIdsForTeamForUser(h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
 	require.Nil(t, appErr)
 	require.NotNil(t, channels)
 	require.Empty(t, channels, "channels the user cannot read under access control are dropped, not reported as an error")
