@@ -64,6 +64,15 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
 func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
+	deleted, err := a.deletePropertyFieldOptions(rctx, groupID, fieldID, optionIDs, connectionID, true)
+	return deleted, model.AsAppError(err)
+}
+
+// deletePropertyFieldOptions is DeletePropertyFieldOptions for callers that decide
+// whether the attribute views are refreshed before it returns. One deleting only
+// options no value holds can skip it: the views project nothing different, and are
+// still marked stale for the next read.
+func (a *App) deletePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string, connectionID string, refreshViews bool) ([]*model.PropertyFieldOption, error) {
 	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, groupID, fieldID, optionIDs)
 	if err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyFieldOptions", err); appErr != nil {
@@ -72,7 +81,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 		return nil, model.NewAppError("DeletePropertyFieldOptions", "app.property_field.options.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID, true)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID, refreshViews)
 	return deleted, nil
 }
 
@@ -101,12 +110,12 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 // cannot read back a cache entry the event was announcing the end of. This is the
 // ordering the field write path uses, for the same reason.
 //
-// removed says the change soft-deleted options. The attribute views are then
-// refreshed first of all, so that a removed option stops granting with this
-// change rather than with the next periodic refresh.
-func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string, removed bool) {
+// refreshViews says the change soft-deleted options a value may hold. The
+// attribute views are then refreshed first of all, so that a removed option
+// stops granting with this change rather than with the next periodic refresh.
+func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string, refreshViews bool) {
 	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
-	if removed && (err != nil || anyAttributeViewObjectType(append([]*model.PropertyField{current}, dependents...))) {
+	if refreshViews && (err != nil || anyAttributeViewObjectType(append([]*model.PropertyField{current}, dependents...))) {
 		a.refreshAttributeViewsAfterOptionRemoval(rctx)
 	}
 	if err != nil {

@@ -362,10 +362,10 @@ func testAttributesStoreEmptyMultiselect(t *testing.T, rctx request.CTX, ss stor
 }
 
 // testAttributesStoreDeletedOptions pins migration 000244 (MM-71837): an attribute whose value names
-// an option that is not live is left out of the views, so a deleted option can never be the reason
-// a rule passes, under a negation either. Leaving it out rather than projecting what is left of the
-// value costs the options a multiselect or graph still holds; a value naming no option at all
-// projects as before.
+// an option that is not live is left out of the views, so a deleted option cannot make a comparison
+// pass, negated or not. Leaving it out rather than projecting what is left of the value costs the
+// options a multiselect or graph still holds. A select or rank naming no live option is left out
+// whatever its shape; an empty multiselect or graph projects as before.
 func testAttributesStoreDeletedOptions(t *testing.T, rctx request.CTX, ss store.Store) {
 	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
@@ -469,6 +469,25 @@ func testAttributesStoreDeletedOptions(t *testing.T, rctx request.CTX, ss store.
 	set(t, selectField, onlyDeleted, id(gone))
 	set(t, channelField, channelID, id(channelGone))
 
+	shapes := []struct {
+		name  string
+		field *model.PropertyField
+		value any
+	}{
+		{"an empty select", selectField, ""},
+		{"a null select", selectField, nil},
+		{"a numeric select", selectField, 3},
+		{"a select holding an array", selectField, []string{id(kept)}},
+		{"a null rank", rankField, nil},
+		{"a rank holding an array", rankField, []string{id(low)}},
+	}
+	shapeTargets := make([]string, len(shapes))
+	for i, s := range shapes {
+		shapeTargets[i] = model.NewId()
+		set(t, s.field, shapeTargets[i], s.value)
+		set(t, textField, shapeTargets[i], "still here")
+	}
+
 	require.NoError(t, ss.Attributes().RefreshAttributes())
 	before, ok := attributes(t, heldMulti, model.PropertyFieldObjectTypeUser)
 	require.True(t, ok)
@@ -506,6 +525,15 @@ func testAttributesStoreDeletedOptions(t *testing.T, rctx request.CTX, ss store.
 	t.Run("a subject holding only a deleted option has no row", func(t *testing.T) {
 		_, ok := attributes(t, onlyDeleted, model.PropertyFieldObjectTypeUser)
 		require.False(t, ok)
+	})
+
+	t.Run("a select or rank naming no live option is left out whatever its shape", func(t *testing.T) {
+		for i, s := range shapes {
+			attrs, ok := attributes(t, shapeTargets[i], model.PropertyFieldObjectTypeUser)
+			require.True(t, ok, s.name)
+			require.NotContains(t, attrs, s.field.Name, s.name)
+			require.Equal(t, "still here", attrs[textField.Name], s.name)
+		}
 	})
 
 	t.Run("an empty multiselect and graph project as before", func(t *testing.T) {

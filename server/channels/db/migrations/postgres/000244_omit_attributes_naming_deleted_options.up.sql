@@ -10,27 +10,33 @@
 -- is true, and so is `!hasAnyOf(["secret"])` once "secret" is dropped from
 -- ["secret", "eng"]. A missing attribute is an error to the decision lane and
 -- NULL to the SQL lanes, which only the other side of && or || can absorb, so
--- a deleted option can never be the reason for a grant, under any negation.
+-- a deleted option cannot make a comparison grant, negated or not. A test of
+-- the key itself still can: !has() is true once the attribute is left out, so
+-- policy save refuses one on a field with options.
 --
 -- The cost, accepted with that decision: a multiselect or graph value that lost
 -- one option loses the whole attribute, the options it still holds included,
 -- until the value is rewritten.
 --
--- A value that names no option at all -- an empty string, an empty array, a
--- graph value that is not an array -- projects as before. There is no deleted
--- option in it to grant through.
+-- A select or rank value that is not a live option identifier is left out
+-- whatever its shape: an empty string, null, a number and an array all
+-- projected as JSON null. A multiselect or graph value is checked only when it
+-- is an array. An empty one projects as before, and so does one that is not an
+-- array, null included: as itself for a multiselect, as [] for a graph.
 --
 -- The values to leave out are found in one set-based pass ahead of the
 -- projection: every option reference a value holds, anti-joined to the live
 -- options of its field. A correlated lookup per value in the WHERE clause gives
 -- the same rows but doubled the refresh time at 100k users, and a refresh holds
--- an exclusive lock that searches wait on. This pass adds about 2% to it.
+-- an exclusive lock that searches wait on. This pass, with the shape check on
+-- select and rank values, adds about 4% to the time of one refresh: 3.4s
+-- against 000223's 3.3s, at 100k users holding five attributes each. That is
+-- no measure of how often the views refresh, which deleting an option a value
+-- may hold now does too.
 --
 -- A reference that does not resolve marks its value stale, and so does one that
--- is not a string: anything unexpected about a reference leaves the attribute
--- out rather than projecting it. A subject whose only attributes are left out
--- has no row at all, which every reader already treats as a subject holding
--- nothing.
+-- is not a string. A subject whose only attributes are left out has no row at
+-- all, which every reader already treats as a subject holding nothing.
 --
 -- The projection itself is 000223's, unchanged.
 
@@ -120,6 +126,8 @@ LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
 WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
   AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
   AND pf.ObjectType = 'user'
+  -- Here rather than in held_options, where it would cost the refresh a third.
+  AND (pf.Type NOT IN ('select', 'rank') OR (jsonb_typeof(pv.Value) = 'string' AND pv.Value #>> '{}' <> ''))
   AND NOT EXISTS (SELECT 1 FROM stale_values s WHERE s.ValueID = pv.ID)
 GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;
 
@@ -206,5 +214,7 @@ LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
 WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
   AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
   AND pf.ObjectType = 'channel'
+  -- Here rather than in held_options, where it would cost the refresh a third.
+  AND (pf.Type NOT IN ('select', 'rank') OR (jsonb_typeof(pv.Value) = 'string' AND pv.Value #>> '{}' <> ''))
   AND NOT EXISTS (SELECT 1 FROM stale_values s WHERE s.ValueID = pv.ID)
 GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;
