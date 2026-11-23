@@ -5,12 +5,14 @@ package app
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -2259,6 +2261,50 @@ func TestUpdatePropertyField_MaskedCallerEcho(t *testing.T) {
 		require.Nil(t, appErr)
 		requireStoredOptions(t, empty.ID, "Alpha", "Beta")
 	})
+
+	t.Run("the echo restore reads the stored options from the primary", func(t *testing.T) {
+		stored, _ := newField(t, model.PropertyFieldTypeSelect, true)
+		update := servedView(t, stored.ID)
+		update.Name = "renamed_" + model.NewId()
+
+		originalStore := th.App.Srv().Store()
+		th.App.Srv().SetStore(&replicaLagFieldStoreWrapper{Store: originalStore})
+		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+		_, _, appErr := th.App.UpdatePropertyField(callerCtx, groupID, update, false, "")
+		require.Nil(t, appErr, "a replica still showing only Alpha must not be what the echo restores")
+		requireStoredOptions(t, stored.ID, "Alpha", "Beta")
+	})
+}
+
+// replicaLagFieldStoreWrapper decorates a Store so that a field read not pinned
+// to the primary shows only the field's first option, as a replica that has not
+// yet received the other options would.
+type replicaLagFieldStoreWrapper struct {
+	store.Store
+}
+
+func (w *replicaLagFieldStoreWrapper) PropertyField() store.PropertyFieldStore {
+	return &replicaLagFieldStore{PropertyFieldStore: w.Store.PropertyField()}
+}
+
+type replicaLagFieldStore struct {
+	store.PropertyFieldStore
+}
+
+func (s *replicaLagFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	fields, err := s.PropertyFieldStore.GetMany(rctx, groupID, ids)
+	if err != nil || store.HasMaster(rctx.Context()) {
+		return fields, err
+	}
+	stale := make([]*model.PropertyField, len(fields))
+	for i, field := range fields {
+		c := *field
+		c.Attrs = maps.Clone(field.Attrs)
+		c.Attrs[model.PropertyFieldAttributeOptions] = field.Attrs[model.PropertyFieldAttributeOptions].([]any)[:1]
+		stale[i] = &c
+	}
+	return stale, nil
 }
 
 func optionIDByName(t *testing.T, field *model.PropertyField, name string) string {

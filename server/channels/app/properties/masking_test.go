@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -1833,5 +1834,98 @@ func TestMaskedCallerFieldUpdateOptions(t *testing.T) {
 
 		_, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, renamed(field, droppingB))
 		require.NoError(t, err)
+	})
+}
+
+// staleOptionsFieldStore wraps a store.PropertyFieldStore so that a read not
+// pinned to the primary database drops the field's last option, as a replica
+// that has not yet received it would.
+type staleOptionsFieldStore struct {
+	store.PropertyFieldStore
+}
+
+func (s *staleOptionsFieldStore) stale(rctx request.CTX, field *model.PropertyField) *model.PropertyField {
+	if store.HasMaster(rctx.Context()) {
+		return field
+	}
+	c := *field
+	c.Attrs = maps.Clone(field.Attrs)
+	options := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+	c.Attrs[model.PropertyFieldAttributeOptions] = options[:len(options)-1]
+	return &c
+}
+
+func (s *staleOptionsFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	field, err := s.PropertyFieldStore.Get(rctx, groupID, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.stale(rctx, field), nil
+}
+
+func (s *staleOptionsFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	fields, err := s.PropertyFieldStore.GetMany(rctx, groupID, ids)
+	if err != nil {
+		return nil, err
+	}
+	for i, field := range fields {
+		fields[i] = s.stale(rctx, field)
+	}
+	return fields, nil
+}
+
+// TestMaskedCallerFieldUpdateJudgedAgainstPrimary covers a masked caller whose
+// update was built from a replica copy missing an option the primary already
+// has. Judged against that copy the update would look like a rename and
+// overwrite the primary's list, deleting the option; judged against the primary
+// it changes the options, and is refused.
+func TestMaskedCallerFieldUpdateJudgedAgainstPrimary(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+		return true
+	})
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
+	caller := model.NewId()
+	field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Update-ReplicaLag", model.PropertyFieldTypeSelect, []any{
+		map[string]any{"id": "opt_a", "name": "A"},
+		map[string]any{"id": "opt_b", "name": "B"},
+		map[string]any{"id": "opt_c", "name": "C"},
+	}, &model.Masking{}))
+	require.NoError(t, err)
+	writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+
+	original := th.service.fieldStore
+	th.service.fieldStore = &staleOptionsFieldStore{PropertyFieldStore: original}
+	t.Cleanup(func() { th.service.fieldStore = original })
+
+	// The replica copy the handler patched: renamed, option C missing.
+	renamedFromReplica := func() *model.PropertyField {
+		updated := *field
+		updated.Name = field.Name + "-renamed"
+		updated.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}}
+		return &updated
+	}
+	requireOptionCSurvives := func(t *testing.T) {
+		t.Helper()
+		stored, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"opt_a", "opt_b", "opt_c"}, optionIDsOf(t, stored))
+	}
+	callerCtx := RequestContextWithCallerID(th.Context, caller)
+
+	t.Run("a single update is refused", func(t *testing.T) {
+		_, _, err := th.service.UpdatePropertyField(callerCtx, th.CPAGroupID, renamedFromReplica())
+		require.ErrorIs(t, err, ErrAccessDenied)
+		requireOptionCSurvives(t)
+	})
+
+	t.Run("a batch update is refused", func(t *testing.T) {
+		_, _, _, err := th.service.UpdatePropertyFields(callerCtx, th.CPAGroupID, []*model.PropertyField{renamedFromReplica()})
+		require.ErrorIs(t, err, ErrAccessDenied)
+		requireOptionCSurvives(t)
 	})
 }
