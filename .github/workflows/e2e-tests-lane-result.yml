@@ -130,6 +130,21 @@ jobs:
           target-url: ${{ inputs.report_url }}
           triage-status-context: ${{ steps.lanes.outputs.aggregate }}
           triage-lanes: ${{ steps.lanes.outputs.lanes }}
+      - name: ci/fail-empty-identity
+        # When prepare-run failed after claiming `pending` (before emitting composite_identity_json),
+        # mark the claimed lane status failed so the PR does not stay stuck pending forever.
+        if: ${{ !cancelled() && inputs.composite_identity_json == '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CONTEXT_NAME: ${{ inputs.context_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state="failure" \
+            -f context="${CONTEXT_NAME}" \
+            -f description="prepare-run failed before starting E2E" \
+            -f target_url="${RUN_URL}"
       # Answers from earlier runs on the same PR (the same commit on master), so a
       # re-run does not pay for the same question twice. The file also keeps this
       # lane's AI spend on the PR, for the per-PR budget (pr-budget-usd, $2 by
@@ -137,7 +152,7 @@ jobs:
       # the cache action saves only when the job succeeds, and a red run is the
       # one most likely to be re-run.
       - name: Restore triage answers
-        if: ${{ !cancelled() && steps.result.outputs.state != 'success' }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' && steps.result.outputs.state != 'success' }}
         continue-on-error: true
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -191,7 +206,7 @@ jobs:
           rerun-attempts: "1"
           lane-start-job: prepare-run
       - name: Save triage answers
-        if: always() && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
+        if: always() && inputs.composite_identity_json != '' && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
         continue-on-error: true
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
