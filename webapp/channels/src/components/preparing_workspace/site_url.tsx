@@ -5,9 +5,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
+import {Illustration} from '@mattermost/compass-ui/components/illustration';
+import GlobeSvg from '@mattermost/compass-ui/illustrations/globe';
+
 import {Client4} from 'mattermost-redux/client';
 
-import LaptopEarthSVG from 'components/common/svg_images_components/laptop_earth_svg';
 import ExternalLink from 'components/external_link';
 import QuickInput from 'components/quick_input';
 
@@ -26,13 +28,20 @@ import './site_url.scss';
 
 const IPV4_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
 
+const HELP_ID = 'siteUrlHelp';
+const HINT_ID = 'siteUrlHint';
+
 // The server doesn't time out when it fetches the URL, so give up on the test after a while.
 const TEST_TIMEOUT = 10000;
 
-// Adds the browser's protocol when the URL has none, and trims one trailing slash like the server does.
+// Adds the browser's protocol when the URL has none, lowercases the scheme, and trims one trailing slash
+// like the server does.
 export function normalizeSiteUrl(input: string, protocol = window.location.protocol): string {
     let url = input.trim();
-    if (!(/^[a-z][a-z\d+.-]*:\/\//i).test(url)) {
+    const scheme = (/^[a-z][a-z\d+.-]*:\/\//i).exec(url);
+    if (scheme) {
+        url = scheme[0].toLowerCase() + url.slice(scheme[0].length);
+    } else {
         url = `${protocol}//${url}`;
     }
     return url.endsWith('/') ? url.slice(0, -1) : url;
@@ -80,6 +89,7 @@ type Props = PreparingWorkspacePageProps & {
 const SiteUrl = (props: Props) => {
     const {formatMessage} = useIntl();
     const nodeRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
     const [status, setStatus] = useState<SiteUrlStatusType>(SiteUrlStatuses.Idle);
 
     // The test can take a while. Ignore its result if the admin edits the URL or leaves the step meanwhile.
@@ -93,6 +103,11 @@ const SiteUrl = (props: Props) => {
 
     const normalizedUrl = normalizeSiteUrl(props.url);
     const hint = getHostHint(normalizedUrl);
+    const describedBy = [
+        status === SiteUrlStatuses.Invalid && SITE_URL_ERROR_ID,
+        HELP_ID,
+        hint && HINT_ID,
+    ].filter(Boolean).join(' ');
 
     const onNext = async (e?: React.KeyboardEvent | React.MouseEvent) => {
         if (e && (e as React.KeyboardEvent).key) {
@@ -149,6 +164,9 @@ const SiteUrl = (props: Props) => {
             classNames={mapAnimationReasonToClass('SiteUrl', props.transitionDirection)}
             mountOnEnter={true}
             unmountOnExit={true}
+
+            // Focusing the input while the page is still off screen makes the browser scroll to it and skip the slide.
+            onEntered={() => inputRef.current?.focus({preventScroll: true})}
         >
             <div
                 ref={nodeRef}
@@ -156,30 +174,39 @@ const SiteUrl = (props: Props) => {
             >
                 <div className='SiteUrl-right-col'>
                     <div className='SiteUrl-form-wrapper'>
-                        <div className='SiteUrl__progress-path'>
-                            <div className='SiteUrl__line-above'>
-                                <PageLine
-                                    style={{height: 'calc(50vh)'}}
-                                    noLeft={true}
-                                />
-                            </div>
-                            <LaptopEarthSVG/>
-                            <PageLine
-                                style={{
-                                    marginTop: '5px',
-                                    height: 'calc(50vh)',
-                                }}
-                                noLeft={true}
-                            />
-                        </div>
                         <div className='SiteUrl__content'>
                             {props.previous}
-                            <Title>
-                                <FormattedMessage
-                                    id='onboarding_wizard.site_url.title'
-                                    defaultMessage='Confirm your server’s URL'
-                                />
-                            </Title>
+
+                            {/* The illustration is anchored to the title, so the Previous link above doesn't shift it. */}
+                            <div className='SiteUrl__title'>
+                                <div className='SiteUrl__progress-path'>
+                                    <div className='SiteUrl__line-above'>
+                                        <PageLine
+                                            style={{height: 'calc(50vh)'}}
+                                            noLeft={true}
+                                        />
+                                    </div>
+                                    <Illustration
+                                        width='180px'
+                                        height='124px'
+                                    >
+                                        <GlobeSvg/>
+                                    </Illustration>
+                                    <PageLine
+                                        style={{
+                                            marginTop: '5px',
+                                            height: 'calc(50vh)',
+                                        }}
+                                        noLeft={true}
+                                    />
+                                </div>
+                                <Title>
+                                    <FormattedMessage
+                                        id='onboarding_wizard.site_url.title'
+                                        defaultMessage='Confirm your server’s URL'
+                                    />
+                                </Title>
+                            </div>
                             <Description>
                                 <FormattedMessage
                                     id='onboarding_wizard.site_url.description'
@@ -210,18 +237,24 @@ const SiteUrl = (props: Props) => {
                                         setStatus(SiteUrlStatuses.Idle);
                                     }}
                                     onKeyUp={onNext}
-                                    autoFocus={true}
+                                    ref={inputRef}
                                     aria-invalid={status === SiteUrlStatuses.Invalid}
-                                    aria-describedby={status === SiteUrlStatuses.Invalid ? SITE_URL_ERROR_ID : undefined}
+                                    aria-describedby={describedBy}
                                 />
-                                <div className='SiteUrl__help'>
+                                <div
+                                    id={HELP_ID}
+                                    className='SiteUrl__help'
+                                >
                                     <FormattedMessage
                                         id='onboarding_wizard.site_url.help'
                                         defaultMessage='Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required'
                                     />
                                 </div>
                                 {hint === 'loopback' && (
-                                    <div className='SiteUrl__hint'>
+                                    <div
+                                        id={HINT_ID}
+                                        className='SiteUrl__hint'
+                                    >
                                         <i className='icon icon-information-outline'/>
                                         <FormattedMessage
                                             id='onboarding_wizard.site_url.hint_loopback'
@@ -230,7 +263,10 @@ const SiteUrl = (props: Props) => {
                                     </div>
                                 )}
                                 {hint === 'ip' && (
-                                    <div className='SiteUrl__hint'>
+                                    <div
+                                        id={HINT_ID}
+                                        className='SiteUrl__hint'
+                                    >
                                         <i className='icon icon-information-outline'/>
                                         <FormattedMessage
                                             id='onboarding_wizard.site_url.hint_ip'

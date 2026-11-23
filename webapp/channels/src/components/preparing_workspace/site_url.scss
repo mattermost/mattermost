@@ -1,6 +1,9 @@
 @use 'utils/mixins' as utils-mixins;
 @use 'mixins';
 
+// How far the form content is indented to make room for the illustration column.
+$content-offset: 200px;
+
 .SiteUrl-body {
     display: flex;
 }
@@ -53,7 +56,9 @@
     &__progress-path {
         position: absolute;
         top: -25px;
-        left: -55px;
+
+        // Centres the 180px illustration on x=50, where the later steps draw their connector line.
+        left: -40px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -66,8 +71,16 @@
         margin-bottom: 5px;
     }
 
+    &__title {
+        position: relative;
+
+        // Spans the illustration column too, so the illustration is positioned as on the Organization step.
+        padding-left: $content-offset;
+        margin-left: -$content-offset;
+    }
+
     &__content {
-        margin-left: 200px;
+        margin-left: $content-offset;
 
         .tertiary-button {
             margin-left: 8px;

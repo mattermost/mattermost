@@ -17,6 +17,7 @@ describe('normalizeSiteUrl', () => {
         ['  chat.example.com:8065/ ', 'http:', 'http://chat.example.com:8065'],
         ['http://chat.example.com', 'https:', 'http://chat.example.com'],
         ['https://chat.example.com/', 'http:', 'https://chat.example.com'],
+        ['HTTPS://Chat.example.com', 'http:', 'https://Chat.example.com'],
     ])('%s with %s', (input, protocol, expected) => {
         expect(normalizeSiteUrl(input, protocol)).toBe(expected);
     });
@@ -71,6 +72,7 @@ describe('getHostHint', () => {
 describe('components/preparing_workspace/site_url', () => {
     const loopbackHint = /This address only works on this computer/;
     const ipHint = /An IP address works, but a domain name is easier to share/;
+    const helpText = 'Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required';
 
     let next: jest.Mock;
     let skip: jest.Mock;
@@ -112,16 +114,40 @@ describe('components/preparing_workspace/site_url', () => {
         renderStep();
 
         expect(screen.getByRole('textbox')).toHaveValue('https://chat.example.com');
-        expect(screen.getByText('Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required')).toBeInTheDocument();
+        expect(screen.getByText(helpText)).toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toHaveAccessibleDescription(helpText);
         expect(screen.queryByText(loopbackHint)).not.toBeInTheDocument();
         expect(screen.queryByText(ipHint)).not.toBeInTheDocument();
     });
 
-    test('shows the loopback hint for localhost', () => {
+    test('shows the loopback hint for localhost and describes the input with it', () => {
         renderStep('http://localhost:8065');
 
         expect(screen.getByText(loopbackHint)).toBeInTheDocument();
         expect(screen.queryByText(ipHint)).not.toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toHaveAccessibleDescription(loopbackHint);
+    });
+
+    test('focuses the input once the page has slid in', async () => {
+        const {rerender} = renderWithContext(
+            <Wrapper
+                initialUrl='https://chat.example.com'
+                show={false}
+            />,
+        );
+        rerender(<Wrapper initialUrl='https://chat.example.com'/>);
+
+        expect(screen.getByRole('textbox')).not.toHaveFocus();
+        await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus());
+    });
+
+    test('accepts a URL with an uppercase scheme', async () => {
+        renderStep();
+
+        await replaceUrl('HTTPS://chat.example.com');
+        await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+        expect(testSiteURL).toHaveBeenCalledWith('https://chat.example.com');
     });
 
     test('shows the IP address hint while the host is an IP address', async () => {
@@ -150,7 +176,7 @@ describe('components/preparing_workspace/site_url', () => {
 
         await userEvent.type(screen.getByRole('textbox'), 'x');
         expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
-        expect(screen.getByRole('textbox')).not.toHaveAccessibleDescription();
+        expect(screen.getByRole('textbox')).toHaveAccessibleDescription(helpText);
     });
 
     test('tests the URL once and advances when the test succeeds', async () => {
