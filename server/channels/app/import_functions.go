@@ -437,8 +437,8 @@ func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) *model.App
 	}
 	if saveErr != nil {
 		rctx.Logger().Warn("Failed to record the pending marker removal, but the markers were removed", mlog.Int("cleared", cleared), mlog.Err(saveErr))
-		return nil
 	}
+	// An earlier attempt's row may exist even though this save failed.
 	if _, err := a.Srv().Store().System().PermanentDeleteByName(key); err != nil {
 		return newErr(err)
 	}

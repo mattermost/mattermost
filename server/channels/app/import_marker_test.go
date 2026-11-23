@@ -270,6 +270,32 @@ func TestScopedImportRunMarker(t *testing.T) {
 		assert.Equal(t, "EditedAfterImport", after.FirstName, "a retry after the import completed must not update the account")
 	})
 
+	t.Run("a failed save during a cleanup-only retry still deletes the earlier pending row", func(t *testing.T) {
+		th := setupIdentityTest(t)
+		runID := model.NewId() + "_export.zip"
+
+		archive, created := interruptedMarkerImport(t, th, runID)
+		username := *archive.user.Username
+
+		unblockMarkers := blockMarkerDeletion(t, th, created.Id)
+		report, appErr := runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.NotNil(t, appErr)
+		require.Equal(t, imports.ImportMarkerCleanupErrorID, appErr.Id)
+		require.True(t, cleanupPending(t, th, report.RunMarker))
+		unblockMarkers()
+
+		unblockRecord := blockCleanupRecord(t, th, runID)
+		_, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr)
+		unblockRecord()
+		assert.Empty(t, importMarkers(t, th))
+		assert.False(t, cleanupPending(t, th, report.RunMarker), "the earlier row must not keep later runs on the cleanup-only path")
+
+		report, appErr = runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, username))
+	})
+
 	t.Run("failing to both save the pending cleanup and remove the markers is reported as unrecorded", func(t *testing.T) {
 		th := setupIdentityTest(t)
 		runID := model.NewId() + "_export.zip"

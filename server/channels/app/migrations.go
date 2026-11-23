@@ -1405,6 +1405,10 @@ func (s *Server) cacheManagedCategoryIDs() error {
 }
 
 func (s *Server) doSetupImportMarkerProperties() error {
+	// Import workers may already be reading the IDs; rewriting them would race.
+	if s.Channels().importMarkerFieldID != "" {
+		return nil
+	}
 	field, err := s.propertyService.EnsureImportMarkerField(request.EmptyContext(s.Log()))
 	if err != nil {
 		return fmt.Errorf("failed to set up bulk import marker field: %w", err)
@@ -1612,7 +1616,8 @@ func (s *Server) doAppMigrations() {
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
-		// NewServer already ran this unless post-initialization was skipped.
+		// Only assigns the IDs when post-initialization was skipped; NewServer
+		// assigns them before job workers start otherwise.
 		{"Import Marker Properties Setup", s.doSetupImportMarkerProperties},
 		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
 		{"Session Attributes Minimum Duration Migration", s.doSessionAttributesMinDurationMigration},
