@@ -1427,6 +1427,36 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField).not.toHaveBeenCalled();
         });
 
+        it('pins creator as who may set the value on the linked post field, and leaves the Users and Channels values as they are', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'post-field-id'} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                permission_values: 'member',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
+                permission_values: 'admin',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(4, 'access_control', 'post', expect.objectContaining({
+                linked_field_id: 'template-id',
+                permission_values: 'creator',
+            }));
+
+            // Only the linked fields pin it; the template keeps the server's default.
+            expect(createPropertyField.mock.calls[0][2]).not.toHaveProperty('permission_values');
+        });
+
         it('picks up the current appliesTo value even though canSave does not depend on it (stale-closure regression)', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
                 mockResolvedValueOnce({id: 'template-id'} as PropertyField).
@@ -2881,6 +2911,31 @@ describe('AttributeDetails', () => {
                 linked_field_id: FIELD_ID,
             }));
             expect(deletePropertyField).not.toHaveBeenCalled();
+        });
+
+        it('pins creator on a post field added to an existing attribute, next to a channel field added in the same save', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'channel-field'} as PropertyField).
+                mockResolvedValueOnce({id: 'post-field'} as PropertyField);
+
+            renderEdit();
+            await waitForForm();
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(2);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({
+                linked_field_id: FIELD_ID,
+                permission_values: 'admin',
+            }));
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'post', expect.objectContaining({
+                linked_field_id: FIELD_ID,
+                permission_values: 'creator',
+            }));
         });
 
         it('does not PATCH Users on retry after a later resource create failed', async () => {
