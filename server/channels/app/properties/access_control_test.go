@@ -629,9 +629,9 @@ func TestLateLinkedSyncValueAccess(t *testing.T) {
 
 	t.Run("a machine caller other than the sync is unaffected", func(t *testing.T) {
 		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
-		rctxBoards := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
-		assert.ErrorIs(t, writeAs(rctxBoards, field), ErrAccessDenied)
-		assert.False(t, readableBy(t, rctxBoards, field))
+		rctxSystem := RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem)
+		assert.ErrorIs(t, writeAs(rctxSystem, field), ErrAccessDenied)
+		assert.False(t, readableBy(t, rctxSystem, field))
 		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
 	})
 
@@ -750,7 +750,7 @@ func TestSyncOptionChangeOnUnlinkedTemplate(t *testing.T) {
 // TestAccessControlHookEnforcesEveryPSAv2Group covers the hook widening from
 // one construction-time group ID to every PSAv2/v3 group: the same read
 // filter, write refusal and grant admission the access_control tests assert
-// hold for a group the hook was never constructed with, such as boards.
+// hold for a group the hook was never constructed with.
 func TestAccessControlHookEnforcesEveryPSAv2Group(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })

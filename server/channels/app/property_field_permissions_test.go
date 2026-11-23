@@ -710,18 +710,18 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 			Permissions: &model.Permissions{
 				Grants: []model.Grant{
 					{
-						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.BoardsPropertyGroupName},
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.SessionAttributesPropertyGroupName},
 						Allow:    []string{model.PropertyActionValueWrite},
 					},
 				},
 			},
 		}
 
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem)
 		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
 		assert.True(t, basis.Allowed)
 		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
-		assert.Equal(t, model.BoardsPropertyGroupName, basis.GrantID)
+		assert.Equal(t, model.SessionAttributesPropertyGroupName, basis.GrantID)
 	})
 
 	t.Run("a system caller with no matching service grant is denied", func(t *testing.T) {
@@ -738,7 +738,7 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 			},
 		}
 
-		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem)
 		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
 		assert.False(t, basis.Allowed)
 		assert.Empty(t, basis.GrantID)

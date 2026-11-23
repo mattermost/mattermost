@@ -132,7 +132,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 
 		t.Run("a comma-separated value is treated as a single, invalid group name", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-				model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
+				model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.ContentFlaggingGroupName})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -181,14 +181,17 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 
 	t.Run("accepts any PSAv2 group", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
-		boards, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+			Name:    "other_psa_v2_" + model.NewId(),
+			Version: model.PropertyGroupVersionV2,
+		})
 		require.Nil(t, appErr)
 
-		field := th.createField(t, boards.ID, "board-attr")
-		th.setValue(t, boards.ID, th.BasicPost.Id, field.ID, `"in-progress"`)
+		field := th.createField(t, otherGroup.ID, "other-attr")
+		th.setValue(t, otherGroup.ID, th.BasicPost.Id, field.ID, `"in-progress"`)
 
 		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-			model.GetPostOptions{PropertyGroup: model.BoardsPropertyGroupName})
+			model.GetPostOptions{PropertyGroup: otherGroup.Name})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, post.Metadata.PropertyValues, 1)
@@ -256,7 +259,7 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 
 		t.Run("a comma-separated value is treated as a single, invalid group name", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
+				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.ContentFlaggingGroupName})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})

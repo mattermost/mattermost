@@ -34,8 +34,7 @@ const (
 )
 
 func (api *API) InitProperties() {
-	if api.srv.Config().FeatureFlags.IntegratedBoards ||
-		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
+	if api.srv.Config().FeatureFlags.ManagedChannelCategories ||
 		api.srv.Config().FeatureFlags.ClassificationMarkings ||
 		api.srv.Config().FeatureFlags.SessionAttributes ||
 		api.srv.Config().FeatureFlags.PostAttributes ||

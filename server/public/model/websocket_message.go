@@ -109,8 +109,6 @@ const (
 	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
 	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"
 
-	WebsocketEventBoardCreated WebsocketEventType = "board_created"
-
 	WebsocketEventPropertyFieldCreated       WebsocketEventType = "property_field_created"
 	WebsocketEventPropertyFieldUpdated       WebsocketEventType = "property_field_updated"
 	WebsocketEventPropertyFieldDeleted       WebsocketEventType = "property_field_deleted"

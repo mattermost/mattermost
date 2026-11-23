@@ -33,7 +33,7 @@ const AccessControlScopeContextKey AccessControlContextKey = "access_control_sco
 // The CallerID*System values mark a request as the startup migration that
 // installs and upgrades one group's builtin field definitions. There is one per
 // subsystem rather than a single shared "migration" identity, so that the
-// boards migration cannot rewrite session_attributes' schema. Each is a
+// managed_category migration cannot rewrite session_attributes' schema. Each is a
 // machine caller (isMachineCaller in the access-control hook), matched to a
 // {service, <group>} grant on the fields it owns via SystemCallerOwnedGroup --
 // a subsystem's authority over its own builtin fields is enumerable and
@@ -45,7 +45,6 @@ const (
 	CallerIDOpenIDSync = "system:openid_sync"
 	CallerIDLocalAdmin = "system:local_admin"
 
-	CallerIDBoardsSystem            = "system:boards"
 	CallerIDSessionAttributesSystem = "system:session_attributes"
 	CallerIDManagedCategorySystem   = "system:managed_category"
 )
@@ -53,7 +52,6 @@ const (
 // systemCallerOwnedGroups maps each subsystem identity to the one property
 // group whose builtin definitions it owns.
 var systemCallerOwnedGroups = map[string]string{
-	CallerIDBoardsSystem:            BoardsPropertyGroupName,
 	CallerIDSessionAttributesSystem: SessionAttributesPropertyGroupName,
 	CallerIDManagedCategorySystem:   ManagedCategoryPropertyGroupName,
 }
@@ -78,15 +76,11 @@ func SystemCallerOwnedGroup(callerID string) (string, bool) {
 // listed in a masking except: a system caller is a machine caller like any
 // other and holds no values, so a masked field it needs to read would show it
 // nothing unless later added there explicitly -- the same trap as tagging a
-// local-mode admin as a machine caller with no holdings. If boards, session_attributes or
-// managed_category ever masks a field, its migration needs an except entry
+// local-mode admin as a machine caller with no holdings. If session_attributes
+// or managed_category ever masks a field, its migration needs an except entry
 // naming its own service identity before that ships, or its own read of that
-// field goes blind the way the v1 -> v2 boards upgrade almost did.
+// field goes blind.
 var systemOwnedFieldNames = map[string]map[string]bool{
-	BoardsPropertyGroupName: {
-		BoardsPropertyFieldAssignee: true,
-		BoardsPropertyFieldStatus:   true,
-	},
 	ManagedCategoryPropertyGroupName: {
 		ManagedCategoryPropertyFieldName: true,
 	},
@@ -110,11 +104,9 @@ func sessionAttributesSystemFieldNames() map[string]bool {
 // group is enforced, or nil if fieldName is not one its migration seeds (see
 // systemOwnedFieldNames). Carries option.read alongside field.write and
 // option.write: a machine caller's own grant is the only thing that admits it
-// to a field's options at all, restrictions or no -- the boards migration
-// reads its Status field's existing options to layer colours onto them on
-// every version bump, and without option.read here that read comes back
-// hidden, which is the exact defect that once destroyed every install's
-// seeded options.
+// to a field's options at all, restrictions or no -- a migration that reads a
+// field's existing options on every version bump would otherwise see them
+// hidden.
 func SystemOwnedFieldGrant(groupName, fieldName string) *Grant {
 	if !systemOwnedFieldNames[groupName][fieldName] {
 		return nil

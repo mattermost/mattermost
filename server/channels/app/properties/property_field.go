@@ -296,7 +296,7 @@ func (ps *PropertyService) defaultPropertyFieldPermissions(field *model.Property
 	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(template)}
 	field.Permissions = model.PermissionsFromLegacy(field, opts)
 
-	// A fresh install creates boards/session_attributes/managed_category's
+	// A fresh install creates session_attributes/managed_category's
 	// builtin fields through this same path, and PermissionsFromLegacy gives
 	// them only the wildcard plugin grant (their group's Attrs were never
 	// enforced, so ConvertAttrs is false and grantsFromLegacy never runs),
@@ -1235,7 +1235,7 @@ func reconvertFromLegacy(field, existing *model.PropertyField, opts model.Legacy
 
 	// PermissionsFromLegacy does not mint the subsystem grant that create
 	// and ConvertSystemOwnedFields add. Reconversion would otherwise drop it
-	// the first time a legacy-shaped update of a boards/session_attributes/
+	// the first time a legacy-shaped update of a session_attributes/
 	// managed_category builtin looks like a column change.
 	if grant := model.SystemOwnedFieldGrant(groupName, field.Name); grant != nil &&
 		reconverted.MatchingGrant(grant.Type, grant.ID, "", model.PropertyActionFieldWrite) == nil {

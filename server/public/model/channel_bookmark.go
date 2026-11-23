@@ -5,7 +5,6 @@ package model
 
 import (
 	"net/http"
-	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -15,39 +14,11 @@ type ChannelBookmarkType string
 const (
 	ChannelBookmarkLink    ChannelBookmarkType = "link"
 	ChannelBookmarkFile    ChannelBookmarkType = "file"
-	ChannelBookmarkBoard   ChannelBookmarkType = "board"
 	BookmarkFileOwner                          = "bookmark"
 	MaxBookmarksPerChannel                     = 50
 	DisplayNameMaxRunes                        = 64
 	LinkMaxRunes                               = 1024
 )
-
-var validChannelBookmarkTypes = []ChannelBookmarkType{
-	ChannelBookmarkLink,
-	ChannelBookmarkFile,
-	ChannelBookmarkBoard,
-}
-
-// channelBookmarkTypesWithoutTargetID are bookmark kinds that must leave TargetId empty.
-var channelBookmarkTypesWithoutTargetID = []ChannelBookmarkType{
-	ChannelBookmarkLink,
-	ChannelBookmarkFile,
-}
-
-func isValidChannelBookmarkType(t ChannelBookmarkType) bool {
-	return slices.Contains(validChannelBookmarkTypes, t)
-}
-
-// channelBookmarkTypesExternallyManaged lists bookmark kinds whose create/update/delete
-// are not performed through the channel bookmarks API (other subsystems own them).
-var channelBookmarkTypesExternallyManaged = []ChannelBookmarkType{
-	ChannelBookmarkBoard,
-}
-
-// IsExternallyManagedChannelBookmarkType reports whether the bookmark type is owned outside the channel bookmarks API.
-func IsExternallyManagedChannelBookmarkType(t ChannelBookmarkType) bool {
-	return slices.Contains(channelBookmarkTypesExternallyManaged, t)
-}
 
 type ChannelBookmark struct {
 	Id          string              `json:"id"`
@@ -129,27 +100,12 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !isValidChannelBookmarkType(o.Type) {
+	if !(o.Type == ChannelBookmarkFile || o.Type == ChannelBookmarkLink) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if slices.Contains(channelBookmarkTypesWithoutTargetID, o.Type) && o.TargetId != "" {
+	if o.TargetId != "" {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.target_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-	}
-
-	if o.Type == ChannelBookmarkBoard {
-		if o.TargetId == "" || !IsValidId(o.TargetId) {
-			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.target_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-		}
-		if o.LinkUrl == "" || !strings.HasPrefix(o.LinkUrl, "/") || strings.HasPrefix(o.LinkUrl, "//") || strings.Contains(o.LinkUrl, "://") || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes {
-			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.link_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-		}
-		if o.FileId != "" {
-			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.file_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-		}
-		if o.ImageUrl != "" {
-			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.image_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-		}
 	}
 
 	if o.Type == ChannelBookmarkLink && o.FileId != "" {

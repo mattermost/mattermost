@@ -686,7 +686,7 @@ func logUnconvertedField(rctx request.CTX, field *model.PropertyField, err error
 // propertyPermissionsBackfillPageSize bounds how many fields one page of
 // MigrateBackfillPropertyPermissions, or ConvertSystemOwnedFields, reads and
 // writes. Unlike the CPA display name backfill, this one runs over every group,
-// some of which (boards, content_flagging) can hold far more fields than a
+// some of which (content_flagging) can hold far more fields than a
 // single page should carry. A var, not a const, so a test can shrink it to
 // make paging happen over a handful of fields instead of hundreds.
 var propertyPermissionsBackfillPageSize = 200

@@ -395,11 +395,6 @@
     "description": "API error when adding a user to a channel type that does not accept members this way (e.g. a direct message channel)."
   },
   {
-    "id": "api.channel.bookmark.board.readonly.app_error",
-    "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, or deleted through the bookmarks API.",
-    "description": "API error when a client tries to modify a channel bookmark that is auto-managed by the boards feature; 'bookmarks API' refers to the REST endpoints."
-  },
-  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks.",
     "description": "API error when using channel bookmarks (saved links pinned to a channel) without a license that includes them."
@@ -17040,26 +17035,6 @@
     "description": "API validation error when saving a channel whose last-update timestamp field (UpdateAt) is unset."
   },
   {
-    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
-    "translation": "Board bookmarks cannot reference a file.",
-    "description": "API validation error when saving a channel bookmark that points to a board but also has a file attachment, which is not allowed."
-  },
-  {
-    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
-    "translation": "Board bookmarks cannot set an image URL.",
-    "description": "API validation error when saving a channel bookmark that points to a board but also specifies a custom image URL, which is not allowed."
-  },
-  {
-    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
-    "translation": "Board bookmark link URL must be a site-relative path starting with /, must not contain ://, and must not exceed the maximum length.",
-    "description": "API validation error when saving a board-type channel bookmark whose link is not a relative path within the site; '/' and '://' are literal URL fragments."
-  },
-  {
-    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
-    "translation": "Board bookmarks require a valid target id.",
-    "description": "API validation error when saving a board-type channel bookmark whose target board ID is missing or malformed."
-  },
-  {
     "id": "model.channel_bookmark.is_valid.channel_id.app_error",
     "translation": "Invalid channel id.",
     "description": "API validation error when saving a channel bookmark whose channel ID is malformed."
@@ -17116,13 +17091,13 @@
   },
   {
     "id": "model.channel_bookmark.is_valid.target_id.app_error",
-    "translation": "Target id is only allowed for bookmark types that reference another entity.",
-    "description": "API validation error when saving a channel bookmark that has a target ID but is not a bookmark type that references another entity (like a board)."
+    "translation": "Target id is not allowed for link or file bookmarks.",
+    "description": "API validation error when saving a channel bookmark that has a target ID, which link and file bookmarks must not have."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",
     "translation": "Invalid type.",
-    "description": "API validation error when saving a channel bookmark whose type (link, file, board) is not a recognized value."
+    "description": "API validation error when saving a channel bookmark whose type (link or file) is not a recognized value."
   },
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
