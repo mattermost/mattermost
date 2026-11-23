@@ -39,7 +39,7 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string,
 // channel field linking to it. None are while that refusal is off or for a
 // field its source manages. Only the verdict is reported, never how many
 // channels hold an option.
-func (a *App) PropertyFieldOptionsInUse(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]string, *model.AppError) {
+func (a *App) PropertyFieldOptionsInUse(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]string, error) {
 	if !a.refusesOptionsInUse() {
 		return []string{}, nil
 	}
@@ -92,14 +92,14 @@ func isPropertyFieldSourceManaged(field *model.PropertyField) bool {
 // refuseDeletingOptionsInUse refuses with a 409 when any of optionIDs is held by
 // a channel value, as PropertyFieldOptionsInUse judges it. The details carry
 // option IDs only.
-func (a *App) refuseDeletingOptionsInUse(rctx request.CTX, callerName, groupID, fieldID string, optionIDs []string) *model.AppError {
+func (a *App) refuseDeletingOptionsInUse(rctx request.CTX, callerName, groupID, fieldID string, optionIDs []string) error {
 	if len(optionIDs) == 0 {
 		return nil
 	}
 
-	inUse, appErr := a.PropertyFieldOptionsInUse(rctx, groupID, fieldID, optionIDs)
-	if appErr != nil {
-		return appErr
+	inUse, err := a.PropertyFieldOptionsInUse(rctx, groupID, fieldID, optionIDs)
+	if err != nil {
+		return err
 	}
 	if len(inUse) == 0 {
 		return nil
@@ -136,7 +136,7 @@ func inlineOptionIDs(attrs model.StringInterface) ([]string, bool) {
 // refuseUpdateDroppingOptionsInUse refuses an update whose options leave out
 // saved options that channels use. An update that does not supply an option list
 // drops nothing.
-func (a *App) refuseUpdateDroppingOptionsInUse(rctx request.CTX, callerName, groupID string, existing, next *model.PropertyField) *model.AppError {
+func (a *App) refuseUpdateDroppingOptionsInUse(rctx request.CTX, callerName, groupID string, existing, next *model.PropertyField) error {
 	if model.PropertyFieldOptionsOmitted(next.Attrs) || model.PropertyFieldOptionsOmitted(existing.Attrs) {
 		return nil
 	}
@@ -187,8 +187,8 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
 func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	if appErr := a.refuseDeletingOptionsInUse(rctx, "DeletePropertyFieldOptions", groupID, fieldID, optionIDs); appErr != nil {
-		return nil, appErr
+	if err := a.refuseDeletingOptionsInUse(rctx, "DeletePropertyFieldOptions", groupID, fieldID, optionIDs); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, groupID, fieldID, optionIDs)

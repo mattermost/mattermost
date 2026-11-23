@@ -72,8 +72,8 @@ func TestPropertyFieldOptionsInUse(t *testing.T) {
 		linked := newField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeChannel, system, template)
 		hold(t, linked, "channel", `["`+optionA+`"]`)
 
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, template.ID, all)
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, template.ID, all)
+		require.NoError(t, err)
 		require.Equal(t, []string{optionA}, inUse)
 	})
 
@@ -81,8 +81,8 @@ func TestPropertyFieldOptionsInUse(t *testing.T) {
 		field := newField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, system, nil)
 		hold(t, field, "channel", `"`+optionB+`"`)
 
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, all)
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, all)
+		require.NoError(t, err)
 		require.Equal(t, []string{optionB}, inUse)
 	})
 
@@ -90,8 +90,8 @@ func TestPropertyFieldOptionsInUse(t *testing.T) {
 		field := newField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeChannel, system, nil)
 		hold(t, field, "channel", `["`+optionA+`", "`+optionB+`"]`)
 
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, []string{optionB, optionC})
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, []string{optionB, optionC})
+		require.NoError(t, err)
 		require.Equal(t, []string{optionB}, inUse)
 	})
 
@@ -100,8 +100,8 @@ func TestPropertyFieldOptionsInUse(t *testing.T) {
 		value := hold(t, field, "channel", `"`+optionC+`"`)
 		require.NoError(t, th.Store.PropertyValue().Delete(group.ID, value.ID))
 
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, all)
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, all)
+		require.NoError(t, err)
 		require.NotNil(t, inUse)
 		require.Empty(t, inUse)
 	})
@@ -111,20 +111,20 @@ func TestPropertyFieldOptionsInUse(t *testing.T) {
 		user := newField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeUser, system, template)
 		hold(t, user, "user", `"`+optionA+`"`)
 
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, template.ID, all)
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, template.ID, all)
+		require.NoError(t, err)
 		require.NotNil(t, inUse)
 		require.Empty(t, inUse)
 
-		inUse, appErr = th.App.PropertyFieldOptionsInUse(rctx, group.ID, user.ID, all)
-		require.Nil(t, appErr)
+		inUse, err = th.App.PropertyFieldOptionsInUse(rctx, group.ID, user.ID, all)
+		require.NoError(t, err)
 		require.NotNil(t, inUse)
 		require.Empty(t, inUse)
 	})
 
 	t.Run("an unknown field is not found", func(t *testing.T) {
-		_, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, model.NewId(), all)
-		require.NotNil(t, appErr)
+		_, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, model.NewId(), all)
+		require.Error(t, err)
 	})
 }
 
@@ -315,8 +315,8 @@ func TestDeletePropertyFieldOptionsInUse(t *testing.T) {
 		hold(t, field, `"`+ids[0]+`"`)
 
 		// The console asks first, so it is told the same.
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, ids)
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, ids)
+		require.NoError(t, err)
 		require.Empty(t, inUse)
 
 		_, appErr = th.App.DeletePropertyFieldOptions(rctx, group.ID, field.ID, []string{ids[0]}, "")
@@ -342,8 +342,8 @@ func TestDeletePropertyFieldOptionsInUse(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = true })
 
-		inUse, appErr := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, ids)
-		require.Nil(t, appErr)
+		inUse, err := th.App.PropertyFieldOptionsInUse(rctx, group.ID, field.ID, ids)
+		require.NoError(t, err)
 		require.Empty(t, inUse)
 
 		_, appErr = th.App.DeletePropertyFieldOptions(rctx, group.ID, field.ID, []string{ids[0]}, "")

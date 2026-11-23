@@ -226,9 +226,9 @@ func getPropertyFieldOptionsInUse(c *Context, w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	inUse, appErr := c.App.PropertyFieldOptionsInUse(rctx, field.GroupID, field.ID, optionIDs)
-	if appErr != nil {
-		c.Err = appErr
+	inUse, err := c.App.PropertyFieldOptionsInUse(rctx, field.GroupID, field.ID, optionIDs)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
