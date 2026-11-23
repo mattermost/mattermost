@@ -121,6 +121,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"RATELIMIT_STORE_SMALL",
 		"SITE_URL_EMPTY",
 		"SITE_URL_HTTP",
+		"TLS_VERIFY_OUTGOING_OFF",
 
 		// search
 		"ES_LOCALHOST_URL",
