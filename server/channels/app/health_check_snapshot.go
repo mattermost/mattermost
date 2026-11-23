@@ -5,12 +5,12 @@ package app
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // healthCollectTimeout bounds how long a run waits for the other nodes' diagnostics. It must
@@ -57,7 +57,7 @@ func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, erro
 		if appErr != nil {
 			sections[model.SectionVersion] = appErr
 		} else {
-			snapshot.Version.Latest = releases.Version(release.TagName)
+			snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
 		}
 	}
 

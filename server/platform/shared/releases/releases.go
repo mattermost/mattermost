@@ -49,17 +49,12 @@ func FetchLatest(ctx context.Context, latestURL string) (*model.GithubReleaseInf
 	return &release, nil
 }
 
-// Version returns the version a release tag names, without its v prefix.
-func Version(tag string) string {
-	return strings.TrimPrefix(tag, "v")
-}
-
-// LatestVersion returns the version of the release at latestURL.
+// LatestVersion returns the version of the release at latestURL, without the tag's v prefix.
 func LatestVersion(ctx context.Context, latestURL string) (string, error) {
 	release, err := FetchLatest(ctx, latestURL)
 	if err != nil {
 		return "", err
 	}
 
-	return Version(release.TagName), nil
+	return strings.TrimPrefix(release.TagName, "v"), nil
 }
