@@ -37,9 +37,9 @@ func rawSwapUsage(total, avail, used uint64) []byte {
 	return raw
 }
 
-func sysctlOutput(t *testing.T, name string) string {
+func sysctlOutput(t *testing.T, names ...string) string {
 	t.Helper()
-	out, err := exec.Command("sysctl", "-n", name).Output()
+	out, err := exec.Command("sysctl", append([]string{"-n"}, names...)...).Output()
 	require.NoError(t, err)
 	return strings.TrimSpace(string(out))
 }
@@ -70,6 +70,21 @@ func sysctlSwapUsageMB(t *testing.T) (total, used float64) {
 	used, err = strconv.ParseFloat(matches[2], 64)
 	require.NoError(t, err)
 	return total, used
+}
+
+func sysctlAvailableMemoryMB(t *testing.T) float64 {
+	t.Helper()
+	values := strings.Fields(sysctlOutput(t, append([]string{"vm.pagesize"}, availablePageSysctls...)...))
+	require.Len(t, values, 1+len(availablePageSysctls))
+	pageSize, err := strconv.ParseUint(values[0], 10, 64)
+	require.NoError(t, err)
+	var pages uint64
+	for _, value := range values[1:] {
+		count, err := strconv.ParseUint(value, 10, 64)
+		require.NoError(t, err)
+		pages += count
+	}
+	return float64(pages*pageSize) / (1024 * 1024)
 }
 
 // assertBetweenReads checks got against values read before and after it, since live values can change in between.
@@ -169,5 +184,8 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 
 	totalMemory, err := getTotalMemory()
 	require.NoError(t, err)
-	assert.LessOrEqual(t, *diagnostics.AvailableMemoryMB, totalMemory/(1024*1024))
+	totalMemoryMB := totalMemory / (1024 * 1024)
+	assert.LessOrEqual(t, *diagnostics.AvailableMemoryMB, totalMemoryMB)
+	// The free page count changes constantly, so allow 5% of total memory between the reads.
+	assert.InDelta(t, sysctlAvailableMemoryMB(t), float64(*diagnostics.AvailableMemoryMB), float64(totalMemoryMB)/20, "available memory")
 }

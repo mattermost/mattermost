@@ -46,7 +46,7 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.os":                              {yaml.HeadComment(" Machine")},
 	"$.server.cpu_cores":                       {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
 	"$.server.total_memory_mb":                 {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
-	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo on Linux; approximated as kern.memorystatus_level × hw.memsize on macOS")},
+	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo on Linux; free plus cached file and purgeable pages on macOS")},
 	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux and macOS")},
 	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux and macOS")},
 	"$.server.container_cpu_limit":             {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},

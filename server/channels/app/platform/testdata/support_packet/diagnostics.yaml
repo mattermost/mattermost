@@ -18,7 +18,7 @@ server:
   # Capacity (hardware → effective quota)
   cpu_cores: 8 # logical CPUs visible to the OS
   total_memory_mb: 32768 # host/VM total RAM; may exceed container limit
-  available_memory_mb: 24576 # host/VM MemAvailable from /proc/meminfo on Linux; approximated as kern.memorystatus_level × hw.memsize on macOS
+  available_memory_mb: 24576 # host/VM MemAvailable from /proc/meminfo on Linux; free plus cached file and purgeable pages on macOS
   swap_total_mb: 4096 # host/VM total swap; Linux and macOS
   swap_used_mb: 1024 # host/VM used swap; Linux and macOS
   container_cpu_limit: 6.5 # cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set

@@ -77,6 +77,8 @@ func decodeLoadAvg(raw []byte) ([3]float64, error) {
 	return loads, nil
 }
 
+var availablePageSysctls = []string{"vm.page_free_count", "vm.page_pageable_external_count", "vm.page_purgeable_count"}
+
 func getMemoryDiagnostics(cgroupV2Info) (memoryDiagnostics, error) {
 	var diagnostics memoryDiagnostics
 
@@ -91,19 +93,22 @@ func getMemoryDiagnostics(cgroupV2Info) (memoryDiagnostics, error) {
 	diagnostics.SwapTotalMB = new(swap.Total / (1024 * 1024))
 	diagnostics.SwapUsedMB = new(swap.Used / (1024 * 1024))
 
-	// kern.memorystatus_level is the percentage of memory the kernel considers available.
-	level, err := unix.SysctlUint32("kern.memorystatus_level")
+	// Page counts are in kernel pages, which can differ from this process's page size under Rosetta.
+	pageSize, err := unix.SysctlUint32("vm.pagesize")
 	if err != nil {
-		return diagnostics, fmt.Errorf("failed to get kern.memorystatus_level: %w", err)
+		return diagnostics, fmt.Errorf("failed to get vm.pagesize: %w", err)
 	}
-	if level > 100 {
-		return diagnostics, fmt.Errorf("kern.memorystatus_level %d exceeds 100", level)
+	// Free pages plus what Activity Monitor calls cached files: file-backed and purgeable pages,
+	// which the kernel can reclaim without swapping.
+	var availablePages uint64
+	for _, name := range availablePageSysctls {
+		pages, err := unix.SysctlUint32(name)
+		if err != nil {
+			return diagnostics, fmt.Errorf("failed to get %s: %w", name, err)
+		}
+		availablePages += uint64(pages)
 	}
-	totalMemory, err := getTotalMemory()
-	if err != nil {
-		return diagnostics, err
-	}
-	diagnostics.AvailableMemoryMB = new(totalMemory / (1024 * 1024) * uint64(level) / 100)
+	diagnostics.AvailableMemoryMB = new(availablePages * uint64(pageSize) / (1024 * 1024))
 
 	return diagnostics, nil
 }
