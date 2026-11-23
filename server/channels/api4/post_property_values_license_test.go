@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -85,18 +84,6 @@ func setupPostReadLicenseTest(t *testing.T) *postPropertyTestHelper {
 	return &postPropertyTestHelper{TestHelper: th}
 }
 
-func withAccessControlGroup(path string) string {
-	return withGroupName(path, model.AccessControlPropertyGroupName)
-}
-
-func withGroupName(path, group string) string {
-	sep := "?"
-	if strings.Contains(path, "?") {
-		sep = "&"
-	}
-	return path + sep + "propertyGroup=" + group
-}
-
 // getStatus issues a raw GET and returns the status code and, for a refused request, the id of
 // the AppError in the body. The client returns that error for any status of 300 or more, so
 // th.get cannot be used where a refusal is the expected outcome.
@@ -127,7 +114,7 @@ func TestPostReadPropertyGroupLicenseGate(t *testing.T) {
 			t.Run("unlicensed with access_control is refused with 501", func(t *testing.T) {
 				th.App.Srv().SetLicense(nil)
 
-				status, id := getStatus(t, th, withAccessControlGroup(path))
+				status, id := getStatus(t, th, withGroup(path))
 				require.Equal(t, http.StatusNotImplemented, status)
 				assert.Equal(t, postAttributesLicenseErrorID, id)
 			})
@@ -135,7 +122,7 @@ func TestPostReadPropertyGroupLicenseGate(t *testing.T) {
 			t.Run("licensed with access_control is served", func(t *testing.T) {
 				th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-				status, _ := getStatus(t, th, withAccessControlGroup(path))
+				status, _ := getStatus(t, th, withGroup(path))
 				assert.Equal(t, http.StatusOK, status)
 			})
 
@@ -181,7 +168,7 @@ func TestPostReadPropertyGroupLicenseTier(t *testing.T) {
 			th.App.Srv().SetLicense(tier.license)
 
 			path := fmt.Sprintf("/channels/%s/posts?page=0&per_page=60", th.BasicChannel.Id)
-			status, _ := getStatus(t, th, withAccessControlGroup(path))
+			status, _ := getStatus(t, th, withGroup(path))
 			assert.Equal(t, tier.expected, status)
 		})
 	}

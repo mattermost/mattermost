@@ -21,7 +21,6 @@ import {
     openModalFromPostMenu,
     optionId,
     purgeFields,
-    purgeTemplateFields,
     setHolding,
 } from './support';
 
@@ -63,7 +62,6 @@ test('sets a value on a template-linked post field from the edit modal', {tag: '
     const suffix = pw.random.id();
 
     await purgeFields(adminClient);
-    await purgeTemplateFields(adminClient);
 
     const template = await createTemplate(adminClient, fieldName('tpl', suffix), ['SECRET', 'UNCLASSIFIED']);
     made.templates.push(template);
@@ -130,7 +128,6 @@ test('shows a masked value only to the user who holds it', {tag: '@post_attribut
     const suffix = pw.random.id();
 
     await purgeFields(adminClient);
-    await purgeTemplateFields(adminClient);
 
     const template = await createTemplate(adminClient, fieldName('mask', suffix), ['Alpha', 'Bravo']);
     made.templates.push(template);

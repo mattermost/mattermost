@@ -155,8 +155,6 @@ func TestMigration000244(t *testing.T) {
 		require.Len(t, legacy.Grants, 2)
 		require.Len(t, legacy.Values, 4)
 
-		var totalGroups int
-		require.NoError(t, store.GetMaster().Get(&totalGroups, `SELECT COUNT(*) FROM PropertyGroups`))
 		var others []groupRows
 		var otherNames []string
 		require.NoError(t, store.GetMaster().Select(&otherNames, `SELECT Name FROM PropertyGroups WHERE Name <> $1 ORDER BY Name`, postAttributesGroupName))

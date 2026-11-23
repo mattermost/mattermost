@@ -13,6 +13,11 @@ import type {ChannelsPage, ChannelsPost, PlaywrightExtended} from '@mattermost/p
 export const GROUP = 'access_control';
 export const OBJECT_TYPE = 'post';
 
+// Templates and the user fields linked to them live in the same group as post fields, and
+// count toward its 200-field limit, so a spec that makes them must delete them.
+export const TEMPLATE_OBJECT_TYPE = 'template';
+export const USER_OBJECT_TYPE = 'user';
+
 // Prefix on every field these specs create, so cleanup never touches a real one.
 export const FIELD_PREFIX = 'postattr_e2e';
 
@@ -360,9 +365,7 @@ export async function enableGuestAccounts(adminClient: Client4): Promise<(() => 
 }
 
 /**
- * Deletes post fields made by `createField`, then their templates: the server refuses to
- * delete a template that has a linked field, and one a masking rule points at needs the
- * rule off first.
+ * Deletes post fields made by `createField`, then their templates.
  */
 export async function deleteFields(adminClient: Client4, fields: PropertyField[]): Promise<void> {
     const templates: PropertyField[] = [];
@@ -373,33 +376,40 @@ export async function deleteFields(adminClient: Client4, fields: PropertyField[]
         }
     }
 
-    await deleteFieldsOf(adminClient, OBJECT_TYPE, fields);
-    for (const template of templates) {
-        await unmaskTemplate(adminClient, template);
-    }
-    await deleteFieldsOf(adminClient, TEMPLATE_OBJECT_TYPE, templates);
+    await deleteTemplateSet(adminClient, {posts: fields, templates});
     for (const field of fields) {
         templatesByPostField.delete(field.id);
     }
 }
 
 /**
- * Best-effort cleanup of fields an interrupted run left behind.
+ * Best-effort cleanup of fields an interrupted run left behind: post fields, holder fields
+ * and templates, in the order `deleteTemplateSet` uses.
  *
  * Post fields are system-scoped, so one left behind applies to every channel and would
  * leak chips into an unrelated spec, and it counts toward the 50-field cap and the
  * group's 200-field limit. Only fields with the suite's prefix are touched.
  */
 export async function purgeFields(adminClient: Client4): Promise<void> {
+    // Masking first: a holder field cannot be deleted while a template masks by it.
     try {
-        const fields = await adminClient.getPropertyFields(GROUP, OBJECT_TYPE, {targetType: 'system'});
-        const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
-
-        await deleteFieldsOf(adminClient, OBJECT_TYPE, stale);
+        const templates = await adminClient.getPropertyFields(GROUP, TEMPLATE_OBJECT_TYPE, {targetType: 'system'});
+        for (const template of (templates ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX))) {
+            await unmaskTemplate(adminClient, template);
+        }
     } catch {} // eslint-disable-line no-empty
 
-    // Their templates, and any holder fields, now that nothing is linked to them
-    await purgeTemplateFields(adminClient);
+    // Templates last: one cannot be deleted while a linked field is on it.
+    for (const objectType of [OBJECT_TYPE, USER_OBJECT_TYPE, TEMPLATE_OBJECT_TYPE]) {
+        try {
+            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: 'system'});
+            const stale = (fields ?? []).filter(
+                (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
+            );
+
+            await deleteFieldsOf(adminClient, objectType, stale);
+        } catch {} // eslint-disable-line no-empty
+    }
 }
 
 /**
@@ -563,11 +573,6 @@ export async function openModalFromPostMenu(
     await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
 }
 
-// Templates and the user fields linked to them live in the same group as post fields, and
-// count toward its 200-field limit, so a spec that makes them must delete them.
-export const TEMPLATE_OBJECT_TYPE = 'template';
-export const USER_OBJECT_TYPE = 'user';
-
 /**
  * Creates the user field a masking template reads each viewer's holdings from, linked to
  * the template. Only a sysadmin may write it: a field that filters people cannot be
@@ -656,32 +661,6 @@ export async function deleteTemplateSet(
     await deleteFieldsOf(adminClient, OBJECT_TYPE, posts);
     await deleteFieldsOf(adminClient, USER_OBJECT_TYPE, holders);
     await deleteFieldsOf(adminClient, TEMPLATE_OBJECT_TYPE, templates);
-}
-
-/**
- * Best-effort sweep of the templates and holder fields an interrupted run left behind.
- * Call it after `purgeFields`, so the linked post fields are already gone.
- */
-export async function purgeTemplateFields(adminClient: Client4): Promise<void> {
-    // Masking first: a holder field cannot be deleted while a template masks by it, and the
-    // holders are listed before the templates below.
-    try {
-        const templates = await adminClient.getPropertyFields(GROUP, TEMPLATE_OBJECT_TYPE, {targetType: 'system'});
-        for (const template of (templates ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX))) {
-            await unmaskTemplate(adminClient, template);
-        }
-    } catch {} // eslint-disable-line no-empty
-
-    for (const objectType of [USER_OBJECT_TYPE, TEMPLATE_OBJECT_TYPE]) {
-        try {
-            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: 'system'});
-            const stale = (fields ?? []).filter(
-                (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
-            );
-
-            await deleteFieldsOf(adminClient, objectType, stale);
-        } catch {} // eslint-disable-line no-empty
-    }
 }
 
 /**

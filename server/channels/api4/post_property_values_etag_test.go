@@ -32,11 +32,16 @@ func (th *postPropertyTestHelper) get(t *testing.T, path, etag string) *http.Res
 
 // withGroup appends the propertyGroup parameter that asks for hydration.
 func withGroup(path string) string {
+	return withGroupName(path, model.AccessControlPropertyGroupName)
+}
+
+// withGroupName appends a propertyGroup parameter naming any group.
+func withGroupName(path, group string) string {
 	sep := "?"
 	if strings.Contains(path, "?") {
 		sep = "&"
 	}
-	return path + sep + "propertyGroup=" + model.AccessControlPropertyGroupName
+	return path + sep + "propertyGroup=" + group
 }
 
 // TestPostPropertyValuesEtagSuppression covers every read handler that hydrates property

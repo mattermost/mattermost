@@ -18,7 +18,6 @@ import {
     optionId,
     pickerItem,
     purgeFields,
-    purgeTemplateFields,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -34,7 +33,6 @@ const LOCKED_REASON = "You don't have permission to modify this attribute.";
 test.afterEach(async ({pw}) => {
     const {adminClient} = await pw.getAdminClient();
     await purgeFields(adminClient);
-    await purgeTemplateFields(adminClient);
 });
 
 /**
@@ -60,7 +58,6 @@ test(
         const name = fieldName('creator', suffix);
 
         await purgeFields(adminClient);
-        await purgeTemplateFields(adminClient);
 
         // # Create a select attribute with two options, applying to posts only, in the console
         const admin = await pw.testBrowser.login(adminUser);

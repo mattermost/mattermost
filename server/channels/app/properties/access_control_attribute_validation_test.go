@@ -4038,11 +4038,6 @@ func TestAccessControlAttributeValidationHook_PostFields(t *testing.T) {
 		require.NoError(t, createErr)
 		return created
 	}
-	requireInvalidAttrs := func(t *testing.T, err error) {
-		t.Helper()
-		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrInvalidFieldAttrs)
-	}
 
 	t.Run("a system-scoped post field is accepted on create", func(t *testing.T) {
 		mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypePost, "system", ""))
@@ -4052,7 +4047,7 @@ func TestAccessControlAttributeValidationHook_PostFields(t *testing.T) {
 		for _, target := range []string{"channel", "team"} {
 			f := newField(group.ID, model.PropertyFieldObjectTypePost, target, model.NewId())
 			_, createErr := th.service.CreatePropertyField(th.Context, f)
-			requireInvalidAttrs(t, createErr)
+			require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
 			assert.NotContains(t, createErr.Error(), f.Name)
 		}
 	})
@@ -4064,13 +4059,13 @@ func TestAccessControlAttributeValidationHook_PostFields(t *testing.T) {
 		single.TargetType = "channel"
 		single.TargetID = model.NewId()
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, single)
-		requireInvalidAttrs(t, updateErr)
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
 
 		batch := cloneField(created)
 		batch.TargetType = "channel"
 		batch.TargetID = model.NewId()
 		_, _, _, updateErr = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{batch})
-		requireInvalidAttrs(t, updateErr)
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
 	})
 
 	t.Run("a post field linked to a template is accepted", func(t *testing.T) {
