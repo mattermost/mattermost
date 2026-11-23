@@ -2740,6 +2740,41 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(screen.queryByTestId('access-rules-load-error')).not.toBeInTheDocument();
         });
 
+        test('resets auto-add on a 404 after switching from a channel that had it on', async () => {
+            mockActions.getChannelPolicy.mockResolvedValueOnce({
+                data: {
+                    id: 'channel_id',
+                    type: 'channel',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"', metadata: {auto_add: 'always'}}],
+                },
+            });
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeChecked();
+            });
+
+            mockActions.getChannelPolicy.mockResolvedValueOnce({error: {status_code: 404, message: 'Policy not found'}});
+
+            rerender(
+                <ChannelSettingsAccessRulesTab
+                    {...baseProps}
+                    channel={TestHelper.getChannelMock({...baseProps.channel, id: 'other_channel_id'})}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByRole('checkbox', {name: /auto-add members/i})).not.toBeChecked();
+            });
+
+            expect(baseProps.setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
         test('does not render TableEditor or Save while getChannelPolicy is pending even after attributes load', async () => {
             mockActions.getChannelPolicy.mockReturnValue(new Promise(() => {}));
 

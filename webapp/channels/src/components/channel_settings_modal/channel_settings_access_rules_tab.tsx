@@ -195,6 +195,8 @@ function ChannelSettingsAccessRulesTab({
                 setOriginalExpression('');
                 setExistingRules([]);
                 setExistingImports([]);
+                setAutoSyncMembers(false);
+                setOriginalAutoSyncMembers(false);
                 setSavedRuleStatus('editable');
                 setPolicyLoaded(true);
                 return;
