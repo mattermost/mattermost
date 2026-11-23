@@ -5,12 +5,14 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -1426,7 +1428,7 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 
 		mockACS.On("InvalidateAllPolicyCaches", mock.Anything).Return().Once()
 
-		th.App.propertyFieldOptionsChanged(th.Context, groupID, model.NewId(), "")
+		th.App.propertyFieldOptionsChanged(th.Context, groupID, model.NewId(), "", false)
 
 		mockACS.AssertExpectations(t)
 		mockACS.AssertNotCalled(t, "OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything)
@@ -2007,6 +2009,154 @@ func TestDeletePropertyFieldSAMLMapped(t *testing.T) {
 
 	syncCtx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
 	require.Nil(t, th.App.DeletePropertyField(syncCtx, group.ID, created.ID, false, ""))
+}
+
+// TestRemovingOptionsRefreshesAttributeViews pins that every write soft-deleting options of a field
+// the attribute views read refreshes them before returning (MM-71837). The views project a held
+// option by name until refreshed, so without this a removed option keeps granting until the next
+// periodic refresh. Each subtest reads the store directly, with no throttle in between.
+func TestRemovingOptionsRefreshesAttributeViews(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// The user attribute cache in front of the view is only dropped while ABAC is on.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	newSelectField := func(t *testing.T, objectType string) (*model.PropertyField, []string) {
+		t.Helper()
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "select_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			ObjectType: objectType,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "kept"},
+					map[string]any{"name": "removed"},
+				},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+		ids, ok := optionIDs(created)
+		require.True(t, ok)
+		require.Len(t, ids, 2)
+		return created, ids
+	}
+
+	hold := func(t *testing.T, field *model.PropertyField, targetID, optionID string) {
+		t.Helper()
+		value, err := json.Marshal(optionID)
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().PropertyValue().Create(&model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: field.ObjectType,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      value,
+		})
+		require.NoError(t, err)
+		require.NoError(t, th.App.Srv().Store().Attributes().RefreshAttributes())
+		th.App.Srv().Store().Attributes().ClearUserAttributesCache()
+	}
+
+	projected := func(t *testing.T, field *model.PropertyField, targetID string) (any, bool) {
+		t.Helper()
+		subject, err := th.App.Srv().Store().Attributes().GetSubject(th.Context, targetID, groupID, field.ObjectType)
+		if _, notFound := errors.AsType[*store.ErrNotFound](err); notFound {
+			return nil, false
+		}
+		require.NoError(t, err)
+		value, ok := subject.Attributes[field.Name]
+		return value, ok
+	}
+
+	t.Run("deleting a held option", func(t *testing.T) {
+		field, ids := newSelectField(t, model.PropertyFieldObjectTypeUser)
+		hold(t, field, th.BasicUser.Id, ids[1])
+		value, ok := projected(t, field, th.BasicUser.Id)
+		require.True(t, ok)
+		require.Equal(t, "removed", value)
+
+		_, appErr := th.App.DeletePropertyFieldOptions(th.Context, groupID, field.ID, []string{ids[1]}, "")
+		require.Nil(t, appErr)
+
+		_, ok = projected(t, field, th.BasicUser.Id)
+		assert.False(t, ok, "the attribute holding the deleted option should be gone from the user view")
+	})
+
+	t.Run("a field write whose option list leaves the held option out", func(t *testing.T) {
+		field, ids := newSelectField(t, model.PropertyFieldObjectTypeUser)
+		hold(t, field, th.BasicUser2.Id, ids[1])
+
+		field.Attrs[model.PropertyFieldAttributeOptions] = []any{map[string]any{"id": ids[0], "name": "kept"}}
+		_, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{field}, false, "")
+		require.Nil(t, appErr)
+
+		_, ok := projected(t, field, th.BasicUser2.Id)
+		assert.False(t, ok, "the attribute holding the dropped option should be gone from the user view")
+	})
+
+	t.Run("deleting a held option of a channel field", func(t *testing.T) {
+		field, ids := newSelectField(t, model.PropertyFieldObjectTypeChannel)
+		hold(t, field, th.BasicChannel.Id, ids[1])
+
+		_, appErr := th.App.DeletePropertyFieldOptions(th.Context, groupID, field.ID, []string{ids[1]}, "")
+		require.Nil(t, appErr)
+
+		_, ok := projected(t, field, th.BasicChannel.Id)
+		assert.False(t, ok, "the attribute holding the deleted option should be gone from the channel view")
+	})
+
+	t.Run("deleting the field", func(t *testing.T) {
+		field, ids := newSelectField(t, model.PropertyFieldObjectTypeChannel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		hold(t, field, channel.Id, ids[0])
+
+		require.Nil(t, th.App.DeletePropertyField(th.Context, groupID, field.ID, false, ""))
+
+		_, ok := projected(t, field, channel.Id)
+		assert.False(t, ok, "the deleted field should be gone from the channel view")
+	})
+}
+
+func TestDropsOptions(t *testing.T) {
+	withOptions := func(ids ...string) *model.PropertyField {
+		options := make([]any, 0, len(ids))
+		for _, id := range ids {
+			options = append(options, map[string]any{"id": id, "name": id})
+		}
+		return &model.PropertyField{
+			Type:  model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: options},
+		}
+	}
+	withheld := &model.PropertyField{
+		Type:  model.PropertyFieldTypeSelect,
+		Attrs: model.StringInterface{model.PropertyFieldAttributeOptionsOmitted: true},
+	}
+	text := &model.PropertyField{Type: model.PropertyFieldTypeText}
+
+	for _, tc := range []struct {
+		name                    string
+		incoming, before, after *model.PropertyField
+		want                    bool
+	}{
+		{"an option left out of the list", withOptions("a"), withOptions("a", "b"), withOptions("a"), true},
+		{"every option kept, one added", withOptions("a", "b", "c"), withOptions("a", "b"), withOptions("a", "b", "c"), false},
+		{"a write carrying no option list", withheld, withOptions("a", "b"), withOptions("a", "b"), false},
+		{"a write to a type without options", text, withOptions("a", "b"), text, false},
+		{"a withheld list before the write cannot be compared", withOptions("a"), withheld, withOptions("a"), true},
+		{"a field that was not read before the write", withOptions("a"), nil, withOptions("a"), true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, dropsOptions(tc.incoming, tc.before, tc.after))
+		})
+	}
 }
 
 func TestCheckRequiredAttributeTransitionStaleRequiredRead(t *testing.T) {

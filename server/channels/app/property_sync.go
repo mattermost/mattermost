@@ -416,12 +416,14 @@ func (s *PropertySyncer) pruneDefinition(rctx request.CTX, def *syncDefinition) 
 }
 
 // deleteOptions removes options from def in batches the options API accepts,
-// dropping each batch from the cached list as it lands.
+// dropping each batch from the cached list as it lands. The attribute views are
+// not refreshed for them: no value held them when the references were read, and a
+// value written since is the race pruneDefinition accepts.
 func (s *PropertySyncer) deleteOptions(rctx request.CTX, def *syncDefinition, optionIDs []string) *model.AppError {
 	for batch := range slices.Chunk(optionIDs, model.PropertyFieldOptionsMaxPerRequest) {
-		deleted, appErr := s.app.DeletePropertyFieldOptions(rctx, s.groupID, def.field.ID, batch, "")
-		if appErr != nil {
-			return appErr
+		deleted, err := s.app.deletePropertyFieldOptions(rctx, s.groupID, def.field.ID, batch, "", false)
+		if err != nil {
+			return model.AsAppError(err)
 		}
 		for _, option := range deleted {
 			delete(def.optionIDs, option.Name)
