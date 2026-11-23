@@ -77,6 +77,7 @@ type Store struct {
 	DeliveryTrackingStore           mocks.DeliveryTrackingStore
 	RecapStore                      mocks.RecapStore
 	ScheduledRecapStore             mocks.ScheduledRecapStore
+	PasskeyStore                    mocks.PasskeyStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
@@ -188,6 +189,10 @@ func (s *Store) DeliveryTracking() store.DeliveryTrackingStore {
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
 }
+func (s *Store) Passkey() store.PasskeyStore {
+	return &s.PasskeyStore
+}
+
 func (s *Store) ScheduledRecap() store.ScheduledRecapStore {
 	return &s.ScheduledRecapStore
 }
@@ -267,6 +272,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.DeliveryTrackingStore,
 		&s.RecapStore,
 		&s.ScheduledRecapStore,
+		&s.PasskeyStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,

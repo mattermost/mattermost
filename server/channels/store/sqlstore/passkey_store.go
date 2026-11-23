@@ -1,0 +1,123 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package sqlstore
+
+import (
+	"database/sql"
+
+	sq "github.com/mattermost/squirrel"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+)
+
+var passkeyColumns = []string{
+	"id", "userid", "userhandle", "credentialid", "publickey", "aaguid", "transports",
+	"signcount", "backupeligible", "backupstate", "name", "createat", "lastusedat",
+}
+
+type SqlPasskeyStore struct {
+	*SqlStore
+}
+
+func newSqlPasskeyStore(sqlStore *SqlStore) store.PasskeyStore {
+	return &SqlPasskeyStore{SqlStore: sqlStore}
+}
+
+func (s *SqlPasskeyStore) SaveIfUnderLimit(passkey *model.Passkey, limit int) (*model.Passkey, error) {
+	passkey.PreSave()
+	if appErr := passkey.IsValid(); appErr != nil {
+		return nil, appErr
+	}
+
+	// SERIALIZABLE prevents the COUNT/INSERT check from racing under READ COMMITTED;
+	// the retry layer retries the serialization failures this can surface.
+	tx, err := s.GetMaster().BeginWithIsolation(&sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to begin transaction for passkey SaveIfUnderLimit")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	var count int
+	countQuery := s.getQueryBuilder().Select("COUNT(*)").From("passkeys").Where(sq.Eq{"userid": passkey.UserId})
+	if err = tx.GetBuilder(&count, countQuery); err != nil {
+		return nil, errors.Wrapf(err, "failed to count passkeys for userId=%s", passkey.UserId)
+	}
+	if count >= limit {
+		err = store.NewErrLimitExceeded("passkeys_per_user", count, "userId="+passkey.UserId)
+		return nil, err
+	}
+
+	insert := s.getQueryBuilder().Insert("passkeys").SetMap(map[string]any{
+		"id":             passkey.Id,
+		"userid":         passkey.UserId,
+		"userhandle":     passkey.UserHandle,
+		"credentialid":   passkey.CredentialId,
+		"publickey":      passkey.PublicKey,
+		"aaguid":         passkey.AAGUID,
+		"transports":     passkey.Transports,
+		"signcount":      passkey.SignCount,
+		"backupeligible": passkey.BackupEligible,
+		"backupstate":    passkey.BackupState,
+		"name":           passkey.Name,
+		"createat":       passkey.CreateAt,
+		"lastusedat":     passkey.LastUsedAt,
+	})
+	if _, err = tx.ExecBuilder(insert); err != nil {
+		if IsUniqueConstraintError(err, []string{"passkeys_credentialid_key"}) {
+			err = store.NewErrConflict("Passkey", err, "credentialId")
+			return nil, err
+		}
+		return nil, errors.Wrap(err, "failed to save Passkey")
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "failed to commit transaction for passkey SaveIfUnderLimit")
+	}
+	return passkey, nil
+}
+
+func (s *SqlPasskeyStore) GetForUser(userID string) ([]*model.Passkey, error) {
+	query := s.getQueryBuilder().
+		Select(passkeyColumns...).
+		From("passkeys").
+		Where(sq.Eq{"userid": userID}).
+		OrderBy("createat ASC")
+
+	// Read from master: registration counts and lists right after a write, and a lagging
+	// replica would show a just-added or just-deleted passkey wrongly.
+	passkeys := []*model.Passkey{}
+	if err := s.GetMaster().SelectBuilder(&passkeys, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get passkeys for userId=%s", userID)
+	}
+	return passkeys, nil
+}
+
+func (s *SqlPasskeyStore) Delete(userID, passkeyID string) error {
+	query := s.getQueryBuilder().
+		Delete("passkeys").
+		Where(sq.Eq{"id": passkeyID, "userid": userID})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete Passkey with id=%s", passkeyID)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to retrieve affected rows for Passkey delete")
+	}
+	if n == 0 {
+		return store.NewErrNotFound("Passkey", passkeyID)
+	}
+	return nil
+}
+
+func (s *SqlPasskeyStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().Delete("passkeys").Where(sq.Eq{"userid": userID})
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete passkeys with userId=%s", userID)
+	}
+	return nil
+}

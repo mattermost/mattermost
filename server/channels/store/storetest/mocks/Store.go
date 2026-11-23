@@ -858,6 +858,26 @@ func (_m *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return r0
 }
 
+// Passkey provides a mock function with no fields
+func (_m *Store) Passkey() store.PasskeyStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Passkey")
+	}
+
+	var r0 store.PasskeyStore
+	if rf, ok := ret.Get(0).(func() store.PasskeyStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PasskeyStore)
+		}
+	}
+
+	return r0
+}
+
 // Plugin provides a mock function with no fields
 func (_m *Store) Plugin() store.PluginStore {
 	ret := _m.Called()

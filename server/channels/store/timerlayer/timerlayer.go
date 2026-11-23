@@ -46,6 +46,7 @@ type TimerLayer struct {
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
+	PasskeyStore                    store.PasskeyStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -193,6 +194,10 @@ func (s *TimerLayer) OAuth() store.OAuthStore {
 
 func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return s.OutgoingOAuthConnectionStore
+}
+
+func (s *TimerLayer) Passkey() store.PasskeyStore {
+	return s.PasskeyStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -472,6 +477,11 @@ type TimerLayerOAuthStore struct {
 
 type TimerLayerOutgoingOAuthConnectionStore struct {
 	store.OutgoingOAuthConnectionStore
+	Root *TimerLayer
+}
+
+type TimerLayerPasskeyStore struct {
+	store.PasskeyStore
 	Root *TimerLayer
 }
 
@@ -7182,6 +7192,70 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.UpdateConnection", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPasskeyStore) Delete(userID string, passkeyID string) error {
+	start := time.Now()
+
+	err := s.PasskeyStore.Delete(userID, passkeyID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPasskeyStore) GetForUser(userID string) ([]*model.Passkey, error) {
+	start := time.Now()
+
+	result, err := s.PasskeyStore.GetForUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.GetForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPasskeyStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.PasskeyStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPasskeyStore) SaveIfUnderLimit(passkey *model.Passkey, limit int) (*model.Passkey, error) {
+	start := time.Now()
+
+	result, err := s.PasskeyStore.SaveIfUnderLimit(passkey, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.SaveIfUnderLimit", success, elapsed)
 	}
 	return result, err
 }
@@ -16839,6 +16913,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
+	newStore.PasskeyStore = &TimerLayerPasskeyStore{PasskeyStore: childStore.Passkey(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

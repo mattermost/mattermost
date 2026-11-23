@@ -104,6 +104,7 @@ type Store interface {
 	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
 	ScheduledRecap() ScheduledRecapStore
+	Passkey() PasskeyStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
@@ -1638,6 +1639,17 @@ type RecapStore interface {
 	// soft-deleted recaps so deleting a recap does not bypass cooldown.
 	// Returns nil, nil if no manual recap exists.
 	GetLastCompletedManualRecap(userId string) (*model.Recap, error)
+}
+
+type PasskeyStore interface {
+	// SaveIfUnderLimit inserts the passkey unless the user already has limit of them
+	// (ErrLimitExceeded) or its credential id is already registered (ErrConflict).
+	SaveIfUnderLimit(passkey *model.Passkey, limit int) (*model.Passkey, error)
+	// GetForUser returns the user's passkeys, oldest first.
+	GetForUser(userID string) ([]*model.Passkey, error)
+	// Delete removes the passkey only if userID owns it; otherwise ErrNotFound.
+	Delete(userID, passkeyID string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type ScheduledRecapStore interface {
