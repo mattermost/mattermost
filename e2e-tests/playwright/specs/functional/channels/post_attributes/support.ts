@@ -223,10 +223,11 @@ export async function setPostValues(
 }
 
 /**
- * Changes some of a field's attrs, keeping the rest. A patch replaces `attrs` as a whole,
- * so the current ones are sent back with the change applied. The options of a linked field
- * belong to its template, so they are patched there and the template's other attrs kept;
- * everything else (sort order, visibility) is the post field's own.
+ * Changes some of a field's attrs, keeping the rest. The server merges a patch's attrs into
+ * the field's, so only the ones that change are sent. The options of a linked field belong
+ * to its template, so they are patched there, and the server carries them over to the linked
+ * field; sending them with the field's own patch would be refused as an options change.
+ * Everything else (sort order, visibility) is the post field's own.
  */
 export async function patchFieldAttrs(
     adminClient: Client4,
@@ -247,7 +248,7 @@ export async function patchFieldAttrs(
         }
     }
 
-    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: {...field.attrs, ...own}});
+    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: own});
 }
 
 // The most options one request to the options endpoint may carry.
