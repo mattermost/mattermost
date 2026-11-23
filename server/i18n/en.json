@@ -3794,6 +3794,11 @@
     "description": "API error when a passkey endpoint is called on a server without at least a Professional license."
   },
   {
+    "id": "api.passkey.login_disabled.app_error",
+    "translation": "Signing in with a passkey is turned off on this server.",
+    "description": "API error when a user tries to sign in with a passkey while the admin has turned passkey login off."
+  },
+  {
     "id": "api.passkey.unavailable.app_error",
     "translation": "Passkeys are not available with this server's Site URL.",
     "description": "API error when a user tries to register a passkey but the Site URL is unset, not HTTPS, an IP address, or otherwise unusable as a WebAuthn relying party."

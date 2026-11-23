@@ -2237,26 +2237,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventResultState(user)
 
-	if user.IsMagicLinkEnabled() {
-		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
-			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
-			return
-		}
-	}
-
-	if user.IsGuest() {
-		if c.App.Channels().License() == nil {
-			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
-			return
-		}
-		if !*c.App.Config().GuestAccountsSettings.Enable {
-			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
-			return
-		}
-	}
-
-	if user.IsRemote() {
-		c.Err = model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+	if appErr := checkUserMaySignIn(c, user); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2297,6 +2279,31 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// checkUserMaySignIn is the account checks password sign-in and passkey sign-in share once the
+// user is authenticated: magic-link, guest and remote users.
+func checkUserMaySignIn(c *Context, user *model.User) *model.AppError {
+	if user.IsMagicLinkEnabled() {
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			return model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
+		}
+	}
+
+	if user.IsGuest() {
+		if c.App.Channels().License() == nil {
+			return model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
+		}
+		if !*c.App.Config().GuestAccountsSettings.Enable {
+			return model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
+		}
+	}
+
+	if user.IsRemote() {
+		return model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+	}
+
+	return nil
 }
 
 func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {

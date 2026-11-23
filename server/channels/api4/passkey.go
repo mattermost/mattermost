@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -18,6 +19,8 @@ func (api *API) InitPasskey() {
 	api.BaseRoutes.User.Handle("/passkeys", api.APISessionRequired(getPasskeys)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/passkeys/registration/begin", api.APISessionRequired(beginPasskeyRegistration)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/registration/finish", api.APISessionRequired(finishPasskeyRegistration)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/passkey/begin", api.APIHandler(beginPasskeyLogin)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/passkey/finish", api.APIHandler(finishPasskeyLogin)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/{passkey_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePasskey)).Methods(http.MethodDelete)
 }
 
@@ -36,6 +39,12 @@ func requirePasskeys(c *Context) bool {
 		return false
 	}
 
+	return requirePasskeyFlagAndLicense(c)
+}
+
+// requirePasskeyFlagAndLicense is the part of the gate that needs no caller: the Passkeys feature
+// flag and a Professional license.
+func requirePasskeyFlagAndLicense(c *Context) bool {
 	if !c.App.Config().FeatureFlags.Passkeys {
 		c.Err = model.NewAppError("requirePasskeys", "api.passkey.feature_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return false
@@ -68,6 +77,109 @@ func requirePasskeyEnrollment(c *Context) bool {
 	}
 
 	return true
+}
+
+// requirePasskeyLogin gates the sign-in endpoints, which have no caller: flag, license, a usable
+// Site URL, then the login setting. Enrollment being on or off does not matter.
+func requirePasskeyLogin(c *Context) bool {
+	if !requirePasskeyFlagAndLicense(c) {
+		return false
+	}
+
+	cfg := c.App.Config()
+	if !model.PasskeysAvailable(cfg, c.App.Channels().License()) {
+		c.Err = model.NewAppError("requirePasskeyLogin", "api.passkey.unavailable.app_error", nil, "", http.StatusNotImplemented)
+		return false
+	}
+
+	if !*cfg.ServiceSettings.EnablePasskeyLogin {
+		c.Err = model.NewAppError("requirePasskeyLogin", "api.passkey.login_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return false
+	}
+
+	return true
+}
+
+func beginPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requirePasskeyLogin(c) {
+		return
+	}
+
+	options, appErr := c.App.BeginPasskeyLogin(c.AppContext)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(options); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// finishPasskeyLogin passes the app layer's errors through unmasked: none of them says anything about
+// an account the caller does not already hold a passkey for.
+func finishPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requirePasskeyLogin(c) {
+		return
+	}
+
+	var finish model.PasskeyLoginFinish
+	if err := json.NewDecoder(r.Body).Decode(&finish); err != nil {
+		c.SetInvalidParamWithErr("passkey", err)
+		return
+	}
+	if finish.CeremonyId == "" {
+		c.SetInvalidParam("ceremony_id")
+		return
+	}
+	if len(finish.Credential) == 0 {
+		c.SetInvalidParam("credential")
+		return
+	}
+
+	user, appErr := c.App.FinishPasskeyLogin(c.AppContext, finish.CeremonyId, finish.Credential)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if appErr = checkUserMaySignIn(c, user); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	var session *model.Session
+	session, appErr = c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsMobile:    utils.IsMobileRequest(r),
+		IsOAuthUser: user.IsOAuthUser(),
+		IsSaml:      user.IsSAMLUser(),
+		IsPasskey:   true,
+	})
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
+	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
+		c.App.AttachSessionCookies(c.AppContext, w, r)
+	}
+
+	userTermsOfService, appErr := c.App.GetUserTermsOfService(user.Id)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		c.Err = appErr
+		return
+	}
+	if userTermsOfService != nil {
+		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+	}
+
+	user.Sanitize(map[string]bool{})
+
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // beginPasskeyRegistration and finishPasskeyRegistration pass the request's own session to the app:

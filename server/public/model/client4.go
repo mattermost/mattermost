@@ -2074,6 +2074,31 @@ func (c *Client4) FinishPasskeyRegistration(ctx context.Context, userID string, 
 	return DecodeJSONFromResponse[*Passkey](r)
 }
 
+// BeginPasskeyLogin starts a usernameless passkey sign-in ceremony and returns the options to hand
+// to the browser. It needs no session.
+func (c *Client4) BeginPasskeyLogin(ctx context.Context) (*PasskeyLoginOptions, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.usersRoute().Join("login", "passkey", "begin"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyLoginOptions](r)
+}
+
+// FinishPasskeyLogin completes the ceremony begun by BeginPasskeyLogin, like Login keeping the
+// session token for later requests, and returns the signed-in user.
+func (c *Client4) FinishPasskeyLogin(ctx context.Context, finish *PasskeyLoginFinish) (*User, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("login", "passkey", "finish"), finish)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	return DecodeJSONFromResponse[*User](r)
+}
+
 // RotateUserAccessToken generates a new secret for the token identified by tokenId,
 // sets a new expiry, and immediately invalidates the old secret and its sessions.
 // The returned token carries the new secret (shown once, like CreateUserAccessToken).
