@@ -724,6 +724,15 @@ func TestPatchCPAField(t *testing.T) {
 		requireOptionNamesStored(t, th, cpaGroup.ID, field.ID, "Alpha", "Beta")
 	})
 
+	t.Run("a masked caller's edits keep the options they cannot see", func(t *testing.T) {
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+
+		requireMaskedPatchKeepsHiddenOptions(t, th, cpaGroup.ID, celSafeName, func(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+			return th.SystemAdminClient.PatchCPAField(context.Background(), fieldID, patch)
+		})
+	})
+
 	t.Run("the field-updated broadcast withholds the options of a masked field", func(t *testing.T) {
 		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 		require.Nil(t, appErr)

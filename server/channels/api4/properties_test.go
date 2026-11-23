@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"reflect"
 	"testing"
@@ -4180,6 +4181,15 @@ func TestPatchPropertyField(t *testing.T) {
 		requireOptionNamesStored(t, th, maskedGroup.ID, field.ID, "Alpha", "Beta")
 	})
 
+	t.Run("a masked caller's edits keep the options they cannot see", func(t *testing.T) {
+		maskedGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_masked_keeps", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+
+		requireMaskedPatchKeepsHiddenOptions(t, th, maskedGroup.ID, model.NewId, func(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+			return th.SystemAdminClient.PatchPropertyField(context.Background(), maskedGroup.Name, model.PropertyFieldObjectTypeUser, fieldID, patch)
+		})
+	})
+
 	t.Run("a masked caller renames a field without sending its options", func(t *testing.T) {
 		maskedGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_masked_rename", Version: model.PropertyGroupVersionV3})
 		require.Nil(t, appErr)
@@ -4215,44 +4225,287 @@ func TestPatchPropertyField(t *testing.T) {
 func createMaskedSelectField(t *testing.T, th *TestHelper, groupID, name string) (*model.PropertyField, string) {
 	t.Helper()
 
+	stored := createMaskedOptionsField(t, th, groupID, name, model.PropertyFieldTypeSelect, model.PermissionLevelSysadmin, []string{"Alpha", "Beta"}, []string{"Alpha"})
+	return stored, optionIDsByName(t, stored)["Alpha"]
+}
+
+// createMaskedOptionsField stores a field of fieldType with one option per name,
+// whose masking applies to every caller, and gives the system admin a value
+// holding only the options named in held, so the admin's view lists just those.
+// A select field holds a single option, so held has one entry for it. optionWrite
+// is the level that may change the option list; field.write stays sysadmin.
+func createMaskedOptionsField(t *testing.T, th *TestHelper, groupID, name string, fieldType model.PropertyFieldType, optionWrite model.PermissionLevel, names, held []string) *model.PropertyField {
+	t.Helper()
+
+	options := make([]any, 0, len(names))
+	for _, n := range names {
+		options = append(options, map[string]any{"id": model.NewId(), "name": n})
+	}
+
 	// The local-admin caller holds field.write on the new field; the system
 	// admin is not exempt from the masking either way.
 	rctx := app.RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
 	created, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:    groupID,
 		Name:       name,
-		Type:       model.PropertyFieldTypeSelect,
+		Type:       fieldType,
 		ObjectType: model.PropertyFieldObjectTypeUser,
 		TargetType: "system",
-		Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
-			map[string]any{"id": model.NewId(), "name": "Alpha"},
-			map[string]any{"id": model.NewId(), "name": "Beta"},
-		}},
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
 		Permissions: &model.Permissions{
 			Restrictions: &model.Restrictions{
 				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
 				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
-				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: optionWrite},
 			},
 			Masking: &model.Masking{},
 		},
 	}, false, "")
 	require.Nil(t, appErr)
 
+	// Many cases share one server, and a group caps its fields per object type.
+	t.Cleanup(func() { _ = th.App.DeletePropertyField(rctx, groupID, created.ID, true, "") })
+
 	stored, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
 	require.NoError(t, err)
-	alphaID := optionIDsByName(t, stored)["Alpha"]
-	require.NotEmpty(t, alphaID)
+	ids := optionIDsByName(t, stored)
+
+	heldIDs := make([]string, 0, len(held))
+	for _, n := range held {
+		require.NotEmpty(t, ids[n])
+		heldIDs = append(heldIDs, ids[n])
+	}
+	value, err := json.Marshal(heldIDs)
+	require.NoError(t, err)
+	if fieldType == model.PropertyFieldTypeSelect {
+		value, err = json.Marshal(heldIDs[0])
+		require.NoError(t, err)
+	}
 
 	_, err = th.Store.PropertyValue().Create(&model.PropertyValue{
 		GroupID:    groupID,
 		FieldID:    stored.ID,
 		TargetType: "user",
 		TargetID:   th.SystemAdminUser.Id,
-		Value:      json.RawMessage(`"` + alphaID + `"`),
+		Value:      value,
 	})
 	require.NoError(t, err)
-	return stored, alphaID
+	return stored
+}
+
+// patchMaskedFieldFn sends a field PATCH as the system admin through one of the
+// two endpoints that serve it.
+type patchMaskedFieldFn func(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error)
+
+// requireMaskedPatchKeepsHiddenOptions runs the PATCH cases a masked admin hits
+// against one endpoint: edits that leave the options alone keep every stored
+// option, and any real change to the list is refused. The field's name is a
+// fresh newName each time.
+func requireMaskedPatchKeepsHiddenOptions(t *testing.T, th *TestHelper, groupID string, newName func() string, patch patchMaskedFieldFn) {
+	t.Helper()
+
+	options := func(items ...map[string]any) *model.StringInterface {
+		list := make([]any, 0, len(items))
+		for _, item := range items {
+			list = append(list, item)
+		}
+		return &model.StringInterface{model.PropertyFieldAttributeOptions: list}
+	}
+	servedOption := func(t *testing.T, field *model.PropertyField, name string) map[string]any {
+		t.Helper()
+		for _, o := range field.Attrs[model.PropertyFieldAttributeOptions].([]any) {
+			if entry := o.(map[string]any); entry["name"] == name {
+				return entry
+			}
+		}
+		require.Failf(t, "option not found", "%s", name)
+		return nil
+	}
+	newField := func(t *testing.T, holdsNothing bool) *model.PropertyField {
+		t.Helper()
+		field, _ := createMaskedSelectField(t, th, groupID, newName())
+		if holdsNothing {
+			require.NoError(t, th.Store.PropertyValue().DeleteForTarget(groupID, "user", th.SystemAdminUser.Id))
+		}
+		return field
+	}
+
+	t.Run("a rename that sends back the served options keeps the hidden ones", func(t *testing.T) {
+		field := newField(t, false)
+		name := newName()
+		patched, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &name, Attrs: options(servedOption(t, field, "Alpha"))})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, name, patched.Name)
+		require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
+		requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+	})
+
+	t.Run("a rename without options keeps the hidden ones", func(t *testing.T) {
+		for name, holdsNothing := range map[string]bool{"holding one option": false, "holding none": true} {
+			t.Run(name, func(t *testing.T) {
+				field := newField(t, holdsNothing)
+				renamed := newName()
+				patched, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &renamed})
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, renamed, patched.Name)
+				if holdsNothing {
+					require.Empty(t, inlineOptionNames(t, patched))
+				} else {
+					require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
+				}
+				requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+			})
+		}
+	})
+
+	t.Run("a caller who holds nothing renames and sends an empty list", func(t *testing.T) {
+		field := newField(t, true)
+		name := newName()
+		patched, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &name, Attrs: options()})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, name, patched.Name)
+		requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+	})
+
+	t.Run("a change to the options is refused and nothing is stored", func(t *testing.T) {
+		changes := map[string]func(t *testing.T, field *model.PropertyField) *model.StringInterface{
+			"an added option": func(t *testing.T, field *model.PropertyField) *model.StringInterface {
+				return options(servedOption(t, field, "Alpha"), map[string]any{"id": model.NewId(), "name": "Gamma"})
+			},
+			"the held option removed": func(t *testing.T, field *model.PropertyField) *model.StringInterface {
+				return options()
+			},
+			"the held option relabelled": func(t *testing.T, field *model.PropertyField) *model.StringInterface {
+				return options(map[string]any{"id": servedOption(t, field, "Alpha")["id"], "name": "Renamed"})
+			},
+		}
+		for name, change := range changes {
+			t.Run(name, func(t *testing.T) {
+				field := newField(t, false)
+				renamed := newName()
+				_, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &renamed, Attrs: change(t, field)})
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+
+				stored, storeErr := th.Store.PropertyField().Get(th.Context, groupID, field.ID)
+				require.NoError(t, storeErr)
+				require.Equal(t, field.Name, stored.Name)
+				requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+			})
+		}
+	})
+
+	t.Run("a caller who holds nothing is refused a non-empty list", func(t *testing.T) {
+		field := newField(t, true)
+		renamed := newName()
+		_, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &renamed, Attrs: options(map[string]any{"id": model.NewId(), "name": "Gamma"})})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+	})
+
+	t.Run("an echo of the served options alone needs only field.write", func(t *testing.T) {
+		// Option.Write none: nobody may write options, so only a patch that
+		// is not an options change can pass.
+		field := createMaskedOptionsField(t, th, groupID, newName(), model.PropertyFieldTypeSelect, model.PermissionLevelNone, []string{"Alpha", "Beta"}, []string{"Alpha"})
+		patched, resp, err := patch(field.ID, &model.PropertyFieldPatch{Attrs: options(servedOption(t, field, "Alpha"))})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
+		requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+	})
+
+	t.Run("the order of an echoed list is ignored", func(t *testing.T) {
+		for name, optionWrite := range map[string]model.PermissionLevel{
+			"with a rename":                model.PermissionLevelSysadmin,
+			"alone without option.write": model.PermissionLevelNone,
+		} {
+			t.Run(name, func(t *testing.T) {
+				field := createMaskedOptionsField(t, th, groupID, newName(), model.PropertyFieldTypeMultiselect, optionWrite, []string{"Alpha", "Beta", "Gamma"}, []string{"Alpha", "Beta"})
+				first := newName()
+				served, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &first})
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.ElementsMatch(t, []string{"Alpha", "Beta"}, inlineOptionNames(t, served))
+
+				reversed := options(servedOption(t, served, "Beta"), servedOption(t, served, "Alpha"))
+				p := &model.PropertyFieldPatch{Attrs: reversed}
+				if optionWrite == model.PermissionLevelSysadmin {
+					renamed := newName()
+					p.Name = &renamed
+				}
+				_, resp, err = patch(field.ID, p)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta", "Gamma")
+			})
+		}
+	})
+
+	t.Run("a console save of the served attrs with a new name keeps the hidden options", func(t *testing.T) {
+		field := newField(t, false)
+		first := newName()
+		served, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &first})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		name := newName()
+		attrs := model.StringInterface{}
+		maps.Copy(attrs, served.Attrs)
+		patched, resp, err := patch(field.ID, &model.PropertyFieldPatch{Name: &name, Type: &served.Type, Attrs: &attrs})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, name, patched.Name)
+		requireOptionNamesStored(t, th, groupID, field.ID, "Alpha", "Beta")
+	})
+}
+
+// TestPatchMaskedFieldAuditPriorState checks that a masked caller's field PATCH
+// is audited against the field as stored, so the record shows every option the
+// edit was applied over rather than the few the caller was served.
+func TestPatchMaskedFieldAuditPriorState(t *testing.T) {
+	mainHelper.Parallel(t)
+	th, logFile := setupEphemeralModeAuditTest(t)
+
+	requirePriorOptionNames := func(t *testing.T, eventName string, names ...string) {
+		t.Helper()
+		entry := readAuditEntry(t, th, logFile, eventName, th.SystemAdminUser.Id)
+		prior := entry.Raw["event"].(map[string]any)["prior_state"].(map[string]any)
+		var got []string
+		for _, o := range prior["attrs"].(map[string]any)[model.PropertyFieldAttributeOptions].([]any) {
+			got = append(got, o.(map[string]any)["name"].(string))
+		}
+		require.ElementsMatch(t, names, got)
+	}
+
+	t.Run("generic endpoint", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_masked_audit", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+		field, _ := createMaskedSelectField(t, th, group.ID, model.NewId())
+
+		newName := model.NewId()
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		requirePriorOptionNames(t, model.AuditEventPatchPropertyField, "Alpha", "Beta")
+	})
+
+	t.Run("custom profile attribute endpoint", func(t *testing.T) {
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		field, _ := createMaskedSelectField(t, th, group.ID, celSafeName())
+
+		newName := celSafeName()
+		_, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), field.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		requirePriorOptionNames(t, model.AuditEventPatchCPAField, "Alpha", "Beta")
+	})
 }
 
 // requireOptionNamesStored fails unless the field's stored option list holds

@@ -343,6 +343,21 @@ func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*mode
 	return field, nil
 }
 
+// GetStoredPropertyField reads a field as stored, without the read hook that
+// filters a masked caller's option list. It is for a caller that edits the field
+// and must patch the whole stored field, not the caller's view of it. Never
+// return the result to a caller; serve GetPropertyField's view instead.
+func (a *App) GetStoredPropertyField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, *model.AppError) {
+	field, err := a.Srv().Store().PropertyField().Get(rctx, groupID, fieldID)
+	if err != nil {
+		if appErr := mapPropertyServiceError("GetStoredPropertyField", err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetStoredPropertyField", "app.property_field.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return field, nil
+}
+
 // GetPropertyFields retrieves multiple property fields by their IDs.
 func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
 	fields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"maps"
 	"net/http"
-	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -740,11 +739,13 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Mirrors permissionsChanged above: an options-only patch is gated on
 	// option.write only when the submitted option list actually differs from
-	// what is stored, not merely because it is the only attr present.
+	// the one the caller was served, not merely because it is the only attr
+	// present. The served list, not the stored one: a masked caller's view lists
+	// only the options they may see, and sending that back is not a change.
 	optionsChanged := false
 	if patch.Attrs != nil {
-		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
-			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		if _, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = model.PropertyFieldOptionsChanged(existingField.Attrs, *patch.Attrs)
 		}
 	}
 
@@ -776,12 +777,22 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "basis_action", patchAction)
 	addPropertyPermissionBasisMeta(auditRec, basis)
 
+	// The patch is applied to the field as stored, not to the caller's view
+	// (existingField), so a masked caller's edit keeps the options they were not
+	// served. The read hook only filters a read and refuses nothing, so skipping
+	// it here loses no check.
+	storedField, appErr := c.App.GetStoredPropertyField(rctx, group.ID, c.Params.FieldId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	// Capture original state for audit before the in-place patch. Attrs is
 	// shallow-copied because Patch mutates it.
-	orig := *existingField
-	if existingField.Attrs != nil {
-		orig.Attrs = make(model.StringInterface, len(existingField.Attrs))
-		maps.Copy(orig.Attrs, existingField.Attrs)
+	orig := *storedField
+	if storedField.Attrs != nil {
+		orig.Attrs = make(model.StringInterface, len(storedField.Attrs))
+		maps.Copy(orig.Attrs, storedField.Attrs)
 	}
 	auditRec.AddEventPriorState(&orig)
 
@@ -808,22 +819,22 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	existingField.Permissions = patchedPermissions
-	existingField.Patch(patch, true)
+	storedField.Permissions = patchedPermissions
+	storedField.Patch(patch, true)
 
 	// Anti-lockout, as on create: field.write was checked against the stored
 	// field, so without this a caller could patch in permissions that leave
 	// them unable to edit or delete the field they just changed. An unchanged
 	// echo changes nothing and was gated as such, so it is not judged here.
-	if permissionsChanged && !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	if permissionsChanged && !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), storedField) {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.caller_cannot_edit.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	existingField.UpdatedBy = c.AppContext.Session().UserId
+	storedField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	updatedField, _, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	updatedField, _, updateErr := c.App.UpdatePropertyField(rctx, group.ID, storedField, false, connectionID)
 	if updateErr != nil {
 		c.Err = updateErr
 		return

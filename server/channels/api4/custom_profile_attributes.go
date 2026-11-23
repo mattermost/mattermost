@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"maps"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -220,11 +219,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Mirrors patchPropertyField's optionsChanged: gate on option.write only
-	// when the submitted option list actually differs from what is stored.
+	// when the submitted option list differs from the one the caller was served.
 	optionsChanged := false
 	if patch.Attrs != nil {
-		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
-			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		if _, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = model.PropertyFieldOptionsChanged(existingField.Attrs, *patch.Attrs)
 		}
 	}
 
@@ -248,20 +247,30 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// The patch is applied to the field as stored, not to the caller's view
+	// (existingField), so a masked caller's edit keeps the options they were not
+	// served. The read hook only filters a read and refuses nothing, so skipping
+	// it here loses no check.
+	storedField, appErr := c.App.GetStoredPropertyField(rctx, group.ID, c.Params.FieldId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	// Capture original state for audit before in-place patch (Attrs is
 	// shallow-copied because Patch mutates it).
-	orig := *existingField
-	if existingField.Attrs != nil {
-		orig.Attrs = make(model.StringInterface, len(existingField.Attrs))
-		maps.Copy(orig.Attrs, existingField.Attrs)
+	orig := *storedField
+	if storedField.Attrs != nil {
+		orig.Attrs = make(model.StringInterface, len(storedField.Attrs))
+		maps.Copy(orig.Attrs, storedField.Attrs)
 	}
 	auditRec.AddEventPriorState(&orig)
 
-	existingField.Patch(patch, true)
-	existingField.UpdatedBy = c.AppContext.Session().UserId
+	storedField.Patch(patch, true)
+	storedField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	updatedField, clearedIDs, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	updatedField, clearedIDs, updateErr := c.App.UpdatePropertyField(rctx, group.ID, storedField, false, connectionID)
 	if updateErr != nil {
 		c.Err = updateErr
 		return
