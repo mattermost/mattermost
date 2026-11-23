@@ -166,6 +166,14 @@ The **Channels** resource requires a Mattermost Entry or Enterprise Advanced lic
 - **Display location**: Where else the value is shown in the channel: **Header**, **Banner**, or both. The value is always shown in Channel Info, so Channel Info isn't a choice here.
 - **Required**: When enabled, a channel must have a value for this attribute before it can be created. Available only when the `ChannelAttributesRequired` feature flag is also enabled.
 
+  From Mattermost v12.2, **Required** also enforces the value at runtime for channels that were created without one (for example, by team creation, a plugin, or import). Until the value is filled:
+
+  - Channel admins, team creators (for default channels), and system admins see a notice banner, a red badge on the **Info** button, and a **Set \<attribute\>** chip in the channel header.
+  - The **Save** button on the channel's page in **System Console \> User Management \> Channels** is disabled until the missing value is provided.
+  - The System bot sends a direct message to the team creator when a team is created with default channels missing the value, and to any member promoted to channel admin on a channel missing the value.
+
+  See [Required channel attributes](/administration-guide/manage/admin/channel-attributes#required-channel-attributes) for details on the indicators and how to resolve them.
+
 ## Edit an attribute
 
 Select an attribute's row, or select **More actions** \> **Edit attribute**, make your changes, and select **Save**.

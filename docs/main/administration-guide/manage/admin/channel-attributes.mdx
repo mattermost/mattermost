@@ -6,7 +6,13 @@ title: "Channel attributes"
 
 From Mattermost v12.0, system admins can define attributes once in **System Console \> System Attributes \> Attribute Management**, then apply those attributes to channels. Channel attributes provide structured information about a channel, such as its classification, department, region, or project.
 
-Channel attribute values can be displayed in the channel header, the channel banner, and Channel Info. Access rules can also compare a user's attributes with a channel's attributes, so one policy can apply a different requirement to each channel. See [Use channel attributes in access rules](#use-channel-attributes-in-access-rules).
+Channel attribute values can be displayed in the channel header, the channel banner, and Channel Info. Access rules can also compare a user's attributes with a channel's attributes, so one policy can apply a different requirement to each channel. Rules are written in CEL, the expression language Mattermost uses for access rules:
+
+```
+user.attributes.Clearance >= resource.attributes.Clearance
+```
+
+See [Use channel attributes in access rules](#use-channel-attributes-in-access-rules).
 
 ## Apply an attribute to channels
 
@@ -51,6 +57,42 @@ To manage values together with the channel's other information:
 4. Select **Save**.
 
 Changes made in Channel Settings remain pending until you select **Save**. Channel attributes aren't available for direct message or group message channels.
+
+## Required channel attributes
+
+From Mattermost v12.2, when a channel attribute is marked **Required** and a channel has no value for it, Mattermost shows indicators to the users who can fill the gap and notifies them by direct message.
+
+### Who sees the indicators
+
+Channel admins, team creators (for the team's default channels), and system admins see the indicators. Plain channel members do not.
+
+### Indicators in the channel
+
+While a required attribute has no value, the following appear for eligible users:
+
+- A **Channel attribute values are missing · Add values** notice below the channel banner. Selecting **Add values** opens Channel Info with focus in the first missing field's editor.
+- A red badge on the **Info** button indicating values are missing.
+- A **Set \<attribute\>** chip in the channel header for each missing required attribute that has **Header** selected as a display location.
+- The missing field is highlighted in red inside Channel Info.
+
+All indicators clear immediately when a value is set, with no page reload required.
+
+### System bot notifications
+
+The System bot sends a direct message to notify eligible users about channels with missing required attribute values:
+
+- **On team creation**: The team creator receives one message listing every default channel (Town Square and Off-Topic) that is missing a required value, the attribute name, and a link to each channel.
+- **On promotion to channel admin**: The newly promoted member receives a message for the channel they were promoted in, if that channel is missing a required value.
+
+No message is sent when the channel already has a value for the required attribute at the time of creation or promotion.
+
+### Resolve a missing required value
+
+1. Select **Add values** in the notice banner, or open Channel Info directly.
+2. In **Channel Attributes**, select the highlighted field and enter or choose a value.
+3. The value is saved immediately and all indicators clear.
+
+Alternatively, a system admin can set the value from **System Console \> User Management \> Channels**, then select the channel. The **Save** button on that page remains disabled until all required attributes have values.
 
 ## Use channel attributes in access rules
 
