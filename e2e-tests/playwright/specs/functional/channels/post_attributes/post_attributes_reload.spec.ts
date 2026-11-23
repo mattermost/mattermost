@@ -5,7 +5,16 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {HYDRATION_PARAM, createField, deleteFields, fieldName, optionId, purgeFields, setPostValues, skipIfNoPostAttributesLicense} from './support';
+import {
+    HYDRATION_PARAM,
+    createField,
+    deleteFields,
+    fieldName,
+    optionId,
+    purgeFields,
+    setPostValues,
+    skipIfNoPostAttributesLicense,
+} from './support';
 
 const CHIPS = 'post-attributes-chips';
 

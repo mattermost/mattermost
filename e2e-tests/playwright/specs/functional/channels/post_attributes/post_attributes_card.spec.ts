@@ -5,7 +5,15 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {createField, deleteFields, fieldName, optionId, purgeFields, setPostValues, skipIfNoPostAttributesLicense} from './support';
+import {
+    createField,
+    deleteFields,
+    fieldName,
+    optionId,
+    purgeFields,
+    setPostValues,
+    skipIfNoPostAttributesLicense,
+} from './support';
 
 const CHIPS = 'post-attributes-chips';
 const OVERFLOW = 'post-attributes-overflow';
