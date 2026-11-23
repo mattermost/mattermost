@@ -6078,6 +6078,11 @@
     "description": "API error shown when switching a user's sign-in method to email/password fails because both email and username login are disabled."
   },
   {
+    "id": "api.user.auth_switch.passkey_session.app_error",
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then change it.",
+    "description": "API error when a session that was started by signing in with a passkey tries to switch the account's sign-in method (for example SSO to email, or email to LDAP). 'Passkey' is a sign-in credential stored on the user's device or password manager."
+  },
+  {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
     "translation": "Bad response from token request.",
     "description": "SSO login error when the external OAuth provider returns an unusable response to the token request."

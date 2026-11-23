@@ -2936,6 +2936,13 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "switch_request", &switchRequest)
 
+	// Judged on this request's own session, not the user: a normal session of the same user may still
+	// switch. Deliberately not gated on the passkey settings, so the restriction outlives turning passkeys off.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey {
+		c.Err = model.NewAppError("switchAccountType", "api.user.auth_switch.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	link := ""
 	var err *model.AppError
 

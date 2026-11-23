@@ -6682,6 +6682,67 @@ func TestSwitchAccount(t *testing.T) {
 		require.NoError(t, tokenErr)
 		require.Equal(t, th.BasicUser.Email, appToken.Extra)
 	})
+
+	t.Run("Passkey session cannot switch sign-in method", func(t *testing.T) {
+		// passkeyClient returns a client signed in with a session that carries the passkey login method.
+		passkeyClient := func(t *testing.T) *model.Client4 {
+			t.Helper()
+			session, appErr := th.App.CreateSession(th.Context, &model.Session{
+				UserId: th.BasicUser.Id,
+				Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+			})
+			require.Nil(t, appErr)
+			client := th.CreateClient()
+			client.AuthToken = session.Token
+			client.AuthType = model.HeaderBearer
+			return client
+		}
+
+		t.Run("OAuth to email is refused for the passkey session but not for a normal session of the same user", func(t *testing.T) {
+			setupUserAuth(t, model.UserAuthServiceGitlab, true)
+			passkey := passkeyClient(t)
+
+			sr := &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceGitlab,
+				NewService:     model.UserAuthServiceEmail,
+				Email:          th.BasicUser.Email,
+				NewPassword:    th.BasicUser.Password,
+			}
+
+			_, resp, err := passkey.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.passkey_session.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+
+			th.App.InvalidateCacheForUser(th.BasicUser.Id)
+			user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+
+			link, _, err := th.Client.SwitchAccountType(context.Background(), sr)
+			require.NoError(t, err)
+			require.Equal(t, "/login?extra=signin_change", link)
+		})
+
+		t.Run("email to LDAP is refused before any password is checked", func(t *testing.T) {
+			setupUserAuth(t, "", true)
+			passkey := passkeyClient(t)
+
+			sr := &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceEmail,
+				NewService:     model.UserAuthServiceLdap,
+				Email:          th.BasicUser.Email,
+				Password:       th.BasicUser.Password,
+				LdapLoginId:    th.BasicUser.Email,
+				NewPassword:    th.BasicUser.Password,
+			}
+
+			_, resp, err := passkey.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.passkey_session.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
 }
 
 func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
