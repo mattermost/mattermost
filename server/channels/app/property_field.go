@@ -513,7 +513,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	// existingFields is the caller's view, which lists only the options a masked
 	// caller may see. The stored fields are what the options an echo stands for
 	// come from, and what the linked-field rule judges against.
-	storedFields, err := a.Srv().Store().PropertyField().GetMany(rctx, groupID, ids)
+	storedFields, err := a.Srv().Store().PropertyField().GetMany(RequestContextWithMaster(rctx), groupID, ids)
 	if err != nil {
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

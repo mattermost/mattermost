@@ -292,7 +292,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		defer h.reportRefusedNoCallerWrite(rctx, "PreUpdatePropertyField", groupID, []string{field.ID}, &err)
 	}
 
-	existingField, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
+	existingField, err := h.propertyService.getPropertyField(store.RequestContextWithMaster(rctx), groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +351,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		fieldIDs[i] = field.ID
 	}
 
-	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(store.RequestContextWithMaster(rctx), groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
