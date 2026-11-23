@@ -525,6 +525,60 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 		CheckErrorID(t, err, "api.post.create_post.attribute_no_permission.app_error")
 	})
 
+	// A restrictions change made through the property API decides the next create, in both directions:
+	// the create-time gate reads the permissions object, not a column left over from before the patch.
+	t.Run("a restrictions patch decides who may set the value on create", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		patchValueWrite := func(t *testing.T, write model.PermissionLevel) {
+			t.Helper()
+			restrictions, err := json.Marshal(model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: write},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			})
+			require.NoError(t, err)
+			patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), model.AccessControlPropertyGroupName,
+				model.PropertyFieldObjectTypePost, field.ID, &model.PropertyFieldPatch{
+					Permissions: &model.PermissionsPatch{Restrictions: restrictions},
+				})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotNil(t, patched.Permissions)
+			require.NotNil(t, patched.Permissions.Restrictions)
+			require.Equal(t, write, patched.Permissions.Restrictions.Value.Write)
+		}
+
+		t.Run("member to sysadmin: a member is refused and a sysadmin is let in", func(t *testing.T) {
+			patchValueWrite(t, model.PermissionLevelSysadmin)
+
+			_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+				submittedPropertyValue(field.ID, `"member"`),
+			))
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.post.create_post.attribute_no_permission.app_error")
+
+			created, resp, err := th.SystemAdminClient.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+				submittedPropertyValue(field.ID, `"sysadmin"`),
+			))
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{field.ID: `"sysadmin"`})
+		})
+
+		t.Run("sysadmin back to member: the member is let in again", func(t *testing.T) {
+			patchValueWrite(t, model.PermissionLevelMember)
+
+			created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+				submittedPropertyValue(field.ID, `"member"`),
+			))
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{field.ID: `"member"`})
+		})
+	})
+
 	t.Run("a post with no metadata stores no property values", func(t *testing.T) {
 		// A field exists for this channel, so a stored value would mean createPost looked it up
 		// despite the request submitting nothing.

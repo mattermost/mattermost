@@ -480,6 +480,130 @@ func TestHydratePropertyValuesMasking(t *testing.T) {
 	})
 }
 
+// The masking write side on a post field: a write that passes the field's value.write tier is still refused
+// when the value already stored holds something the caller can't read. An empty or cleared value hides
+// nothing, so it never blocks a write.
+func TestPostPropertyValueMaskingWrite(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPropertyValuesTest(t)
+	// BasicUser holds option A in the masking user field; BasicUser2 holds nothing. Both are channel
+	// members, which is all the field's member write tier asks for.
+	fixture := th.newMaskedPostFixture(t, th.BasicUser)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+	post := th.post(t, th.BasicChannel)
+
+	// The access_control hook reads its caller from the context, not the session: without it the
+	// write runs as the local admin.
+	as := func(user *model.User) request.CTX {
+		session := th.Context.WithSession(&model.Session{UserId: user.Id, Roles: model.SystemUserRoleId})
+		return RequestContextWithCallerID(session, user.Id)
+	}
+	write := func(rctx request.CTX, raw string) *model.AppError {
+		_, appErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+			TargetID:   post.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    th.groupID,
+			FieldID:    fixture.postField.ID,
+			Value:      json.RawMessage(raw),
+		}}, model.PropertyValueTargetTypePost, post.Id, "")
+		return appErr
+	}
+	stored := func(t *testing.T) string {
+		t.Helper()
+		values, err := th.App.Srv().Store().PropertyValue().SearchPropertyValues(th.Context, model.PropertyValueSearchOpts{
+			GroupID:   th.groupID,
+			FieldID:   fixture.postField.ID,
+			TargetIDs: []string{post.Id},
+			PerPage:   1,
+		})
+		require.NoError(t, err)
+		require.Len(t, values, 1)
+		return string(values[0].Value)
+	}
+	quoted := func(s string) string { return `"` + s + `"` }
+
+	// The subtests run in order: each one starts from the value the previous one left behind.
+	t.Run("a member who can't see the value may set it while nothing is stored", func(t *testing.T) {
+		require.Nil(t, write(as(th.BasicUser2), quoted(fixture.optionA)))
+		assert.JSONEq(t, quoted(fixture.optionA), stored(t))
+	})
+
+	t.Run("the same member may not overwrite a stored value they can't see", func(t *testing.T) {
+		appErr := write(as(th.BasicUser2), quoted(fixture.optionB))
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.JSONEq(t, quoted(fixture.optionA), stored(t), "the refused write changed the stored value")
+	})
+
+	t.Run("a member holding the stored value may overwrite it", func(t *testing.T) {
+		require.Nil(t, write(as(th.BasicUser), `""`))
+		assert.JSONEq(t, `""`, stored(t))
+	})
+
+	t.Run("once the value is cleared, a member who can't see it may set it again", func(t *testing.T) {
+		require.Nil(t, write(as(th.BasicUser2), quoted(fixture.optionB)))
+		assert.JSONEq(t, quoted(fixture.optionB), stored(t))
+	})
+}
+
+// The value.read tier gates a post's values per viewer: a value the viewer may not read is left out of the
+// post's metadata, without marking the post's values unavailable.
+func TestHydratePropertyValuesReadGate(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPropertyValuesTest(t)
+	admin := th.Context.WithSession(&model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	})
+	field, appErr := th.App.CreatePropertyField(admin, &model.PropertyField{
+		GroupID:    th.groupID,
+		Name:       "f_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypePost,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Value: model.ReadWrite{Read: model.PermissionLevelCreator, Write: model.PermissionLevelCreator},
+		}},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	// BasicUser authors the post; BasicUser2 is a plain member of the same channel.
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+	post := th.post(t, th.BasicChannel)
+	th.setValue(t, post, field, `"for the author"`)
+
+	prepareAs := func(user *model.User, roles string) *model.Post {
+		fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		fresh.Metadata = nil
+		viewer := th.Context.WithSession(&model.Session{UserId: user.Id, Roles: roles})
+		return th.App.PreparePostForClient(viewer, fresh, &model.PreparePostForClientOpts{PropertyGroupID: th.groupID})
+	}
+	requireSees := func(t *testing.T, hydrated *model.Post) {
+		t.Helper()
+		require.Len(t, hydrated.Metadata.PropertyValues, 1)
+		assert.Equal(t, field.ID, hydrated.Metadata.PropertyValues[0].FieldID)
+		assert.JSONEq(t, `"for the author"`, string(hydrated.Metadata.PropertyValues[0].Value))
+	}
+
+	t.Run("the author reads the value", func(t *testing.T) {
+		requireSees(t, prepareAs(th.BasicUser, model.SystemUserRoleId))
+	})
+
+	t.Run("another member of the channel gets it left out, and the post is not marked unavailable", func(t *testing.T) {
+		hydrated := prepareAs(th.BasicUser2, model.SystemUserRoleId)
+		assert.Empty(t, hydrated.Metadata.PropertyValues)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
+	})
+
+	t.Run("a sysadmin reads the value", func(t *testing.T) {
+		requireSees(t, prepareAs(th.SystemAdminUser, model.SystemAdminRoleId+" "+model.SystemUserRoleId))
+	})
+}
+
 // The property_values_updated event reaches every member of the channel from one payload, so a value that
 // the template masks is withheld from it even though the author, who holds the value, may read it.
 func TestPostPropertyValueBroadcastWithholdsMaskedValue(t *testing.T) {
