@@ -2077,12 +2077,12 @@ func TestGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
 		allowOnlyBasicUser(h, h.mockACS(t))
 		ids := []string{h.th.BasicChannel.Id}
 
-		channels, appErr := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.rctx, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
-		require.Nil(t, appErr)
+		channels, err := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.rctx, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+		require.NoError(t, err)
 		require.Equal(t, ids, channelIDs(channels))
 
-		channels, appErr = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.rctx, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
-		require.Nil(t, appErr)
+		channels, err = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.rctx, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
+		require.NoError(t, err)
 		require.Empty(t, channels, "a denied user must not see the channel, even though the session user may")
 	})
 
@@ -2091,12 +2091,12 @@ func TestGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
 		allowOnlyBasicUser(h, h.mockACS(t))
 		ids := []string{h.th.BasicChannel.Id}
 
-		channels, appErr := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
-		require.Nil(t, appErr)
+		channels, err := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+		require.NoError(t, err)
 		require.Equal(t, ids, channelIDs(channels))
 
-		channels, appErr = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
-		require.Nil(t, appErr)
+		channels, err = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
+		require.NoError(t, err)
 		require.Empty(t, channels)
 	})
 
@@ -2104,15 +2104,16 @@ func TestGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		ids := []string{th.BasicChannel.Id}
 
-		channels, appErr := th.App.GetPublicChannelsByIdsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, ids)
-		require.Nil(t, appErr)
+		channels, err := th.App.GetPublicChannelsByIdsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, ids)
+		require.NoError(t, err)
 		require.Equal(t, ids, channelIDs(channels))
 	})
 
 	t.Run("returns not found when nothing matches", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
-		_, appErr := th.App.GetPublicChannelsByIdsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser.Id, []string{model.NewId()})
+		_, err := th.App.GetPublicChannelsByIdsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser.Id, []string{model.NewId()})
+		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})

@@ -550,8 +550,8 @@ func (api *PluginAPI) GetPublicChannelsByIdsForTeamForUser(teamID, userID string
 		return []*model.Channel{}, nil
 	}
 
-	channels, appErr := api.app.GetPublicChannelsByIdsForTeamForUser(api.ctx, teamID, userID, channelIDs)
-	if appErr != nil {
+	channels, err := api.app.GetPublicChannelsByIdsForTeamForUser(api.ctx, teamID, userID, channelIDs)
+	if appErr := model.AsAppError(err); appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return []*model.Channel{}, nil
 		}
