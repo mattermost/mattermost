@@ -1251,7 +1251,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*Server).writeFileConte
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).zipReader
 github.com/mattermost/mattermost/server/v8/channels/app.(*UploadFileTask).preprocessImage
 github.com/mattermost/mattermost/server/v8/channels/app.PostBurnOnReadCheckWithApp
-github.com/mattermost/mattermost/server/v8/channels/app.PostCardTypeCheckWithApp
 github.com/mattermost/mattermost/server/v8/channels/app.PostHardenedModeCheckWithApp
 github.com/mattermost/mattermost/server/v8/channels/app.PostPriorityCheckWithApp
 github.com/mattermost/mattermost/server/v8/channels/app.UploadFileTask.newAppError

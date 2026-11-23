@@ -66,7 +66,6 @@ const (
 	PostCustomTypePrefix              = "custom_"
 	PostTypeReminder                  = "reminder"
 	PostTypeBurnOnRead                = "burn_on_read"
-	PostTypeCard                      = "card"
 	// PostTypeSharedChannelState is a system post for share/unshare events; the client translates using props.
 	// Name must fit Posts.Type varchar(26) (see store migrations).
 	PostTypeSharedChannelState = "system_shared_chan_state"
@@ -605,7 +604,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
 		PostTypeBurnOnRead,
-		PostTypeCard,
 		PostTypeSharedChannelState:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {

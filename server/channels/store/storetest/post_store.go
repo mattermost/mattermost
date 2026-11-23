@@ -251,19 +251,6 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
 	})
 
-	t.Run("Save post with type card", func(t *testing.T) {
-		o1 := model.Post{}
-		o1.ChannelId = model.NewId()
-		o1.UserId = model.NewId()
-		o1.Message = NewTestID()
-		o1.Type = model.PostTypeCard
-
-		p, err := ss.Post().Save(rctx, &o1)
-		require.NoError(t, err, "couldn't save item")
-		assert.Equal(t, model.PostTypeCard, p.Type)
-		assert.Equal(t, o1.Message, p.Message)
-	})
-
 	t.Run("Save post with priority metadata set", func(t *testing.T) {
 		o1 := model.Post{}
 		o1.ChannelId = model.NewId()
@@ -5596,7 +5583,7 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		// Posts of excluded types, one live and one deleted, interleaved with the others.
 		for _, p := range []*model.Post{
 			{Type: model.PostTypeHeaderChange, CreateAt: base + 150},
-			{Type: model.PostTypeCard, CreateAt: base + 350, DeleteAt: base + 360},
+			{Type: model.PostTypeReminder, CreateAt: base + 350, DeleteAt: base + 360},
 		} {
 			p.ChannelId = modifiedChannelID
 			p.UserId = model.NewId()
@@ -5616,7 +5603,7 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 			SinceCreateAt:                     true,
 			IncludeDeleted:                    true,
 			ExcludeChannelMetadataSystemPosts: true,
-			ExcludedPostTypes:                 []string{model.PostTypeCard},
+			ExcludedPostTypes:                 []string{model.PostTypeReminder},
 		}
 		start := model.GetPostsSinceForSyncCursor{LastPostCreateAt: base}
 
@@ -6185,7 +6172,7 @@ func testGetPostsSinceForSyncExcludedPostTypes(t *testing.T, rctx request.CTX, s
 
 	data := []*model.Post{
 		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post", Type: model.PostTypeDefault},
-		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "card post", Type: model.PostTypeCard},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "reminder post", Type: model.PostTypeReminder},
 		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "another regular", Type: model.PostTypeDefault},
 		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "join post", Type: model.PostTypeJoinChannel},
 	}
@@ -6201,27 +6188,27 @@ func testGetPostsSinceForSyncExcludedPostTypes(t *testing.T, rctx request.CTX, s
 	t.Run("ExcludedPostTypes filters out specified types", func(t *testing.T) {
 		opt := model.GetPostsSinceForSyncOptions{
 			ChannelId:         channelID,
-			ExcludedPostTypes: []string{model.PostTypeCard},
+			ExcludedPostTypes: []string{model.PostTypeReminder},
 		}
 		cursor := model.GetPostsSinceForSyncCursor{}
 		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
 		require.NoError(t, err)
-		require.Len(t, posts, 3, "should exclude the card post")
+		require.Len(t, posts, 3, "should exclude the reminder post")
 
 		for _, post := range posts {
-			require.NotEqual(t, model.PostTypeCard, post.Type)
+			require.NotEqual(t, model.PostTypeReminder, post.Type)
 		}
 	})
 
 	t.Run("ExcludedPostTypes with multiple types", func(t *testing.T) {
 		opt := model.GetPostsSinceForSyncOptions{
 			ChannelId:         channelID,
-			ExcludedPostTypes: []string{model.PostTypeCard, model.PostTypeJoinChannel},
+			ExcludedPostTypes: []string{model.PostTypeReminder, model.PostTypeJoinChannel},
 		}
 		cursor := model.GetPostsSinceForSyncCursor{}
 		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
 		require.NoError(t, err)
-		require.Len(t, posts, 2, "should exclude card and join posts")
+		require.Len(t, posts, 2, "should exclude reminder and join posts")
 
 		for _, post := range posts {
 			require.Equal(t, model.PostTypeDefault, post.Type)

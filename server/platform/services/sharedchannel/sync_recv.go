@@ -160,10 +160,6 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	}
 
 	for _, post := range syncMsg.Posts {
-		if post.Type == model.PostTypeCard {
-			continue
-		}
-
 		if syncMsg.ChannelId != post.ChannelId {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),

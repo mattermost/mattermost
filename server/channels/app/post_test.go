@@ -2195,24 +2195,6 @@ func TestCreatePost(t *testing.T) {
 		require.Equal(t, unreadBefore.MsgCount, unreadAfter.MsgCount)
 	})
 
-	t.Run("creates post with type card", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "card post",
-			Type:      model.PostTypeCard,
-		}
-
-		rpost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		require.NotNil(t, rpost)
-		assert.Equal(t, model.PostTypeCard, rpost.Type)
-		assert.Equal(t, "card post", rpost.Message)
-	})
-
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
