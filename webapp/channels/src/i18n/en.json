@@ -2843,6 +2843,30 @@
     "defaultMessage": "Save and Archive Channel",
     "description": "Title of the confirmation modal shown when saving channel settings will also archive the channel."
   },
+  "admin.channel_settings.channel_detail.attributes.not_set": {
+    "defaultMessage": "Not set",
+    "description": "Shown in the System Console > Channels > channel details page, \"Channel attributes\" section, as the dropdown placeholder or read-only text when the channel has no value for that attribute."
+  },
+  "admin.channel_settings.channel_detail.attributes.remove_value": {
+    "defaultMessage": "Remove {value}",
+    "description": "Accessible label for the button that removes one selected value from a multi-select attribute in the System Console > Channels > channel details page, \"Channel attributes\" section; {value} is the option's name."
+  },
+  "admin.channel_settings.channel_detail.attributes.required_error": {
+    "defaultMessage": "This attribute is required. Set a value to save.",
+    "description": "Error under a required channel attribute in System Console > Channel Configuration, shown after Save was refused because the attribute has no value."
+  },
+  "admin.channel_settings.channel_detail.attributes.required_missing": {
+    "defaultMessage": "Set a value for {attributes} before saving. {count, plural, one {This attribute is} other {These attributes are}} required.",
+    "description": "Error at the Save bar of System Console > Channel Configuration when a required channel attribute would be saved without a value (cleared, or unset on a channel being unarchived); {attributes} is a comma-separated list of attribute names and {count} their number."
+  },
+  "admin.channel_settings.channel_detail.attributesDescription": {
+    "defaultMessage": "Set this channel's value for each channel attribute.",
+    "description": "Description under the heading of the System Console > Channels > channel details page, \"Channel attributes\" section."
+  },
+  "admin.channel_settings.channel_detail.attributesTitle": {
+    "defaultMessage": "Channel attributes",
+    "description": "Heading of the System Console > Channels > channel details page, \"Channel attributes\" section, where a system admin sets this channel's values for the channel attributes."
+  },
   "admin.channel_settings.channel_detail.channel_configuration": {
     "defaultMessage": "Channel Configuration",
     "description": "Page header of the per-channel configuration page in the System Console."
@@ -5803,6 +5827,50 @@
     "defaultMessage": "Channel Info",
     "description": "Checkbox option under 'Display location' in an attribute's Channels settings, and a segment of the collapsed row summary. Refers to the Channel Info side panel in the channel view; it is a localized UI name, so match the translation used for that panel."
   },
+  "admin.global_attributes.applies_to.channels.missing_values.attribute_fallback": {
+    "defaultMessage": "this attribute",
+    "description": "Stands in for the attribute's name in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner text when the attribute has no display name yet; used inside a sentence, so keep it lowercase."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.body": {
+    "defaultMessage": "{count, plural, one {# channel doesn't} other {# channels don't}} have a {attribute} value yet. Set a value on every existing channel before turning Required on.",
+    "description": "Body of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, shown while Required is off and some channels have no value; {attribute} is the attribute's name. Required can only be turned on once every existing channel has a value."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.body_already_required": {
+    "defaultMessage": "{count, plural, one {# channel doesn't} other {# channels don't}} have a {attribute} value yet. New channels must set one; existing channels keep working until a value is set.",
+    "description": "Body of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, shown when the attribute is already Required but some channels still have no value; {attribute} is the attribute's name."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.body_create_mode": {
+    "defaultMessage": "Save this attribute first, then set a value on every existing channel before turning Required on.",
+    "description": "Body of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, shown while the attribute is still being created and has not been saved yet."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notify": {
+    "defaultMessage": "Notify all channel admins",
+    "description": "Button in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner that sends a direct-message reminder to every admin of a channel missing a value."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notify_cooling_down": {
+    "defaultMessage": "Channel admins were recently notified about this. You can send another notification in {count, plural, one {# minute} other {# minutes}}.",
+    "description": "Banner text in the System Console attribute page, shown instead of the confirmation when an admin clicks Notify all channel admins while a recent notification for the same attribute is still cooling down; {count} is the minutes left."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notify_failed": {
+    "defaultMessage": "The notifications couldn't be sent. Please try again.",
+    "description": "Error message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner when sending the reminders to channel admins failed."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.queued": {
+    "defaultMessage": "Notification queued for {count, plural, one {# channel admin} other {# channel admins}}.",
+    "description": "Success message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were queued for background delivery; {count} is the number of channel admins queued to receive a reminder."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.queued_truncated": {
+    "defaultMessage": "Notification queued for {count, plural, one {# channel admin} other {# channel admins}}. Some channel admins were not reached because this attribute affects more admins than one run can notify. Use View channel list to see the channels still missing a value.",
+    "description": "Warning message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were queued but not every channel admin could be reached in one run; {count} is the number queued. \"View channel list\" is the label of the banner's other button, which lists the channels still missing a value."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.title": {
+    "defaultMessage": "Set channel attribute values",
+    "description": "Title of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, which warns that some channels have no value for this attribute."
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.view_list": {
+    "defaultMessage": "View channel list",
+    "description": "Link in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner that opens the list of channels with no value for this attribute."
+  },
   "admin.global_attributes.applies_to.channels.remove": {
     "defaultMessage": "Remove resource",
     "description": "Destructive button in the expanded Channels row of an attribute's 'Applies to' card in the System Console; stops the attribute from applying to channels."
@@ -5858,6 +5926,74 @@
   "admin.global_attributes.applies_to.channels.toggle.on": {
     "defaultMessage": "On",
     "description": "State text shown next to the Required toggle switch in an attribute's Channels settings when the switch is on."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.close": {
+    "defaultMessage": "Close",
+    "description": "Button that closes the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.column.admin": {
+    "defaultMessage": "Channel admin",
+    "description": "Column header in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute for the channel admins of each listed channel."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.column.channel": {
+    "defaultMessage": "Channel",
+    "description": "Column header in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute for the channel name."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.column.team": {
+    "defaultMessage": "Team",
+    "description": "Column header in the System Console list of channels missing a channel attribute value; the column shows the team each channel belongs to."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.empty": {
+    "defaultMessage": "Every channel has a value",
+    "description": "Empty state of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when no channel is missing a value anymore."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.empty_filtered_page": {
+    "defaultMessage": "No matching channels on this page",
+    "description": "Empty state of the System Console \"Channels without a value\" modal, shown when the selected Local or Shared filter matches no channel on the current page although other pages still have channels missing a value."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.error": {
+    "defaultMessage": "The channel list couldn't be loaded.",
+    "description": "Error message in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when the list of channels failed to load."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.filter.all": {
+    "defaultMessage": "All ({count})",
+    "description": "Filter tab in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute showing every channel; {count} is the number of channels."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.filter.local": {
+    "defaultMessage": "Local ({count})",
+    "description": "Filter tab in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute showing only this server's own channels, not shared ones; {count} is the number of channels."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.filter.shared": {
+    "defaultMessage": "Shared ({count})",
+    "description": "Filter tab in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute showing only channels shared from another server (shared channels); {count} is the number of channels."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.next": {
+    "defaultMessage": "Next",
+    "description": "Pagination button for the next page of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.no_admin": {
+    "defaultMessage": "No channel admin",
+    "description": "Shown in the Channel admin column of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when a channel has no channel admin."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.open_channel_aria": {
+    "defaultMessage": "Open {channel} in a new tab",
+    "description": "Accessible label for the link that opens a listed channel in a new browser tab, in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute; {channel} is the channel's name."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.previous": {
+    "defaultMessage": "Previous",
+    "description": "Pagination button for the previous page of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.retry": {
+    "defaultMessage": "Try again",
+    "description": "Button in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute that retries loading the channel list after an error."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.subtitle": {
+    "defaultMessage": "{count, plural, one {# channel} other {# channels}} still need a {attribute} value",
+    "description": "Subtitle of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute; {count} is the number of channels with no value and {attribute} is the attribute's name."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.title": {
+    "defaultMessage": "Channels without a value",
+    "description": "Title of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute, which lists the channels that have no value for the attribute."
   },
   "admin.global_attributes.applies_to.empty": {
     "defaultMessage": "This attribute does not apply to any resource yet.",
@@ -6515,6 +6651,10 @@
     "defaultMessage": "An attribute with this name already exists. Please choose a different name.",
     "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when another attribute already uses the same unique name."
   },
+  "admin.global_attributes.attribute_details.save_error.required_channels_missing_values": {
+    "defaultMessage": "This attribute can't be made required while some channels have no value for it. Notify their channel admins, then try again.",
+    "description": "Red error banner on the attribute page (System Console > System Attributes > Attribute Management) when saving Required is refused because some channels have no value yet; shown only if the server sent no message of its own."
+  },
   "admin.global_attributes.attribute_details.save_error.reserved_word": {
     "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",
     "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the chosen unique name matches a word reserved by the system."
@@ -6734,6 +6874,34 @@
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Attribute Management. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.admins": {
+    "defaultMessage": "A notification will be sent to {count, plural, one {# channel administrator} other {# channel administrators}} requesting them to set a value.",
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of channel admins who will get a message."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.no_admin": {
+    "defaultMessage": "{count, plural, one {# channel has no channel admin and isn't notified.} other {# channels have no channel admin and aren't notified.}}",
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of affected channels that have no channel admin, so nobody will be reminded about them."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.shared": {
+    "defaultMessage": "{count, plural, one {# channel is} other {# channels are}} shared from a connected workspace.",
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of channels shared from another connected server, whose admins are not notified."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.confirm": {
+    "defaultMessage": "Send notification",
+    "description": "Confirm button of the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.message_label": {
+    "defaultMessage": "Message to be sent",
+    "description": "Label above the preview of the direct message that will be sent, in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.summary": {
+    "defaultMessage": "{count, plural, one {# channel needs} other {# channels need}} a {attribute} value.",
+    "description": "Summary line of the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of channels with no value and {attribute} is the attribute's name."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.title": {
+    "defaultMessage": "Notify all channel admins?",
+    "description": "Title of the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value."
   },
   "admin.global_attributes.confirm.remove_applies_to.body": {
     "defaultMessage": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",
@@ -7514,6 +7682,34 @@
   "admin.health_dashboard.error.title": {
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.export.button": {
+    "defaultMessage": "Export",
+    "description": "Secondary menu button in the summary header of the System Console Site health page, next to Re-run checks, that opens the menu of ways to export the health findings."
+  },
+  "admin.health_dashboard.export.error": {
+    "defaultMessage": "The health findings could not be exported. Try again.",
+    "description": "Error banner on the System Console Site health page shown when downloading or printing the health findings export fails."
+  },
+  "admin.health_dashboard.export.exporting": {
+    "defaultMessage": "Exporting…",
+    "description": "Label of the Export menu button on the System Console Site health page while the export is being fetched from the server."
+  },
+  "admin.health_dashboard.export.html": {
+    "defaultMessage": "Download HTML",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a self-contained HTML report file."
+  },
+  "admin.health_dashboard.export.markdown": {
+    "defaultMessage": "Download Markdown",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a Markdown file."
+  },
+  "admin.health_dashboard.export.menu_label": {
+    "defaultMessage": "Export health findings",
+    "description": "Accessible label of the Export menu on the System Console Site health page."
+  },
+  "admin.health_dashboard.export.print": {
+    "defaultMessage": "Print / Save as PDF",
+    "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
   },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
@@ -22771,6 +22967,10 @@
     "defaultMessage": "This channel is read-only. Only members with permission can post here.",
     "description": "Placeholder in the disabled message box of a read-only channel."
   },
+  "create_post.scheduling_blocked_by_error": {
+    "defaultMessage": "Fix the error with your message before scheduling it.",
+    "description": "Error shown in the schedule custom time dialog when the message has a validation error (for example, it is too long) that prevents it from being scheduled."
+  },
   "create_post.shortcutsNotSupported": {
     "defaultMessage": "Keyboard shortcuts are not supported on your device.",
     "description": "Error shown when the /shortcuts slash command is invoked on a mobile device where keyboard shortcuts do not apply."
@@ -23750,6 +23950,70 @@
   "emoji_skin.medium_skin_tone": {
     "defaultMessage": "Medium skin tone",
     "description": "Name of the medium skin tone option in the emoji picker's skin tone selector."
+  },
+  "entity_card.known_exploited": {
+    "defaultMessage": "Known exploited",
+    "description": "Badge on an entity card when the vulnerability is known to be exploited."
+  },
+  "entity_card.open_full_list": {
+    "defaultMessage": "Open the full list",
+    "description": "Link that opens the full list for an entity card section."
+  },
+  "entity_card.related": {
+    "defaultMessage": "Related",
+    "description": "Heading above related entity links on an entity card."
+  },
+  "entity_card.severity.critical": {
+    "defaultMessage": "Critical",
+    "description": "Critical severity badge on an entity card."
+  },
+  "entity_card.severity.high": {
+    "defaultMessage": "High",
+    "description": "High severity badge on an entity card."
+  },
+  "entity_card.severity.low": {
+    "defaultMessage": "Low",
+    "description": "Low severity badge on an entity card."
+  },
+  "entity_card.severity.medium": {
+    "defaultMessage": "Medium",
+    "description": "Medium severity badge on an entity card."
+  },
+  "entity_card.severity.none": {
+    "defaultMessage": "None",
+    "description": "None severity badge on an entity card."
+  },
+  "entity_card.show_less": {
+    "defaultMessage": "Show less",
+    "description": "Collapse a long entity card summary in the RHS."
+  },
+  "entity_card.show_more": {
+    "defaultMessage": "Show more",
+    "description": "Expand a long entity card summary in the RHS."
+  },
+  "entity_card.vector_decoded": {
+    "defaultMessage": "Vector, decoded",
+    "description": "Heading above decoded CVSS vector metrics on an entity card."
+  },
+  "entity_label.mm.time": {
+    "defaultMessage": "Time",
+    "description": "Display name for the built-in timestamp entity type."
+  },
+  "entity_mention.open": {
+    "defaultMessage": "Open",
+    "description": "Link in the entity mention hover card that opens the entity URL."
+  },
+  "entity_rhs.back": {
+    "defaultMessage": "Back",
+    "description": "Accessible label for the back control in the entity RHS."
+  },
+  "entity_rhs.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible label for the close control in the entity RHS."
+  },
+  "entity_rhs.no_additional_information": {
+    "defaultMessage": "No additional information",
+    "description": "Shown in the entity RHS when a matched value has no card body beyond its title or URL."
   },
   "error.channel_not_found.message": {
     "defaultMessage": "The channel you're requesting is private or does not exist. Please contact an Administrator to be added to the channel.",
@@ -28595,6 +28859,14 @@
     "defaultMessage": "Attributes",
     "description": "Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun."
   },
+  "post_attributes.chip.post": {
+    "defaultMessage": "Message",
+    "description": "Text of an attribute chip under a post whose value is a link to another message, when that message is not loaded. Noun."
+  },
+  "post_attributes.chip.post_in_channel": {
+    "defaultMessage": "Message in ~{channel}",
+    "description": "Text of an attribute chip under a post whose value is a link to another message. {channel} is the name of the channel that message is in."
+  },
   "post_attributes.chips.overflow": {
     "defaultMessage": "+{count, number}",
     "description": "Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes."
@@ -28605,7 +28877,39 @@
   },
   "post_attributes.composer.add": {
     "defaultMessage": "Add attributes",
-    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
+    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens a menu of attributes to add to the message being written. Plural noun after a verb."
+  },
+  "post_attributes.composer.cannot_add_burn_on_read": {
+    "defaultMessage": "Burn-on-read messages can’t have attributes",
+    "description": "Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read."
+  },
+  "post_attributes.composer.cannot_burn_on_read": {
+    "defaultMessage": "Messages with attributes can’t be burn-on-read",
+    "description": "Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written."
+  },
+  "post_attributes.composer.cannot_schedule": {
+    "defaultMessage": "Messages with attributes can’t be scheduled",
+    "description": "Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written."
+  },
+  "post_attributes.composer.chip": {
+    "defaultMessage": "{field}: {value}",
+    "description": "Accessible name of an attribute chip in the message composer, read by screen readers. {field} is the attribute's name; {value} is the selected option or options."
+  },
+  "post_attributes.composer.chip.field": {
+    "defaultMessage": "{field}:",
+    "description": "Read by screen readers only, before the value of a text or user attribute chip in the message composer. {field} is the attribute's name."
+  },
+  "post_attributes.composer.chip.pending": {
+    "defaultMessage": "Select value for {field}",
+    "description": "Accessible name of an attribute chip in the message composer that has no value yet; activating it opens the list of values. {field} is the attribute's name."
+  },
+  "post_attributes.composer.group": {
+    "defaultMessage": "Attached post attributes",
+    "description": "Accessible label of the row of attribute chips above the message box in the composer."
+  },
+  "post_attributes.composer.remove": {
+    "defaultMessage": "Remove {attribute}",
+    "description": "Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute's name. Verb."
   },
   "post_attributes.dot_menu.attributes": {
     "defaultMessage": "Attributes",
@@ -28613,11 +28917,11 @@
   },
   "post_attributes.modal.add": {
     "defaultMessage": "Add attribute",
-    "description": "Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb."
+    "description": "Button text (after a + icon), at the bottom of the post attributes modal and after the attribute chips in the message composer. It opens a menu listing the attributes that can be added to the post. Verb."
   },
   "post_attributes.modal.clear": {
     "defaultMessage": "Clear {attribute}",
-    "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
+    "description": "Tooltip and accessible label of the trash button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
   },
   "post_attributes.modal.empty": {
     "defaultMessage": "There are no attributes on this post that you can view or add.",
@@ -28637,7 +28941,7 @@
   },
   "post_attributes.modal.picker.label": {
     "defaultMessage": "Add an attribute",
-    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post."
+    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute buttons in the post attributes modal and in the message composer, that lists attributes which can be added to the post."
   },
   "post_attributes.modal.subtitle": {
     "defaultMessage": "{author} · {channel}",
@@ -28646,6 +28950,14 @@
   "post_attributes.modal.title": {
     "defaultMessage": "Post attributes",
     "description": "Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post."
+  },
+  "post_attributes.picker.no_results": {
+    "defaultMessage": "No matching attributes",
+    "description": "Shown in the add attribute menu, under its search box, when the search text matches no attribute."
+  },
+  "post_attributes.picker.search": {
+    "defaultMessage": "Search attributes",
+    "description": "Placeholder and accessible name of the search box at the top of the menu that lists the attributes that can be added to a post. Filters the list as the user types."
   },
   "post_body.check_for_out_of_channel_groups_mentions.message": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
@@ -29277,7 +29589,7 @@
   },
   "product_rail.ariaLabel": {
     "defaultMessage": "Product navigation",
-    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels and products such as Boards and Playbooks."
   },
   "product_rail.boards": {
     "defaultMessage": "Boards",
@@ -29287,21 +29599,57 @@
     "defaultMessage": "Channels",
     "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
   },
+  "product_rail.itemMenu.label": {
+    "defaultMessage": "Product options",
+    "description": "Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail."
+  },
+  "product_rail.itemMenu.pin": {
+    "defaultMessage": "Pin",
+    "description": "Item in the right-click menu of an unpinned product, shown in the product navigation rail only while it is open. It pins the product back on the rail, out of the More menu."
+  },
+  "product_rail.itemMenu.unpin": {
+    "defaultMessage": "Unpin",
+    "description": "Item in the right-click menu of a product, such as Boards or Playbooks, in the product navigation rail. It takes the product off the rail and into the More menu at the end of it."
+  },
+  "product_rail.more": {
+    "defaultMessage": "More",
+    "description": "Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.label": {
+    "defaultMessage": "More products",
+    "description": "Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.labelWithMentions": {
+    "defaultMessage": "More products, {count, plural, one {# mention} other {# mentions}}",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have mentions. {count} is their total, shown in a badge on it."
+  },
+  "product_rail.moreMenu.labelWithUnreads": {
+    "defaultMessage": "More products, unread activity",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have unread activity but no mentions, shown as a dot on it."
+  },
+  "product_rail.moreMenu.pin": {
+    "defaultMessage": "Pin {name}",
+    "description": "Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail."
+  },
+  "product_rail.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the product navigation rail, shown while the team sidebar is hidden. It brings the team sidebar back."
+  },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
   },
+  "product_rail.teamMenu.buttonLabelWithMentions": {
+    "defaultMessage": "Switch teams, {count, plural, one {# mention} other {# mentions}} in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have mentions. {count} is their total, shown in a badge on the button."
+  },
+  "product_rail.teamMenu.buttonLabelWithUnreads": {
+    "defaultMessage": "Switch teams, unread messages in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have unread messages but no mentions, shown as a dot on the button."
+  },
   "product_rail.teamMenu.menuLabel": {
     "defaultMessage": "Teams",
     "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
-  },
-  "product_rail.teamMenu.showTeamSidebar": {
-    "defaultMessage": "Show team sidebar",
-    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
-  },
-  "product_rail.threads": {
-    "defaultMessage": "Threads",
-    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
   },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",
@@ -31531,6 +31879,10 @@
     "defaultMessage": "Add Channels",
     "description": "Call-to-action button at the bottom of the channel sidebar that opens a menu to browse or create channels."
   },
+  "sidebar_left.addChannelsCta.board": {
+    "defaultMessage": "Add Boards",
+    "description": "Call-to-action button at the bottom of the channel sidebar when the Boards item of the product navigation rail is selected; opens a menu to browse or create."
+  },
   "sidebar_left.channel_filter.filterByUnread": {
     "defaultMessage": "Filter by unread",
     "description": "Tooltip on the sidebar filter toggle when it would enable showing only unread channels."
@@ -31563,6 +31915,10 @@
     "defaultMessage": "Find Channels",
     "description": "Accessible label for the channel switcher (jump to) button at the top of the channel sidebar."
   },
+  "sidebar_left.channel_navigator.channelSwitcherLabel.board": {
+    "defaultMessage": "Find Boards",
+    "description": "Accessible label of the quick switcher button at the top of the sidebar when the Boards item of the product navigation rail is selected."
+  },
   "sidebar_left.channel_navigator.goBackLabel": {
     "defaultMessage": "Back",
     "description": "Tooltip/accessibility label for the back arrow history button in the global header; navigation direction, not a physical position."
@@ -31574,6 +31930,10 @@
   "sidebar_left.channel_navigator.jumpTo": {
     "defaultMessage": "Find channel",
     "description": "Visible text on the channel switcher button at the top of the channel sidebar; opens the quick channel switcher dialog."
+  },
+  "sidebar_left.channel_navigator.jumpTo.board": {
+    "defaultMessage": "Find board",
+    "description": "Text of the quick switcher button at the top of the sidebar when the Boards item of the product navigation rail is selected."
   },
   "sidebar_left.inviteMembers": {
     "defaultMessage": "Invite Members",
@@ -31846,6 +32206,10 @@
   "sidebar.types.channels": {
     "defaultMessage": "CHANNELS",
     "description": "All-caps default header of the Channels category in the channel sidebar; compact space."
+  },
+  "sidebar.types.channels.board": {
+    "defaultMessage": "BOARDS",
+    "description": "All-caps header of the Channels category in the channel sidebar when the Boards item of the product navigation rail is selected; compact space."
   },
   "sidebar.types.direct_messages": {
     "defaultMessage": "DIRECT MESSAGES",
@@ -33298,6 +33662,18 @@
   "unarchive_channel.del": {
     "defaultMessage": "Unarchive",
     "description": "Confirm button (verb) of the unarchive channel modal; restores an archived channel."
+  },
+  "unarchive_channel.missing_attributes.body": {
+    "defaultMessage": "This channel has no value for {attributes}. {count, plural, one {That attribute is} other {Those attributes are}} required. You can set the {count, plural, one {value} other {values}} after restoring the channel.",
+    "description": "Warning banner body in the unarchive channel modal when the channel lacks values for required channel attributes; {attributes} is a comma-separated list of attribute names, {count} is how many."
+  },
+  "unarchive_channel.missing_attributes.confirm": {
+    "defaultMessage": "Unarchive anyway",
+    "description": "Confirm button of the unarchive channel modal shown instead of 'Unarchive' when required channel attribute values are missing; restoring is still allowed."
+  },
+  "unarchive_channel.missing_attributes.title": {
+    "defaultMessage": "Missing required attribute values",
+    "description": "Title of the warning banner in the unarchive channel modal when the channel is missing values for required channel attributes."
   },
   "unarchiveChannelModal.viewArchived.question": {
     "defaultMessage": "Are you sure you wish to unarchive the <b>{display_name}</b> channel?",

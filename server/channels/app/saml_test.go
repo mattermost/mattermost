@@ -302,24 +302,39 @@ func TestAddSamlIdpCertificate(t *testing.T) {
 func TestAddSamlSpCertificates(t *testing.T) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
+	otherKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	certPEM := func(t *testing.T, key *ecdsa.PrivateKey) []byte {
+		return pemEncode("CERTIFICATE", testCertificateDERForKey(t, key))
+	}
+	keyPEM := func(t *testing.T, key *ecdsa.PrivateKey) []byte {
+		return pkcs8PEM(t, key)
+	}
 
 	for name, tc := range map[string]struct {
-		upload       func(*App, request.CTX, *multipart.FileHeader) *model.AppError
-		filename     string
-		data         []byte
-		invalidErrID string
+		upload          func(*App, request.CTX, *multipart.FileHeader) *model.AppError
+		filename        string
+		counterpartName string
+		data            func(*testing.T, *ecdsa.PrivateKey) []byte
+		counterpart     func(*testing.T, *ecdsa.PrivateKey) []byte
+		invalidErrID    string
 	}{
 		"public certificate": {
-			upload:       (*App).AddSamlPublicCertificate,
-			filename:     SamlPublicCertificateName,
-			data:         pemEncode("CERTIFICATE", testCertificateDERForKey(t, key)),
-			invalidErrID: "api.admin.saml.invalid_public_certificate_file.app_error",
+			upload:          (*App).AddSamlPublicCertificate,
+			filename:        SamlPublicCertificateName,
+			counterpartName: SamlPrivateKeyName,
+			data:            certPEM,
+			counterpart:     keyPEM,
+			invalidErrID:    "api.admin.saml.invalid_public_certificate_file.app_error",
 		},
 		"private key": {
-			upload:       (*App).AddSamlPrivateCertificate,
-			filename:     SamlPrivateKeyName,
-			data:         pkcs8PEM(t, key),
-			invalidErrID: "api.admin.saml.invalid_private_key_file.app_error",
+			upload:          (*App).AddSamlPrivateCertificate,
+			filename:        SamlPrivateKeyName,
+			counterpartName: SamlPublicCertificateName,
+			data:            keyPEM,
+			counterpart:     certPEM,
+			invalidErrID:    "api.admin.saml.invalid_private_key_file.app_error",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -335,14 +350,49 @@ func TestAddSamlSpCertificates(t *testing.T) {
 				cluster := &testlib.FakeClusterInterface{}
 				th, saml := setupSamlReload(t, cluster, nil)
 
-				appErr := tc.upload(th.App, request.TestContext(t), samlFileHeader(t, tc.data))
+				data := tc.data(t, key)
+				appErr := tc.upload(th.App, request.TestContext(t), samlFileHeader(t, data))
 				require.Nil(t, appErr)
 
 				stored, err := th.App.GetConfigFile(tc.filename)
 				require.NoError(t, err)
-				assert.Equal(t, tc.data, stored)
+				assert.Equal(t, data, stored)
 				assertSamlReloaded(t, saml, cluster)
 			})
+
+			for name, pc := range map[string]struct {
+				encrypt        bool
+				counterpartKey *ecdsa.PrivateKey
+				wantErr        bool
+			}{
+				"accepts a matching key pair while encryption is on":    {encrypt: true, counterpartKey: key},
+				"rejects a mismatched key pair while encryption is on":  {encrypt: true, counterpartKey: otherKey, wantErr: true},
+				"accepts a mismatched key pair while encryption is off": {encrypt: false, counterpartKey: otherKey},
+			} {
+				t.Run(name, func(t *testing.T) {
+					th, saml := setupSamlReload(t, &testlib.FakeClusterInterface{}, nil)
+					th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.Encrypt = pc.encrypt })
+					require.NoError(t, th.App.Srv().platform.SetConfigFile(tc.counterpartName, tc.counterpart(t, pc.counterpartKey)))
+					saml.Calls = nil
+
+					data := tc.data(t, key)
+					appErr := tc.upload(th.App, request.TestContext(t), samlFileHeader(t, data))
+					stored, err := th.App.GetConfigFile(tc.filename)
+
+					if pc.wantErr {
+						require.NotNil(t, appErr)
+						assert.Equal(t, "api.admin.saml.mismatched_sp_key_pair.app_error", appErr.Id)
+						assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+						assert.Error(t, err, "a rejected file shouldn't be stored")
+						saml.AssertNotCalled(t, "ConfigureSP", mock.Anything)
+						return
+					}
+
+					require.Nil(t, appErr)
+					require.NoError(t, err)
+					assert.Equal(t, data, stored)
+				})
+			}
 		})
 	}
 }
@@ -418,17 +468,34 @@ func TestValidateSamlSpKeyPair(t *testing.T) {
 }
 
 func TestRemoveSamlIdpCertificate(t *testing.T) {
-	cluster := &configChangeCapturingCluster{}
-	th := SetupWithClusterMock(t, cluster)
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
-	require.NoError(t, th.App.Srv().platform.SetConfigFile(SamlIdpCertificateName, []byte("certificate")))
-	cluster.sent = nil
+	t.Run("removes the certificate and disables SAML", func(t *testing.T) {
+		cluster := &configChangeCapturingCluster{}
+		th := SetupWithClusterMock(t, cluster)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+		require.NoError(t, th.App.Srv().platform.SetConfigFile(SamlIdpCertificateName, []byte("certificate")))
+		cluster.sent = nil
 
-	require.Nil(t, th.App.RemoveSamlIdpCertificate())
+		require.Nil(t, th.App.RemoveSamlIdpCertificate(request.TestContext(t)))
 
-	assert.Empty(t, *th.App.Config().SamlSettings.IdpCertificateFile)
-	assert.False(t, *th.App.Config().SamlSettings.Enable)
-	assert.Equal(t, []bool{true}, cluster.sent, "the config change should be sent to the other nodes")
+		assert.Empty(t, *th.App.Config().SamlSettings.IdpCertificateFile)
+		assert.False(t, *th.App.Config().SamlSettings.Enable)
+		assert.Equal(t, []bool{true}, cluster.sent, "the config change should be sent to the other nodes")
+	})
+
+	t.Run("reloads the SP even if the config can't be saved", func(t *testing.T) {
+		cluster := &testlib.FakeClusterInterface{}
+		th, saml := setupSamlReload(t, cluster, nil)
+		require.NoError(t, th.App.Srv().platform.SetConfigFile(SamlIdpCertificateName, []byte("certificate")))
+		// SAML forced on without its other settings makes the saved config invalid.
+		t.Setenv("MM_SAMLSETTINGS_ENABLE", "true")
+
+		require.NotNil(t, th.App.RemoveSamlIdpCertificate(request.TestContext(t)))
+
+		_, err := th.App.GetConfigFile(SamlIdpCertificateName)
+		assert.Error(t, err, "the certificate should be deleted")
+		assert.Equal(t, SamlIdpCertificateName, *th.App.Config().SamlSettings.IdpCertificateFile, "precondition: the config should be unchanged")
+		assertSamlReloaded(t, saml, cluster)
+	})
 }
 
 type configChangeCapturingCluster struct {

@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
@@ -61,6 +63,9 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) error {
 
 func (a *App) checkUserPassword(user *model.User, password string) error {
 	if user.Password == "" || password == "" {
+		if password != "" {
+			checkDecoyPassword(a.Log(), password)
+		}
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -104,6 +109,51 @@ func (a *App) migratePassword(user *model.User, password string) error {
 	a.InvalidateCacheForUser(user.Id)
 
 	return nil
+}
+
+var decoyPasswordHash struct {
+	mu  sync.Mutex
+	phc phcparser.PHC
+}
+
+// getDecoyPasswordHash returns a cached PHC of a random password, regenerating
+// it whenever the latest hasher no longer accepts it so that comparing against
+// it costs the same as checking an up-to-date stored password hash.
+func getDecoyPasswordHash() (phcparser.PHC, error) {
+	decoyPasswordHash.mu.Lock()
+	defer decoyPasswordHash.mu.Unlock()
+
+	hasher := hashers.GetLatestHasher()
+	if decoyPasswordHash.phc.Id != "" && hasher.IsPHCValid(decoyPasswordHash.phc) {
+		return decoyPasswordHash.phc, nil
+	}
+
+	phcString, err := hasher.Hash(model.NewId())
+	if err != nil {
+		return phcparser.PHC{}, err
+	}
+
+	phc, err := phcparser.New(strings.NewReader(phcString)).Parse()
+	if err != nil {
+		return phcparser.PHC{}, err
+	}
+
+	decoyPasswordHash.phc = phc
+	return phc, nil
+}
+
+// checkDecoyPassword compares password against a decoy hash so that login
+// attempts that fail without checking a stored password hash (unknown accounts,
+// accounts without a usable password) cost as much as wrong-password attempts.
+// The result is meaningless and discarded.
+func checkDecoyPassword(logger mlog.LoggerIFace, password string) {
+	phc, err := getDecoyPasswordHash()
+	if err != nil {
+		logger.Warn("Failed to generate decoy password hash", mlog.Err(err))
+		return
+	}
+
+	_ = hashers.GetLatestHasher().CompareHashAndPassword(phc, password)
 }
 
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
@@ -215,6 +265,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	ldapID := user.AuthData
 
 	if a.Ldap() == nil || ldapID == nil {
+		checkDecoyPassword(rctx.Logger(), password)
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
@@ -454,6 +505,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 
 	if user.AuthService == model.UserAuthServiceLdap {
 		if !ldapAvailable {
+			checkDecoyPassword(rctx.Logger(), password)
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
 		}
@@ -469,6 +521,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 	}
 
 	if user.AuthService != "" {
+		checkDecoyPassword(rctx.Logger(), password)
 		authService := user.AuthService
 		if authService == model.UserAuthServiceSaml {
 			authService = strings.ToUpper(authService)

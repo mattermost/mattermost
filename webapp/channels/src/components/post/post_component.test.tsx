@@ -247,6 +247,22 @@ describe('PostComponent', () => {
             expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
 
+        // The server takes a value on a system message, but a system message is not
+        // something a user wrote, and its `…` menu has no Attributes item either.
+        test('should not show chips on a system message', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    post={{...props.post, type: PostTypes.HEADER_CHANGE as PostType}}
+                    shouldDisplayBurnOnReadConcealed={false}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
+        });
+
         test('should not show the unavailable marker on a deleted post', () => {
             renderWithContext(
                 <PostComponent
