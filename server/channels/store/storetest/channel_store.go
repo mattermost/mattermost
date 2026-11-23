@@ -158,6 +158,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetChannelsByUser", func(t *testing.T) { testChannelStoreGetChannelsByUser(t, rctx, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, rctx, ss, s) })
 	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, rctx, ss) })
+	t.Run("GetMoreChannelsByIds", func(t *testing.T) { testChannelStoreGetMoreChannelsByIds(t, rctx, ss) })
 	t.Run("GetPrivateChannelsForTeam", func(t *testing.T) { testChannelStoreGetPrivateChannelsForTeam(t, rctx, ss) })
 	t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, rctx, ss) })
 	t.Run("GetPublicChannelsByIdsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsByIdsForTeam(t, rctx, ss) })
@@ -4355,6 +4356,125 @@ func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Sto
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
+}
+
+func testChannelStoreGetMoreChannelsByIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	userID := model.NewId()
+
+	save := func(teamID, displayName string, channelType model.ChannelType) *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: displayName,
+			Name:        NewTestID(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+	join := func(channel *model.Channel) {
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+	idsOf := func(channels ...*model.Channel) []string {
+		ids := make([]string, 0, len(channels))
+		for _, channel := range channels {
+			ids = append(ids, channel.Id)
+		}
+		return ids
+	}
+
+	a := save(teamID, "Alpha", model.ChannelTypeOpen)
+	b := save(teamID, "Bravo", model.ChannelTypeOpen)
+	c := save(teamID, "Charlie", model.ChannelTypeOpen)
+	notRequested := save(teamID, "Delta", model.ChannelTypeOpen)
+
+	member := save(teamID, "Member", model.ChannelTypeOpen)
+	join(member)
+
+	archived := save(teamID, "Archived", model.ChannelTypeOpen)
+	require.NoError(t, ss.Channel().Delete(archived.Id, model.GetMillis()))
+
+	private := save(teamID, "Private", model.ChannelTypePrivate)
+	elsewhere := save(model.NewId(), "Elsewhere", model.ChannelTypeOpen)
+
+	requested := idsOf(a, b, c, member, archived, private, elsewhere)
+
+	t.Run("returns only joinable public channels of the team, by display name", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, requested, 0, 100)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelList{a, b, c}, list)
+	})
+
+	t.Run("excludes channels the user is a member of", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, idsOf(member), 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, list)
+	})
+
+	t.Run("excludes archived channels", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, idsOf(archived), 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, list)
+	})
+
+	t.Run("excludes private channels", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, idsOf(private), 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, list)
+	})
+
+	t.Run("excludes channels of another team", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, idsOf(elsewhere), 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, list)
+	})
+
+	t.Run("respects the id filter", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, idsOf(b), 0, 100)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelList{b}, list)
+
+		list, err = ss.Channel().GetMoreChannelsByIds(teamID, userID, idsOf(a, c), 0, 100)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelList{a, c}, list)
+		require.NotContains(t, idsOf(list...), notRequested.Id)
+	})
+
+	t.Run("returns an empty list for no ids", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, nil, 0, 100)
+		require.NoError(t, err)
+		require.NotNil(t, list)
+		require.Empty(t, list)
+
+		list, err = ss.Channel().GetMoreChannelsByIds(teamID, userID, []string{}, 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, list)
+	})
+
+	t.Run("pages", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, userID, requested, 0, 2)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelList{a, b}, list)
+
+		list, err = ss.Channel().GetMoreChannelsByIds(teamID, userID, requested, 2, 2)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelList{c}, list)
+
+		list, err = ss.Channel().GetMoreChannelsByIds(teamID, userID, requested, 3, 2)
+		require.NoError(t, err)
+		require.Empty(t, list)
+	})
+
+	t.Run("another user still sees a channel this user joined", func(t *testing.T) {
+		list, err := ss.Channel().GetMoreChannelsByIds(teamID, model.NewId(), idsOf(member), 0, 100)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelList{member}, list)
+	})
 }
 
 func testChannelStoreGetMoreChannels(t *testing.T, rctx request.CTX, ss store.Store) {

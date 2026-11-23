@@ -2966,6 +2966,27 @@ func (s *RetryLayerChannelStore) GetMoreChannels(teamID string, userID string, o
 
 }
 
+func (s *RetryLayerChannelStore) GetMoreChannelsByIds(teamID string, userID string, channelIDs []string, offset int, limit int) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetMoreChannelsByIds(teamID, userID, channelIDs, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetPinnedPostCount(channelID string, allowFromCache bool) (int64, error) {
 
 	tries := 0

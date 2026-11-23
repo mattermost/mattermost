@@ -1551,6 +1551,42 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	return channels, nil
 }
 
+func (s SqlChannelStore) GetMoreChannelsByIds(teamID, userID string, channelIDs []string, offset, limit int) (model.ChannelList, error) {
+	if len(channelIDs) == 0 {
+		return model.ChannelList{}, nil
+	}
+
+	subQuery := s.getSubQueryBuilder().
+		Select("cm.ChannelId").
+		From("ChannelMembers cm").
+		Where(sq.Eq{
+			"cm.UserId":    userID,
+			"cm.ChannelId": channelIDs,
+		})
+
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(true, "Channels")...).
+		From("Channels").
+		Join("PublicChannels c ON (c.Id = Channels.Id)").
+		Where(sq.Eq{
+			"c.TeamId":   teamID,
+			"c.DeleteAt": 0,
+			"c.Id":       channelIDs,
+		}).
+		Where(sq.Expr("c.Id NOT IN (?)", subQuery)).
+		OrderBy("c.DisplayName", "c.Id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	channels := model.ChannelList{}
+	err := s.GetReplica().SelectBuilder(&channels, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed getting channels by ids with teamId=%s and userId=%s", teamID, userID)
+	}
+
+	return channels, nil
+}
+
 func (s SqlChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 

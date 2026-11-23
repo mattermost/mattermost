@@ -2542,6 +2542,22 @@ func (s *TimerLayerChannelStore) GetMoreChannels(teamID string, userID string, o
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetMoreChannelsByIds(teamID string, userID string, channelIDs []string, offset int, limit int) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetMoreChannelsByIds(teamID, userID, channelIDs, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMoreChannelsByIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetPinnedPostCount(channelID string, allowFromCache bool) (int64, error) {
 	start := time.Now()
 

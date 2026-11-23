@@ -2108,6 +2108,36 @@ func (_m *ChannelStore) GetMoreChannels(teamID string, userID string, offset int
 	return r0, r1
 }
 
+// GetMoreChannelsByIds provides a mock function with given fields: teamID, userID, channelIDs, offset, limit
+func (_m *ChannelStore) GetMoreChannelsByIds(teamID string, userID string, channelIDs []string, offset int, limit int) (model.ChannelList, error) {
+	ret := _m.Called(teamID, userID, channelIDs, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMoreChannelsByIds")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []string, int, int) (model.ChannelList, error)); ok {
+		return rf(teamID, userID, channelIDs, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []string, int, int) model.ChannelList); ok {
+		r0 = rf(teamID, userID, channelIDs, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []string, int, int) error); ok {
+		r1 = rf(teamID, userID, channelIDs, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPinnedPostCount provides a mock function with given fields: channelID, allowFromCache
 func (_m *ChannelStore) GetPinnedPostCount(channelID string, allowFromCache bool) (int64, error) {
 	ret := _m.Called(channelID, allowFromCache)
