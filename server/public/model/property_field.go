@@ -1015,10 +1015,9 @@ func PropertyFieldInlineOptions(attrs StringInterface) []map[string]any {
 // true if they differ. Options are matched by ID, so order does not matter, and
 // compared with reflect.DeepEqual so nested values count.
 //
-// Neither side needs a withheld-option-list branch: a non-empty list supplied
-// against a field whose list was withheld is refused outright before this runs
-// (see the option-list invariant in updatePropertyFields), and every remaining
-// shape has no list on either side and so compares unchanged.
+// A withheld list (no options key, options_omitted set) compares as empty. A
+// caller that must tell a withheld list from an empty one checks
+// PropertyFieldOptionsOmitted first.
 func PropertyFieldOptionsChanged(oldAttrs, newAttrs StringInterface) bool {
 	oldOpts := PropertyFieldInlineOptions(oldAttrs)
 	newOpts := PropertyFieldInlineOptions(newAttrs)

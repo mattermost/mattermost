@@ -2885,11 +2885,9 @@ func TestPropertyFieldOptionsChanged(t *testing.T) {
 		assert.False(t, PropertyFieldOptionsChanged(updated, old))
 	})
 
-	t.Run("empty options array vs absent is a change", func(t *testing.T) {
+	t.Run("empty options array vs absent is no change", func(t *testing.T) {
 		old := attrsFromJSON(t, `{"options": []}`)
 		updated := StringInterface{}
-		// []any{} has len 0, nil has len 0 — PropertyFieldInlineOptions returns empty vs nil
-		// but len check treats both as 0, so no change detected
 		assert.False(t, PropertyFieldOptionsChanged(old, updated))
 	})
 
