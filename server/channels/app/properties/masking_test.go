@@ -1779,7 +1779,6 @@ func TestMaskedCallerFieldUpdateOptions(t *testing.T) {
 		writeValueDirect(t, th, field.ID, "user", holder, "opt_a")
 		return field
 	}
-	// renamed returns field renamed, carrying the given option list.
 	renamed := func(field *model.PropertyField, opts []any) *model.PropertyField {
 		updated := *field
 		updated.Name = field.Name + "-renamed"

@@ -1762,7 +1762,6 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 	return ps.deletePropertyField(rctx, groupID, id)
 }
 
-// asOptionSlice is the package's name for model.PropertyFieldInlineOptions.
 func asOptionSlice(attrs model.StringInterface) []map[string]any {
 	return model.PropertyFieldInlineOptions(attrs)
 }
