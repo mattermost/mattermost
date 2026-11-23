@@ -1586,6 +1586,105 @@ func TestPluginProperties(t *testing.T) {
 	})
 }
 
+// TestPluginAPIUpdatePropertyFieldReturnsCallerView checks that the plugin API's
+// field updates return the plugin's own view of a masked field, not the stored
+// field. It is not a subtest of TestPluginProperties: run after that test's
+// earlier subtests, the plugin's grants stop matching and its updates are refused.
+func TestPluginAPIUpdatePropertyFieldReturnsCallerView(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
+
+	api := th.SetupPluginAPIWithPluginContext(t)
+
+	// The access control group is the one where a plugin may update a
+	// field its own permissions mark protected.
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Masked from everyone, the plugin included, and the plugin holds
+	// no option, so its view of the field lists none.
+	newMaskedField := func() *model.PropertyField {
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "masked_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: "system",
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Alpha"},
+				map[string]any{"id": model.NewId(), "name": "Beta"},
+			}},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+					Option: model.ReadWrite{Read: model.PermissionLevelNone, Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: api.manifest.Id},
+					Allow:    []string{model.PropertyActionFieldWrite, model.PropertyActionOptionRead},
+				}},
+				Masking: &model.Masking{},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		stored, err := th.Store.PropertyField().Get(th.Context, group.ID, created.ID)
+		require.NoError(t, err)
+		return stored
+	}
+	t.Cleanup(func() { cleanupCPAFields(t, th) })
+	optionNames := func(field *model.PropertyField) []string {
+		var names []string
+		for _, option := range field.Attrs[model.PropertyFieldAttributeOptions].([]any) {
+			names = append(names, option.(map[string]any)["name"].(string))
+		}
+		return names
+	}
+	renamed := func(stored *model.PropertyField) *model.PropertyField {
+		update := *stored
+		update.Name = "renamed_" + model.NewId()
+		return &update
+	}
+
+	t.Run("UpdatePropertyField", func(t *testing.T) {
+		stored := newMaskedField()
+		update := renamed(stored)
+
+		updated, err := api.UpdatePropertyField(group.ID, update)
+		require.NoError(t, err)
+		require.Equal(t, update.Name, updated.Name)
+
+		read, err := api.GetPropertyField(group.ID, stored.ID)
+		require.NoError(t, err)
+		require.Empty(t, optionNames(read))
+		require.Equal(t, optionNames(read), optionNames(updated))
+
+		after, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, stored.ID)
+		require.NoError(t, storeErr)
+		require.ElementsMatch(t, []string{"Alpha", "Beta"}, optionNames(after))
+	})
+
+	t.Run("UpdatePropertyFields", func(t *testing.T) {
+		first, second := newMaskedField(), newMaskedField()
+		updates := []*model.PropertyField{renamed(first), renamed(second)}
+
+		updated, err := api.UpdatePropertyFields(group.ID, updates)
+		require.NoError(t, err)
+		require.Len(t, updated, 2)
+
+		for _, field := range updated {
+			require.Empty(t, optionNames(field))
+		}
+		for _, stored := range []*model.PropertyField{first, second} {
+			after, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, stored.ID)
+			require.NoError(t, storeErr)
+			require.ElementsMatch(t, []string{"Alpha", "Beta"}, optionNames(after))
+		}
+	})
+}
+
 // TestPluginAccessToBuiltinGroupOutsideAccessControl guards the access any
 // plugin had to a v2 group the access control hook never covered before it
 // covered every v2 group: reading a builtin field's options and writing a value.

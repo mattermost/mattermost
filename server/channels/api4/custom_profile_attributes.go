@@ -278,7 +278,20 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(cpaField)
 	auditRec.AddEventObjectType("property_field")
 
-	if err := json.NewEncoder(w).Encode(cpaField); err != nil {
+	// The caller gets their own view of the field, as a read would give them,
+	// so a masked caller is not shown the options the update was applied over.
+	callerView, appErr := c.App.GetPropertyField(rctx, group.ID, updatedField.ID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	callerCPAField, convErr := model.NewCPAFieldFromPropertyField(callerView)
+	if convErr != nil {
+		c.Err = model.NewAppError("patchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(callerCPAField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

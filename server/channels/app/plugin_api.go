@@ -2000,11 +2000,18 @@ func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	updatedField, _, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field, false, "")
+	rctx := api.psaPluginContext()
+	updatedField, _, appErr := api.app.UpdatePropertyField(rctx, groupID, field, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
-	return updatedField, nil
+	// The plugin gets its own view of the field, as a read would give it, so
+	// a masked plugin is not shown the options the update was applied over.
+	callerView, appErr := api.app.GetPropertyField(rctx, groupID, updatedField.ID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return callerView, nil
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
@@ -2176,11 +2183,31 @@ func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*m
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	updatedFields, _, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields, false, "")
+	rctx := api.psaPluginContext()
+	updatedFields, _, appErr := api.app.UpdatePropertyFields(rctx, groupID, fields, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
-	return updatedFields, nil
+
+	// Same as UpdatePropertyField: return the plugin's view of each field. The
+	// read comes back in storage order, so put it back in the update's order.
+	ids := make([]string, len(updatedFields))
+	for i, field := range updatedFields {
+		ids[i] = field.ID
+	}
+	callerViews, appErr := api.app.GetPropertyFields(rctx, groupID, ids)
+	if appErr != nil {
+		return nil, appErr
+	}
+	viewByID := make(map[string]*model.PropertyField, len(callerViews))
+	for _, view := range callerViews {
+		viewByID[view.ID] = view
+	}
+	result := make([]*model.PropertyField, len(updatedFields))
+	for i, field := range updatedFields {
+		result[i] = viewByID[field.ID]
+	}
+	return result, nil
 }
 
 func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {

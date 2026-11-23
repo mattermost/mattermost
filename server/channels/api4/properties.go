@@ -833,7 +833,15 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedField)
 	auditRec.AddEventObjectType("property_field")
 
-	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), updatedField, servesV3(c, group))
+	// updatedField is the stored field. What the caller gets back is their own
+	// view of it, as a read would give them, so a masked caller is not shown
+	// the options the update was applied over.
+	callerView, appErr := c.App.GetPropertyField(rctx, group.ID, updatedField.ID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), callerView, servesV3(c, group))
 
 	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

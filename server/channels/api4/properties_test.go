@@ -4159,6 +4159,83 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("a masked caller's response lists only the options they hold", func(t *testing.T) {
+		maskedGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_masked", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+
+		field, alphaID := createMaskedSelectField(t, th, maskedGroup.ID, model.NewId())
+
+		newName := model.NewId()
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), maskedGroup.Name, model.PropertyFieldObjectTypeUser, field.ID, &model.PropertyFieldPatch{
+			Name:  &newName,
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: field.Attrs[model.PropertyFieldAttributeOptions]},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+		require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
+		require.Equal(t, alphaID, patched.Attrs[model.PropertyFieldAttributeOptions].([]any)[0].(map[string]any)["id"])
+
+		requireOptionNamesStored(t, th, maskedGroup.ID, field.ID, "Alpha", "Beta")
+	})
+}
+
+// createMaskedSelectField stores a select field with options Alpha and Beta
+// whose masking applies to every caller, and gives the system admin a value
+// holding only Alpha, so the admin's view of the field lists Alpha alone.
+// It returns the stored field and Alpha's option ID.
+func createMaskedSelectField(t *testing.T, th *TestHelper, groupID, name string) (*model.PropertyField, string) {
+	t.Helper()
+
+	// The local-admin caller holds field.write on the new field; the system
+	// admin is not exempt from the masking either way.
+	rctx := app.RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
+	created, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    groupID,
+		Name:       name,
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: "system",
+		Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": model.NewId(), "name": "Alpha"},
+			map[string]any{"id": model.NewId(), "name": "Beta"},
+		}},
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+			},
+			Masking: &model.Masking{},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	stored, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
+	require.NoError(t, err)
+	alphaID := optionIDsByName(t, stored)["Alpha"]
+	require.NotEmpty(t, alphaID)
+
+	_, err = th.Store.PropertyValue().Create(&model.PropertyValue{
+		GroupID:    groupID,
+		FieldID:    stored.ID,
+		TargetType: "user",
+		TargetID:   th.SystemAdminUser.Id,
+		Value:      json.RawMessage(`"` + alphaID + `"`),
+	})
+	require.NoError(t, err)
+	return stored, alphaID
+}
+
+// requireOptionNamesStored fails unless the field's stored option list holds
+// exactly names, which is the check that an edit made through a masked view
+// deleted nothing.
+func requireOptionNamesStored(t *testing.T, th *TestHelper, groupID, fieldID string, names ...string) {
+	t.Helper()
+	stored, err := th.Store.PropertyField().Get(th.Context, groupID, fieldID)
+	require.NoError(t, err)
+	require.ElementsMatch(t, names, inlineOptionNames(t, stored))
 }
 
 func TestPropertyFieldPermissionsLockout(t *testing.T) {

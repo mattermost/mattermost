@@ -661,6 +661,26 @@ func TestPatchCPAField(t *testing.T) {
 		require.NotNil(t, patchedCPA.Attrs.Options[2].Rank)
 		require.Equal(t, 30, *patchedCPA.Attrs.Options[2].Rank)
 	})
+
+	t.Run("a masked caller's response lists only the options they hold", func(t *testing.T) {
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field, alphaID := createMaskedSelectField(t, th, cpaGroup.ID, celSafeName())
+
+		newName := celSafeName()
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), field.ID, &model.PropertyFieldPatch{
+			Name:  &newName,
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: field.Attrs[model.PropertyFieldAttributeOptions]},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+		require.Equal(t, []string{"Alpha"}, inlineOptionNames(t, patched))
+		require.Equal(t, alphaID, patched.Attrs[model.PropertyFieldAttributeOptions].([]any)[0].(map[string]any)["id"])
+
+		requireOptionNamesStored(t, th, cpaGroup.ID, field.ID, "Alpha", "Beta")
+	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
