@@ -7212,6 +7212,22 @@ func (s *TimerLayerPasskeyStore) Delete(userID string, passkeyID string) error {
 	return err
 }
 
+func (s *TimerLayerPasskeyStore) GetByCredentialId(credentialID []byte) (*model.Passkey, error) {
+	start := time.Now()
+
+	result, err := s.PasskeyStore.GetByCredentialId(credentialID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.GetByCredentialId", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPasskeyStore) GetForUser(userID string) ([]*model.Passkey, error) {
 	start := time.Now()
 
@@ -7258,6 +7274,22 @@ func (s *TimerLayerPasskeyStore) SaveIfUnderLimit(passkey *model.Passkey, limit 
 		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.SaveIfUnderLimit", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPasskeyStore) UpdateUsage(id string, prevSignCount int64, signCount int64, lastUsedAt int64) error {
+	start := time.Now()
+
+	err := s.PasskeyStore.UpdateUsage(id, prevSignCount, signCount, lastUsedAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PasskeyStore.UpdateUsage", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {

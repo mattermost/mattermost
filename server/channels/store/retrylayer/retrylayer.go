@@ -8928,6 +8928,27 @@ func (s *RetryLayerPasskeyStore) Delete(userID string, passkeyID string) error {
 
 }
 
+func (s *RetryLayerPasskeyStore) GetByCredentialId(credentialID []byte) (*model.Passkey, error) {
+
+	tries := 0
+	for {
+		result, err := s.PasskeyStore.GetByCredentialId(credentialID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPasskeyStore) GetForUser(userID string) ([]*model.Passkey, error) {
 
 	tries := 0
@@ -8985,6 +9006,27 @@ func (s *RetryLayerPasskeyStore) SaveIfUnderLimit(passkey *model.Passkey, limit 
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPasskeyStore) UpdateUsage(id string, prevSignCount int64, signCount int64, lastUsedAt int64) error {
+
+	tries := 0
+	for {
+		err := s.PasskeyStore.UpdateUsage(id, prevSignCount, signCount, lastUsedAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

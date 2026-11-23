@@ -32,6 +32,36 @@ func (_m *PasskeyStore) Delete(userID string, passkeyID string) error {
 	return r0
 }
 
+// GetByCredentialId provides a mock function with given fields: credentialID
+func (_m *PasskeyStore) GetByCredentialId(credentialID []byte) (*model.Passkey, error) {
+	ret := _m.Called(credentialID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByCredentialId")
+	}
+
+	var r0 *model.Passkey
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]byte) (*model.Passkey, error)); ok {
+		return rf(credentialID)
+	}
+	if rf, ok := ret.Get(0).(func([]byte) *model.Passkey); ok {
+		r0 = rf(credentialID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Passkey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]byte) error); ok {
+		r1 = rf(credentialID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForUser provides a mock function with given fields: userID
 func (_m *PasskeyStore) GetForUser(userID string) ([]*model.Passkey, error) {
 	ret := _m.Called(userID)
@@ -108,6 +138,24 @@ func (_m *PasskeyStore) SaveIfUnderLimit(passkey *model.Passkey, limit int) (*mo
 	}
 
 	return r0, r1
+}
+
+// UpdateUsage provides a mock function with given fields: id, prevSignCount, signCount, lastUsedAt
+func (_m *PasskeyStore) UpdateUsage(id string, prevSignCount int64, signCount int64, lastUsedAt int64) error {
+	ret := _m.Called(id, prevSignCount, signCount, lastUsedAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUsage")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64, int64, int64) error); ok {
+		r0 = rf(id, prevSignCount, signCount, lastUsedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewPasskeyStore creates a new instance of PasskeyStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

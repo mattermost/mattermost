@@ -1647,6 +1647,11 @@ type PasskeyStore interface {
 	SaveIfUnderLimit(passkey *model.Passkey, limit int) (*model.Passkey, error)
 	// GetForUser returns the user's passkeys, oldest first.
 	GetForUser(userID string) ([]*model.Passkey, error)
+	// GetByCredentialId returns the passkey with the given credential id, or ErrNotFound.
+	GetByCredentialId(credentialID []byte) (*model.Passkey, error)
+	// UpdateUsage sets the sign count and last-used time only if the stored sign count is still
+	// prevSignCount, so a cloned authenticator racing the real one cannot both succeed; otherwise ErrNotFound.
+	UpdateUsage(id string, prevSignCount, signCount, lastUsedAt int64) error
 	// Delete removes the passkey only if userID owns it; otherwise ErrNotFound.
 	Delete(userID, passkeyID string) error
 	PermanentDeleteByUser(userID string) error

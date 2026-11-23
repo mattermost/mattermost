@@ -188,6 +188,88 @@ func TestPasskeyStore(t *testing.T) {
 			}
 		})
 
+		t.Run("GetByCredentialId", func(t *testing.T) {
+			p := newTestPasskey(model.NewId())
+			_, err := ss.Passkey().SaveIfUnderLimit(p, model.PasskeyMaxPerUser)
+			require.NoError(t, err)
+
+			got, err := ss.Passkey().GetByCredentialId(p.CredentialId)
+			require.NoError(t, err)
+			assert.Equal(t, p, got)
+
+			_, err = ss.Passkey().GetByCredentialId([]byte(model.NewId()))
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, err, &nfErr)
+		})
+
+		t.Run("UpdateUsage", func(t *testing.T) {
+			p := newTestPasskey(model.NewId())
+			_, err := ss.Passkey().SaveIfUnderLimit(p, model.PasskeyMaxPerUser)
+			require.NoError(t, err)
+
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, ss.Passkey().UpdateUsage(p.Id, 3, 9, 5000), &nfErr)
+			got, err := ss.Passkey().GetByCredentialId(p.CredentialId)
+			require.NoError(t, err)
+			assert.Equal(t, p, got)
+
+			require.ErrorAs(t, ss.Passkey().UpdateUsage(model.NewId(), 7, 8, 5000), &nfErr)
+
+			require.NoError(t, ss.Passkey().UpdateUsage(p.Id, 7, 8, 5000))
+			got, err = ss.Passkey().GetByCredentialId(p.CredentialId)
+			require.NoError(t, err)
+			assert.EqualValues(t, 8, got.SignCount)
+			assert.EqualValues(t, 5000, got.LastUsedAt)
+		})
+
+		t.Run("UpdateUsageWithCounterAtZeroAlwaysSucceeds", func(t *testing.T) {
+			p := newTestPasskey(model.NewId())
+			p.SignCount = 0
+			_, err := ss.Passkey().SaveIfUnderLimit(p, model.PasskeyMaxPerUser)
+			require.NoError(t, err)
+
+			require.NoError(t, ss.Passkey().UpdateUsage(p.Id, 0, 0, 100))
+			require.NoError(t, ss.Passkey().UpdateUsage(p.Id, 0, 0, 200))
+			got, err := ss.Passkey().GetByCredentialId(p.CredentialId)
+			require.NoError(t, err)
+			assert.EqualValues(t, 200, got.LastUsedAt)
+		})
+
+		t.Run("ConcurrentUpdateUsageWithSameCounterOnlyOneWins", func(t *testing.T) {
+			p := newTestPasskey(model.NewId())
+			_, err := ss.Passkey().SaveIfUnderLimit(p, model.PasskeyMaxPerUser)
+			require.NoError(t, err)
+
+			const attempts = 8
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			errs := make(chan error, attempts)
+			for range attempts {
+				wg.Go(func() {
+					<-start
+					errs <- ss.Passkey().UpdateUsage(p.Id, 7, 8, model.GetMillis())
+				})
+			}
+			close(start)
+			wg.Wait()
+			close(errs)
+
+			var won, lost int
+			for err := range errs {
+				var nfErr *store.ErrNotFound
+				switch {
+				case err == nil:
+					won++
+				case errors.As(err, &nfErr):
+					lost++
+				default:
+					require.NoError(t, err)
+				}
+			}
+			assert.Equal(t, 1, won)
+			assert.Equal(t, attempts-1, lost)
+		})
+
 		t.Run("DeleteChecksOwner", func(t *testing.T) {
 			p := newTestPasskey(model.NewId())
 			_, err := ss.Passkey().SaveIfUnderLimit(p, model.PasskeyMaxPerUser)

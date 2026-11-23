@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -96,6 +98,44 @@ func (s *SqlPasskeyStore) GetForUser(userID string) ([]*model.Passkey, error) {
 		return nil, errors.Wrapf(err, "failed to get passkeys for userId=%s", userID)
 	}
 	return passkeys, nil
+}
+
+func (s *SqlPasskeyStore) GetByCredentialId(credentialID []byte) (*model.Passkey, error) {
+	query := s.getQueryBuilder().
+		Select(passkeyColumns...).
+		From("passkeys").
+		Where(sq.Eq{"credentialid": credentialID})
+
+	// Read from master: a passkey registered or deleted a moment ago must be seen as such at sign-in.
+	var passkey model.Passkey
+	if err := s.GetMaster().GetBuilder(&passkey, query); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("Passkey", "credentialId")
+		}
+		return nil, errors.Wrap(err, "failed to get Passkey by credential id")
+	}
+	return &passkey, nil
+}
+
+func (s *SqlPasskeyStore) UpdateUsage(id string, prevSignCount, signCount, lastUsedAt int64) error {
+	// The signcount condition is a compare-and-swap: of two sign-ins presenting the same counter, only one matches.
+	query := s.getQueryBuilder().
+		Update("passkeys").
+		SetMap(map[string]any{"signcount": signCount, "lastusedat": lastUsedAt}).
+		Where(sq.Eq{"id": id, "signcount": prevSignCount})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update usage of Passkey with id=%s", id)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to retrieve affected rows for Passkey usage update")
+	}
+	if n == 0 {
+		return store.NewErrNotFound("Passkey", id)
+	}
+	return nil
 }
 
 func (s *SqlPasskeyStore) Delete(userID, passkeyID string) error {
