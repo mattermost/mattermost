@@ -13,7 +13,7 @@ type ChannelMatcherRegistration = {
 };
 
 /**
- * Every registration whose matcher returns true for the channel, in registration order. A matcher that
+ * Every registration whose matcher returns true for the channel, in the order of the given registrations. A matcher that
  * throws counts as no match, and only the first throw from each plugin is logged.
  */
 export function findMatchingRegistrations<T extends ChannelMatcherRegistration>(

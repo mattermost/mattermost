@@ -1497,7 +1497,7 @@ export default class PluginRegistry {
      * second, so it can read plugin-owned slices (e.g. state['plugins-<id>']). It runs on every
      * store update for each channel in the sidebar, so it must be cheap or memoized by the plugin.
      * Matcher throws are caught and treated as no-match. Unlike registerChannelViewComponent,
-     * every registration whose matcher returns exactly `true` renders, in registration order.
+     * every registration whose matcher returns exactly `true` renders, ordered by plugin id and then registration order.
      *
      * `component` receives {channel, currentTeamName, isCurrentChannel}. A component that throws
      * is hidden, and only the first error per plugin is logged. The item is also the drag handle
