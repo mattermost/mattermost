@@ -299,6 +299,127 @@ func ageSession(t *testing.T, th *TestHelper, client *model.Client4) {
 	th.App.ClearSessionCacheForUser(th.BasicUser.Id)
 }
 
+func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
+	t.Run("issues a ticket through me and the explicit id", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+
+		for _, userID := range []string{model.Me, th.BasicUser.Id} {
+			ticket, resp, err := th.Client.CreatePasskeyEnrollmentTicket(context.Background(), userID)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			assert.Len(t, ticket.Ticket, 64)
+			assert.InDelta(t, model.GetMillis()+model.PasskeyEnrollmentTicketExpiryTime, ticket.ExpireAt, 5000)
+		}
+	})
+
+	t.Run("ticket belongs to the request's own session", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		other := th.CreateClient()
+		th.LoginBasicWithClient(t, other)
+
+		ticket, _, err := th.Client.CreatePasskeyEnrollmentTicket(context.Background(), model.Me)
+		require.NoError(t, err)
+
+		token, err := th.App.Srv().Store().Token().GetByToken(ticket.Ticket)
+		require.NoError(t, err)
+		var extra struct {
+			SessionID string `json:"session_id"`
+		}
+		require.NoError(t, json.Unmarshal([]byte(token.Extra), &extra))
+		own, appErr := th.App.GetSession(th.Client.AuthToken)
+		require.Nil(t, appErr)
+		otherSession, appErr := th.App.GetSession(other.AuthToken)
+		require.Nil(t, appErr)
+		assert.Equal(t, own.Id, extra.SessionID)
+		assert.NotEqual(t, otherSession.Id, extra.SessionID)
+	})
+
+	t.Run("enrollment on with login off still issues", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePasskeyLogin = false
+		})
+
+		_, resp, err := th.Client.CreatePasskeyEnrollmentTicket(context.Background(), model.Me)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("session older than ten minutes still issues", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		ageSession(t, th, th.Client)
+
+		_, resp, err := th.Client.CreatePasskeyEnrollmentTicket(context.Background(), model.Me)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	checkNotImplemented := func(t *testing.T, th *TestHelper, id string) {
+		t.Helper()
+		_, resp, err := th.Client.CreatePasskeyEnrollmentTicket(context.Background(), model.Me)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, id, appErr.Id)
+	}
+
+	t.Run("flag off", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) { cfg.FeatureFlags.Passkeys = false })
+		checkNotImplemented(t, th, "api.passkey.feature_disabled.app_error")
+	})
+
+	t.Run("no license", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		th.App.Srv().SetLicense(nil)
+		checkNotImplemented(t, th, "api.passkey.license.app_error")
+	})
+
+	t.Run("enrollment off", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePasskeyEnrollment = false
+		})
+		checkNotImplemented(t, th, "api.passkey.enrollment_disabled.app_error")
+	})
+
+	t.Run("Site URL that cannot serve passkeys", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://chat.example.com"
+		})
+		checkNotImplemented(t, th, "api.passkey.unavailable.app_error")
+	})
+
+	t.Run("another user's id is forbidden even for a system admin", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		th.LoginSystemAdmin(t)
+
+		_, resp, err := th.SystemAdminClient.CreatePasskeyEnrollmentTicket(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = th.Client.CreatePasskeyEnrollmentTicket(context.Background(), th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("bot is refused", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
+		th.LoginSystemAdmin(t)
+		bot := th.CreateBotWithSystemAdminClient(t)
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "test", 0)
+		require.NoError(t, err)
+		botClient := th.CreateClient()
+		botClient.SetToken(token.Token)
+
+		_, resp, err := botClient.CreatePasskeyEnrollmentTicket(context.Background(), model.Me)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.passkey.user_not_allowed.app_error", appErr.Id)
+	})
+}
+
 func TestPasskeyRegistration(t *testing.T) {
 	t.Run("registers a passkey through me and the explicit id", func(t *testing.T) {
 		th := setupPasskeyRegistration(t)
@@ -825,6 +946,7 @@ func TestPasskeyRateLimit(t *testing.T) {
 			"/users/login/passkey/finish",
 			"/users/me/passkeys/registration/begin",
 			"/users/me/passkeys/registration/finish",
+			"/users/me/passkeys/enrollment/ticket",
 		} {
 			assert.True(t, limited(th, path), path)
 		}

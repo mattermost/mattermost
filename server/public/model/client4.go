@@ -2084,6 +2084,17 @@ func (c *Client4) FinishPasskeyRegistration(ctx context.Context, userID string, 
 	return DecodeJSONFromResponse[*Passkey](r)
 }
 
+// CreatePasskeyEnrollmentTicket asks for a single-use ticket that lets the system browser enroll a
+// passkey for the calling session. Only the user themselves may do this.
+func (c *Client4) CreatePasskeyEnrollmentTicket(ctx context.Context, userID string) (*PasskeyEnrollmentTicket, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.userRoute(userID).Join("passkeys", "enrollment", "ticket"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyEnrollmentTicket](r)
+}
+
 // BeginPasskeyLogin starts a usernameless passkey sign-in ceremony and returns the options to hand
 // to the browser. It needs no session.
 func (c *Client4) BeginPasskeyLogin(ctx context.Context) (*PasskeyLoginOptions, *Response, error) {

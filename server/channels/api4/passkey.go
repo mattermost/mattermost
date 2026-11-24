@@ -19,6 +19,7 @@ func (api *API) InitPasskey() {
 	api.BaseRoutes.User.Handle("/passkeys", api.APISessionRequired(getPasskeys)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/passkeys/registration/begin", api.RateLimitedHandler(api.APISessionRequired(beginPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/registration/finish", api.RateLimitedHandler(api.APISessionRequired(finishPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/passkeys/enrollment/ticket", api.RateLimitedHandler(api.APISessionRequired(createPasskeyEnrollmentTicket), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/passkey/begin", api.RateLimitedHandler(api.APIHandler(beginPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/passkey/finish", api.RateLimitedHandler(api.APIHandler(finishPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/passkey", api.APISessionRequired(revokePasskeySessions)).Methods(http.MethodPost)
@@ -228,6 +229,25 @@ func finishPasskeyRegistration(c *Context, w http.ResponseWriter, r *http.Reques
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(passkey); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// createPasskeyEnrollmentTicket hands the app the request's own session: the ticket borrows that
+// session's standing when it is later redeemed, so it must not be tied to another session of the user.
+func createPasskeyEnrollmentTicket(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requirePasskeyEnrollment(c) {
+		return
+	}
+
+	ticket, appErr := c.App.CreatePasskeyEnrollmentTicket(c.AppContext, c.AppContext.Session())
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(ticket); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
