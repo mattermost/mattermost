@@ -121,11 +121,6 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
-	// Deprecated: the old SMTPServer default, only used to recognize it in older configs.
-	EmailSMTPDefaultServer = "localhost"
-	// Deprecated: the old SMTPPort default, only used to recognize it in older configs.
-	EmailSMTPDefaultPort = "10025"
-
 	CacheTypeLRU   = "lru"
 	CacheTypeRedis = "redis"
 
@@ -2429,6 +2424,12 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
+// The SMTP server and port SetDefaults used to fill in, still saved in the config of older servers.
+const (
+	oldDefaultSMTPServer = "localhost"
+	oldDefaultSMTPPort   = "10025"
+)
+
 // IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
 // old default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
 func (s *EmailSettings) IsSMTPConfigured() bool {
@@ -2436,7 +2437,7 @@ func (s *EmailSettings) IsSMTPConfigured() bool {
 	if server == "" {
 		return false
 	}
-	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
+	return server != oldDefaultSMTPServer || SafeDereference(s.SMTPPort) != oldDefaultSMTPPort
 }
 
 type RateLimitSettings struct {

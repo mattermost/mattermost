@@ -1026,8 +1026,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
-				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
-				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServer = model.NewPointer("localhost")
+				cfg.EmailSettings.SMTPPort = model.NewPointer("10025")
 			})
 		})
 
@@ -1047,8 +1047,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
-				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
-				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServer = model.NewPointer("localhost")
+				cfg.EmailSettings.SMTPPort = model.NewPointer("10025")
 				cfg.EmailSettings.SMTPServerTimeout = new(10)
 			})
 		})
@@ -1072,8 +1072,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
 				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
-				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
-				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServer = model.NewPointer("localhost")
+				cfg.EmailSettings.SMTPPort = model.NewPointer("10025")
 				cfg.EmailSettings.SMTPServerTimeout = new(10)
 			})
 		})
@@ -1732,7 +1732,7 @@ func TestNetworkProbesSMTP(t *testing.T) {
 	// from one running a development mail server there, such as Inbucket, only from this probe's result.
 	// Skipping the probe for the default server would make both SMTP findings resolve.
 	t.Run("probes the default server", func(t *testing.T) {
-		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, true)
+		status, errMsg, probed := smtpProbe(t, "localhost", "10025", true)
 
 		assert.True(t, probed)
 		assert.Empty(t, status)
@@ -1740,7 +1740,7 @@ func TestNetworkProbesSMTP(t *testing.T) {
 	})
 
 	t.Run("skips when no email feature is on", func(t *testing.T) {
-		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, false)
+		status, errMsg, probed := smtpProbe(t, "localhost", "10025", false)
 
 		assert.False(t, probed)
 		assert.Equal(t, model.StatusDisabled, status)

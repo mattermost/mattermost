@@ -222,7 +222,7 @@ func TestSMTPNotConfigured(t *testing.T) {
 	}
 	notCollected := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 	defaultServer := func(enabled bool, nodes ...*healthcheck.NodeSnapshot) *healthcheck.Snapshot {
-		return smtpSnapshot(enabled, new(model.EmailSMTPDefaultServer), new(model.EmailSMTPDefaultPort), nodes...)
+		return smtpSnapshot(enabled, new("localhost"), new("10025"), nodes...)
 	}
 
 	testCases := []struct {
