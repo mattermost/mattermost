@@ -119,12 +119,12 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, co
 			acs.InvalidateAllPolicyCaches(rctx)
 		}
 		// Unconditional, unlike the success path below, which can see whether any
-		// field involved is one the AttributeView materializes. Here nothing can:
+		// field involved is one a user subject projects. Here nothing can:
 		// a template carries object type "template" and its user-scoped dependents
 		// are exactly what could not be read, so testing the field ID the change
 		// named would skip the invalidation in the case most likely to need it.
-		// The cost of invalidating when nothing was affected is one matview
-		// refresh.
+		// The cost of invalidating when nothing was affected is a cleared subject
+		// cache.
 		a.invalidateAllUserAttributeCaches()
 		return
 	}
@@ -134,7 +134,7 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, co
 		a.invalidatePolicyCachesForOptionChange(rctx, dependent.ID)
 	}
 
-	// The matview resolves an object's stored option IDs to names through
+	// The subject projection resolves an object's stored option IDs to names through
 	// PropertyOptions, so an option write changes what every subject resolves to
 	// without touching a single PropertyValues row -- which is what the per-user
 	// epoch is computed from, so it cannot see this on its own.

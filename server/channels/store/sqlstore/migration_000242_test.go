@@ -50,6 +50,7 @@ func TestMigration000242(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	defer withMaterializedAttributeViews(t, store)()
 
 	// New() applies all migrations, so 000242 is already in effect.
 	require.True(t, matviewExists(t, store, "AttributeView"), "AttributeView should exist after migration")
@@ -186,7 +187,7 @@ func TestMigration000242(t *testing.T) {
 		// Exactly the statement an 11.10 server issues.
 		_, rErr := store.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView")
 		require.NoError(t, rErr, "%s: refreshing AttributeView must succeed", stage)
-		require.NoError(t, store.Attributes().RefreshAttributes())
+		refreshAttributeMatviews(t, store)
 
 		require.JSONEq(t, `{
 			"linked_select": "Chosen",

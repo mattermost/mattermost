@@ -13,7 +13,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -85,10 +84,6 @@ type Channels struct {
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
-
-	attributeViewRefreshMut   sync.Mutex
-	attributeViewRefreshLast  time.Time
-	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies

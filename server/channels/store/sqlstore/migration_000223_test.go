@@ -51,6 +51,7 @@ func TestMigration000223(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	defer withMaterializedAttributeViews(t, store)()
 	// The test runs the down migration, which drops PropertyOptions out from
 	// under the AttributeView that 000242 builds on it.
 	defer withoutLegacyAttributeView(t, store)()
@@ -343,7 +344,7 @@ func TestMigration000223(t *testing.T) {
 
 	assertProjections := func(t *testing.T, stage string) {
 		t.Helper()
-		require.NoError(t, store.Attributes().RefreshAttributes())
+		refreshAttributeMatviews(t, store)
 
 		require.Equal(t, `"Chosen"`, attributeFor(t, "UserAttributeView", userTarget, "linked_select"),
 			"%s: a select value on a linked field must resolve to the template option's name", stage)

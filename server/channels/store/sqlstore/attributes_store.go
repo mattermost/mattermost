@@ -20,44 +20,71 @@ import (
 type SqlAttributesStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
-
-	selectQueryBuilder sq.SelectBuilder
 }
 
-// attributeViewsByObjectType is the single source of truth for the
-// object-type-to-materialized-view mapping: both the per-type lookup and the
-// refresh sweep read it, so adding an object type cannot leave a new view
-// perpetually stale.
-var attributeViewsByObjectType = map[string]string{
-	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
-	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
+// attributesProjection aggregates a target's values into its attributes object, keyed by field
+// name: select yields the option's name, multiselect the names in value order (NULL when none is
+// live), rank an object of name and rank, and graph the identifiers of the live options held
+// (always an array). Options resolve against the field's own and those of the field it links to,
+// since a field that links to a template holds none of the options it serves. Every other type
+// projects the stored value. The single option of a select or rank comes from the join in
+// attributesQuery, which the planner can hash rather than probe once per value.
+const attributesProjection = `jsonb_object_agg(
+	pf.Name,
+	CASE
+		WHEN pf.Type = 'select' THEN to_jsonb(so.Name)
+		WHEN pf.Type = 'rank' THEN CASE WHEN so.ID IS NOT NULL THEN jsonb_build_object('name', so.Name, 'rank', so.Rank) END
+		WHEN pf.Type = 'multiselect' AND jsonb_typeof(pv.Value) = 'array' THEN (
+			SELECT jsonb_agg(po.Name)
+			FROM jsonb_array_elements_text(pv.Value) AS option_id
+			JOIN PropertyOptions po
+			  ON po.ID = option_id
+			 AND po.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
+			 AND po.DeleteAt = 0
+		)
+		WHEN pf.Type = 'graph' AND jsonb_typeof(pv.Value) = 'array' THEN COALESCE((
+			SELECT jsonb_agg(po.ID)
+			FROM jsonb_array_elements_text(pv.Value) AS option_id
+			JOIN PropertyOptions po
+			  ON po.ID = option_id
+			 AND po.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
+			 AND po.DeleteAt = 0
+		), '[]'::jsonb)
+		WHEN pf.Type = 'graph' THEN '[]'::jsonb
+		ELSE pv.Value
+	END
+)`
+
+// attributesQuery selects the Attributes of every target of objectType, one row per group and
+// target, after the given columns. It carries no placeholder arguments, so it can be embedded in
+// a query that numbers its own, and objectType must be one of the model's constants.
+func (s *SqlAttributesStore) attributesQuery(objectType string, columns ...string) sq.SelectBuilder {
+	return s.getQueryBuilder().
+		Select(columns...).
+		Column(attributesProjection+" AS Attributes").
+		From("PropertyValues pv").
+		Join("PropertyFields pf ON pf.ID = pv.FieldID").
+		LeftJoin("PropertyOptions so ON pf.Type IN ('select', 'rank') AND so.ID = pv.Value #>> '{}' AND so.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID)) AND so.DeleteAt = 0").
+		Where("(pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)").
+		Where("(pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)").
+		Where("pf.ObjectType = '"+objectType+"'").
+		GroupBy("pv.GroupID", "pv.TargetID", "pv.TargetType")
 }
 
-// attributeViewFor maps a property-field object type to its materialized view.
-// An unrecognized type is an error rather than a fallback to the user view: a
-// silent coercion would surface a future miswire as a wrong-but-successful user
-// lookup.
-func attributeViewFor(objectType string) (string, error) {
-	view, ok := attributeViewsByObjectType[objectType]
-	if !ok {
-		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
+// userAttributesJoin is a LEFT JOIN clause exposing, as Attributes, the attributes of the user
+// userIDColumn names, which the CEL-derived expressions read. Being LATERAL, it is computed for
+// each row the query reaches through the TargetID index, so a LIMITed query stops early. A user
+// with values in several groups joins once per group. OFFSET 0 keeps the planner from pushing
+// those expressions into the subquery, where each would aggregate the attributes again.
+func (s *SqlAttributesStore) userAttributesJoin(userIDColumn string) (string, error) {
+	lateral, _, err := s.attributesQuery(model.PropertyFieldObjectTypeUser).
+		Where("pv.TargetID = " + userIDColumn).
+		Offset(0).
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to build the user attributes join")
 	}
-	return view, nil
-}
-
-func attributesSliceColumns(prefix ...string) []string {
-	var p string
-	if len(prefix) == 1 {
-		p = prefix[0] + "."
-	} else if len(prefix) > 1 {
-		panic("cannot accept multiple prefixes")
-	}
-
-	return []string{
-		p + "TargetID as ID",
-		p + "TargetType as Type",
-		p + "Attributes",
-	}
+	return "LATERAL (" + lateral + ") UserAttributes ON true", nil
 }
 
 // qualify prefixes each column with the given table name. The members-to-remove
@@ -72,43 +99,25 @@ func qualify(table string, columns []string) []string {
 }
 
 func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.AttributesStore {
-	s := &SqlAttributesStore{
+	return &SqlAttributesStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	// The From clause is chosen per call by object type (GetSubject), so the
-	// shared builder carries only the Select.
-	s.selectQueryBuilder = s.getQueryBuilder().Select(attributesSliceColumns()...)
-
-	return s
 }
 
+// No-op: attributes are read from the property tables, so there is nothing to refresh.
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	// Both per-object-type views (migration 000216) refresh on one cadence, so a
-	// caller does not have to know which object types it is about to read. They
-	// refresh in separate statements, though, so this is not an atomic snapshot:
-	// a read straddling a refresh can see the two views a generation apart. Every
-	// consumer tolerates that — values are eventually consistent and the
-	// membership sync re-runs on cadence and converges. Refreshing only the view
-	// whose attributes actually changed is a scale follow-up. Refresh order is
-	// unspecified (map iteration) and does not matter: each REFRESH is its own
-	// independent statement.
-	for _, view := range attributeViewsByObjectType {
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
-			return errors.Wrapf(err, "error refreshing materialized view %s", view)
-		}
-	}
-
 	return nil
 }
 
 func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
-	view, err := attributeViewFor(objectType)
-	if err != nil {
-		return nil, err
+	// An unrecognized type is an error rather than a fallback to users: a silent coercion would
+	// surface a future miswire as a wrong-but-successful user lookup.
+	if objectType != model.PropertyFieldObjectTypeUser && objectType != model.PropertyFieldObjectTypeChannel {
+		return nil, errors.Errorf("unknown object type %q for attributes", objectType)
 	}
-	query := s.selectQueryBuilder.From(view).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
+	query := s.attributesQuery(objectType, "pv.TargetID AS ID", "pv.TargetType AS Type").
+		Where(sq.Eq{"pv.TargetID": ID, "pv.GroupID": groupID})
 
 	q, args, err := query.ToSql()
 	if err != nil {
@@ -135,11 +144,15 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectTyp
 }
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
+	attributesJoin, err := s.userAttributesJoin("Users.Id")
+	if err != nil {
+		return nil, 0, err
+	}
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").LeftJoin(attributesJoin).
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin(attributesJoin)
 
 	if opts.Query != "" {
 		// Wrap the CEL-derived expression in parentheses so that any top-level
@@ -185,10 +198,7 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		// Paginate on Users.Id (the ORDER BY column), not UserAttributeView.TargetID.
-		// The cursor value is a user id, and TargetID comes from a LEFT JOIN so it
-		// is NULL for users with no custom-attribute row — comparing against it
-		// silently drops those users (e.g. matches of a native-only policy).
+		// Paginate on Users.Id (the ORDER BY column). The cursor value is a user id.
 		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id > $%d", argCount), opts.Cursor.TargetID))
 	}
 
@@ -233,19 +243,23 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 }
 
 func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+	attributesJoin, err := s.userAttributesJoin("ChannelMembers.UserId")
+	if err != nil {
+		return nil, err
+	}
 	query := s.getQueryBuilder().
 		Select(qualify("ChannelMembers", channelMemberSliceColumns())...).From("ChannelMembers").
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
 		// resolve here, mirroring SearchUsers on the add path.
 		LeftJoin("Users ON Users.Id = ChannelMembers.UserId").
-		LeftJoin("UserAttributeView ON ChannelMembers.UserId = UserAttributeView.TargetID").
+		LeftJoin(attributesJoin).
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
 		// A member is removed when they do NOT satisfy the policy; a NULL result
 		// (e.g. a missing custom attribute) counts as "does not satisfy" via
 		// COALESCE. We must not additionally remove members just because they
-		// lack a UserAttributeView row — a native-only policy matches against the
+		// lack custom attributes — a native-only policy matches against the
 		// Users table, so a user with zero custom attributes can still satisfy it.
 		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}
@@ -315,12 +329,16 @@ func (s *SqlAttributesStore) InvalidateUserAttributes(userID string) {}
 func (s *SqlAttributesStore) ClearUserAttributesCache()              {}
 
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	attributesJoin, err := s.userAttributesJoin("TeamMembers.UserId")
+	if err != nil {
+		return nil, err
+	}
 	query := s.getQueryBuilder().
 		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
 		// resolve here, mirroring SearchUsers on the add path.
 		LeftJoin("Users ON Users.Id = TeamMembers.UserId").
-		LeftJoin("UserAttributeView ON TeamMembers.UserId = UserAttributeView.TargetID").
+		LeftJoin(attributesJoin).
 		Where("TeamMembers.DeleteAt = 0").
 		OrderBy("TeamMembers.UserId ASC")
 
@@ -328,7 +346,7 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 		// A member is removed when they do NOT satisfy the policy; a NULL result
 		// (e.g. a missing custom attribute) counts as "does not satisfy" via
 		// COALESCE. We must not additionally remove members just because they
-		// lack a UserAttributeView row — a native-only policy matches against the
+		// lack custom attributes — a native-only policy matches against the
 		// Users table, so a user with zero custom attributes can still satisfy it.
 		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}

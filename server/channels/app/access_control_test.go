@@ -4,13 +4,13 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"maps"
 	"net/http"
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -6532,28 +6532,50 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 	})
 }
 
-func TestInvalidateAttributeViewCache(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	ch := th.App.Srv().Channels()
+func TestBuildAccessControlSubjectReadsWrittenAttributes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		cfg.FeatureFlags.PermissionPolicies = true
+	})
 
-	th.App.invalidateAttributeViewCache()
-	require.True(t, ch.attributeViewRefreshLast.IsZero(), "a write should mark the view stale")
-
-	// No rate limit: a deferred write is a lost one, because a client asks for a render decision
-	// once per change event and never re-asks.
-	ch.attributeViewRefreshLast = time.Now()
-	for range 100 {
-		th.App.invalidateAttributeViewCache()
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field := &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "Department",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	}
-	require.True(t, ch.attributeViewRefreshLast.IsZero(), "later writes should still mark the view stale")
+	field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{})
+	field, err := th.App.Srv().Store().PropertyField().Create(field)
+	require.NoError(t, err)
 
-	// A write landing during an in-flight refresh cannot reset the timer, so it flags a follow-up.
-	ch.attributeViewRefreshLast = time.Now()
-	ch.attributeViewRefreshMut.Lock()
-	th.App.invalidateAttributeViewCache()
-	ch.attributeViewRefreshMut.Unlock()
-	require.False(t, ch.attributeViewRefreshLast.IsZero())
-	require.True(t, ch.attributeViewNeedsRefresh.Load(), "a write during a refresh should flag a follow-up")
+	setDepartment := func(department string) {
+		_, appErr := th.App.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   th.BasicUser.Id,
+			TargetType: model.PropertyFieldObjectTypeUser,
+			Value:      json.RawMessage(`"` + department + `"`),
+		})
+		require.Nil(t, appErr)
+	}
+	department := func() any {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		return subject.Attributes["Department"]
+	}
+
+	setDepartment("a")
+	require.Equal(t, "a", department())
+	require.Equal(t, "a", department())
+
+	setDepartment("b")
+	require.Equal(t, "b", department(), "a read after a write must see the written value")
 }
 
 func TestAttributeBasedAccessControlEnabled(t *testing.T) {

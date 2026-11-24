@@ -392,7 +392,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 	// authoring it rejects the caller's mistake; after a normalize it is a
 	// postcondition check that fails closed if normalization and validation
 	// ever diverge. That belt-and-suspenders matters here because invalid rank
-	// data fails open — it silently denies access at read time (see the matview
+	// data fails open — it silently denies access at read time (see attributesProjection
 	// and buildRankMap) instead of erroring — so we must never persist it.
 	if field.Type == model.PropertyFieldTypeRank {
 		if prevType != "" && prevType != model.PropertyFieldTypeRank {

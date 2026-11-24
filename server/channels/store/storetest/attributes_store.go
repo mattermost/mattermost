@@ -229,11 +229,10 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 }
 
-// testAttributesStoreGetChannelSubject verifies the per-object-type view split
-// (migration 000223, which recreates both views 000216 introduced): a
-// channel-scoped attribute is readable via
-// GetSubject(..., "channel") from ChannelAttributeView, and is *not* visible
-// through the user view — proving the two views filter by ObjectType.
+// testAttributesStoreGetChannelSubject verifies the per-object-type projection:
+// a channel-scoped attribute is readable via GetSubject(..., "channel"), and is
+// *not* visible through a user read — proving the projection filters by
+// ObjectType.
 func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss store.Store) {
 	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
@@ -285,7 +284,7 @@ func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss sto
 
 // testAttributesStoreEmptyMultiselect pins the fail-closed contract for
 // multiselect attributes (migration 000223): an empty multiselect resolves to
-// NULL in the matview, never an empty array. The view builds the value with
+// NULL in the subject, never an empty array. The projection builds the value with
 // jsonb_agg over the joined option rows, and jsonb_agg over zero rows yields
 // NULL — the multiselect branch has no NULLIF/COALESCE, unlike the graph branch
 // beside it, which wraps its aggregate so it projects an empty array instead.
@@ -455,7 +454,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	// as the sync adding zero members while the Test modal (no cursor) showed
 	// the full set.
 	t.Run("Search paginates users with no attribute row", func(t *testing.T) {
-		// A fresh user with no custom attributes => no UserAttributeView row.
+		// A fresh user with no custom attributes => no attributes row.
 		u := model.User{Email: MakeEmail(), Username: model.NewUsername()}
 		_, err := ss.User().Save(rctx, &u)
 		require.NoError(t, err, "couldn't save attribute-less user")
@@ -466,7 +465,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, ss.Attributes().RefreshAttributes(), "couldn't refresh attributes")
 
 		// Native-style predicate against the Users table; matches the user above
-		// despite the missing UserAttributeView row.
+		// despite the missing attributes row.
 		subjects, _, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 			Query: "Users.Email = $1::text",
 			Args:  []any{u.Email},

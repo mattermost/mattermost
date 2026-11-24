@@ -585,7 +585,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
 	}
 
-	// Renaming or re-ranking an option rewrites what the matview materializes, and a type change
+	// Renaming or re-ranking an option rewrites what a subject projects, and a type change
 	// drops dependent values, none of it touching the rows the per-user epoch is computed from.
 	if anyUserObjectType(updated) || anyUserObjectType(propagated) {
 		a.invalidateAllUserAttributeCaches()
@@ -614,7 +614,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	return updated, clearedFieldIDs, nil
 }
 
-// anyUserObjectType reports whether any field is one the AttributeView materializes, and that ABAC
+// anyUserObjectType reports whether any field is one a user subject projects, and that ABAC
 // policies can therefore match on.
 func anyUserObjectType(fields []*model.PropertyField) bool {
 	for _, f := range fields {
@@ -670,7 +670,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// The matview filters out soft-deleted fields, so this attribute disappears from every subject
+	// The subject projection filters out soft-deleted fields, so this attribute disappears from every subject
 	// while PropertyValues stays untouched and the per-user epoch cannot see it.
 	if existing.ObjectType == model.PropertyFieldObjectTypeUser {
 		a.invalidateAllUserAttributeCaches()

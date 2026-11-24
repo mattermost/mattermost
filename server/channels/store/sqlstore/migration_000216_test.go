@@ -37,6 +37,7 @@ func TestMigration000216(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	defer withMaterializedAttributeViews(t, store)()
 	// 000242 rebuilds AttributeView on PropertyOptions, so take it off to see
 	// the schema as 000216 left it.
 	defer withoutLegacyAttributeView(t, store)()
@@ -88,7 +89,7 @@ func TestMigration000216(t *testing.T) {
 		store.PropertyField().Delete(groupID, channelField.ID) //nolint:errcheck
 	})
 
-	require.NoError(t, store.Attributes().RefreshAttributes())
+	refreshAttributeMatviews(t, store)
 
 	countInView := func(view, targetID string) int {
 		var c int
