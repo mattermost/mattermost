@@ -28955,6 +28955,10 @@
     "defaultMessage": "Burn-on-read messages can’t have attributes",
     "description": "Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read."
   },
+  "post_attributes.composer.cannot_add_scheduled": {
+    "defaultMessage": "Scheduled messages can’t have attributes",
+    "description": "Tooltip on the disabled button for adding attributes in the message composer while a send time is being chosen for the message being written."
+  },
   "post_attributes.composer.cannot_burn_on_read": {
     "defaultMessage": "Messages with attributes can’t be burn-on-read",
     "description": "Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written."

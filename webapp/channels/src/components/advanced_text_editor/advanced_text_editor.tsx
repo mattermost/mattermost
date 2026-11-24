@@ -269,6 +269,7 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [isChoosingScheduleTime, setIsChoosingScheduleTime] = useState(false);
     const stagedAttributes = useStagedPostAttributes();
     const clearStagedAttributes = stagedAttributes.clear;
 
@@ -487,11 +488,22 @@ const AdvancedTextEditor = ({
         isBurnOnReadSendable: burnOnReadSendable,
         hasBurnOnReadSet,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false, burnOnReadBlockedReason);
-    const addAttributesBlockedReason = hasBurnOnReadSet ? formatMessage({
-        id: 'post_attributes.composer.cannot_add_burn_on_read',
-        defaultMessage: 'Burn-on-read messages can’t have attributes',
-        description: 'Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read.',
-    }) : undefined;
+    let addAttributesBlockedReason: string | undefined;
+    if (hasBurnOnReadSet) {
+        addAttributesBlockedReason = formatMessage({
+            id: 'post_attributes.composer.cannot_add_burn_on_read',
+            defaultMessage: 'Burn-on-read messages can’t have attributes',
+            description: 'Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read.',
+        });
+    } else if (isChoosingScheduleTime) {
+        // The custom time modal doesn't trap focus, so the composer stays
+        // reachable by keyboard while a send time is being picked.
+        addAttributesBlockedReason = formatMessage({
+            id: 'post_attributes.composer.cannot_add_scheduled',
+            defaultMessage: 'Scheduled messages can’t have attributes',
+            description: 'Tooltip on the disabled button for adding attributes in the message composer while a send time is being chosen for the message being written.',
+        });
+    }
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -804,6 +816,7 @@ const AdvancedTextEditor = ({
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
             schedulingBlockedReason={schedulingBlockedReason}
+            onCustomTimeModalToggle={setIsChoosingScheduleTime}
         />
     );
 
@@ -976,6 +989,7 @@ const AdvancedTextEditor = ({
                         onAdd={stagedAttributes.add}
                         onChange={stagedAttributes.change}
                         onRemove={stagedAttributes.remove}
+                        addDisabledReason={addAttributesBlockedReason}
                     />
                 </div>
             )}

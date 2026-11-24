@@ -33,9 +33,12 @@ type Props = {
     // disabled button receives no hover or focus events, so it is shown from a focusable
     // wrapper around the button.
     blockedReason?: string;
+
+    // Called with true when the custom time modal opens and false once it has closed.
+    onCustomTimeModalToggle?: (open: boolean) => void;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, blockedReason}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, blockedReason, onCustomTimeModalToggle}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -52,16 +55,18 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
     }, [onSelect]);
 
     const handleChooseCustomTime = useCallback(() => {
+        onCustomTimeModalToggle?.(true);
         dispatch(openModal({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 channelId,
                 onConfirm: onSelect,
+                onExited: () => onCustomTimeModalToggle?.(false),
                 repeatDisabledReason,
             },
         }));
-    }, [repeatDisabledReason, channelId, dispatch, onSelect]);
+    }, [repeatDisabledReason, channelId, dispatch, onSelect, onCustomTimeModalToggle]);
 
     const buttonDisabled = Boolean(disabled || blockedReason);
 
