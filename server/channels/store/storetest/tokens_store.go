@@ -17,6 +17,7 @@ import (
 func TestTokensStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("TokensCleanup", func(t *testing.T) { testTokensCleanup(t, rctx, ss) })
 	t.Run("ConsumeOnce", func(t *testing.T) { testConsumeOnce(t, rctx, ss) })
+	t.Run("GetByTokenFromMaster", func(t *testing.T) { testGetByTokenFromMaster(t, rctx, ss) })
 	t.Run("LookupsDoNotLeakToken", func(t *testing.T) { testTokensStoreLookupsDoNotLeakToken(t, rctx, ss) })
 }
 
@@ -32,11 +33,38 @@ func testTokensStoreLookupsDoNotLeakToken(t *testing.T, rctx request.CTX, ss sto
 	assert.Contains(t, err.Error(), "Token=<redacted>")
 	assert.NotContains(t, err.Error(), token)
 
+	_, err = ss.Token().GetByTokenFromMaster(token)
+	require.Error(t, err)
+	require.ErrorAs(t, err, &nfErr)
+	assert.Contains(t, err.Error(), "Token=<redacted>")
+	assert.NotContains(t, err.Error(), token)
+
 	_, err = ss.Token().ConsumeOnce(model.TokenTypeVerifyEmail, token)
 	require.Error(t, err)
 	require.ErrorAs(t, err, &nfErr)
 	assert.Contains(t, err.Error(), "Token=<redacted>")
 	assert.NotContains(t, err.Error(), token)
+}
+
+func testGetByTokenFromMaster(t *testing.T, rctx request.CTX, ss store.Store) {
+	token := &model.Token{
+		Token:    model.NewRandomString(model.TokenSize),
+		CreateAt: model.GetMillis(),
+		Type:     model.TokenTypeOAuth,
+		Extra:    "test-extra",
+	}
+	require.NoError(t, ss.Token().Save(token))
+	t.Cleanup(func() { _ = ss.Token().Delete(token.Token) })
+
+	got, err := ss.Token().GetByTokenFromMaster(token.Token)
+	require.NoError(t, err)
+	assert.Equal(t, token.Token, got.Token)
+	assert.Equal(t, token.Type, got.Type)
+	assert.Equal(t, token.Extra, got.Extra)
+
+	_, err = ss.Token().GetByTokenFromMaster(model.NewRandomString(model.TokenSize))
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
 }
 
 func testTokensCleanup(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -14421,6 +14421,22 @@ func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	return result, err
 }
 
+func (s *TimerLayerTokenStore) GetByTokenFromMaster(token string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.GetByTokenFromMaster(token)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetByTokenFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
 	start := time.Now()
 

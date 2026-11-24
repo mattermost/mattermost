@@ -18249,6 +18249,27 @@ func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 
 }
 
+func (s *RetryLayerTokenStore) GetByTokenFromMaster(token string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.GetByTokenFromMaster(token)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
 
 	tries := 0

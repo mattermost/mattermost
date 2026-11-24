@@ -59,6 +59,10 @@ func (s SqlTokenStore) Delete(token string) error {
 }
 
 func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
+	return s.getByToken(s.GetReplica(), tokenString)
+}
+
+func (s SqlTokenStore) getByToken(db *sqlxDBWrapper, tokenString string) (*model.Token, error) {
 	var token model.Token
 
 	query, args, err := s.tokenSelectQuery.
@@ -68,7 +72,7 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 		return nil, errors.Wrap(err, "could not build sql query to get token store")
 	}
 
-	if err := s.GetReplica().Get(&token, query, args...); err != nil {
+	if err := db.Get(&token, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", "Token=<redacted>")
 		}
@@ -76,6 +80,12 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	}
 
 	return &token, nil
+}
+
+// GetByTokenFromMaster reads the primary so a token saved by the previous
+// request is visible even when replicas lag.
+func (s SqlTokenStore) GetByTokenFromMaster(tokenString string) (*model.Token, error) {
+	return s.getByToken(s.GetMaster(), tokenString)
 }
 
 func (s SqlTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, error) {
