@@ -7,6 +7,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
@@ -22,6 +23,20 @@ func TestDesktopTokensStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("ConsumeToken", func(t *testing.T) { testConsumeToken(t, rctx, ss) })
 	t.Run("ConsumeToken/idempotent", func(t *testing.T) { testConsumeTokenIdempotent(t, rctx, ss) })
 	t.Run("ConsumeToken/concurrent", func(t *testing.T) { testConsumeTokenConcurrent(t, rctx, ss) })
+	t.Run("GetUserIdDoesNotLeakToken", func(t *testing.T) { testGetUserIDDoesNotLeakToken(t, rctx, ss) })
+}
+
+// MM-70121: the desktop token is a credential, so it must not reach the error
+// returned when it does not resolve.
+func testGetUserIDDoesNotLeakToken(t *testing.T, rctx request.CTX, ss store.Store) {
+	token := model.NewId()
+
+	_, err := ss.DesktopTokens().GetUserId(token, 0)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
+	assert.Contains(t, err.Error(), "Token=<redacted>")
+	assert.NotContains(t, err.Error(), token)
 }
 
 func testGetUserID(t *testing.T, rctx request.CTX, ss store.Store) {

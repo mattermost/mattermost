@@ -385,6 +385,20 @@ func ValidatePropertyValueForValueType(valueType string, value json.RawMessage) 
 	return nil
 }
 
+// ValidatePropertyTextValue checks a text field's value: it must be a JSON
+// string, at most PropertyFieldValueTypeTextMaxLength bytes once trimmed, and
+// fit the field's value_type when it has one.
+func ValidatePropertyTextValue(field *PropertyField, value json.RawMessage) error {
+	var str string
+	if err := json.Unmarshal(value, &str); err != nil {
+		return fmt.Errorf("expected string value: %w", err)
+	}
+	if len(strings.TrimSpace(str)) > PropertyFieldValueTypeTextMaxLength {
+		return fmt.Errorf("text value exceeds maximum length of %d characters", PropertyFieldValueTypeTextMaxLength)
+	}
+	return ValidatePropertyValueForValueType(GetPropertyFieldValueType(field), value)
+}
+
 // GetPropertyFieldValueType extracts the value_type string from a
 // PropertyField's attrs. Returns empty string if not set.
 func GetPropertyFieldValueType(field *PropertyField) string {

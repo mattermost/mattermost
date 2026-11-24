@@ -4,9 +4,11 @@
 package platform
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
@@ -59,4 +61,77 @@ func TestIsLeader(t *testing.T) {
 
 		assert.True(t, th.Service.IsLeader())
 	})
+}
+
+func TestPublishRunsPrePublishHook(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setup := func(t *testing.T) (*TestHelper, *testlib.FakeClusterInterface, *[]model.WebsocketEventType) {
+		t.Helper()
+
+		fakeCluster := &testlib.FakeClusterInterface{}
+		th := SetupWithCluster(t, fakeCluster)
+		var seen []model.WebsocketEventType
+		th.Service.SetPrePublishHook(func(message *model.WebSocketEvent) {
+			seen = append(seen, message.EventType())
+			message.GetBroadcast().AddHook("pre_publish_test", map[string]any{"marker": "set"})
+		})
+		return th, fakeCluster, &seen
+	}
+
+	t.Run("Publish runs it before the cluster copy is serialized", func(t *testing.T) {
+		th, fakeCluster, seen := setup(t)
+
+		th.Service.Publish(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", model.NewId(), "", nil, ""))
+		require.Equal(t, []model.WebsocketEventType{model.WebsocketEventPostEdited}, *seen)
+
+		messages := fakeCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPublish
+		})
+		require.Len(t, messages, 1)
+		event, err := model.WebSocketEventFromJSON(bytes.NewReader(messages[0].Data))
+		require.NoError(t, err)
+		require.Equal(t, []string{"pre_publish_test"}, event.GetBroadcast().BroadcastHooks)
+	})
+
+	// A receiving node delivers what the cluster sent through PublishSkipClusterSend; the
+	// originating node already ran the hook on it.
+	t.Run("PublishSkipClusterSend doesn't run it", func(t *testing.T) {
+		th, _, seen := setup(t)
+
+		th.Service.PublishSkipClusterSend(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", model.NewId(), "", nil, ""))
+		require.Empty(t, *seen)
+	})
+}
+
+// swapOnEncode runs while Publish encodes the event, which is after it has checked for a
+// cluster and before it sends to one.
+type swapOnEncode func()
+
+func (f swapOnEncode) MarshalJSON() ([]byte, error) {
+	f()
+	return []byte(`{}`), nil
+}
+
+// Publish must not crash if the cluster is unset after its nil check.
+func TestPublishWhileClusterIsUnset(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	// The hubs encode every event on their own goroutines; detached, the only encode
+	// is the one inside Publish.
+	hubs := th.Service.hubs
+	th.Service.hubs = nil
+	t.Cleanup(func() { th.Service.hubs = hubs })
+
+	cluster := &testlib.FakeClusterInterface{}
+	th.Service.SetCluster(cluster)
+
+	event := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
+	event.Add("config", swapOnEncode(func() { th.Service.SetCluster(nil) }))
+
+	require.NotPanics(t, func() { th.Service.Publish(event) })
+	require.Nil(t, th.Service.Cluster())
+	require.Len(t, cluster.GetMessages(), 1, "the swap must land between Publish's nil check and its send")
 }

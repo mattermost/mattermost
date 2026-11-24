@@ -108,16 +108,30 @@ export function getPropertyFieldOptions(field: PropertyField): PropertyFieldOpti
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
-// The server normalises rank fields to a contiguous 1..N, so the positional
-// fallback only covers option lists cached before that ran.
+// Only a stored rank counts. The server refuses a rank field whose options lack
+// one and fails closed when a change-policy check meets one, so no position is
+// invented here either; such options can only come from a stale cache.
+function getStoredRank(option: PropertyFieldOption): number | undefined {
+    return typeof option.rank === 'number' ? option.rank : undefined;
+}
+
 export function getOptionRank(field: PropertyField, optionId: string): number | undefined {
-    const options = getPropertyFieldOptions(field);
-    const index = options.findIndex((option) => option.id === optionId);
-    if (index < 0) {
-        return undefined;
-    }
-    const {rank} = options[index];
-    return typeof rank === 'number' ? rank : index + 1;
+    const option = getPropertyFieldOptions(field).find((candidate) => candidate.id === optionId);
+    return option ? getStoredRank(option) : undefined;
+}
+
+// Highest rank first; unranked options last. Equal ranks keep their stored order.
+export function sortOptionsByRank<T extends PropertyFieldOption>(options: readonly T[]): T[] {
+    const rankOf = (option: T) => getStoredRank(option) ?? -Infinity;
+
+    return [...options].sort((a, b) => {
+        const rankA = rankOf(a);
+        const rankB = rankOf(b);
+        if (rankA === rankB) {
+            return 0;
+        }
+        return rankB > rankA ? 1 : -1;
+    });
 }
 
 /**
@@ -171,6 +185,22 @@ export function formatPropertyFieldLabel(name: string): string {
 }
 
 // display_name is the admin-facing override; name is the CEL-safe slug fallback.
+/**
+ * Orders fields by attrs.sort_order ascending, then name. Ties break on name, not
+ * create_at: chip order is something people are told to read, so it must follow
+ * the configuration rather than insertion timing. The name compare uses a fixed
+ * locale; the default is the viewer's, which would order equal-ranked chips
+ * differently per user. Names are ASCII slugs, so this is total.
+ */
+export function comparePropertyFieldOrder(a: PropertyField, b: PropertyField): number {
+    const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+    const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+    if (rankA !== rankB) {
+        return rankA - rankB;
+    }
+    return a.name.localeCompare(b.name, 'en');
+}
+
 export function getPropertyFieldLabel(field: PropertyField): string {
     const displayName = field.attrs?.display_name;
     const raw = typeof displayName === 'string' && displayName ? displayName : field.name;

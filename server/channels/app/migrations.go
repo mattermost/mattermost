@@ -39,6 +39,7 @@ const (
 	boardsPropertyMigrationVersion                   = "v2"
 	cpaDisplayNameBackfillKey                        = "cpa_display_name_backfill_done"
 	cpaToGlobalAttributesMigrationKey                = "cpa_to_global_attributes_migration_done"
+	sessionAttributesMinDurationMigrationKey         = "session_attributes_min_duration_migration_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -68,7 +69,7 @@ func (s *Server) doAdvancedPermissionsMigration(rctx request.CTX) error {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
-	mlog.Info("Migrating roles to database.")
+	rctx.Logger().Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
 
 	var multiErr *multierror.Error
@@ -77,7 +78,7 @@ func (s *Server) doAdvancedPermissionsMigration(rctx request.CTX) error {
 		if err == nil {
 			continue
 		}
-		mlog.Warn("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
+		rctx.Logger().Warn("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
 
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
 		fetchedRole, err := s.Store().Role().GetByName(rctx, role.Name)
@@ -150,7 +151,7 @@ func (s *Server) doEmojisPermissionsMigration(rctx request.CTX) error {
 	var systemAdminRole *model.Role
 	var err *model.AppError
 
-	mlog.Info("Migrating emojis config to database.")
+	rctx.Logger().Info("Migrating emojis config to database.")
 
 	// Emoji creation is set to all by default
 	role, err = s.GetRoleByName(rctx, model.SystemUserRoleId)
@@ -1112,6 +1113,65 @@ func (s *Server) doSetupSessionAttributesProperties() error {
 	return nil
 }
 
+// doSessionAttributesMinDurationMigration raises any session attribute TTL or
+// grace period below model.SessionAttributeMinDurationSeconds to that minimum.
+// The seed preserves an existing field's TTL and grace period, so fields seeded
+// with the old sub-minute defaults or tuned below a minute by an admin are only
+// corrected here.
+func (s *Server) doSessionAttributesMinDurationMigration() error {
+	if _, err := s.Store().System().GetByName(sessionAttributesMinDurationMigrationKey); err == nil {
+		return nil
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+		return fmt.Errorf("could not query session attributes minimum duration migration: %w", err)
+	}
+
+	group, err := s.propertyService.Group(model.SessionAttributesPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to look up session attributes property group: %w", err)
+	}
+
+	fields, err := s.propertyService.SearchPropertyFields(s.systemCallerContext(model.CallerIDSessionAttributesSystem), group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search session attribute fields: %w", err)
+	}
+
+	var fieldsToUpdate []*model.PropertyField
+	for _, field := range fields {
+		saField, err := model.SAFieldFromPropertyField(field)
+		if err != nil {
+			return fmt.Errorf("failed to read session attribute field %q: %w", field.Name, err)
+		}
+		changed := false
+		if saField.Attrs.TTLSeconds < model.SessionAttributeMinDurationSeconds {
+			field.Attrs[model.SAAttrTTLSeconds] = model.SessionAttributeMinDurationSeconds
+			changed = true
+		}
+		if saField.Attrs.GracePeriodSeconds < model.SessionAttributeMinDurationSeconds {
+			field.Attrs[model.SAAttrGracePeriodSeconds] = model.SessionAttributeMinDurationSeconds
+			changed = true
+		}
+		if changed {
+			fieldsToUpdate = append(fieldsToUpdate, field)
+		}
+	}
+
+	if len(fieldsToUpdate) > 0 {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(s.systemCallerContext(model.CallerIDSessionAttributesSystem), group.ID, fieldsToUpdate); err != nil {
+			// Another node raced this one to the update; leave the marker unset so a later startup re-checks.
+			if _, ok := errors.AsType[*store.ErrConflict](err); ok {
+				return nil
+			}
+			return fmt.Errorf("failed to update session attribute durations: %w", err)
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: sessionAttributesMinDurationMigrationKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to mark session attributes minimum duration migration as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doSetupManagedCategoryProperties() error {
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(managedCategorySetupDoneKey)
@@ -1230,7 +1290,7 @@ func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 		return fmt.Errorf("failed to backfill CPA display_name: %w", err)
 	}
 
-	mlog.Info("CPA display_name backfill migration completed",
+	rctx.Logger().Info("CPA display_name backfill migration completed",
 		mlog.Int("backfilled", backfilled),
 		mlog.Int("skipped", skipped),
 	)
@@ -1258,7 +1318,7 @@ func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
 	}
 
 	if !model.MinimumEnterpriseLicense(s.License()) {
-		mlog.Info("CPA-to-Global-Attributes migration skipped: server is not currently licensed")
+		rctx.Logger().Info("CPA-to-Global-Attributes migration skipped: server is not currently licensed")
 		return nil
 	}
 
@@ -1269,7 +1329,7 @@ func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
 
 	// Only write the "done" marker once no field needs a retry.
 	if retryable > 0 {
-		mlog.Warn("CPA-to-Global-Attributes migration incomplete: some fields will be retried on a later restart",
+		rctx.Logger().Warn("CPA-to-Global-Attributes migration incomplete: some fields will be retried on a later restart",
 			mlog.Int("migrated", migrated),
 			mlog.Int("skipped", skipped),
 			mlog.Int("retryable", retryable),
@@ -1277,7 +1337,7 @@ func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
 		return nil
 	}
 
-	mlog.Info("CPA-to-Global-Attributes migration completed",
+	rctx.Logger().Info("CPA-to-Global-Attributes migration completed",
 		mlog.Int("migrated", migrated),
 		mlog.Int("skipped", skipped),
 	)
@@ -1314,13 +1374,13 @@ func (s *Server) doSetupPropertyPermissionsBackfill(rctx request.CTX) error {
 	}
 
 	if converted > 0 {
-		mlog.Info("Property permissions backfill converted fields with no permissions object",
+		rctx.Logger().Info("Property permissions backfill converted fields with no permissions object",
 			mlog.Int("converted", converted),
 			mlog.Int("skipped", skipped),
 		)
 	}
 	if failed > 0 {
-		mlog.Error("Property permissions backfill left fields without a permissions object; each is logged by ID, stays inaccessible, and is retried on the next startup",
+		rctx.Logger().Error("Property permissions backfill left fields without a permissions object; each is logged by ID, stays inaccessible, and is retried on the next startup",
 			mlog.Int("failed", failed),
 		)
 	}
@@ -1541,6 +1601,7 @@ func (s *Server) doAppMigrations() {
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
+		{"Session Attributes Minimum Duration Migration", s.doSessionAttributesMinDurationMigration},
 	}
 
 	for i := range m1 {

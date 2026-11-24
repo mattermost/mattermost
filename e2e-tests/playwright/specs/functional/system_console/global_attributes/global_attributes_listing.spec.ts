@@ -253,6 +253,10 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
+                // # Narrow the listing to this test's rows, which a shared server's other rows
+                // would otherwise crowd
+                await systemConsolePage.globalAttributes.search(String(timestamp));
+
                 await systemConsolePage.page.getByTestId('global-attribute-name').getByText(firstDisplayName).waitFor();
 
                 // * The fallback field renders under its internal name, since no display_name was set

@@ -33,7 +33,7 @@ See the [supported SAML encryption methods](/administration-guide/configure/auth
 
 > - **Single sign on URL:** `https://<your-mattermost-url>/login/sso/saml` where `https://<your-mattermost-url>` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
 >
-> - **Audience URI:** For instance, `mattermost`
+> - **Audience URI:** The **Service Provider Identifier** configured in Mattermost, typically `https://<your-mattermost-url>`.
 >
 > - **Name ID format:** `unspecified`
 >
@@ -81,7 +81,7 @@ See the [supported SAML encryption methods](/administration-guide/configure/auth
 
 Start the Mattermost server and log in to Mattermost as a system admin. Go to **System Console \> Authentication \> SAML 2.0**, then paste the copied Identity Provider Metadata URL in the **Identity Provider Metadata URL** field and select **Get SAML Metadata from IdP**.
 
-This populates the **SAML SSO URL** and the **Identity Provider Issuer URL** fields automatically. The Identity Provider Public Certificate is also downloaded from the server and set locally.
+This populates the **SAML SSO URL** and the **Identity Provider Issuer URL** fields automatically. The Identity Provider Public Certificate is also downloaded from the server and set locally. It doesn't set the **Service Provider Identifier**, which you enter yourself as described below.
 
 Alternatively you can enter the following fields manually:  
 - **SAML SSO URL:** `Identity Provider Single Sign-On URL` from Okta, specified earlier.
@@ -91,6 +91,8 @@ Alternatively you can enter the following fields manually:
 - **Identity Provider Public Certificate:** X.509 Public Certificate file you downloaded from Okta earlier.
 
   > ![In the Mattermost System Console, go to Authentication \> SAML 2.0 to manually enter the SAML SSO URL and Identity Provider Issuer URL, and upload the Identity Provider Public Certificate manually.](/images/okta_10_mattermost_basics.png)
+
+Whichever option you choose, set **Service Provider Identifier** to the same value as the Okta **Audience URI**, typically `https://<your-mattermost-url>`.
 
 2.  Configure Mattermost to verify the signature. The **Service Provider Login URL** is the `Single sign on URL` you specified in Okta earlier.
 

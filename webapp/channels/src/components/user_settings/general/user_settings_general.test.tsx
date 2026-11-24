@@ -643,7 +643,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         await userEvent.click(clearButton);
 
         expect(combobox).toHaveValue('');
-        expect(combobox).toHaveAttribute('placeholder', 'Select');
+        expect(combobox).toHaveAttribute('placeholder', 'Select an option');
         expect(screen.queryByTestId('customProfileAttribute_field1-clear')).not.toBeInTheDocument();
 
         const saveButton = screen.getByRole('button', {name: 'Save'});

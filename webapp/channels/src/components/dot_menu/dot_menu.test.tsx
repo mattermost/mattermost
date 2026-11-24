@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {Locations, PostTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -194,6 +194,7 @@ describe('components/dot_menu/DotMenu', () => {
             setGlobalItem: jest.fn(),
             burnPostNow: jest.fn(),
             savePreferences: jest.fn(),
+            quoteTextFromPost: jest.fn(),
         },
         canEdit: false,
         canDelete: false,
@@ -214,6 +215,7 @@ describe('components/dot_menu/DotMenu', () => {
         canPin: true,
         canCopyText: true,
         canCopyLink: true,
+        canQuote: true,
         isBurnOnReadPost: false,
         isUnrevealedBurnOnReadPost: false,
     };
@@ -288,6 +290,28 @@ describe('components/dot_menu/DotMenu', () => {
 
         // Check that move thread menu item is not present when canMove is false
         expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
+    });
+
+    test.each([
+        [true, true],
+        [false, false],
+    ])('pin menu item follows canPin=%s', async (canPin, shown) => {
+        renderWithContext(
+            <DotMenu
+                {...baseProps}
+                canPin={canPin}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`));
+
+        // canPin carries the channel write denial, so the item must follow it like the P shortcut does.
+        if (shown) {
+            expect(screen.getByTestId(`pin_post_${baseProps.post.id}`)).toBeInTheDocument();
+        } else {
+            expect(screen.queryByTestId(`pin_post_${baseProps.post.id}`)).not.toBeInTheDocument();
+        }
     });
 
     test('should not show move thread menu for burn-on-read posts', async () => {
@@ -685,6 +709,7 @@ describe('components/dot_menu/DotMenu', () => {
                             ...initialState.entities!.general!.config,
                             FeatureFlagPostAttributes: flag ? 'true' : 'false',
                         },
+                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
                     },
                     channels: {
                         ...initialState.entities!.channels,
@@ -711,8 +736,8 @@ describe('components/dot_menu/DotMenu', () => {
                         // chip row, so a field the user can set is the way in.
                         values: {byTargetId: hasValue ? {[post1.id]: {[field.id]: value}} : {}, byFieldId: {}},
                         groups: {
-                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
-                            byName: {post_attributes: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'access_control'}},
+                            byName: {access_control: {id: POST_ATTRIBUTES_GROUP_ID, name: 'access_control'}},
                         },
                     },
                 },
@@ -796,6 +821,113 @@ describe('components/dot_menu/DotMenu', () => {
 
                 expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
             });
+        });
+    });
+
+    describe('quote', () => {
+        const quotedPost = TestHelper.getPostMock({id: 'post_id_1', channel_id: 'channel_id_1', root_id: 'root_id_1', message: 'line one\n\nline two', type: '' as PostType});
+
+        test.each([
+            [Locations.CENTER, false],
+            [Locations.RHS_COMMENT, true],
+        ])('should quote the post into the message box shown with it in %s', async (location, isRHS) => {
+            const quoteTextFromPost = jest.fn();
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    actions={{...baseProps.actions, quoteTextFromPost}}
+                    post={quotedPost}
+                    location={location}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId(`quote_post_${quotedPost.id}`));
+
+            await waitFor(() => expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, isRHS, 'line one\n\nline two'));
+        });
+
+        test('should quote the post when pressing Q with the menu open', async () => {
+            const quoteTextFromPost = jest.fn();
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    actions={{...baseProps.actions, quoteTextFromPost}}
+                    post={quotedPost}
+                    location={Locations.CENTER}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            screen.getByRole('menu').focus();
+            await userEvent.keyboard('q');
+
+            expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, false, 'line one\n\nline two');
+        });
+
+        test.each([
+            ['show', ['create_post']],
+            ['hide', []],
+        ])('should %s quote based on the create_post permission', async (expected, permissions) => {
+            const state: DeepPartial<GlobalState> = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    roles: {
+                        roles: {
+                            system_role: TestHelper.getRoleMock({id: 'system_role', name: 'system_role', permissions}),
+                        },
+                    },
+                },
+            };
+            renderWithContext(
+                <DotMenuRoot
+                    {...baseProps}
+                    post={post1}
+                    location={Locations.CENTER}
+                />,
+                state,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+
+            if (expected === 'show') {
+                expect(screen.getByTestId(`quote_post_${post1.id}`)).toBeInTheDocument();
+            } else {
+                expect(screen.queryByTestId(`quote_post_${post1.id}`)).not.toBeInTheDocument();
+            }
+        });
+
+        test('should not show quote in a read-only channel', async () => {
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    post={quotedPost}
+                    isReadOnly={true}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+
+            expect(screen.queryByTestId(`quote_post_${quotedPost.id}`)).not.toBeInTheDocument();
+        });
+
+        test('should not show quote for a post without text', async () => {
+            const post = {...quotedPost, message: ''};
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    post={post}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post.id}`));
+
+            expect(screen.queryByTestId(`quote_post_${post.id}`)).not.toBeInTheDocument();
         });
     });
 });

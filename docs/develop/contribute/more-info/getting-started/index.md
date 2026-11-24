@@ -21,9 +21,9 @@ Improvements to Mattermost may require you to contribute to multiple projects; i
 
 ## How to contribute code
 
-If you’re looking for an existing issue to help with, check out the [help wanted tickets on GitHub](https://mattermost.com/pl/help-wanted). If you see any that you’re interested in working on, comment on it to let everyone know you’re working on it. If there’s no ticket for what you want to contribute, see our guide on [contributing without a ticket.](/contributions-without-ticket)
+If you’re looking for an existing issue to help with, check out the [help wanted tickets on GitHub](https://mattermost.com/pl/help-wanted). If you see any that you’re interested in working on, comment on it to let everyone know you’re working on it. If there’s no ticket for what you want to contribute, see our guide on [contributing without a ticket.](./contributions-without-ticket.md)
 
-Once you’ve created some code that you want to contribute, follow our [pull request checklist](/contribution-checklist) to submit your contribution for [review](/code-review), and one of our [core committers](/developers/contribute/more-info/getting-started/core-committers) will reach out with any feedback, questions, or requests they have.
+Once you’ve created some code that you want to contribute, follow our [pull request checklist](./contribution-checklist.md) to submit your contribution for [review](./code-review.md), and one of our [core committers](/developers/contribute/more-info/getting-started/core-committers) will reach out with any feedback, questions, or requests they have.
 
 
 ## How to get help with your contribution

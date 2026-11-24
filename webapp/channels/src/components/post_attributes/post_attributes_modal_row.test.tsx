@@ -7,7 +7,7 @@ import React from 'react';
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -121,6 +121,20 @@ describe('PostAttributesModalRow', () => {
         expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
     });
 
+    test('an unset row keeps its empty trigger after its menu is opened and closed without a pick', async () => {
+        const onChange = renderRow({value: undefined});
+
+        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        await userEvent.click(trigger);
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('');
+        expect(onChange).not.toHaveBeenCalled();
+    });
+
     test('a locked row renders the padlock, no trigger and no trash button', () => {
         renderRow({canEdit: false});
 
@@ -137,6 +151,18 @@ describe('PostAttributesModalRow', () => {
         renderRow();
 
         expect(screen.getByRole('button', {name: 'Clear Classification'})).toBeInTheDocument();
+    });
+
+    test('the trash button is a destructive Compass icon button with its name as a tooltip', async () => {
+        renderRow();
+
+        const trash = screen.getByRole('button', {name: 'Clear Classification'});
+        expect(trash).toHaveClass('PostAttributesModalRow__clear');
+        expect(trash.className).toMatch(/icon-button--size-x-small/);
+        expect(trash.className).toMatch(/icon-button--destructive/);
+
+        await userEvent.hover(trash);
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Clear Classification');
     });
 
     test('the trash button clears by writing an empty value', async () => {

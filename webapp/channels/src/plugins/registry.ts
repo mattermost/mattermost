@@ -6,6 +6,7 @@ import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
 
 import type {WebSocketMessages} from '@mattermost/client';
+import type {EntityCard} from '@mattermost/types/posts';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
@@ -50,6 +51,8 @@ import type {
     PostDropdownMenuAction,
     ChannelHeaderAction,
     ChannelHeaderButtonAction,
+    ChannelInfoMenuAction,
+    ChannelBookmarksMenuAction,
     RightHandSidebarComponent,
     AppBarAction,
     FileUploadMethodAction,
@@ -218,18 +221,28 @@ export default class PluginRegistry {
 
     /**
      * Register components for search.
-     * Accepts React components. Returns a unique identifier.
+     * Accepts the following:
+     * - buttonComponent - A react component rendered as the search type option.
+     * - suggestionsComponent - A react component rendered as the suggestions for this search type.
+     * - hintsComponent - A react component rendered as the hints for this search type.
+     * - action - A function called with the search terms when the user runs a search of this type.
+     * - priority - Optional number (default: 0). Search types with a priority greater than 0 are shown before the
+     *   built-in keyword search types, and the highest priority one is selected by default when search is opened.
+     *   Unregister the component with unregisterComponent when the search type becomes unavailable.
+     * Returns a unique identifier.
      */
     registerSearchComponents = ({
         buttonComponent,
         suggestionsComponent,
         hintsComponent,
         action,
+        priority = 0,
     }: {
         buttonComponent: SearchButtonsComponent['component'];
         suggestionsComponent: SearchSuggestionsComponent['component'];
         hintsComponent: SearchHintsComponent['component'];
         action: SearchButtonsComponent['action'];
+        priority?: number;
     }) => {
         const id = generateId();
         this.dispatchPluginComponentWithData('SearchButtons', {
@@ -237,6 +250,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             component: buttonComponent,
             action,
+            priority,
         });
         this.dispatchPluginComponentAction('SearchSuggestions', suggestionsComponent, id);
         this.dispatchPluginComponentAction('SearchHints', hintsComponent, id);
@@ -561,6 +575,95 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register an item in the channel bookmarks "+" / header Bookmarks Bar menus
+     * (alongside Add a link / Attach a file).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channelId) => boolean for conditional display
+     * Returns a unique identifier.
+     */
+    registerChannelBookmarksMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelBookmarksMenuAction['text'];
+        action: ChannelBookmarksMenuAction['action'];
+        shouldRender?: ChannelBookmarksMenuAction['shouldRender'];
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelBookmarksMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a Channel Info RHS menu item (below Files / Pinned messages).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channel) => boolean for conditional display
+     * - badge - Optional. Count or React node shown on the trailing edge
+     * - opensSubpanel - Optional. Show a chevron (default false)
+     * Returns a unique identifier.
+     */
+    registerChannelInfoMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+        'badge',
+        'opensSubpanel',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+        badge,
+        opensSubpanel = false,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelInfoMenuAction['text'];
+        action: ChannelInfoMenuAction['action'];
+        shouldRender?: ChannelInfoMenuAction['shouldRender'];
+        badge?: ChannelInfoMenuAction['badge'];
+        opensSubpanel?: boolean;
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelInfoMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+            badge: badge === undefined || badge === null ? badge : resolveReactElement(badge as ReactResolvable),
+            opensSubpanel,
         });
 
         return id;
@@ -1887,6 +1990,27 @@ export default class PluginRegistry {
      */
     registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
         return this.dispatchPluginComponentAction('SystemConsoleGroupTable', component);
+    });
+
+    /**
+     * Register a drawing for one part of an entity card.
+     *
+     * `map` replaces the coordinate fallback where the card carries a map payload.
+     * Any other part name is rendered after the card body, so a later kind can
+     * arrive without a new registry method. The component receives the whole card.
+     */
+    registerEntityCardPart = reArg(['part', 'component'], ({part, component}: {
+        part: string;
+        component: React.ComponentType<{card: EntityCard; reload?: () => void}>;
+    }) => {
+        const id = generateId();
+        this.dispatchPluginComponentWithData('EntityCardPart', {
+            id,
+            pluginId: this.id,
+            part,
+            component,
+        });
+        return id;
     });
 
     registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void}) => {

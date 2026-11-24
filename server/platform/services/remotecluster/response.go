@@ -17,12 +17,17 @@ import (
 // request. The replies are a status response, a FileInfo or a ping response, all far smaller.
 const MaxRemoteResponseSize = 1024 * 1024
 
-// sendRemoteRequest sends req to a remote server and returns the body of its reply, read with
-// readRemoteResponse. A failure to send the request or to read the reply wraps errRemoteUnreachable,
-// and a reply longer than MaxRemoteResponseSize wraps errRemoteResponseTooLarge. A non-200 status is
-// an error, returned with the body when it was read in full.
-func (rcs *Service) sendRemoteRequest(req *http.Request) ([]byte, error) {
-	resp, err := rcs.httpClient.Do(req)
+// sendRemoteRequest sends req to a remote server with client and returns the body of its reply, read
+// with readRemoteResponse. A failure to send the request or to read the reply wraps
+// errRemoteUnreachable, and a reply longer than MaxRemoteResponseSize wraps errRemoteResponseTooLarge.
+// A non-200 status is an error, returned with the body when it was read in full.
+//
+// The nil Idempotency-Key marks req as replayable, so the transport resends it on a new connection
+// when a reused one is dropped before any reply byte arrives. A nil value is not sent.
+func (rcs *Service) sendRemoteRequest(client *http.Client, req *http.Request) ([]byte, error) {
+	req.Header["Idempotency-Key"] = nil
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
 	}
