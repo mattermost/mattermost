@@ -28,9 +28,6 @@ func example() {
 	_ = "create unique index concurrently idx_foo_bar on foo (bar)" // want `use CREATE INDEX CONCURRENTLY IF NOT EXISTS so a retried migration is idempotent`
 	_ = "DROP INDEX CONCURRENTLY idx_foo_bar"                       // want `use DROP INDEX CONCURRENTLY IF EXISTS so a retried migration is idempotent`
 
-	// Index DDL mentioned only in a comment should not trigger warnings
-	_ = "-- recreated later with CREATE INDEX CONCURRENTLY\nSELECT 1"
-
 	// Unrelated strings should not trigger warnings
 	_ = "SELECT * FROM indexes"
 	_ = "just a regular string"

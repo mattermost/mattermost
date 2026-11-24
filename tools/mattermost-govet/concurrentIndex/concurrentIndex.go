@@ -24,11 +24,13 @@ const (
 )
 
 var (
-	// Submatch 1 is CONCURRENTLY and submatch 2 the existence clause, so each
-	// occurrence is judged on its own even if statement splitting goes wrong.
-	createIndexRegex = regexp.MustCompile(`(?i)\bCREATE\s+(?:UNIQUE\s+)?INDEX\b(\s+CONCURRENTLY\b)?(\s+IF\s+NOT\s+EXISTS\b)?`)
-	dropIndexRegex   = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b(\s+CONCURRENTLY\b)?(\s+IF\s+EXISTS\b)?`)
-	ignoreRegex      = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
+	createIndexRegex       = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\b`)
+	concurrentlyRegex      = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\b`)
+	createIfNotExistsRegex = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+IF\s+NOT\s+EXISTS\b`)
+	dropIndexRegex         = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b`)
+	dropConcurrentlyRegex  = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\b`)
+	dropIfExistsRegex      = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\s+IF\s+EXISTS\b`)
+	ignoreRegex            = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
 )
 
 var sqlPath string
@@ -47,174 +49,23 @@ func init() {
 	Analyzer.Flags.IntVar(&minMigration, "minMigration", 0, "Skip SQL files with a migration number below this value")
 }
 
-type statement struct {
-	start int    // byte offset of the first non-space character
-	text  string // raw text, including comments
-	code  string // text with comments removed
-}
-
-func isIdentByte(c byte) bool {
-	return c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
-}
-
-// dollarQuoteTag returns the $tag$ or $$ delimiter starting at s[i], or "".
-func dollarQuoteTag(s string, i int) string {
-	if s[i] != '$' || i > 0 && (isIdentByte(s[i-1]) || s[i-1] == '$') {
+func checkStatement(stmt string) string {
+	if ignoreRegex.MatchString(stmt) {
 		return ""
 	}
-	for j := i + 1; j < len(s); j++ {
-		switch {
-		case s[j] == '$':
-			return s[i : j+1]
-		case !isIdentByte(s[j]) || j == i+1 && s[j] >= '0' && s[j] <= '9':
-			return ""
-		}
+	if createIndexRegex.MatchString(stmt) && !concurrentlyRegex.MatchString(stmt) {
+		return diagCreateIndex
+	}
+	if dropIndexRegex.MatchString(stmt) && !dropConcurrentlyRegex.MatchString(stmt) {
+		return diagDropIndex
+	}
+	if concurrentlyRegex.MatchString(stmt) && !createIfNotExistsRegex.MatchString(stmt) {
+		return diagCreateIfNotExists
+	}
+	if dropConcurrentlyRegex.MatchString(stmt) && !dropIfExistsRegex.MatchString(stmt) {
+		return diagDropIfExists
 	}
 	return ""
-}
-
-func newStatement(s string, start, end int, code string) (statement, bool) {
-	text := s[start:end]
-	trimmed := strings.TrimLeft(text, " \t\r\n")
-	return statement{start: end - len(trimmed), text: text, code: code}, trimmed != ""
-}
-
-// splitRaw splits on every semicolon and keeps comments. It is the fallback
-// when splitStatements cannot lex s, so it errs towards reporting.
-func splitRaw(s string) []statement {
-	var stmts []statement
-	start := 0
-	for start <= len(s) {
-		end := strings.IndexByte(s[start:], ';')
-		if end < 0 {
-			end = len(s)
-		} else {
-			end += start
-		}
-		if st, ok := newStatement(s, start, end, s[start:end]); ok {
-			stmts = append(stmts, st)
-		}
-		start = end + 1
-	}
-	return stmts
-}
-
-// splitStatements splits s on semicolons outside quoted strings, quoted
-// identifiers, dollar-quoted strings, -- line comments and /* */ block
-// comments. Comments are removed from each statement's code.
-func splitStatements(s string) []statement {
-	var stmts []statement
-	var code strings.Builder
-	start := 0
-	flush := func(end int) {
-		if st, ok := newStatement(s, start, end, code.String()); ok {
-			stmts = append(stmts, st)
-		}
-		code.Reset()
-		start = end + 1
-	}
-
-	var quote byte
-	backslashEscapes := false
-	dollarTag := ""
-	inLineComment := false
-	blockDepth := 0
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		next := byte(0)
-		if i+1 < len(s) {
-			next = s[i+1]
-		}
-		if dollarTag == "" && quote == 0 && !inLineComment && blockDepth == 0 {
-			if tag := dollarQuoteTag(s, i); tag != "" {
-				dollarTag = tag
-				code.WriteString(tag)
-				i += len(tag) - 1
-				continue
-			}
-		}
-		switch {
-		case dollarTag != "":
-			if strings.HasPrefix(s[i:], dollarTag) {
-				code.WriteString(dollarTag)
-				i += len(dollarTag) - 1
-				dollarTag = ""
-				continue
-			}
-		case inLineComment:
-			if c != '\n' {
-				continue
-			}
-			inLineComment = false
-		case blockDepth > 0:
-			switch {
-			case c == '/' && next == '*':
-				blockDepth++
-				i++
-			case c == '*' && next == '/':
-				blockDepth--
-				i++
-				if blockDepth == 0 {
-					code.WriteByte(' ')
-				}
-			}
-			continue
-		case quote != 0:
-			if backslashEscapes && c == '\\' && next != 0 {
-				code.WriteByte(c)
-				code.WriteByte(next)
-				i++
-				continue
-			}
-			if c == quote {
-				quote = 0
-			}
-		case c == '\'' || c == '"':
-			quote = c
-			// E'...' strings allow backslash escapes such as \'.
-			backslashEscapes = c == '\'' && i > 0 && (s[i-1] == 'E' || s[i-1] == 'e') && (i < 2 || !isIdentByte(s[i-2]))
-		case c == '-' && next == '-':
-			inLineComment = true
-			i++
-			continue
-		case c == '/' && next == '*':
-			blockDepth = 1
-			i++
-			continue
-		case c == ';':
-			flush(i)
-			continue
-		}
-		code.WriteByte(c)
-	}
-	if quote != 0 || dollarTag != "" || blockDepth > 0 {
-		return splitRaw(s)
-	}
-	flush(len(s))
-	return stmts
-}
-
-func checkStatement(st statement) string {
-	if ignoreRegex.MatchString(st.text) {
-		return ""
-	}
-	if msg := checkIndexDDL(st.code, createIndexRegex, diagCreateIndex, diagCreateIfNotExists); msg != "" {
-		return msg
-	}
-	return checkIndexDDL(st.code, dropIndexRegex, diagDropIndex, diagDropIfExists)
-}
-
-func checkIndexDDL(code string, re *regexp.Regexp, missingConcurrently, missingExistence string) string {
-	msg := ""
-	for _, m := range re.FindAllStringSubmatch(code, -1) {
-		if m[1] == "" {
-			return missingConcurrently
-		}
-		if m[2] == "" {
-			msg = missingExistence
-		}
-	}
-	return msg
 }
 
 func containsIndexKeyword(s string) bool {
@@ -225,8 +76,12 @@ func checkLine(line string) string {
 	if !containsIndexKeyword(line) {
 		return ""
 	}
-	for _, st := range splitStatements(line) {
-		if msg := checkStatement(st); msg != "" {
+	for _, stmt := range strings.Split(line, ";") {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+		if msg := checkStatement(stmt); msg != "" {
 			return msg
 		}
 	}
@@ -307,9 +162,52 @@ func checkSQLFile(pass *analysis.Pass, name string) error {
 	tf := pass.Fset.AddFile(name, -1, len(content))
 	tf.SetLinesForContent(content)
 
-	for _, st := range splitStatements(string(content)) {
-		if msg := checkStatement(st); msg != "" {
-			pass.Reportf(tf.Pos(st.start), "%s", msg)
+	lines := strings.Split(string(content), "\n")
+	var stmtBuf strings.Builder
+	startLine := 1
+
+	for i, line := range lines {
+		lineNum := i + 1
+		trimmed := strings.TrimSpace(line)
+
+		if trimmed == "" {
+			continue
+		}
+
+		if stmtBuf.Len() == 0 {
+			startLine = lineNum
+		}
+		if stmtBuf.Len() > 0 {
+			stmtBuf.WriteByte(' ')
+		}
+		stmtBuf.WriteString(trimmed)
+
+		for {
+			current := stmtBuf.String()
+			semi := strings.Index(current, ";")
+			if semi < 0 {
+				break
+			}
+
+			stmt := strings.TrimSpace(current[:semi])
+			if stmt != "" {
+				if msg := checkStatement(stmt); msg != "" {
+					pass.Reportf(tf.LineStart(startLine), "%s", msg)
+				}
+			}
+
+			rest := strings.TrimSpace(current[semi+1:])
+			stmtBuf.Reset()
+			if rest != "" {
+				stmtBuf.WriteString(rest)
+				startLine = lineNum
+			}
+		}
+	}
+
+	if stmtBuf.Len() > 0 {
+		if msg := checkStatement(stmtBuf.String()); msg != "" {
+			pass.Reportf(tf.LineStart(startLine), "%s", msg)
 		}
 	}
 

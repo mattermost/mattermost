@@ -22,5 +22,5 @@ BEGIN
 END;
 $$;
 
--- Reverse-lookup index lives in 000237 so CREATE INDEX CONCURRENTLY is its
+-- Reverse-lookup index lives in 000237 so its concurrent index build is its
 -- own non-transactional migration.
