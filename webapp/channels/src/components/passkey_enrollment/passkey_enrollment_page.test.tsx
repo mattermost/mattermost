@@ -94,6 +94,9 @@ describe('PasskeyEnrollmentPage', () => {
     const isEnrolled = () => !LocalStorageStore.isPasskeyPromptDue('any-login');
     const addButton = () => screen.queryByRole('button', {name: 'Add passkey'});
     const existingButton = () => screen.queryByRole('button', {name: 'Use existing passkey'});
+
+    // compass Button renders its spinner in an aria-hidden slot; it sets no aria-busy outside asChild.
+    const hasSpinner = (button: HTMLElement | null) => Boolean(button?.querySelector('[aria-hidden="true"]'));
     const clickExisting = async () => userEvent.click(await screen.findByRole('button', {name: 'Use existing passkey'}));
 
     beforeEach(() => {
@@ -366,6 +369,8 @@ describe('PasskeyEnrollmentPage', () => {
 
             await waitFor(() => expect(addButton()).toBeDisabled());
             expect(existingButton()).toBeDisabled();
+            expect(hasSpinner(existingButton())).toBe(true);
+            expect(hasSpinner(addButton())).toBe(false);
             release(assertionCredential);
             expect(await screen.findByText(CONFIRMED)).toBeInTheDocument();
         });
@@ -380,6 +385,8 @@ describe('PasskeyEnrollmentPage', () => {
 
             await waitFor(() => expect(existingButton()).toBeDisabled());
             expect(addButton()).toBeDisabled();
+            expect(hasSpinner(addButton())).toBe(true);
+            expect(hasSpinner(existingButton())).toBe(false);
             release(rawCredential);
             expect(await screen.findByText(DONE)).toBeInTheDocument();
         });
