@@ -1878,6 +1878,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateUserAuth, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
+	// Same rule as switchAccountType: a passkey session may not change its own account's sign-in method.
+	// An admin changing another user's auth is not the bypass, so it stays allowed.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && c.Params.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("updateUserAuth", "api.user.auth_switch.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	var userAuth model.UserAuth
 	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)

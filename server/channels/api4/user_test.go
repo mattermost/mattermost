@@ -2909,6 +2909,50 @@ func TestUserUnicodeNames(t *testing.T) {
 	})
 }
 
+func TestUpdateUserAuthPasskeySession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// A fresh session per call: a successful auth change revokes the target user's sessions.
+	passkeyAdminClient := func(t *testing.T) *model.Client4 {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  th.SystemAdminUser.Roles,
+			Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+		})
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.AuthToken = session.Token
+		client.AuthType = model.HeaderBearer
+		return client
+	}
+
+	samlAuth := func(data string) *model.UserAuth {
+		return &model.UserAuth{AuthData: &data, AuthService: model.UserAuthServiceSaml}
+	}
+
+	t.Run("refused for the admin's own account", func(t *testing.T) {
+		_, resp, err := passkeyAdminClient(t).UpdateUserAuth(context.Background(), th.SystemAdminUser.Id, samlAuth("admin-own@test.com"))
+		require.Error(t, err)
+		assert.Equal(t, "api.user.auth_switch.passkey_session.app_error", err.(*model.AppError).Id)
+		CheckForbiddenStatus(t, resp)
+
+		th.App.InvalidateCacheForUser(th.SystemAdminUser.Id)
+		stored, appErr := th.App.GetUser(th.Context, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, stored.AuthService)
+	})
+
+	t.Run("allowed for a different user", func(t *testing.T) {
+		other := th.CreateUser(t)
+		ruser, resp, err := passkeyAdminClient(t).UpdateUserAuth(context.Background(), other.Id, samlAuth("other@test.com"))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+	})
+}
+
 func TestUpdateUserAuth(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
