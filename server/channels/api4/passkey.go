@@ -249,6 +249,21 @@ func decodePasskeyRegistrationFinish(c *Context, r *http.Request) *model.Passkey
 	return &finish
 }
 
+// decodePasskeyEnrollmentTicket reads the ticket from the request body, returning "" with c.Err set
+// when it is unusable.
+func decodePasskeyEnrollmentTicket(c *Context, r *http.Request) string {
+	var body model.PasskeyEnrollmentTicket
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		c.SetInvalidParamWithErr("ticket", err)
+		return ""
+	}
+	if body.Ticket == "" {
+		c.SetInvalidParam("ticket")
+		return ""
+	}
+	return body.Ticket
+}
+
 func writePasskeyRegistered(c *Context, w http.ResponseWriter, passkey *model.Passkey, appErr *model.AppError) {
 	if appErr != nil {
 		c.Err = appErr
@@ -269,17 +284,12 @@ func beginPasskeyRegistrationWithTicket(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	var body model.PasskeyEnrollmentTicket
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		c.SetInvalidParamWithErr("ticket", err)
-		return
-	}
-	if body.Ticket == "" {
-		c.SetInvalidParam("ticket")
+	ticket := decodePasskeyEnrollmentTicket(c, r)
+	if ticket == "" {
 		return
 	}
 
-	options, appErr := c.App.BeginPasskeyRegistrationWithTicket(c.AppContext, body.Ticket)
+	options, appErr := c.App.BeginPasskeyRegistrationWithTicket(c.AppContext, ticket)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -311,17 +321,12 @@ func beginPasskeyVerificationWithTicket(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	var body model.PasskeyEnrollmentTicket
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		c.SetInvalidParamWithErr("ticket", err)
-		return
-	}
-	if body.Ticket == "" {
-		c.SetInvalidParam("ticket")
+	ticket := decodePasskeyEnrollmentTicket(c, r)
+	if ticket == "" {
 		return
 	}
 
-	options, appErr := c.App.BeginPasskeyVerificationWithTicket(c.AppContext, body.Ticket)
+	options, appErr := c.App.BeginPasskeyVerificationWithTicket(c.AppContext, ticket)
 	if appErr != nil {
 		c.Err = appErr
 		return
