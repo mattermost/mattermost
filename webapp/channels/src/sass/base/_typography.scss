@@ -6,6 +6,15 @@ strong {
     font-weight: 630;
 }
 
+// Bootstrap and the browser default these to 700, which renders as real bold with the variable font.
+.badge,
+.close,
+.label,
+dt,
+th {
+    font-weight: 600;
+}
+
 a {
     color: variables.$primary-color;
     cursor: pointer;
