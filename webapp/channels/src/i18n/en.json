@@ -11063,10 +11063,6 @@
     "defaultMessage": "Some attributes aren't available for bots",
     "description": "Warning title on the permission policy editor when a Bot accounts policy's rules reference attributes bots don't have, such as Email, Email verified or Bot account."
   },
-  "admin.permission_policies.edit.notice.session_only.title": {
-    "defaultMessage": "Session attributes are reported by the device and aren't verified by the server. Consider including other limiting attributes to ensure that only intended users are granted the permission listed below.",
-    "description": "Warning on the permission policy editor when the policy's rules reference only session attributes (device-reported values such as IP address or platform) and no user attributes."
-  },
   "admin.permission_policies.edit.notice.synced_bot.text": {
     "defaultMessage": "{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can't hold synced values. This policy will deny every bot.",
     "description": "Warning text (markdown) for a Bot accounts policy that references synced attributes; {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."
@@ -11082,6 +11078,18 @@
   "admin.permission_policies.edit.notice.title": {
     "defaultMessage": "Please add user attributes and values to use Attribute-Based Access Control",
     "description": "Title of the notice on the permission policy edit page prompting the admin to configure user attributes first."
+  },
+  "admin.permission_policies.edit.notice.unverified.advice": {
+    "defaultMessage": "Consider including other limiting attributes to ensure that only intended users are granted the permission listed below.",
+    "description": "Closing sentence of the permission policy editor warning shown when the rules rely only on session or user-managed attributes. Appended after the sentences naming those attributes."
+  },
+  "admin.permission_policies.edit.notice.unverified.session": {
+    "defaultMessage": "{attributes} {count, plural, one {is a session attribute reported by the device and isn't} other {are session attributes reported by the device and aren't}} verified by the server.",
+    "description": "Sentence in the permission policy editor warning naming the session attributes (device-reported values such as IP address) the rules rely on; {attributes} is a localized list of attribute names and {count} is how many there are."
+  },
+  "admin.permission_policies.edit.notice.unverified.user_managed": {
+    "defaultMessage": "{attributes} {count, plural, one {is a user-managed attribute} other {are user-managed attributes}} that users can change themselves.",
+    "description": "Sentence in the permission policy editor warning naming the user-managed attributes (values users can set themselves) the rules rely on; {attributes} is a localized list of attribute names and {count} is how many there are."
   },
   "admin.permission_policies.edit.permissions.add": {
     "defaultMessage": "Add permission",
