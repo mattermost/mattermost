@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
@@ -1023,6 +1024,15 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
 	})
 
+	t.Run("a failure to read the issuing session is a server error", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: original.Passkey(), sessions: failingGetSessionStore{original.Session()}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+	})
+
 	t.Run("an issuing session that is not a recent sign-in is refused even if another session is", func(t *testing.T) {
 		user, session, ticket := fresh(t)
 		ageSession(t, session)
@@ -1555,7 +1565,15 @@ func TestFinishPasskeyLogin(t *testing.T) {
 type passkeyStoreWrapper struct {
 	store.Store
 	passkeys store.PasskeyStore
-	tokens   store.TokenStore // nil passes through to the real store
+	tokens   store.TokenStore   // nil passes through to the real store
+	sessions store.SessionStore // nil passes through to the real store
+}
+
+func (w *passkeyStoreWrapper) Session() store.SessionStore {
+	if w.sessions != nil {
+		return w.sessions
+	}
+	return w.Store.Session()
 }
 
 func (w *passkeyStoreWrapper) Passkey() store.PasskeyStore { return w.passkeys }
@@ -1565,6 +1583,15 @@ func (w *passkeyStoreWrapper) Token() store.TokenStore {
 		return w.tokens
 	}
 	return w.Store.Token()
+}
+
+// failingGetSessionStore fails every session read. Every other call passes through to the real store.
+type failingGetSessionStore struct {
+	store.SessionStore
+}
+
+func (failingGetSessionStore) Get(request.CTX, string) (*model.Session, error) {
+	return nil, errors.New("db down")
 }
 
 // failingSaveTokenStore refuses every Save. Every other call passes through to the real store.
