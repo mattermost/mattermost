@@ -5,9 +5,13 @@ package metrics
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
@@ -365,6 +369,120 @@ func TestMergeLabels(t *testing.T) {
 	t.Run("handles nil maps", func(t *testing.T) {
 		require.Equal(t, prometheus.Labels{}, mergeLabels(nil, nil))
 	})
+}
+
+func TestNormalizeDisconnectErrCode(t *testing.T) {
+	supported := []string{"1000", "1005", "1006", "1016", "4000", "4001"}
+	for _, code := range supported {
+		require.Equal(t, code, normalizeDisconnectErrCode(code))
+	}
+
+	unsupported := []string{
+		"", "unknown", "abc", "999", "1017", "3000", "4002", "5000", "-1000",
+		"+1000", "01000", "001000", " 1000", "1000 ", "1e3", "1000.0",
+		strings.Repeat("0", 1500) + "1000",
+		strings.Repeat("9", 100),
+	}
+	for _, code := range unsupported {
+		require.Equal(t, "unknown", normalizeDisconnectErrCode(code), "code %q", code)
+	}
+}
+
+func TestWebsocketReconnectMetricsCardinality(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics).InitBasic(t)
+
+	configureMetrics(th)
+	miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	countSeries := func(c prometheus.Collector) int {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		n := 0
+		for range ch {
+			n++
+		}
+		return n
+	}
+
+	sumCounter := func(c prometheus.Collector) float64 {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		total := 0.0
+		for metric := range ch {
+			m := &prometheusModels.Metric{}
+			require.NoError(t, metric.Write(m))
+			total += m.GetCounter().GetValue()
+		}
+		return total
+	}
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
+	header := http.Header{"Authorization": []string{"Bearer " + th.Client.AuthToken}}
+	dial := func(query string) (*websocket.Conn, error) {
+		ws, _, err := websocket.DefaultDialer.Dial(url+query, header)
+		return ws, err
+	}
+
+	initial, err := dial("")
+	require.NoError(t, err)
+	var hello struct {
+		Event string `json:"event"`
+		Data  struct {
+			ConnectionID string `json:"connection_id"`
+		} `json:"data"`
+	}
+	require.NoError(t, initial.ReadJSON(&hello))
+	require.Equal(t, model.WebsocketEventHello, model.WebsocketEventType(hello.Event))
+	connectionID := hello.Data.ConnectionID
+	require.NoError(t, initial.Close())
+
+	// The hub only resumes connections it has already marked inactive, so retry
+	// until the server has processed the previous disconnect.
+	reconnect := func(rawCode string) {
+		t.Helper()
+		expected := sumCounter(miImpl.WebSocketReconnectCounter) + 1
+		require.Eventually(t, func() bool {
+			ws, dialErr := dial("?connection_id=" + connectionID + "&sequence_number=1&disconnect_err_code=" + rawCode)
+			if dialErr != nil {
+				return false
+			}
+			defer ws.Close()
+			time.Sleep(50 * time.Millisecond)
+			return sumCounter(miImpl.WebSocketReconnectCounter) >= expected
+		}, 10*time.Second, 50*time.Millisecond)
+	}
+
+	reconnect("1000")
+	require.Positive(t, countSeries(miImpl.WebSocketReconnectCounter))
+
+	rawCodes := []string{"%2B1000", "01000", "001000", strings.Repeat("0", 500) + "1000", "%2B0001000", "abc", "5000"}
+	for _, rawCode := range rawCodes {
+		reconnect(rawCode)
+	}
+
+	var errCodes []string
+	ch := make(chan prometheus.Metric)
+	go func() {
+		miImpl.WebSocketReconnectCounter.Collect(ch)
+		close(ch)
+	}()
+	for metric := range ch {
+		m := &prometheusModels.Metric{}
+		require.NoError(t, metric.Write(m))
+		for _, label := range m.GetLabel() {
+			if label.GetName() == "disconnect_err_code" {
+				errCodes = append(errCodes, label.GetValue())
+			}
+		}
+	}
+	require.Subset(t, []string{"1000", "unknown"}, errCodes)
 }
 
 func TestServerInfo(t *testing.T) {
