@@ -10948,7 +10948,7 @@
   },
   {
     "id": "app.plugin.notice.playbooks_v1_deprecated",
-    "translation": "Playbooks v1 is deprecated. Upgrade to Playbooks v2.",
+    "translation": "Playbooks v1 is deprecated.",
     "description": "Notice shown in System Console Plugin Management on the Playbooks plugin when the installed version is 1.x."
   },
   {
