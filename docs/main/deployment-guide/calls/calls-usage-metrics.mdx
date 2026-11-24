@@ -60,7 +60,8 @@ On Calls v2, the video values (`total_video_calls`, `total_video_duration_second
              namespace: 'mattermost'
    ```
 
-3. Import the **Mattermost Calls Statistics (Prometheus)** dashboard into Grafana. {/* TODO: link the published dashboard (grafana.com ID or the mattermost-performance-assets repo). Today the JSON is `grafana-dashboard-calls-metrics.json` in the mattermost-plugin-calls repository. */}
+3. Import the **Mattermost Calls Usage Statistics (Prometheus)** dashboard into Grafana. Download [`mattermost-calls-usage-statistics.json`](https://github.com/mattermost/mattermost-performance-assets/blob/master/grafana/mattermost-calls-usage-statistics.json) from the Mattermost performance assets repository, then in Grafana go to **Dashboards > New > Import** and upload the file. See the [Grafana import guide](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/import-dashboards/) for details. Select your Prometheus data source and the `namespace` you configured in the previous step.
+{/* TODO: once the dashboard is published on grafana.com, add its ID so it can be imported directly, like the Calls performance dashboard (23225). Confirm the performance assets PR (mattermost-performance-assets #32) has merged before publishing this page. */}
 
 The dashboard shows total calls, average duration, average participants, active calls and sessions, calls per month, calls over the last 30 days, calls by channel type, and the daily number of new calls, video calls and screen-share calls.
 
