@@ -22,9 +22,10 @@ var (
 	reasonNoMajority  = healthcheck.TranslationId("health.rule.cluster_config_drift.message.no_majority")
 )
 
-// configDrift compares the client config hash each node gossips. It covers client settings
-// only, so drift in server-only settings goes unseen. Packets carry no hash, so offline it is
-// always unknown.
+// configDrift compares the config section hashes in each node's diagnostics. Live health
+// checks collect them from every node and Support Packets carry them in each node's
+// diagnostics.yaml, so both evaluate the same data. See healthcheck.ConfigSectionHashes for
+// what the hashes leave out.
 var configDrift = healthcheck.Rule{
 	Code:     "CLUSTER_CONFIG_DRIFT",
 	Area:     model.AreaCluster,
@@ -42,66 +43,123 @@ var configDrift = healthcheck.Rule{
 	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalConfigDriftNode)),
 }
 
-func configHash(n *healthcheck.NodeSnapshot) (string, bool) {
-	if n == nil || n.ClusterInfo == nil || n.ClusterInfo.ConfigHash == "" {
-		return "", false
+// sectionHashes returns the node's config section hashes. Nodes that did not reply, and
+// packets from servers that predate the hashes, have none.
+func sectionHashes(n *healthcheck.NodeSnapshot) (map[string]string, bool) {
+	diag, ok := n.Diag()
+	if !ok || len(diag.Config.SectionHashes) == 0 {
+		return nil, false
 	}
 
-	return n.ClusterInfo.ConfigHash, true
+	return diag.Config.SectionHashes, true
 }
 
-// hashGroups groups the hostnames of the nodes that advertise a hash by that hash.
-func hashGroups(nodes []*healthcheck.NodeSnapshot) map[string][]string {
-	groups := map[string][]string{}
+// configKey identifies a node's whole config by its section hashes.
+func configKey(hashes map[string]string) string {
+	var key strings.Builder
+	for _, section := range slices.Sorted(maps.Keys(hashes)) {
+		key.WriteString(section + "=" + hashes[section] + ";")
+	}
+	return key.String()
+}
+
+type configGroup struct {
+	hashes    map[string]string
+	hostnames []string
+}
+
+// configGroups groups the nodes that report section hashes by their whole config.
+func configGroups(nodes []*healthcheck.NodeSnapshot) map[string]*configGroup {
+	groups := map[string]*configGroup{}
 	for _, node := range nodes {
-		if hash, ok := configHash(node); ok {
-			groups[hash] = append(groups[hash], node.Hostname)
+		hashes, ok := sectionHashes(node)
+		if !ok {
+			continue
 		}
+		key := configKey(hashes)
+		if groups[key] == nil {
+			groups[key] = &configGroup{hashes: hashes}
+		}
+		groups[key].hostnames = append(groups[key].hostnames, node.Hostname)
 	}
 	return groups
 }
 
-// mixedBuilds reports whether the nodes gossip different builds. The client config embeds the
-// build, so their hashes differ whatever their settings.
+// mixedBuilds reports whether the nodes run different builds. A newer build can add settings
+// or change defaults, so their hashes can differ whatever their config files say.
 func mixedBuilds(nodes []*healthcheck.NodeSnapshot) bool {
 	builds := map[string]bool{}
 	for _, node := range nodes {
-		if node.ClusterInfo != nil && node.ClusterInfo.Version != "" {
-			builds[node.ClusterInfo.Version] = true
+		if diag, ok := node.Diag(); ok && diag.Server.Version != "" {
+			builds[diag.Server.Version+" "+diag.Server.BuildHash] = true
 		}
 	}
 	return len(builds) > 1
 }
 
-// splitGroups lists the hostnames grouped by hash, e.g. "app-1, app-3 | app-2".
-func splitGroups(groups map[string][]string) string {
+// splitGroups lists the hostnames grouped by config, e.g. "app-1, app-3 | app-2".
+func splitGroups(groups map[string]*configGroup) string {
 	split := make([]string, 0, len(groups))
-	for _, hostnames := range groups {
-		split = append(split, strings.Join(hostnames, ", "))
+	for _, group := range groups {
+		split = append(split, strings.Join(group.hostnames, ", "))
 	}
 	slices.Sort(split)
 	return strings.Join(split, " | ")
 }
 
-// majorityHash returns the hash most nodes advertise and how many do. ok is false when no node
-// advertises one, or when the top count is tied, so the odd node never flips between cycles.
-func majorityHash(groups map[string][]string) (hash string, size int, ok bool) {
+// majorityConfig returns the config most nodes run. ok is false when the top count is tied, so
+// the odd node never flips between cycles.
+func majorityConfig(groups map[string]*configGroup) (majority *configGroup, ok bool) {
 	tied := false
-	for candidate, hostnames := range groups {
+	for _, group := range groups {
 		switch {
-		case len(hostnames) > size:
-			hash, size, tied = candidate, len(hostnames), false
-		case len(hostnames) == size:
+		case majority == nil || len(group.hostnames) > len(majority.hostnames):
+			majority, tied = group, false
+		case len(group.hostnames) == len(majority.hostnames):
 			tied = true
 		}
 	}
 
-	return hash, size, size > 0 && !tied
+	return majority, majority != nil && !tied
+}
+
+// differingSections adds to into the sections whose hashes differ between a and b, including
+// sections only one of them has.
+func differingSections(into map[string]bool, a, b map[string]string) {
+	for section, hash := range a {
+		if b[section] != hash {
+			into[section] = true
+		}
+	}
+	for section := range b {
+		if _, ok := a[section]; !ok {
+			into[section] = true
+		}
+	}
+}
+
+func joinSections(sections map[string]bool) string {
+	return strings.Join(slices.Sorted(maps.Keys(sections)), ", ")
+}
+
+// noMajority explains a tie: the groups, and every section that is not the same on all nodes.
+func noMajority(result healthcheck.Result, groups map[string]*configGroup) healthcheck.Result {
+	sections := map[string]bool{}
+	var first *configGroup
+	for _, group := range groups {
+		if first == nil {
+			first = group
+			continue
+		}
+		differingSections(sections, first.hashes, group.hashes)
+	}
+
+	return result.WithDetail("groups", splitGroups(groups)).WithDetail("sections", joinSections(sections))
 }
 
 func evalConfigDriftGlobal(s *healthcheck.Snapshot) healthcheck.Result {
 	nodes := s.Nodes()
-	groups := hashGroups(nodes)
+	groups := configGroups(nodes)
 	switch {
 	case len(groups) == 0:
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
@@ -111,23 +169,27 @@ func evalConfigDriftGlobal(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	majority, _, ok := majorityHash(groups)
+	majority, ok := majorityConfig(groups)
 	if !ok {
-		return healthcheck.Firing(reasonNoMajority).WithDetail("groups", splitGroups(groups))
+		return noMajority(healthcheck.Firing(reasonNoMajority), groups)
 	}
 
 	var differing []string
-	for _, hash := range slices.Sorted(maps.Keys(groups)) {
-		if hash != majority {
-			differing = append(differing, groups[hash]...)
+	sections := map[string]bool{}
+	for _, group := range groups {
+		if group != majority {
+			differing = append(differing, group.hostnames...)
+			differingSections(sections, group.hashes, majority.hashes)
 		}
 	}
 	slices.Sort(differing)
-	return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message")).WithDetail("nodes", strings.Join(differing, ", "))
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message")).
+		WithDetail("nodes", strings.Join(differing, ", ")).
+		WithDetail("sections", joinSections(sections))
 }
 
 func evalConfigDriftNode(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
-	hash, ok := configHash(n)
+	hashes, ok := sectionHashes(n)
 	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
@@ -137,15 +199,18 @@ func evalConfigDriftNode(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) h
 		return healthcheck.Unknown(reasonMixedBuilds)
 	}
 
-	groups := hashGroups(nodes)
-	majority, size, ok := majorityHash(groups)
+	groups := configGroups(nodes)
+	majority, ok := majorityConfig(groups)
 	switch {
 	case !ok:
-		return healthcheck.Unknown(reasonNoMajority).WithDetail("groups", splitGroups(groups))
-	case hash != majority:
+		return noMajority(healthcheck.Unknown(reasonNoMajority), groups)
+	case configKey(hashes) != configKey(majority.hashes):
+		sections := map[string]bool{}
+		differingSections(sections, hashes, majority.hashes)
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message.node")).
 			WithDetail("node", n.Hostname).
-			WithDetail("majority", strconv.Itoa(size))
+			WithDetail("majority", strconv.Itoa(len(majority.hostnames))).
+			WithDetail("sections", joinSections(sections))
 	default:
 		return healthcheck.Resolved()
 	}

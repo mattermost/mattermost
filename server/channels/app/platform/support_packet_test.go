@@ -1293,6 +1293,38 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 }
 
+func TestSupportPacketDiagnosticsConfigSectionHashes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	sectionHashes := func(t *testing.T) map[string]string {
+		t.Helper()
+
+		d, _ := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.NotNil(t, d)
+		require.NotNil(t, d.Diagnostics)
+		require.NotEmpty(t, d.Diagnostics.Config.SectionHashes)
+		return d.Diagnostics.Config.SectionHashes
+	}
+
+	// Sanitizing keeps an empty secret empty, so whether one is set still counts; its value does not.
+	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "secret" })
+	before := sectionHashes(t)
+
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		*cfg.JobSettings.RunJobs = !*cfg.JobSettings.RunJobs
+		*cfg.EmailSettings.SMTPPassword = "a different secret"
+	})
+	assert.Equal(t, before, sectionHashes(t), "node-local settings and secret values do not change the hashes")
+
+	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName += " renamed" })
+	after := sectionHashes(t)
+	assert.NotEqual(t, before["TeamSettings"], after["TeamSettings"])
+	delete(before, "TeamSettings")
+	delete(after, "TeamSettings")
+	assert.Equal(t, before, after, "only the changed section's hash changes")
+}
+
 func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	th := Setup(t)
 
@@ -1933,6 +1965,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
 	diagnostics.Config.AuditLoggingConfigured = new(true)
+	diagnostics.Config.SectionHashes = map[string]string{"TeamSettings": "0123456789abcdef", "SqlSettings": "fedcba9876543210"}
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")

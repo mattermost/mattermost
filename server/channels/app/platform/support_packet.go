@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -71,6 +72,7 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.version":                         {yaml.HeadComment(" Software")},
 
 	"$.config.audit_logging_configured": {yaml.LineComment(" this server's audit check of its current config and license; offline health checks use it")},
+	"$.config.section_hashes":           {yaml.LineComment(" hash of each sanitized config section, without node-local settings; compared across nodes to detect drift")},
 
 	// database: sql.DBStats cumulative counters (lifetime of process; all drivers)
 	"$.database.master_pool_wait_count":                  {yaml.LineComment(" cumulative; total times a goroutine waited for a connection since process start")},
@@ -303,6 +305,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
 	d.Config.AuditLoggingConfigured = new(config.IsAuditLoggingActive(ps.Config().ExperimentalAuditSettings, ps.License().HasAdvancedLogging()))
+	// Hash the same sanitized config the packet's sanitized_config.json holds, so the live
+	// health check and an offline packet compare the same thing.
+	d.Config.SectionHashes = healthcheck.ConfigSectionHashes(ps.getSanitizedConfig(rctx, &model.SanitizeOptions{PartiallyRedactDataSources: true}))
 
 	/* DB */
 	databaseType, schemaVersion, err := ps.DatabaseTypeAndSchemaVersion()
