@@ -83,11 +83,6 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 	_m.Called()
 }
 
-// ObserveAccessControlRecipientFill provides a mock function with given fields: status, elapsed, setSize
-func (_m *MetricsInterface) ObserveAccessControlRecipientFill(status string, elapsed float64, setSize int) {
-	_m.Called(status, elapsed, setSize)
-}
-
 // IncrementAutoTranslateNormHash provides a mock function with given fields: result
 func (_m *MetricsInterface) IncrementAutoTranslateNormHash(result string) {
 	_m.Called(result)
@@ -336,6 +331,11 @@ func (_m *MetricsInterface) ObserveAccessControlEvaluateDuration(value float64) 
 // ObserveAccessControlExpressionCompileDuration provides a mock function with given fields: value
 func (_m *MetricsInterface) ObserveAccessControlExpressionCompileDuration(value float64) {
 	_m.Called(value)
+}
+
+// ObserveAccessControlRecipientFill provides a mock function with given fields: status, elapsed, setSize
+func (_m *MetricsInterface) ObserveAccessControlRecipientFill(status string, elapsed float64, setSize int) {
+	_m.Called(status, elapsed, setSize)
 }
 
 // ObserveAccessControlSearchQueryDuration provides a mock function with given fields: value

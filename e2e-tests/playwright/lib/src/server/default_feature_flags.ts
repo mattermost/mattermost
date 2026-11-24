@@ -41,6 +41,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     OpenIdAttributeSync: 'true',
     PermissionPolicies: 'true',
     PolicySimulation: 'true',
+    PostAccessControlResource: 'false',
     PostAttributes: 'false',
     PostDeliveryTracking: 'false',
     ProductRail: 'false',
