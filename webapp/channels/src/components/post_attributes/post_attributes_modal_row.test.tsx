@@ -237,6 +237,56 @@ describe('PostAttributesModalRow', () => {
         expect(onChange).toHaveBeenCalledWith('field_text', 'after');
     });
 
+    test('a text field stops at the server limit of 64 UTF-8 bytes', async () => {
+        const field = makeField({id: 'field_text', name: 'reason', type: 'text', attrs: {display_name: 'Reason'}});
+        const onChange = renderRow({field, value: undefined});
+
+        const input = screen.getByTestId('post-attribute-input-reason');
+
+        await userEvent.type(input, 'a'.repeat(70));
+        expect(input).toHaveValue('a'.repeat(64));
+
+        await userEvent.clear(input);
+        await userEvent.click(input);
+        await userEvent.paste('€'.repeat(22));
+        expect(input).toHaveValue('€'.repeat(21));
+
+        await userEvent.tab();
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith('field_text', '€'.repeat(21));
+    });
+
+    test('a text field refuses a value its value type rejects, with an inline error, until it is fixed', async () => {
+        const field = makeField({id: 'field_text', name: 'contact', type: 'text', attrs: {display_name: 'Contact', value_type: 'email'}});
+        const onChange = renderRow({field, value: undefined});
+
+        const input = screen.getByTestId('post-attribute-input-contact');
+
+        await userEvent.type(input, 'not-an-email');
+
+        // Not flagged while still being typed.
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+        await userEvent.keyboard('{Enter}');
+        expect(screen.getByRole('alert')).toHaveTextContent('Enter a valid email address');
+        expect(input).toHaveFocus();
+        expect(input).toHaveAttribute('aria-invalid', 'true');
+        expect(input).toHaveAccessibleDescription('Enter a valid email address');
+
+        await userEvent.tab();
+        expect(onChange).not.toHaveBeenCalled();
+        expect(input).toHaveValue('not-an-email');
+
+        await userEvent.clear(input);
+        await userEvent.type(input, 'ok@example.com');
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(input).not.toHaveAttribute('aria-invalid');
+
+        await userEvent.keyboard('{Enter}');
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith('field_text', 'ok@example.com');
+    });
+
     test('a text field is a bare input, with none of the form widget chrome around it', () => {
         const field = makeField({id: 'field_text', name: 'reason', type: 'text', attrs: {display_name: 'Reason'}});
         renderRow({

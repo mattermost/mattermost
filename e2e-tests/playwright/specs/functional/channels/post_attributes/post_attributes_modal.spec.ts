@@ -22,8 +22,10 @@ import {
     modalTrigger,
     openModalFromPostMenu,
     optionId,
+    patchFieldAttrs,
     pickerItem,
     purgeFields,
+    recordRequests,
     setPostValues,
     VALUES_ROUTE,
     skipIfNoPostAttributesLicense,
@@ -351,6 +353,87 @@ test('writes a text attribute on Enter and on blur', {tag: '@post_attributes'}, 
         // * Verify the modal is still open and nothing reloaded
         await expect(page.locator(MODAL)).toBeVisible();
         expect(loads()).toBe(0);
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
+
+/**
+ * @objective Verify the modal's text input stops at the server's 64-byte limit and flags
+ * a value its value type rejects inline, without sending it, so a save never fails on
+ * either.
+ *
+ * @precondition The PostAttributes feature flag is enabled.
+ */
+test('limits and validates a text attribute before writing it', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
+    await pw.ensureFeatureFlag('PostAttributes', true);
+
+    // # Provision a plain text field, an email text field and a post with no values
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        const note = await createField(adminClient, fieldName('note', suffix), {type: 'text', sortOrder: 1});
+        created.push(note);
+        const contact = await patchFieldAttrs(
+            adminClient,
+            await createField(adminClient, fieldName('contact', suffix), {type: 'text', sortOrder: 2}),
+            {value_type: 'email'},
+        );
+        created.push(contact);
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const post = await userClient.createTestPost({channel_id: channel.id, message: `limits ${suffix}`});
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
+        const chips = postOnScreen.container.getByTestId(CHIPS).getByTestId(TEXT_CHIP);
+        const writes = recordRequests(page, `${VALUES_ROUTE}${post.id}`);
+
+        await openModalFromPostMenu(channelsPage, postOnScreen);
+
+        // # Type 22 three-byte characters, 66 bytes, into the plain field
+        await addAttribute(page, note);
+        await modalInput(page, note).fill('€'.repeat(22));
+
+        // * Verify the input kept the 21 that fit, and that saving them succeeds
+        await expect(modalInput(page, note)).toHaveValue('€'.repeat(21));
+        let written = waitForWrite(page, post.id);
+        await modalInput(page, note).press('Enter');
+        expect((await written).status()).toBe(200);
+        await expect(chips).toHaveText('€'.repeat(21));
+
+        // # Type a value that is not an email address into the email field and press Enter
+        await addAttribute(page, contact);
+        await modalInput(page, contact).fill('not-an-email');
+        await modalInput(page, contact).press('Enter');
+
+        // * Verify an inline error names the problem and nothing was sent
+        const inlineError = page.getByTestId(`post-attribute-input-error-${contact.name}`);
+        await expect(inlineError).toHaveText('Enter a valid email address');
+        await expect(modalInput(page, contact)).toHaveAttribute('aria-invalid', 'true');
+        await page.getByTestId('post-attributes-reprise').click();
+        await expect(inlineError).toBeVisible();
+        expect(writes).toHaveLength(1);
+
+        // # Correct it and press Enter
+        await modalInput(page, contact).fill('ok@example.com');
+        await expect(inlineError).toHaveCount(0);
+        written = waitForWrite(page, post.id);
+        await modalInput(page, contact).press('Enter');
+
+        // * Verify the corrected value saved and shows on the post, and was the only other write
+        expect((await written).status()).toBe(200);
+        expect(writes).toHaveLength(2);
+        await expect(chips).toHaveText(['€'.repeat(21), 'ok@example.com']);
+        await expect(page.getByTestId(`post-attribute-error-${contact.name}`)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }

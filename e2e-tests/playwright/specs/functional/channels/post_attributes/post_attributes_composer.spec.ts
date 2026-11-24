@@ -25,6 +25,7 @@ import {
     dropFieldUpdates,
     fieldName,
     optionId,
+    patchFieldAttrs,
     pickerItem,
     purgeFields,
     sentValues,
@@ -406,6 +407,94 @@ test('removes a staged chip and does not send its value', {tag: '@post_attribute
 
         // * Verify only the kept value is in the request
         expect(sentValues(await request)).toEqual([{field_id: kept.id, value: 'keep me'}]);
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
+
+/**
+ * @objective Verify a text chip stops at the server's 64-byte limit and flags a value its
+ * value type rejects inline, staying open until it is fixed, so the post the user sends is
+ * not refused over either.
+ *
+ * @precondition The PostAttributes feature flag is enabled.
+ */
+test('limits and validates a text attribute before sending it', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
+    await pw.ensureFeatureFlag('PostAttributes', true);
+
+    const {adminClient, user, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        // # A plain text field and an email text field
+        const note = await createField(adminClient, fieldName('note', suffix), {type: 'text', sortOrder: 1});
+        created.push(note);
+        const contact = await patchFieldAttrs(
+            adminClient,
+            await createField(adminClient, fieldName('contact', suffix), {type: 'text', sortOrder: 2}),
+            {value_type: 'email'},
+        );
+        created.push(contact);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const composer = channelsPage.centerView.postCreate;
+        const scope = composer.container;
+
+        // # Type 70 characters into the plain field
+        await stageField(page, scope, note);
+        await composerInput(scope, note).fill('a'.repeat(70));
+
+        // * Verify the input stops at 64
+        await expect(composerInput(scope, note)).toHaveValue('a'.repeat(64));
+        await composerInput(scope, note).press('Enter');
+        await expect(composerRest(scope, note)).toBeVisible();
+
+        // # Type a value that is not an email address into the email field and leave it
+        await stageField(page, scope, contact);
+        await composerInput(scope, contact).fill('not-an-email');
+        await composerInput(scope, contact).press('Enter');
+        await composer.input.click();
+
+        // * Verify the chip stays open on its value, with an inline error
+        const inlineError = scope.getByTestId(`post-attribute-input-error-${contact.name}`);
+        await expect(inlineError).toHaveText('Enter a valid email address');
+        await expect(composerInput(scope, contact)).toHaveValue('not-an-email');
+        await expect(composerInput(scope, contact)).toHaveAttribute('aria-invalid', 'true');
+
+        // # Correct it
+        await composerInput(scope, contact).fill('foo@bar.com');
+        await composerInput(scope, contact).press('Enter');
+
+        // * Verify the error is gone and the chip rests on the value
+        await expect(inlineError).toHaveCount(0);
+        await expect(composerRest(scope, contact)).toBeVisible();
+
+        // # Send
+        const message = `limits ${suffix}`;
+        await composer.writeMessage(message);
+        const answer = page.waitForResponse(
+            (candidate) =>
+                candidate.request().method() === 'POST' && new URL(candidate.url()).pathname.endsWith('/api/v4/posts'),
+        );
+        await composer.sendMessage();
+
+        // * Verify both values went out, the server accepted them, and the post shows their chips
+        const response = await answer;
+        expect(sentValues(response.request())).toEqual([
+            {field_id: note.id, value: 'a'.repeat(64)},
+            {field_id: contact.id, value: 'foo@bar.com'},
+        ]);
+        expect(response.status()).toBe(201);
+        const sent = postWithMessage(channelsPage.centerView.container, message);
+        await expect(sent.getByTestId(CHIPS).getByTestId(TEXT_CHIP)).toHaveText(['a'.repeat(64), 'foo@bar.com']);
+        await expect(composerChips(scope)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }
