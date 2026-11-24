@@ -425,7 +425,7 @@ class InfrastructureRetries(unittest.TestCase):
             "${{ !cancelled() && inputs.composite_identity_json != '' && "
             "!(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') && "
             "!(steps.triage.outcome == 'success' && steps.triage.outputs.effective-mode == 'enforce' && "
-            "steps.triage.outputs.published == 'true' && steps.lanes.outputs.triage-lanes != '') }}",
+            "steps.triage.outputs.aggregate-published == 'true' && steps.lanes.outputs.triage-lanes != '') }}",
         )
         self.assertIn("steps.result.outputs.state != 'success'", step(lane, 'ci/e2e-triage')['if'])
         expr = cond.removeprefix('${{').removesuffix('}}').strip()
@@ -434,22 +434,23 @@ class InfrastructureRetries(unittest.TestCase):
             ('cancelled()', 'cancelled'), ('inputs.composite_identity_json', 'identity'),
             ('steps.result.outputs.state', 'result_state'), ('steps.result.outputs.published', 'result_published'),
             ('steps.triage.outcome', 'triage_outcome'), ('steps.triage.outputs.effective-mode', 'triage_mode'),
-            ('steps.triage.outputs.published', 'triage_published'), ('steps.lanes.outputs.triage-lanes', 'triage_lanes'),
+            ('steps.triage.outputs.aggregate-published', 'triage_aggregate_published'), ('steps.lanes.outputs.triage-lanes', 'triage_lanes'),
         ):
             expr = expr.replace(src, dst)
         base = {
             'cancelled': False, 'identity': '{"commit_sha":"abc"}',
             'result_state': 'failure', 'result_published': 'true',
-            'triage_outcome': 'success', 'triage_mode': 'enforce', 'triage_published': 'true',
+            'triage_outcome': 'success', 'triage_mode': 'enforce',
+            'triage_published': 'true', 'triage_aggregate_published': 'true',
             'triage_lanes': 'e2e-test/playwright-full/enterprise',
         }
         cases = [
             ('green published skips', {'result_state': 'success', 'result_published': 'true', 'triage_outcome': 'skipped'}, False),
             ('green unpublished refreshes', {'result_state': 'success', 'result_published': 'false', 'triage_outcome': 'skipped'}, True),
-            ('red enforced published listed PR lane skips', {}, False),
+            ('red enforced aggregate-published listed PR lane skips', {}, False),
             ('red report-only still refreshes', {'triage_mode': 'report-only'}, True),
-            ('red triage unpublished still refreshes', {'triage_published': 'false'}, True),
-            ('red triage empty published still refreshes', {'triage_published': ''}, True),
+            ('red triage published with aggregate-published=false still refreshes', {'triage_published': 'true', 'triage_aggregate_published': 'false'}, True),
+            ('red triage published with aggregate-published empty still refreshes', {'triage_published': 'true', 'triage_aggregate_published': ''}, True),
             ('red triage failed still refreshes', {'triage_outcome': 'failure'}, True),
             ('red triage skipped still refreshes', {'triage_outcome': 'skipped'}, True),
             ('red non-listed lane still refreshes', {'triage_lanes': ''}, True),
