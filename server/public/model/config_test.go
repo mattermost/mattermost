@@ -1629,6 +1629,13 @@ func TestPluginSettingsSetDefaultsRemovesNilPluginStates(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			expected := map[string]PluginState{}
+			for id, state := range tc.states {
+				if state != nil {
+					expected[id] = *state
+				}
+			}
+
 			c := Config{}
 			c.PluginSettings.PluginStates = tc.states
 			c.SetDefaults()
@@ -1638,11 +1645,9 @@ func TestPluginSettingsSetDefaultsRemovesNilPluginStates(t *testing.T) {
 				assert.NotNilf(t, state, "PluginStates[%q] must not be nil after SetDefaults", id)
 			}
 
-			for id, original := range tc.states {
-				if original != nil {
-					require.Contains(t, states, id)
-					assert.Equal(t, original, states[id])
-				}
+			for id, want := range expected {
+				require.Contains(t, states, id)
+				assert.Equal(t, want, *states[id])
 			}
 
 			_, present := states[arbitraryPluginID]
