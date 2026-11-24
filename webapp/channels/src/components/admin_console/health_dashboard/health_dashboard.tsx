@@ -42,8 +42,8 @@ export type Props = {
     mutedFindings: HealthFinding[];
     lastEvaluatedAt: number;
 
-    // Whether the viewer has manage_system, which muting findings, running checks and exporting
-    // need. Delegated admins who can only read Site Statistics see the page read-only.
+    // Whether the viewer has manage_system, which muting findings and running checks need.
+    // Delegated admins who can only read Site Statistics see the page read-only.
     canManage: boolean;
 
     // Jobs in the store by ID. job_updated WebSocket events keep them up to date.
@@ -351,7 +351,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                     </p>
                     <div className='HealthDashboard__actions'>
                         {runButton}
-                        {canManage && <ExportMenu onError={setExportFailed}/>}
+                        <ExportMenu onError={setExportFailed}/>
                     </div>
                 </div>
                 {runErrorBanner}

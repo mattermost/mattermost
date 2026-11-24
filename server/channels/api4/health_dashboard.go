@@ -27,8 +27,8 @@ func (api *API) InitHealthDashboard() {
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(unmuteHealthFinding)).Methods(http.MethodDelete)
 }
 
-// healthFindingsReadPermissions lets delegated admins who can read Site Statistics see the
-// dashboard. Muting stays manage_system, since a mute changes what every admin sees.
+// healthFindingsReadPermissions lets delegated admins who can read Site Statistics see and export
+// the findings. Muting stays manage_system, since a mute changes what every admin sees.
 var healthFindingsReadPermissions = []*model.Permission{
 	model.PermissionManageSystem,
 	model.PermissionSysconsoleReadReportingSiteStatistics,
@@ -141,7 +141,7 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c, model.PermissionManageSystem) {
+	if !requireHealthDashboard(c, healthFindingsReadPermissions...) {
 		return
 	}
 
@@ -174,7 +174,7 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	list.Findings = renderFindings(c, list.Findings)
+	list.Findings = renderFindings(c, readableFindings(c, list.Findings))
 
 	var tier, company string
 	if license := c.App.Channels().License(); license != nil {

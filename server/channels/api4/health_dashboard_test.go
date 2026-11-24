@@ -191,6 +191,10 @@ func TestHealthDashboardAccess(t *testing.T) {
 		_, resp, err := th.SystemManagerClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+
+		_, _, resp, err = th.SystemManagerClient.ExportHealthFindings(context.Background(), "md")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("compliance and job findings follow the permissions of what they are about", func(t *testing.T) {
@@ -219,6 +223,11 @@ func TestHealthDashboardAccess(t *testing.T) {
 
 		// A System Manager can read LDAP but not Compliance.
 		assert.ElementsMatch(t, []string{siteURL.Fingerprint, ldapJob.Fingerprint}, getFingerprints(th.SystemManagerClient))
+		data, _, resp, err := th.SystemManagerClient.ExportHealthFindings(context.Background(), "md")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Contains(t, string(data), "`SITE_URL_HTTP`")
+		assert.NotContains(t, string(data), "`EXPORT_GR_TIMEOUT_LOW`", "the export leaves out what the list does")
 		assert.ElementsMatch(t, []string{siteURL.Fingerprint, export.Fingerprint, exportJob.Fingerprint, ldapJob.Fingerprint}, getFingerprints(th.SystemAdminClient))
 
 		// Granting Compliance Export read reveals the export findings, whatever the role.
