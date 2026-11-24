@@ -25,6 +25,7 @@ jest.mock('components/channel_layout/center_channel', () => () => <div/>);
 jest.mock('components/loading_screen', () => () => <div/>);
 jest.mock('components/unreads_status_handler', () => () => <div/>);
 jest.mock('components/product_notices_modal', () => () => <div/>);
+jest.mock('components/passkey_enrollment/passkey_enrollment_prompt', () => () => <div data-testid='passkey_prompt'/>);
 jest.mock('components/feature_toast/features/mark_all_as_read_toast', () => () => <div/>);
 jest.mock('plugins/pluggable', () => () => <div/>);
 
@@ -89,6 +90,16 @@ describe('ChannelController', () => {
         });
 
         expect(actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll).not.toHaveBeenCalled();
+    });
+
+    it('mounts the passkey enrollment prompt', async () => {
+        renderWithContext(
+            <Provider store={mockStore(mockState)}>
+                <ChannelController shouldRenderCenterChannel={true}/>
+            </Provider>,
+        );
+
+        expect(await screen.findByTestId('passkey_prompt')).toBeInTheDocument();
     });
 });
 

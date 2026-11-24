@@ -18,7 +18,7 @@ const mfaAuthServices = ['', 'email', 'ldap'];
 
 // Only decides where to navigate; the server enforces MFA from the session. The server expires
 // this cookie on every non-passkey sign-in, so a stale one is overwritten by the next sign-in.
-function isPasskeySession() {
+export function isPasskeySession() {
     return document.cookie.split(';').some((c) => c.trim() === 'MMLOGINMETHOD=passkey');
 }
 

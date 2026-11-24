@@ -25,6 +25,7 @@ import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 
 const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
+const PasskeyEnrollmentPrompt = makeAsyncComponent('PasskeyEnrollmentPrompt', lazy(() => import('components/passkey_enrollment/passkey_enrollment_prompt')));
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
 const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
 const MarkAllAsReadToast = makeAsyncComponent('MarkAllAsReadToast', lazy(() => import('components/feature_toast/features/mark_all_as_read_toast')));
@@ -84,6 +85,7 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
+                <PasskeyEnrollmentPrompt/>
                 <QuoteSelectionButton/>
                 {enableMarkAllReadShortcut && <MarkAllAsReadToast/>}
                 <div className={classNames('container-fluid channel-view-inner')}>

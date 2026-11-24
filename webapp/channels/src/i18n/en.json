@@ -28767,6 +28767,26 @@
     "defaultMessage": "1-50",
     "description": "Company size option '1-50' employees in the Start Trial form dropdown; keep the numeric range."
   },
+  "passkey_enrollment_prompt.add": {
+    "defaultMessage": "Add passkey",
+    "description": "Button in the post-sign-in prompt that starts adding a passkey."
+  },
+  "passkey_enrollment_prompt.body": {
+    "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
+    "description": "Body of the prompt shown after sign-in that offers to add a passkey."
+  },
+  "passkey_enrollment_prompt.notNow": {
+    "defaultMessage": "Not now",
+    "description": "Button in the post-sign-in passkey prompt that dismisses it until the next sign-in."
+  },
+  "passkey_enrollment_prompt.recentLoginRequired": {
+    "defaultMessage": "For your security, sign out and sign back in, then add your passkey within 10 minutes.",
+    "description": "Error shown in the passkey prompt when adding a passkey is refused because the user did not sign in recently enough."
+  },
+  "passkey_enrollment_prompt.title": {
+    "defaultMessage": "Add a passkey",
+    "description": "Title of the prompt shown after sign-in that offers to add a passkey."
+  },
   "password_form.change": {
     "defaultMessage": "Change my password",
     "description": "Submit button label on the password reset form that saves the new password."
