@@ -222,7 +222,7 @@ describe('components/AdminSidebar', () => {
         });
 
         const renderConnectedSidebar = (pluginsEnabled = true) => {
-            renderWithContext(
+            return renderWithContext(
                 <ConnectedAdminSidebar onSearchChange={jest.fn()}/>,
                 {
                     entities: {
@@ -308,6 +308,23 @@ describe('components/AdminSidebar', () => {
             await flushDebounce();
 
             expect(getPlugins).not.toHaveBeenCalled();
+        });
+
+        test('stops listening and cancels a pending refetch on unmount', async () => {
+            const getPlugins = jest.spyOn(Client4, 'getPlugins').mockResolvedValue({active: [], inactive: []});
+            const removeReconnectListener = jest.spyOn(WebSocketClient, 'removeReconnectListener');
+
+            const {unmount} = renderConnectedSidebar();
+            await flushDebounce();
+
+            act(() => {
+                messageListener({event: WebSocketEvents.PluginStatusesChanged} as WebSocketMessage);
+            });
+            unmount();
+            await flushDebounce();
+
+            expect(removeReconnectListener).toHaveBeenCalledWith(reconnectListener);
+            expect(getPlugins).toHaveBeenCalledTimes(1);
         });
     });
 
