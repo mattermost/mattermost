@@ -201,6 +201,21 @@
         }
     }
 
+    &__textField {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        flex-direction: column;
+    }
+
+    &__inputError {
+        padding: var(--spacing-xxxxs) var(--spacing-xs) 0;
+        color: var(--error-text);
+        font-size: var(--font-size-75);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-75);
+    }
+
     &__input {
         min-width: 0;
 
@@ -208,6 +223,10 @@
             background: rgba(var(--center-channel-color-rgb), 0.08);
             box-shadow: none;
             outline: none;
+        }
+
+        &[aria-invalid='true'] {
+            box-shadow: 0 0 0 1px var(--error-text);
         }
     }
 
