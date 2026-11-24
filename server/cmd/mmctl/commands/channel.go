@@ -28,9 +28,14 @@ var ChannelCmd = &cobra.Command{
 var ChannelCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a channel",
-	Long:  `Create a channel.`,
+	Long: `Create a channel.
+
+When the server requires channel attributes, pass each value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
 	Example: `  channel create --team myteam --name mynewchannel --display-name "My New Channel"
-  channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private`,
+  channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private
+  channel create --team myteam --name ops --display-name "Ops" --attribute "Classification=Secret" --attribute "Region=EMEA" --attribute "Region=APAC"`,
 	RunE: withClient(createChannelCmdF),
 }
 
@@ -129,6 +134,7 @@ func init() {
 	ChannelCreateCmd.Flags().String("header", "", "Channel header")
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
+	ChannelCreateCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
 
 	ModifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
 	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
@@ -199,9 +205,22 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		CreatorId:   "",
 	}
 
-	newChannel, _, err := c.CreateChannel(context.TODO(), channel)
-	if err != nil {
-		return err
+	var newChannel *model.Channel
+	var err error
+	if attributes, _ := cmd.Flags().GetStringArray("attribute"); len(attributes) == 0 {
+		newChannel, _, err = c.CreateChannel(context.TODO(), channel)
+		if err != nil {
+			return missingRequiredHint(c, nil, err, nil, "")
+		}
+	} else {
+		var saveErr error
+		newChannel, saveErr = createChannelWithAttributes(c, cmd, channel)
+		if newChannel == nil {
+			return saveErr
+		}
+		// The channel was created; report it even when its values didn't read back.
+		printer.PrintT("New channel {{.Name}} successfully created", newChannel)
+		return saveErr
 	}
 
 	printer.PrintT("New channel {{.Name}} successfully created", newChannel)

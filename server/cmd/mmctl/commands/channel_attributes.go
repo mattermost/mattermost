@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -23,6 +24,8 @@ import (
 const (
 	channelAttributeOptionsPageSize = 200
 	channelAttributeValuesPageSize  = 200
+
+	missingRequiredAttributesErrorID = "api.channel.create_channel.missing_required_attributes.app_error"
 )
 
 var ChannelAttributesCmd = &cobra.Command{
@@ -142,6 +145,24 @@ func newChannelAttributeResolver(c client.Client) (*channelAttributeResolver, er
 		fields:  fields,
 		options: make(map[string][]*model.PropertyFieldOption),
 	}, nil
+}
+
+// isMasked reports whether the server masks the field's values, so a read can
+// leave out a value the channel holds. The server reports it in
+// permissions.masking, which it serves only when property field permissions are
+// enabled; without it a masked field looks like any other.
+func isMasked(field *model.PropertyField) bool {
+	return field != nil && field.Permissions != nil && field.Permissions.Masking != nil
+}
+
+// fieldByID returns the field the search returned for id, or nil.
+func (r *channelAttributeResolver) fieldByID(id string) *model.PropertyField {
+	for _, field := range r.fields {
+		if field.ID == id {
+			return field
+		}
+	}
+	return nil
 }
 
 // findField matches typed against the field IDs, then the exact names, then the
@@ -560,4 +581,127 @@ func listChannelAttributeValues(c client.Client, channelID string) ([]*model.Pro
 		last := page[len(page)-1]
 		search.CursorID, search.CursorCreateAt = last.ID, last.CreateAt
 	}
+}
+
+// createChannelWithAttributes creates the channel with the --attribute values.
+// The values are resolved before anything is sent.
+func createChannelWithAttributes(c client.Client, cmd *cobra.Command, channel *model.Channel) (*model.Channel, error) {
+	attrArgs, err := parseAttributeFlags(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	resolver, err := newChannelAttributeResolver(c)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := resolver.resolve(attrArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	newChannel, _, err := c.CreateChannelWithPropertyValues(context.TODO(), &model.ChannelCreateRequest{Channel: *channel, PropertyValues: items})
+	if err != nil {
+		return nil, missingRequiredHint(c, resolver, err, items, "")
+	}
+
+	// The channel exists whatever the read-back finds, so it is returned with
+	// the error and the caller still reports the creation.
+	return newChannel, verifySaved(c, resolver, newChannel.Id, items, "created")
+}
+
+// missingRequiredHint returns err unchanged unless the server refused because
+// required attributes are missing. In that case it adds the names of the
+// required attributes the caller didn't pass, taken from the fields the server
+// returns to this caller. Pass the channel's ID when the channel exists, so
+// attributes it already holds aren't named. With nothing to name, only the
+// server's message is left.
+//
+// A nil resolver means the command ran without --attribute and nothing was
+// looked up before the request; the fields are fetched now. If they can't be
+// fetched, err is returned unchanged.
+func missingRequiredHint(c client.Client, resolver *channelAttributeResolver, err error, sent []model.PropertyValuePatchItem, channelID string) error {
+	var appErr *model.AppError
+	if !errors.As(err, &appErr) || appErr.Id != missingRequiredAttributesErrorID {
+		return err
+	}
+
+	if resolver == nil {
+		created, resolverErr := newChannelAttributeResolver(c)
+		if resolverErr != nil {
+			return err
+		}
+		resolver = created
+	}
+
+	held := make(map[string]bool, len(sent))
+	for _, item := range sent {
+		held[item.FieldID] = true
+	}
+	if channelID != "" {
+		values, listErr := listChannelAttributeValues(c, channelID)
+		if listErr != nil {
+			return err
+		}
+		for _, value := range values {
+			if !model.IsEmptyPropertyValue(value.Value) {
+				held[value.FieldID] = true
+			}
+		}
+		// The read can't show a value the server masks, so a masked field
+		// that wasn't sent may be held or missing; it isn't named.
+		for _, field := range resolver.fields {
+			if isMasked(field) {
+				held[field.ID] = true
+			}
+		}
+	}
+
+	var names []string
+	for _, field := range resolver.fields {
+		if model.IsPropertyFieldRequired(field) && !held[field.ID] {
+			names = append(names, field.Name)
+		}
+	}
+	if len(names) == 0 {
+		return err
+	}
+
+	return fmt.Errorf("%w\nRequired channel attributes not passed: %s\nPass each one with --attribute \"<attribute>=<value>\". Run \"mmctl channel attributes fields\" to see them.", err, strings.Join(names, ", "))
+}
+
+// verifySaved reads the channel's values once and checks that every field that
+// was sent holds what was sent, leaving out masked fields, which the read may
+// not show. A server that predates the request body ignores
+// it and answers success. done is the past tense of what happened to the
+// channel: "created", "updated" or "unarchived".
+func verifySaved(c client.Client, resolver *channelAttributeResolver, channelID string, sent []model.PropertyValuePatchItem, done string) error {
+	values, err := listChannelAttributeValues(c, channelID)
+	if err != nil {
+		return fmt.Errorf("the channel was %s, but its attribute values could not be checked: %w", done, err)
+	}
+
+	stored := make(map[string]json.RawMessage, len(values))
+	for _, value := range values {
+		stored[value.FieldID] = value.Value
+	}
+
+	for _, item := range sent {
+		if isMasked(resolver.fieldByID(item.FieldID)) {
+			continue
+		}
+		if !jsonEqual(stored[item.FieldID], item.Value) {
+			return fmt.Errorf("the channel was %s, but the server didn't save the attribute values; the server may be older than this mmctl", done)
+		}
+	}
+	return nil
+}
+
+func jsonEqual(a, b json.RawMessage) bool {
+	var left, right any
+	if json.Unmarshal(a, &left) != nil || json.Unmarshal(b, &right) != nil {
+		return false
+	}
+	return reflect.DeepEqual(left, right)
 }

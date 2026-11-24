@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/mock/gomock"
 )
 
 const (
@@ -3266,6 +3268,227 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
+	})
+
+	s.Run("attribute flag", func() {
+		f := newChannelAttributeFixture()
+		secret := optionIDOf(f.classification, "Secret")
+		borealis := optionIDOf(f.program, "Borealis")
+		f.program.Attrs["required"] = true
+
+		team := &model.Team{Id: "teamId", Name: "teamName"}
+		newChannel := &model.Channel{TeamId: team.Id, Name: "ops", DisplayName: "Ops", Type: model.ChannelTypeOpen}
+		createdChannel := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "ops", DisplayName: "Ops", Type: model.ChannelTypeOpen}
+
+		newCreateCmd := func(attributes ...string) *cobra.Command {
+			cmd := newTestCmd(s.T(), ChannelCreateCmd)
+			s.Require().NoError(cmd.Flags().Set("team", "teamName"))
+			s.Require().NoError(cmd.Flags().Set("name", "ops"))
+			s.Require().NoError(cmd.Flags().Set("display-name", "Ops"))
+			for _, attribute := range attributes {
+				s.Require().NoError(cmd.Flags().Set("attribute", attribute))
+			}
+			return cmd
+		}
+
+		expectTeam := func() {
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), "teamName", "").
+				Return(team, &model.Response{}, nil).
+				Times(1)
+		}
+
+		classificationItem := model.PropertyValuePatchItem{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)}
+		request := func(items ...model.PropertyValuePatchItem) *model.ChannelCreateRequest {
+			return &model.ChannelCreateRequest{Channel: *newChannel, PropertyValues: items}
+		}
+		expectRead := func(values ...*model.PropertyValue) {
+			s.client.
+				EXPECT().
+				GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, createdChannel.Id, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+				Return(values, &model.Response{}, nil).
+				Times(1)
+		}
+		missingRequired := model.NewAppError("createChannel", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+		missingRequired.Message = "This channel is missing required attributes."
+
+		s.Run("without the flag only CreateChannel is called", func() {
+			printer.Clean()
+			expectTeam()
+			s.client.
+				EXPECT().
+				CreateChannel(context.TODO(), newChannel).
+				Return(createdChannel, &model.Response{}, nil).
+				Times(1)
+
+			err := createChannelCmdF(s.client, newCreateCmd(), nil)
+			s.Require().NoError(err)
+			s.Require().Equal([]any{createdChannel}, printer.GetLines())
+		})
+
+		s.Run("creates the channel with the resolved values and reads them back", func() {
+			printer.Clean()
+			expectTeam()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			s.client.
+				EXPECT().
+				CreateChannelWithPropertyValues(context.TODO(), request(classificationItem)).
+				Return(createdChannel, &model.Response{}, nil).
+				Times(1)
+			expectRead(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(` "` + secret + `" `)})
+
+			err := createChannelCmdF(s.client, newCreateCmd("classification=secret"), nil)
+			s.Require().NoError(err)
+			s.Require().Equal([]any{createdChannel}, printer.GetLines())
+		})
+
+		s.Run("an unknown attribute or option sends no create request", func() {
+			for _, attribute := range []string{"Nope=1", "Classification=Nope"} {
+				printer.Clean()
+				expectTeam()
+				s.expectChannelAttributeFieldSearch(f.fields())
+
+				err := createChannelCmdF(s.client, newCreateCmd(attribute), nil)
+				s.Require().Error(err, attribute)
+				s.Require().Empty(printer.GetLines())
+			}
+		})
+
+		s.Run("a missing attribute error names only the required attributes not passed", func() {
+			printer.Clean()
+			expectTeam()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			s.client.
+				EXPECT().
+				CreateChannelWithPropertyValues(context.TODO(), request(classificationItem)).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+
+			err := createChannelCmdF(s.client, newCreateCmd("Classification=Secret"), nil)
+			s.Require().Error(err)
+			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().NotContains(err.Error(), "Classification,")
+			s.Require().Contains(err.Error(), `Run "mmctl channel attributes fields"`)
+			s.Require().Empty(printer.GetLines())
+		})
+
+		s.Run("a missing attribute error with no visible required field prints only the server message", func() {
+			printer.Clean()
+			expectTeam()
+			s.expectChannelAttributeFieldSearch([]*model.PropertyField{f.notes})
+			notesItem := model.PropertyValuePatchItem{FieldID: f.notes.ID, Value: json.RawMessage(`"x"`)}
+			s.client.
+				EXPECT().
+				CreateChannelWithPropertyValues(context.TODO(), request(notesItem)).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+
+			err := createChannelCmdF(s.client, newCreateCmd("Notes=x"), nil)
+			s.Require().Equal(missingRequired, err)
+		})
+
+		s.Run("another server error is returned as is", func() {
+			printer.Clean()
+			expectTeam()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			forbidden := model.NewAppError("createChannel", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+			s.client.
+				EXPECT().
+				CreateChannelWithPropertyValues(context.TODO(), request(classificationItem)).
+				Return(nil, &model.Response{}, forbidden).
+				Times(1)
+
+			err := createChannelCmdF(s.client, newCreateCmd("Classification=Secret"), nil)
+			s.Require().Equal(forbidden, err)
+		})
+
+		s.Run("without the flag a missing attribute error names the required attributes after the failure", func() {
+			printer.Clean()
+			expectTeam()
+			gomock.InOrder(
+				s.client.
+					EXPECT().
+					CreateChannel(context.TODO(), newChannel).
+					Return(nil, &model.Response{}, missingRequired).
+					Times(1),
+				s.client.
+					EXPECT().
+					SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+					Return(f.fields(), &model.Response{StatusCode: http.StatusOK}, nil).
+					Times(1),
+			)
+
+			err := createChannelCmdF(s.client, newCreateCmd(), nil)
+			s.Require().Error(err)
+			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+			s.Require().Empty(printer.GetLines())
+		})
+
+		s.Run("without the flag a failed field search leaves only the server error", func() {
+			for _, status := range []int{http.StatusNotFound, http.StatusForbidden} {
+				printer.Clean()
+				expectTeam()
+				s.client.
+					EXPECT().
+					CreateChannel(context.TODO(), newChannel).
+					Return(nil, &model.Response{}, missingRequired).
+					Times(1)
+				s.client.
+					EXPECT().
+					SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+					Return(nil, &model.Response{StatusCode: status}, errors.New("refused")).
+					Times(1)
+
+				err := createChannelCmdF(s.client, newCreateCmd(), nil)
+				s.Require().Equal(missingRequired, err)
+			}
+		})
+
+		s.Run("without the flag another server error makes no field search", func() {
+			printer.Clean()
+			expectTeam()
+			forbidden := model.NewAppError("createChannel", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+			s.client.
+				EXPECT().
+				CreateChannel(context.TODO(), newChannel).
+				Return(nil, &model.Response{}, forbidden).
+				Times(1)
+
+			err := createChannelCmdF(s.client, newCreateCmd(), nil)
+			s.Require().Equal(forbidden, err)
+		})
+
+		s.Run("a read-back that doesn't hold the values still reports the creation and is an error", func() {
+			printer.Clean()
+			expectTeam()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			s.client.
+				EXPECT().
+				CreateChannelWithPropertyValues(context.TODO(), request(classificationItem)).
+				Return(createdChannel, &model.Response{}, nil).
+				Times(1)
+			expectRead(&model.PropertyValue{FieldID: f.program.ID, Value: json.RawMessage(`"` + borealis + `"`)})
+
+			err := createChannelCmdF(s.client, newCreateCmd("Classification=Secret"), nil)
+			s.Require().EqualError(err, "the channel was created, but the server didn't save the attribute values; the server may be older than this mmctl")
+			s.Require().Equal([]any{createdChannel}, printer.GetLines())
+		})
+
+		s.Run("a flag-off server stops before any write", func() {
+			printer.Clean()
+			expectTeam()
+			s.client.
+				EXPECT().
+				SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+				Times(1)
+
+			err := createChannelCmdF(s.client, newCreateCmd("Classification=Secret"), nil)
+			s.Require().EqualError(err, "channel attributes aren't enabled on this server")
+		})
 	})
 }
 

@@ -752,3 +752,110 @@ func (s *MmctlUnitTestSuite) TestChannelAttributesSetCmd() {
 		s.Empty(printer.GetLines())
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestMissingRequiredHint() {
+	f := newChannelAttributeFixture()
+	f.program.Attrs["required"] = true
+	missingRequired := model.NewAppError("restoreChannel", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+	channelID := model.NewId()
+
+	newResolver := func() *channelAttributeResolver {
+		s.expectChannelAttributeFieldSearch(f.fields())
+		resolver, err := newChannelAttributeResolver(s.client)
+		s.Require().NoError(err)
+		return resolver
+	}
+	expectValues := func(values ...*model.PropertyValue) {
+		s.client.
+			EXPECT().
+			GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+			Return(values, &model.Response{}, nil).
+			Times(1)
+	}
+
+	s.Run("names only the required attributes the channel doesn't hold and that weren't sent", func() {
+		resolver := newResolver()
+		expectValues(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"x"`)})
+
+		err := missingRequiredHint(s.client, resolver, missingRequired, nil, channelID)
+		s.Require().ErrorIs(err, missingRequired)
+		s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+	})
+
+	s.Run("an empty stored value still counts as missing", func() {
+		resolver := newResolver()
+		expectValues(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`""`)})
+
+		err := missingRequiredHint(s.client, resolver, missingRequired, nil, channelID)
+		s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+	})
+
+	s.Run("a masked field the channel may hold isn't named", func() {
+		f.program.Permissions = &model.Permissions{Masking: &model.Masking{}}
+		defer func() { f.program.Permissions = nil }()
+		resolver := newResolver()
+		expectValues(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"x"`)})
+
+		s.Require().Equal(missingRequired, missingRequiredHint(s.client, resolver, missingRequired, nil, channelID))
+	})
+
+	s.Run("a masked field is named when the channel doesn't exist yet", func() {
+		f.program.Permissions = &model.Permissions{Masking: &model.Masking{}}
+		defer func() { f.program.Permissions = nil }()
+		resolver := newResolver()
+
+		err := missingRequiredHint(s.client, resolver, missingRequired, nil, "")
+		s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+	})
+
+	s.Run("an error that isn't the missing attributes one is returned untouched", func() {
+		resolver := newResolver()
+		other := errors.New("boom")
+
+		s.Require().Equal(other, missingRequiredHint(s.client, resolver, other, nil, channelID))
+	})
+
+	s.Run("a failed read of the channel values leaves only the server message", func() {
+		resolver := newResolver()
+		s.client.
+			EXPECT().
+			GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, gomock.Any()).
+			Return(nil, &model.Response{}, errors.New("boom")).
+			Times(1)
+
+		s.Require().Equal(missingRequired, missingRequiredHint(s.client, resolver, missingRequired, nil, channelID))
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestVerifySavedSkipsMaskedFields() {
+	f := newChannelAttributeFixture()
+	f.program.Permissions = &model.Permissions{Masking: &model.Masking{}}
+	s.expectChannelAttributeFieldSearch(f.fields())
+	resolver, err := newChannelAttributeResolver(s.client)
+	s.Require().NoError(err)
+
+	channelID := model.NewId()
+	secret := optionIDOf(f.classification, "Secret")
+	borealis := optionIDOf(f.program, "Borealis")
+	sent := []model.PropertyValuePatchItem{
+		{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)},
+		{FieldID: f.program.ID, Value: json.RawMessage(`"` + borealis + `"`)},
+	}
+	expectValues := func(values ...*model.PropertyValue) {
+		s.client.
+			EXPECT().
+			GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+			Return(values, &model.Response{}, nil).
+			Times(1)
+	}
+
+	s.Run("a masked value that reads back absent is not a failure", func() {
+		expectValues(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)})
+		s.Require().NoError(verifySaved(s.client, resolver, channelID, sent, "created"))
+	})
+
+	s.Run("an unmasked value that reads back absent still fails", func() {
+		expectValues(&model.PropertyValue{FieldID: f.program.ID, Value: json.RawMessage(`"` + borealis + `"`)})
+		s.Require().ErrorContains(verifySaved(s.client, resolver, channelID, sent, "created"), "the server didn't save the attribute values")
+	})
+}
