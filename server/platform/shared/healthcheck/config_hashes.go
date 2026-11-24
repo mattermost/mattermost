@@ -32,12 +32,12 @@ var NodeLocalConfigPaths = []string{
 const configSectionHashLength = 16
 
 // ConfigSectionHashes hashes each top-level section of a config, such as SqlSettings or
-// TeamSettings, with the NodeLocalConfigPaths cleared. Nodes compare the hashes to detect
-// config drift, live through the collected diagnostics and offline through a Support Packet.
+// TeamSettings, with the NodeLocalConfigPaths cleared. The health check compares them across
+// nodes to detect config drift: live, each node sends its hashes with its diagnostics, and
+// offline, the packet reader computes them from each node's sanitized_config.json.
 //
-// cfg must already be sanitized, as in the packet's sanitized_config.json: the hashes are
-// written into the packet, and anyone reading it knows every other setting of a section, so a
-// hash over a secret could be brute-forced. Secrets therefore never count as drift.
+// cfg must be sanitized the way the packet's sanitized_config.json is, so both paths hash the
+// same data. Secret values therefore never count as drift; whether a secret is set does.
 func ConfigSectionHashes(cfg *model.Config) map[string]string {
 	if cfg == nil {
 		return nil

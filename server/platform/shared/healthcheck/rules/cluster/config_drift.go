@@ -22,10 +22,10 @@ var (
 	reasonNoMajority  = healthcheck.TranslationId("health.rule.cluster_config_drift.message.no_majority")
 )
 
-// configDrift compares the config section hashes in each node's diagnostics. Live health
-// checks collect them from every node and Support Packets carry them in each node's
-// diagnostics.yaml, so both evaluate the same data. See healthcheck.ConfigSectionHashes for
-// what the hashes leave out.
+// configDrift compares each node's config section hashes. Live health checks collect them
+// from every node with its diagnostics, and the packet reader computes them from each node's
+// sanitized_config.json, so both evaluate the same data. See healthcheck.ConfigSectionHashes
+// for what the hashes leave out.
 var configDrift = healthcheck.Rule{
 	Code:     "CLUSTER_CONFIG_DRIFT",
 	Area:     model.AreaCluster,
@@ -43,15 +43,14 @@ var configDrift = healthcheck.Rule{
 	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalConfigDriftNode)),
 }
 
-// sectionHashes returns the node's config section hashes. Nodes that did not reply, and
-// packets from servers that predate the hashes, have none.
+// sectionHashes returns the node's config section hashes. Nodes that did not reply, nodes on
+// a build that predates the hashes, and packet nodes without a readable config have none.
 func sectionHashes(n *healthcheck.NodeSnapshot) (map[string]string, bool) {
-	diag, ok := n.Diag()
-	if !ok || len(diag.Config.SectionHashes) == 0 {
+	if n == nil || n.Diagnostics == nil || len(n.Diagnostics.ConfigSectionHashes) == 0 {
 		return nil, false
 	}
 
-	return diag.Config.SectionHashes, true
+	return n.Diagnostics.ConfigSectionHashes, true
 }
 
 // configKey identifies a node's whole config by its section hashes.

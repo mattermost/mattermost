@@ -1302,9 +1302,8 @@ func TestSupportPacketDiagnosticsConfigSectionHashes(t *testing.T) {
 
 		d, _ := th.Service.GetSupportPacketDiagnostics(th.Context)
 		require.NotNil(t, d)
-		require.NotNil(t, d.Diagnostics)
-		require.NotEmpty(t, d.Diagnostics.Config.SectionHashes)
-		return d.Diagnostics.Config.SectionHashes
+		require.NotEmpty(t, d.ConfigSectionHashes)
+		return d.ConfigSectionHashes
 	}
 
 	// Sanitizing keeps an empty secret empty, so whether one is set still counts; its value does not.
@@ -1965,7 +1964,6 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
 	diagnostics.Config.AuditLoggingConfigured = new(true)
-	diagnostics.Config.SectionHashes = map[string]string{"TeamSettings": "0123456789abcdef", "SqlSettings": "fedcba9876543210"}
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")

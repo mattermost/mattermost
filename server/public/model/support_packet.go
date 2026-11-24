@@ -94,10 +94,6 @@ type SupportPacketDiagnostics struct {
 		// platform at packet time. The audit logger applies its targets only at startup, so after a runtime
 		// config or license change this can differ from what the server is writing.
 		AuditLoggingConfigured *bool `yaml:"audit_logging_configured,omitempty"`
-		// SectionHashes holds a short hash of each top-level section of the node's sanitized config,
-		// keyed by section name, with the settings nodes may set differently left out. Comparing
-		// them across nodes detects config drift without exposing any values.
-		SectionHashes map[string]string `yaml:"section_hashes,omitempty"`
 	} `yaml:"config"`
 
 	Database struct {

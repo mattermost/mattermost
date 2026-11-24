@@ -39,17 +39,18 @@ func driftNode(node, majority, sections string) want {
 	return firing(driftNodeMessage, map[string]string{"node": node, "majority": majority, "sections": sections})
 }
 
-// driftNodes builds nodes on one build whose diagnostics report the given section hashes, the
-// first one leading. A nil config is a node without hashes: one that did not reply to a live
-// health check, or one from a packet written before nodes reported them.
+// driftNodes builds nodes on one build that report the given section hashes, the first one
+// leading. A nil config is a node without hashes: one on an older build, or a packet node whose
+// config could not be read.
 func driftNodes(configs ...map[string]string) []*healthcheck.NodeSnapshot {
 	nodes := make([]*healthcheck.NodeSnapshot, 0, len(configs))
 	for i, hashes := range configs {
 		hostname := fmt.Sprintf("app-%d.example.com", i+1)
-		nodes = append(nodes, diagNode(hostname, i == 0, func(diag *model.SupportPacketDiagnostics) {
+		node := diagNode(hostname, i == 0, func(diag *model.SupportPacketDiagnostics) {
 			diag.Server.BuildHash = "abc123"
-			diag.Config.SectionHashes = hashes
-		}))
+		})
+		node.Diagnostics.ConfigSectionHashes = hashes
+		nodes = append(nodes, node)
 	}
 	return nodes
 }
