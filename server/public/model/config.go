@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io"
+	"maps"
 	"math"
 	"net"
 	"net/http"
@@ -3794,6 +3795,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.PluginStates == nil {
 		s.PluginStates = make(map[string]*PluginState)
 	}
+
+	maps.DeleteFunc(s.PluginStates, func(_ string, state *PluginState) bool {
+		return state == nil
+	})
 
 	if s.PluginStates[PluginIdNPS] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
