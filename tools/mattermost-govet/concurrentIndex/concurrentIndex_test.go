@@ -242,6 +242,16 @@ func TestCheckLine(t *testing.T) {
 			line:    "-- drop the old index\nDROP INDEX CONCURRENTLY idx_foo;",
 			wantMsg: diagDropIfExists,
 		},
+		{
+			name:    "double dash inside a string literal is not a comment",
+			line:    "SELECT '--'; DROP INDEX idx_old;",
+			wantMsg: diagDropIndex,
+		},
+		{
+			name:    "double dash inside a quoted identifier is not a comment",
+			line:    `SELECT 1 AS "a--b"; DROP INDEX idx_old;`,
+			wantMsg: diagDropIndex,
+		},
 	}
 
 	for _, tt := range tests {

@@ -31,7 +31,6 @@ var (
 	dropConcurrentlyRegex  = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\b`)
 	dropIfExistsRegex      = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\s+IF\s+EXISTS\b`)
 	ignoreRegex            = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
-	lineCommentRegex       = regexp.MustCompile(`--[^\n]*`)
 )
 
 var sqlPath string
@@ -50,11 +49,62 @@ func init() {
 	Analyzer.Flags.IntVar(&minMigration, "minMigration", 0, "Skip SQL files with a migration number below this value")
 }
 
-func checkStatement(stmt string) string {
-	if ignoreRegex.MatchString(stmt) {
+type statement struct {
+	start int    // byte offset of the first non-space character
+	text  string // raw text, including comments
+	code  string // text with -- line comments removed
+}
+
+// splitStatements splits s on semicolons outside quoted strings, quoted
+// identifiers and -- line comments.
+func splitStatements(s string) []statement {
+	var stmts []statement
+	var code strings.Builder
+	start := 0
+	flush := func(end int) {
+		text := s[start:end]
+		if trimmed := strings.TrimLeft(text, " \t\r\n"); trimmed != "" {
+			stmts = append(stmts, statement{start: end - len(trimmed), text: text, code: code.String()})
+		}
+		code.Reset()
+		start = end + 1
+	}
+
+	var quote byte
+	inComment := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case inComment:
+			if c != '\n' {
+				continue
+			}
+			inComment = false
+		case quote != 0:
+			if c == quote {
+				quote = 0
+			}
+		case c == '\'' || c == '"':
+			quote = c
+		case c == '-' && i+1 < len(s) && s[i+1] == '-':
+			inComment = true
+			i++
+			continue
+		case c == ';':
+			flush(i)
+			continue
+		}
+		code.WriteByte(c)
+	}
+	flush(len(s))
+	return stmts
+}
+
+func checkStatement(st statement) string {
+	if ignoreRegex.MatchString(st.text) {
 		return ""
 	}
-	stmt = lineCommentRegex.ReplaceAllString(stmt, "")
+	stmt := st.code
 	if createIndexRegex.MatchString(stmt) {
 		if !concurrentlyRegex.MatchString(stmt) {
 			return diagCreateIndex
@@ -78,41 +128,12 @@ func containsIndexKeyword(s string) bool {
 	return strings.Contains(strings.ToLower(s), "index")
 }
 
-// statementEnd returns the index of the first ';' outside a -- line comment, or -1.
-func statementEnd(s string) int {
-	inComment := false
-	for i := 0; i < len(s); i++ {
-		switch {
-		case inComment:
-			if s[i] == '\n' {
-				inComment = false
-			}
-		case s[i] == '-' && i+1 < len(s) && s[i+1] == '-':
-			inComment = true
-			i++
-		case s[i] == ';':
-			return i
-		}
-	}
-	return -1
-}
-
 func checkLine(line string) string {
 	if !containsIndexKeyword(line) {
 		return ""
 	}
-	rest := line
-	for rest != "" {
-		stmt := rest
-		rest = ""
-		if end := statementEnd(stmt); end >= 0 {
-			stmt, rest = stmt[:end], stmt[end+1:]
-		}
-		stmt = strings.TrimSpace(stmt)
-		if stmt == "" {
-			continue
-		}
-		if msg := checkStatement(stmt); msg != "" {
+	for _, st := range splitStatements(line) {
+		if msg := checkStatement(st); msg != "" {
 			return msg
 		}
 	}
@@ -193,52 +214,9 @@ func checkSQLFile(pass *analysis.Pass, name string) error {
 	tf := pass.Fset.AddFile(name, -1, len(content))
 	tf.SetLinesForContent(content)
 
-	lines := strings.Split(string(content), "\n")
-	var stmtBuf strings.Builder
-	startLine := 1
-
-	for i, line := range lines {
-		lineNum := i + 1
-		trimmed := strings.TrimSpace(line)
-
-		if trimmed == "" {
-			continue
-		}
-
-		if stmtBuf.Len() == 0 {
-			startLine = lineNum
-		}
-		if stmtBuf.Len() > 0 {
-			stmtBuf.WriteByte('\n')
-		}
-		stmtBuf.WriteString(trimmed)
-
-		for {
-			current := stmtBuf.String()
-			semi := statementEnd(current)
-			if semi < 0 {
-				break
-			}
-
-			stmt := strings.TrimSpace(current[:semi])
-			if stmt != "" {
-				if msg := checkStatement(stmt); msg != "" {
-					pass.Reportf(tf.LineStart(startLine), "%s", msg)
-				}
-			}
-
-			rest := strings.TrimSpace(current[semi+1:])
-			stmtBuf.Reset()
-			if rest != "" {
-				stmtBuf.WriteString(rest)
-				startLine = lineNum
-			}
-		}
-	}
-
-	if stmtBuf.Len() > 0 {
-		if msg := checkStatement(stmtBuf.String()); msg != "" {
-			pass.Reportf(tf.LineStart(startLine), "%s", msg)
+	for _, st := range splitStatements(string(content)) {
+		if msg := checkStatement(st); msg != "" {
+			pass.Reportf(tf.Pos(st.start), "%s", msg)
 		}
 	}
 
