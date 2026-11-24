@@ -37,6 +37,7 @@ import (
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 type fixedDBStatsStore struct {
@@ -1293,35 +1294,36 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 }
 
-func TestSupportPacketDiagnosticsConfigSectionHashes(t *testing.T) {
+func TestSupportPacketDiagnosticsConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	sectionHashes := func(t *testing.T) map[string]string {
+	settings := func(t *testing.T) map[string]string {
 		t.Helper()
 
 		d, _ := th.Service.GetSupportPacketDiagnostics(th.Context)
 		require.NotNil(t, d)
-		require.NotEmpty(t, d.ConfigSectionHashes)
-		return d.ConfigSectionHashes
+		require.NotNil(t, d.Config)
+		packetConfig, err := th.Service.GetSupportPacketConfig(th.Context)
+		require.NoError(t, err)
+		require.Equal(t, healthcheck.FlattenConfig(packetConfig), healthcheck.FlattenConfig(d.Config), "the same config the packet holds")
+		return healthcheck.FlattenConfig(d.Config)
 	}
 
 	// Sanitizing keeps an empty secret empty, so whether one is set still counts; its value does not.
 	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "secret" })
-	before := sectionHashes(t)
+	before := settings(t)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.JobSettings.RunJobs = !*cfg.JobSettings.RunJobs
 		*cfg.EmailSettings.SMTPPassword = "a different secret"
 	})
-	assert.Equal(t, before, sectionHashes(t), "node-local settings and secret values do not change the hashes")
+	assert.Equal(t, before, settings(t), "node-local settings and secret values do not differ")
 
 	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName += " renamed" })
-	after := sectionHashes(t)
-	assert.NotEqual(t, before["TeamSettings"], after["TeamSettings"])
-	delete(before, "TeamSettings")
-	delete(after, "TeamSettings")
-	assert.Equal(t, before, after, "only the changed section's hash changes")
+	paths := map[string]bool{}
+	healthcheck.DifferingSettings(paths, before, settings(t))
+	assert.Equal(t, []string{"TeamSettings.SiteName"}, healthcheck.SortedSettings(paths))
 }
 
 func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {

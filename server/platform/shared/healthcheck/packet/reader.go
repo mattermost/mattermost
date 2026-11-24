@@ -172,11 +172,15 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 		node.Diagnostics = &model.NodeDiagnostics{Diagnostics: &diag, Errors: errs}
 		newestSeen = max(newestSeen, diag.Version)
 
-		hashes, err := configSectionHashes(z, path.Join(dir, model.SupportPacketConfigFileName))
-		if err != nil {
+		// The node's own config, as a live node sends it with its diagnostics.
+		var cfg model.SupportPacketConfig
+		found, err := z.readMember(path.Join(dir, model.SupportPacketConfigFileName), &cfg, json.Unmarshal)
+		switch {
+		case err != nil:
 			warnings = append(warnings, fmt.Sprintf("%s. The node is left out of the config drift check.", err))
+		case found && cfg.Config != nil:
+			node.Diagnostics.Config = &cfg
 		}
-		node.Diagnostics.ConfigSectionHashes = hashes
 		return node
 	}
 
@@ -197,22 +201,6 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 	}
 
 	return nodes, warnings
-}
-
-// configSectionHashes hashes a node's sanitized_config.json the way a live node hashes its own
-// sanitized config, so the health check detects config drift the same way offline. A node
-// without the file has no hashes and no error.
-func configSectionHashes(z *budgetedZip, name string) (map[string]string, error) {
-	var cfg model.SupportPacketConfig
-	found, err := z.readMember(name, &cfg, json.Unmarshal)
-	if !found || err != nil || cfg.Config == nil {
-		return nil, err
-	}
-
-	// SupportPacketConfig's own FeatureFlags hides the embedded config's in JSON, so the
-	// embedded one reads as nil; put the flags back so they are compared too.
-	cfg.Config.FeatureFlags = &cfg.FeatureFlags
-	return healthcheck.ConfigSectionHashes(cfg.Config), nil
 }
 
 // readSection decodes a workspace section file. A present file records its section, with the

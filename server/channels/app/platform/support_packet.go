@@ -29,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -389,13 +388,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	collectProbes()
 
-	return &model.NodeDiagnostics{
-		Diagnostics: &d,
-		Errors:      sectionErrors,
-		// The same sanitized config that the packet's sanitized_config.json holds, so the live
-		// health check hashes what the packet reader hashes.
-		ConfigSectionHashes: healthcheck.ConfigSectionHashes(ps.getSanitizedConfig(rctx, &model.SanitizeOptions{PartiallyRedactDataSources: true})),
-	}, rErr.ErrorOrNil()
+	// The same sanitized config the packet's sanitized_config.json holds, so the live health check
+	// compares what the packet reader compares.
+	spConfig, _ := ps.GetSupportPacketConfig(rctx)
+
+	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors, Config: spConfig}, rErr.ErrorOrNil()
 }
 
 // networkProbe checks one external service on its own goroutine, so that a service that doesn't answer

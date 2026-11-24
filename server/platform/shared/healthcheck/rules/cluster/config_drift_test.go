@@ -5,6 +5,8 @@ package cluster
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -22,34 +24,75 @@ const (
 
 var driftMixed = want{state: healthcheck.StateUnknown, messageID: driftMixedBuilds}
 
-// Configs as their section hashes: b differs from a in TeamSettings, c in SqlSettings and
-// FileSettings, and d has a section the others lack.
+// Configs that nodes report: b differs from a in TeamSettings.SiteName, c in
+// FileSettings.MaxFileSize and SqlSettings.MaxOpenConns, and d has a plugin setting the others
+// lack. Each call returns a fresh config.
 var (
-	cfgA = map[string]string{"FileSettings": "f1", "SqlSettings": "s1", "TeamSettings": "t1"}
-	cfgB = map[string]string{"FileSettings": "f1", "SqlSettings": "s1", "TeamSettings": "t2"}
-	cfgC = map[string]string{"FileSettings": "f2", "SqlSettings": "s2", "TeamSettings": "t1"}
-	cfgD = map[string]string{"FileSettings": "f1", "SqlSettings": "s1", "TeamSettings": "t1", "NewSettings": "n1"}
+	cfgA = driftConfig(nil)
+	cfgB = driftConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Drifted" })
+	cfgC = driftConfig(func(cfg *model.Config) {
+		*cfg.FileSettings.MaxFileSize = 1
+		*cfg.SqlSettings.MaxOpenConns = 999
+	})
+	cfgD = driftConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["com.example.plugin"] = map[string]any{"enabled": true}
+	})
 )
 
-func driftNoMajority(groups, sections string) want {
-	return want{state: healthcheck.StateUnknown, messageID: driftNoMajorityMessage, details: map[string]string{"groups": groups, "sections": sections}}
+const (
+	settingsB  = "TeamSettings.SiteName"
+	settingsC  = "FileSettings.MaxFileSize, SqlSettings.MaxOpenConns"
+	settingsBC = "FileSettings.MaxFileSize, SqlSettings.MaxOpenConns, TeamSettings.SiteName"
+	settingsD  = "PluginSettings.Plugins.com.example.plugin.enabled"
+)
+
+func driftConfig(mutate func(*model.Config)) func() *model.SupportPacketConfig {
+	return func() *model.SupportPacketConfig {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		if mutate != nil {
+			mutate(cfg)
+		}
+		return &model.SupportPacketConfig{Config: cfg, FeatureFlags: *cfg.FeatureFlags}
+	}
 }
 
-func driftNode(node, majority, sections string) want {
-	return firing(driftNodeMessage, map[string]string{"node": node, "majority": majority, "sections": sections})
+// settingDetails is the settings and count details for a list of at most maxListedSettings paths.
+func settingDetails(details map[string]string, settings string) map[string]string {
+	details["settings"] = settings
+	details["count"] = strconv.Itoa(len(strings.Split(settings, ", ")))
+	return details
 }
 
-// driftNodes builds nodes on one build that report the given section hashes, the first one
-// leading. A nil config is a node without hashes: one on an older build, or a packet node whose
-// config could not be read.
-func driftNodes(configs ...map[string]string) []*healthcheck.NodeSnapshot {
+func driftFiring(nodes, settings string) want {
+	return firing(driftMessage, settingDetails(map[string]string{"nodes": nodes}, settings))
+}
+
+func driftTie(groups, settings string) want {
+	return firing(driftNoMajorityMessage, settingDetails(map[string]string{"groups": groups}, settings))
+}
+
+func driftNoMajority(groups, settings string) want {
+	return want{state: healthcheck.StateUnknown, messageID: driftNoMajorityMessage, details: settingDetails(map[string]string{"groups": groups}, settings)}
+}
+
+func driftNode(node, majority, settings string) want {
+	return firing(driftNodeMessage, settingDetails(map[string]string{"node": node, "majority": majority}, settings))
+}
+
+// driftNodes builds nodes on one build that report the given configs, the first one leading. A
+// nil config is a node without one: one on an older build, or a packet node whose config could
+// not be read.
+func driftNodes(configs ...func() *model.SupportPacketConfig) []*healthcheck.NodeSnapshot {
 	nodes := make([]*healthcheck.NodeSnapshot, 0, len(configs))
-	for i, hashes := range configs {
+	for i, config := range configs {
 		hostname := fmt.Sprintf("app-%d.example.com", i+1)
 		node := diagNode(hostname, i == 0, func(diag *model.SupportPacketDiagnostics) {
 			diag.Server.BuildHash = "abc123"
 		})
-		node.Diagnostics.ConfigSectionHashes = hashes
+		if config != nil {
+			node.Diagnostics.Config = config()
+		}
 		nodes = append(nodes, node)
 	}
 	return nodes
@@ -92,64 +135,64 @@ func TestConfigDrift(t *testing.T) {
 		{
 			name:     "one node differs",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgA, cfgB, cfgA)...),
-			global:   firing(driftMessage, map[string]string{"nodes": "app-2.example.com", "sections": "TeamSettings"}),
-			nodes:    []want{resolved, driftNode("app-2.example.com", "2", "TeamSettings"), resolved},
+			global:   driftFiring("app-2.example.com", settingsB),
+			nodes:    []want{resolved, driftNode("app-2.example.com", "2", settingsB), resolved},
 		},
 		{
-			name:     "two minority configs are both listed with all their sections",
+			name:     "two minority configs are both listed with all their settings",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgC, cfgA, cfgA, cfgB, cfgA)...),
-			global:   firing(driftMessage, map[string]string{"nodes": "app-1.example.com, app-4.example.com", "sections": "FileSettings, SqlSettings, TeamSettings"}),
+			global:   driftFiring("app-1.example.com, app-4.example.com", settingsBC),
 			nodes: []want{
-				driftNode("app-1.example.com", "3", "FileSettings, SqlSettings"),
+				driftNode("app-1.example.com", "3", settingsC),
 				resolved,
 				resolved,
-				driftNode("app-4.example.com", "3", "TeamSettings"),
+				driftNode("app-4.example.com", "3", settingsB),
 				resolved,
 			},
 		},
 		{
-			name:     "a section only one node has",
+			name:     "a setting only one node has",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgA, cfgA, cfgD)...),
-			global:   firing(driftMessage, map[string]string{"nodes": "app-3.example.com", "sections": "NewSettings"}),
-			nodes:    []want{resolved, resolved, driftNode("app-3.example.com", "2", "NewSettings")},
+			global:   driftFiring("app-3.example.com", settingsD),
+			nodes:    []want{resolved, resolved, driftNode("app-3.example.com", "2", settingsD)},
 		},
 		{
 			name:     "the most common config wins without a strict majority",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgA, cfgA, cfgB, cfgC)...),
-			global:   firing(driftMessage, map[string]string{"nodes": "app-3.example.com, app-4.example.com", "sections": "FileSettings, SqlSettings, TeamSettings"}),
+			global:   driftFiring("app-3.example.com, app-4.example.com", settingsBC),
 			nodes: []want{
 				resolved,
 				resolved,
-				driftNode("app-3.example.com", "2", "TeamSettings"),
-				driftNode("app-4.example.com", "2", "FileSettings, SqlSettings"),
+				driftNode("app-3.example.com", "2", settingsB),
+				driftNode("app-4.example.com", "2", settingsC),
 			},
 		},
 		{
 			name:     "a tie for the most common config",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgA, cfgB, cfgB, cfgA)...),
-			global:   firing(driftNoMajorityMessage, map[string]string{"groups": "app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", "sections": "TeamSettings"}),
+			global:   driftTie("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", settingsB),
 			nodes: []want{
-				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", "TeamSettings"),
-				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", "TeamSettings"),
-				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", "TeamSettings"),
-				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", "TeamSettings"),
+				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", settingsB),
+				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", settingsB),
+				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", settingsB),
+				driftNoMajority("app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com", settingsB),
 			},
 		},
 		{
-			name:     "a three-way tie lists every section that is not the same everywhere",
+			name:     "a three-way tie lists every setting that is not the same everywhere",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgA, cfgB, cfgC)...),
-			global:   firing(driftNoMajorityMessage, map[string]string{"groups": "app-1.example.com | app-2.example.com | app-3.example.com", "sections": "FileSettings, SqlSettings, TeamSettings"}),
+			global:   driftTie("app-1.example.com | app-2.example.com | app-3.example.com", settingsBC),
 			nodes: []want{
-				driftNoMajority("app-1.example.com | app-2.example.com | app-3.example.com", "FileSettings, SqlSettings, TeamSettings"),
-				driftNoMajority("app-1.example.com | app-2.example.com | app-3.example.com", "FileSettings, SqlSettings, TeamSettings"),
-				driftNoMajority("app-1.example.com | app-2.example.com | app-3.example.com", "FileSettings, SqlSettings, TeamSettings"),
+				driftNoMajority("app-1.example.com | app-2.example.com | app-3.example.com", settingsBC),
+				driftNoMajority("app-1.example.com | app-2.example.com | app-3.example.com", settingsBC),
+				driftNoMajority("app-1.example.com | app-2.example.com | app-3.example.com", settingsBC),
 			},
 		},
 		{
 			name:     "two nodes with two configs",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgB, cfgA)...),
-			global:   firing(driftNoMajorityMessage, map[string]string{"groups": "app-1.example.com | app-2.example.com", "sections": "TeamSettings"}),
-			nodes:    []want{driftNoMajority("app-1.example.com | app-2.example.com", "TeamSettings"), driftNoMajority("app-1.example.com | app-2.example.com", "TeamSettings")},
+			global:   driftTie("app-1.example.com | app-2.example.com", settingsB),
+			nodes:    []want{driftNoMajority("app-1.example.com | app-2.example.com", settingsB), driftNoMajority("app-1.example.com | app-2.example.com", settingsB)},
 		},
 		{
 			name:     "a node without hashes is left out of the vote",
@@ -160,8 +203,8 @@ func TestConfigDrift(t *testing.T) {
 		{
 			name:     "a node without hashes does not break a tie",
 			snapshot: configSnapshot(clusterOn, driftNodes(cfgA, cfgB, nil)...),
-			global:   firing(driftNoMajorityMessage, map[string]string{"groups": "app-1.example.com | app-2.example.com", "sections": "TeamSettings"}),
-			nodes:    []want{driftNoMajority("app-1.example.com | app-2.example.com", "TeamSettings"), driftNoMajority("app-1.example.com | app-2.example.com", "TeamSettings"), diagUnknown},
+			global:   driftTie("app-1.example.com | app-2.example.com", settingsB),
+			nodes:    []want{driftNoMajority("app-1.example.com | app-2.example.com", settingsB), driftNoMajority("app-1.example.com | app-2.example.com", settingsB), diagUnknown},
 		},
 		{
 			name:     "a node that did not reply to a live check is left out of the vote",
@@ -223,6 +266,27 @@ func TestConfigDrift(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigDriftListsAtMostTenSettings(t *testing.T) {
+	t.Parallel()
+
+	manySettings := driftConfig(func(cfg *model.Config) {
+		settings := map[string]any{}
+		for i := range 12 {
+			settings[fmt.Sprintf("setting%02d", i)] = i
+		}
+		cfg.PluginSettings.Plugins["com.example.plugin"] = settings
+	})
+	s := configSnapshot(clusterOn, driftNodes(cfgA, cfgA, manySettings)...)
+
+	results := configDrift.EvalNode(s, s.Nodes()[2])
+	require.Len(t, results, 1)
+	assert.Equal(t, "12", results[0].Details["count"])
+	listed := strings.Split(results[0].Details["settings"], ", ")
+	require.Len(t, listed, maxListedSettings)
+	assert.Equal(t, "PluginSettings.Plugins.com.example.plugin.setting00", listed[0])
+	assert.Equal(t, "PluginSettings.Plugins.com.example.plugin.setting09", listed[9])
 }
 
 func TestConfigDriftFingerprints(t *testing.T) {

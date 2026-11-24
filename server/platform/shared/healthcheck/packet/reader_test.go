@@ -512,39 +512,32 @@ func TestReadUnparsableNodeDiagnostics(t *testing.T) {
 	assert.Contains(t, evaluate(t, p.Snapshot), finding{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject})
 }
 
-func TestReadConfigSectionHashes(t *testing.T) {
-	hashesByNode := func(t *testing.T, p *Packet) map[string]map[string]string {
+func TestReadNodeConfigs(t *testing.T) {
+	settingsByNode := func(t *testing.T, p *Packet) map[string]map[string]string {
 		t.Helper()
 
-		hashes := map[string]map[string]string{}
+		settings := map[string]map[string]string{}
 		for _, node := range p.Snapshot.Nodes() {
 			require.NotNil(t, node.Diagnostics, node.Hostname)
-			hashes[node.Hostname] = node.Diagnostics.ConfigSectionHashes
+			settings[node.Hostname] = healthcheck.FlattenConfig(node.Diagnostics.Config)
 		}
-		return hashes
+		return settings
 	}
 
-	// differing lists the sections whose hashes differ between two nodes.
 	differing := func(a, b map[string]string) []string {
-		var sections []string
-		for section, hash := range a {
-			if b[section] != hash {
-				sections = append(sections, section)
-			}
-		}
-		slices.Sort(sections)
-		return sections
+		paths := map[string]bool{}
+		healthcheck.DifferingSettings(paths, a, b)
+		return healthcheck.SortedSettings(paths)
 	}
 
-	t.Run("each node's config is hashed", func(t *testing.T) {
-		p := readFiles(t, fixtureFiles(t, "ha"))
-		hashes := hashesByNode(t, p)
+	t.Run("each node's config is read", func(t *testing.T) {
+		settings := settingsByNode(t, readFiles(t, fixtureFiles(t, "ha")))
 
-		for hostname, nodeHashes := range hashes {
-			assert.NotEmpty(t, nodeHashes, hostname)
+		for hostname, nodeSettings := range settings {
+			assert.NotEmpty(t, nodeSettings, hostname)
 		}
-		assert.Equal(t, hashes["app-2.example.com"], hashes["app-3.example.com"])
-		assert.Equal(t, []string{"ServiceSettings"}, differing(hashes["app-1.example.com"], hashes["app-2.example.com"]), "app-1 has its own SiteURL")
+		assert.Equal(t, settings["app-2.example.com"], settings["app-3.example.com"])
+		assert.Equal(t, []string{"ServiceSettings.SiteURL"}, differing(settings["app-1.example.com"], settings["app-2.example.com"]), "app-1 has its own SiteURL")
 	})
 
 	t.Run("feature flags are compared", func(t *testing.T) {
@@ -557,8 +550,8 @@ func TestReadConfigSectionHashes(t *testing.T) {
 		files[name], err = json.Marshal(cfg)
 		require.NoError(t, err)
 
-		hashes := hashesByNode(t, readFiles(t, files))
-		assert.Equal(t, []string{"FeatureFlags"}, differing(hashes["app-3.example.com"], hashes["app-2.example.com"]))
+		settings := settingsByNode(t, readFiles(t, files))
+		assert.Equal(t, []string{"FeatureFlags.TestFeature"}, differing(settings["app-3.example.com"], settings["app-2.example.com"]))
 	})
 
 	t.Run("a node whose config does not parse is left out with a warning", func(t *testing.T) {
@@ -566,19 +559,19 @@ func TestReadConfigSectionHashes(t *testing.T) {
 		files[path.Join("app-3.example.com", model.SupportPacketConfigFileName)] = []byte("{")
 
 		p := readFiles(t, files)
-		hashes := hashesByNode(t, p)
-		assert.Empty(t, hashes["app-3.example.com"])
-		assert.NotEmpty(t, hashes["app-2.example.com"])
+		settings := settingsByNode(t, p)
+		assert.Empty(t, settings["app-3.example.com"])
+		assert.NotEmpty(t, settings["app-2.example.com"])
 		require.Len(t, p.Warnings, 1)
 		assert.Contains(t, p.Warnings[0], "app-3.example.com/sanitized_config.json")
 		assert.Contains(t, p.Warnings[0], "left out of the config drift check")
 	})
 
-	t.Run("a standalone packet's node is hashed", func(t *testing.T) {
-		hashes := hashesByNode(t, readFiles(t, fixtureFiles(t, "standalone")))
-		require.Len(t, hashes, 1)
-		for _, nodeHashes := range hashes {
-			assert.NotEmpty(t, nodeHashes)
+	t.Run("a standalone packet's node config is read", func(t *testing.T) {
+		settings := settingsByNode(t, readFiles(t, fixtureFiles(t, "standalone")))
+		require.Len(t, settings, 1)
+		for _, nodeSettings := range settings {
+			assert.NotEmpty(t, nodeSettings)
 		}
 	})
 }

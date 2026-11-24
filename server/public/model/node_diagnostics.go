@@ -18,11 +18,11 @@ type SectionErrors map[NodeSection]error
 type NodeDiagnostics struct {
 	Diagnostics *SupportPacketDiagnostics `json:"diagnostics"`
 	Errors      SectionErrors             `json:"errors"`
-	// ConfigSectionHashes holds a short hash of each top-level section of the node's sanitized
-	// config, keyed by section name. Nodes send it with their diagnostics for the health check to
-	// detect config drift. It is not written to Support Packets: their reader computes the same
-	// hashes from each node's sanitized_config.json.
-	ConfigSectionHashes map[string]string `json:"config_section_hashes,omitempty"`
+	// Config is the node's sanitized config, the same one a Support Packet holds in the node's
+	// sanitized_config.json. Nodes send it with their diagnostics so the health check can compare
+	// configs across nodes; the packet reader fills it from that file. It is not written to
+	// diagnostics.yaml.
+	Config *SupportPacketConfig `json:"config,omitempty"`
 }
 
 func (e SectionErrors) MarshalJSON() ([]byte, error) {

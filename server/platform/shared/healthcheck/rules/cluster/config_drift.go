@@ -4,7 +4,6 @@
 package cluster
 
 import (
-	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -22,10 +21,13 @@ var (
 	reasonNoMajority  = healthcheck.TranslationId("health.rule.cluster_config_drift.message.no_majority")
 )
 
-// configDrift compares each node's config section hashes. Live health checks collect them
-// from every node with its diagnostics, and the packet reader computes them from each node's
-// sanitized_config.json, so both evaluate the same data. See healthcheck.ConfigSectionHashes
-// for what the hashes leave out.
+// maxListedSettings caps how many differing settings a finding names; its count gives the total.
+const maxListedSettings = 10
+
+// configDrift compares each node's sanitized config setting by setting. Live health checks
+// collect the configs from every node with its diagnostics, and the packet reader reads each
+// node's sanitized_config.json, so both evaluate the same data. See healthcheck.FlattenConfig
+// for what the comparison leaves out.
 var configDrift = healthcheck.Rule{
 	Code:     "CLUSTER_CONFIG_DRIFT",
 	Area:     model.AreaCluster,
@@ -43,41 +45,33 @@ var configDrift = healthcheck.Rule{
 	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalConfigDriftNode)),
 }
 
-// sectionHashes returns the node's config section hashes. Nodes that did not reply, nodes on
-// a build that predates the hashes, and packet nodes without a readable config have none.
-func sectionHashes(n *healthcheck.NodeSnapshot) (map[string]string, bool) {
-	if n == nil || n.Diagnostics == nil || len(n.Diagnostics.ConfigSectionHashes) == 0 {
+// nodeSettings returns the node's flattened config. Nodes that did not reply, nodes on a build
+// that does not send its config, and packet nodes without a readable config have none.
+func nodeSettings(n *healthcheck.NodeSnapshot) (map[string]string, bool) {
+	if n == nil || n.Diagnostics == nil {
 		return nil, false
 	}
 
-	return n.Diagnostics.ConfigSectionHashes, true
-}
-
-// configKey identifies a node's whole config by its section hashes.
-func configKey(hashes map[string]string) string {
-	var key strings.Builder
-	for _, section := range slices.Sorted(maps.Keys(hashes)) {
-		key.WriteString(section + "=" + hashes[section] + ";")
-	}
-	return key.String()
+	settings := healthcheck.FlattenConfig(n.Diagnostics.Config)
+	return settings, len(settings) > 0
 }
 
 type configGroup struct {
-	hashes    map[string]string
+	settings  map[string]string
 	hostnames []string
 }
 
-// configGroups groups the nodes that report section hashes by their whole config.
+// configGroups groups the nodes that have a config by that config.
 func configGroups(nodes []*healthcheck.NodeSnapshot) map[string]*configGroup {
 	groups := map[string]*configGroup{}
 	for _, node := range nodes {
-		hashes, ok := sectionHashes(node)
+		settings, ok := nodeSettings(node)
 		if !ok {
 			continue
 		}
-		key := configKey(hashes)
+		key := healthcheck.ConfigKey(settings)
 		if groups[key] == nil {
-			groups[key] = &configGroup{hashes: hashes}
+			groups[key] = &configGroup{settings: settings}
 		}
 		groups[key].hostnames = append(groups[key].hostnames, node.Hostname)
 	}
@@ -85,7 +79,7 @@ func configGroups(nodes []*healthcheck.NodeSnapshot) map[string]*configGroup {
 }
 
 // mixedBuilds reports whether the nodes run different builds. A newer build can add settings
-// or change defaults, so their hashes can differ whatever their config files say.
+// or change defaults, so their configs can differ whatever their config files say.
 func mixedBuilds(nodes []*healthcheck.NodeSnapshot) bool {
 	builds := map[string]bool{}
 	for _, node := range nodes {
@@ -122,38 +116,29 @@ func majorityConfig(groups map[string]*configGroup) (majority *configGroup, ok b
 	return majority, majority != nil && !tied
 }
 
-// differingSections adds to into the sections whose hashes differ between a and b, including
-// sections only one of them has.
-func differingSections(into map[string]bool, a, b map[string]string) {
-	for section, hash := range a {
-		if b[section] != hash {
-			into[section] = true
-		}
-	}
-	for section := range b {
-		if _, ok := a[section]; !ok {
-			into[section] = true
-		}
-	}
+// withSettings names the differing settings, the first maxListedSettings by path, and how many
+// there are in total.
+func withSettings(result healthcheck.Result, paths map[string]bool) healthcheck.Result {
+	sorted := healthcheck.SortedSettings(paths)
+	listed := sorted[:min(len(sorted), maxListedSettings)]
+	return result.
+		WithDetail("settings", strings.Join(listed, ", ")).
+		WithDetail("count", strconv.Itoa(len(sorted)))
 }
 
-func joinSections(sections map[string]bool) string {
-	return strings.Join(slices.Sorted(maps.Keys(sections)), ", ")
-}
-
-// noMajority explains a tie: the groups, and every section that is not the same on all nodes.
+// noMajority explains a tie: the groups, and every setting that is not the same on all nodes.
 func noMajority(result healthcheck.Result, groups map[string]*configGroup) healthcheck.Result {
-	sections := map[string]bool{}
+	paths := map[string]bool{}
 	var first *configGroup
 	for _, group := range groups {
 		if first == nil {
 			first = group
 			continue
 		}
-		differingSections(sections, first.hashes, group.hashes)
+		healthcheck.DifferingSettings(paths, first.settings, group.settings)
 	}
 
-	return result.WithDetail("groups", splitGroups(groups)).WithDetail("sections", joinSections(sections))
+	return withSettings(result.WithDetail("groups", splitGroups(groups)), paths)
 }
 
 func evalConfigDriftGlobal(s *healthcheck.Snapshot) healthcheck.Result {
@@ -174,21 +159,20 @@ func evalConfigDriftGlobal(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 
 	var differing []string
-	sections := map[string]bool{}
+	paths := map[string]bool{}
 	for _, group := range groups {
 		if group != majority {
 			differing = append(differing, group.hostnames...)
-			differingSections(sections, group.hashes, majority.hashes)
+			healthcheck.DifferingSettings(paths, group.settings, majority.settings)
 		}
 	}
 	slices.Sort(differing)
-	return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message")).
-		WithDetail("nodes", strings.Join(differing, ", ")).
-		WithDetail("sections", joinSections(sections))
+	return withSettings(healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message")).
+		WithDetail("nodes", strings.Join(differing, ", ")), paths)
 }
 
 func evalConfigDriftNode(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
-	hashes, ok := sectionHashes(n)
+	settings, ok := nodeSettings(n)
 	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
@@ -203,13 +187,12 @@ func evalConfigDriftNode(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) h
 	switch {
 	case !ok:
 		return noMajority(healthcheck.Unknown(reasonNoMajority), groups)
-	case configKey(hashes) != configKey(majority.hashes):
-		sections := map[string]bool{}
-		differingSections(sections, hashes, majority.hashes)
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message.node")).
+	case healthcheck.ConfigKey(settings) != healthcheck.ConfigKey(majority.settings):
+		paths := map[string]bool{}
+		healthcheck.DifferingSettings(paths, settings, majority.settings)
+		return withSettings(healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_drift.message.node")).
 			WithDetail("node", n.Hostname).
-			WithDetail("majority", strconv.Itoa(len(majority.hostnames))).
-			WithDetail("sections", joinSections(sections))
+			WithDetail("majority", strconv.Itoa(len(majority.hostnames))), paths)
 	default:
 		return healthcheck.Resolved()
 	}
