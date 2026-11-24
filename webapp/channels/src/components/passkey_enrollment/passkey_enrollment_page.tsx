@@ -123,7 +123,7 @@ export default function PasskeyEnrollmentPage() {
     } else if (error?.final) {
         title = messages.cantAdd;
 
-        // Without a banner, the subtitle is the only place the refusal can be announced.
+        // Final errors get no banner (which carries the alert role), so the subtitle announces the refusal itself.
         message = <span role='alert'>{error.text}</span>;
     } else {
         message = formatMessage(sharedMessages.body);
