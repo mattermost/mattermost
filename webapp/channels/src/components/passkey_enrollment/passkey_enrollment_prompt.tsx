@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -35,6 +35,9 @@ const messages = defineMessages({
     },
 });
 
+// The server's recent-login window for adding a passkey.
+const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
+
 const verifyErrors: Record<string, typeof messages.noneRegistered> = {
     'app.passkey.none_registered.app_error': messages.noneRegistered,
     'app.passkey.invalid_credential.app_error': messages.invalidCredential,
@@ -47,15 +50,36 @@ export default function PasskeyEnrollmentPrompt() {
     // Both are fixed at mount: a skip is recorded against the login that was current when the prompt opened,
     // and nothing that changes afterwards reopens it.
     const [loginKey] = useState(() => Client4.getCSRFFromCookie());
-    const [open, setOpen] = useState(() => (
+    const [eligible] = useState(() => (
         enrollmentEnabled &&
         !isDesktopApp() &&
         typeof window.PublicKeyCredential !== 'undefined' &&
         !isPasskeySession() &&
         LocalStorageStore.isPasskeyPromptDue(loginKey)
     ));
+    const [open, setOpen] = useState(false);
     const [busy, setBusy] = useState<'add' | 'verify' | null>(null);
     const [error, setError] = useState('');
+
+    // Open only for the session this sign-in started: the cookie cannot say how or when it began, and
+    // without a recent standard sign-in the server would refuse "Add passkey" anyway.
+    useEffect(() => {
+        if (!eligible) {
+            return undefined;
+        }
+        let cancelled = false;
+        Client4.getSessions('me').then((sessions) => {
+            const current = sessions.find((s) => s.props?.csrf === loginKey);
+            if (!cancelled && current?.props.login_method === 'standard' && Date.now() - current.create_at <= RECENT_LOGIN_WINDOW_MS) {
+                setOpen(true);
+            }
+        }, () => {
+            // A failed lookup leaves the prompt closed; it is only an offer.
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [eligible, loginKey]);
 
     if (!open) {
         return null;

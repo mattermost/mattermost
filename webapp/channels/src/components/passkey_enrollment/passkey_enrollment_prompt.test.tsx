@@ -9,7 +9,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PasskeyEnrollmentPrompt from './passkey_enrollment_prompt';
 
@@ -54,12 +54,17 @@ const expireCookie = (name: string) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 };
 
+const MINUTE = 60 * 1000;
+
+const session = (props: Record<string, string>, ageMs = 0) => ({props, create_at: Date.now() - ageMs});
+
 const RECENT_LOGIN_TEXT = 'For your security, sign out and sign back in, then add your passkey within 10 minutes.';
 
 describe('PasskeyEnrollmentPrompt', () => {
     let beginRegistration: jest.SpyInstance;
     let finishRegistration: jest.SpyInstance;
     let create: jest.Mock;
+    let getSessions: jest.SpyInstance;
 
     const renderPrompt = (enabled: 'true' | 'false' = 'true') => renderWithContext(<PasskeyEnrollmentPrompt/>, stateWith(enabled));
 
@@ -69,6 +74,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         document.cookie = 'MMCSRF=tok1';
         isDesktopAppMock.mockReturnValue(false);
 
+        getSessions = jest.spyOn(Client4, 'getSessions').mockResolvedValue([session({csrf: 'tok1', login_method: 'standard'})] as never);
         beginRegistration = jest.spyOn(Client4, 'beginPasskeyRegistration').mockResolvedValue(beginResult);
         finishRegistration = jest.spyOn(Client4, 'finishPasskeyRegistration').mockResolvedValue({} as never);
         create = jest.fn().mockResolvedValue(rawCredential);
@@ -123,6 +129,57 @@ describe('PasskeyEnrollmentPrompt', () => {
         await new Promise((r) => setTimeout(r, 50));
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(container).toBeEmptyDOMElement();
+        expect(getSessions).not.toHaveBeenCalled();
+    });
+
+    describe('the current session', () => {
+        // The sessions promise is settled inside act, so the closed cases are checked after the
+        // component has seen the answer rather than before it arrives.
+        const renderWithSessions = async (answer: () => unknown) => {
+            let settle: () => void = () => {};
+            getSessions.mockReturnValue(new Promise((resolve, reject) => {
+                settle = () => {
+                    try {
+                        resolve(answer());
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
+            }));
+            const view = renderPrompt();
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            await act(async () => {
+                settle();
+            });
+            return view;
+        };
+
+        test('opens the prompt for a recent standard session, matched by its csrf prop', async () => {
+            await renderWithSessions(() => [
+                session({csrf: 'other', login_method: 'passkey'}),
+                session({csrf: 'tok1', login_method: 'standard'}, 9 * MINUTE),
+            ]);
+
+            expect(await screen.findByRole('dialog')).toBeInTheDocument();
+            expect(getSessions).toHaveBeenCalledWith('me');
+        });
+
+        test.each([
+            ['older than 10 minutes', () => [session({csrf: 'tok1', login_method: 'standard'}, 11 * MINUTE)]],
+            ['a passkey session', () => [session({csrf: 'tok1', login_method: 'passkey'})]],
+            ['a session with no login method', () => [session({csrf: 'tok1'})]],
+            ['recent only for other sessions', () => [session({csrf: 'tok2', login_method: 'standard'})]],
+            ['an empty list', () => []],
+            ['a failed lookup', () => {
+                throw new Error('network');
+            }],
+        ])('renders nothing and records no skip when the session is %s', async (_name, answer) => {
+            const {container} = await renderWithSessions(answer);
+
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            expect(container).toBeEmptyDOMElement();
+            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        });
     });
 
     test('is shown again after a skip recorded for an older login', async () => {
