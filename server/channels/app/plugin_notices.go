@@ -4,6 +4,8 @@
 package app
 
 import (
+	"slices"
+
 	"github.com/Masterminds/semver/v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -51,15 +53,7 @@ func versionMatches(constraint string) pluginNoticeCondition {
 
 func licenseSKU(skus ...string) pluginNoticeCondition {
 	return func(ctx pluginNoticeContext) bool {
-		if ctx.License == nil {
-			return false
-		}
-		for _, sku := range skus {
-			if ctx.License.SkuShortName == sku {
-				return true
-			}
-		}
-		return false
+		return ctx.License != nil && slices.Contains(skus, ctx.License.SkuShortName)
 	}
 }
 
