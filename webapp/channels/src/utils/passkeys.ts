@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PasskeyAssertionCredential, PasskeyRegistrationCredential} from '@mattermost/types/passkeys';
+import type {Passkey, PasskeyAssertionCredential, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 
 // Hand-written rather than PublicKeyCredential.parseCreationOptionsFromJSON / toJSON(), which
 // are missing from older browsers (Safari before 18.4, for one).
@@ -70,6 +70,60 @@ export function assertionToJSON(credential: PublicKeyCredential): PasskeyAsserti
             userHandle: response.userHandle ? base64urlEncode(response.userHandle) : null,
         },
     };
+}
+
+const isDismissed = (e: unknown) => (e as Error).name === 'NotAllowedError' || (e as Error).name === 'AbortError';
+
+// Resolves null when the user backs out of the browser prompt; the unused ceremony expires on the server.
+export async function createPasskey(
+    begin: () => Promise<PasskeyRegistrationOptions>,
+    finish: (ceremonyId: string, credential: PasskeyRegistrationCredential) => Promise<Passkey>,
+): Promise<Passkey | null> {
+    let created: {rpId: string; credentialId: string} | undefined;
+    try {
+        const {ceremony_id: ceremonyId, options} = await begin();
+        const credential = await navigator.credentials.create({publicKey: creationOptionsFromJSON(options.publicKey)});
+        if (!credential) {
+            return null;
+        }
+
+        // An omitted rp.id means the page's own host to WebAuthn.
+        created = {rpId: options.publicKey.rp.id ?? window.location.hostname, credentialId: credential.id};
+        return await finish(ceremonyId, registrationToJSON(credential as PublicKeyCredential));
+    } catch (e) {
+        const err = e as Error & {server_error_id?: string; status_code?: number};
+
+        // Only a definite refusal: after a network error or 5xx the server may have stored the passkey, and already_registered means the device's passkey is a working one.
+        if (created && err.server_error_id && err.status_code && err.status_code >= 400 && err.status_code < 500 &&
+            err.server_error_id !== 'app.passkey.already_registered.app_error') {
+            signalUnknownPasskey(created.rpId, created.credentialId);
+        }
+        if (isDismissed(err)) {
+            return null;
+        }
+        throw err;
+    }
+}
+
+// Resolves false when the user backs out of the browser prompt; the unused ceremony expires on the server.
+export async function verifyPasskey(
+    begin: () => Promise<PasskeyLoginOptions>,
+    finish: (ceremonyId: string, credential: PasskeyAssertionCredential) => Promise<unknown>,
+): Promise<boolean> {
+    try {
+        const {ceremony_id: ceremonyId, options} = await begin();
+        const credential = await navigator.credentials.get({publicKey: requestOptionsFromJSON(options.publicKey)}) as PublicKeyCredential | null;
+        if (!credential) {
+            return false;
+        }
+        await finish(ceremonyId, assertionToJSON(credential));
+        return true;
+    } catch (e) {
+        if (isDismissed(e)) {
+            return false;
+        }
+        throw e;
+    }
 }
 
 // Best effort: older browsers lack signalUnknownCredential, and a failed signal is not worth showing the user.

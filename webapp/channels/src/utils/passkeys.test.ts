@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {assertionToJSON, base64urlDecode, base64urlEncode, creationOptionsFromJSON, registrationToJSON, requestOptionsFromJSON, signalUnknownPasskey} from './passkeys';
+import {assertionToJSON, base64urlDecode, base64urlEncode, createPasskey, creationOptionsFromJSON, registrationToJSON, requestOptionsFromJSON, signalUnknownPasskey, verifyPasskey} from './passkeys';
 
 const bytes = (...b: number[]) => new Uint8Array(b).buffer;
 const toArray = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf));
@@ -198,6 +198,147 @@ describe('utils/passkeys', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             process.off('unhandledRejection', unhandled);
             expect(unhandled).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('createPasskey and verifyPasskey', () => {
+        const originalCredentials = Object.getOwnPropertyDescriptor(navigator, 'credentials');
+        const originalPKC = (window as any).PublicKeyCredential;
+        const create = jest.fn();
+        const get = jest.fn();
+        const signal = jest.fn();
+
+        const rawCredential = {
+            id: 'cred1',
+            rawId: bytes(1, 2),
+            type: 'public-key',
+            authenticatorAttachment: 'platform',
+            getClientExtensionResults: () => ({}),
+            response: {
+                clientDataJSON: bytes(3),
+                attestationObject: bytes(4),
+                authenticatorData: bytes(5),
+                signature: bytes(6),
+                userHandle: bytes(7),
+                getTransports: () => ['internal'],
+            },
+        };
+
+        const registrationOptions = {
+            ceremony_id: 'cer1',
+            options: {publicKey: {challenge: 'AQID', rp: {name: 'Mattermost', id: 'example.com'}, user: {id: 'BAUG', name: 'me', displayName: 'me'}, pubKeyCredParams: [{type: 'public-key', alg: -7}]}},
+        } as never;
+        const loginOptions = {ceremony_id: 'cer2', options: {publicKey: {challenge: 'AQID'}}} as never;
+
+        const domError = (name: string) => new DOMException('x', name);
+        const serverError = (id: string, status: number) => Object.assign(new Error('refused'), {server_error_id: id, status_code: status});
+
+        beforeEach(() => {
+            create.mockReset();
+            get.mockReset();
+            signal.mockReset().mockResolvedValue(undefined);
+            Object.defineProperty(navigator, 'credentials', {value: {create, get}, configurable: true});
+            (window as any).PublicKeyCredential = {signalUnknownCredential: signal};
+        });
+
+        afterEach(() => {
+            if (originalCredentials) {
+                Object.defineProperty(navigator, 'credentials', originalCredentials);
+            } else {
+                delete (navigator as any).credentials;
+            }
+            (window as any).PublicKeyCredential = originalPKC;
+        });
+
+        describe('createPasskey', () => {
+            const saved = {id: 'p1', name: 'laptop'} as never;
+
+            test('returns the passkey finish returned, after passing it the converted credential', async () => {
+                create.mockResolvedValue(rawCredential);
+                const finish = jest.fn().mockResolvedValue(saved);
+
+                await expect(createPasskey(async () => registrationOptions, finish)).resolves.toBe(saved);
+
+                expect(finish).toHaveBeenCalledWith('cer1', registrationToJSON(rawCredential as unknown as PublicKeyCredential));
+                expect(toArray(create.mock.calls[0][0].publicKey.challenge)).toEqual([1, 2, 3]);
+            });
+
+            test('returns null without calling finish when the browser yields no credential', async () => {
+                create.mockResolvedValue(null);
+                const finish = jest.fn();
+
+                await expect(createPasskey(async () => registrationOptions, finish)).resolves.toBeNull();
+                expect(finish).not.toHaveBeenCalled();
+            });
+
+            test.each(['NotAllowedError', 'AbortError'])('returns null when the user dismisses the prompt (%s)', async (name) => {
+                create.mockRejectedValue(domError(name));
+                const finish = jest.fn();
+
+                await expect(createPasskey(async () => registrationOptions, finish)).resolves.toBeNull();
+                expect(finish).not.toHaveBeenCalled();
+            });
+
+            test('rethrows InvalidStateError unchanged', async () => {
+                create.mockRejectedValue(domError('InvalidStateError'));
+
+                await expect(createPasskey(async () => registrationOptions, jest.fn())).rejects.toMatchObject({name: 'InvalidStateError'});
+                expect(signal).not.toHaveBeenCalled();
+            });
+
+            test('signals the browser to forget the credential when finish refuses it', async () => {
+                create.mockResolvedValue(rawCredential);
+                const err = serverError('app.passkey.limit_reached.app_error', 400);
+
+                await expect(createPasskey(async () => registrationOptions, jest.fn().mockRejectedValue(err))).rejects.toBe(err);
+                expect(signal).toHaveBeenCalledWith({rpId: 'example.com', credentialId: 'cred1'});
+            });
+
+            test('signals nothing for already_registered, a 5xx or a failing begin', async () => {
+                create.mockResolvedValue(rawCredential);
+                const already = serverError('app.passkey.already_registered.app_error', 400);
+                const unavailable = serverError('api.error', 500);
+                const begin = new Error('begin failed');
+
+                await expect(createPasskey(async () => registrationOptions, jest.fn().mockRejectedValue(already))).rejects.toBe(already);
+                await expect(createPasskey(async () => registrationOptions, jest.fn().mockRejectedValue(unavailable))).rejects.toBe(unavailable);
+                await expect(createPasskey(() => Promise.reject(begin), jest.fn())).rejects.toBe(begin);
+                expect(signal).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('verifyPasskey', () => {
+            test('returns true once finish has accepted the converted assertion', async () => {
+                get.mockResolvedValue(rawCredential);
+                const finish = jest.fn().mockResolvedValue({});
+
+                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBe(true);
+                expect(finish).toHaveBeenCalledWith('cer2', assertionToJSON(rawCredential as unknown as PublicKeyCredential));
+            });
+
+            test('returns false without calling finish when the browser yields no credential', async () => {
+                get.mockResolvedValue(null);
+                const finish = jest.fn();
+
+                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBe(false);
+                expect(finish).not.toHaveBeenCalled();
+            });
+
+            test.each(['NotAllowedError', 'AbortError'])('returns false when the user dismisses the prompt (%s)', async (name) => {
+                get.mockRejectedValue(domError(name));
+                const finish = jest.fn();
+
+                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBe(false);
+                expect(finish).not.toHaveBeenCalled();
+            });
+
+            test('rethrows a server refusal from finish and signals nothing', async () => {
+                get.mockResolvedValue(rawCredential);
+                const err = serverError('app.passkey.not_found.app_error', 400);
+
+                await expect(verifyPasskey(async () => loginOptions, jest.fn().mockRejectedValue(err))).rejects.toBe(err);
+                expect(signal).not.toHaveBeenCalled();
+            });
         });
     });
 });
