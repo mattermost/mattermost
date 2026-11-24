@@ -6628,3 +6628,31 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
 	})
 }
+
+func TestTestExpressionErrorStatus(t *testing.T) {
+	th := Setup(t)
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	opts := model.SubjectSearchOptions{Limit: 10}
+
+	t.Run("a bad request from the engine stays a bad request", func(t *testing.T) {
+		const expression = "user.attributes.program == context.other_user.attributes.program"
+		mockAccessControl.On("QueryUsersForExpression", th.Context, expression, opts).
+			Return(nil, int64(0), model.NewAppError("QueryUsersForExpression", "app.pap.query_expression.app_error", nil, "", http.StatusBadRequest)).Once()
+
+		_, _, appErr := th.App.TestExpression(th.Context, expression, opts)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.pap.query_expression.app_error", appErr.Id)
+	})
+
+	t.Run("other engine errors are internal", func(t *testing.T) {
+		const expression = "true"
+		mockAccessControl.On("QueryUsersForExpression", th.Context, expression, opts).
+			Return(nil, int64(0), model.NewAppError("QueryUsersForExpression", "app.pap.query_expression.app_error", nil, "", http.StatusNotImplemented)).Once()
+
+		_, _, appErr := th.App.TestExpression(th.Context, expression, opts)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+}

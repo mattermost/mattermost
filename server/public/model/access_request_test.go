@@ -56,3 +56,16 @@ func TestAccessDecisionIsNoPolicy(t *testing.T) {
 		})
 	}
 }
+
+func TestAccessRequestContextJSON(t *testing.T) {
+	require.Equal(t, 7, AccessRequestMaxOtherUsers)
+
+	req := AccessRequest{Action: "a", RequestContext: &AccessRequestContext{OtherUserIDs: []string{"u1", "u2"}}}
+	data, err := json.Marshal(req)
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"request_context":{"other_user_ids":["u1","u2"]}`)
+
+	data, err = json.Marshal(AccessRequest{Action: "a"})
+	require.NoError(t, err)
+	require.NotContains(t, string(data), "request_context")
+}

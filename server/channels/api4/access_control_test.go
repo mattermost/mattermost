@@ -3729,6 +3729,46 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		mockACS.AssertNotCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
 	})
 
+	t.Run("other users require manage_system", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
+
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
+		channelAdminClient := th.CreateClient()
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		mockACS := newMockAccessControlService()
+		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy:     &model.AccessControlPolicy{ID: privateChannel.Id, Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
+			Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Users:      []model.PolicySimulationUserOverride{{UserID: channelAdmin.Id}},
+			ChannelID:  privateChannel.Id,
+			OtherUsers: []model.PolicySimulationOtherUser{{UserID: th.BasicUser.Id}},
+		})
+		resp, err := channelAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		mockACS.AssertNotCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
+	})
+
 	t.Run("channel admin response strips evaluation trees", func(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok)

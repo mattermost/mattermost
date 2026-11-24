@@ -407,6 +407,9 @@ export type PolicySimulationBlame = {
     rule_name?: string;
     role?: string;
 
+    /** The context.other_user the deny was evaluated against, when the rule uses it. */
+    other_user_id?: string;
+
     /** CEL text of the contributing rule. Only populated for blame
      *  entries at the draft's own scope (this_rule, sibling_rule,
      *  sibling_saved, peer_policy). Truly upper-scoped sources omit
@@ -679,4 +682,14 @@ export type PolicySimulationByUsersParams = {
      *  omitted. The picker UI exposes this as an "Evaluate against:
      *  All policies / This rule only" toggle. */
     evaluation_scope?: PolicyEvaluationScope;
+
+    /** Participants rules see as context.other_user. Permission policies only. */
+    other_users?: PolicySimulationOtherUser[];
+};
+
+export type PolicySimulationOtherUser = {
+    user_id: string;
+
+    /** Replaces individual attributes of this user, keyed by field name. */
+    attribute_overrides?: Record<string, unknown>;
 };

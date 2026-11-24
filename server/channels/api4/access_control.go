@@ -742,6 +742,10 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if len(params.OtherUsers) > 0 && !hasSystemPermission {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
 
 	if !requirePolicyChannelManagementAccess(c, params.ChannelID, hasSystemPermission) {
 		return
