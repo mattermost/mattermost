@@ -1963,13 +1963,21 @@ func (mi *MetricsInterfaceImpl) IncrementWebsocketEvent(eventType model.Websocke
 	mi.WebsocketEventCounters.With(prometheus.Labels{"type": string(eventType)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string) {
-	if disconnectErrCode == "" {
-		disconnectErrCode = "unknown"
+func normalizeDisconnectErrCode(disconnectErrCode string) string {
+	code, err := strconv.Atoi(disconnectErrCode)
+	if err != nil || strconv.Itoa(code) != disconnectErrCode {
+		return "unknown"
 	}
+	if (code < 1000 || code > 1016) && code != 4000 && code != 4001 {
+		return "unknown"
+	}
+	return disconnectErrCode
+}
+
+func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string) {
 	mi.WebSocketReconnectCounter.With(prometheus.Labels{
 		"type":                eventType,
-		"disconnect_err_code": disconnectErrCode,
+		"disconnect_err_code": normalizeDisconnectErrCode(disconnectErrCode),
 	}).Inc()
 }
 
