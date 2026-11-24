@@ -267,6 +267,24 @@ func TestUpdatePostAccessControlResource(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, value, updated.GetAccessControlResource())
 	})
+
+	t.Run("a second plugin cannot replace the marker of the first", func(t *testing.T) {
+		post, value := createMarked(t)
+		otherAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "other-plugin"})
+		edit := post.Clone()
+		edit.AddProp(model.PostPropsAccessControlResource, model.NewPostAccessControlResource("other-plugin", testPostResourceType, model.NewId(), testPostAction))
+
+		updated, appErr := otherAPI.UpdatePost(edit)
+		require.Nil(t, appErr)
+		assert.Equal(t, value, updated.GetAccessControlResource())
+
+		replacement := testPostResource(model.NewId())
+		edit = updated.Clone()
+		edit.AddProp(model.PostPropsAccessControlResource, replacement)
+		updated, appErr = api.UpdatePost(edit)
+		require.Nil(t, appErr)
+		assert.Equal(t, replacement, updated.GetAccessControlResource())
+	})
 }
 
 func TestFilterPostsByAccessControlResource(t *testing.T) {
@@ -419,6 +437,18 @@ func TestMoveThreadRefusesAccessControlResource(t *testing.T) {
 
 	target := th.CreateChannel(t, th.BasicTeam)
 	appErr = th.App.MoveThread(th.Context, root.Id, th.BasicChannel.Id, target.Id, th.BasicUser)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.post.move_thread.access_control_resource.app_error", appErr.Id)
+
+	unmarkedRoot := th.CreatePost(t, th.BasicChannel)
+	reply := th.CreatePostReply(t, unmarkedRoot)
+	require.Empty(t, reply.GetAccessControlResource())
+	stamp := unmarkedRoot.Clone()
+	stamp.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
+	_, appErr = api.UpdatePost(stamp)
+	require.Nil(t, appErr)
+
+	appErr = th.App.MoveThread(th.Context, reply.Id, th.BasicChannel.Id, target.Id, th.BasicUser)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "api.post.move_thread.access_control_resource.app_error", appErr.Id)
 }

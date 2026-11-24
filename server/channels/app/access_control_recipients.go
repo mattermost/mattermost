@@ -7,6 +7,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -50,6 +51,10 @@ type accessControlRecipientCache struct {
 	order *list.List
 	fills singleflight.Group
 	now   func() time.Time
+
+	// generation advances on every invalidate so a fill that started before
+	// one is not stored, and later callers do not join it.
+	generation uint64
 }
 
 type accessControlRecipientItem struct {
@@ -85,9 +90,30 @@ func (c *accessControlRecipientCache) lookup(key string) (accessControlRecipient
 	return item.entry, true
 }
 
+func (c *accessControlRecipientCache) currentGeneration() uint64 {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.generation
+}
+
 func (c *accessControlRecipientCache) store(key string, entry accessControlRecipientEntry) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	c.storeLocked(key, entry)
+}
+
+// storeIfCurrent stores entry unless an invalidate ran since generation was
+// read, in which case the entry may reflect the policy it invalidated.
+func (c *accessControlRecipientCache) storeIfCurrent(key string, entry accessControlRecipientEntry, generation uint64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.generation != generation {
+		return
+	}
+	c.storeLocked(key, entry)
+}
+
+func (c *accessControlRecipientCache) storeLocked(key string, entry accessControlRecipientEntry) {
 	entry.expires = c.now().Add(c.ttl)
 	if element, ok := c.items[key]; ok {
 		element.Value.(*accessControlRecipientItem).entry = entry
@@ -107,6 +133,7 @@ func (c *accessControlRecipientCache) store(key string, entry accessControlRecip
 func (c *accessControlRecipientCache) invalidate(resourceID string) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	c.generation++
 	dropped := 0
 	for key, element := range c.items {
 		parsed, err := model.ParsePostAccessControlResource(key)
@@ -143,9 +170,10 @@ func (a *App) accessControlRecipientEntryFor(rctx request.CTX, value string) acc
 		a.Metrics().IncrementMemCacheMissCounter(accessControlRecipientCacheName)
 	}
 
-	result, _, _ := c.fills.Do(value, func() (any, error) {
+	generation := c.currentGeneration()
+	result, _, _ := c.fills.Do(strconv.FormatUint(generation, 10)+":"+value, func() (any, error) {
 		entry := a.fillAccessControlRecipients(rctx, value)
-		c.store(value, entry)
+		c.storeIfCurrent(value, entry, generation)
 		return entry, nil
 	})
 	return result.(accessControlRecipientEntry)

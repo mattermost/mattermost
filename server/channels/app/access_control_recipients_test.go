@@ -81,6 +81,22 @@ func TestAccessControlRecipientCache(t *testing.T) {
 		assert.True(t, hit)
 		assert.Equal(t, 0, c.invalidate(model.NewId()))
 	})
+
+	t.Run("a fill that started before an invalidation is not stored", func(t *testing.T) {
+		c := newAccessControlRecipientCache(10, time.Minute)
+		resourceID := model.NewId()
+		key := testPostResource(resourceID)
+
+		stale := c.currentGeneration()
+		c.invalidate(resourceID)
+		c.storeIfCurrent(key, accessControlRecipientEntry{noPolicy: true}, stale)
+		_, hit := c.lookup(key)
+		assert.False(t, hit, "a fill that raced an invalidation must not be cached")
+
+		c.storeIfCurrent(key, accessControlRecipientEntry{noPolicy: true}, c.currentGeneration())
+		_, hit = c.lookup(key)
+		assert.True(t, hit, "a fill started after the invalidation is cached")
+	})
 }
 
 func TestAccessControlRecipientFill(t *testing.T) {

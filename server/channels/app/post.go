@@ -1121,12 +1121,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 		// access_control_resource is local policy state, not identity, so it
 		// survives every edit (federated included) unless the owning plugin
-		// replaces it.
-		if oldResource := oldPost.GetAccessControlResource(); oldResource != "" {
+		// replaces it. Another plugin's marker is never replaced.
+		oldResource := oldPost.GetAccessControlResource()
+		if oldResource != "" {
 			newPost.AddProp(model.PostPropsAccessControlResource, oldResource)
 		}
 		if receivedAccessControlResource != "" {
-			newPost.AddProp(model.PostPropsAccessControlResource, receivedAccessControlResource)
+			replaceable := oldResource == ""
+			if !replaceable {
+				oldParsed, oldErr := model.ParsePostAccessControlResource(oldResource)
+				newParsed, newErr := model.ParsePostAccessControlResource(receivedAccessControlResource)
+				replaceable = oldErr == nil && newErr == nil && oldParsed.PluginID == newParsed.PluginID
+			}
+			if replaceable {
+				newPost.AddProp(model.PostPropsAccessControlResource, receivedAccessControlResource)
+			}
 		}
 
 		// When the caller opted in via AllowIdentityPropsUpdate (federation
@@ -3941,8 +3950,10 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 	// A thread governed by a plugin policy belongs to that plugin's resource;
 	// moving it would detach the thread from the resource that scopes its
 	// readers.
-	if rootPost, ok := postListResponse.Posts[postID]; ok && rootPost.GetAccessControlResource() != "" {
-		return model.NewAppError("MoveThread", "api.post.move_thread.access_control_resource.app_error", nil, "", http.StatusBadRequest)
+	for _, threadPost := range postListResponse.Posts {
+		if threadPost.GetAccessControlResource() != "" {
+			return model.NewAppError("MoveThread", "api.post.move_thread.access_control_resource.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	originalChannel, appErr := a.GetChannel(rctx, sourceChannelID)
