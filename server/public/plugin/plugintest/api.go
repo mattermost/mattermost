@@ -5709,38 +5709,6 @@ func (_m *API) SaveAccessControlPolicy(actingUserID string, policy *model.Access
 	return r0, r1
 }
 
-// SaveAccessControlPolicyWithOptions provides a mock function with given fields: actingUserID, policy, opts
-func (_m *API) SaveAccessControlPolicyWithOptions(actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError) {
-	ret := _m.Called(actingUserID, policy, opts)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SaveAccessControlPolicyWithOptions")
-	}
-
-	var r0 *model.AccessControlPolicy
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *model.AccessControlPolicy, model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError)); ok {
-		return rf(actingUserID, policy, opts)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.AccessControlPolicy, model.PluginAccessControlSaveOptions) *model.AccessControlPolicy); ok {
-		r0 = rf(actingUserID, policy, opts)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AccessControlPolicy)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.AccessControlPolicy, model.PluginAccessControlSaveOptions) *model.AppError); ok {
-		r1 = rf(actingUserID, policy, opts)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // SaveConfig provides a mock function with given fields: config
 func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	ret := _m.Called(config)

@@ -2228,14 +2228,10 @@ func (api *PluginAPI) EvaluateAccessControlBatch(userID, resourceType, action st
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
-	return api.SaveAccessControlPolicyWithOptions(actingUserID, policy, model.PluginAccessControlSaveOptions{})
-}
-
-func (api *PluginAPI) SaveAccessControlPolicyWithOptions(actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError) {
 	// Tagged with the plugin's ID so the existence probe's policy read is
 	// attributed to the plugin; api.ctx carries no caller. The save itself runs
 	// as the acting user.
-	return api.app.SavePluginAccessControlPolicy(api.psaPluginContext(), api.id, actingUserID, policy, opts)
+	return api.app.SavePluginAccessControlPolicy(api.psaPluginContext(), api.id, actingUserID, policy)
 }
 
 func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {

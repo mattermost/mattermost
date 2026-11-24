@@ -9950,37 +9950,6 @@ func (s *apiRPCServer) SaveAccessControlPolicy(args *Z_SaveAccessControlPolicyAr
 	return nil
 }
 
-type Z_SaveAccessControlPolicyWithOptionsArgs struct {
-	A string
-	B *model.AccessControlPolicy
-	C model.PluginAccessControlSaveOptions
-}
-
-type Z_SaveAccessControlPolicyWithOptionsReturns struct {
-	A *model.AccessControlPolicy
-	B *model.AppError
-}
-
-func (g *apiRPCClient) SaveAccessControlPolicyWithOptions(actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError) {
-	_args := &Z_SaveAccessControlPolicyWithOptionsArgs{actingUserID, policy, opts}
-	_returns := &Z_SaveAccessControlPolicyWithOptionsReturns{}
-	if err := g.client.Call("Plugin.SaveAccessControlPolicyWithOptions", _args, _returns); err != nil {
-		log.Printf("RPC call to SaveAccessControlPolicyWithOptions API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) SaveAccessControlPolicyWithOptions(args *Z_SaveAccessControlPolicyWithOptionsArgs, returns *Z_SaveAccessControlPolicyWithOptionsReturns) error {
-	if hook, ok := s.impl.(interface {
-		SaveAccessControlPolicyWithOptions(actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.SaveAccessControlPolicyWithOptions(args.A, args.B, args.C)
-	} else {
-		return encodableError(fmt.Errorf("API SaveAccessControlPolicyWithOptions called but not implemented."))
-	}
-	return nil
-}
-
 type Z_GetAccessControlPolicyArgs struct {
 	A string
 }

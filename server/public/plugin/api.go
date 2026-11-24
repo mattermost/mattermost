@@ -1906,25 +1906,6 @@ type API interface {
 	// Minimum server version: 11.10
 	SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 
-	// SaveAccessControlPolicyWithOptions is SaveAccessControlPolicy with
-	// options. With opts.SkipSelfInclusion set, the server skips only the check
-	// that a non-system-admin actingUserID satisfies every rule of the policy
-	// (the check that rejects a save with a self-exclusion error). Everything
-	// else is unchanged: type ownership, existence of actingUserID, and
-	// attribute value-holding validation against actingUserID all still apply,
-	// and actingUserID stays the audited actor. The audit record is marked
-	// self_inclusion=plugin_asserted.
-	//
-	// The plugin takes on the guarantee that the policy cannot lock actingUserID
-	// out, for example because the rule always lists that user. Use it only
-	// when the plugin already verifies this; without the option the server
-	// enforces the check. Passing the zero options is identical to
-	// SaveAccessControlPolicy.
-	//
-	// @tag AccessControl
-	// Minimum server version: 12.3
-	SaveAccessControlPolicyWithOptions(actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError)
-
 	// GetAccessControlPolicy returns the policy stored under id. Returns a
 	// not-found error if no policy exists OR the stored policy's type is not
 	// owned by the calling plugin (fail closed, no existence leak).
