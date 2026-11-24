@@ -330,25 +330,9 @@ func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginI
 	return decisions, nil
 }
 
-// EvaluatePluginAccessRequestActions evaluates whether userID may perform each
-// of actions on the plugin-owned resource (resourceType, resourceID) and
-// returns the decisions keyed by action. The subject is built once; each
-// action is then evaluated through the engine against the same resource.
-//
-// The subject is a snapshot but each action is evaluated on its own, so a
-// policy or attribute change during a call can give a mixed view across the
-// actions.
-//
-// An action absent from the result could not be evaluated and must be treated
-// as a deny by the caller. Whole-call failures (bad arguments, too many
-// actions, store unreachable or a policy existing while the engine is
-// unavailable) are returned as an error and likewise mean deny-all.
-//
-// Failures are handled like the single-action call: when evaluation is
-// impossible, or the engine errors for some actions, existence is resolved
-// once for the resource with resolvePluginPolicyExistence. Without a policy of
-// resourceType every affected action is no_policy; with one, the call fails
-// (evaluation impossible) or the failed actions are omitted (evaluator errors).
+// EvaluatePluginAccessRequestActions is the multi-action form of
+// EvaluatePluginAccessRequest for one resource, keyed by action. An action
+// absent from the result must be treated as a deny.
 func (a *App) EvaluatePluginAccessRequestActions(rctx request.CTX, pluginID, userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, error) {
 	const where = "EvaluatePluginAccessRequestActions"
 

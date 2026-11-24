@@ -701,6 +701,7 @@ func TestEvaluatePluginAccessRequestActions(t *testing.T) {
 
 	userID := th.BasicUser.Id
 	resourceType := testAgentResourceType
+	const documentedActionsMax = 256
 
 	distinctActions := func(n int) []string {
 		actions := make([]string, 0, n)
@@ -760,7 +761,7 @@ func TestEvaluatePluginAccessRequestActions(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		decisions, err := th.App.EvaluatePluginAccessRequestActions(th.Context, testAgentsPluginID, userID, resourceType, model.NewId(), distinctActions(pluginAccessControlActionsMax+1))
+		decisions, err := th.App.EvaluatePluginAccessRequestActions(th.Context, testAgentsPluginID, userID, resourceType, model.NewId(), distinctActions(documentedActionsMax+1))
 		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.plugin.actions_too_large.app_error", appErr.Id)
@@ -768,8 +769,8 @@ func TestEvaluatePluginAccessRequestActions(t *testing.T) {
 		assert.Nil(t, decisions)
 
 		// Duplicates do not count towards the cap.
-		dupes := make([]string, 0, pluginAccessControlActionsMax+1)
-		for range pluginAccessControlActionsMax + 1 {
+		dupes := make([]string, 0, documentedActionsMax+1)
+		for range documentedActionsMax + 1 {
 			dupes = append(dupes, "view")
 		}
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, nil).Once()
@@ -785,12 +786,12 @@ func TestEvaluatePluginAccessRequestActions(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockACS
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
-			Return(model.AccessDecision{Decision: true}, nil).Times(pluginAccessControlActionsMax)
+			Return(model.AccessDecision{Decision: true}, nil).Times(documentedActionsMax)
 
-		decisions, err := th.App.EvaluatePluginAccessRequestActions(th.Context, testAgentsPluginID, userID, resourceType, model.NewId(), distinctActions(pluginAccessControlActionsMax))
+		decisions, err := th.App.EvaluatePluginAccessRequestActions(th.Context, testAgentsPluginID, userID, resourceType, model.NewId(), distinctActions(documentedActionsMax))
 		require.NoError(t, err)
-		require.Len(t, decisions, pluginAccessControlActionsMax)
-		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", pluginAccessControlActionsMax)
+		require.Len(t, decisions, documentedActionsMax)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", documentedActionsMax)
 	})
 
 	t.Run("empty input returns an empty map without touching the engine", func(t *testing.T) {

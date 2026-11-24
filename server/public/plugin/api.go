@@ -1924,10 +1924,9 @@ type API interface {
 	// the resource has a policy or the store is unreachable); the plugin MUST
 	// treat it as a deny for every action.
 	//
-	// Over plugin RPC an empty decisions map arrives as nil, so a nil map
-	// alone does not identify an older server unless at least one action was
-	// requested: a supporting server returns a non-nil map whenever at least
-	// one action is requested and no error is returned.
+	// A successful call returns a non-nil map, even when it is empty. A nil
+	// map with a nil error means the server predates this method or the RPC
+	// call failed; treat it as a deny for every action.
 	//
 	// @tag AccessControl
 	// Minimum server version: 12.3
