@@ -32,7 +32,7 @@ Confirm Redis is running **before** you enable SIP outbound in the plugin.
 
 ## Configure the Calls plugin
 
-In **System Console > Plugins > Calls > SIP Outbound**:
+In **System Console > Plugins > Calls > Outbound phone calls**:
 
 1. Enable outbound phone dialing.
 2. Set the trunk mode to **managed**.
@@ -54,7 +54,7 @@ With self-hosted LiveKit, use **managed** mode. In **existing** mode the plugin 
 
 ### SIP settings reference
 
-These settings are in **System Console > Plugins > Calls > Outbound phone calls**. {/* TODO: confirm the section name and the labels below against the v2 build. They come from the plugin manifest. The trunk fields have no help text in the console; screenshots would help. */}
+These settings are in **System Console > Plugins > Calls > Outbound phone calls**. {/* TODO: the section name is confirmed in the v2 console. Confirm the individual setting labels below against the build; they come from the plugin manifest. The trunk fields have no help text in the console; screenshots would help. */}
 
 **General**
 
@@ -122,12 +122,17 @@ A `ready` status does not prove the bridge is healthy. It can show `ready` befor
 
 Place a test call to a phone number you control:
 
-1. In any channel, post a `tel:` link with the number in E.164 format, for example `[Test call](tel:+15555550123)`.2. Click the link. The plugin dials the number through your SIP trunk and joins you to the call.
+1. In any channel, post a `tel:` link with the number in E.164 format, for example `tel:+15555550123`. The web app turns it into a link automatically.
+2. Click the link. The plugin dials the number through your SIP trunk and joins you to the call.
 3. Answer the phone and confirm you can hear each other.
 
-Clicking `tel:` links in the web app and desktop app dials through the plugin while outbound dialing is enabled. If the click opens your operating system's phone app instead, outbound dialing is turned off or not licensed. If it shows an error, the trunk or SIP settings need attention: see [If the trunk status shows an error](#if-the-trunk-status-shows-an-error).
+Clicking `tel:` links in the web app and desktop app dials through the plugin while outbound dialing is enabled. If the click opens your operating system's phone app instead (for example the Phone app on macOS), outbound dialing is turned off or not licensed. If it shows an error, the trunk or SIP settings need attention: see [If the trunk status shows an error](#if-the-trunk-status-shows-an-error).
 
-{/* TODO: confirm in the final v2 build that the Markdown `tel:` link renders and dials as described, and whether a bare `tel:+1...` is auto-linked. Mobile apps and call pop-out windows are not intercepted; mobile hands tel: links to the phone's own dialer. */}
+:::note
+Use the web or desktop app for this test. The mobile apps hand `tel:` links to the phone's own dialer, and call pop-out windows do not dial.
+:::
+
+{/* Verified on macOS: bare tel: links are auto-linked by the webapp; with outbound dialing enabled the link dials through the plugin, and with it disabled the click opens the local phone app. TODO: confirm the mobile and pop-out behavior; from the code they are not intercepted. */}
 
 Then check the bridge logs:
 
