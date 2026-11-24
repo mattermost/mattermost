@@ -595,6 +595,7 @@ func followedThreadForUser(t *testing.T, th *TestHelper, viewerID, marker string
 func TestGetThreadsForUserAccessControlResourceTotals(t *testing.T) {
 	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	viewer := th.BasicUser2
+	th.AddUserToChannel(t, viewer, th.BasicChannel)
 
 	resourceID := model.NewId()
 	plantPostPolicy(t, th, resourceID)
@@ -688,6 +689,7 @@ func TestGetThreadsForUserAccessControlResourceFlagOff(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	require.False(t, th.App.Config().FeatureFlags.PostAccessControlResource)
 	viewer := th.BasicUser2
+	th.AddUserToChannel(t, viewer, th.BasicChannel)
 
 	resourceID := model.NewId()
 	plantPostPolicy(t, th, resourceID)
