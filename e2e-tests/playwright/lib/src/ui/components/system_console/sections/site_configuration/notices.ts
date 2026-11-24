@@ -18,8 +18,6 @@ export default class Notices {
     readonly enableEndUserNotices: RadioSetting;
     readonly checkForSecurityAndReleaseUpdates: RadioSetting;
 
-    readonly saveButton: Locator;
-
     constructor(container: Locator) {
         this.container = container;
 
@@ -31,18 +29,10 @@ export default class Notices {
             container.getByRole('group', {name: /Check for Security and Release Updates/}),
             'ServiceSettings.EnableSecurityFixAlert',
         );
-
-        this.saveButton = container.getByRole('button', {name: 'Save'});
     }
 
     async toBeVisible() {
         await expect(this.header).toBeVisible();
         await this.enableAdminNotices.toBeVisible();
-    }
-
-    async save() {
-        await expect(this.saveButton).toBeEnabled();
-        await this.saveButton.click();
-        await expect(this.saveButton).toBeDisabled();
     }
 }
