@@ -123,6 +123,16 @@ var allowedPermissionActionsV0_4 = map[string]bool{
 	AccessControlPolicyActionCreateBurnOnReadPost:    true,
 }
 
+// actionsAllowingContextOtherUser is the set of actions whose rules may
+// reference context.other_user. Only permission policies may use it.
+var actionsAllowingContextOtherUser = map[string]bool{}
+
+// ActionAllowsContextOtherUser reports whether rules for action may reference
+// context.other_user.
+func ActionAllowsContextOtherUser(action string) bool {
+	return actionsAllowingContextOtherUser[action]
+}
+
 // IsPermissionAction reports whether the given action is a non-membership
 // permission action governed by a v0.4 channel rule.
 func IsPermissionAction(action string) bool {

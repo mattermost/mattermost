@@ -2227,3 +2227,10 @@ func TestCreateBurnOnReadPostAction(t *testing.T) {
 		require.Nil(t, policy.accessPolicyVersionV0_4())
 	})
 }
+
+func TestActionAllowsContextOtherUser(t *testing.T) {
+	for action := range allowedActionsV0_3 {
+		require.False(t, ActionAllowsContextOtherUser(action), action)
+	}
+	require.False(t, ActionAllowsContextOtherUser(""))
+}

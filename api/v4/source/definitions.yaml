@@ -5251,6 +5251,26 @@ components:
             do?" view: useful for iterating on a single rule without
             sibling rules shadowing or compensating for it. `all` mirrors
             the live PDP at request time.
+        other_users:
+          type: array
+          items:
+            $ref: "#/components/schemas/PolicySimulationOtherUser"
+          description: |
+            Participants rules see as `context.other_user`. Each user in
+            `users` is evaluated against all of them, as in a direct or
+            group message. Only allowed for permission policies, at most 7,
+            and requires the `manage_system` permission.
+    PolicySimulationOtherUser:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+        attribute_overrides:
+          type: object
+          additionalProperties: true
+          description: Replaces individual attributes of this user, keyed by field name.
     PolicySimulationBlame:
       type: object
       description: |
@@ -5309,6 +5329,9 @@ components:
             Scoped role (`system_admin` / `system_user` / `channel_admin` /
             …) the contributing rule targets. Useful for explaining
             role-chain fallbacks.
+        other_user_id:
+          type: string
+          description: The `context.other_user` the deny was evaluated against, when the rule uses it.
         expression:
           type: string
           description: |

@@ -774,6 +774,9 @@ func (a *App) TestExpression(rctx request.CTX, expression string, opts model.Sub
 
 	res, count, err := acs.QueryUsersForExpression(rctx, expression, opts)
 	if err != nil {
+		if err.StatusCode == http.StatusBadRequest {
+			return nil, 0, err
+		}
 		return nil, 0, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

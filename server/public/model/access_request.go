@@ -216,10 +216,22 @@ type Resource struct {
 // AccessRequest represents the input to the Policy Decision Point (PDP).
 // It contains the Subject, Resource, Action and optional Context attributes.
 type AccessRequest struct {
-	Subject  Subject        `json:"subject"`
-	Resource Resource       `json:"resource"`
-	Action   string         `json:"action"`
-	Context  map[string]any `json:"context,omitempty"`
+	Subject        Subject               `json:"subject"`
+	Resource       Resource              `json:"resource"`
+	Action         string                `json:"action"`
+	Context        map[string]any        `json:"context,omitempty"`
+	RequestContext *AccessRequestContext `json:"request_context,omitempty"`
+}
+
+// AccessRequestMaxOtherUsers is the most other users a request can carry: the
+// members of the largest GM, minus the subject.
+const AccessRequestMaxOtherUsers = ChannelGroupMaxUsers - 1
+
+// AccessRequestContext carries the facts rules read as context.*.
+type AccessRequestContext struct {
+	// OtherUserIDs are the other participants of a DM or GM, or the subject
+	// alone for a self-DM. Rules see each one in turn as context.other_user.
+	OtherUserIDs []string `json:"other_user_ids,omitempty"`
 }
 
 // AccessDecisionContextKeyReason is the AuthZEN decision-context key under
@@ -386,6 +398,9 @@ type PolicySimulationBlame struct {
 	// Role is the scoped role (system_* or channel_*) of the contributing
 	// rule or policy. Useful for explaining hierarchy fallbacks.
 	Role string `json:"role,omitempty"`
+	// OtherUserID is the context.other_user the deny was evaluated against,
+	// when the rule uses it.
+	OtherUserID string `json:"other_user_id,omitempty"`
 	// Expression is the CEL text of the contributing rule. Only populated
 	// for blame entries at the draft's own scope (this_rule, sibling_rule,
 	// sibling_saved, peer_policy). Truly upper-scoped sources
@@ -646,4 +661,14 @@ type PolicySimulationByUsersParams struct {
 	// rule under simulation (this_rule) or co-evaluates every contributing
 	// program (all). Empty defaults to this_rule on the server.
 	EvaluationScope string `json:"evaluation_scope,omitempty"`
+	// OtherUsers are the participants rules see as context.other_user. Each
+	// user in Users is evaluated against all of them, as in a DM or GM.
+	OtherUsers []PolicySimulationOtherUser `json:"other_users,omitempty"`
+}
+
+// PolicySimulationOtherUser is a participant rules see as context.other_user.
+type PolicySimulationOtherUser struct {
+	UserID string `json:"user_id"`
+	// AttributeOverrides replaces individual attributes, keyed by field name.
+	AttributeOverrides map[string]any `json:"attribute_overrides,omitempty"`
 }

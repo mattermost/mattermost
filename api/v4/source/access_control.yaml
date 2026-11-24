@@ -130,6 +130,7 @@
       description: |
         Validates whether the current authenticated user matches the given CEL expression.
         This is used to determine if a channel admin can test expressions they match.
+        An expression that uses `context` returns 400.
 
         __Minimum server version__: 11.0
 
@@ -184,6 +185,7 @@
       summary: Test an access control policy expression
       description: |
         Tests an access control policy expression against users to see who would be affected.
+        An expression that uses `context` returns 400: it can't be run as a user query.
 
         Without the `manage_system` permission, the result is empty unless
         the caller satisfies the expression, and user profiles are sanitized
