@@ -17,21 +17,23 @@ var (
 	extractionSlots   = make(chan struct{}, maxConcurrentExtractions)
 )
 
-func tryAcquireExtractionSlot() bool {
+// tryAcquireExtractionSlot reserves one extraction slot.
+// The returned function releases that same slot.
+func tryAcquireExtractionSlot() (func(), bool) {
+	extractionSlotsMu.Lock()
+	slots := extractionSlots
+	extractionSlotsMu.Unlock()
 	select {
-	case extractionSlots <- struct{}{}:
-		return true
+	case slots <- struct{}{}:
+		return func() { <-slots }, true
 	default:
-		return false
+		return nil, false
 	}
-}
-
-func releaseExtractionSlot() {
-	<-extractionSlots
 }
 
 // resetExtractionConcurrencyForTest reinitializes the extraction slot semaphore.
 // It is only intended for use from tests in this package.
+// Slots already acquired are released on the semaphore they came from.
 func resetExtractionConcurrencyForTest(limit int) {
 	extractionSlotsMu.Lock()
 	defer extractionSlotsMu.Unlock()
