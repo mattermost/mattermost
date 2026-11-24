@@ -11,6 +11,7 @@ import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
 import {KeyVariantIcon} from '@mattermost/compass-icons/components';
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+import type {PasskeyLoginOptions} from '@mattermost/types/passkeys';
 import type {Team} from '@mattermost/types/teams';
 
 import {loadMe} from 'mattermost-redux/actions/users';
@@ -118,11 +119,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
     const closeSessionExpiredNotification = useRef<() => void>(undefined);
+    const autofillAbort = useRef<AbortController>(undefined);
 
     const [loginId, setLoginId] = useState(extraParam === Constants.SIGNIN_VERIFIED && emailParam ? emailParam : '');
     const [password, setPassword] = useState('');
     const [showMfa, setShowMfa] = useState(false);
     const [isWaiting, setIsWaiting] = useState(false);
+
+    // Bumped to arm passkey autofill afresh once the previous ceremony is spent.
+    const [autofillRound, setAutofillRound] = useState(0);
     const [sessionExpired, setSessionExpired] = useState(false);
     const [brandImageError, setBrandImageError] = useState(false);
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
@@ -563,6 +568,17 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
     }, [hasError]);
 
+    useEffect(() => {
+        if (!showPasskey || !enableBaseLogin || initializing) {
+            return undefined;
+        }
+
+        const controller = new AbortController();
+        autofillAbort.current = controller;
+        armPasskeyAutofill(controller.signal);
+        return () => controller.abort();
+    }, [showPasskey, enableBaseLogin, initializing, autofillRound]);
+
     if (initializing) {
         return (<LoadingScreen/>);
     }
@@ -748,38 +764,80 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         await postSubmit();
     };
 
-    const signInWithPasskey = async () => {
+    const showPasskeyError = (title: string) => {
+        setAlertBanner({mode: 'danger', title});
+        setHasError(true);
+        setIsWaiting(false);
+    };
+
+    // Shared by the button and autofill; returns whether the user is signed in.
+    const finishPasskeySignIn = async (ceremonyId: string, options: PasskeyLoginOptions['options'], credential: PublicKeyCredential) => {
         setIsWaiting(true);
         dismissAlert();
 
-        const showError = (title: string) => {
-            setAlertBanner({mode: 'danger', title});
-            setHasError(true);
-            setIsWaiting(false);
-        };
+        const {error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
+        if (error) {
+            if (error.server_error_id === 'app.passkey.unknown_credential.app_error') {
+                // An omitted rpId means the page's own host to WebAuthn.
+                signalUnknownPasskey(options.publicKey.rpId ?? window.location.hostname, credential.id);
+                showPasskeyError(formatMessage({
+                    id: 'login.passkeyUnknown',
+                    defaultMessage: 'This passkey isn’t registered on this server. Choose another passkey or log in another way.',
+                    description: 'Login page error when the chosen passkey is not registered on this server.',
+                }));
+            } else if (error.server_error_id === 'app.passkey.ceremony_invalid.app_error') {
+                showPasskeyError(formatMessage({
+                    id: 'login.passkeyTimedOut',
+                    defaultMessage: 'Your passkey sign-in timed out. Choose your passkey again.',
+                    description: 'Login page error when the passkey sign-in ceremony expired before the user chose a passkey.',
+                }));
+            } else {
+                showPasskeyError(error.message);
+            }
+            return false;
+        }
 
+        await postSubmit();
+        return true;
+    };
+
+    // Autofill is a convenience: failing to arm it shows nothing, and the passkey option reports errors itself.
+    const armPasskeyAutofill = async (signal: AbortSignal) => {
+        let ceremonyId: string;
+        let options: PasskeyLoginOptions['options'];
+        let credential: PublicKeyCredential | null;
+        try {
+            if (typeof PublicKeyCredential.isConditionalMediationAvailable !== 'function' || !await PublicKeyCredential.isConditionalMediationAvailable()) {
+                return;
+            }
+            ({ceremony_id: ceremonyId, options} = await Client4.beginPasskeyLogin());
+            if (signal.aborted) {
+                return;
+            }
+            credential = await navigator.credentials.get({mediation: 'conditional', publicKey: requestOptionsFromJSON(options.publicKey), signal}) as PublicKeyCredential | null;
+        } catch {
+            return;
+        }
+
+        if (credential && !await finishPasskeySignIn(ceremonyId, options, credential)) {
+            setAutofillRound((round) => round + 1);
+        }
+    };
+
+    const signInWithPasskey = async () => {
+        // Browsers allow one pending WebAuthn request per page.
+        autofillAbort.current?.abort();
+        setIsWaiting(true);
+        dismissAlert();
+
+        let signedIn = false;
         try {
             const {ceremony_id: ceremonyId, options} = await Client4.beginPasskeyLogin();
             const credential = await navigator.credentials.get({publicKey: requestOptionsFromJSON(options.publicKey)}) as PublicKeyCredential | null;
-            if (!credential) {
+            if (credential) {
+                signedIn = await finishPasskeySignIn(ceremonyId, options, credential);
+            } else {
                 setIsWaiting(false);
-                return;
-            }
-
-            const {error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
-            if (error) {
-                if (error.server_error_id === 'app.passkey.unknown_credential.app_error') {
-                    // An omitted rpId means the page's own host to WebAuthn.
-                    signalUnknownPasskey(options.publicKey.rpId ?? window.location.hostname, credential.id);
-                    showError(formatMessage({
-                        id: 'login.passkeyUnknown',
-                        defaultMessage: 'This passkey isn’t registered on this server. Choose another passkey or log in another way.',
-                        description: 'Login page error when the chosen passkey is not registered on this server.',
-                    }));
-                } else {
-                    showError(error.message);
-                }
-                return;
             }
         } catch (e) {
             const err = e as Error;
@@ -787,12 +845,13 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 // The user dismissed the browser prompt; the unused ceremony expires on the server.
                 setIsWaiting(false);
             } else {
-                showError(err.message);
+                showPasskeyError(err.message);
             }
-            return;
         }
 
-        await postSubmit();
+        if (!signedIn) {
+            setAutofillRound((round) => round + 1);
+        }
     };
 
     const checkUserLoginType = async (loginId: string) => {
@@ -1074,6 +1133,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     value={loginId}
                                                     onChange={handleInputOnChange}
                                                     hasError={hasError}
+                                                    autoComplete={showPasskey ? 'username webauthn' : undefined}
                                                     placeholder={getInputPlaceholder()}
                                                     disabled={isWaiting}
                                                     autoFocus={true}

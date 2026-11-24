@@ -19,7 +19,7 @@ import Login from 'components/login/login';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {showNotification} from 'utils/notifications';
@@ -952,6 +952,147 @@ describe('components/login/Login', () => {
             expect(await screen.findByText('Passkey sign-in is turned off')).toBeVisible();
             expect(get).not.toHaveBeenCalled();
             expect(screen.getByLabelText('Email')).toBeEnabled();
+        });
+
+        describe('autofill', () => {
+            type PendingGet = {signal: AbortSignal; resolve: (credential: unknown) => void};
+
+            const timedOut = 'Your passkey sign-in timed out. Choose your passkey again.';
+            let pending: PendingGet[];
+            let modalSawAbortedAutofill: boolean | undefined;
+
+            const renderAutofill = (state: GlobalState) => {
+                const history = createMemoryHistory({initialEntries: [{pathname: '/login', search: '?redirect_to=' + redirectPath}]});
+                const {unmount} = renderWithContext(<Login/>, state, {history});
+                return {history, unmount};
+            };
+
+            beforeEach(() => {
+                pending = [];
+                modalSawAbortedAutofill = undefined;
+                (window.PublicKeyCredential as unknown as Record<string, unknown>).isConditionalMediationAvailable = jest.fn().mockResolvedValue(true);
+
+                // The conditional request stays pending until the test resolves it or its signal aborts.
+                get.mockImplementation((options: CredentialRequestOptions) => {
+                    if (options.mediation === 'conditional') {
+                        return new Promise((resolve, reject) => {
+                            const signal = options.signal as AbortSignal;
+                            pending.push({signal, resolve});
+                            signal.addEventListener('abort', () => reject(abortError('AbortError')));
+                        });
+                    }
+                    modalSawAbortedAutofill = pending.length > 0 && pending.every((p) => p.signal.aborted);
+                    return Promise.resolve(rawCredential);
+                });
+            });
+
+            it('offers passkeys in the login field and signs in when one is picked', async () => {
+                const {history} = renderAutofill(passkeyState);
+
+                expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'username webauthn');
+                await waitFor(() => expect(pending).toHaveLength(1));
+                expect(get.mock.calls[0][0].mediation).toBe('conditional');
+                expect(get.mock.calls[0][0].signal).toBeInstanceOf(AbortSignal);
+                expect(get.mock.calls[0][0].publicKey.challenge).toBeInstanceOf(ArrayBuffer);
+
+                pending[0].resolve(rawCredential);
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+                expect(finishLogin.mock.calls[0][0]).toBe('ceremony1');
+                expect(finishLogin.mock.calls[0][1]).toMatchObject({id: 'credential1', response: {userHandle: 'Bw'}});
+            });
+
+            it.each([
+                ['missing', undefined],
+                ['false', jest.fn().mockResolvedValue(false)],
+            ])('does not arm autofill when isConditionalMediationAvailable is %s, and the option still signs in', async (_, available) => {
+                (window.PublicKeyCredential as unknown as Record<string, unknown>).isConditionalMediationAvailable = available;
+                const {history} = renderAutofill(passkeyState);
+
+                await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+                expect(pending).toHaveLength(0);
+                expect(beginLogin).toHaveBeenCalledTimes(1);
+            });
+
+            it('neither arms autofill nor tags the field when passkey sign-in is disabled', async () => {
+                renderAutofill(mergeObjects(passkeyState, {entities: {general: {config: {PasskeyLoginEnabled: 'false'}}}}));
+
+                await waitFor(() => expect(screen.getByLabelText('Email')).toBeVisible());
+                expect(screen.getByLabelText('Email')).not.toHaveAttribute('autocomplete', expect.stringContaining('webauthn'));
+                expect(beginLogin).not.toHaveBeenCalled();
+            });
+
+            it('aborts the pending autofill request before the option opens its own prompt, without a banner', async () => {
+                const {history} = renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+
+                await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+                expect(modalSawAbortedAutofill).toBe(true);
+                expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+            });
+
+            it('arms autofill again when the option\'s prompt is cancelled', async () => {
+                renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+                get.mockImplementationOnce(() => {
+                    modalSawAbortedAutofill = pending[0].signal.aborted;
+                    return Promise.reject(abortError('NotAllowedError'));
+                });
+
+                await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+                await waitFor(() => expect(pending).toHaveLength(2));
+                expect(modalSawAbortedAutofill).toBe(true);
+                expect(pending[1].signal.aborted).toBe(false);
+                expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+            });
+
+            it('says the sign-in timed out and arms autofill again when the ceremony expired', async () => {
+                finishLogin.mockRejectedValueOnce({server_error_id: 'app.passkey.ceremony_invalid.app_error', message: 'invalid ceremony'});
+                const {history} = renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+
+                pending[0].resolve(rawCredential);
+
+                expect(await screen.findByText(timedOut)).toBeVisible();
+                await waitFor(() => expect(pending).toHaveLength(2));
+                expect(beginLogin).toHaveBeenCalledTimes(2);
+                expect(screen.getByLabelText('Email')).toBeEnabled();
+
+                pending[1].resolve(rawCredential);
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+            });
+
+            it('aborts the pending autofill request when the page is left', async () => {
+                const {unmount} = renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+
+                unmount();
+
+                expect(pending[0].signal.aborted).toBe(true);
+            });
+
+            it('shows nothing when autofill cannot begin', async () => {
+                let refuse: (reason: unknown) => void = () => {};
+                beginLogin.mockReturnValueOnce(new Promise((_, reject) => {
+                    refuse = reject;
+                }));
+                renderAutofill(passkeyState);
+                await waitFor(() => expect(beginLogin).toHaveBeenCalledTimes(1));
+
+                await act(async () => {
+                    refuse({server_error_id: 'api.passkey.login_disabled.app_error', message: 'Passkey sign-in is turned off'});
+                });
+
+                expect(screen.queryByText('Passkey sign-in is turned off')).not.toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+                expect(get).not.toHaveBeenCalled();
+            });
         });
     });
 });

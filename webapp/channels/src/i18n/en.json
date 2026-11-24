@@ -27319,6 +27319,10 @@
     "defaultMessage": "Passkey",
     "description": "Label of the login page button that signs in with a passkey."
   },
+  "login.passkeyTimedOut": {
+    "defaultMessage": "Your passkey sign-in timed out. Choose your passkey again.",
+    "description": "Login page error when the passkey sign-in ceremony expired before the user chose a passkey."
+  },
   "login.passkeyUnknown": {
     "defaultMessage": "This passkey isn’t registered on this server. Choose another passkey or log in another way.",
     "description": "Login page error when the chosen passkey is not registered on this server."
