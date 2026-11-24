@@ -11,22 +11,6 @@ Most mobile security controls are optional and are turned off by default, so a n
 
 Review the [Mobile Security configuration settings](/administration-guide/configure/environment-configuration-settings#mobile-security) in **System Console > Environment > Mobile Security**, and the mobile file upload and download settings in [File Sharing and Downloads](/administration-guide/configure/site-configuration-settings#file-sharing-and-downloads).
 
-## Mobile Device Management (MDM)
-
-Mattermost supports the ability for an EMM provider to push Mattermost Mobile apps to EMM-enrolled devices. This approach is recommended for organizations that typically use EMM solutions to deploy Mobile apps to meet security and compliance policies. Learn more about [deploying Mattermost mobile using an EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider).
-
-### Remote wipe capability
-
-Administrators can remotely wipe Mattermost data from mobile devices in case of loss or theft. This capability prevents unauthorized access to sensitive information by ensuring that data is erased from compromised devices.
-
-### Compliance policies
-
-Mattermost can be integrated with mobile device management solutions to enforce compliance policies. These policies ensure that mobile devices accessing the application adhere to security standards, such as encryption, password complexity, and device integrity. Learn more about [compliance with Mattermost](/administration-guide/comply/comply-index).
-
-### Mobile access platforms
-
-Mattermost mobile applications can be operated under the protection of mobile access platforms like [Hypori](https://www.hypori.com/). These platforms provide an additional layer of security by creating a virtualized environment for mobile applications, ensuring that sensitive data is isolated from the device's operating system. This approach enhances data protection and minimizes the risk of data leakage or unauthorized access.
-
 ## Personal devices without an EMM
 
 Organizations that allow personal devices without enrolling them in an EMM can rely on app level controls that the server enforces inside the Mattermost app. The device owner installs the Mattermost app from the public app store. No management profile or device enrollment is required, and Mattermost has no access to personal apps or data on the device.
@@ -45,6 +29,22 @@ From the server, system admins can:
 Without an EMM, there is no device inventory, device log collection, or operating system version enforcement. Client-side checks such as jailbreak and root detection can be bypassed on a compromised device. Organizations with formal authorization requirements should assess these differences as part of their own risk review.
 
 </Note>
+
+## Mobile Device Management (MDM)
+
+Mattermost supports the ability for an EMM provider to push Mattermost Mobile apps to EMM-enrolled devices. This approach is recommended for organizations that typically use EMM solutions to deploy Mobile apps to meet security and compliance policies. Learn more about [deploying Mattermost mobile using an EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider).
+
+### Remote wipe capability
+
+Administrators can remotely wipe Mattermost data from mobile devices in case of loss or theft. This capability prevents unauthorized access to sensitive information by ensuring that data is erased from compromised devices.
+
+### Compliance policies
+
+Mattermost can be integrated with mobile device management solutions to enforce compliance policies. These policies ensure that mobile devices accessing the application adhere to security standards, such as encryption, password complexity, and device integrity. Learn more about [compliance with Mattermost](/administration-guide/comply/comply-index).
+
+### Mobile access platforms
+
+Mattermost mobile applications can be operated under the protection of mobile access platforms like [Hypori](https://www.hypori.com/). These platforms provide an additional layer of security by creating a virtualized environment for mobile applications, ensuring that sensitive data is isolated from the device's operating system. This approach enhances data protection and minimizes the risk of data leakage or unauthorized access.
 
 ## Microsoft Intune Mobile Application Management (MAM)
 
