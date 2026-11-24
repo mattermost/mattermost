@@ -719,21 +719,10 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			}
 		}
 
-		var permission *model.Permission
-		if channel.IsGroupConstrained() {
-			permission = model.PermissionManageChannelRoles
-		} else if channel.Type == model.ChannelTypePrivate {
-			permission = model.PermissionManagePrivateChannelMembers
-		} else {
-			permission = model.PermissionManagePublicChannelMembers
-		}
-
-		if channel.IsGroupConstrained() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
-			return nil
-		}
-
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission); !ok {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, model.PermissionManageChannelRoles); !ok {
+				return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageChannelRoles})
+			}
 		}
 	}
 
@@ -1190,20 +1179,15 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if NotAssociatedToChannelID != "" {
-		channel, appErr := c.App.GetChannel(c.AppContext, NotAssociatedToChannelID)
-		if appErr != nil {
+		if _, appErr := c.App.GetChannel(c.AppContext, NotAssociatedToChannelID); appErr != nil {
 			c.Err = appErr
 			return
 		}
-		var permission *model.Permission
-		if channel.Type == model.ChannelTypePrivate {
-			permission = model.PermissionManagePrivateChannelMembers
-		} else {
-			permission = model.PermissionManagePublicChannelMembers
-		}
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission); !ok {
-			c.SetPermissionError(permission)
-			return
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, model.PermissionManageChannelRoles); !ok {
+				c.SetPermissionError(model.PermissionManageChannelRoles)
+				return
+			}
 		}
 		opts.NotAssociatedToChannel = NotAssociatedToChannelID
 	}
@@ -1220,7 +1204,14 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
 		}
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission); !ok {
+		hasPerm := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups)
+		if !hasPerm {
+			hasPerm, _ = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, model.PermissionManageChannelRoles)
+		}
+		if !hasPerm {
+			hasPerm, _ = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission)
+		}
+		if !hasPerm {
 			c.SetPermissionError(permission)
 			return
 		}
