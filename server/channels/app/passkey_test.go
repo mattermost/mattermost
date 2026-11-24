@@ -390,6 +390,19 @@ func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
 		th.App.InvalidateCacheForUser(user.Id)
 		requireFails(t, session, http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
 	})
+
+	t.Run("a failure to save the ticket is a server error", func(t *testing.T) {
+		session := storedSession(t, th.CreateUser(t).Id)
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{
+			Store:    original,
+			passkeys: original.Passkey(),
+			tokens:   failingSaveTokenStore{TokenStore: original.Token()},
+		})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		requireFails(t, session, http.StatusInternalServerError, "app.passkey.save_ticket.app_error")
+	})
 }
 
 func TestBeginPasskeyLogin(t *testing.T) {
@@ -1112,9 +1125,24 @@ func TestFinishPasskeyLogin(t *testing.T) {
 type passkeyStoreWrapper struct {
 	store.Store
 	passkeys store.PasskeyStore
+	tokens   store.TokenStore // nil passes through to the real store
 }
 
 func (w *passkeyStoreWrapper) Passkey() store.PasskeyStore { return w.passkeys }
+
+func (w *passkeyStoreWrapper) Token() store.TokenStore {
+	if w.tokens != nil {
+		return w.tokens
+	}
+	return w.Store.Token()
+}
+
+// failingSaveTokenStore refuses every Save. Every other call passes through to the real store.
+type failingSaveTokenStore struct {
+	store.TokenStore
+}
+
+func (failingSaveTokenStore) Save(*model.Token) error { return errors.New("db down") }
 
 // racingPasskeyStore lets a test run code around, or instead of, UpdateUsage. Every other
 // call passes through to the real store.
