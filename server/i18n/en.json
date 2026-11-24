@@ -10872,6 +10872,11 @@
     "description": "API error when saving the short-lived registration ceremony (the challenge the authenticator must sign) fails."
   },
   {
+    "id": "app.passkey.save_ticket.app_error",
+    "translation": "Unable to save the passkey enrollment ticket.",
+    "description": "API error when storing the short-lived ticket that lets the system browser enroll a passkey fails."
+  },
+  {
     "id": "app.passkey.unavailable.app_error",
     "translation": "Passkeys are not available on this server.",
     "description": "API error when a passkey ceremony is started but the Site URL cannot serve as a WebAuthn relying party (unset, not HTTPS, an IP address, or rejected by the WebAuthn library)."

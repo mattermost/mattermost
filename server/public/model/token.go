@@ -15,6 +15,8 @@ const (
 	MagicLinkExpiryTime       = 1000 * 60 * 5       // 5 minutes
 	PasskeyCeremonyExpiryTime = 1000 * 60 * 5       // 5 minutes
 
+	PasskeyEnrollmentTicketExpiryTime = 1000 * 60 * 10 // 10 minutes
+
 	TokenTypePasswordRecovery         = "password_recovery"
 	TokenTypeVerifyEmail              = "verify_email"
 	TokenTypeTeamInvitation           = "team_invitation"
@@ -24,6 +26,7 @@ const (
 	TokenTypeGuestMagicLink           = "guest_magic_link"
 	TokenTypePasskeyRegistration      = "passkey_registration"
 	TokenTypePasskeyLogin             = "passkey_login"
+	TokenTypePasskeyEnrollmentTicket  = "passkey_enrollment_ticket"
 
 	TokenTypeOAuth           = "oauth"
 	TokenTypeSaml            = "saml"
@@ -71,6 +74,8 @@ func (t *Token) IsExpired() bool {
 		expiryTime = MagicLinkExpiryTime
 	case TokenTypePasskeyRegistration, TokenTypePasskeyLogin:
 		expiryTime = PasskeyCeremonyExpiryTime
+	case TokenTypePasskeyEnrollmentTicket:
+		expiryTime = PasskeyEnrollmentTicketExpiryTime
 	case TokenTypeGuestMagicLinkInvitation:
 		expiryTime = InvitationExpiryTime
 	case TokenTypePasswordRecovery:

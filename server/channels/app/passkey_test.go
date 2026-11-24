@@ -312,6 +312,86 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 	})
 }
 
+func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// storedSession saves a session, as the ticket's later redemption resolves it from the store.
+	storedSession := func(t *testing.T, userID string) *model.Session {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: userID,
+			Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard},
+		})
+		require.Nil(t, appErr)
+		return session
+	}
+	requireFails := func(t *testing.T, session *model.Session, status int, id string) {
+		t.Helper()
+		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
+		require.Nil(t, ticket)
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+
+	t.Run("stored session gets a ticket tied to it", func(t *testing.T) {
+		user := th.CreateUser(t)
+		session := storedSession(t, user.Id)
+
+		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
+		require.Nil(t, appErr)
+		require.NotNil(t, ticket)
+		require.Len(t, ticket.Ticket, model.TokenSize)
+
+		token, err := th.App.Srv().Store().Token().GetByToken(ticket.Ticket)
+		require.NoError(t, err)
+		require.Equal(t, model.TokenTypePasskeyEnrollmentTicket, token.Type)
+		var extra passkeyEnrollmentTicket
+		require.NoError(t, json.Unmarshal([]byte(token.Extra), &extra))
+		require.Equal(t, user.Id, extra.UserID)
+		require.Equal(t, session.Id, extra.SessionID)
+		require.Equal(t, token.CreateAt+10*60*1000, ticket.ExpireAt)
+	})
+
+	t.Run("ticket expires after 10 minutes", func(t *testing.T) {
+		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, storedSession(t, th.CreateUser(t).Id))
+		require.Nil(t, appErr)
+		require.NotNil(t, ticket)
+		token, err := th.App.Srv().Store().Token().GetByToken(ticket.Ticket)
+		require.NoError(t, err)
+		require.False(t, token.IsExpired())
+
+		token.CreateAt = model.GetMillis() - 9*60*1000
+		require.False(t, token.IsExpired())
+		token.CreateAt = model.GetMillis() - (10*60*1000 + 1000)
+		require.True(t, token.IsExpired())
+	})
+
+	t.Run("session older than the recent sign-in window still gets a ticket", func(t *testing.T) {
+		session := storedSession(t, th.CreateUser(t).Id)
+		session.CreateAt = model.GetMillis() - 11*60*1000
+		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
+		require.Nil(t, appErr)
+		require.NotNil(t, ticket)
+	})
+
+	t.Run("bot is refused", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		requireFails(t, storedSession(t, bot.UserId), http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+	})
+
+	t.Run("remote user is refused", func(t *testing.T) {
+		user := th.CreateUser(t)
+		// CreateSession refuses remote users, so the session exists before the user turns remote.
+		session := storedSession(t, user.Id)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET RemoteId = ? WHERE Id = ?`, model.NewId(), user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+		requireFails(t, session, http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+	})
+}
+
 func TestBeginPasskeyLogin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

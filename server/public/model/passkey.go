@@ -79,6 +79,13 @@ type PasskeyRegistrationOptions struct {
 	Options    json.RawMessage `json:"options"`
 }
 
+// PasskeyEnrollmentTicket is a single-use, short-lived credential that lets the system browser
+// enroll a passkey for the session that requested it. It is also the body that presents the ticket.
+type PasskeyEnrollmentTicket struct {
+	Ticket   string `json:"ticket"`
+	ExpireAt int64  `json:"expire_at"`
+}
+
 // PasskeyRegistrationFinish is the body that completes a registration ceremony. Credential is the
 // browser's registration response, kept opaque so this package does not import the WebAuthn library.
 type PasskeyRegistrationFinish struct {

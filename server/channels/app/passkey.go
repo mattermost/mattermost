@@ -136,6 +136,13 @@ type passkeyCeremony struct {
 	SessionData *webauthn.SessionData `json:"session_data"`
 }
 
+// passkeyEnrollmentTicket is the Extra of a passkey_enrollment_ticket token: the session that asked for
+// the ticket, which is the only session whose standing the ticket may borrow.
+type passkeyEnrollmentTicket struct {
+	UserID    string `json:"user_id"`
+	SessionID string `json:"session_id"`
+}
+
 // passkeySignedInRecently reports whether the session was started by an interactive, non-passkey
 // sign-in within the recent-login window. Sessions without the login_method prop (created before
 // passkeys existed, or by access tokens, OAuth apps or plugins) are never recent.
@@ -205,6 +212,31 @@ func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session)
 	}
 
 	return &model.PasskeyRegistrationOptions{CeremonyId: token.Token, Options: options}, nil
+}
+
+// CreatePasskeyEnrollmentTicket issues a single-use ticket that lets the system browser enroll a
+// passkey for the session's user. The ticket is tied to the given session, which must be the
+// request's own. It checks no recent-sign-in window (registering through the ticket does, against
+// the issuing session) and, like BeginPasskeyRegistration, no feature flag or license.
+func (a *App) CreatePasskeyEnrollmentTicket(rctx request.CTX, session *model.Session) (*model.PasskeyEnrollmentTicket, *model.AppError) {
+	user, appErr := a.GetUser(rctx, session.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if user.IsBot || user.IsRemote() {
+		return nil, model.NewAppError("CreatePasskeyEnrollmentTicket", "app.passkey.user_not_allowed.app_error", nil, "", http.StatusForbidden)
+	}
+
+	extra, err := json.Marshal(passkeyEnrollmentTicket{UserID: user.Id, SessionID: session.Id})
+	if err != nil {
+		return nil, model.NewAppError("CreatePasskeyEnrollmentTicket", "app.passkey.save_ticket.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	token := model.NewToken(model.TokenTypePasskeyEnrollmentTicket, string(extra))
+	if err := a.Srv().Store().Token().Save(token); err != nil {
+		return nil, model.NewAppError("CreatePasskeyEnrollmentTicket", "app.passkey.save_ticket.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &model.PasskeyEnrollmentTicket{Ticket: token.Token, ExpireAt: token.CreateAt + model.PasskeyEnrollmentTicketExpiryTime}, nil
 }
 
 // BeginPasskeyLogin starts a usernameless sign-in ceremony. It does not check the Passkeys feature
