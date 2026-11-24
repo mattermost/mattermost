@@ -24,7 +24,7 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 	}
 
 	if !a.postAllowedByAccessControlResource(rctx, reaction.UserId, post) {
-		return nil, accessControlResourceDeniedError("SaveReactionForPost")
+		return nil, model.AsAppError(accessControlResourceDeniedError("SaveReactionForPost"))
 	}
 
 	if post.Type == model.PostTypeBurnOnRead && post.UserId != reaction.UserId {

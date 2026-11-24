@@ -3262,7 +3262,7 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 	}
 
 	if !a.postAllowedByAccessControlResource(rctx, threadMembership.UserId, thread.Post) {
-		return nil, accessControlResourceDeniedError("GetThreadForUser")
+		return nil, model.AsAppError(accessControlResourceDeniedError("GetThreadForUser"))
 	}
 
 	a.sanitizeProfiles(thread.Participants, false)

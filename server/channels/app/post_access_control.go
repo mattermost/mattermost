@@ -213,6 +213,6 @@ func (a *App) deniedThreadAccessControlResources(rctx request.CTX, userID, teamI
 
 // accessControlResourceDeniedError is the 403 returned when a user acts on a
 // post whose access_control_resource denies them.
-func accessControlResourceDeniedError(where string) *model.AppError {
+func accessControlResourceDeniedError(where string) error {
 	return model.NewAppError(where, "api.post.access_control_resource.denied.app_error", nil, "", http.StatusForbidden)
 }

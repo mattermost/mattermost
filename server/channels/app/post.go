@@ -424,7 +424,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		// evaluated.
 		if rootResource := rootPost.GetAccessControlResource(); rootResource != "" && a.postAccessControlResourceEnabled() {
 			if !flags.FromPlugin && !a.AccessControlResourceAllowed(rctx, post.UserId, rootResource) {
-				return nil, false, accessControlResourceDeniedError("createPost")
+				return nil, false, model.AsAppError(accessControlResourceDeniedError("createPost"))
 			}
 			post.AddProp(model.PostPropsAccessControlResource, rootResource)
 		}
@@ -1985,7 +1985,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	// A thread whose requested post the caller may not read is refused
 	// outright rather than returned empty.
 	if requested, ok := posts.Posts[postID]; ok && userID != "" && !a.postAllowedByAccessControlResource(rctx, userID, requested) {
-		return nil, accessControlResourceDeniedError("GetPostThread")
+		return nil, model.AsAppError(accessControlResourceDeniedError("GetPostThread"))
 	}
 	a.filterPostsByAccessControlResource(rctx, userID, posts)
 
@@ -2173,7 +2173,7 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 		return nil, appErr
 	}
 	if !a.postAllowedByAccessControlResource(rctx, userID, post) {
-		return nil, accessControlResourceDeniedError("GetPermalinkPost")
+		return nil, model.AsAppError(accessControlResourceDeniedError("GetPermalinkPost"))
 	}
 
 	a.applyPostsWillBeConsumedHook(rctx, list.Posts)
@@ -3378,7 +3378,7 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 	}
 
 	if !a.postAllowedByAccessControlResource(rctx, session.UserId, post) {
-		return nil, accessControlResourceDeniedError("GetPostIfAuthorized"), false
+		return nil, model.AsAppError(accessControlResourceDeniedError("GetPostIfAuthorized")), false
 	}
 
 	return post, nil, isMember
