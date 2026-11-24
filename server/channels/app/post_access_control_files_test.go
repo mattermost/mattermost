@@ -114,6 +114,7 @@ func TestSearchFilesAccessControlResource(t *testing.T) {
 		*cfg.ServiceSettings.EnableFileSearch = true
 		*cfg.ElasticsearchSettings.EnableSearching = false
 	}).InitBasic(t)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	resourceID := model.NewId()
 	plantPostPolicy(t, th, resourceID)

@@ -734,10 +734,12 @@ func TestMoveThreadRefusesAccessControlResource(t *testing.T) {
 	unmarkedRoot := th.CreatePost(t, th.BasicChannel)
 	reply := th.CreatePostReply(t, unmarkedRoot)
 	require.Empty(t, reply.GetAccessControlResource())
+	// The plugin API refuses to mark a root that has replies, so write the
+	// partly marked thread straight to the store.
 	stamp := unmarkedRoot.Clone()
 	stamp.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
-	_, appErr = api.UpdatePost(stamp)
-	require.Nil(t, appErr)
+	_, err := th.App.Srv().Store().Post().Overwrite(th.Context, stamp)
+	require.NoError(t, err)
 
 	appErr = th.App.MoveThread(th.Context, reply.Id, th.BasicChannel.Id, target.Id, th.BasicUser)
 	require.NotNil(t, appErr)
