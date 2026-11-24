@@ -122,7 +122,7 @@ type FeatureFlags struct {
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
 
-	// Gates the Post Attributes feature (post_attributes property group).
+	// Gates the Post Attributes feature (post fields in the access_control property group).
 	PostAttributes bool
 
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.

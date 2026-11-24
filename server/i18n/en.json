@@ -4240,6 +4240,11 @@
     "description": "API error when managing channel attribute fields (custom fields defined for channels by admins) on a server without the required license. 'Enterprise Advanced' is a Mattermost license tier name; keep it in English."
   },
   {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Post attributes require an Enterprise license.",
+    "description": "API error when posts are read with the access_control property group (post attributes) on a server without an Enterprise license."
+  },
+  {
     "id": "api.property.session_attributes.license.app_error",
     "translation": "Session attributes require an Enterprise Advanced license.",
     "description": "API error when the session attributes (user property) feature is used without the required license; 'Enterprise Advanced' is a license tier name."
@@ -10865,6 +10870,11 @@
     "id": "app.plugin.remove_bundle.app_error",
     "translation": "Unable to remove plugin bundle from file store.",
     "description": "Admin console error when deleting a plugin's bundle file from the file store fails."
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded.",
+    "description": "Returned when installing or reattaching a plugin that uses the core server caller identity."
   },
   {
     "id": "app.plugin.restart.app_error",

@@ -1836,10 +1836,13 @@ describe('post attribute hydration', () => {
         }));
     }
 
-    function storeWithFlag(enabled: boolean, preferences: Record<string, PreferenceType> = {}) {
+    function storeWithFlag(enabled: boolean, preferences: Record<string, PreferenceType> = {}, license: Record<string, string> = {IsLicensed: 'true', SkuShortName: 'enterprise'}) {
         return configureStore({
             entities: {
-                general: {config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'}},
+                general: {
+                    config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'},
+                    license,
+                },
                 users: {currentUserId: userId, profiles: {}, statuses: {}},
                 channels: {currentChannelId: channelId},
                 preferences: {myPreferences: preferences},
@@ -1884,11 +1887,29 @@ describe('post attribute hydration', () => {
 
         await store.dispatch(action());
 
-        expect(sentGroups()).toEqual(new Array(calls).fill('post_attributes'));
+        expect(sentGroups()).toEqual(new Array(calls).fill('access_control'));
     });
 
     it.each(surfaces)('%s asks for nothing when the flag is off', async (_name, action, calls) => {
         const store = storeWithFlag(false);
+
+        await store.dispatch(action());
+
+        expect(sentGroups()).toEqual(new Array(calls).fill(undefined));
+    });
+
+    // The server answers access_control post requests with 501 below Enterprise,
+    // so the client must not send the group there even with the flag on.
+    it.each(surfaces)('%s asks for nothing when the flag is on but there is no licence', async (_name, action, calls) => {
+        const store = storeWithFlag(true, {}, {IsLicensed: 'false'});
+
+        await store.dispatch(action());
+
+        expect(sentGroups()).toEqual(new Array(calls).fill(undefined));
+    });
+
+    it.each(surfaces)('%s asks for nothing when the flag is on but the licence is Professional', async (_name, action, calls) => {
+        const store = storeWithFlag(true, {}, {IsLicensed: 'true', SkuShortName: 'professional'});
 
         await store.dispatch(action());
 
@@ -1911,6 +1932,6 @@ describe('post attribute hydration', () => {
 
         await store.dispatch(Actions.getPostsUnread(channelId));
 
-        expect(sentGroups()).toEqual(['post_attributes', 'post_attributes']);
+        expect(sentGroups()).toEqual(['access_control', 'access_control']);
     });
 });

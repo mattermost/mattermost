@@ -173,7 +173,7 @@ describe('Actions.fetchPropertyFields', () => {
 
 describe('Actions.patchPropertyValues', () => {
     const TARGET_ID = 'post-1';
-    const VALUES_GROUP = 'post_attributes';
+    const VALUES_GROUP = 'access_control';
     const VALUES_OBJECT_TYPE = 'post';
     const GROUP_UUID = 'realgroupuuid000000000002x';
     const ROUTE = `/properties/groups/${VALUES_GROUP}/${VALUES_OBJECT_TYPE}/values/${TARGET_ID}`;
