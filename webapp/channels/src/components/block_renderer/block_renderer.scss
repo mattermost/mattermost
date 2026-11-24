@@ -164,11 +164,9 @@ $mm-blocks-container-max-heights: (
 
     // `AutocompleteSelector` / `SuggestionBox` use `.select-suggestion-container`, which has global
     // `margin: 8px 8px 0 0` (_select.scss). Drop that for mm_blocks dropdowns so height matches siblings.
-    // `min-width` keeps the select at 220px in content-sized rows, where the width would otherwise follow the
-    // input's intrinsic size and so the font metrics.
     .mm-blocks-select {
         width: 100%;
-        min-width: 220px;
+        min-width: 0;
         max-width: 22rem;
         height: 36px;
 
