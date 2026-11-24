@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import PasskeySection from './index';
 
@@ -148,6 +148,34 @@ describe('PasskeySection', () => {
         });
         expect(deletePasskey).toHaveBeenCalledWith('me', 'pk1');
         expect(screen.getByText('Phone')).toBeInTheDocument();
+    });
+
+    test.each([
+        ['Cancel', async (dialog: HTMLElement) => userEvent.click(within(dialog).getByRole('button', {name: 'Cancel'}))],
+        ['the X', async (dialog: HTMLElement) => userEvent.click(within(dialog).getByRole('button', {name: 'Close'}))],
+        ['Escape', async (dialog: HTMLElement) => userEvent.type(dialog, '{Escape}')],
+    ])('%s closes the delete dialog without deleting the passkey', async (_name, dismiss) => {
+        renderWithContext(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+            enabledState,
+        );
+        await screen.findByText('Laptop');
+
+        await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+        const dialog = await screen.findByRole('dialog');
+        expect(within(dialog).getByText('Delete passkey?')).toBeInTheDocument();
+        expect(dialog.querySelector('.GenericModal__compassDesign')).not.toBeNull();
+
+        await dismiss(dialog);
+
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+        expect(deletePasskey).not.toHaveBeenCalled();
+        expect(screen.getByText('Laptop')).toBeInTheDocument();
     });
 
     test('shows the server error when deleting fails and does not refetch', async () => {

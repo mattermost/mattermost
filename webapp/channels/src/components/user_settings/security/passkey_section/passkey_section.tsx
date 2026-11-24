@@ -5,13 +5,13 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedDate, FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {GenericModal} from '@mattermost/components';
 import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
-import ConfirmModal from 'components/confirm_modal';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
@@ -308,21 +308,15 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                     />
                 }
             />
-            <ConfirmModal
+            <GenericModal
+                id='deletePasskeyModal'
+                compassDesign={true}
                 show={toDelete !== null}
-                title={
+                modalHeaderText={
                     <FormattedMessage
                         id='user.settings.passkeys.deleteTitle'
                         defaultMessage='Delete passkey?'
                         description='Title of the confirmation dialog for deleting a passkey.'
-                    />
-                }
-                message={
-                    <FormattedMessage
-                        id='user.settings.passkeys.deleteMessage'
-                        defaultMessage={'You will no longer be able to sign in with "{name}". This doesn\'t sign you out anywhere.'}
-                        description='Body of the confirmation dialog for deleting a passkey; {name} is the passkey name.'
-                        values={{name: toDelete?.name}}
                     />
                 }
                 confirmButtonText={
@@ -333,9 +327,20 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                     />
                 }
                 destructive={true}
-                onConfirm={confirmDelete}
-                onCancel={() => setToDelete(null)}
-            />
+                autoCloseOnConfirmButton={false}
+                handleConfirm={confirmDelete}
+                handleCancel={() => setToDelete(null)}
+                onHide={() => setToDelete(null)}
+            >
+                <p>
+                    <FormattedMessage
+                        id='user.settings.passkeys.deleteMessage'
+                        defaultMessage={'You will no longer be able to sign in with "{name}". This doesn\'t sign you out anywhere.'}
+                        description='Body of the confirmation dialog for deleting a passkey; {name} is the passkey name.'
+                        values={{name: toDelete?.name}}
+                    />
+                </p>
+            </GenericModal>
         </>
     );
 }
