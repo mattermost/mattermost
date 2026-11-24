@@ -686,7 +686,6 @@ func TestEmailSettingsIsValid(t *testing.T) {
 		require.Nil(t, settings.isValid())
 	})
 
-	// The send path reports an empty port; config load and save must not fail on it.
 	for name, server := range map[string]string{"without a server": "", "with a server": "smtp.example.com"} {
 		t.Run("empty SMTP port "+name, func(t *testing.T) {
 			cfg := &Config{}

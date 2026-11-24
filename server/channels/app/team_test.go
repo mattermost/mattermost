@@ -2306,7 +2306,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 }
 
 func TestInviteNewUsersToTeamGracefullySMTPNotConfigured(t *testing.T) {
-	// An empty server; the environment variable also overrides the mail server CI sets there.
+	// Empty server; CI sets one through this variable.
 	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
 	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {

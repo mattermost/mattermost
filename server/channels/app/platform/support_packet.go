@@ -457,8 +457,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	})
 
 	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
-	// With no SMTP server there is nothing to probe. The old default localhost:10025 is still probed: the
-	// SMTP_NOT_CONFIGURED health rule needs the result to tell an unused default from a working local relay.
+	// Nothing to probe without a server. The old default localhost:10025 is still probed for SMTP_NOT_CONFIGURED.
 	mailCfg := supportPacketSMTPConfig(cfg)
 	add(model.SafeDereference(cfg.EmailSettings.SMTPServer) != "" &&
 		(model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||

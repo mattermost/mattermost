@@ -3916,7 +3916,7 @@ func TestSendPasswordResetSMTPNotConfigured(t *testing.T) {
 		*cfg.EmailSettings.SMTPPort = ""
 	})
 
-	// Known and unknown addresses get the same answer, so the error does not reveal which accounts exist.
+	// Known and unknown addresses get the same error.
 	for _, email := range []string{th.BasicUser.Email, "idontexist@example.com"} {
 		sent, appErr := th.App.SendPasswordReset(th.Context, email, "http://localhost:8065")
 		require.NotNil(t, appErr, email)

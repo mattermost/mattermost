@@ -96,8 +96,7 @@ func setupTestHelperWithBackingStore(tb testing.TB, backingStore config.BackingS
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
 
-	// Custom defaults go in before SetDefaults: NewStoreFromBacking would not apply them to the full config
-	// set below.
+	// Before SetDefaults, which would leave SMTP empty.
 	memoryConfig := config.TestCustomDefaults()
 	memoryConfig.SqlSettings = model.SafeDereference(sqlSettings)
 	memoryConfig.SetDefaults()

@@ -129,8 +129,7 @@ func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
 }
 
 // connectToSMTPServer dials the SMTP server, completing the TLS handshake for TLS connections.
-// ServerTimeout bounds the dial and ctx can cancel it. It returns ErrSMTPNotConfigured, without
-// dialing, when the server or port is empty.
+// ServerTimeout bounds the dial and ctx can cancel it.
 func connectToSMTPServer(ctx context.Context, config *SMTPConfig) (net.Conn, error) {
 	if !config.IsConfigured() {
 		return nil, ErrSMTPNotConfigured
