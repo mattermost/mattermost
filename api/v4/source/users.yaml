@@ -104,9 +104,9 @@
 
 
         Rate limited per client address like `POST /api/v4/users/login` when rate
-        limiting is enabled (5 requests per second, bursts of 10, shared with the
-        other passkey sign-in and registration endpoints and login); a client over
-        the limit gets 429 with a plain-text body.
+        limiting is enabled (5 requests per second, bursts of 10). Each endpoint has
+        its own bucket per client address, so requests to other endpoints do not
+        count against it; a client over the limit gets 429 with a plain-text body.
 
 
         __Minimum server version__: 12.2
@@ -167,7 +167,8 @@
 
 
         Available only under the same conditions as the begin request (501
-        otherwise), and rate limited the same way (429).
+        otherwise), and rate limited with the same settings, in its own separate bucket
+        per client address (429).
 
 
         __Minimum server version__: 12.2
@@ -2840,7 +2841,9 @@
 
 
         Rate limited per client address like `POST /api/v4/users/login` when rate
-        limiting is enabled; a client over the limit gets 429 with a plain-text body.
+        limiting is enabled (5 requests per second, bursts of 10, in this endpoint's
+        own bucket per client address); a client over the limit gets 429 with a
+        plain-text body.
 
 
         __Minimum server version__: 12.2
@@ -2904,7 +2907,8 @@
 
 
         The same availability conditions as the begin request apply (501 otherwise),
-        and so does its rate limit (429).
+        and it is rate limited with the same settings as the begin request, in its own
+        separate bucket per client address (429).
 
 
         __Minimum server version__: 12.2
