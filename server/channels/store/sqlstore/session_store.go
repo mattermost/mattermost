@@ -216,6 +216,17 @@ func (me SqlSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session,
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsByLoginMethod(loginMethod string) ([]*model.Session, error) {
+	builder := me.sessionSelectQuery.Where(sq.Expr("Props->>? = ?", model.SessionPropLoginMethod, loginMethod))
+
+	sessions := []*model.Session{}
+	// Master, not replica: an admin revoking right after an outage must not miss sessions created moments ago.
+	if err := me.GetMaster().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to find sessions with login method %s", loginMethod)
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	versionProp := model.SessionPropMobileVersion
 	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled

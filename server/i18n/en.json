@@ -12573,6 +12573,11 @@
     "description": "API error returned when fetching a user's oldest (least recently used) login sessions fails, used when enforcing session limits."
   },
   {
+    "id": "app.session.get_passkey_sessions.app_error",
+    "translation": "We encountered an error finding passkey sessions.",
+    "description": "API error shown when the server fails to load the sessions started by passkey sign-in from the database, used when an admin revokes all passkey sessions."
+  },
+  {
     "id": "app.session.get_sessions.app_error",
     "translation": "We encountered an error while finding user sessions.",
     "description": "API error shown when the server fails to load a user's active login sessions from the database."

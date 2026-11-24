@@ -773,6 +773,45 @@ func TestSendMobileWipeSignal(t *testing.T) {
 	})
 }
 
+func TestRevokePasskeySessions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	create := func(userId, method string) *model.Session {
+		props := model.StringMap{}
+		if method != "" {
+			props[model.SessionPropLoginMethod] = method
+		}
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: userId, Props: props})
+		require.Nil(t, appErr)
+		// Warm the session cache so the test proves revocation clears it, not only the row.
+		_, appErr = th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		return session
+	}
+
+	t.Run("revokes only passkey sessions and clears the cache", func(t *testing.T) {
+		passkeyA := create(th.BasicUser.Id, model.SessionLoginMethodPasskey)
+		standardA := create(th.BasicUser.Id, model.SessionLoginMethodStandard)
+		noProps := create(th.BasicUser.Id, "")
+		passkeyB := create(th.BasicUser2.Id, model.SessionLoginMethodPasskey)
+
+		require.Nil(t, th.App.RevokePasskeySessions(th.Context))
+
+		_, appErr := th.App.GetSession(passkeyA.Token)
+		require.NotNil(t, appErr)
+		_, appErr = th.App.GetSession(passkeyB.Token)
+		require.NotNil(t, appErr)
+		_, appErr = th.App.GetSession(standardA.Token)
+		require.Nil(t, appErr)
+		_, appErr = th.App.GetSession(noProps.Token)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("no passkey sessions", func(t *testing.T) {
+		require.Nil(t, th.App.RevokePasskeySessions(th.Context))
+	})
+}
+
 func TestRevokeAllSessionsSendsWipeSignal(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

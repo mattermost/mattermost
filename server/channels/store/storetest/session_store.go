@@ -41,6 +41,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
+	t.Run("GetSessionsByLoginMethod", func(t *testing.T) { testGetSessionsByLoginMethod(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 	t.Run("SessionGetDoesNotLeakToken", func(t *testing.T) { testSessionGetDoesNotLeakToken(t, rctx, ss) })
 }
@@ -659,6 +660,44 @@ func testGetAllSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss st
 	require.True(t, sessionIds[s2.Id], "expected session from user2")
 	require.False(t, sessionIds[s3.Id], "expected session without device ID excluded")
 	require.True(t, sessionIds[s4.Id], "expected expired session included for wipe")
+}
+
+func testGetSessionsByLoginMethod(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+	expires := model.GetMillis() + 100000
+
+	save := func(userId string, props model.StringMap) *model.Session {
+		s, err := ss.Session().Save(rctx, &model.Session{UserId: userId, ExpiresAt: expires, Props: props})
+		require.NoError(t, err)
+		return s
+	}
+	passkey1 := save(userId1, model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey})
+	passkey2 := save(userId2, model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey})
+	standard := save(userId1, model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard})
+	noProps := save(userId2, nil)
+
+	ids := func(method string) map[string]bool {
+		sessions, err := ss.Session().GetSessionsByLoginMethod(method)
+		require.NoError(t, err)
+		got := map[string]bool{}
+		for _, s := range sessions {
+			got[s.Id] = true
+		}
+		return got
+	}
+
+	got := ids(model.SessionLoginMethodPasskey)
+	require.True(t, got[passkey1.Id], "expected user1 passkey session")
+	require.True(t, got[passkey2.Id], "expected user2 passkey session")
+	require.False(t, got[standard.Id], "expected standard session excluded")
+	require.False(t, got[noProps.Id], "expected session without props excluded")
+
+	got = ids(model.SessionLoginMethodStandard)
+	require.True(t, got[standard.Id], "expected standard session")
+	require.False(t, got[passkey1.Id])
+	require.False(t, got[passkey2.Id])
+	require.False(t, got[noProps.Id])
 }
 
 func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store) {
