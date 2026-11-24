@@ -5,6 +5,31 @@ Mattermost mobile is built with a robust security framework to protect user data
 
 Continuous compliance through [secure SDLC practices and proactive vulnerability management](/deployment-guide/mobile/mobile-security-features#security-compliance) further reinforces the platform’s resilience.
 
+## Mobile security defaults
+
+Most mobile security controls are optional and are turned off by default, so a new deployment doesn't enforce them until a system admin enables them. Check which controls are enabled on every server that mobile users connect to.
+
+Review the [Mobile Security configuration settings](/administration-guide/configure/environment-configuration-settings#mobile-security) in **System Console > Environment > Mobile Security**, and the mobile file upload and download settings in [File Sharing and Downloads](/administration-guide/configure/site-configuration-settings#file-sharing-and-downloads).
+
+## Personal devices without an EMM
+
+Organizations that allow personal devices without enrolling them in an EMM can rely on app level controls that the server enforces inside the Mattermost app. The device owner installs the Mattermost app from the public app store. No management profile or device enrollment is required, and Mattermost has no access to personal apps or data on the device.
+
+From the server, system admins can:
+
+- Limit how long content stays on the device with [Mobile Ephemeral Mode](#mobile-ephemeral-mode), including [zero-persistence mode](/administration-guide/configure/environment-configuration-settings#auto-cache-cleanup), which retains no content on the device.
+- Require [biometric authentication](#biometric-authentication) before the app opens. When enabled, the device must also have a PIN or biometric lock set.
+- Block access from devices that appear [jailbroken or rooted](#jailbreak-and-root-detection).
+- Block [screenshots and screen recordings](#screenshot-and-screen-recording-prevention).
+- Restrict [file downloads and sharing](#secure-file-preview).
+- End access and remove cached data by revoking the user's session.
+
+<Note>
+
+Without an EMM, there is no device inventory, device log collection, or operating system version enforcement. Client-side checks such as jailbreak and root detection can be bypassed on a compromised device. Organizations with formal authorization requirements should assess these differences as part of their own risk review.
+
+</Note>
+
 ## Mobile Device Management (MDM)
 
 Mattermost supports the ability for an EMM provider to push Mattermost Mobile apps to EMM-enrolled devices. This approach is recommended for organizations that typically use EMM solutions to deploy Mobile apps to meet security and compliance policies. Learn more about [deploying Mattermost mobile using an EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider).
@@ -69,7 +94,7 @@ Environments with strict data loss prevention (DLP) policies or where sensitive 
 
 Disabling file uploads adds an additional layer of security by reducing the risk of malware or malicious files being introduced into the system, ensuring tighter control over sensitive corporate data, and preventing accidental leaks from unsecure mobile networks.
 
-Similarly, by disabling downloads, Mattermost ensures that files cannot be saved locally on the device, reducing the risk of unauthorized access or data leakage. Learn more about [disabling mobile uploads](/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile) and [disabling mobile downloads](/administration-guide/configure/site-configuration-settings#allow-file-uploads-on-mobile) in the Mattermost mobile app.
+Similarly, by disabling downloads, Mattermost ensures that files cannot be saved locally on the device, reducing the risk of unauthorized access or data leakage. Learn more about [disabling mobile uploads](/administration-guide/configure/site-configuration-settings#allow-file-uploads-on-mobile) and [disabling mobile downloads](/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile) in the Mattermost mobile app.
 
 ## Secure file preview
 

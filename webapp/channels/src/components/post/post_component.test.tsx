@@ -193,8 +193,8 @@ describe('PostComponent', () => {
                         byFieldId: {},
                     },
                     groups: {
-                        byId: {[GROUP_ID]: {id: GROUP_ID, name: 'post_attributes'}},
-                        byName: {post_attributes: {id: GROUP_ID, name: 'post_attributes'}},
+                        byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}},
+                        byName: {access_control: {id: GROUP_ID, name: 'access_control'}},
                     },
                 },
             },

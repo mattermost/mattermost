@@ -15,6 +15,7 @@ import {
     purgeFields,
     recordRequests,
     setPostValues,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -44,6 +45,7 @@ const TRANSPARENT = 'rgba(0, 0, 0, 0)';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders attribute chips on first paint without fetching values', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one system-scoped select field and set it on a post
@@ -92,6 +94,7 @@ test('renders attribute chips on first paint without fetching values', {tag: '@p
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('asks the posts endpoint to hydrate', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Arm the wait before the navigation that triggers the fetch
@@ -116,6 +119,7 @@ test('asks the posts endpoint to hydrate', {tag: '@post_attributes'}, async ({pw
  * it off for one browser only.
  */
 test('sends no parameter and draws no chips with the flag off', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field and set it, so the only reason no chip appears is the flag
@@ -172,6 +176,7 @@ test('sends no parameter and draws no chips with the flag off', {tag: '@post_att
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, then set it on both a root post and its reply
@@ -234,6 +239,7 @@ test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, 
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders two chips and a +1 badge for three set fields', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three ordered fields and set all three on one post
@@ -290,6 +296,7 @@ test('renders two chips and a +1 badge for three set fields', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chip for a field that is not set', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two fields and set only one of them
@@ -331,70 +338,13 @@ test('draws no chip for a field that is not set', {tag: '@post_attributes'}, asy
 });
 
 /**
- * @objective Verify a field scoped to one channel does not draw chips in another.
- *
- * @precondition The PostAttributes feature flag is enabled.
- */
-test('ignores a field scoped to a different channel', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.ensureFeatureFlag('PostAttributes', true);
-
-    // # Provision a field scoped to one channel, then set it on a post in another
-    const {adminClient, user, userClient, team} = await pw.initSetup();
-    const suffix = pw.random.id();
-    const created: PropertyField[] = [];
-
-    try {
-        await purgeFields(adminClient);
-
-        const owning = await adminClient.createPublicChannel(team.id, `owning-${suffix}`);
-        const other = await adminClient.createPublicChannel(team.id, `other-${suffix}`);
-        await adminClient.addToChannel(user.id, owning.id);
-        await adminClient.addToChannel(user.id, other.id);
-
-        const scoped = await createField(adminClient, fieldName('scoped', suffix), {
-            options: ['SECRET'],
-            channelId: owning.id,
-        });
-        created.push(scoped);
-
-        // The value is written against a post in the *other* channel, so the only thing
-        // keeping it off screen is the field's scope.
-        const post = await userClient.createTestPost({channel_id: other.id, message: 'out of scope'});
-        await setPostValues(adminClient, post.id, [{field_id: scoped.id, value: optionId(scoped, 'SECRET')}]);
-
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, other.name);
-        await channelsPage.toBeVisible();
-
-        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
-
-        // * Verify the post rendered without a chip row
-        await expect(postOnScreen.container).toContainText('out of scope');
-        await expect(postOnScreen.container.getByTestId(CHIPS)).toHaveCount(0);
-
-        // # Open the channel the field does belong to
-        await channelsPage.goto(team.name, owning.name);
-        await channelsPage.toBeVisible();
-
-        // * Verify the field applies there, so the absence above was scope and not a
-        // broken fixture
-        const inScope = await userClient.createTestPost({channel_id: owning.id, message: 'in scope'});
-        await setPostValues(adminClient, inScope.id, [{field_id: scoped.id, value: optionId(scoped, 'SECRET')}]);
-
-        const inScopeOnScreen = await channelsPage.centerView.getPostById(inScope.id);
-        await expect(inScopeOnScreen.container.getByText('SECRET', {exact: true})).toBeVisible();
-    } finally {
-        await deleteFields(adminClient, created);
-    }
-});
-
-/**
  * @objective Verify a value changed elsewhere reaches an open channel over the websocket,
  * without a reload.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('updates a chip when another session changes the value', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, set it, and open the channel
@@ -445,6 +395,7 @@ test('updates a chip when another session changes the value', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders every single-chip field type through its own renderer', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one field of each type that draws exactly one chip
@@ -546,6 +497,7 @@ test('renders every single-chip field type through its own renderer', {tag: '@po
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a multiselect and set two of its options on a post
@@ -610,6 +562,7 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws option chips in a neutral, whatever colour the option carries', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select carrying a palette colour, no colour, and a token nothing

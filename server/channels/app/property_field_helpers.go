@@ -37,12 +37,19 @@ func DefaultPropertyFieldPermissionLevel(field *model.PropertyField) model.Permi
 // hasPropertyFieldValueAdmin -- so the field's TargetType does not widen it
 // and there is nothing to close. Defaulting values to sysadmin only locks out
 // the member-writable system-scoped fields that linked properties rely on.
+//
+// Post fields default to creator. At member, anyone who can read the channel
+// could set the values on anyone's post there; creator keeps that to the post's
+// author, and to whoever administers the channel.
 func DefaultPropertyFieldValuesPermissionLevel(field *model.PropertyField) model.PermissionLevel {
-	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
-		field.ObjectType == model.PropertyFieldObjectTypeSystem {
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypeTemplate, model.PropertyFieldObjectTypeSystem:
 		return model.PermissionLevelSysadmin
+	case model.PropertyFieldObjectTypePost:
+		return model.PermissionLevelCreator
+	default:
+		return model.PermissionLevelMember
 	}
-	return model.PermissionLevelMember
 }
 
 // CanonicalizeSystemObjectField forces a system-object field to its only

@@ -17,16 +17,19 @@ import {
     deleteFields,
     enableGuestAccounts,
     fieldName,
+    grantValueWrite,
     modalRow,
     modalTrigger,
     openModalFromPostMenu,
     optionId,
     pickerItem,
     purgeFields,
+    sealField,
     sentValues,
     setPostValues,
     stageField,
     waitForCreatePost,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 // `GenericModal` renders `role='none'`, so the element id it forwards is the only stable
@@ -136,6 +139,7 @@ async function expectServerAccess(client: Client4, postId: string, fields: Level
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('locks the fields a member may not change on a post by another user', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -190,6 +194,7 @@ for (const {title, roles, editable} of ADMIN_ROLES) {
      * @precondition The PostAttributes feature flag is enabled.
      */
     test(`lets ${title} change the fields their role reaches`, {tag: '@post_attributes'}, async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
@@ -229,6 +234,7 @@ for (const {title, roles, editable} of ADMIN_ROLES) {
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('treats members of a direct and a group message as admins', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -279,9 +285,10 @@ test('treats members of a direct and a group message as admins', {tag: '@post_at
  * @precondition The PostAttributes feature flag is enabled, and the licence allows guest accounts.
  */
 test('does not make a guest an admin of a direct message', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
 
     const {adminClient, team} = await pw.initSetup();
     const restoreGuests = await enableGuestAccounts(adminClient);
@@ -324,9 +331,10 @@ test('does not make a guest an admin of a direct message', {tag: '@post_attribut
  * @precondition The PostAttributes feature flag is enabled, and the licence allows guest accounts.
  */
 test('lets a guest set member and creator fields on their own post', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
-    await pw.skipIfNoLicense();
+    await skipIfNoPostAttributesLicense();
 
     const {adminClient, team} = await pw.initSetup();
     const restoreGuests = await enableGuestAccounts(adminClient);
@@ -404,7 +412,11 @@ test('lets a guest set member and creator fields on their own post', {tag: '@pos
 /**
  * @objective Verify a `none` field gives nobody a control: a system admin and a member see
  * a padlock and no way in on the modal's row, and the composer never offers it. The server
- * refuses a write from either.
+ * refuses a write from either. A value the field already held still renders, as a chip on the
+ * post and as text on the row.
+ *
+ * A value cannot be stored under a field that is `none` from the start, so the field is
+ * created writable, given its value, and then sealed through its `permissions` object.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
@@ -412,6 +424,7 @@ test(
     'gives nobody a control for a field set to none, a system admin included',
     {tag: '@post_attributes'},
     async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
         await pw.ensureFeatureFlag('PostAttributes', true);
 
         const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -425,7 +438,7 @@ test(
             // has something to offer and the absence of the first is about the first
             const sealed = await createField(adminClient, fieldName('sealed', suffix), {
                 options: ['LOW', 'HIGH'],
-                permissionValues: 'none',
+                permissionValues: 'member',
                 visibility: 'always',
                 sortOrder: 1,
             });
@@ -438,6 +451,9 @@ test(
 
             const channel = await adminClient.getChannelByName(team.id, 'town-square');
             const post = await userClient.createPost({channel_id: channel.id, message: `sealed ${suffix}`});
+            // LOW, so the refused writes below (always HIGH) would change the value
+            await setPostValues(adminClient, post.id, [{field_id: sealed.id, value: optionId(sealed, 'LOW')}]);
+            await sealField(adminClient, sealed);
             const {user: sysadmin, client: sysadminClient} = await addMember(pw, adminClient, team, [channel.id], {
                 systemAdmin: true,
             });
@@ -456,10 +472,14 @@ test(
                 await expect(pickerItem(page, sealed), `${label} is not offered the sealed one`).toHaveCount(0);
                 await page.keyboard.press('Escape');
 
-                // * Verify the modal's row is there, locked, with no control
+                // * Verify the value the field already held still renders on the post
                 const onScreen = await channelsPage.centerView.getPostById(post.id);
-                await openModalFromPostMenu(channelsPage, onScreen);
+                await expect(onScreen.container.getByTestId('post-attributes-chips')).toContainText('LOW');
+
+                // * Verify the modal's row is there, locked, with its value and no control
+                await openModalFromPostMenu(channelsPage, onScreen, {keyboard: true});
                 await expect(page.locator(MODAL)).toBeVisible();
+                await expect(modalRow(page, sealed)).toContainText('LOW');
                 await expect(modalRow(page, sealed).getByRole('img', {name: LOCKED_REASON})).toBeVisible();
                 await expect(modalTrigger(page, sealed)).toHaveCount(0);
                 await expect(modalTrigger(page, open)).toBeVisible();
@@ -467,6 +487,154 @@ test(
                 // * Verify the server refuses a write from them
                 expect(await writeStatus(client, post.id, sealed), `${label} write`).toBe(403);
             }
+        } finally {
+            await deleteFields(adminClient, created);
+        }
+    },
+);
+
+/**
+ * Checks, for one viewer, every field the case cares about in the three places a value can
+ * be set: a control or a padlock on the modal's row for a post by somebody else, the
+ * server's answer to a write on that post, and whether the composer's picker offers it.
+ */
+async function expectFieldAccess(
+    page: Page,
+    channelsPage: ChannelsPage,
+    client: Client4,
+    postId: string,
+    {editable, locked}: {editable: PropertyField[]; locked: PropertyField[]},
+) {
+    const post = await channelsPage.centerView.getPostById(postId);
+    await openModalFromPostMenu(channelsPage, post);
+    await expect(page.locator(MODAL)).toBeVisible();
+
+    for (const field of editable) {
+        await expect(modalTrigger(page, field), `${field.name} should be editable`).toBeVisible();
+        await expect(modalRow(page, field).getByRole('img', {name: LOCKED_REASON})).toHaveCount(0);
+    }
+    for (const field of locked) {
+        await expect(modalTrigger(page, field), `${field.name} should have no control`).toHaveCount(0);
+        await expect(modalRow(page, field).getByRole('img', {name: LOCKED_REASON})).toBeVisible();
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator(MODAL)).toBeHidden();
+
+    for (const field of editable) {
+        expect(await writeStatus(client, postId, field), `${field.name} write`).toBe(200);
+    }
+    for (const field of locked) {
+        expect(await writeStatus(client, postId, field), `${field.name} write`).toBe(403);
+    }
+
+    await composerPlus(channelsPage.centerView.postCreate.container).click();
+    for (const field of editable) {
+        await expect(pickerItem(page, field), `${field.name} should be offered`).toBeVisible();
+    }
+    for (const field of locked) {
+        await expect(pickerItem(page, field), `${field.name} should not be offered`).toHaveCount(0);
+    }
+    await page.keyboard.press('Escape');
+}
+
+/**
+ * @objective Verify a value.write grant opens a field to the people it names whatever the
+ * field's tier, and that an `everyone` field is open to any member. A member named by a user
+ * grant or holding the role a role grant names gets a control on somebody else's post, is
+ * offered the field in the composer, and has their write and their new post with a value
+ * accepted by the server. A member no grant names sees a padlock, is not offered the field
+ * and is refused.
+ *
+ * @precondition The PostAttributes and PropertyFieldPermissionsV3 feature flags are enabled.
+ * The client only receives a field's grants with PropertyFieldPermissionsV3 on.
+ */
+test(
+    'opens a field to the members a value.write grant names, and to anyone at everyone',
+    {tag: '@post_attributes'},
+    async ({pw}) => {
+        await skipIfNoPostAttributesLicense();
+        await pw.ensureFeatureFlag('PostAttributes', true);
+        await pw.ensureFeatureFlag('PropertyFieldPermissionsV3', true);
+
+        const {adminClient, user, userClient, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeFields(adminClient);
+
+            // # Two sysadmin-level fields, one granted to the member by user and one granted to
+            // every system user by role, and an `everyone` field with no grant at all
+            const byUser = await createField(adminClient, fieldName('byuser', suffix), {
+                options: ['LOW', 'HIGH'],
+                permissionValues: 'sysadmin',
+                visibility: 'always',
+                sortOrder: 1,
+            });
+            created.push(byUser);
+
+            const byRole = await createField(adminClient, fieldName('byrole', suffix), {
+                options: ['LOW', 'HIGH'],
+                permissionValues: 'sysadmin',
+                visibility: 'always',
+                sortOrder: 2,
+            });
+            created.push(byRole);
+
+            const everyone = await createField(adminClient, fieldName('everyone', suffix), {
+                options: ['LOW', 'HIGH'],
+                permissionValues: 'everyone',
+                visibility: 'always',
+                sortOrder: 3,
+            });
+            created.push(everyone);
+
+            await grantValueWrite(adminClient, byUser, [{type: 'user', id: user.id}]);
+            await grantValueWrite(adminClient, byRole, [{type: 'role', id: 'system_user'}]);
+
+            // # A post by somebody else, carrying a value for each field
+            const channel = await adminClient.getChannelByName(team.id, 'town-square');
+            const {client: author} = await addMember(pw, adminClient, team, [channel.id]);
+            const {user: other, client: otherClient} = await addMember(pw, adminClient, team, [channel.id]);
+            const theirs = await author.createPost({channel_id: channel.id, message: `theirs ${suffix}`});
+            await setPostValues(
+                adminClient,
+                theirs.id,
+                [byUser, byRole, everyone].map((field) => ({field_id: field.id, value: optionId(field, 'LOW')})),
+            );
+
+            // * Verify the member the user grant names can set all three
+            const granted = await pw.testBrowser.login(user);
+            await granted.channelsPage.goto(team.name, channel.name);
+            await granted.channelsPage.toBeVisible();
+            await expectFieldAccess(granted.page, granted.channelsPage, userClient, theirs.id, {
+                editable: [byUser, byRole, everyone],
+                locked: [],
+            });
+
+            // * Verify they can send a new post with the user-granted field set from the composer
+            const composer = granted.channelsPage.centerView.postCreate;
+            await stageField(granted.page, composer.container, byUser);
+            await chooseOption(granted.page, 'HIGH');
+            await composer.writeMessage(`granted ${suffix}`);
+            const request = waitForCreatePost(granted.page);
+            await composer.sendMessage();
+
+            const response = await (await request).response();
+            expect(response?.status()).toBe(201);
+            const sent = (await response!.json()) as {id: string};
+            const onScreen = await granted.channelsPage.centerView.getPostById(sent.id);
+            await expect(onScreen.container.getByTestId(CHIPS).getByTestId(OPTION_CHIP)).toContainText('HIGH');
+
+            // * Verify a member the user grant does not name is locked out of that field only
+            const notGranted = await pw.testBrowser.login(other);
+            await notGranted.channelsPage.goto(team.name, channel.name);
+            await notGranted.channelsPage.toBeVisible();
+            await expectFieldAccess(notGranted.page, notGranted.channelsPage, otherClient, theirs.id, {
+                editable: [byRole, everyone],
+                locked: [byUser],
+            });
         } finally {
             await deleteFields(adminClient, created);
         }

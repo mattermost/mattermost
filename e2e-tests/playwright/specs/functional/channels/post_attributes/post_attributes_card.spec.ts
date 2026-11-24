@@ -5,7 +5,15 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {createField, deleteFields, fieldName, optionId, purgeFields, setPostValues} from './support';
+import {
+    createField,
+    deleteFields,
+    fieldName,
+    optionId,
+    purgeFields,
+    setPostValues,
+    skipIfNoPostAttributesLicense,
+} from './support';
 
 const CHIPS = 'post-attributes-chips';
 const OVERFLOW = 'post-attributes-overflow';
@@ -18,6 +26,7 @@ const CARD = 'post-attributes-card';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('reads every attribute from the hover card, overflow included', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision four ordered fields and set all four on one post, so two of them
@@ -111,6 +120,7 @@ test('reads every attribute from the hover card, overflow included', {tag: '@pos
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('closes when the pointer leaves, and Edit opens the modal', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post

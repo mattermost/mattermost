@@ -449,31 +449,89 @@ describe('Selectors.General', () => {
     });
 
     describe('isPostAttributesEnabled', () => {
-        const buildState = (config: Record<string, string>) => ({
+        const buildState = (config: Record<string, string>, license?: Record<string, string>) => ({
             entities: {
                 general: {
                     config,
+                    license: license ?? {},
                 },
             },
         } as unknown as GlobalState);
 
-        test('returns true when the flag is on', () => {
+        const enterprise = {IsLicensed: 'true', SkuShortName: General.SKUEnterprise};
+
+        test('returns true when the flag is on and the licence is Enterprise', () => {
             const state = buildState({
                 FeatureFlagPostAttributes: 'true',
-            });
+            }, enterprise);
             expect(Selectors.isPostAttributesEnabled(state)).toBe(true);
         });
 
-        test('returns false when the flag is off', () => {
+        test.each([
+            ['Enterprise Advanced', General.SKUEnterpriseAdvanced],
+            ['Entry', General.SKUEntry],
+        ])('returns true when the flag is on and the licence is %s', (_name, sku) => {
+            const state = buildState({
+                FeatureFlagPostAttributes: 'true',
+            }, {IsLicensed: 'true', SkuShortName: sku});
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(true);
+        });
+
+        test('returns false when the flag is on and there is no licence', () => {
+            const state = buildState({
+                FeatureFlagPostAttributes: 'true',
+            }, {IsLicensed: 'false'});
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
+        });
+
+        test('returns false when the flag is on and the licence is Professional', () => {
+            const state = buildState({
+                FeatureFlagPostAttributes: 'true',
+            }, {IsLicensed: 'true', SkuShortName: 'professional'});
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
+        });
+
+        test('returns false when the flag is on and the licence has an empty SKU', () => {
+            const state = buildState({
+                FeatureFlagPostAttributes: 'true',
+            }, {IsLicensed: 'true', SkuShortName: ''});
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
+        });
+
+        test('returns false when the flag is off, even with an Enterprise licence', () => {
             const state = buildState({
                 FeatureFlagPostAttributes: 'false',
-            });
+            }, enterprise);
             expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
         });
 
         test('returns false when the flag is absent', () => {
-            const state = buildState({});
+            const state = buildState({}, enterprise);
             expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
+        });
+    });
+
+    describe('getPostPropertyGroups', () => {
+        const buildState = (flag: string, license: Record<string, string>) => ({
+            entities: {
+                general: {
+                    config: {FeatureFlagPostAttributes: flag},
+                    license,
+                },
+            },
+        } as unknown as GlobalState);
+
+        test('returns access_control when the flag is on and the licence is Enterprise', () => {
+            const state = buildState('true', {IsLicensed: 'true', SkuShortName: General.SKUEnterprise});
+            expect(Selectors.getPostPropertyGroups(state)).toBe('access_control');
+        });
+
+        test.each([
+            ['flag on, Professional', 'true', {IsLicensed: 'true', SkuShortName: 'professional'}],
+            ['flag on, no licence', 'true', {IsLicensed: 'false'}],
+            ['flag off, Enterprise', 'false', {IsLicensed: 'true', SkuShortName: General.SKUEnterprise}],
+        ])('returns undefined when %s', (_name, flag, license) => {
+            expect(Selectors.getPostPropertyGroups(buildState(flag, license))).toBeUndefined();
         });
     });
 
