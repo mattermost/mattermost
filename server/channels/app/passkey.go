@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -328,6 +329,61 @@ func (a *App) BeginPasskeyLogin(rctx request.CTX) (*model.PasskeyLoginOptions, *
 	return &model.PasskeyLoginOptions{CeremonyId: token.Token, Options: options}, nil
 }
 
+// BeginPasskeyVerificationWithTicket starts a ceremony that proves the device holds one of the passkeys
+// of the user of the session that issued the enrollment ticket, so the device can be recorded as
+// enrolled instead of getting a duplicate. It creates no session and reads no login setting. Like
+// registration through a ticket, it only reads the ticket; the first successful finish spends it.
+func (a *App) BeginPasskeyVerificationWithTicket(rctx request.CTX, ticket string) (*model.PasskeyLoginOptions, *model.AppError) {
+	const where = "BeginPasskeyVerificationWithTicket"
+
+	session, appErr := a.passkeyTicketSession(rctx, ticket)
+	if appErr != nil {
+		return nil, appErr
+	}
+	user, appErr := a.GetUser(rctx, session.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	passkeys, appErr := a.GetPasskeysForUser(user.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if len(passkeys) == 0 {
+		return nil, model.NewAppError(where, "app.passkey.none_registered.app_error", nil, "", http.StatusBadRequest)
+	}
+	rp, appErr := a.passkeyRelyingParty()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	failed := func(err error) *model.AppError {
+		return model.NewAppError(where, "app.passkey.begin_verification.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// BeginLogin, unlike BeginDiscoverableLogin, lists the user's passkeys as the only acceptable ones.
+	assertion, sessionData, err := rp.BeginLogin(&passkeyUser{user: user, handle: passkeys[0].UserHandle, passkeys: passkeys})
+	if err != nil {
+		return nil, failed(err)
+	}
+	options, err := json.Marshal(assertion)
+	if err != nil {
+		return nil, failed(err)
+	}
+	// The allow-list is in the options sent to the browser; kept here too it could overflow the Tokens
+	// Extra column (10 passkeys with credential ids up to 1023 bytes). Finish validates against the
+	// user's current passkeys instead, which refuses any credential that is not one of them.
+	sessionData.AllowedCredentialIDs = nil
+	extra, err := json.Marshal(passkeyCeremony{UserID: user.Id, SessionID: session.Id, SessionData: sessionData, Ticket: ticket})
+	if err != nil {
+		return nil, failed(err)
+	}
+
+	token := model.NewToken(model.TokenTypePasskeyVerification, string(extra))
+	if err := a.Srv().Store().Token().Save(token); err != nil {
+		return nil, failed(err)
+	}
+	return &model.PasskeyLoginOptions{CeremonyId: token.Token, Options: options}, nil
+}
+
 func defaultPasskeyName(userAgent string) string {
 	ua := uasurfer.Parse(userAgent)
 	browser := getBrowserName(ua, userAgent)
@@ -447,12 +503,8 @@ func (a *App) completePasskeyRegistration(rctx request.CTX, where string, sessio
 	}
 
 	if ceremony.Ticket != "" {
-		ticket, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyEnrollmentTicket, ceremony.Ticket)
-		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
-			return nil, model.NewAppError(where, "app.passkey.finish_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		}
-		if appErr != nil || ticket.IsExpired() {
-			return nil, model.NewAppError(where, "app.passkey.ticket_invalid.app_error", nil, "", http.StatusBadRequest)
+		if appErr := a.consumePasskeyTicket(where, "app.passkey.finish_registration.app_error", ceremony.Ticket); appErr != nil {
+			return nil, appErr
 		}
 	}
 
@@ -491,6 +543,19 @@ func (a *App) completePasskeyRegistration(rctx request.CTX, where string, sessio
 	return saved, nil
 }
 
+// consumePasskeyTicket spends the enrollment ticket. A ticket that is gone or expired is
+// ticket_invalid; any other failure is a 500 with failedID.
+func (a *App) consumePasskeyTicket(where, failedID, ticket string) *model.AppError {
+	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyEnrollmentTicket, ticket)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return model.NewAppError(where, failedID, nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+	if appErr != nil || token.IsExpired() {
+		return model.NewAppError(where, "app.passkey.ticket_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 // FinishPasskeyLogin verifies the authenticator's response to a ceremony begun by BeginPasskeyLogin
 // and returns the passkey's user after the account checks password sign-in applies. It creates no
 // session, checks no MFA code and leaves the user's failed-attempt count alone: a failed assertion is
@@ -515,9 +580,6 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 
 	invalidCredential := func(err error) *model.AppError {
 		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
-	}
-	counterRegressed := func(err error) *model.AppError {
-		return model.NewAppError(where, "app.passkey.counter_regressed.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 	parsed, err := protocol.ParseCredentialRequestResponseBytes(credential)
 	if err != nil {
@@ -564,13 +626,8 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 	}
 	user := wu.(*passkeyUser).user
 
-	// A counter that does not increase means the authenticator may have been cloned. The library flags
-	// it; the explicit comparison is kept because UpdateUsage only compares the previous value, so a
-	// flag the library stopped raising would let a replayed counter through. A counter that stays at 0
-	// is normal for synced passkeys.
-	presented := parsed.Response.AuthenticatorData.Counter
-	if cred.Authenticator.CloneWarning || (presented != 0 && int64(presented) <= passkey.SignCount) {
-		return nil, counterRegressed(errors.New("authenticator counter did not increase"))
+	if appErr := checkPasskeyCounter(where, parsed, cred, passkey); appErr != nil {
+		return nil, appErr
 	}
 
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
@@ -592,11 +649,105 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 		return nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis()); err != nil {
-		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
-			return nil, counterRegressed(err)
-		}
-		return nil, model.NewAppError(where, "app.passkey.update_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.recordPasskeyUse(where, passkey, cred); appErr != nil {
+		return nil, appErr
 	}
 	return user, nil
+}
+
+// checkPasskeyCounter refuses an assertion whose counter did not increase: the authenticator may have
+// been cloned. The library flags it; the explicit comparison is kept because UpdateUsage only compares
+// the previous value, so a flag the library stopped raising would let a replayed counter through. A
+// counter that stays at 0 is normal for synced passkeys.
+func checkPasskeyCounter(where string, parsed *protocol.ParsedCredentialAssertionData, cred *webauthn.Credential, passkey *model.Passkey) *model.AppError {
+	presented := parsed.Response.AuthenticatorData.Counter
+	if cred.Authenticator.CloneWarning || (presented != 0 && int64(presented) <= passkey.SignCount) {
+		return passkeyCounterRegressed(where, errors.New("authenticator counter did not increase"))
+	}
+	return nil
+}
+
+// recordPasskeyUse stores the new counter and last-used time. The update is compare-and-set on the
+// counter, so a concurrent use that got there first makes this one counter_regressed.
+func (a *App) recordPasskeyUse(where string, passkey *model.Passkey, cred *webauthn.Credential) *model.AppError {
+	if err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis()); err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return passkeyCounterRegressed(where, err)
+		}
+		return model.NewAppError(where, "app.passkey.update_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
+func passkeyCounterRegressed(where string, err error) *model.AppError {
+	return model.NewAppError(where, "app.passkey.counter_regressed.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+}
+
+// FinishPasskeyVerificationWithTicket verifies the authenticator's response to a ceremony begun by
+// BeginPasskeyVerificationWithTicket against the passkeys the ticket's user has now, and records the
+// use. It creates no session and leaves the failed-attempt count and MFA alone. The ticket is spent
+// after the assertion and counter checks pass, before the use is recorded: a refused assertion leaves
+// the ticket usable, and two finishes on one ticket cannot both succeed.
+func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID string, credential []byte) *model.AppError {
+	const where = "FinishPasskeyVerificationWithTicket"
+
+	invalidCeremony := func() *model.AppError {
+		return model.NewAppError(where, "app.passkey.ceremony_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyVerification, ceremonyID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return invalidCeremony()
+		}
+		return model.NewAppError(where, "app.passkey.finish_verification.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+	var ceremony passkeyCeremony
+	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil || ceremony.SessionData == nil || ceremony.Ticket == "" {
+		return invalidCeremony()
+	}
+	session, appErr := a.passkeyTicketSession(rctx, ceremony.Ticket)
+	if appErr != nil {
+		return appErr
+	}
+	if ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
+		return invalidCeremony()
+	}
+
+	parsed, err := protocol.ParseCredentialRequestResponseBytes(credential)
+	if err != nil {
+		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	user, appErr := a.GetUser(rctx, session.UserId)
+	if appErr != nil {
+		return appErr
+	}
+	passkeys, appErr := a.GetPasskeysForUser(user.Id)
+	if appErr != nil {
+		return appErr
+	}
+	rp, appErr := a.passkeyRelyingParty()
+	if appErr != nil {
+		return appErr
+	}
+	// The library checks that the credential is one of the user's passkeys, the user handle, origin, RP
+	// ID hash, challenge, signature and that user verification was performed.
+	cred, err := rp.ValidateLogin(&passkeyUser{user: user, handle: ceremony.SessionData.UserID, passkeys: passkeys}, *ceremony.SessionData, parsed)
+	if err != nil {
+		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+	}
+
+	// The library only returns a credential it matched in passkeys, so this always finds one.
+	var passkey *model.Passkey
+	for _, p := range passkeys {
+		if bytes.Equal(p.CredentialId, cred.ID) {
+			passkey = p
+		}
+	}
+	if appErr := checkPasskeyCounter(where, parsed, cred, passkey); appErr != nil {
+		return appErr
+	}
+	if appErr := a.consumePasskeyTicket(where, "app.passkey.finish_verification.app_error", ceremony.Ticket); appErr != nil {
+		return appErr
+	}
+	return a.recordPasskeyUse(where, passkey, cred)
 }

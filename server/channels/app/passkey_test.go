@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -776,6 +777,47 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	})
 }
 
+// storedPasskeySession creates a stored session, because a ticket resolves its issuing session
+// from the store.
+func storedPasskeySession(t *testing.T, th *TestHelper, userID, method string) *model.Session {
+	t.Helper()
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId: userID,
+		Props:  model.StringMap{model.SessionPropLoginMethod: method},
+	})
+	require.Nil(t, appErr)
+	return session
+}
+
+func agePasskeySession(t *testing.T, th *TestHelper, session *model.Session) {
+	t.Helper()
+	_, err := th.SQLStore.GetMaster().Exec(`UPDATE Sessions SET CreateAt = ? WHERE Id = ?`, model.GetMillis()-11*60*1000, session.Id)
+	require.NoError(t, err)
+	th.App.ClearSessionCacheForUser(session.UserId)
+}
+
+func agePasskeyTicket(t *testing.T, th *TestHelper, ticket string) {
+	t.Helper()
+	_, err := th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-11*60*1000, ticket)
+	require.NoError(t, err)
+}
+
+func issuePasskeyTicket(t *testing.T, th *TestHelper, session *model.Session) string {
+	t.Helper()
+	ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
+	require.Nil(t, appErr)
+	return ticket.Ticket
+}
+
+// useTicketStore swaps in a token store with the given hooks until the test ends.
+func useTicketStore(t *testing.T, th *TestHelper, tokens *ticketTokenStore) {
+	t.Helper()
+	original := th.App.Srv().Store()
+	tokens.TokenStore = original.Token()
+	th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: original.Passkey(), tokens: tokens})
+	t.Cleanup(func() { th.App.Srv().SetStore(original) })
+}
+
 func TestPasskeyRegistrationWithTicket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -786,32 +828,21 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 	const chromeOnMac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	const ticketInvalid = "app.passkey.ticket_invalid.app_error"
 
-	// Sessions are stored because the ticket resolves its issuing session from the store.
 	storedSession := func(t *testing.T, userID, method string) *model.Session {
 		t.Helper()
-		session, appErr := th.App.CreateSession(th.Context, &model.Session{
-			UserId: userID,
-			Props:  model.StringMap{model.SessionPropLoginMethod: method},
-		})
-		require.Nil(t, appErr)
-		return session
+		return storedPasskeySession(t, th, userID, method)
 	}
 	ageSession := func(t *testing.T, session *model.Session) {
 		t.Helper()
-		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Sessions SET CreateAt = ? WHERE Id = ?`, model.GetMillis()-11*60*1000, session.Id)
-		require.NoError(t, err)
-		th.App.ClearSessionCacheForUser(session.UserId)
+		agePasskeySession(t, th, session)
 	}
 	ageTicket := func(t *testing.T, ticket string) {
 		t.Helper()
-		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-11*60*1000, ticket)
-		require.NoError(t, err)
+		agePasskeyTicket(t, th, ticket)
 	}
 	issue := func(t *testing.T, session *model.Session) string {
 		t.Helper()
-		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
-		require.Nil(t, appErr)
-		return ticket.Ticket
+		return issuePasskeyTicket(t, th, session)
 	}
 	// fresh returns a user, its recently signed-in stored session and a ticket issued by it.
 	fresh := func(t *testing.T) (*model.User, *model.Session, string) {
@@ -873,10 +904,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 	}
 	withTicketStore := func(t *testing.T, tokens *ticketTokenStore) {
 		t.Helper()
-		original := th.App.Srv().Store()
-		tokens.TokenStore = original.Token()
-		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: original.Passkey(), tokens: tokens})
-		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+		useTicketStore(t, th, tokens)
 	}
 
 	t.Run("begin then finish stores a passkey for the ticket's user, named after the browser", func(t *testing.T) {
@@ -1212,6 +1240,488 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		_, appErr := finish(t, opts, "My laptop", respond(t, newAuthenticator(t), opts))
 		require.Nil(t, appErr)
 		mockSvc.AssertExpectations(t)
+	})
+}
+
+func TestPasskeyVerificationWithTicket(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+	const origin = "http://localhost:8065"
+	const ticketInvalid = "app.passkey.ticket_invalid.app_error"
+	const ceremonyInvalid = "app.passkey.ceremony_invalid.app_error"
+	const invalidCredential = "app.passkey.invalid_credential.app_error"
+	const counterRegressed = "app.passkey.counter_regressed.app_error"
+
+	// assertion mirrors the parts of the library's assertion options the tests inspect.
+	type assertion struct {
+		PublicKey struct {
+			UserVerification string `json:"userVerification"`
+			AllowCredentials []struct {
+				ID string `json:"id"`
+			} `json:"allowCredentials"`
+		} `json:"publicKey"`
+	}
+
+	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
+		t.Helper()
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		return auth
+	}
+	addPasskey := func(t *testing.T, user *model.User, auth *testlib.SoftAuthenticator) {
+		t.Helper()
+		session := recentSession(user.Id)
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+		resp, err := auth.CreateResponse(opts.Options, origin)
+		require.NoError(t, err)
+		_, appErr = th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", "", resp)
+		require.Nil(t, appErr)
+	}
+	// registered returns a user with one passkey, its recently signed-in stored session and a ticket
+	// that session issued.
+	registered := func(t *testing.T) (*model.User, *testlib.SoftAuthenticator, *model.Session, string) {
+		t.Helper()
+		user, auth := th.CreateUser(t), newAuthenticator(t)
+		addPasskey(t, user, auth)
+		session := storedPasskeySession(t, th, user.Id, model.SessionLoginMethodStandard)
+		return user, auth, session, issuePasskeyTicket(t, th, session)
+	}
+	begin := func(t *testing.T, ticket string) *model.PasskeyLoginOptions {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyVerificationWithTicket(th.Context, ticket)
+		require.Nil(t, appErr)
+		require.NotNil(t, opts)
+		return opts
+	}
+	assert := func(t *testing.T, auth *testlib.SoftAuthenticator, opts *model.PasskeyLoginOptions, authOpts ...testlib.SoftAuthenticatorOption) []byte {
+		t.Helper()
+		resp, err := auth.GetAssertion(opts.Options, origin, authOpts...)
+		require.NoError(t, err)
+		return resp
+	}
+	// verify runs a whole ceremony with the given authenticator.
+	verify := func(t *testing.T, ticket string, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) *model.AppError {
+		t.Helper()
+		opts := begin(t, ticket)
+		return th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts, authOpts...))
+	}
+	requireFails := func(t *testing.T, appErr *model.AppError, status int, id string) {
+		t.Helper()
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+	requireBeginFails := func(t *testing.T, ticket string, status int, id string) {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyVerificationWithTicket(th.Context, ticket)
+		require.Nil(t, opts)
+		requireFails(t, appErr, status, id)
+	}
+	stored := func(t *testing.T, userID string) []*model.Passkey {
+		t.Helper()
+		passkeys, appErr := th.App.GetPasskeysForUser(userID)
+		require.Nil(t, appErr)
+		return passkeys
+	}
+	sessionCount := func(t *testing.T, userID string) int {
+		t.Helper()
+		sessions, appErr := th.App.GetSessions(th.Context, userID)
+		require.Nil(t, appErr)
+		return len(sessions)
+	}
+	// saveCeremony stores a verification ceremony token with the given contents.
+	saveCeremony := func(t *testing.T, extra string, createAt int64) string {
+		t.Helper()
+		token := model.NewToken(model.TokenTypePasskeyVerification, extra)
+		token.CreateAt = createAt
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		return token.Token
+	}
+	withPasskeyStore := func(t *testing.T, passkeys store.PasskeyStore) {
+		t.Helper()
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: passkeys})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+	}
+	withTokenStore := func(t *testing.T, tokens store.TokenStore) {
+		t.Helper()
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: original.Passkey(), tokens: tokens})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+	}
+
+	t.Run("verifies the passkey, records its use and creates no session", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 2))
+		th.App.InvalidateCacheForUser(user.Id)
+		sessions := sessionCount(t, user.Id)
+
+		opts := begin(t, ticket)
+		var a assertion
+		require.NoError(t, json.Unmarshal(opts.Options, &a))
+		require.Equal(t, "required", a.PublicKey.UserVerification)
+		require.Len(t, a.PublicKey.AllowCredentials, 1)
+		require.Equal(t, base64.RawURLEncoding.EncodeToString(auth.CredentialID), a.PublicKey.AllowCredentials[0].ID)
+
+		token, err := th.App.Srv().Store().Token().GetByToken(opts.CeremonyId)
+		require.NoError(t, err)
+		require.Equal(t, model.TokenTypePasskeyVerification, token.Type)
+		var ceremony passkeyCeremony
+		require.NoError(t, json.Unmarshal([]byte(token.Extra), &ceremony))
+		require.Equal(t, ticket, ceremony.Ticket)
+		require.Equal(t, user.Id, ceremony.UserID)
+		require.Empty(t, ceremony.SessionData.AllowedCredentialIDs)
+
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+		require.Nil(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)))
+		require.Positive(t, stored(t, user.Id)[0].LastUsedAt)
+		require.Equal(t, sessions, sessionCount(t, user.Id))
+
+		refreshed, err := th.App.Srv().Store().User().Get(th.Context, user.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, refreshed.FailedAttempts)
+	})
+
+	t.Run("verification tokens expire after the ceremony window", func(t *testing.T) {
+		now := model.GetMillis()
+		require.True(t, (&model.Token{Type: model.TokenTypePasskeyVerification, CreateAt: now - 6*60*1000}).IsExpired())
+		require.False(t, (&model.Token{Type: model.TokenTypePasskeyVerification, CreateAt: now - 4*60*1000}).IsExpired())
+	})
+
+	t.Run("a user without passkeys is refused", func(t *testing.T) {
+		session := storedPasskeySession(t, th, th.CreateUser(t).Id, model.SessionLoginMethodStandard)
+
+		requireBeginFails(t, issuePasskeyTicket(t, th, session), http.StatusBadRequest, "app.passkey.none_registered.app_error")
+	})
+
+	t.Run("ten passkeys with the longest credential ids still begin", func(t *testing.T) {
+		user := th.CreateUser(t)
+		for i := range model.PasskeyMaxPerUser {
+			id := make([]byte, model.PasskeyCredentialIdMaxSize)
+			copy(id, fmt.Sprintf("%04d", i))
+			_, err := th.App.Srv().Store().Passkey().SaveIfUnderLimit(&model.Passkey{
+				UserId:       user.Id,
+				Name:         fmt.Sprintf("key %d", i),
+				UserHandle:   []byte("handle-" + user.Id),
+				CredentialId: id,
+				PublicKey:    []byte("key"),
+				AAGUID:       []byte{},
+			}, model.PasskeyMaxPerUser)
+			require.NoError(t, err)
+		}
+		session := storedPasskeySession(t, th, user.Id, model.SessionLoginMethodStandard)
+
+		opts := begin(t, issuePasskeyTicket(t, th, session))
+		var a assertion
+		require.NoError(t, json.Unmarshal(opts.Options, &a))
+		require.Len(t, a.PublicKey.AllowCredentials, model.PasskeyMaxPerUser)
+	})
+
+	t.Run("another user's passkey is refused and the ticket still works", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		_, other, _, _ := registered(t)
+
+		requireFails(t, verify(t, ticket, other), http.StatusUnauthorized, invalidCredential)
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+
+		require.Nil(t, verify(t, ticket, auth))
+	})
+
+	t.Run("a passkey deleted after begin is refused", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		addPasskey(t, user, newAuthenticator(t))
+		opts := begin(t, ticket)
+		for _, p := range stored(t, user.Id) {
+			if string(p.CredentialId) == string(auth.CredentialID) {
+				require.Nil(t, th.App.DeletePasskey(user.Id, p.Id))
+			}
+		}
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)), http.StatusUnauthorized, invalidCredential)
+	})
+
+	t.Run("an assertion without user verification is refused and the ticket still works", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+
+		requireFails(t, verify(t, ticket, auth, testlib.WithoutUserVerification()), http.StatusUnauthorized, invalidCredential)
+		require.Nil(t, verify(t, ticket, auth))
+	})
+
+	t.Run("a garbage credential is refused and the ticket still works", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, []byte(`{"id":`)), http.StatusBadRequest, invalidCredential)
+		require.Nil(t, verify(t, ticket, auth))
+	})
+
+	t.Run("the counter must increase, and a ticket survives a refusal", func(t *testing.T) {
+		user, auth, session, ticket := registered(t)
+
+		auth.SignCount = 5
+		require.Nil(t, verify(t, ticket, auth))
+		require.EqualValues(t, 5, stored(t, user.Id)[0].SignCount)
+
+		ticket = issuePasskeyTicket(t, th, session)
+		requireFails(t, verify(t, ticket, auth), http.StatusUnauthorized, counterRegressed)
+		require.EqualValues(t, 5, stored(t, user.Id)[0].SignCount)
+
+		auth.SignCount = 6
+		require.Nil(t, verify(t, ticket, auth))
+		require.EqualValues(t, 6, stored(t, user.Id)[0].SignCount)
+	})
+
+	t.Run("a counter that stays at zero is accepted", func(t *testing.T) {
+		_, auth, session, ticket := registered(t)
+
+		require.Nil(t, verify(t, ticket, auth))
+		require.Nil(t, verify(t, issuePasskeyTicket(t, th, session), auth))
+	})
+
+	t.Run("a failure to record the use is a server error", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		original := th.App.Srv().Store()
+		withPasskeyStore(t, &racingPasskeyStore{
+			PasskeyStore: original.Passkey(),
+			updateUsage: func(func() error, string, int64, int64, int64) error {
+				return errors.New("db down")
+			},
+		})
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.update_usage.app_error")
+	})
+
+	t.Run("a verification that loses the race to record its use is refused", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		original := th.App.Srv().Store()
+		withPasskeyStore(t, &racingPasskeyStore{
+			PasskeyStore: original.Passkey(),
+			updateUsage: func(next func() error, id string, prev, _, at int64) error {
+				require.NoError(t, original.Passkey().UpdateUsage(id, prev, prev+1, at))
+				return next()
+			},
+		})
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusUnauthorized, counterRegressed)
+	})
+
+	t.Run("a spent ticket cannot begin again", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		require.Nil(t, verify(t, ticket, auth))
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("a ticket spent by another finish refuses the other ceremony", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		first, second := begin(t, ticket), begin(t, ticket)
+		require.Nil(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, first.CeremonyId, assert(t, auth, first)))
+
+		auth.SignCount = 1
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, second.CeremonyId, assert(t, auth, second)), http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("unknown, aged and wrong-type tickets are refused at begin", func(t *testing.T) {
+		requireBeginFails(t, model.NewRandomString(model.TokenSize), http.StatusBadRequest, ticketInvalid)
+
+		_, _, _, ticket := registered(t)
+		agePasskeyTicket(t, th, ticket)
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+
+		_, _, session, _ := registered(t)
+		reg, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+		requireBeginFails(t, reg.CeremonyId, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("a ticket that ages between begin and finish is refused", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		agePasskeyTicket(t, th, ticket)
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)), http.StatusBadRequest, ticketInvalid)
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+	})
+
+	t.Run("a revoked issuing session is refused even if the user has another", func(t *testing.T) {
+		user, auth, session, ticket := registered(t)
+		opts := begin(t, ticket)
+		storedPasskeySession(t, th, user.Id, model.SessionLoginMethodStandard)
+		require.Nil(t, th.App.RevokeSession(th.Context, session))
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)), http.StatusBadRequest, ticketInvalid)
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+	})
+
+	t.Run("an issuing session older than the recent sign-in window still verifies", func(t *testing.T) {
+		_, auth, session, ticket := registered(t)
+		agePasskeySession(t, th, session)
+
+		require.Nil(t, verify(t, ticket, auth))
+	})
+
+	t.Run("a ticket consumed by a concurrent finish records nothing", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		useTicketStore(t, th, &ticketTokenStore{consumeTicket: func(next func() (*model.Token, error)) (*model.Token, error) {
+			_, err := next()
+			require.NoError(t, err)
+			return next()
+		}})
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusBadRequest, ticketInvalid)
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+	})
+
+	t.Run("a ticket that expires while being consumed records nothing", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		useTicketStore(t, th, &ticketTokenStore{consumeTicket: func(next func() (*model.Token, error)) (*model.Token, error) {
+			agePasskeyTicket(t, th, ticket)
+			return next()
+		}})
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusBadRequest, ticketInvalid)
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+	})
+
+	t.Run("a failure to consume the ticket is a server error and records nothing", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		useTicketStore(t, th, &ticketTokenStore{consumeTicket: func(func() (*model.Token, error)) (*model.Token, error) {
+			return nil, errors.New("db down")
+		}})
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.finish_verification.app_error")
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+	})
+
+	t.Run("a failure to read the ticket is a server error at begin and at finish", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		useTicketStore(t, th, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, errors.New("db down") }})
+
+		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+	})
+
+	t.Run("a failure to read the passkeys is a server error at begin and at finish", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		withPasskeyStore(t, &failingGetForUserPasskeyStore{PasskeyStore: th.App.Srv().Store().Passkey()})
+
+		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get.app_error")
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get.app_error")
+	})
+
+	t.Run("a failure to save the ceremony is a server error", func(t *testing.T) {
+		_, _, _, ticket := registered(t)
+		withTokenStore(t, failingSaveTokenStore{th.App.Srv().Store().Token()})
+
+		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.begin_verification.app_error")
+	})
+
+	t.Run("a failure to consume the ceremony is a server error", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		withTokenStore(t, failingConsumeTokenStore{th.App.Srv().Store().Token()})
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.finish_verification.app_error")
+	})
+
+	t.Run("a ticket whose user no longer exists is refused", func(t *testing.T) {
+		user, _, _, ticket := registered(t)
+		_, err := th.SQLStore.GetMaster().Exec(`DELETE FROM Users WHERE Id = ?`, user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+
+		opts, appErr := th.App.BeginPasskeyVerificationWithTicket(th.Context, ticket)
+		require.Nil(t, opts)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("an unusable Site URL is a 501 at begin and at finish", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		th.UpdateConfig(t, func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://chat.example.com" })
+		t.Cleanup(func() {
+			th.UpdateConfig(t, func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = origin })
+		})
+
+		requireBeginFails(t, ticket, http.StatusNotImplemented, "app.passkey.unavailable.app_error")
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
+	})
+
+	t.Run("an unknown ceremony is refused", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		opts := begin(t, ticket)
+
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, model.NewId(), assert(t, auth, opts)), http.StatusBadRequest, ceremonyInvalid)
+	})
+
+	t.Run("an unusable stored ceremony is refused", func(t *testing.T) {
+		_, auth, session, ticket := registered(t)
+		opts := begin(t, ticket)
+		resp := assert(t, auth, opts)
+		now := model.GetMillis()
+		ceremony := func(c passkeyCeremony) string {
+			extra, err := json.Marshal(c)
+			require.NoError(t, err)
+			return string(extra)
+		}
+		bound := passkeyCeremony{UserID: session.UserId, SessionID: session.Id, SessionData: &webauthn.SessionData{}, Ticket: ticket}
+		noTicket := bound
+		noTicket.Ticket = ""
+		noData := bound
+		noData.SessionData = nil
+		otherUser := bound
+		otherUser.UserID = th.BasicUser.Id
+		otherSession := bound
+		otherSession.SessionID = model.NewId()
+
+		for name, id := range map[string]string{
+			"not json":      saveCeremony(t, "not json", now),
+			"expired":       saveCeremony(t, ceremony(bound), now-6*60*1000),
+			"no ticket":     saveCeremony(t, ceremony(noTicket), now),
+			"no state":      saveCeremony(t, ceremony(noData), now),
+			"another user":  saveCeremony(t, ceremony(otherUser), now),
+			"other session": saveCeremony(t, ceremony(otherSession), now),
+		} {
+			t.Run(name, func(t *testing.T) {
+				requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, id, resp), http.StatusBadRequest, ceremonyInvalid)
+			})
+		}
+	})
+
+	t.Run("a sign-in ceremony is refused by verification and a verification ceremony by sign-in", func(t *testing.T) {
+		user, auth, _, ticket := registered(t)
+
+		login, appErr := th.App.BeginPasskeyLogin(th.Context)
+		require.Nil(t, appErr)
+		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, login.CeremonyId, assert(t, auth, login)), http.StatusBadRequest, ceremonyInvalid)
+
+		opts := begin(t, ticket)
+		got, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, assert(t, auth, opts))
+		require.Nil(t, got)
+		requireFails(t, appErr, http.StatusBadRequest, ceremonyInvalid)
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 }
 
@@ -1635,4 +2145,23 @@ func (s *racingPasskeyStore) UpdateUsage(id string, prevSignCount, signCount, la
 	return s.updateUsage(func() error {
 		return s.PasskeyStore.UpdateUsage(id, prevSignCount, signCount, lastUsedAt)
 	}, id, prevSignCount, signCount, lastUsedAt)
+}
+
+// failingConsumeTokenStore refuses every ConsumeOnce. Every other call passes through to the real store.
+type failingConsumeTokenStore struct {
+	store.TokenStore
+}
+
+func (failingConsumeTokenStore) ConsumeOnce(string, string) (*model.Token, error) {
+	return nil, errors.New("db down")
+}
+
+// failingGetForUserPasskeyStore fails every read of a user's passkeys. Every other call passes through
+// to the real store.
+type failingGetForUserPasskeyStore struct {
+	store.PasskeyStore
+}
+
+func (failingGetForUserPasskeyStore) GetForUser(string) ([]*model.Passkey, error) {
+	return nil, errors.New("db down")
 }

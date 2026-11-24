@@ -10807,6 +10807,11 @@
     "description": "API error when building the WebAuthn registration options (or generating the user handle) fails."
   },
   {
+    "id": "app.passkey.begin_verification.app_error",
+    "translation": "Unable to start passkey verification.",
+    "description": "API error when building the WebAuthn options or saving the short-lived ceremony for proving the user already has a passkey (the \"I already have a passkey\" choice when enrolling) fails."
+  },
+  {
     "id": "app.passkey.ceremony_invalid.app_error",
     "translation": "This passkey request has expired or is no longer valid. Start again.",
     "description": "API error when finishing passkey registration or sign-in with a ceremony that is unknown, already used, expired, or (for registration) begun by a different session or user."
@@ -10832,6 +10837,11 @@
     "description": "API error when consuming the stored registration ceremony fails for a reason other than it not existing."
   },
   {
+    "id": "app.passkey.finish_verification.app_error",
+    "translation": "Unable to finish passkey verification.",
+    "description": "API error when consuming the stored verification ceremony or the enrollment ticket fails for a reason other than it not existing."
+  },
+  {
     "id": "app.passkey.get.app_error",
     "translation": "Unable to load your passkeys.",
     "description": "API error when listing a user's passkeys from the database fails."
@@ -10855,6 +10865,11 @@
     "id": "app.passkey.name_too_long.app_error",
     "translation": "The passkey name is too long.",
     "description": "API error when the name given to a new passkey exceeds 64 characters."
+  },
+  {
+    "id": "app.passkey.none_registered.app_error",
+    "translation": "You don't have a passkey for this account yet.",
+    "description": "API error when the user chooses \"I already have a passkey\" while enrolling but has no passkey on their account to verify."
   },
   {
     "id": "app.passkey.not_found.app_error",
