@@ -375,7 +375,17 @@ func (a *App) hasImportMarker(rctx request.CTX, userID string, report *imports.I
 		rctx.Logger().Warn("Failed to read import marker; treating the account as an existing one", mlog.String("user_id", userID), mlog.Err(err))
 		return false
 	}
-	return matches
+	if !matches {
+		return false
+	}
+	// A concurrent run of the same file may have completed after this run
+	// started, leaving markers that only await removal.
+	pending, err := a.importMarkerCleanupPending(rctx, report.RunMarker)
+	if err != nil {
+		rctx.Logger().Warn("Failed to read the import's cleanup state; treating the account as an existing one", mlog.String("user_id", userID), mlog.Err(err))
+		return false
+	}
+	return !pending
 }
 
 // setImportMarker marks an account this import created so that a retry of the

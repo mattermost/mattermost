@@ -244,6 +244,33 @@ func TestScopedImportRunMarker(t *testing.T) {
 		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, username))
 	})
 
+	t.Run("a concurrent run started before the cleanup was recorded leaves the account unchanged", func(t *testing.T) {
+		th := setupIdentityTest(t)
+		runID := model.NewId() + "_export.zip"
+
+		archive, created := interruptedMarkerImport(t, th, runID)
+		username := *archive.user.Username
+
+		blockMarkerDeletion(t, th, created.Id)
+		completed, appErr := runMarkerTestImport(t, th, strings.NewReader(archive.jsonl(t)), runID)
+		require.NotNil(t, appErr)
+		require.Equal(t, imports.ImportMarkerCleanupErrorID, appErr.Id)
+		require.True(t, cleanupPending(t, th, completed.RunMarker))
+
+		editFirstName(t, th, created.Id, "EditedAfterImport")
+
+		// The overlapping run already passed BulkImportWithPathAndOpts' start check.
+		archive.user.FirstName = new("Changed")
+		report := &imports.ImportReport{RunMarker: completed.RunMarker}
+		_, appErr = th.App.bulkImport(th.Context, strings.NewReader(archive.jsonl(t)), nil, false, false, 1, "", "", "", false, model.ImportedUsersInactive, 0, nil, report)
+		require.Nil(t, appErr)
+
+		after, err := th.App.Srv().Store().User().Get(th.Context, created.Id)
+		require.NoError(t, err)
+		assert.Equal(t, "EditedAfterImport", after.FirstName, "a completed import's account must not be updated again")
+		assert.Equal(t, []string{"username_matched_existing/" + string(imports.UnmatchedUserLinkedExisting)}, reportReasons(report, username))
+	})
+
 	t.Run("a failed save of the pending cleanup still removes the markers", func(t *testing.T) {
 		th := setupIdentityTest(t)
 		runID := model.NewId() + "_export.zip"
