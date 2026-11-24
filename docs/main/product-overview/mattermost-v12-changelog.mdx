@@ -14,6 +14,250 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+
+## Release v12.2 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-2-feature-release}
+
+**Release day: 2026-12-16**
+
+### Upgrade Impact
+
+#### Database Schema Changes
+ - The following schema changes are included in this release. No database downtime is expected for this upgrade.
+   - Added a ``permissions`` column (nullable JSONB) to the ``PropertyFields`` table.
+   - Added a new ``PropertyFieldGrants`` table with columns ``FieldID``, ``Type``, ``ID``, and ``Action``, a composite primary key on those four columns, and a foreign key to ``PropertyFields`` with cascade delete.
+   - Added a new index ``idx_propertyfieldgrants_type_id`` on ``PropertyFieldGrants (Type, ID, Action)``.
+   - Added a new value ``'number'`` to the ``property_field_type`` enum.
+   - Added a new value ``'checkbox'`` to the ``property_field_type`` enum.
+   - Added a new value ``'everyone'`` to the ``permission_level`` enum.
+   - Updated the ``PropertyGroups`` table to set ``Version`` to 3 for the ``access_control`` group.
+   - Added a new index ``idx_channelmembers_channel_id_scheme_admin`` on ``ChannelMembers (ChannelId, UserId)`` where ``SchemeAdmin = true``.
+   - Deleted the ``post_attributes`` property group and all associated rows from ``PropertyValues``, ``PropertyOptionEdges``, ``PropertyOptions``, ``PropertyFields``, and ``PropertyGroups``, and updated any ``post``-type fields in the ``access_control`` group with ``PermissionValues = 'member'`` to use ``'creator'`` instead.
+
+#### config.json
+New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
+ - **Changes to All plans:**
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting to specify the TLS CA certificate for Redis connections.
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientCert`` configuration setting to specify the TLS client certificate for Redis connections.
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientKey`` configuration setting to specify the TLS client key for Redis connections.
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSSkipVerify`` configuration setting to skip TLS verification for Redis connections.
+   - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting.
+   - Under ``SSOSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting.
+   - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade.
+   - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
+
+#### Compatibility
+ - Config validation now rejects a ``CacheSettings.RedisCachePrefix`` value that contains ``:``, ``*``, ``?``, ``[``, ``]``, or ``\`` when the Redis cache is enabled. A server already configured with such a prefix will fail config validation after upgrading and must change the prefix before restarting.
+ - Allowed 0 (no limit) for ``TeamSettings.MaxUsersPerTeam`` and ``TeamSettings.MaxChannelsPerTeam``, and made 0 the default for new installations. Existing deployments keep their saved values. A server with either setting at 0 fails to start if downgraded to an earlier version that does not support 0.
+ - ``LogSettings.EnableWebhookDebugging`` now defaults to false. When enabled, it logs failed incoming webhook requests with their payload, and System Console > Reporting > Site health shows a warning while it is on and debug logging is active. See the [Important upgrade notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes) documentation for details.
+ - Sending email and testing the SMTP connection now return an error when SMTP Connection Security is set to STARTTLS and the SMTP server does not accept STARTTLS.
+ - Starting with this release, FIPS builds reject SAML responses that use SHA-1, including RSA-OAEP key encryption with SHA-1 and SHA-1 signatures and digests, and the login fails. If your identity provider encrypts SAML assertions, configure it with RSA-OAEP-11 (``http://www.w3.org/2009/xmlenc11#rsa-oaep``), digest method SHA-256 (``http://www.w3.org/2001/04/xmlenc#sha256``), and MGF1-SHA256 (``http://www.w3.org/2009/xmlenc11#mgf1sha256``) set explicitly. See the [SAML Keycloak documentation](https://docs.mattermost.com/administration-guide/onboard/sso-saml-keycloak) for details. Non-FIPS builds are not affected.
+ - Plugin signatures and Team Edition to Enterprise upgrade signatures that use the SHA-1 hash algorithm, or that are made with a DSA key or an RSA key shorter than 2048 bits, are now rejected. Plugins signed with an admin-configured key using SHA-1 must be re-signed with SHA-256 or stronger; plugins signed with a DSA or short RSA key must be re-signed with a new key.
+ - Replaced the deprecated ``golang.org/x/crypto/openpgp`` library with ``github.com/ProtonMail/go-crypto`` for plugin signature verification and Team Edition to Enterprise upgrades. Plugin signatures are now rejected if the signing key is expired, its self-signature lacks a signing key flag, or if the signature uses the MD5 or RIPEMD-160 hash algorithms.
+ - In High Availability deployments using Redis, cluster messages are now sent on a channel namespaced by ``CacheSettings.RedisCachePrefix``. Deployments that already set a prefix will not exchange cluster messages between old and new versions during a rolling upgrade.
+ - Reserved the plugin ID ``com.mattermost.server``, including case variants, for the core server. Existing plugins with this ID will no longer load, and new installations and development reattachment are rejected.
+ - Raised the minimum session attribute time-to-live and grace period to 1 minute. Existing session attributes configured with a TTL or grace period under 1 minute are migrated to 1 minute, and the 30-second option has been removed from the System Console.
+
+### Improvements
+See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-available/) on the highlights in our latest release.
+
+#### User Interface
+ - Pre-packaged Calls plugin version [v1.12.7](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.7).
+ - Pre-packaged Jira plugin version [v5.1.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v5.1.0).
+ - Redesigned the [Server Logs](https://docs.mattermost.com/administration-guide/configure/reporting-configuration-settings) page in the System Console with search, level and time range filters, live tail, expandable log entries with copy buttons and admin console links, and keyboard navigation.
+ - Added support for viewing and editing post attributes directly on a post and in the right-hand sidebar.
+ - Added a [Preview/Code toggle](https://docs.mattermost.com/end-user-guide/collaborate/share-files-in-messages#view-markdown-files) to Markdown file previews and Markdown code blocks so Markdown can be viewed rendered or as source, and updated the file preview header icons to Compass icon buttons.
+ - Added a button to quote text selected in a message. Selecting text in a post now shows a "Quote selection" button that adds the selection as a quote to the message box of that channel or thread.
+ - Added a "Quote" option to the message actions menu that inserts the message as a quote into the message box.
+ - Added filters to Recent Mentions for team, channel, mention type and date. Recent Mentions now also includes mentions of groups you belong to.
+ - Added a [Collapse category with unread channels](https://docs.mattermost.com/end-user-guide/preferences/manage-your-display-options#collapse-category-with-unread-channels) setting to Settings > Display. When enabled, collapsing a sidebar category also hides its unread channels.
+ - Added an experimental product navigation rail beside the team sidebar, behind the ``ProductRail`` feature flag, for switching between Channels, Threads, Boards and products.
+ - Added a size field to [Interactive Dialogs](https://docs.mattermost.com/developers/integrate/plugins/interactive-dialogs) for selecting the modal width tier (small, medium, or large), and a grid subtype on collapsible elements that lays child sections out as a table.
+ - Added the ``refresh_on_return`` and ``submit_buttons`` fields to [interactive dialogs](https://docs.mattermost.com/developers/integrate/plugins/interactive-dialogs). With ``refresh_on_return``, a dialog re-fetches its form from ``source_url`` when a dialog opened on top of it closes. ``submit_buttons`` renders a select element's options as separate submit buttons. While a child dialog is open, the parent dialog is now hidden instead of shown underneath it. Action button descriptions now render beside the button as Markdown.
+ - Updated the custom profile attribute select and multiselect fields in user settings to use a new dropdown.
+ - Updated the custom profile attribute select and multiselect fields in the System Console user detail page and the Bots attributes section to use a new dropdown.
+ - Reworded the operator options for hierarchical attributes in the System Console membership policy editor and grouped them by direction in the hierarchy they match, with help text under each. Saved policies are unaffected.
+ - Updated Integrations and Custom Emoji pages to follow the current team's theme.
+ - Updated icons in buttons across the web app to use the standard compass-ui icon slots and unified the Recaps empty states.
+ - Migrated product buttons (modals, save panels, SpinnerButton, admin console, Bootstrap CTAs, links via asChild, mm_blocks/attachment actions, and component library) from @mattermost/shared to @mattermost/compass-ui, replaced ConfirmModal/GenericModal ``confirmButtonVariant`` with a destructive boolean (with a temporary ``confirmButtonVariant`` alias on GenericModal), and aligned Denim ``linkColor`` with Denim ``buttonBg`` (#1c58d9).
+ - Migrated icon-only buttons across the web app to Compass IconButton for consistent sizing, focus, and active states.
+ - Migrated channel intro and channel info right-hand sidebar action tiles to Compass TileButton.
+ - When creating a bot account or webhook, the username is now pre-filled from the display name or title. The bot form now asks for the display name before the username.
+ - Added descriptions of what each built-in Support Packet option includes to the Commercial Support dialog.
+ - Updated how the web app applies syntax highlighting to code blocks.
+ - Updated how adjacent text nodes are combined when inspecting Markdown in posts.
+ - Updated mention parsing of punctuated words in posts.
+ - Updated how inline links and character references are parsed in posts. Link destinations nested more than 32 parentheses deep, and parenthesized link titles containing an unescaped "(", are no longer parsed as links.
+ - Updated search popout team handling when a search link is opened.
+ - Updated how file image mini-previews are recorded when reading file information.
+
+#### Plugins/Integrations
+ - Added the [``KVListWithOptions``](https://docs.mattermost.com/developers/integrate/plugins/components/server/best-practices#how-should-plugins-list-key-value-store-keys-with-a-prefix) plugin API method, which filters plugin key-value store keys by prefix in the database. ``pluginapi`` ``ListKeys`` with ``WithPrefix`` now uses it, and page and count apply to the matching keys.
+ - Added the ``registerChannelViewComponent`` webapp plugin API so a plugin can replace a channel's post list and composer.
+ - Added the ``registerChannelKind`` plugin registry method, with which a plugin can have the webapp call its channels boards.
+ - Added plugin registry methods ``registerChannelInfoMenuAction`` and ``registerChannelBookmarksMenuAction`` so plugins can add Channel Info and bookmark menu items.
+ - Added plugin API methods ``GetClusterNodeID`` and ``GetClusterNodes``, and a ``SourceId`` field on ``PluginClusterEvent`` identifying the node that sent a plugin cluster event. See the [HA documentation](https://docs.mattermost.com/developers/integrate/plugins/components/server/ha#discover-cluster-node-identity) for details.
+ - Added the ``PropertyValuesHaveBeenUpdated`` plugin hook, invoked after property values are created, updated or deleted.
+ - Added the ``GetThreadFollowers`` and ``SetThreadFollowing`` plugin APIs.
+ - Added the ``GetSharedChannelCursor`` plugin API, which lets a plugin registered for Shared Channels read the sync cursor of a channel for one of its remotes.
+ - Added ``hideRoot`` to the thread viewer and published the file preview modal so plugins can open it.
+ - Added plugin API options: a placement for sidebar "Browse or create channels" menu items, ``showInNewChannelModal`` for channel type options, a published ``new_channel_modal`` limited to a plugin's channel types, ``WithTooltip`` on ``window.Components``, and a published ``channel_settings`` modal that opens on a given tab, including a plugin's.
+ - Added ``window.WebappUtils.isolatedFrames.register`` for plugins, which routes messages posted by a plugin's iframe (and frames nested in it) to the plugin's handler only, hiding them from every other message listener on the page.
+ - Allowed the ``ReceiveSharedChannelSyncMsg``, ``ReceiveSharedChannelAttachmentSyncMsg`` and ``ReceiveSharedChannelProfileImageSyncMsg`` plugin APIs to run on any cluster node, not only the cluster leader.
+ - Shared Channels: when a plugin's ``OnSharedChannelsSyncMsg`` hook returns an error, the channel's sync cursor is no longer advanced and the batch is sent again. Plugins should return an error only for failures that a resend can fix.
+ - Updated how the shared markdown parser handles reference-style links (``[text][label]``). Plugin and integration developers who call ``markdown.Parse``, ``ParseInlines`` or ``RenderBlockHTML`` from the ``server/public`` module need to update their code: ``markdown.Parse`` now returns ``*markdown.ReferenceDefinitions`` instead of ``[]*markdown.ReferenceDefinition``, and the other functions now accept that type.
+ - Widened the optional TypeScript peer dependency of the webapp platform packages to include TypeScript 6 and 7. The @mattermost/shared declaration files are now generated per module by the TypeScript compiler, which fixes type errors for plugins that do not use ``skipLibCheck`` and stops exporting 11 types that were exported unintentionally.
+ - Updated ``AI``-generated recap citations and message history processing.
+
+#### Administration
+ - Added [``mmctl logs``](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool) flags ``--follow``, ``--interval``, ``--level``, ``--node``, ``--search`` (``-s``) and ``--since``. ``mmctl logs`` now reads logs through ``POST /api/v4/logs/query``, which requires JSON file logging (``LogSettings.FileJson``) for filtering and following; with plain-text log files it prints the logs unfiltered as before. ``--follow``, ``--level``, ``--node``, ``--search`` and ``--since`` require a v12.2 or later server. ``mmctl logs`` now always uses the logrus format, colored on a terminal (set ``NO_COLOR`` to turn colors off), and shows when the server logged each entry. The ``--logrus`` flag is deprecated.
+ - Added the ``--plugin`` flag to [``mmctl logs``](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool), which shows only the log entries of the given plugin IDs. Added shell completion of plugin IDs to ``mmctl logs --plugin`` and ``mmctl plugin enable``, ``disable`` and ``delete``.
+ - Added a "Re-run checks" button to the System Console Site health page and an ``mmctl health run`` command, to run the Health Dashboard check on demand. System admins can also start a run by creating a ``health_check`` job with ``POST /api/v4/jobs``. See the [Site Health Dashboard documentation](https://docs.mattermost.com/administration-guide/manage/site-health-dashboard) for details.
+ - Added per-node memory diagnostics and Health Dashboard warnings for memory pressure, out-of-memory kills, low host memory, and incompatible Go memory limits.
+ - Added CPU pressure diagnostics and per-node Site Health Dashboard findings for CPU throttling, ``GOMAXPROCS`` configuration, and sustained host load.
+ - Added a Site Health finding for unreachable push notification servers.
+ - Added health dashboard checks for low and critically low local file storage disk space.
+ - Added a warning health finding when the PostgreSQL ``Posts`` table has many dead tuples that vacuum has not removed, with guidance for both a blocked and a lagging vacuum.
+ - Added the license expiry date, seat count enforcement, extra users and licensed features to the Support Packet diagnostics.
+ - Added a unique ``packet_id`` field to the ``metadata.yaml`` file of generated [Support Packets](https://docs.mattermost.com/administration-guide/manage/admin/generating-support-packet).
+ - Added a node selector and a node column to System Console > Reporting > Server Logs on clusters.
+ - Added a Plugin filter to the Server Logs viewer in the System Console. Added a ``fields`` filter to ``POST /api/v4/logs/query`` that keeps log entries whose fields equal the given values.
+ - Added "View logs" links to System Console plugin pages that open the Server Logs viewer filtered to that plugin.
+ - Added a custom from/to time range option to the Duration filter of the System Console Server Logs page.
+ - Added [scoped team/channel migration](https://docs.mattermost.com/administration-guide/onboard/bulk-loading-data#unmatched-users-report) reporting for users and memberships that could not be matched on the destination server. After the import job completes, ``mmctl import job show`` displays the count and the path to a CSV report (``<import-file>.unmatched-users.csv``) listing each unmatched user or skipped membership with the reason and the action taken. A team membership referencing a team that is missing on the destination is now skipped and logged instead of aborting the import.
+ - Added an optional priority to the plugin ``registerSearchComponents`` API. Plugin search types with a positive priority are shown before Messages and Files and are selected by default when search is opened. The Messages and Files search inputs now read "Search messages by keyword" and "Search files by keyword".
+ - Added an Advanced CEL editor for team membership rules on the System Console team page (System Admins only). Team and channel admins now see rules that require the Advanced Editor as read-only. Saving a channel, team or parent policy now rejects membership rules the sync cannot evaluate, and the CEL check API accepts a new ``membership`` flag to run the same check.
+ - Added a "Bot accounts" role to attribute-based permission policies in the System Console, so a policy can apply only to bot accounts. Bot accounts policies apply to requests made with a bot's access token or session, and take the place of Members policies for bots on the permissions they cover. As with other permission policies, once a Bot accounts policy covers a permission, users without a policy for that permission are denied it. Permission policies that target an unsupported role are now rejected.
+ - Added the ``channel_write_access`` and ``channel_management_access`` actions to attribute-based access control policies. A permission policy or channel policy with ``channel_write_access`` restricts posting, editing, reactions, file uploads and drafts in a channel; ``channel_management_access`` restricts changing the channel's settings, members, bookmarks and policies. System admins are not bound by ``channel_management_access``.
+ - Added the ``biometric_authenticated`` mobile session attribute for attribute-based access control policies.
+ - The metrics plugin is now enabled by default on servers where Performance Monitoring is enabled, unless an administrator has explicitly enabled or disabled the plugin.
+ - Support Packets now record whether the server's audit logging is active (``audit_logging_active`` in ``diagnostics.yaml``), and offline health checks with ``mmctl health check --packet`` use it instead of judging audit logging from the machine running ``mmctl``.
+ - Logger metrics (queue used, logged, error, dropped and blocked) are now reported for audit log targets, labelled with an ``audit/`` target prefix.
+ - Added the ``mattermost_websocket_reconnect_failures_total`` metric, which reports why a websocket reconnect could not resume its previous connection and whether that connection was on another cluster node. The failure type of ``mattermost_websocket_reconnects_total`` now counts every reconnect that could not resume, and the metric gained an ``origin_client`` label. Added a Grafana dashboard for these metrics.
+ - System Console Server Logs now shows log entry times in the admin's timezone and clock format, and includes the date when entries are not all from today.
+ - The System Console Server Logs viewer now keeps its search, levels, node and time range filters in the URL, so a view can be shared with a link and survives a page reload.
+ - Stopped writing raw session tokens, personal access tokens, OAuth tokens, email verification, password recovery and team invitation tokens, and desktop tokens to the server log when authentication fails. Affected log lines and 401 error messages now show ``token=<redacted>`` instead of the presented value.
+ - Reduced log noise on new servers: a missing SiteURL now logs a warning instead of an error, a missing default license file is no longer logged, and a skipped welcome email with email disabled and skipped post reminders with no system admin now log at debug level.
+ - The Site URL and SMTP connection settings can now only be changed by system admins.
+ - The SMTP connection test now applies ``EmailSettings.SMTPServerTimeout`` to the whole handshake (connect, greeting, EHLO, STARTTLS and authentication) instead of only the connect and greeting. Support Packet diagnostics now probe external services concurrently.
+ - Bulk import and export now include post priority and post acknowledgements for posts and direct posts.
+ - Removed redundant State, First detected and Last checked rows from expanded findings on the System Console Site health page. Findings that recur now show when they were first detected, and the Details section is hidden when it has nothing to show.
+ - Removed the Company Information edit page from the System Console.
+ - Removed the link to the Mattermost Translation Server from Settings > Display > Language and System Console > Localization.
+ - The data retention job now updates its last activity time as it deletes data, so a long-running job is no longer reported as stuck.
+ - Improved file name handling in ``mmctl support packet`` and compliance export downloads.
+ - The Support Packet's SAML diagnostic now checks the IdP certificate and, when encryption is enabled, the service provider key pair, instead of fetching the optional IdP metadata URL. It no longer reports a SAML failure when no metadata URL is configured.
+ - Added ``mmctl plugin keys``, ``mmctl plugin keys add``, and ``mmctl plugin keys delete`` commands (local mode only) to manage plugin signature public keys, along with local-mode API endpoints under ``/api/v4/plugins/public_keys``.
+ - Server Logs live tail in the System Console now fetches only new log entries, briefly highlights them, and holds them behind a "new entries" button while the admin is reading elsewhere in the list.
+ - Added documentation on [turning off Elasticsearch indexing before a large bulk permanent channel delete](https://docs.mattermost.com/deployment-guide/scale/enterprise-search#should-i-turn-off-indexing-before-a-large-bulk-permanent-channel-delete), and that leftover search documents do not require a full index purge.
+ - Updated advanced logging configuration.
+
+#### mmctl
+ - ``mmctl system`` commands now propagate context, so Ctrl+C and SIGTERM cancel in-flight API calls cleanly.
+
+#### Performance
+ - Improved the performance of loading and filtering server logs in the System Console, and streamed log downloads instead of loading the whole log file into memory.
+ - Improved Server Logs performance in the System Console when filtering by a date range in the past.
+ - Improved link metadata caching for posts that include permalink previews.
+ - Server Logs searches now stop after 20 seconds or 1 GiB of log file per node. The ``POST /api/v4/logs/query`` and ``GET /api/v4/logs`` responses then end with an entry that has ``scan_limited`` set to true and ``scanned_back_to`` set to the oldest timestamp read, and the System Console shows how far back each node searched. A new search in the System Console now cancels the previous one instead of waiting for it.
+ - Updated the default page size used when reading a thread or a channel's pinned posts.
+
+### Bug Fixes
+ - Fixed an issue where setting ``ServiceSettings.MaximumURLLength`` low enough that the URL-too-long error page URL also exceeded the limit trapped the browser in a redirect loop.
+ - Fixed an issue where copying text from a message and pasting it into the message box did not keep the message's Markdown formatting.
+ - Fixed an issue where a User Attribute created or changed in Attribute Management did not appear in User Management until the page was refreshed.
+ - Fixed an issue where searching for a user group by its mention (with a leading "@") returned no results, which broke the "Add N people" shortcut for adding a group's members to a channel.
+ - Fixed an issue where disabling Guest Access while guest magic link login remained enabled blocked login for all users with a "Received invalid response from the server." error.
+ - Fixed an issue where permanently deleting a user left some of their data behind.
+ - Fixed log backup filenames to use the server's local timezone instead of UTC, matching the timezone of log entry timestamps.
+ - Fixed an issue where the pulsing tour-tip indicator could intercept clicks meant for the button under it, such as the burn-on-read toggle in the message box.
+ - Fixed managed channel categories disappearing from the sidebar on servers installed with the feature enabled. A startup migration moved the ``managed_channel_categories`` property group to an unsupported version on the first restart, which made the properties API report the group as missing; affected servers repair themselves on their next restart.
+ - Fixed double focus borders on Compass form fields and buttons by suppressing the webapp accessibility focus shadow where Compass already draws its own ring.
+ - Fixed Connected Workspaces shared-channel member synchronization when email domain restrictions were enabled.
+ - Fixed an issue where the link preview could not be removed from a Burn-on-Read message.
+ - Fixed ``/secure-connection`` and ``/share-channel`` argument values being cut off at the first space. Values wrapped in straight or curly quotes now keep their spaces. These commands now reply with an error instead of ignoring or partly stripping input that used to go through: an unquoted value with spaces, an extra word after an action or a flag's value, an unclosed quote, or text right after a closing quote.
+ - Fixed the help text for the Test Push Notification Service option, which described the Hosted Push Notification Service. Fixed mistranslated strings in several languages, including "Updating..." shown as "Uploading..." in Japanese, Korean and Brazilian Portuguese.
+ - Fixed inline Markdown images being rendered as block elements, which made channel headers, "updated the channel header" system messages, and messages containing several images wrap after every image.
+ - Fixed an issue where a failed secure connection creation left an unconfirmed connection behind.
+ - Fixed slash command autocomplete for ``/secure-connection`` and ``/share-channel`` splitting values in single or curly quotes at the first space.
+ - Fixed an issue where shared channel reactions could be removed or restored incorrectly when they were synced more than once, and where removing a reaction from a remote caused a sync error on the originating server.
+ - Fixed an issue where shared channel post acknowledgements could reappear after being withdrawn, or fail to sync when a user acknowledged a post again after withdrawing.
+ - Fixed audit targets defined in ``MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL`` not being counted as active audit logging, which caused a false startup warning and the System Console reporting audit logging as inactive.
+ - Fixed an issue where the System Console reported server audit logging as active or inactive based on saved settings rather than on the audit log targets the server is actually writing to, for example after changing audit settings without a restart or when an audit target failed to start.
+ - Fixed an issue where testing the Elasticsearch or OpenSearch connection could mark a stopped search engine as running without fully starting it.
+ - Fixed an issue where an interactive dialog with a checkbox matrix could not be submitted after it refreshed on return and the refresh removed a row or column the user had selected.
+ - Fixed the ``server_names`` filter of ``POST /api/v4/logs/query`` dropping the local node's logs on clusters; unknown names are now ignored.
+ - Fixed date filters not applying to log entries with UTC timestamps in ``POST /api/v4/logs/query``.
+ - Fixed a missing divider between the Enable Join/Leave Messages and Performance Debugging settings in Settings > Advanced.
+ - Fixed an issue where a content reviewer could miss the deletion report or the removal notice in their review thread after a flagged post was removed.
+ - Fixed an issue where the rich text editor drafts did not reappear after switching channels, AI rewrites did not show in the editor, messages sent right after typing were cut off, and editing a message did not place the cursor at the end of the text.
+ - Fixed an issue where the Manage Outgoing OAuth Credentials permission for All Members was not saved in the System Scheme.
+ - Fixed an issue where the Download Support Packet button in the Commercial Support dialog could keep loading indefinitely when the download failed, and the Support Packet download now works for clients that authenticate with a token.
+ - Fixed an issue where embedded YouTube videos showed a "Video player configuration error" instead of playing. The YouTube player now always sends the Mattermost site origin as its referrer, and the experimental "YouTube Referrer Policy" System Console setting was removed because it no longer has any effect.
+ - Fixed an issue where System Console page titles, such as plugin names, were split apart when the sidebar search highlighted part of the title.
+ - Fixed an issue where cancelling an inline edit of a scheduled post kept the discarded text for the next edit, and where the editor closed when saving failed or when the delete confirmation for an empty message was shown.
+ - Fixed an issue where users could not forward a message to a public channel they had not joined.
+ - Fixed an issue where typing quickly in the AI Rewrite custom prompt with Korean or another IME language could drop characters, such as the space between words.
+ - Fixed successful CWS logins being recorded as failed in the audit log.
+ - Fixed an issue where the web and desktop apps requested channel classification fields on non-Enterprise Advanced licenses, causing a server error and, with Developer Mode enabled, a JavaScript error banner.
+ - Fixed an issue where Channel Settings showed "Classification markings are informational only" even when the classification clearance attribute was enabled.
+ - Fixed an issue where re-synced Shared Channels posts containing mentions of remote users were marked as edited even though they had not changed.
+ - Fixed an issue where a Shared Channels sync in progress could overwrite a sync cursor set by a plugin, so a requested history re-sync did not happen.
+ - Fixed an issue where a shared channel send could fail after a remote replied with more bytes than it declared.
+ - Fixed an issue where retrying a failed secure connection invite acceptance with the same name was rejected as already added.
+ - Fixed an issue where shared channel changes could fail to reach remote workspaces after the cluster leader crashed, restarted or changed.
+ - Fixed an issue where Shared Channels could lose posts, edits, reactions and acknowledgements when catching up after a remote was offline.
+ - Fixed cloud preview workspaces with non-trial licenses ignoring the configured preview landing path, and stopped the preview welcome modal from showing another team's slides when the current team has none.
+ - Fixed an issue where deleting the last reply in a thread could time out and fail on servers with very large ``Posts`` tables.
+ - Fixed GET ``/api/v4/users/username/{username}`` returning 404 for remote users whose usernames contain a colon, which caused Direct Message links to remote users to fail on a fresh page load.
+ - Fixed AD/LDAP connection test falsely reporting success, and a confusing internal error on login/sync, when connecting to an LDAPS port (e.g. 636) with Connection Security left unset. The server now returns an actionable error indicating TLS must be enabled.
+ - Fixed plugins crashing when they set a response header after the HTTP request was canceled.
+ - Fixed ``/secure-connection accept`` and the accept invite API returning raw transport or remote-supplied error text when the remote site cannot be reached, returns an invalid response, or rejects the invitation. These now return translated errors instead.
+ - Fixed the channel intro briefly showing the wrong action buttons and shifting the message list while loading on workspaces with fewer than 10 users.
+ - Updated WebSocket event delivery for guest sessions related to profile and property attribute updates.
+ - Updated binary WebSocket frame handling so that frames are read within the connection's message size limit before being decoded.
+ - Updated WebSocket request parameter handling and WebSocket connection lifecycle management.
+ - Updated how multipart form data is handled when uploading files.
+ - Updated integration action URL handling.
+ - Updated login session handling.
+ - Updated session lookup message parameters.
+ - Updated channel bookmark list handling.
+ - Updated file storage connection handling.
+ - Updated office document text extraction.
+ - Updated burn-on-read post field handling.
+ - Updated WebSocket connection registration.
+ - Updated WebSocket reconnect handling.
+
+### API Changes
+ - Added ``POST /api/v4/properties/groups/access_control/attributes/search`` (``searchGlobalAttributeListing``) API endpoint. The Global Attributes page now loads with a single request.
+ - Added an optional ``search`` field to ``POST /api/v4/logs/query`` that searches each node's log file on the server.
+ - Added support for setting post attribute values when creating a post: ``POST /api/v4/posts`` accepts them in ``metadata.property_values``, and they are returned in the response and the posted websocket event. Available behind the ``PostAttributes`` feature flag.
+ - ``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` and ``direction=down`` now includes replies deleted since ``fromUpdateAt``, returned with ``delete_at`` set and without their message or metadata.
+ - ``GET /api/v4/logs`` no longer fails in a High Availability cluster when another node's logs cannot be fetched. That node's section contains a single error line instead. The failed-node entry returned by ``GET /api/v4/logs`` and ``POST /api/v4/logs/query`` now includes ``"failed_node": true``. ``POST /api/v4/logs/query`` now returns 400 instead of 500 for a missing or malformed filter.
+ - Removed ``PUT /api/v4/cloud/customer`` (``updateCloudCustomer``) API endpoint.
+ - Removed ``PUT /api/v4/cloud/customer/address`` (``updateCloudCustomerAddress``) API endpoint.
+ - Removed ``GET /api/v4/cloud/subscription/invoices`` (``getInvoicesForSubscription``) API endpoint.
+ - Removed ``GET /api/v4/cloud/subscription/invoices/{invoice_id}/pdf`` (``getSubscriptionInvoicePDF``) API endpoint.
+ - Removed ``GET /api/v4/usage/posts`` (``getPostsUsage``) API endpoint.
+ - Removed ``GET /api/v4/usage/storage`` (``getStorageUsage``) API endpoint.
+ - Removed ``GET /api/v4/usage/teams`` (``getTeamsUsage``) API endpoint.
+ - Removed ``GET /api/v4/hosted_customer/signup_available`` (``handleSignupAvailable``) API endpoint.
+ - Removed the ``First-Inaccessible-File-Time`` response header from file and post endpoints.
+
+### Audit Log Event Changes
+ - Added ``meta.user_created`` to ``completeSaml`` and ``completeOAuth`` audit events to indicate JIT account provisioning.
+
+### Go Version
+ - v12.2 is built with Go ``v1.27.3``.
+
+### Open Source Components
+ - Added ``spf13/pflag`` to https://github.com/mattermost/mattermost/.
+ - Added ``ProtonMail/go-crypto`` to https://github.com/mattermost/mattermost/.
+ - Added ``@mattermost/compass-ui`` to https://github.com/mattermost/mattermost/.
+ - Added ``@typescript/typescript6`` to https://github.com/mattermost/mattermost/.
+ - Added ``google/renameio`` to https://github.com/mattermost/mattermost/.
+
+
 ## Release v12.1 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-1-feature-release}
 
 **Release day: 2026-11-16**
