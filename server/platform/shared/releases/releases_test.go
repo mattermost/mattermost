@@ -56,25 +56,7 @@ func TestFetchLatest(t *testing.T) {
 	})
 }
 
-func TestLatestVersion(t *testing.T) {
-	serve := func(t *testing.T, status int, body string) string {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(status)
-			_, _ = w.Write([]byte(body))
-		}))
-		t.Cleanup(server.Close)
-		return server.URL
-	}
-
-	t.Run("drops the tag's v prefix", func(t *testing.T) {
-		version, err := LatestVersion(context.Background(), serve(t, http.StatusOK, `{"id": 7, "tag_name": "v12.1.0"}`))
-		require.NoError(t, err)
-		assert.Equal(t, "12.1.0", version)
-	})
-
-	t.Run("returns the fetch error", func(t *testing.T) {
-		version, err := LatestVersion(context.Background(), serve(t, http.StatusBadGateway, ""))
-		require.EqualError(t, err, "unexpected status code 502")
-		assert.Empty(t, version)
-	})
+func TestVersion(t *testing.T) {
+	assert.Equal(t, "12.1.0", Version(&model.GithubReleaseInfo{TagName: "v12.1.0"}))
+	assert.Equal(t, "12.1.0", Version(&model.GithubReleaseInfo{TagName: "12.1.0"}))
 }

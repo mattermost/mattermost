@@ -54,37 +54,32 @@ func TestGetLatestVersion(t *testing.T) {
 		require.Nil(t, err)
 	})
 
+	var requests atomic.Int32
+	countingServer := func(t *testing.T, status int) *httptest.Server {
+		requests.Store(0)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(status)
+			_, err := w.Write(validJSON)
+			assert.NoError(t, err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+
 	t.Run("get latest mm version from cache", func(t *testing.T) {
-		err := th.App.clearLatestVersionCache()
-		require.NoError(t, err)
+		require.NoError(t, th.App.clearLatestVersionCache())
+		server := countingServer(t, http.StatusOK)
+		for range 2 {
+			_, appErr := th.App.GetLatestVersion(th.Context, server.URL)
+			require.Nil(t, appErr)
+		}
+		assert.Equal(t, int32(1), requests.Load(), "did not get cached result")
 
-		updatedJSON, jsonErr := json.Marshal(&model.GithubReleaseInfo{Id: 57117096, TagName: "v6.3.1"})
-		require.NoError(t, jsonErr)
-		var served atomic.Bool
-		changingServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			body := validJSON
-			if served.Swap(true) {
-				body = updatedJSON
-			}
-			_, err := w.Write(body)
-			require.NoError(t, err)
-		}))
-		defer changingServer.Close()
-
-		originalResult, appErr := th.App.GetLatestVersion(th.Context, changingServer.URL)
+		other := countingServer(t, http.StatusOK)
+		_, appErr := th.App.GetLatestVersion(th.Context, other.URL)
 		require.Nil(t, appErr)
-		cachedResult, appErr := th.App.GetLatestVersion(th.Context, changingServer.URL)
-		require.Nil(t, appErr)
-		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
-
-		otherServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			_, err := w.Write(updatedJSON)
-			require.NoError(t, err)
-		}))
-		defer otherServer.Close()
-		otherResult, appErr := th.App.GetLatestVersion(th.Context, otherServer.URL)
-		require.Nil(t, appErr)
-		require.Equal(t, "v6.3.1", otherResult.TagName, "another URL is looked up on its own")
+		assert.Equal(t, int32(1), requests.Load(), "another URL is looked up on its own")
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
@@ -105,19 +100,6 @@ func TestGetLatestVersion(t *testing.T) {
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
 	})
-
-	var requests atomic.Int32
-	countingServer := func(t *testing.T, status int) *httptest.Server {
-		requests.Store(0)
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			requests.Add(1)
-			w.WriteHeader(status)
-			_, err := w.Write(validJSON)
-			assert.NoError(t, err)
-		}))
-		t.Cleanup(server.Close)
-		return server
-	}
 
 	t.Run("a failure is cached", func(t *testing.T) {
 		require.NoError(t, th.App.clearLatestVersionCache())

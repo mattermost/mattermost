@@ -266,13 +266,16 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.get_latest_version.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	cacheKey := latestVersionCacheKeyPrefix + latestVersionUrl
+	failureCacheKey := latestVersionFailureCacheKeyPrefix + latestVersionUrl
+
 	var cachedLatestVersion *model.GithubReleaseInfo
-	if cacheErr := latestVersionCache.Get(latestVersionCacheKeyPrefix+latestVersionUrl, &cachedLatestVersion); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get(cacheKey, &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
 	}
 
 	var cachedFailure string
-	if cacheErr := latestVersionCache.Get(latestVersionFailureCacheKeyPrefix+latestVersionUrl, &cachedFailure); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get(failureCacheKey, &cachedFailure); cacheErr == nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, cachedFailure, http.StatusInternalServerError)
 	}
 
@@ -282,14 +285,14 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	if err != nil {
 		// A cancelled request says nothing about whether the feed is reachable.
 		if rctx.Context().Err() == nil {
-			if cacheErr := latestVersionCache.SetWithExpiry(latestVersionFailureCacheKeyPrefix+latestVersionUrl, err.Error(), latestVersionFailureExpiry); cacheErr != nil {
+			if cacheErr := latestVersionCache.SetWithExpiry(failureCacheKey, err.Error(), latestVersionFailureExpiry); cacheErr != nil {
 				rctx.Logger().Warn("Failed to cache the latest version failure", mlog.Err(cacheErr))
 			}
 		}
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = latestVersionCache.SetWithExpiry(latestVersionCacheKeyPrefix+latestVersionUrl, releaseInfoResponse, 24*time.Hour)
+	err = latestVersionCache.SetWithExpiry(cacheKey, releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}

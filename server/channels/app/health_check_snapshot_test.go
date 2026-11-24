@@ -307,6 +307,10 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	live, err := th.App.BuildHealthSnapshot(th.Context)
 	require.NoError(t, err)
 
+	// What mmctl fills in, since packets don't record the latest release.
+	latestRelease, err := releases.FetchLatest(th.Context.Context(), th.App.Srv().LatestVersionURL())
+	require.NoError(t, err)
+
 	var noCPUProfile time.Duration
 	files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: &noCPUProfile})
 	readPacket := func(t *testing.T, files []model.FileData) *packet.Packet {
@@ -317,10 +321,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
 		require.NoError(t, readErr)
 		assert.Empty(t, p.Warnings)
-		// What mmctl fills in, since packets don't record the latest release.
-		latest, fetchErr := releases.LatestVersion(th.Context.Context(), latestVersionServer(t).URL)
-		require.NoError(t, fetchErr)
-		p.Snapshot.Version.Latest = latest
+		p.Snapshot.Version.Latest = releases.Version(latestRelease)
 		return p
 	}
 	offline := readPacket(t, files)
