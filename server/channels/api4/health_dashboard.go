@@ -111,10 +111,15 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	// A local session has no user, so its report is in UTC.
+	location := time.UTC
+	if userID := c.AppContext.Session().UserId; userID != "" {
+		user, appErr := c.App.GetUser(c.AppContext, userID)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		location = user.GetTimezoneLocation()
 	}
 
 	list, appErr := c.App.GetHealthFindings(c.AppContext, model.HealthFindingFilter{Muted: model.MutedIncluded})
@@ -136,7 +141,6 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 	_, locale := i18n.GetTranslationsAndLocaleFromRequest(r)
 
 	cfg := c.App.Config()
-	location := user.GetTimezoneLocation()
 	now := time.Now().In(location)
 	healthReport := report.Build(list, report.Options{
 		T:             c.AppContext.T,
