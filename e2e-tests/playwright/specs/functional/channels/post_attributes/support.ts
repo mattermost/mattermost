@@ -468,6 +468,16 @@ export function waitForCreatePost(page: Page): Promise<Request> {
     });
 }
 
+/**
+ * Resolves with the request the composer sends to schedule a post. Arm it before the
+ * click that schedules, or the request is missed.
+ */
+export function waitForCreateScheduledPost(page: Page): Promise<Request> {
+    return page.waitForRequest((request) => {
+        return request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v4/posts/schedule');
+    });
+}
+
 export type SentValue = {field_id: string; value: unknown};
 
 /**
