@@ -809,7 +809,6 @@ func issuePasskeyTicket(t *testing.T, th *TestHelper, session *model.Session) st
 	return ticket.Ticket
 }
 
-// useTicketStore swaps in a token store with the given hooks until the test ends.
 func useTicketStore(t *testing.T, th *TestHelper, tokens *ticketTokenStore) {
 	t.Helper()
 	original := th.App.Srv().Store()
@@ -894,7 +893,6 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		require.Nil(t, appErr)
 		return passkeys
 	}
-	// register finishes a ticket registration that must succeed.
 	register := func(t *testing.T, ticket string) *model.Passkey {
 		t.Helper()
 		opts := begin(t, ticket)
@@ -1303,7 +1301,6 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.NoError(t, err)
 		return resp
 	}
-	// verify runs a whole ceremony with the given authenticator.
 	verify := func(t *testing.T, ticket string, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) *model.AppError {
 		t.Helper()
 		opts := begin(t, ticket)
@@ -1333,7 +1330,6 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.Nil(t, appErr)
 		return len(sessions)
 	}
-	// saveCeremony stores a verification ceremony token with the given contents.
 	saveCeremony := func(t *testing.T, extra string, createAt int64) string {
 		t.Helper()
 		token := model.NewToken(model.TokenTypePasskeyVerification, extra)
@@ -2095,7 +2091,7 @@ func (w *passkeyStoreWrapper) Token() store.TokenStore {
 	return w.Store.Token()
 }
 
-// failingGetSessionStore fails every session read. Every other call passes through to the real store.
+// Every other call passes through to the real store.
 type failingGetSessionStore struct {
 	store.SessionStore
 }
@@ -2104,7 +2100,7 @@ func (failingGetSessionStore) Get(request.CTX, string) (*model.Session, error) {
 	return nil, errors.New("db down")
 }
 
-// failingSaveTokenStore refuses every Save. Every other call passes through to the real store.
+// Every other call passes through to the real store.
 type failingSaveTokenStore struct {
 	store.TokenStore
 }
@@ -2147,7 +2143,7 @@ func (s *racingPasskeyStore) UpdateUsage(id string, prevSignCount, signCount, la
 	}, id, prevSignCount, signCount, lastUsedAt)
 }
 
-// failingConsumeTokenStore refuses every ConsumeOnce. Every other call passes through to the real store.
+// Every other call passes through to the real store.
 type failingConsumeTokenStore struct {
 	store.TokenStore
 }
@@ -2156,8 +2152,7 @@ func (failingConsumeTokenStore) ConsumeOnce(string, string) (*model.Token, error
 	return nil, errors.New("db down")
 }
 
-// failingGetForUserPasskeyStore fails every read of a user's passkeys. Every other call passes through
-// to the real store.
+// Every other call passes through to the real store.
 type failingGetForUserPasskeyStore struct {
 	store.PasskeyStore
 }

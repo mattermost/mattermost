@@ -135,7 +135,7 @@ type passkeyCeremony struct {
 	UserID      string                `json:"user_id"`
 	SessionID   string                `json:"session_id"`
 	SessionData *webauthn.SessionData `json:"session_data"`
-	// Ticket is the enrollment ticket the ceremony was begun with; empty for one begun from a session.
+	// Empty for a ceremony begun from a session.
 	Ticket string `json:"ticket,omitempty"`
 }
 
@@ -211,8 +211,6 @@ func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Sess
 	return session, nil
 }
 
-// beginPasskeyRegistration is the begin step for both entry points. ticket is stored in the ceremony
-// so finish can tell which entry point began it; it is empty for a ceremony begun from a session.
 func (a *App) beginPasskeyRegistration(rctx request.CTX, session *model.Session, ticket string) (*model.PasskeyRegistrationOptions, *model.AppError) {
 	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil {
@@ -441,7 +439,6 @@ func (a *App) FinishPasskeyRegistrationWithTicket(rctx request.CTX, ceremonyID, 
 	return a.completePasskeyRegistration(rctx, where, session, ceremony, name, credential)
 }
 
-// takePasskeyCeremony validates the name, then consumes the registration ceremony and decodes it.
 func (a *App) takePasskeyCeremony(where, ceremonyID, name, userAgent string) (string, *passkeyCeremony, *model.AppError) {
 	name = strings.TrimSpace(name)
 	if utf8.RuneCountInString(name) > model.PasskeyNameMaxRunes {
@@ -468,8 +465,6 @@ func (a *App) takePasskeyCeremony(where, ceremonyID, name, userAgent string) (st
 	return name, &ceremony, nil
 }
 
-// completePasskeyRegistration is the part of finishing that both entry points share, once the
-// ceremony is consumed and the session it is bound to is known.
 func (a *App) completePasskeyRegistration(rctx request.CTX, where string, session *model.Session, ceremony *passkeyCeremony, name string, credential []byte) (*model.Passkey, *model.AppError) {
 	// Checked again here: the session may have been recent when the ceremony began but not by now.
 	if !passkeySignedInRecently(session) {
@@ -543,8 +538,7 @@ func (a *App) completePasskeyRegistration(rctx request.CTX, where string, sessio
 	return saved, nil
 }
 
-// consumePasskeyTicket spends the enrollment ticket. A ticket that is gone or expired is
-// ticket_invalid; any other failure is a 500 with failedID.
+// A ticket that is gone or expired is ticket_invalid; any other failure is a 500 with failedID.
 func (a *App) consumePasskeyTicket(where, failedID, ticket string) *model.AppError {
 	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyEnrollmentTicket, ticket)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
@@ -667,8 +661,8 @@ func checkPasskeyCounter(where string, parsed *protocol.ParsedCredentialAssertio
 	return nil
 }
 
-// recordPasskeyUse stores the new counter and last-used time. The update is compare-and-set on the
-// counter, so a concurrent use that got there first makes this one counter_regressed.
+// The update is compare-and-set on the counter, so a concurrent use that got there first makes
+// this one counter_regressed.
 func (a *App) recordPasskeyUse(where string, passkey *model.Passkey, cred *webauthn.Credential) *model.AppError {
 	if err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis()); err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
