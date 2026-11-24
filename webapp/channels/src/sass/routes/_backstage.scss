@@ -18,7 +18,7 @@
     .fa {
         margin-right: 7px;
         font-size: 1.1em;
-        font-weight: bold;
+        font-weight: 600;
     }
 
     &:hover,
@@ -448,7 +448,7 @@
 }
 
 .emoji-list__table-header {
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .emoji-list__name {
@@ -678,7 +678,7 @@
 
     display: flex;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .outgoing-oauth-connections-docs-link {

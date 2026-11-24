@@ -25,7 +25,7 @@
 .system-notice__title {
     overflow: hidden;
     padding-bottom: 10px;
-    font-weight: bold;
+    font-weight: 600;
     line-height: 16px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -53,7 +53,7 @@
     .btn {
         overflow: hidden;
         flex: 1;
-        font-weight: bold;
+        font-weight: 600;
         text-overflow: ellipsis;
 
         &:last-child {
