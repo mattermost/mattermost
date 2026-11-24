@@ -272,6 +272,31 @@ func TestCheckLine(t *testing.T) {
 			wantMsg: diagDropIndex,
 		},
 		{
+			name:    "block comment opener inside a dollar-quoted string is literal",
+			line:    "COMMENT ON COLUMN t.route IS $$Matches /* routes.$$;\nDROP INDEX idx_old;",
+			wantMsg: diagDropIndex,
+		},
+		{
+			name:    "tagged dollar quote ends only at its own tag",
+			line:    "COMMENT ON TABLE t IS $doc$ $$ /* -- ' $doc$;\nDROP INDEX idx_old;",
+			wantMsg: diagDropIndex,
+		},
+		{
+			name:    "index DDL inside a DO block is still checked",
+			line:    "DO $$ BEGIN EXECUTE 'CREATE INDEX idx_a ON t(a)'; END $$;",
+			wantMsg: diagCreateIndex,
+		},
+		{
+			name:    "positional parameter is not a dollar quote",
+			line:    "SELECT $1; DROP INDEX idx_old;",
+			wantMsg: diagDropIndex,
+		},
+		{
+			name:    "unterminated block comment falls back to reporting",
+			line:    "/* note\nDROP INDEX idx_old;",
+			wantMsg: diagDropIndex,
+		},
+		{
 			name:    "unbalanced quote cannot hide a blocking statement behind a safe one",
 			line:    "-- x\nSELECT 'oops;\nCREATE INDEX CONCURRENTLY IF NOT EXISTS idx_a ON t(a);\nCREATE INDEX idx_b ON t(b);",
 			wantMsg: diagCreateIndex,

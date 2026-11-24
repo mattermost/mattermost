@@ -57,16 +57,58 @@ func isIdentByte(c byte) bool {
 	return c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
 }
 
+// dollarQuoteTag returns the $tag$ or $$ delimiter starting at s[i], or "".
+func dollarQuoteTag(s string, i int) string {
+	if s[i] != '$' || i > 0 && (isIdentByte(s[i-1]) || s[i-1] == '$') {
+		return ""
+	}
+	for j := i + 1; j < len(s); j++ {
+		switch {
+		case s[j] == '$':
+			return s[i : j+1]
+		case !isIdentByte(s[j]) || j == i+1 && s[j] >= '0' && s[j] <= '9':
+			return ""
+		}
+	}
+	return ""
+}
+
+func newStatement(s string, start, end int, code string) (statement, bool) {
+	text := s[start:end]
+	trimmed := strings.TrimLeft(text, " \t\r\n")
+	return statement{start: end - len(trimmed), text: text, code: code}, trimmed != ""
+}
+
+// splitRaw splits on every semicolon and keeps comments. It is the fallback
+// when splitStatements cannot lex s, so it errs towards reporting.
+func splitRaw(s string) []statement {
+	var stmts []statement
+	start := 0
+	for start <= len(s) {
+		end := strings.IndexByte(s[start:], ';')
+		if end < 0 {
+			end = len(s)
+		} else {
+			end += start
+		}
+		if st, ok := newStatement(s, start, end, s[start:end]); ok {
+			stmts = append(stmts, st)
+		}
+		start = end + 1
+	}
+	return stmts
+}
+
 // splitStatements splits s on semicolons outside quoted strings, quoted
-// identifiers, -- line comments and /* */ block comments.
+// identifiers, dollar-quoted strings, -- line comments and /* */ block
+// comments. Comments are removed from each statement's code.
 func splitStatements(s string) []statement {
 	var stmts []statement
 	var code strings.Builder
 	start := 0
 	flush := func(end int) {
-		text := s[start:end]
-		if trimmed := strings.TrimLeft(text, " \t\r\n"); trimmed != "" {
-			stmts = append(stmts, statement{start: end - len(trimmed), text: text, code: code.String()})
+		if st, ok := newStatement(s, start, end, code.String()); ok {
+			stmts = append(stmts, st)
 		}
 		code.Reset()
 		start = end + 1
@@ -74,6 +116,7 @@ func splitStatements(s string) []statement {
 
 	var quote byte
 	backslashEscapes := false
+	dollarTag := ""
 	inLineComment := false
 	blockDepth := 0
 	for i := 0; i < len(s); i++ {
@@ -82,7 +125,22 @@ func splitStatements(s string) []statement {
 		if i+1 < len(s) {
 			next = s[i+1]
 		}
+		if dollarTag == "" && quote == 0 && !inLineComment && blockDepth == 0 {
+			if tag := dollarQuoteTag(s, i); tag != "" {
+				dollarTag = tag
+				code.WriteString(tag)
+				i += len(tag) - 1
+				continue
+			}
+		}
 		switch {
+		case dollarTag != "":
+			if strings.HasPrefix(s[i:], dollarTag) {
+				code.WriteString(dollarTag)
+				i += len(dollarTag) - 1
+				dollarTag = ""
+				continue
+			}
 		case inLineComment:
 			if c != '\n' {
 				continue
@@ -128,6 +186,9 @@ func splitStatements(s string) []statement {
 			continue
 		}
 		code.WriteByte(c)
+	}
+	if quote != 0 || dollarTag != "" || blockDepth > 0 {
+		return splitRaw(s)
 	}
 	flush(len(s))
 	return stmts
