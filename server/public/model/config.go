@@ -5794,7 +5794,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
 	}
 
-	if o.ServiceSettings.SplitKey != nil {
+	if o.ServiceSettings.SplitKey != nil && *o.ServiceSettings.SplitKey != "" {
 		*o.ServiceSettings.SplitKey = FakeSetting
 	}
 

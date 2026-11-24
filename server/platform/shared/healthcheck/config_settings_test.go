@@ -137,6 +137,7 @@ func TestFlattenConfig(t *testing.T) {
 			*cfg.EmailSettings.SMTPPassword = value
 			*cfg.CacheSettings.RedisPassword = value
 			*cfg.ElasticsearchSettings.Password = value
+			*cfg.ServiceSettings.SplitKey = value
 			cfg.Sanitize(nil, nil)
 			return &model.SupportPacketConfig{Config: cfg, FeatureFlags: *cfg.FeatureFlags}
 		}
@@ -145,6 +146,7 @@ func TestFlattenConfig(t *testing.T) {
 			"CacheSettings.RedisPassword",
 			"ElasticsearchSettings.Password",
 			"EmailSettings.SMTPPassword",
+			"ServiceSettings.SplitKey",
 		}, differing(secret(""), secret("one")))
 	})
 
