@@ -10809,7 +10809,7 @@
   {
     "id": "app.passkey.begin_verification.app_error",
     "translation": "Unable to start passkey verification.",
-    "description": "API error when building the WebAuthn options or saving the short-lived ceremony for proving the user already has a passkey (the \"I already have a passkey\" choice when enrolling) fails."
+    "description": "API error when building the WebAuthn options or saving the short-lived ceremony for proving the user already has a passkey (the \"Use existing passkey\" choice when enrolling) fails."
   },
   {
     "id": "app.passkey.ceremony_invalid.app_error",
@@ -10869,7 +10869,7 @@
   {
     "id": "app.passkey.none_registered.app_error",
     "translation": "You don't have a passkey for this account yet.",
-    "description": "API error when the user chooses \"I already have a passkey\" while enrolling but has no passkey on their account to verify."
+    "description": "API error when the user chooses \"Use existing passkey\" while enrolling but has no passkey on their account to verify."
   },
   {
     "id": "app.passkey.not_found.app_error",
