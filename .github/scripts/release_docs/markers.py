@@ -1,9 +1,10 @@
 """Hidden markers that mattermost/release-automation writes into the description of a PR these
 tasks open, naming mattermost/mattermost PRs: ``<!-- release-automation:NAME: 39012,39088 -->``.
 
-The release docs PR reads ``confirmed-breaking`` (upgrade_docs.py) and the dot release docs PR
-reads ``security`` (dot_release.py). publish.py keeps every ``release-automation:`` marker when it
-rewrites a description, so a task's own edit never changes one.
+The release docs PR reads ``confirmed-breaking`` (upgrade_docs.py). There is no security marker:
+the public dot release docs PR never identifies security fixes before the release. publish.py
+keeps every ``release-automation:`` marker when it rewrites a description, so a task's own edit
+never changes one.
 """
 
 import re

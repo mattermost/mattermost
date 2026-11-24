@@ -7,25 +7,18 @@ name: Release Docs - Dot Release
 # Runs when the delivery pipeline publishes the vX.Y.Z GitHub release as a pre-release, and
 # again when it stops being one, to drop "Do Not Merge/Awaiting Next Release".
 #
-# PRs listed in the hidden marker <!-- release-automation:security: 38479,38048 --> in the PR's
-# description are security fixes, as if they had a Security label: kept with a vague bullet to
-# confirm even with an opt-out label. mattermost/release-automation writes the marker after the PR
-# is opened (with a GitHub App token, whose edits start workflows; GITHUB_TOKEN's would not), so an
-# edit to the description of the dot release docs PR itself (branch
-# release-agent/dot-release-docs/vX.Y.Z in this repo, into master) reruns the task when it changed
-# that marker. The resolve step compares the marker before and after the edit and derives the
-# version from the branch name; any other edit, including the task's own rewrites of the
-# description (which keep the marker), skips the run. PRs from forks never run.
+# Security fixes are never identified before the release, since this PR is public: a PR with a
+# Security label gets no bullet and is left out without a reason; the entry has only the standard
+# "contains <SEVERITY> severity level security fixes" line (the severity input). The release manager
+# adds any security bullets on Release Day, from mattermost/release-automation's Hub post.
 # See release-docs-task.yml for modes and settings, and release_docs/dot_release.py.
 
-# A release event or PR edit run's ref is the tag or the PR, which can't use the write key in `release-write`, so the
+# A release event run's ref is the tag, which can't use the write key in `release-write`, so the
 # `trigger` job (release-docs-trigger.yml, no secrets) checks it and starts this workflow on master;
 # the task job runs only on master.
 on:
   release:
     types: [published, released]
-  pull_request:
-    types: [edited]
   workflow_dispatch:
     inputs:
       versions:
@@ -60,14 +53,8 @@ on:
 permissions: {}
 
 jobs:
-  # A PR edit runs only for the dot release docs PR itself; the trigger checks the marker changed.
   trigger:
-    if: >-
-      github.event_name == 'release' ||
-      (github.event_name == 'pull_request' &&
-        github.event.pull_request.head.repo.full_name == github.repository &&
-        github.event.pull_request.base.ref == 'master' &&
-        startsWith(github.event.pull_request.head.ref, 'release-agent/dot-release-docs/'))
+    if: github.event_name == 'release'
     uses: ./.github/workflows/release-docs-trigger.yml
     with:
       task: dot-release-docs
@@ -80,8 +67,8 @@ jobs:
   dot-release-docs:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
     # One run at a time, so dot releases published together land in the same PR. queue: max keeps
-    # every waiting run: by default a newer run (such as a no-op description edit) would replace
-    # the one pending, which could be a release's. (A release's run also picks up the other recent
+    # every waiting run: by default a newer run would replace the one pending, which could be a
+    # release's. (A release's run also picks up the other recent
     # dot releases.)
     concurrency:
       group: release-docs-dot-release

@@ -52,11 +52,9 @@ DOT_RELEASE_HANDLED = "handled by the dot release docs PR"
 SWEEP_DAYS = 3
 RC1_TAG = re.compile(r"v(\d+)\.(\d+)\.0-rc1")
 RELEASE_DOCS_BRANCH = re.compile(r"^release-agent/(v\d+\.\d+\.0)/" + re.escape(release_docs_pr.TASK) + "$")
-DOT_RELEASE_BRANCH = re.compile(re.escape(dot_release.BRANCH_PREFIX) + r"(v\d+\.\d+\.[1-9]\d*)")
 # A description edit reruns the task of the PR it was made to when it changed the hidden marker
 # mattermost/release-automation writes there: (the PR's branch, the marker).
-MARKER_EDITS = {release_docs_pr.TASK: (RELEASE_DOCS_BRANCH, upgrade_docs.MARKER_NAME),
-                dot_release.TASK: (DOT_RELEASE_BRANCH, dot_release.SECURITY_MARKER)}
+MARKER_EDITS = {release_docs_pr.TASK: (RELEASE_DOCS_BRANCH, upgrade_docs.MARKER_NAME)}
 
 
 # ── Resolve: does this event run the task, for which version, in which mode ─────────

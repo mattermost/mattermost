@@ -1,16 +1,16 @@
 """The dot release docs task: each rule, the PR across runs, and replays of two hand-made days."""
 
+import json
 import os
+import re
 import unittest
 from datetime import datetime, timezone
-from unittest import mock
 
 for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "MILESTONE": "v12.2.0", "VERSION": "v12.2.0"}.items():
     os.environ.setdefault(name, value)
 
 from release_docs import __main__ as cli  # noqa: E402
 from release_docs import dot_release as dr  # noqa: E402
-from release_docs import markers  # noqa: E402
 from release_docs.result import LABEL, TODO_MARKER, Result  # noqa: E402
 from release_docs.versions import Version  # noqa: E402
 
@@ -20,7 +20,6 @@ from .fakes import FakeGitHub  # noqa: E402
 V = Version.parse
 OCT22 = "2026-10-22"
 OCT19 = "2026-10-19"
-SECURITY_MARKER = "<!-- release-automation:security: 38479, mattermost/mattermost#38048 -->"
 SECURITY_TEXT = ("Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is "
                  "recommended.")
 
@@ -136,14 +135,12 @@ class NoteBulletsTest(unittest.TestCase):
                 return {"bullet": self.bullet}
 
         good = Claude("Fixed an issue where the **Threads** view was empty (MM-1)")
-        self.assertEqual(dr.write_bullet(good, {"title": "x", "body": ""}, False), ("Fixed an issue where the **Threads** view was empty.", None))
-        bullet, problem = dr.write_bullet(Claude("This PR fixes a thing"), {"title": "x"}, False)
+        self.assertEqual(dr.write_bullet(good, {"title": "x", "body": ""}), ("Fixed an issue where the **Threads** view was empty.", None))
+        bullet, problem = dr.write_bullet(Claude("This PR fixes a thing"), {"title": "x"})
         self.assertIsNone(bullet)
         self.assertIn("does not start the changelog way", problem)
-        security = Claude("Fixed an issue with session handling.")
-        self.assertEqual(dr.write_bullet(security, {"title": "x"}, True)[0], "Fixed an issue with session handling.")
-        self.assertIn("never describe the\n  vulnerability", security.systems[0])
-        self.assertEqual(dr.write_bullet(None, {"title": "x"}, False), (None, "ANTHROPIC_API_KEY is not set"))
+        self.assertNotIn("security", good.systems[0].lower())  # Claude is never asked about a security fix
+        self.assertEqual(dr.write_bullet(None, {"title": "x"}), (None, "ANTHROPIC_API_KEY is not set"))
 
     def test_a_reply_that_is_not_an_object_with_a_bullet_is_a_todo(self):
         class Claude:
@@ -153,31 +150,29 @@ class NoteBulletsTest(unittest.TestCase):
             def ask_json(self, system, prompt, max_tokens=400):
                 return self.answer
         for answer in (["draft"], {"bullet": 7}, None, {"text": "Updated x."}):
-            self.assertEqual(dr.write_bullet(Claude(answer), {"title": "x"}, False),
+            self.assertEqual(dr.write_bullet(Claude(answer), {"title": "x"}),
                              (None, "Claude's reply was not an object with a bullet"), answer)
 
     def test_a_rejected_reply_is_never_quoted(self):
         class Claude:
             def ask_json(self, system, prompt, max_tokens=400):
                 return {"bullet": "This PR closes a SECRET hole"}
-        _, problem = dr.write_bullet(Claude(), {"title": "x"}, True)
+        _, problem = dr.write_bullet(Claude(), {"title": "x"})
         self.assertNotIn("SECRET", problem)
 
-    def test_a_security_bullet_that_describes_the_vulnerability_is_not_published(self):
+    def test_a_bullet_that_describes_a_vulnerability_is_never_published(self):
         class Claude:
             def __init__(self, bullet):
                 self.bullet = bullet
 
             def ask_json(self, system, prompt, max_tokens=400):
                 return {"bullet": self.bullet}
-        for text in ("Fixed an issue with a XSS in the **Channel Header**.", "Fixed an issue where attackers could bypass MFA.",
-                     "Updated session handling to prevent privilege escalation.", "Fixed an issue with CVE-2026-1234."):
-            self.assertEqual(dr.write_bullet(Claude(text), {"title": "x"}, True),
-                             (None, "Claude's security bullet describes the vulnerability, so a person has to write it"), text)
-        self.assertEqual(dr.write_bullet(Claude("Fixed an issue with session handling."), {"title": "x"}, True)[0],
-                         "Fixed an issue with session handling.")
-        # Only security bullets are held to it.
-        self.assertIsNotNone(dr.write_bullet(Claude("Fixed an issue where a malicious-looking warning showed."), {"title": "x"}, False)[0])
+        for text in ("Fixed an issue where a XSS showed in the **Channel Header**.", "Fixed an issue where attackers could bypass MFA.",
+                     "Updated session handling to prevent privilege escalation.", "Fixed an issue where CVE-2026-1234 applied."):
+            self.assertEqual(dr.write_bullet(Claude(text), {"title": "x"}),
+                             (None, "Claude's bullet describes a vulnerability, so a person has to write it"), text)
+        self.assertEqual(dr.write_bullet(Claude("Updated the **Channel Settings** modal."), {"title": "x"})[0],
+                         "Updated the **Channel Settings** modal.")
 
     def test_plugin_name_is_the_changelogs_usual_one(self):
         link = "https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v1"
@@ -297,7 +292,6 @@ class GatherTest(unittest.TestCase):
             "  - Updated the **Channel Settings** modal.",
             "  - Changed the default of the thing.",
             "  - Fixed an issue where users were sent back to the login page.",
-            "  - Fixed an issue with session handling.",
             "  - Mattermost v12.1.1 contains the following functional changes:",
             "     - Added the ``ServiceSettings.EnableFoo`` configuration setting.",
             "  - Mattermost v12.1.1 contains the following database changes:",
@@ -338,46 +332,43 @@ class GatherTest(unittest.TestCase):
         self.assertEqual(skipped["#17"], "has the release-note/na label, so it is left out")
         self.assertIn("#50", {c.source for c in release.changes})  # a PR without the label is still written up
 
-    def test_a_security_fix_is_never_left_out_whatever_its_opt_out_label(self):
+    def test_a_security_fix_gets_no_bullet_and_is_in_no_list(self):
+        """#9 has the Security label: before the release, nothing public may say which PRs are
+        security fixes. The entry keeps only its severity line."""
         scene = release_scene()
-        scene.commits.append({"sha": "c18", "message": "Tighten session lookups (MM-5555) (#18)",
-                              "files": ["server/channels/app/session.go"]})
-        scene.pulls[18] = pull(18, "Tighten session lookups (MM-5555)", note("Fixed a flaw that let anyone read sessions."),
-                               labels=["Changelog/Not Needed", "release-note-none", "Security"])
+        scene.commits += [
+            {"sha": "c18", "message": "Tighten session lookups (#18)", "files": ["server/channels/app/session.go"]},
+            {"sha": "c19", "message": "Automated cherry pick of #60 (#19)", "files": ["server/channels/app/token.go"]},
+            {"sha": "c20", "message": "ci: harden the token test (#20)", "files": [".github/workflows/ci.yml"]},
+        ]
+        scene.pulls[18] = pull(18, "Tighten session lookups", note("Fixed a flaw that let anyone read sessions."),
+                               labels=["Changelog/Not Needed", "Security"])
+        scene.pulls[19] = pull(19, "Automated cherry pick of #60", note("NONE"))
+        scene.pulls[60] = pull(60, "Tighten token checks", note("NONE"), labels=["security"])
+        scene.pulls[20] = pull(20, "ci: harden the token test", note("NONE"), labels=["Security"])
         release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="Medium")
-        claude = WritingClaude()
-        dr.gather(scene, release, [], claude, lambda url, method="GET": (200, ""), Result(dr.TASK, "v12.1.1"))
-        changes = [c for c in release.changes if c.source == "#18"]
-        self.assertEqual([(c.text, c.security, c.written) for c in changes],
-                         [("Fixed an issue with session handling.", True, False)])  # Claude's vague one, never the note
-        self.assertEqual([(s[1], s[3]) for s in release.opted_out_security], [("#18", "Changelog/Not Needed")])
-        self.assertNotIn("#18", [s for s, _, _ in release.skipped])
+        claude, result = WritingClaude(), Result(dr.TASK, "v12.1.1")
+        dr.gather(scene, release, [], claude, lambda url, method="GET": (200, ""), result)
+        hidden = {"#9", "#18", "#19", "#60", "#20"}
+        self.assertFalse(hidden & {c.source for c in release.changes})
+        self.assertFalse(hidden & {s for s, _, _ in release.skipped})
+        self.assertFalse(any(t in a for a in claude.asked for t in ("session", "token")), claude.asked)
+        self.assertEqual(result.todos, [])
         state = {"order": ["v12.1.1"], "versions": {"v12.1.1": dr.release_state(release)}}
-        text = dr.details(state, {}, [], "branch")
-        self.assertIn("**v12.1.1 security fix with the Changelog/Not Needed label**, from [#18]", text)
-        self.assertTrue(any("Tighten session lookups" in a for a in claude.asked))
+        public = json.dumps(state) + dr.details(state, {}, [], "branch") + "\n".join(result.notes)
+        for number in hidden:
+            self.assertIsNone(re.search(rf"{number}\b", public), number)
+        for word in ("Tighten", "flaw", "security fix with"):
+            self.assertNotIn(word, public)
+        self.assertIn("contains Medium severity level security fixes", "\n".join(dr.entry_lines(release)))
 
-    def test_a_security_fix_with_an_opt_out_label_needs_claude(self):
-        scene = release_scene()
-        scene.commits.append({"sha": "c19", "message": "Tighten token checks (#19)", "files": ["server/channels/app/token.go"]})
-        scene.pulls[19] = pull(19, "Tighten token checks", note("NONE"), labels=["release-note-none", "Security"])
-
-        class Down:
-            def ask_json(self, *args, **kwargs):
-                raise RuntimeError("overloaded")
-        release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="none")
-        result = Result(dr.TASK, "v12.1.1")
-        dr.gather(scene, release, [], Down(), lambda url, method="GET": (200, ""), result)
-        self.assertTrue(any("no bullet for #19" in t for t in result.todos), result.todos)  # a TODO, not a silent drop
-
-    def test_written_security_and_breaking_are_marked(self):
+    def test_written_and_breaking_are_marked(self):
         release, _ = self.gather()
         by_source = {c.source: c for c in release.changes}
-        self.assertEqual(by_source["#50"].source, "#50")
         self.assertTrue(by_source["#8"].written)
-        self.assertTrue(by_source["#9"].written and by_source["#9"].security)
+        self.assertNotIn("#9", by_source)  # the Security label
         self.assertTrue(by_source["#14"].breaking)
-        self.assertFalse(by_source["#50"].written or by_source["#50"].security)
+        self.assertFalse(by_source["#50"].written)
         self.assertEqual(by_source["#13"].maybe_breaking, [])
 
     def test_wording_alone_asks_a_person_and_adds_no_callout(self):
@@ -412,8 +403,7 @@ class GatherTest(unittest.TestCase):
                 raise RuntimeError("overloaded")
         release, _ = self.gather(claude=Down())
         info = dr.release_state(release)
-        self.assertEqual([p[1] for p in info["pending"]], ["#8", "#9"])
-        info["pending"] = info["pending"][:1]
+        self.assertEqual([p[1] for p in info["pending"]], ["#8"])  # #9 is a security fix: never drafted
         todo_text = info["pending"][0][0]
         path = dr.changelog_path(V("v12.1.1"))
         files = {path: f"- **12.1.1, released 2026-10-22**\n  - Updated the kept bullet.\n  - {todo_text}\n"}
@@ -626,22 +616,12 @@ class FileEditsTest(unittest.TestCase):
         self.docs = before_docs()
         self.result = Result(dr.TASK, "x")
 
-    def test_checks_and_late_edits_see_the_same_entry_after_a_blank_line(self):
+    def test_the_check_sees_the_whole_entry_after_a_blank_line(self):
         v = V("v12.1.1")
         older = "- **12.1.0, released 2026-10-16**\n  - Older.\n"
-        # A blank line a maintainer added after the heading: a late bullet still goes after the
-        # security summary and the fixes, before the closing line.
-        security = "  - Mattermost v12.1.1 contains Medium severity level security fixes."
-        text = (f"- **12.1.1, released 2026-10-22**\n\n{security}\n  - Fixed an issue where a thing broke.\n"
-                f"  - Mattermost v12.1.1 {dr.CLOSING_NONE}\n" + older)
-        lines = dr.add_bullet(text, v, "Updated session handling.", self.result).split("\n")
-        at = lines.index("  - Updated session handling.")
-        self.assertGreater(at, lines.index("  - Fixed an issue where a thing broke."))
-        self.assertEqual(lines[at + 1], f"  - Mattermost v12.1.1 {dr.CLOSING_NONE}")
-        self.assertNotIn("12.1.0", dr._entry_text(text, v))
-        # And one before the severity line: the check still sees it.
         text = "- **12.1.1, released 2026-10-22**\n\n  - Mattermost v12.1.1 contains <SEVERITY> severity level security fixes.\n" + older
         self.assertIn("<SEVERITY>", dr._entry_text(text, v))
+        self.assertNotIn("12.1.0", dr._entry_text(text, v))
 
     def test_deploy_pages_latest_tab(self):
         for page in dr.DEPLOY_PAGES:
@@ -922,80 +902,6 @@ class AutomationTest(unittest.TestCase):
         self.assertIn("Mattermost v11.11.3 contains Medium severity level security fixes.", head)
         self.assertEqual(result.todos, [])
 
-    def test_a_security_marker_written_after_the_pr_opened_keeps_those_fixes(self):
-        gh = DotGitHub(OCT19)
-        branch = "release-agent/dot-release-docs/v11.11.2"
-        self.run_day(gh, ["v11.11.2", "v11.10.3", "v11.7.13"], day=OCT19)
-        pr = gh.pulls[dr.REPO][0]
-        self.assertIn("v11.10.3: #38479 ", left_out(pr["body"]))
-        path = dr.changelog_path(V("v11.10.3"))
-        before = dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"]
-
-        edited = pr["body"] + "\n" + SECURITY_MARKER + "\n"
-        pr["body"] = edited
-        result, outcome, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)  # a marker edit passes the branch's version
-        self.assertTrue(outcome.startswith(f"Updated PR mattermost/mattermost#{pr['number']}"), outcome)
-        self.assertEqual(result.todos, [])
-        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before + 2)
-        for source in ("#38479", "#38048"):
-            self.assertIn(f"**v11.10.3 security fix with the Changelog/Not Needed label**, from [{source}]", pr["body"])
-            self.assertNotIn(f"v11.10.3: {source} ", left_out(pr["body"]))
-        self.assertIn("v11.10.3: #38781 ", left_out(pr["body"]))
-        # The task's own rewrite keeps the marker, so its edit never reruns it.
-        self.assertIn(SECURITY_MARKER, pr["body"])
-        self.assertFalse(markers.changed(edited, pr["body"], dr.SECURITY_MARKER))
-
-        writes = len(gh.writes)
-        _, outcome, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
-        self.assertEqual(gh.writes[writes:], [])
-        self.assertIn("is already up to date", outcome)
-
-    def test_a_late_marker_naming_the_backports_marks_their_originals(self):
-        gh = DotGitHub(OCT19)
-        branch = "release-agent/dot-release-docs/v11.11.2"
-        self.run_day(gh, ["v11.11.2", "v11.10.3", "v11.7.13"], day=OCT19)
-        pr = gh.pulls[dr.REPO][0]
-        path = dr.changelog_path(V("v11.10.3"))
-        before = dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"]
-        pr["body"] += "\n<!-- release-automation:security: 38580, 38526 -->\n"  # cherry picks of #38479 and #38048
-        result, _, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
-        self.assertEqual(result.todos, [])
-        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before + 2)
-        for source in ("#38479", "#38048"):
-            self.assertNotIn(f"v11.10.3: {source} ", left_out(pr["body"]))
-
-    def test_a_security_bullet_that_cant_be_written_stays_left_out_and_a_later_run_adds_it_once(self):
-        gh = DotGitHub(OCT19)
-        branch = "release-agent/dot-release-docs/v11.11.2"
-        self.run_day(gh, ["v11.11.2", "v11.10.3", "v11.7.13"], day=OCT19)
-        pr = gh.pulls[dr.REPO][0]
-        path = dr.changelog_path(V("v11.10.3"))
-        before = dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"]
-        pr["body"] += "\n" + SECURITY_MARKER + "\n"
-        with mock.patch.object(dr, "write_bullet", return_value=(None, "Claude could not write it: timeout")):
-            result, _, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
-        self.assertIn("v11.10.3: no bullet for #38479 (MM-70601: Bound input size in the plain-text content extractor), "
-                      "which the `release-automation:security` marker lists: Claude could not write it: timeout. It stays "
-                      "left out until a run can write one", result.todos)
-        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before)
-        self.assertNotIn(TODO_MARKER, gh.head_files(dr.REPO, branch)[path])
-        self.assertIn("v11.10.3: #38479 ", left_out(pr["body"]))
-
-        result, _, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
-        self.assertEqual(result.todos, [])
-        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before + 2)
-        self.assertNotIn("v11.10.3: #38479 ", left_out(pr["body"]))
-        writes = len(gh.writes)
-        self.run_day(gh, ["v11.11.2"], day=OCT19)
-        self.assertEqual(gh.writes[writes:], [])
-
-    def test_a_malformed_security_marker_marks_nothing(self):
-        result = Result(dr.TASK, "v12.1.1")
-        self.assertEqual(dr.security_marked("<!-- release-automation:security: 38479, MM-70601 -->", result), frozenset())
-        self.assertEqual(result.todos, ["the `release-automation:security` marker has 1 entry that is not a "
-                                        "mattermost/mattermost PR number, so it marks no PR as a security fix"])
-        self.assertEqual(dr.security_marked("No marker.", result), frozenset())
-
     def test_already_published_and_untagged_versions(self):
         result, outcome, _ = replay_run(versions=[V("v11.11.2")], gh=dot_replay.ReplayGitHub({"tag_sha v11.11.2": "x"}, before_docs()))
         self.assertIn("v11.11.2 is already in the version archive on master; skipped.", result.notes)
@@ -1077,20 +983,16 @@ class EventsTest(unittest.TestCase):
 
         dot, docs = "release-agent/dot-release-docs/v11.11.2", "release-agent/v12.2.0/release-docs"
         breaking = "<!-- release-automation:confirmed-breaking: 39012 -->"
-        self.assertEqual(cli.resolve(dr.TASK, env, edit(dot, "Body.", "Body.\n" + SECURITY_MARKER)),
-                         {"run": "true", "version": "v11.11.2", "mode": "dry_run",
-                          "reason": "the `release-automation:security` marker changed"})
+        with self.assertRaises(ValueError):  # no marker, so a dot release PR edit runs nothing
+            cli.resolve(dr.TASK, env, edit(dot, "Body.", "Body.\n<!-- release-automation:security: 38479 -->"))
         self.assertEqual(cli.resolve("release-docs", env, edit(docs, "Body.", "Body.\n" + breaking))["version"], "v12.2.0")
         skipped = [
-            (dr.TASK, edit(dot, SECURITY_MARKER, "New text.\n<!--release-automation:security: 38479 #38048-->")),
-            (dr.TASK, edit(dot, "Body.", "Body.\n" + breaking)),  # not this PR's marker
             ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, changes=False)),  # the title, not the body
             ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, repo="someone/mattermost")),
             ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, base="release-12.2")),
             ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, action="synchronize")),
             ("release-docs", edit("release-agent/v12.2.1/release-docs", "Body.", "Body.\n" + breaking)),
             ("release-docs", edit(docs + "\nx", "Body.", "Body.\n" + breaking)),
-            (dr.TASK, edit("release-agent/dot-release-docs/v12.2.0", "Body.", "Body.\n" + SECURITY_MARKER)),
         ]
         for task, event in skipped:
             self.assertEqual(cli.resolve(task, env, event)["run"], "false", event)
@@ -1167,7 +1069,6 @@ class ReplayTest(unittest.TestCase):
         self.assertIn("v11.10.3: #38781 Bump mattermost/pdf for content-stream array parsing fix: has the Changelog/Not Needed label, "
                       "so it is left out", result.body)
         self.assertNotIn("security fix with the Changelog/Not Needed label", result.body)
-        self.assertFalse(any(dr.SECURITY_MARKER in n for n in result.notes))  # no marker: as before it existed
         self.assertEqual(got_entries["11.7.13"]["fixed"][:2], want_entries["11.7.13"]["fixed"][:2])
         entry = dr._entry_text(got, V("v11.7.13")).split("\n")
         self.assertEqual(dot_replay.closing_kind([line.removeprefix("  - ") for line in entry[-2:]]),
@@ -1178,30 +1079,25 @@ class ReplayTest(unittest.TestCase):
         self.assertEqual(got_entries["11.7.13"]["fixes"], want_entries["11.7.13"]["fixes"] - 1)
         self.assertEqual(dr._entry_text(got, V("v11.7.12")), dr._entry_text(before[path], V("v11.7.12")))
 
-    def test_2026_10_19_with_the_security_marker(self):
-        """#38479 and #38048 are security fixes that no GitHub label marks; release-automation lists
-        them in the PR description's security marker, so they are kept with a vague bullet to confirm."""
-        class MarkedPR(dot_replay.ReplayGitHub):
-            def branches_with_prefix(self, repo, prefix):
-                return [prefix + "v11.11.2"]
-
-            def pulls_for_branch(self, repo, branch):
-                return [{"number": 39004, "state": "open", "title": "Dot release docs", "body": SECURITY_MARKER}]
-
+    def test_2026_10_19_with_the_security_fixes_labelled(self):
+        """Had #38479 and #38048 carried GitHub's Security label, nothing public would name them:
+        no bullet, not under Left out, not in the PR description or the notes. The entry's
+        severity line stays."""
+        recorded = dot_replay.load(OCT19)
+        for number in (38479, 38048):
+            pr = dict(recorded[f"pull {number}"])
+            pr["labels"] = pr["labels"] + [{"name": "Security"}]
+            recorded[f"pull {number}"] = pr
         versions = dot_replay.day_versions(OCT19)
-        gh = MarkedPR(dot_replay.load(OCT19), before_docs(OCT19))
-        result, _, _ = replay_run(OCT19, gh=gh)
-        self.assertEqual(result.todos, [])
-        after = dot_replay.read_docs(OCT19, "after", versions)
+        gh = dot_replay.ReplayGitHub(recorded, before_docs(OCT19))
+        env = {"SEVERITY": "Medium", "RELEASE_DATE": OCT19, "WAIT_ATTEMPTS": "1"}
+        result, _, _ = dr.run(gh, versions, env, dot_replay.TitleClaude(), dot_replay.replay_fetch(recorded), False)
         path = dr.changelog_path(V("v11.10.3"))
-        got = dot_replay.trim(path, result.files[path], versions)
-        got_entries, want_entries = dot_replay.entries(got)[1], dot_replay.entries(after[path])[1]
-        self.assertEqual(got_entries["11.10.3"]["fixes"], want_entries["11.10.3"]["fixes"] - 1)  # only #38781
-        for source in ("#38479", "#38048"):
-            self.assertIn(f"**v11.10.3 security fix with the Changelog/Not Needed label**, from [{source}]", result.body)
-        self.assertNotIn("#38479", left_out(result.body))
-        self.assertNotIn("#38048", left_out(result.body))
+        public = result.body + "\n".join(result.notes) + "\n".join(result.todos) + result.files[path]
+        for number in ("38479", "38048", "38580", "38526"):  # and their cherry picks
+            self.assertNotIn(number, public)
         self.assertIn("v11.10.3: #38781 ", left_out(result.body))
+        self.assertIn("Mattermost v11.10.3 contains Medium severity level security fixes.", result.files[path])
 
 
 if __name__ == "__main__":

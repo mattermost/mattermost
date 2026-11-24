@@ -12,7 +12,7 @@ REVIEWERS_SETTING = "RELEASE_DOCS_REVIEWERS"
 LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
 TEAM = re.compile(r"^([A-Za-z0-9][A-Za-z0-9-]*)/([A-Za-z0-9][A-Za-z0-9_.-]*)$")
 # Hidden markers another workflow writes into a PR body (mattermost/release-automation's
-# confirmed breaking changes and security fixes, see markers.py): kept whenever this workflow
+# confirmed breaking changes, see markers.py): kept whenever this workflow
 # rewrites the body, so its own edits never change one.
 KEPT_MARKER = re.compile(r"<!--\s*release-automation:.*?-->", re.DOTALL)
 
