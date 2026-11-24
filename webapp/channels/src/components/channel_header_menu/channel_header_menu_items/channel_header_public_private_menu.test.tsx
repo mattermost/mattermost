@@ -95,4 +95,17 @@ describe('components/ChannelHeaderMenu/ChannelHeaderPublicMenu', () => {
         expect(screen.queryByText('Manage Groups')).not.toBeInTheDocument();
         expect(screen.getByText('Members')).toBeInTheDocument();
     });
+
+    it('shows group menu items on a group constrained channel with manage channel roles but not manage members permission', () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderPublicMenu {...defaultProps}/>
+            </WithTestMenuContext>,
+            getState([Permissions.MANAGE_CHANNEL_ROLES]),
+        );
+
+        expect(screen.getByText('Add Groups')).toBeInTheDocument();
+        expect(screen.getByText('Manage Groups')).toBeInTheDocument();
+        expect(screen.getByText('Members')).toBeInTheDocument();
+    });
 });

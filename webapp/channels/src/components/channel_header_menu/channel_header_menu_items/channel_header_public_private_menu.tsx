@@ -118,22 +118,22 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
 
             {!isArchived && !isDefault && (
                 <>
+                    {isGroupConstrained && isLicensedForLDAPGroups && (
+                        <ChannelPermissionGate
+                            channelId={channel.id}
+                            teamId={channel.team_id}
+                            permissions={[Permissions.MANAGE_CHANNEL_ROLES]}
+                        >
+                            <MenuItemGroupsMenuItems
+                                channel={channel}
+                            />
+                        </ChannelPermissionGate>
+                    )}
                     <ChannelPermissionGate
                         channelId={channel.id}
                         teamId={channel.team_id}
                         permissions={[channelMembersPermission]}
                     >
-                        {isGroupConstrained && isLicensedForLDAPGroups && (
-                            <ChannelPermissionGate
-                                channelId={channel.id}
-                                teamId={channel.team_id}
-                                permissions={[Permissions.MANAGE_CHANNEL_ROLES]}
-                            >
-                                <MenuItemGroupsMenuItems
-                                    channel={channel}
-                                />
-                            </ChannelPermissionGate>
-                        )}
                         <MenuItemOpenMembersRHS
                             id='channelMembers'
                             channel={channel}
