@@ -797,6 +797,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return false;
         }
 
+        LocalStorageStore.setPasskeyEnrolled();
         await postSubmit();
         return true;
     };

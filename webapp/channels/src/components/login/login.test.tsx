@@ -889,6 +889,28 @@ describe('components/login/Login', () => {
             expect(finishLogin.mock.calls[0][1]).toMatchObject({id: 'credential1', response: {userHandle: 'Bw'}});
         });
 
+        it('records this browser as enrolled after a successful passkey sign-in', async () => {
+            localStorage.clear();
+            const history = renderLogin(passkeyState);
+            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(false);
+        });
+
+        it('does not record this browser as enrolled when the server refuses the passkey sign-in', async () => {
+            localStorage.clear();
+            finishLogin.mockRejectedValue({server_error_id: 'api.user.login.not_verified.app_error', message: 'Email not verified'});
+            renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('Email not verified')).toBeVisible();
+            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+        });
+
         it.each(['NotAllowedError', 'AbortError'])('stays silent and usable when the browser prompt ends with %s', async (name) => {
             get.mockRejectedValueOnce(abortError(name));
             const history = renderLogin(passkeyState);

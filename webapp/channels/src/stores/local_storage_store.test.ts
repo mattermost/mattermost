@@ -64,6 +64,61 @@ describe('stores/LocalStorageStore', () => {
         });
     });
 
+    describe('passkey prompt record', () => {
+        beforeEach(() => {
+            delete (window as any).basename;
+            localStorage.clear();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+            delete (window as any).basename;
+        });
+
+        test('is due for a fresh browser, until skipped for that login', () => {
+            expect(LocalStorageStore.isPasskeyPromptDue('a')).toBe(true);
+
+            LocalStorageStore.setPasskeyPromptSkipped('a');
+            expect(LocalStorageStore.isPasskeyPromptDue('a')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('b')).toBe(true);
+        });
+
+        test('is never due once enrolled', () => {
+            LocalStorageStore.setPasskeyEnrolled();
+            expect(LocalStorageStore.isPasskeyPromptDue('a')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('b')).toBe(false);
+        });
+
+        test('is not due without a login key', () => {
+            expect(LocalStorageStore.isPasskeyPromptDue('')).toBe(false);
+        });
+
+        test('enrollment is recorded per server base path', () => {
+            window.basename = '/one';
+            LocalStorageStore.setPasskeyEnrolled();
+            expect(LocalStorageStore.isPasskeyPromptDue('a')).toBe(false);
+
+            window.basename = '/two';
+            expect(LocalStorageStore.isPasskeyPromptDue('a')).toBe(true);
+        });
+
+        test('is not due when storage cannot be read', () => {
+            jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            expect(LocalStorageStore.isPasskeyPromptDue('a')).toBe(false);
+        });
+
+        test('setters do not throw when storage cannot be written', () => {
+            jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            jest.spyOn(console, 'warn').mockImplementation(() => {});
+            expect(() => LocalStorageStore.setPasskeyEnrolled()).not.toThrow();
+            expect(() => LocalStorageStore.setPasskeyPromptSkipped('a')).not.toThrow();
+        });
+    });
+
     describe('testing previous channel', () => {
         test('should remove previous channel without subpath', () => {
             const userId1 = 'userId1';

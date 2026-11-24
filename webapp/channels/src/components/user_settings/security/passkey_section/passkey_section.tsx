@@ -9,6 +9,8 @@ import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import ConfirmModal from 'components/confirm_modal';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
@@ -137,6 +139,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             if (!passkey) {
                 return;
             }
+            LocalStorageStore.setPasskeyEnrolled();
             setName('');
             await load();
         } catch (e) {

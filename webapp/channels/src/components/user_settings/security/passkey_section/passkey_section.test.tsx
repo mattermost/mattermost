@@ -8,6 +8,8 @@ import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PasskeySection from './index';
@@ -492,6 +494,45 @@ describe('PasskeySection', () => {
 
             expect(await screen.findByText(text)).toBeInTheDocument();
             expect(signalUnknownCredential).not.toHaveBeenCalled();
+        });
+
+        test('records this browser as enrolled after a successful add', async () => {
+            localStorage.clear();
+            await renderExpanded();
+            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+            await userEvent.type(screen.getByLabelText('Passkey name'), 'Work');
+
+            await clickAdd();
+
+            await waitFor(() => expect(screen.getByLabelText('Passkey name')).toHaveValue(''));
+            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(false);
+        });
+
+        test('does not record this browser as enrolled when the browser prompt is dismissed', async () => {
+            localStorage.clear();
+            create.mockRejectedValue(domError('NotAllowedError'));
+            await renderExpanded();
+
+            await clickAdd();
+
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Add passkey'})).toBeEnabled());
+            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+        });
+
+        test('still adds the passkey when storage cannot record it', async () => {
+            localStorage.clear();
+            jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            jest.spyOn(console, 'warn').mockImplementation(() => {});
+            await renderExpanded();
+            getPasskeys.mockClear();
+            await userEvent.type(screen.getByLabelText('Passkey name'), 'Work');
+
+            await clickAdd();
+
+            await waitFor(() => expect(screen.getByLabelText('Passkey name')).toHaveValue(''));
+            expect(getPasskeys).toHaveBeenCalledWith('me');
         });
 
         test('does not forget anything when begin is refused', async () => {
