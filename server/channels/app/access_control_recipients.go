@@ -22,6 +22,8 @@ import (
 const (
 	accessControlRecipientCacheSize = 1000
 	accessControlRecipientCacheTTL  = 60 * time.Second
+	// A failed fill is retried by the next warm-up after this long.
+	accessControlRecipientFailedTTL = 5 * time.Second
 	accessControlRecipientPageSize  = 1000
 	accessControlRecipientCacheName = "access_control_recipients"
 )
@@ -30,7 +32,8 @@ const (
 //
 //   - noPolicy: the resource has no policy, so everyone may receive it.
 //   - failed: the fill could not run (engine unavailable or the query
-//     errored); delivery evaluates per user until the entry expires.
+//     errored); notifications evaluate per user and the websocket hub
+//     rejects until the entry expires after accessControlRecipientFailedTTL.
 //   - otherwise allow holds the user IDs the policy admits.
 type accessControlRecipientEntry struct {
 	allow    map[string]struct{}
@@ -114,7 +117,11 @@ func (c *accessControlRecipientCache) storeIfCurrent(key string, entry accessCon
 }
 
 func (c *accessControlRecipientCache) storeLocked(key string, entry accessControlRecipientEntry) {
-	entry.expires = c.now().Add(c.ttl)
+	ttl := c.ttl
+	if entry.failed {
+		ttl = min(ttl, accessControlRecipientFailedTTL)
+	}
+	entry.expires = c.now().Add(ttl)
 	if element, ok := c.items[key]; ok {
 		element.Value.(*accessControlRecipientItem).entry = entry
 		c.order.MoveToFront(element)
@@ -189,7 +196,7 @@ func (a *App) fillAccessControlRecipients(rctx request.CTX, value string) access
 		if a.Metrics() != nil {
 			a.Metrics().ObserveAccessControlRecipientFill("failed", time.Since(start).Seconds(), 0)
 		}
-		rctx.Logger().Debug("Access control recipient fill failed; delivery falls back to per-user evaluation",
+		rctx.Logger().Debug("Access control recipient fill failed",
 			mlog.String("resource", value), mlog.String("reason", reason), mlog.Err(err))
 		return accessControlRecipientEntry{failed: true}
 	}
@@ -273,15 +280,37 @@ func (a *App) accessControlRecipientFilter(rctx request.CTX, value string) func(
 	}
 }
 
+// WarmAccessControlRecipients fills the recipient cache for resource. The
+// publish path calls it once per event on every node, off the hub goroutine,
+// so HasAccessToAccessControlResource only ever reads the cache.
+func (a *App) WarmAccessControlRecipients(rctx request.CTX, resource string) {
+	if resource == "" || !a.postAccessControlResourceEnabled() {
+		return
+	}
+	a.accessControlRecipientEntryFor(rctx, resource)
+}
+
 // HasAccessToAccessControlResource reports whether userID may receive a post
-// marked with resource. It is the broadcast hook's entry point and so is
-// served from the recipient cache when possible.
-func (a *App) HasAccessToAccessControlResource(rctx request.CTX, userID, resource string) bool {
-	filter := a.accessControlRecipientFilter(rctx, resource)
-	if filter == nil {
+// marked with resource. It is the broadcast hook's entry point and runs on the
+// hub goroutine, so it never fills the cache or evaluates the policy: a
+// missing or failed entry means no recipient is admitted.
+func (a *App) HasAccessToAccessControlResource(_ request.CTX, userID, resource string) bool {
+	if resource == "" || !a.postAccessControlResourceEnabled() {
 		return true
 	}
-	return filter(userID)
+	c := a.ch.accessControlRecipients
+	if c == nil {
+		return false
+	}
+	entry, hit := c.lookup(resource)
+	if !hit || entry.failed {
+		return false
+	}
+	if entry.noPolicy {
+		return true
+	}
+	_, allowed := entry.allow[userID]
+	return allowed
 }
 
 // invalidateAccessControlRecipients drops cached recipient entries for

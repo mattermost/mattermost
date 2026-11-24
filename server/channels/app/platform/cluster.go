@@ -232,6 +232,8 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 // publishSkipClusterSend broadcasts the event to this node's clients. local is true when the
 // event was published on this node rather than received from another node.
 func (ps *PlatformService) publishSkipClusterSend(event *model.WebSocketEvent, local bool) {
+	ps.warmBroadcastHooks(event)
+
 	if event.GetBroadcast().UserId != "" {
 		hub := ps.GetHubForUserId(event.GetBroadcast().UserId)
 		if hub != nil {

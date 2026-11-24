@@ -51,11 +51,13 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
 
 		broadcastChannelReadAccessRedact: &channelReadAccessRedactBroadcastHook{},
-		broadcastAccessControlResource:   &accessControlResourceBroadcastHook{},
+		broadcastAccessControlResource:   &accessControlResourceBroadcastHook{server: s},
 	}
 }
 
-type accessControlResourceBroadcastHook struct{}
+type accessControlResourceBroadcastHook struct {
+	server *Server
+}
 
 // setupBroadcastHookForAccessControlResource registers the hook for a post
 // carrying access_control_resource. Only the prop value travels with the
@@ -71,8 +73,19 @@ func (a *App) setupBroadcastHookForAccessControlResource(post *model.Post, messa
 	}
 }
 
+// Warm fills the recipient cache for the event's resource so Process, which
+// runs on the hub goroutine, only reads it.
+func (h *accessControlResourceBroadcastHook) Warm(args map[string]any) {
+	resource, err := getTypedArg[string](args, "resource")
+	if err != nil || h.server == nil || h.server.Channels() == nil {
+		return
+	}
+	New(ServerConnector(h.server.Channels())).WarmAccessControlRecipients(request.EmptyContext(h.server.Log()), resource)
+}
+
 // Process rejects the event for every connection whose user the policy does
-// not admit. A missing session fails secure.
+// not admit. A missing session fails secure, as does a recipient set that
+// Warm has not filled.
 func (h *accessControlResourceBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	resource, err := getTypedArg[string](args, "resource")
 	if err != nil {
@@ -85,8 +98,7 @@ func (h *accessControlResourceBroadcastHook) Process(msg *platform.HookedWebSock
 		return nil
 	}
 
-	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-	if !webConn.Suite.HasAccessToAccessControlResource(rctx, webConn.UserId, resource) {
+	if !webConn.Suite.HasAccessToAccessControlResource(request.EmptyContext(webConn.Platform.Log()).WithSession(session), webConn.UserId, resource) {
 		msg.Event().Reject()
 	}
 	return nil

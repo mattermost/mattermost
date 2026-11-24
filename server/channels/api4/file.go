@@ -863,6 +863,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.FileInfoAllowedByAccessControlResource(c.AppContext, c.AppContext.Session().UserId, fileInfo) {
+		c.Err = model.NewAppError("getFile", "api.post.access_control_resource.denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	// Run plugin hook before file download
 	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, fileInfo, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeFile)
 
@@ -925,6 +930,11 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.FileInfoAllowedByAccessControlResource(c.AppContext, c.AppContext.Session().UserId, info) {
+		c.Err = model.NewAppError("getFileThumbnail", "api.post.access_control_resource.denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1006,6 +1016,11 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.FileInfoAllowedByAccessControlResource(c.AppContext, c.AppContext.Session().UserId, info) {
+		c.Err = model.NewAppError("getFileLink", "api.post.access_control_resource.denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
@@ -1060,6 +1075,11 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFilePreview", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.FileInfoAllowedByAccessControlResource(c.AppContext, c.AppContext.Session().UserId, info) {
+		c.Err = model.NewAppError("getFilePreview", "api.post.access_control_resource.denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1130,6 +1150,11 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFileInfo", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.FileInfoAllowedByAccessControlResource(c.AppContext, c.AppContext.Session().UserId, info) {
+		c.Err = model.NewAppError("getFileInfo", "api.post.access_control_resource.denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

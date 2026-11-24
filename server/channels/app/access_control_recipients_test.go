@@ -45,6 +45,22 @@ func TestAccessControlRecipientCache(t *testing.T) {
 		assert.Equal(t, 0, c.len())
 	})
 
+	t.Run("a failed entry expires sooner than the TTL", func(t *testing.T) {
+		now := time.Now()
+		c := newAccessControlRecipientCache(10, time.Minute)
+		c.now = func() time.Time { return now }
+
+		key := testPostResource(model.NewId())
+		c.store(key, accessControlRecipientEntry{failed: true})
+		now = now.Add(accessControlRecipientFailedTTL + time.Second)
+		_, hit := c.lookup(key)
+		assert.False(t, hit)
+
+		c.store(key, accessControlRecipientEntry{noPolicy: true})
+		_, hit = c.lookup(key)
+		assert.True(t, hit)
+	})
+
 	t.Run("evicts the least recently used entry", func(t *testing.T) {
 		c := newAccessControlRecipientCache(2, time.Minute)
 		a, b, d := testPostResource(model.NewId()), testPostResource(model.NewId()), testPostResource(model.NewId())
@@ -199,6 +215,89 @@ func TestAccessControlRecipientFill(t *testing.T) {
 		require.NotNil(t, filter)
 		assert.True(t, filter(th.BasicUser.Id))
 		mockACS.AssertNumberOfCalls(t, "QueryUsersForResource", 1)
+
+		// The hub path rejects without evaluating anyone.
+		mockACS.Calls = nil
+		assert.False(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser.Id, value))
+		assert.False(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser2.Id, value))
+		assert.Empty(t, mockACS.Calls)
+	})
+
+	t.Run("a failed entry expires after the short TTL and the next warm-up retries", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		resourceID := model.NewId()
+		plantPostPolicy(t, th, resourceID)
+		value := testPostResource(resourceID)
+
+		now := time.Now()
+		th.App.ch.accessControlRecipients.now = func() time.Time { return now }
+		t.Cleanup(func() { th.App.ch.accessControlRecipients.now = time.Now })
+
+		mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
+			Return(nil, int64(0), model.NewAppError("QueryUsersForResource", "boom", nil, "", http.StatusInternalServerError)).Once()
+		th.App.WarmAccessControlRecipients(th.Context, value)
+		entry, hit := th.App.ch.accessControlRecipients.lookup(value)
+		require.True(t, hit)
+		require.True(t, entry.failed)
+
+		now = now.Add(accessControlRecipientFailedTTL / 2)
+		th.App.WarmAccessControlRecipients(th.Context, value)
+		mockACS.AssertNumberOfCalls(t, "QueryUsersForResource", 1)
+
+		now = now.Add(accessControlRecipientFailedTTL)
+		_, hit = th.App.ch.accessControlRecipients.lookup(value)
+		assert.False(t, hit)
+
+		mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(0), nil).Once()
+		th.App.WarmAccessControlRecipients(th.Context, value)
+		assert.True(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser.Id, value))
+		assert.False(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser2.Id, value))
+	})
+
+	t.Run("the hub path rejects on a cache miss without filling it", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		resourceID := model.NewId()
+		plantPostPolicy(t, th, resourceID)
+		value := testPostResource(resourceID)
+
+		assert.False(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser.Id, value))
+		_, hit := th.App.ch.accessControlRecipients.lookup(value)
+		assert.False(t, hit)
+		assert.Empty(t, mockACS.Calls)
+
+		noPolicy := testPostResource(model.NewId())
+		th.App.WarmAccessControlRecipients(th.Context, noPolicy)
+		assert.True(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser2.Id, noPolicy))
+	})
+
+	t.Run("warm-up is a no-op when the flag is off", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PostAccessControlResource = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PostAccessControlResource = true })
+		})
+
+		resourceID := model.NewId()
+		plantPostPolicy(t, th, resourceID)
+		value := testPostResource(resourceID)
+
+		th.App.WarmAccessControlRecipients(th.Context, value)
+		_, hit := th.App.ch.accessControlRecipients.lookup(value)
+		assert.False(t, hit)
+		assert.True(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser2.Id, value))
+		assert.Empty(t, mockACS.Calls)
 	})
 
 	t.Run("an unavailable engine is a negative entry", func(t *testing.T) {
@@ -244,7 +343,7 @@ func TestAccessControlRecipientFill(t *testing.T) {
 		results := make([]bool, 8)
 		for i := range results {
 			wg.Go(func() {
-				results[i] = th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser.Id, value)
+				results[i] = th.App.accessControlRecipientEntryFor(th.Context, value).allow != nil
 			})
 		}
 		// Let every goroutine reach the fill before releasing it.
@@ -271,6 +370,7 @@ func TestAccessControlRecipientFill(t *testing.T) {
 
 		mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
 			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(0), nil).Once()
+		th.App.WarmAccessControlRecipients(th.Context, value)
 		require.True(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser.Id, value))
 		_, hit := th.App.ch.accessControlRecipients.lookup(value)
 		require.True(t, hit)
@@ -282,6 +382,7 @@ func TestAccessControlRecipientFill(t *testing.T) {
 		// The cluster handler performs the same local drop.
 		mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
 			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(0), nil).Once()
+		th.App.WarmAccessControlRecipients(th.Context, value)
 		require.True(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser.Id, value))
 		data, err := json.Marshal(accessControlRecipientInvalidation{PolicyID: resourceID})
 		require.NoError(t, err)
@@ -376,6 +477,41 @@ func TestPruneNotificationRecipients(t *testing.T) {
 
 	assert.Equal(t, []string{"someone", "else"}, dropPrunedPotentialMentions([]string{"someone", "denied", "else"}, pruned))
 	assert.Equal(t, []string{"denied"}, dropPrunedPotentialMentions([]string{"denied"}, nil))
+}
+
+func TestAccessControlResourceBroadcastHook_Warm(t *testing.T) {
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
+	hook := &accessControlResourceBroadcastHook{server: th.Server}
+
+	enablePluginAccessControl(t, th)
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+	resourceID := model.NewId()
+	plantPostPolicy(t, th, resourceID)
+	value := testPostResource(resourceID)
+	mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(0), nil).Once()
+
+	hook.Warm(map[string]any{})
+	assert.Empty(t, mockACS.Calls, "a missing resource argument warms nothing")
+
+	hook.Warm(map[string]any{"resource": value})
+	_, hit := th.App.ch.accessControlRecipients.lookup(value)
+	require.True(t, hit)
+
+	suiteConn := &platform.WebConn{UserId: th.BasicUser.Id, Platform: th.Server.Platform(), Suite: th.App}
+	suiteConn.SetSession(&model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId})
+	msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+	require.NoError(t, hook.Process(msg, suiteConn, map[string]any{"resource": value}))
+	assert.False(t, msg.Event().IsRejected())
+
+	suiteConn.UserId = th.BasicUser2.Id
+	msg = platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+	require.NoError(t, hook.Process(msg, suiteConn, map[string]any{"resource": value}))
+	assert.True(t, msg.Event().IsRejected())
+	mockACS.AssertNumberOfCalls(t, "QueryUsersForResource", 1)
 }
 
 func TestSendNotificationsAccessControlResource(t *testing.T) {

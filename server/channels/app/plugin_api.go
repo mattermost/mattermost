@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 type PluginAPI struct {
@@ -965,14 +966,16 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	// access_control_resource was stripped above with everything else; put it
-	// back and grant it only when it names this plugin.
+	// back and grant it only when it names this plugin. A reply is never
+	// granted: CreatePost copies the root's marker onto it, so the thread keeps
+	// the root's policy.
 	flags := model.CreatePostFlags{
 		TriggerWebhooks:    true,
 		SetOnline:          true,
 		FromPlugin:         true,
 		SilentNotification: silent,
 	}
-	if accessControlResource != "" {
+	if accessControlResource != "" && post.RootId == "" {
 		post.AddProp(model.PostPropsAccessControlResource, accessControlResource)
 		flags.AllowAccessControlResource = true
 	}
@@ -1129,7 +1132,9 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	if appErr := api.grantPluginMmBlocksActionsUpdate("UpdatePost", post, options); appErr != nil {
 		return nil, appErr
 	}
-	api.grantPluginAccessControlResourceUpdate(post, options)
+	if err := api.grantPluginAccessControlResourceUpdate("UpdatePost", post, options); err != nil {
+		return nil, model.AsAppError(err)
+	}
 	return api.updatePostForPlugin(post, options)
 }
 
@@ -1155,7 +1160,9 @@ func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.Upd
 		}
 	}
 
-	api.grantPluginAccessControlResourceUpdate(post, options)
+	if err := api.grantPluginAccessControlResourceUpdate("UpdatePostWithOptions", post, options); err != nil {
+		return nil, model.AsAppError(err)
+	}
 
 	return api.updatePostForPlugin(post, options)
 }
@@ -1184,9 +1191,26 @@ func (api *PluginAPI) ownedAccessControlResource(post *model.Post) string {
 // grant is derived here rather than trusted from the plugin's options, so a
 // plugin cannot mark a post with another plugin's resource. Any other value
 // is stripped by UpdatePost like every reserved prop, and the stored marker
-// is kept.
-func (api *PluginAPI) grantPluginAccessControlResourceUpdate(post *model.Post, options *model.UpdatePostOptions) {
-	options.AllowAccessControlResourceUpdate = api.ownedAccessControlResource(post) != ""
+// is kept. A marker can be set or replaced only on a root post that has no
+// replies, because replies take the root's marker when they are created, and
+// it is never removed. A different marker on a reply, or on a root that
+// already has replies, is refused so a thread never ends up partly marked.
+func (api *PluginAPI) grantPluginAccessControlResourceUpdate(where string, post *model.Post, options *model.UpdatePostOptions) error {
+	resource := api.ownedAccessControlResource(post)
+	if resource != "" {
+		stored, err := api.app.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(api.ctx), post.Id, false)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			// UpdatePost reports the missing post.
+		case err != nil:
+			return err
+		case stored.GetAccessControlResource() != resource && (stored.RootId != "" || stored.ReplyCount > 0):
+			return model.NewAppError(where, "plugin.api.update_post.access_control_resource_thread.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	options.AllowAccessControlResourceUpdate = resource != ""
+	return nil
 }
 
 // grantPluginMmBlocksActionsUpdate sets the grant when the post carries a

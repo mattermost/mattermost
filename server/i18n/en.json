@@ -20360,6 +20360,11 @@
     "description": "Error returned to plugins when SetThreadFollowing is called with the id of a reply instead of a thread's root post; developer-facing."
   },
   {
+    "id": "plugin.api.update_post.access_control_resource_thread.app_error",
+    "translation": "A post's access_control_resource can only be set on a root post that has no replies.",
+    "description": "Error returned to plugins when a post update tries to set or change 'access_control_resource' on a reply or on a root post that already has replies; developer-facing, keep the property name untranslated."
+  },
+  {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
     "translation": "Invalid mm_blocks_actions in plugin post update.",
     "description": "Error returned to plugins when a post update contains invalid 'mm_blocks_actions' data (interactive blocks); developer-facing, keep the property name untranslated."

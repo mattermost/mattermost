@@ -3418,6 +3418,8 @@ func (a *App) GetPostsByIdsForUser(rctx request.CTX, userID string, postIDs []st
 		return nil, 0, appErr
 	}
 
+	posts = a.filterPostSliceByAccessControlResource(rctx, userID, posts)
+
 	posts, appErr = a.prepareBurnOnReadPostsForUser(rctx, posts, userID)
 	if appErr != nil {
 		return nil, 0, appErr

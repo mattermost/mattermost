@@ -4,11 +4,15 @@
 package app
 
 import (
+	"errors"
+	"maps"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // Posts marked with props.access_control_resource are governed by a
@@ -160,6 +164,115 @@ func (a *App) filterPostsByAccessControlResource(rctx request.CTX, userID string
 		}
 	}
 	postList.Order = order
+}
+
+// filterPostSliceByAccessControlResource is filterPostsByAccessControlResource
+// for a plain slice of posts.
+func (a *App) filterPostSliceByAccessControlResource(rctx request.CTX, userID string, posts []*model.Post) []*model.Post {
+	if len(posts) == 0 || userID == "" || !a.postAccessControlResourceEnabled() {
+		return posts
+	}
+	var values []string
+	for _, post := range posts {
+		if value := post.GetAccessControlResource(); value != "" {
+			values = append(values, value)
+		}
+	}
+	if len(values) == 0 {
+		return posts
+	}
+	decisions := a.accessControlResourceDecisionsFor(rctx, userID, values)
+	kept := posts[:0]
+	for _, post := range posts {
+		if value := post.GetAccessControlResource(); value == "" || decisions[value] {
+			kept = append(kept, post)
+		}
+	}
+	return kept
+}
+
+// FileInfoAllowedByAccessControlResource reports whether userID may read the
+// post a file is attached to. A file without a post, or whose post is gone, is
+// allowed here; channel permissions are the caller's. A failure to load the
+// post denies.
+func (a *App) FileInfoAllowedByAccessControlResource(rctx request.CTX, userID string, info *model.FileInfo) bool {
+	if info == nil || info.PostId == "" || !a.postAccessControlResourceEnabled() {
+		return true
+	}
+	post, err := a.Srv().Store().Post().GetSingle(rctx, info.PostId, true)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return true
+		}
+		rctx.Logger().Warn("Failed to load the post of a file to check its access control; denying", mlog.String("file_id", info.Id), mlog.String("post_id", info.PostId), mlog.Err(err))
+		return false
+	}
+	return a.postAllowedByAccessControlResource(rctx, userID, post)
+}
+
+// filterFilesByAccessControlResource removes from fileList every file attached
+// to a post whose access_control_resource denies userID. A failure to load the
+// posts is returned so the caller denies the whole list.
+func (a *App) filterFilesByAccessControlResource(rctx request.CTX, userID string, fileList *model.FileInfoList) error {
+	if fileList == nil || len(fileList.FileInfos) == 0 || userID == "" || !a.postAccessControlResourceEnabled() {
+		return nil
+	}
+
+	postIDs := map[string]struct{}{}
+	for _, info := range fileList.FileInfos {
+		if info.PostId != "" {
+			postIDs[info.PostId] = struct{}{}
+		}
+	}
+	if len(postIDs) == 0 {
+		return nil
+	}
+
+	posts, err := a.Srv().Store().Post().GetPostsByIds(slices.Collect(maps.Keys(postIDs)))
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil
+		}
+		return err
+	}
+
+	markers := make(map[string]string, len(posts))
+	var values []string
+	for _, post := range posts {
+		if value := post.GetAccessControlResource(); value != "" {
+			markers[post.Id] = value
+			values = append(values, value)
+		}
+	}
+	if len(values) == 0 {
+		return nil
+	}
+
+	decisions := a.accessControlResourceDecisionsFor(rctx, userID, values)
+	denied := func(info *model.FileInfo) bool {
+		value, marked := markers[info.PostId]
+		return marked && !decisions[value]
+	}
+
+	kept := make(map[string]*model.FileInfo, len(fileList.FileInfos))
+	for id, info := range fileList.FileInfos {
+		if !denied(info) {
+			kept[id] = info
+		}
+	}
+	if len(kept) == len(fileList.FileInfos) {
+		return nil
+	}
+
+	order := fileList.Order[:0]
+	for _, id := range fileList.Order {
+		if _, ok := kept[id]; ok {
+			order = append(order, id)
+		}
+	}
+	fileList.FileInfos = kept
+	fileList.Order = order
+	return nil
 }
 
 // filterThreadsByAccessControlResource drops threads whose root denies userID.

@@ -105,8 +105,9 @@ type PlatformService struct {
 
 	Jobs *jobs.JobServer
 
-	hubs     []*Hub
-	hashSeed maphash.Seed
+	hubs           []*Hub
+	hashSeed       maphash.Seed
+	broadcastHooks map[string]BroadcastHook
 
 	// hubChannelIteration is EnableWebHubChannelIteration as read when the hubs started; changes take effect at the next restart.
 	hubChannelIteration bool
@@ -501,6 +502,7 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 	// Must be done before hub start.
 	go ps.processStatusUpdates()
 
+	ps.broadcastHooks = broadcastHooks
 	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
