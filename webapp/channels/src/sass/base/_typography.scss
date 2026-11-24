@@ -214,6 +214,18 @@ ol {
         url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
+/* Fallback for scripts the variable subsets below don't cover (Cyrillic, Greek, Vietnamese): reuse the static semibold
+   file for weights 601-800 so those characters stay in Open Sans. Declared first so the variable faces win where they overlap. */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 601 800;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2') format('woff2'),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff') format('woff');
+}
+
 /* Open Sans variable (wght axis) covering weights above semibold, e.g. 650 or 700. Latin + Latin Extended only. */
 @font-face {
     font-family: 'Open Sans';
