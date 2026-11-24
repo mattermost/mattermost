@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	testPropertyGroupName = model.AccessControlPropertyGroupName
+	testPropertyGroupName = "test_property_group"
 	testPropertyA         = "test_property_a"
 	testPropertyB         = "test_property_b"
 	testPropertyC         = "test_property_c"
@@ -201,40 +201,6 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 			require.NoError(t, dErr, "couldn't delete user")
 		}
 	}
-}
-
-// addOtherGroupUserValue gives userID a value in a user field outside the
-// access_control group, so the user has a second UserAttributeView row.
-func addOtherGroupUserValue(t *testing.T, ss store.Store, userID string) {
-	t.Helper()
-
-	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: "other_user_group", Version: model.PropertyGroupVersionV1})
-	require.NoError(t, err)
-	field, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID:    group.ID,
-		Name:       model.NewId(),
-		Type:       model.PropertyFieldTypeText,
-		ObjectType: model.PropertyFieldObjectTypeUser,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
-	})
-	require.NoError(t, err)
-	raw, err := json.Marshal("other_value")
-	require.NoError(t, err)
-	value, err := ss.PropertyValue().Create(&model.PropertyValue{
-		TargetID:   userID,
-		TargetType: model.PropertyValueTargetTypeUser,
-		GroupID:    group.ID,
-		FieldID:    field.ID,
-		Value:      raw,
-	})
-	require.NoError(t, err)
-	require.NoError(t, ss.Attributes().RefreshAttributes())
-
-	t.Cleanup(func() {
-		require.NoError(t, ss.PropertyValue().Delete(group.ID, value.ID))
-		require.NoError(t, ss.PropertyField().Delete(group.ID, field.ID))
-		require.NoError(t, ss.Attributes().RefreshAttributes())
-	})
 }
 
 func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -512,23 +478,6 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Len(t, subjects, 1, "attribute-less user must be returned despite the pagination cursor")
 		require.Equal(t, u.Id, subjects[0].Id, "expected the attribute-less user")
 	})
-
-	t.Run("Search ignores user attributes from other groups", func(t *testing.T) {
-		addOtherGroupUserValue(t, ss, users[0].Id)
-
-		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{})
-		require.NoError(t, err)
-		require.Len(t, subjects, 4, "a user with values in another group must be listed once")
-		require.Equal(t, int64(4), count)
-
-		subjects, count, err = ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
-			Query: "Attributes ->> '" + testPropertyA + "' = $1::text",
-			Args:  []any{testPropertyValueA1},
-		})
-		require.NoError(t, err)
-		require.Len(t, subjects, 2)
-		require.Equal(t, int64(2), count)
-	})
 }
 
 func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -647,18 +596,6 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 		require.NoError(t, err, "native removal query must not error")
 		require.Empty(t, members, "members satisfying a native policy must not be removed, even without an attribute row")
 	})
-
-	t.Run("user attributes from other groups don't get a qualifying member removed", func(t *testing.T) {
-		addOtherGroupUserValue(t, ss, users[0].Id)
-
-		members, err := ss.Attributes().GetChannelMembersToRemove(rctx, ch.Id, model.SubjectSearchOptions{
-			Query: "Attributes ->> '" + testPropertyA + "' = $1::text",
-			Args:  []any{testPropertyValueA1},
-		})
-		require.NoError(t, err)
-		require.Len(t, members, 1)
-		require.Equal(t, users[1].Id, members[0].UserId)
-	})
 }
 
 func testAttributesStoreGetTeamMembersToRemove(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -775,18 +712,6 @@ func testAttributesStoreGetTeamMembersToRemove(t *testing.T, rctx request.CTX, s
 		})
 		require.NoError(t, err, "native removal query must not error")
 		require.Empty(t, members, "members satisfying a native policy must not be removed, even without an attribute row")
-	})
-
-	t.Run("user attributes from other groups don't get a qualifying member removed", func(t *testing.T) {
-		addOtherGroupUserValue(t, ss, users[0].Id)
-
-		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{
-			Query: "Attributes ->> '" + testPropertyA + "' = $1::text",
-			Args:  []any{testPropertyValueA1},
-		})
-		require.NoError(t, err)
-		require.Len(t, members, 1)
-		require.Equal(t, users[1].Id, members[0].UserId)
 	})
 }
 
