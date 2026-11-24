@@ -67,6 +67,8 @@ type AppIface interface {
 	AddUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(rctx request.CTX, teamId string, user *model.User) *model.AppError
 	RemoveUserFromChannel(rctx request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
+	PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError
+	DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError
 	PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, isMemberForPreviews bool, err *model.AppError)
 	GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError)

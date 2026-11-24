@@ -284,6 +284,26 @@ func (_m *MockAppIface) DeleteReactionForPost(rctx request.CTX, reaction *model.
 	return r0
 }
 
+// DemoteUserToGuest provides a mock function with given fields: rctx, user
+func (_m *MockAppIface) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
+	ret := _m.Called(rctx, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DemoteUserToGuest")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) *model.AppError); ok {
+		r0 = rf(rctx, user)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // FileReader provides a mock function with given fields: path
 func (_m *MockAppIface) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	ret := _m.Called(path)
@@ -613,6 +633,26 @@ func (_m *MockAppIface) PreparePostForClient(rctx request.CTX, post *model.Post,
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
+}
+
+// PromoteGuestToUser provides a mock function with given fields: rctx, user, requestorId
+func (_m *MockAppIface) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError {
+	ret := _m.Called(rctx, user, requestorId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PromoteGuestToUser")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, string) *model.AppError); ok {
+		r0 = rf(rctx, user, requestorId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

@@ -722,3 +722,156 @@ func TestUpsertSyncAcknowledgement(t *testing.T) {
 		mockApp.AssertCalled(t, "SaveAcknowledgementForPostWithModel", mock.Anything, hasRemoteID)
 	})
 }
+
+func TestUpsertSyncUserGuestRole(t *testing.T) {
+	newService := func(t *testing.T, userStore *mocks.UserStore, mockApp *MockAppIface) *Service {
+		mockStore := &mocks.Store{}
+		mockStore.On("User").Return(userStore)
+
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+		mockApp.On("NotifySharedChannelUserUpdate", mock.Anything).Return()
+
+		return &Service{
+			server:   mockServer,
+			platform: &remoteEmailTestPlatform{},
+			app:      mockApp,
+		}
+	}
+
+	t.Run("insert", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			roles     string
+			wantRoles string
+		}{
+			{name: "guest stays guest", roles: model.SystemGuestRoleId, wantRoles: model.SystemGuestRoleId},
+			{name: "user stays user", roles: model.SystemUserRoleId, wantRoles: model.SystemUserRoleId},
+			{name: "admin becomes user", roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, wantRoles: model.SystemUserRoleId},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
+				incoming := &model.User{Id: model.NewId(), Username: "alice", Email: "alice@example.com", Roles: tt.roles}
+
+				userStore := &mocks.UserStore{}
+				userStore.On("Get", mock.Anything, incoming.Id).Return(nil, store.NewErrNotFound("User", incoming.Id))
+				userStore.On("Save", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+					return u.Roles == tt.wantRoles
+				})).Return(incoming, nil)
+
+				mockApp := &MockAppIface{}
+				scs := newService(t, userStore, mockApp)
+
+				saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantRoles, saved.Roles)
+				mockApp.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, mock.Anything)
+				mockApp.AssertNotCalled(t, "PromoteGuestToUser", mock.Anything, mock.Anything, mock.Anything)
+			})
+		}
+	})
+
+	t.Run("update", func(t *testing.T) {
+		tests := []struct {
+			name          string
+			existingRoles string
+			incomingRoles string
+			wantDemote    bool
+			wantPromote   bool
+		}{
+			{name: "user demoted to guest", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemGuestRoleId, wantDemote: true},
+			{name: "guest promoted to user", existingRoles: model.SystemGuestRoleId, incomingRoles: model.SystemUserRoleId, wantPromote: true},
+			{name: "guest unchanged", existingRoles: model.SystemGuestRoleId, incomingRoles: model.SystemGuestRoleId},
+			{name: "user unchanged", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemUserRoleId},
+			{name: "admin roles from remote ignored", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemAdminRoleId + " " + model.SystemUserRoleId},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
+				existing := &model.User{
+					Id:       model.NewId(),
+					Username: "alice:test-remote",
+					Email:    model.NewId(),
+					RemoteId: model.NewPointer(rc.RemoteId),
+					Roles:    tt.existingRoles,
+				}
+				incoming := &model.User{Id: existing.Id, Username: "alice", Email: "alice@example.com", Roles: tt.incomingRoles}
+
+				wantRoles := tt.existingRoles
+				if tt.wantDemote {
+					wantRoles = model.SystemGuestRoleId
+				}
+				if tt.wantPromote {
+					wantRoles = model.SystemUserRoleId
+				}
+				refreshed := existing.DeepCopy()
+				refreshed.Roles = wantRoles
+
+				userStore := &mocks.UserStore{}
+				userStore.On("Get", mock.Anything, existing.Id).Return(existing, nil).Once()
+				userStore.On("Get", mock.Anything, existing.Id).Return(refreshed, nil).Once()
+				userStore.On("Update", mock.Anything, mock.Anything, false).Return(func(_ request.CTX, u *model.User, _ bool) *model.UserUpdate {
+					// Update does not change roles.
+					updated := u.DeepCopy()
+					updated.Roles = tt.existingRoles
+					return &model.UserUpdate{New: updated}
+				}, nil)
+
+				mockApp := &MockAppIface{}
+				if tt.wantDemote {
+					mockApp.On("DemoteUserToGuest", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+						return u.Id == existing.Id
+					})).Return(nil).Once()
+				}
+				if tt.wantPromote {
+					mockApp.On("PromoteGuestToUser", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+						return u.Id == existing.Id
+					}), "").Return(nil).Once()
+				}
+				scs := newService(t, userStore, mockApp)
+
+				saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+				require.NoError(t, err)
+				assert.Equal(t, wantRoles, saved.Roles)
+				mockApp.AssertExpectations(t)
+				if !tt.wantDemote {
+					mockApp.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, mock.Anything)
+				}
+				if !tt.wantPromote {
+					mockApp.AssertNotCalled(t, "PromoteGuestToUser", mock.Anything, mock.Anything, mock.Anything)
+				}
+			})
+		}
+	})
+
+	t.Run("update returns error when demote fails", func(t *testing.T) {
+		rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
+		existing := &model.User{
+			Id:       model.NewId(),
+			Username: "alice:test-remote",
+			Email:    model.NewId(),
+			RemoteId: model.NewPointer(rc.RemoteId),
+			Roles:    model.SystemUserRoleId,
+		}
+		incoming := &model.User{Id: existing.Id, Username: "alice", Email: "alice@example.com", Roles: model.SystemGuestRoleId}
+
+		userStore := &mocks.UserStore{}
+		userStore.On("Get", mock.Anything, existing.Id).Return(existing, nil).Once()
+		userStore.On("Update", mock.Anything, mock.Anything, false).Return(func(_ request.CTX, u *model.User, _ bool) *model.UserUpdate {
+			updated := u.DeepCopy()
+			updated.Roles = model.SystemUserRoleId
+			return &model.UserUpdate{New: updated}
+		}, nil)
+
+		mockApp := &MockAppIface{}
+		mockApp.On("DemoteUserToGuest", mock.Anything, mock.Anything).
+			Return(model.NewAppError("DemoteUserToGuest", "test", nil, "", http.StatusInternalServerError))
+		scs := newService(t, userStore, mockApp)
+
+		_, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+		require.Error(t, err)
+	})
+}

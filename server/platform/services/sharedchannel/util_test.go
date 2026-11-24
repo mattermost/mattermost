@@ -248,3 +248,23 @@ func TestHandleUserMentions(t *testing.T) {
 			"Should remove remote cluster suffix when message is viewed on user's home server")
 	})
 }
+
+func TestSanitizeUserForSyncRoles(t *testing.T) {
+	tests := []struct {
+		roles string
+		want  string
+	}{
+		{roles: "", want: model.SystemUserRoleId},
+		{roles: model.SystemUserRoleId, want: model.SystemUserRoleId},
+		{roles: model.SystemGuestRoleId, want: model.SystemGuestRoleId},
+		{roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, want: model.SystemUserRoleId},
+		{roles: model.SystemUserRoleId + " " + model.SharedChannelManagerRoleId, want: model.SystemUserRoleId},
+		{roles: model.SystemAdminRoleId + " " + model.SystemGuestRoleId, want: model.SystemGuestRoleId},
+	}
+	for _, tt := range tests {
+		t.Run(tt.roles, func(t *testing.T) {
+			user := sanitizeUserForSync(&model.User{Roles: tt.roles})
+			require.Equal(t, tt.want, user.Roles)
+		})
+	}
+}

@@ -353,7 +353,11 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			patch.Email = &remoteEmail
 		}
 
+		isGuest := user.IsGuest()
 		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
+			return nil, err
+		}
+		if userSaved, err = scs.updateSyncUserGuestRole(rctx, userSaved, isGuest); err != nil {
 			return nil, err
 		}
 	}
@@ -383,7 +387,7 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	var userSaved *model.User
 	var suffix string
 
-	// ensure the new user is created with system_user role and random password.
+	// ensure the new user is created with system_user or system_guest role and random password.
 	user = sanitizeUserForSync(user)
 
 	// RemoteEmail was selected before the incoming RemoteId was rewritten.
@@ -478,6 +482,31 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 		}
 	}
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
+}
+
+// updateSyncUserGuestRole promotes or demotes an existing synced user so their guest status
+// matches their home server. User().Update does not change roles, and promote/demote also
+// update the scheme flags on existing team and channel memberships.
+func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, isGuest bool) (*model.User, error) {
+	if user.IsGuest() == isGuest {
+		return user, nil
+	}
+
+	var appErr *model.AppError
+	if isGuest {
+		appErr = scs.app.DemoteUserToGuest(rctx, user)
+	} else {
+		appErr = scs.app.PromoteGuestToUser(rctx, user, "")
+	}
+	if appErr != nil {
+		return nil, fmt.Errorf("error updating guest role for sync user %s: %w", user.Id, appErr)
+	}
+
+	updated, err := scs.server.GetStore().User().Get(rctx, user.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching sync user %s after guest role update: %w", user.Id, err)
+	}
+	return updated, nil
 }
 
 func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) (*model.Post, error) {

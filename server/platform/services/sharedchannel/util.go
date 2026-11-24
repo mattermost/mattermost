@@ -44,11 +44,17 @@ func prepareRemoteEmailForSync(user *model.User) (string, bool) {
 	return remoteEmail, ok && remoteEmail != ""
 }
 
+// sanitizeUserForSync strips credentials and reduces roles to either system_guest or
+// system_user. Roles from a remote are untrusted, so nothing above system_user survives.
 func sanitizeUserForSync(user *model.User) *model.User {
 	user.Password = model.NewId()
 	user.AuthData = nil
 	user.AuthService = ""
-	user.Roles = "system_user"
+	if user.IsGuest() {
+		user.Roles = model.SystemGuestRoleId
+	} else {
+		user.Roles = model.SystemUserRoleId
+	}
 	user.AllowMarketing = false
 	user.NotifyProps = model.StringMap{}
 	user.LastPasswordUpdate = 0
