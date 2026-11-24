@@ -28832,7 +28832,7 @@
     "description": "Button in the post-sign-in prompt that starts adding a passkey."
   },
   "passkey_enrollment_prompt.alreadyHave": {
-    "defaultMessage": "I already have a passkey",
+    "defaultMessage": "Use existing passkey",
     "description": "Button in the post-sign-in passkey prompt for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
   },
   "passkey_enrollment_prompt.body": {

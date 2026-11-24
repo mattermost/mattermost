@@ -229,14 +229,31 @@ describe('PasskeyEnrollmentPrompt', () => {
         expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(true);
     });
 
-    test('the close button skips the prompt for this login', async () => {
+    test('has no close button', async () => {
         renderPrompt();
         await screen.findByRole('dialog');
 
-        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
+        expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+    });
 
-        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
+    test('a click on the backdrop leaves the prompt open and due', async () => {
+        renderPrompt();
+        await screen.findByRole('dialog');
+
+        // react-bootstrap closes on a click whose target is the .modal container around the dialog.
+        const container = document.querySelector('.modal') as HTMLElement;
+        await userEvent.click(container);
+
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+    });
+
+    test('the footer buttons are Use existing passkey, Not now, Add passkey in that order', async () => {
+        renderPrompt();
+        await screen.findByRole('dialog');
+
+        const buttons = screen.getAllByRole('button').map((b) => b.textContent);
+        expect(buttons).toEqual(['Use existing passkey', 'Not now', 'Add passkey']);
     });
 
     test('Escape skips the prompt for this login', async () => {
@@ -367,7 +384,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    describe('I already have a passkey', () => {
+    describe('Use existing passkey', () => {
         const verifyBegin = {
             ceremony_id: 'ver1',
             options: {publicKey: {challenge: 'AQID', rpId: 'example.com', userVerification: 'required' as const}},
@@ -397,7 +414,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             renderPrompt();
             await screen.findByRole('dialog');
         };
-        const clickExisting = () => userEvent.click(screen.getByRole('button', {name: 'I already have a passkey'}));
+        const clickExisting = () => userEvent.click(screen.getByRole('button', {name: 'Use existing passkey'}));
 
         beforeEach(() => {
             createTicket = jest.spyOn(Client4, 'createPasskeyEnrollmentTicket').mockResolvedValue({ticket: 'tk1', expire_at: 1});
@@ -427,7 +444,7 @@ describe('PasskeyEnrollmentPrompt', () => {
 
             await clickExisting();
 
-            await waitFor(() => expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeEnabled());
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Use existing passkey'})).toBeEnabled());
             expect(screen.getByRole('dialog')).toBeInTheDocument();
             expect(finishVerification).not.toHaveBeenCalled();
             expect(document.querySelector('.genericModalError')).not.toBeInTheDocument();
@@ -482,7 +499,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             await clickExisting();
 
             await waitFor(() => expect(screen.getByRole('button', {name: 'Add passkey'})).toBeDisabled());
-            expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeDisabled();
+            expect(screen.getByRole('button', {name: 'Use existing passkey'})).toBeDisabled();
 
             await userEvent.click(screen.getByRole('button', {name: 'Not now'}));
             await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -495,7 +512,7 @@ describe('PasskeyEnrollmentPrompt', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Add passkey'}));
 
-            await waitFor(() => expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeDisabled());
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Use existing passkey'})).toBeDisabled());
         });
     });
 });

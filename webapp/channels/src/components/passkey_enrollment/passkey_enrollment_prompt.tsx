@@ -17,6 +17,8 @@ import LocalStorageStore from 'stores/local_storage_store';
 import {createPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
 
+import './passkey_enrollment_prompt.scss';
+
 const messages = defineMessages({
     recentLogin: {
         id: 'passkey_enrollment_prompt.recentLoginRequired',
@@ -157,47 +159,57 @@ export default function PasskeyEnrollmentPrompt() {
                     description='Title of the prompt shown after sign-in that offers to add a passkey.'
                 />
             }
-            confirmButtonText={
-                <FormattedMessage
-                    id='passkey_enrollment_prompt.add'
-                    defaultMessage='Add passkey'
-                    description='Button in the post-sign-in prompt that starts adding a passkey.'
-                />
-            }
-            cancelButtonText={
-                <FormattedMessage
-                    id='passkey_enrollment_prompt.notNow'
-                    defaultMessage='Not now'
-                    description='Button in the post-sign-in passkey prompt that dismisses it until the next sign-in.'
-                />
-            }
-            handleConfirm={add}
-            handleCancel={skip}
-            autoCloseOnConfirmButton={false}
-            autoCloseOnCancelButton={false}
+            showCloseButton={false}
+            backdrop='static'
             onHide={skip}
-            isConfirmLoading={busy === 'add'}
-            isConfirmDisabled={busy !== null}
             errorText={error}
+            footerContent={
+                <>
+                    <Button
+                        emphasis='tertiary'
+                        className='PasskeyEnrollmentPrompt__existing'
+                        loading={busy === 'verify'}
+                        disabled={busy !== null}
+                        onClick={verifyExisting}
+                    >
+                        <FormattedMessage
+                            id='passkey_enrollment_prompt.alreadyHave'
+                            defaultMessage='Use existing passkey'
+                            description='Button in the post-sign-in passkey prompt for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.'
+                        />
+                    </Button>
+                    <Button
+                        emphasis='tertiary'
+                        onClick={skip}
+                    >
+                        <FormattedMessage
+                            id='passkey_enrollment_prompt.notNow'
+                            defaultMessage='Not now'
+                            description='Button in the post-sign-in passkey prompt that dismisses it until the next sign-in.'
+                        />
+                    </Button>
+                    <Button
+                        emphasis='primary'
+                        loading={busy === 'add'}
+                        disabled={busy !== null}
+                        onClick={add}
+                    >
+                        <FormattedMessage
+                            id='passkey_enrollment_prompt.add'
+                            defaultMessage='Add passkey'
+                            description='Button in the post-sign-in prompt that starts adding a passkey.'
+                        />
+                    </Button>
+                </>
+            }
         >
-            <FormattedMessage
-                id='passkey_enrollment_prompt.body'
-                defaultMessage='Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.'
-                description='Body of the prompt shown after sign-in that offers to add a passkey.'
-            />
-            <div>
-                <Button
-                    emphasis='tertiary'
-                    disabled={busy !== null}
-                    onClick={verifyExisting}
-                >
-                    <FormattedMessage
-                        id='passkey_enrollment_prompt.alreadyHave'
-                        defaultMessage='I already have a passkey'
-                        description='Button in the post-sign-in passkey prompt for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.'
-                    />
-                </Button>
-            </div>
+            <p>
+                <FormattedMessage
+                    id='passkey_enrollment_prompt.body'
+                    defaultMessage='Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.'
+                    description='Body of the prompt shown after sign-in that offers to add a passkey.'
+                />
+            </p>
         </GenericModal>
     );
 }
