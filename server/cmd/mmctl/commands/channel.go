@@ -89,8 +89,15 @@ var ModifyChannelCmd = &cobra.Command{
 	Use:   "modify [channel] [flags]",
 	Short: "Modify a channel's public/private type",
 	Long: `Change the Public/Private type of a channel.
-Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
+
+When the server requires channel attributes, --attribute can be used only together with --private.
+
+Pass each attribute value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
 	Example: `  channel modify myteam:mychannel --private
+  channel modify myteam:mychannel --private --attribute "Classification=Secret"
   channel modify channelId --public`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(modifyChannelCmdF),
@@ -100,9 +107,16 @@ var UnarchiveChannelCmd = &cobra.Command{
 	Use:   "unarchive [channels]",
 	Short: "Unarchive some channels",
 	Long: `Unarchive a previously archived channel
-Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel unarchive myteam:mychannel",
-	RunE:    withClient(unarchiveChannelsCmdF),
+Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
+
+When the server requires channel attributes, the values you pass are applied to every channel listed.
+
+Pass each attribute value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
+	Example: `  channel unarchive myteam:mychannel
+  channel unarchive myteam:mychannel myteam:otherchannel --attribute "Classification=Secret"`,
+	RunE: withClient(unarchiveChannelsCmdF),
 }
 
 var SearchChannelCmd = &cobra.Command{
@@ -137,6 +151,8 @@ func init() {
 	ChannelCreateCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
 
 	ModifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
+	ModifyChannelCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
+	UnarchiveChannelCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
 	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
 
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
@@ -346,6 +362,33 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		return errors.New("enter at least one channel")
 	}
 
+	var restore func(channel *model.Channel) error
+	var resolver *channelAttributeResolver
+	if attributes, _ := cmd.Flags().GetStringArray("attribute"); len(attributes) == 0 {
+		restore = func(channel *model.Channel) error {
+			_, _, err := c.RestoreChannel(context.TODO(), channel.Id)
+			if err == nil {
+				return nil
+			}
+			// The fields are fetched once, on the first channel the server
+			// refuses for missing required attributes.
+			if resolver == nil && isMissingRequiredError(err) {
+				fetched, fetchErr := newChannelAttributeResolver(c)
+				if fetchErr != nil {
+					return err
+				}
+				resolver = fetched
+			}
+			return missingRequiredHint(c, resolver, err, nil, channel.Id)
+		}
+	} else {
+		var err error
+		restore, err = restoreChannelWithAttributes(c, cmd)
+		if err != nil {
+			return err
+		}
+	}
+
 	var errs *multierror.Error
 
 	channels := getChannelsFromChannelArgs(c, args)
@@ -356,7 +399,7 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 			errs = multierror.Append(errs, errors.New(msg))
 			continue
 		}
-		if _, _, err := c.RestoreChannel(context.TODO(), channel.Id); err != nil {
+		if err := restore(channel); err != nil {
 			msg := "Unable to unarchive channel '" + args[i] + "'. Error: " + err.Error()
 			printer.PrintError(msg)
 			errs = multierror.Append(errs, errors.New(msg))
@@ -374,6 +417,11 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("you must specify only one of --public or --private")
 	}
 
+	attributes, _ := cmd.Flags().GetStringArray("attribute")
+	if public && len(attributes) > 0 {
+		return errors.New("--attribute can be used only with --private")
+	}
+
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.Errorf("unable to find channel %q", args[0])
@@ -388,7 +436,15 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		privacy = model.ChannelTypePrivate
 	}
 
-	if _, _, err := c.UpdateChannelPrivacy(context.TODO(), channel.Id, privacy); err != nil {
+	if len(attributes) == 0 {
+		if _, _, err := c.UpdateChannelPrivacy(context.TODO(), channel.Id, privacy); err != nil {
+			err = missingRequiredHint(c, nil, err, nil, channel.Id)
+			return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], err.Error())
+		}
+		return nil
+	}
+
+	if err := makeChannelPrivateWithAttributes(c, cmd, channel); err != nil {
 		return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], err.Error())
 	}
 

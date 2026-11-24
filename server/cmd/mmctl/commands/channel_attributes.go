@@ -611,6 +611,63 @@ func createChannelWithAttributes(c client.Client, cmd *cobra.Command, channel *m
 	return newChannel, verifySaved(c, resolver, newChannel.Id, items, "created")
 }
 
+// makeChannelPrivateWithAttributes makes the channel private with the
+// --attribute values. The values are resolved before anything is sent.
+func makeChannelPrivateWithAttributes(c client.Client, cmd *cobra.Command, channel *model.Channel) error {
+	attrArgs, err := parseAttributeFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	resolver, err := newChannelAttributeResolver(c)
+	if err != nil {
+		return err
+	}
+
+	items, err := resolver.resolve(attrArgs)
+	if err != nil {
+		return err
+	}
+
+	if _, _, err := c.UpdateChannelPrivacyWithPropertyValues(context.TODO(), channel.Id, model.ChannelTypePrivate, items); err != nil {
+		return missingRequiredHint(c, resolver, err, items, channel.Id)
+	}
+
+	return verifySaved(c, resolver, channel.Id, items, "updated")
+}
+
+// restoreChannelWithAttributes resolves the --attribute values once, before
+// anything is sent, and returns a function that unarchives one channel with
+// them.
+func restoreChannelWithAttributes(c client.Client, cmd *cobra.Command) (func(channel *model.Channel) error, error) {
+	attrArgs, err := parseAttributeFlags(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	resolver, err := newChannelAttributeResolver(c)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := resolver.resolve(attrArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(channel *model.Channel) error {
+		if _, _, err := c.RestoreChannelWithPropertyValues(context.TODO(), channel.Id, items); err != nil {
+			return missingRequiredHint(c, resolver, err, items, channel.Id)
+		}
+		return verifySaved(c, resolver, channel.Id, items, "unarchived")
+	}, nil
+}
+
+func isMissingRequiredError(err error) bool {
+	var appErr *model.AppError
+	return errors.As(err, &appErr) && appErr.Id == missingRequiredAttributesErrorID
+}
+
 // missingRequiredHint returns err unchanged unless the server refused because
 // required attributes are missing. In that case it adds the names of the
 // required attributes the caller didn't pass, taken from the fields the server
@@ -622,8 +679,7 @@ func createChannelWithAttributes(c client.Client, cmd *cobra.Command, channel *m
 // looked up before the request; the fields are fetched now. If they can't be
 // fetched, err is returned unchanged.
 func missingRequiredHint(c client.Client, resolver *channelAttributeResolver, err error, sent []model.PropertyValuePatchItem, channelID string) error {
-	var appErr *model.AppError
-	if !errors.As(err, &appErr) || appErr.Id != missingRequiredAttributesErrorID {
+	if !isMissingRequiredError(err) {
 		return err
 	}
 

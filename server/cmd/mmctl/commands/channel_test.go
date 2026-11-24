@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -384,6 +385,185 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("attribute flag", func() {
+		f := newChannelAttributeFixture()
+		secret := optionIDOf(f.classification, "Secret")
+		f.program.Attrs["required"] = true
+
+		channel := &model.Channel{Id: model.NewId(), Name: "town-hall", Type: model.ChannelTypeOpen}
+		classificationItem := model.PropertyValuePatchItem{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)}
+
+		newModifyCmd := func(public, private bool, attributes ...string) *cobra.Command {
+			cmd := newTestCmd(s.T(), ModifyChannelCmd)
+			s.Require().NoError(cmd.Flags().Set("public", strconv.FormatBool(public)))
+			s.Require().NoError(cmd.Flags().Set("private", strconv.FormatBool(private)))
+			for _, attribute := range attributes {
+				s.Require().NoError(cmd.Flags().Set("attribute", attribute))
+			}
+			return cmd
+		}
+		expectChannel := func() {
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channel.Id).
+				Return(channel, &model.Response{}, nil).
+				Times(1)
+		}
+		expectRead := func(values ...*model.PropertyValue) {
+			s.client.
+				EXPECT().
+				GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channel.Id, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+				Return(values, &model.Response{}, nil).
+				Times(1)
+		}
+
+		s.Run("without the flag only UpdateChannelPrivacy is called", func() {
+			printer.Clean()
+			expectChannel()
+			s.client.
+				EXPECT().
+				UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate).
+				Return(channel, &model.Response{}, nil).
+				Times(1)
+
+			s.Require().NoError(modifyChannelCmdF(s.client, newModifyCmd(false, true), []string{channel.Id}))
+		})
+
+		s.Run("public with the flag is an error before any request", func() {
+			printer.Clean()
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(true, false, "Classification=Secret"), []string{channel.Id})
+			s.Require().EqualError(err, "--attribute can be used only with --private")
+		})
+
+		s.Run("the flag without private or public is an error before any request", func() {
+			printer.Clean()
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, false, "Classification=Secret"), []string{channel.Id})
+			s.Require().EqualError(err, "you must specify only one of --public or --private")
+		})
+
+		s.Run("makes the channel private with the resolved values and reads them back", func() {
+			printer.Clean()
+			expectChannel()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			s.client.
+				EXPECT().
+				UpdateChannelPrivacyWithPropertyValues(context.TODO(), channel.Id, model.ChannelTypePrivate, []model.PropertyValuePatchItem{classificationItem}).
+				Return(channel, &model.Response{}, nil).
+				Times(1)
+			expectRead(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)})
+
+			s.Require().NoError(modifyChannelCmdF(s.client, newModifyCmd(false, true, "classification=secret"), []string{channel.Id}))
+			s.Require().Empty(printer.GetLines())
+		})
+
+		s.Run("an unknown option sends no privacy request", func() {
+			printer.Clean()
+			expectChannel()
+			s.expectChannelAttributeFieldSearch(f.fields())
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true, "Classification=Nope"), []string{channel.Id})
+			s.Require().Error(err)
+		})
+
+		s.Run("a missing attribute error names the required attributes the channel lacks", func() {
+			printer.Clean()
+			expectChannel()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			missingRequired := model.NewAppError("updateChannelPrivacy", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+			missingRequired.Message = "This channel is missing required attributes."
+			s.client.
+				EXPECT().
+				UpdateChannelPrivacyWithPropertyValues(context.TODO(), channel.Id, model.ChannelTypePrivate, []model.PropertyValuePatchItem{classificationItem}).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+			expectRead()
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true, "Classification=Secret"), []string{channel.Id})
+			s.Require().Error(err)
+			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+		})
+
+		s.Run("without the flag a missing attribute error skips the attributes the channel holds", func() {
+			printer.Clean()
+			expectChannel()
+			missingRequired := model.NewAppError("updateChannelPrivacy", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+			missingRequired.Message = "This channel is missing required attributes."
+			gomock.InOrder(
+				s.client.
+					EXPECT().
+					UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate).
+					Return(nil, &model.Response{}, missingRequired).
+					Times(1),
+				s.client.
+					EXPECT().
+					SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+					Return(f.fields(), &model.Response{StatusCode: http.StatusOK}, nil).
+					Times(1),
+			)
+			expectRead(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)})
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true), []string{channel.Id})
+			s.Require().Error(err)
+			s.Require().Contains(err.Error(), "failed to update channel (")
+			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().NotContains(err.Error(), "Classification")
+		})
+
+		s.Run("without the flag a failed field search leaves only the server error", func() {
+			printer.Clean()
+			expectChannel()
+			missingRequired := model.NewAppError("updateChannelPrivacy", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+			missingRequired.Message = "This channel is missing required attributes."
+			s.client.
+				EXPECT().
+				UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+			s.client.
+				EXPECT().
+				SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+				Times(1)
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true), []string{channel.Id})
+			s.Require().Error(err)
+			s.Require().Equal(`failed to update channel ("`+channel.Id+`") privacy: `+missingRequired.Error(), err.Error())
+		})
+
+		s.Run("without the flag another server error makes no field search", func() {
+			printer.Clean()
+			expectChannel()
+			forbidden := model.NewAppError("updateChannelPrivacy", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+			s.client.
+				EXPECT().
+				UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate).
+				Return(nil, &model.Response{}, forbidden).
+				Times(1)
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true), []string{channel.Id})
+			s.Require().EqualError(err, `failed to update channel ("`+channel.Id+`") privacy: `+forbidden.Error())
+		})
+
+		s.Run("a read-back that doesn't hold the values is an error", func() {
+			printer.Clean()
+			expectChannel()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			s.client.
+				EXPECT().
+				UpdateChannelPrivacyWithPropertyValues(context.TODO(), channel.Id, model.ChannelTypePrivate, []model.PropertyValuePatchItem{classificationItem}).
+				Return(channel, &model.Response{}, nil).
+				Times(1)
+			expectRead()
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true, "Classification=Secret"), []string{channel.Id})
+			s.Require().ErrorContains(err, "the channel was updated, but the server didn't save the attribute values")
+		})
 	})
 }
 
@@ -2024,6 +2204,186 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+
+	s.Run("attribute flag", func() {
+		f := newChannelAttributeFixture()
+		secret := optionIDOf(f.classification, "Secret")
+		f.program.Attrs["required"] = true
+
+		first := &model.Channel{Id: model.NewId(), Name: "first"}
+		second := &model.Channel{Id: model.NewId(), Name: "second"}
+		classificationItem := model.PropertyValuePatchItem{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)}
+		items := []model.PropertyValuePatchItem{classificationItem}
+
+		newUnarchiveCmd := func(attributes ...string) *cobra.Command {
+			cmd := newTestCmd(s.T(), UnarchiveChannelCmd)
+			for _, attribute := range attributes {
+				s.Require().NoError(cmd.Flags().Set("attribute", attribute))
+			}
+			return cmd
+		}
+		expectChannels := func(channels ...*model.Channel) {
+			for _, channel := range channels {
+				s.client.
+					EXPECT().
+					GetChannel(context.TODO(), channel.Name).
+					Return(channel, &model.Response{}, nil).
+					Times(1)
+			}
+		}
+		expectRead := func(channel *model.Channel, values ...*model.PropertyValue) {
+			s.client.
+				EXPECT().
+				GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channel.Id, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+				Return(values, &model.Response{}, nil).
+				Times(1)
+		}
+		held := &model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)}
+
+		s.Run("restores every channel with the values resolved once", func() {
+			printer.Clean()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			expectChannels(first, second)
+			for _, channel := range []*model.Channel{first, second} {
+				s.client.
+					EXPECT().
+					RestoreChannelWithPropertyValues(context.TODO(), channel.Id, items).
+					Return(channel, &model.Response{}, nil).
+					Times(1)
+				expectRead(channel, held)
+			}
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd("Classification=Secret"), []string{first.Name, second.Name})
+			s.Require().NoError(err)
+			s.Require().Empty(printer.GetErrorLines())
+		})
+
+		s.Run("one failure doesn't stop the rest and names the failing channel", func() {
+			printer.Clean()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			expectChannels(first, second)
+			missingRequired := model.NewAppError("restoreChannel", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+			missingRequired.Message = "This channel is missing required attributes."
+			s.client.
+				EXPECT().
+				RestoreChannelWithPropertyValues(context.TODO(), first.Id, items).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+			expectRead(first)
+			s.client.
+				EXPECT().
+				RestoreChannelWithPropertyValues(context.TODO(), second.Id, items).
+				Return(second, &model.Response{}, nil).
+				Times(1)
+			expectRead(second, held)
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd("Classification=Secret"), []string{first.Name, second.Name})
+			s.Require().Error(err)
+			s.Require().Contains(err.Error(), "Unable to unarchive channel 'first'")
+			s.Require().NotContains(err.Error(), "'second'")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Len(printer.GetErrorLines(), 1)
+		})
+
+		s.Run("without the flag each refused channel gets the hint and the fields are fetched once", func() {
+			printer.Clean()
+			expectChannels(first, second)
+			missingRequired := model.NewAppError("restoreChannel", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+			missingRequired.Message = "This channel is missing required attributes."
+			s.client.
+				EXPECT().
+				RestoreChannel(context.TODO(), first.Id).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+			s.expectChannelAttributeFieldSearch(f.fields())
+			expectRead(first)
+			s.client.
+				EXPECT().
+				RestoreChannel(context.TODO(), second.Id).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+			expectRead(second, held)
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd(), []string{first.Name, second.Name})
+			s.Require().Error(err)
+			s.Require().Contains(err.Error(), "Unable to unarchive channel 'first'")
+			s.Require().Contains(err.Error(), "Unable to unarchive channel 'second'")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Len(printer.GetErrorLines(), 2)
+		})
+
+		s.Run("without the flag a failed field search leaves only the server error", func() {
+			printer.Clean()
+			expectChannels(first)
+			missingRequired := model.NewAppError("restoreChannel", missingRequiredAttributesErrorID, nil, "", http.StatusBadRequest)
+			missingRequired.Message = "This channel is missing required attributes."
+			s.client.
+				EXPECT().
+				RestoreChannel(context.TODO(), first.Id).
+				Return(nil, &model.Response{}, missingRequired).
+				Times(1)
+			s.client.
+				EXPECT().
+				SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+				Times(1)
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd(), []string{first.Name})
+			s.Require().EqualError(err, "1 error occurred:\n\t* Unable to unarchive channel 'first'. Error: "+missingRequired.Error()+"\n\n")
+		})
+
+		s.Run("without the flag another server error makes no field search", func() {
+			printer.Clean()
+			expectChannels(first)
+			forbidden := model.NewAppError("restoreChannel", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+			s.client.
+				EXPECT().
+				RestoreChannel(context.TODO(), first.Id).
+				Return(nil, &model.Response{}, forbidden).
+				Times(1)
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd(), []string{first.Name})
+			s.Require().ErrorContains(err, "Unable to unarchive channel 'first'. Error: "+forbidden.Error())
+		})
+
+		s.Run("a read-back that doesn't hold the values is a failure of that channel", func() {
+			printer.Clean()
+			s.expectChannelAttributeFieldSearch(f.fields())
+			expectChannels(first)
+			s.client.
+				EXPECT().
+				RestoreChannelWithPropertyValues(context.TODO(), first.Id, items).
+				Return(first, &model.Response{}, nil).
+				Times(1)
+			expectRead(first)
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd("Classification=Secret"), []string{first.Name})
+			s.Require().ErrorContains(err, "the channel was unarchived, but the server didn't save the attribute values")
+			s.Require().Len(printer.GetErrorLines(), 1)
+		})
+
+		s.Run("an unknown option sends no request for any channel", func() {
+			printer.Clean()
+			s.expectChannelAttributeFieldSearch(f.fields())
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd("Classification=Nope"), []string{first.Name, second.Name})
+			s.Require().Error(err)
+			s.Require().Empty(printer.GetErrorLines())
+		})
+
+		s.Run("a flag-off server stops before any write", func() {
+			printer.Clean()
+			s.client.
+				EXPECT().
+				SearchPropertyFields(context.TODO(), model.AccessControlPropertyGroupName, gomock.Any()).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+				Times(1)
+
+			err := unarchiveChannelsCmdF(s.client, newUnarchiveCmd("Classification=Secret"), []string{first.Name})
+			s.Require().EqualError(err, "channel attributes aren't enabled on this server")
+		})
 	})
 }
 
