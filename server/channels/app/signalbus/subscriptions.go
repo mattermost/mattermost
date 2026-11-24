@@ -40,8 +40,8 @@ func (b *Bus) SetSubscriptions(pluginID string, subs []model.SignalSubscription,
 		normalized = append(normalized, n)
 	}
 
-	b.subs.set(pluginID, normalized, func(prev *queue) *queue {
-		return newQueue(pluginID, b.queueSize, prev, b.deliver)
+	b.subs.set(pluginID, normalized, func(prevDone <-chan struct{}) *queue {
+		return newQueue(pluginID, b.queueSize, prevDone, b.deliver)
 	})
 	return nil
 }
@@ -104,14 +104,15 @@ type subscriptionIndex struct {
 type subscriptionSet struct {
 	mu          sync.RWMutex
 	subscribers map[string]*subscriber
-	// retired holds each plugin's last closed queue, whose worker may still be mid-delivery. The
-	// plugin's next queue waits for it.
-	retired map[string]*queue
+	// retired holds the done channel of each plugin's last closed queue, whose worker may still be
+	// mid-delivery. The plugin's next queue waits for it. Only the channel is kept so the closed
+	// queue's pending deliveries can be released.
+	retired map[string]<-chan struct{}
 	index   subscriptionIndex
 }
 
 func newSubscriptionSet() *subscriptionSet {
-	s := &subscriptionSet{subscribers: map[string]*subscriber{}, retired: map[string]*queue{}}
+	s := &subscriptionSet{subscribers: map[string]*subscriber{}, retired: map[string]<-chan struct{}{}}
 	s.rebuildIndex()
 	return s
 }
@@ -123,12 +124,12 @@ func (s *subscriptionSet) retire(pluginID string) {
 		return
 	}
 	existing.queue.close()
-	s.retired[pluginID] = existing.queue
+	s.retired[pluginID] = existing.queue.done
 	delete(s.subscribers, pluginID)
 	s.rebuildIndex()
 }
 
-func (s *subscriptionSet) set(pluginID string, subs []*model.SignalSubscription, newQueue func(prev *queue) *queue) {
+func (s *subscriptionSet) set(pluginID string, subs []*model.SignalSubscription, newQueue func(prevDone <-chan struct{}) *queue) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -138,8 +139,15 @@ func (s *subscriptionSet) set(pluginID string, subs []*model.SignalSubscription,
 	}
 	existing := s.subscribers[pluginID]
 
+	// A subscription kept unchanged keeps its pointer, which is how current tells it apart from
+	// one that was removed and then restored.
 	byID := make(map[string]*model.SignalSubscription, len(subs))
 	for _, sub := range subs {
+		if existing != nil {
+			if cur, ok := existing.byID[sub.ID]; ok && cur.Equal(sub) {
+				sub = cur
+			}
+		}
 		byID[sub.ID] = sub
 	}
 	if existing == nil {
@@ -165,7 +173,7 @@ func (s *subscriptionSet) dropAll() {
 		existing.queue.close()
 	}
 	s.subscribers = map[string]*subscriber{}
-	s.retired = map[string]*queue{}
+	s.retired = map[string]<-chan struct{}{}
 	s.rebuildIndex()
 }
 
@@ -258,7 +266,8 @@ func subscriptionMatches(ref subRef, env *signalEnvelope) bool {
 	return true
 }
 
-// current returns the IDs of the matched subscriptions the plugin still holds unchanged.
+// current returns the IDs of the matched subscriptions the plugin has held unchanged since the
+// delivery was queued.
 func (s *subscriptionSet) current(pluginID string, matched []*model.SignalSubscription) []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -268,7 +277,7 @@ func (s *subscriptionSet) current(pluginID string, matched []*model.SignalSubscr
 	}
 	var ids []string
 	for _, sub := range matched {
-		if cur, ok := existing.byID[sub.ID]; ok && cur.Equal(sub) {
+		if existing.byID[sub.ID] == sub {
 			ids = append(ids, sub.ID)
 		}
 	}

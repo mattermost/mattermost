@@ -211,6 +211,20 @@ func TestCatalog(t *testing.T) {
 		assert.Equal(t, catalog.Hash, otherCatalog.Hash)
 	})
 
+	t.Run("hash changes when an entry changes in place", func(t *testing.T) {
+		relabeled := newTestBus(t, 0)
+		register(t, relabeled, false)
+		signal, ok := relabeled.registry.signal(publisherID, "alpha")
+		require.True(t, ok)
+		signal.Label = "Renamed"
+		require.NoError(t, relabeled.RegisterSignal(publisherID, signal))
+
+		changed, err := relabeled.Catalog()
+		require.NoError(t, err)
+		require.Len(t, changed.Signals, len(catalog.Signals))
+		assert.NotEqual(t, catalog.Hash, changed.Hash)
+	})
+
 	t.Run("hash changes with the contents", func(t *testing.T) {
 		require.NoError(t, tb.RegisterSignal(publisherID, itemSignal("delta", "")))
 		changed, err := tb.Catalog()

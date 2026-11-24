@@ -6,6 +6,7 @@ package plugin
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -43,6 +44,12 @@ func (l *lifecycleEvents) record(kind string) func(string) {
 		defer l.mu.Unlock()
 		l.events = append(l.events, kind+":"+id)
 	}
+}
+
+func (l *lifecycleEvents) has(event string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return slices.Contains(l.events, event)
 }
 
 // take returns and clears the events recorded so far.
@@ -125,21 +132,22 @@ func TestEnvironmentLifecycleCallbacks(t *testing.T) {
 		probes []map[string]bool
 		mu     sync.Mutex
 	)
+	events := &lifecycleEvents{}
 	probe := func(env *Environment, id string) {
 		_, hooksErr := env.HooksForPlugin(id)
 		mu.Lock()
 		defer mu.Unlock()
 		probes = append(probes, map[string]bool{
-			"OnSignal":     env.PluginImplements(id, OnSignalID),
-			"OnActionCall": env.PluginImplements(id, OnActionCallID),
-			"hooksReady":   hooksErr == nil,
+			"OnSignal":            env.PluginImplements(id, OnSignalID),
+			"OnActionCall":        env.PluginImplements(id, OnActionCallID),
+			"hooksReady":          hooksErr == nil,
+			"activateCallbackRan": events.has("activate:" + id),
 		})
 	}
 	apiImpl := func(m *model.Manifest) API {
 		return &activationProbeAPI{env: &env, id: m.Id, probe: probe}
 	}
 
-	events := &lifecycleEvents{}
 	var err error
 	env, err = NewEnvironment(apiImpl, nil, pluginDir, t.TempDir(), mlog.CreateConsoleTestLogger(t), nil,
 		WithOnActivate(events.record("activate")),
@@ -155,8 +163,8 @@ func TestEnvironmentLifecycleCallbacks(t *testing.T) {
 
 		mu.Lock()
 		require.Len(t, probes, 1)
-		assert.Equal(t, map[string]bool{"OnSignal": true, "OnActionCall": false, "hooksReady": false}, probes[0],
-			"implemented hooks are known while OnActivate runs, before hooks are reachable")
+		assert.Equal(t, map[string]bool{"OnSignal": true, "OnActionCall": false, "hooksReady": false, "activateCallbackRan": true}, probes[0],
+			"the activate callback has run and implemented hooks are known while OnActivate runs, before hooks are reachable")
 		mu.Unlock()
 
 		assert.True(t, env.PluginImplements(okID, OnSignalID))

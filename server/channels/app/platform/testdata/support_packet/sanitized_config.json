@@ -772,6 +772,7 @@
         "EnforceLogPathRoot": false,
         "HealthDashboard": false,
         "EnableBrotliCompression": false,
-        "OpenIdAttributeSync": false
+        "OpenIdAttributeSync": false,
+        "PluginSignalBus": false
     }
 }

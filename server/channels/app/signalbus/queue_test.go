@@ -6,6 +6,7 @@ package signalbus
 import (
 	"errors"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -16,19 +17,38 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// blockFirst makes pluginID's delivery of item "block" wait until release is closed. started is
-// closed once that delivery is in progress, so the worker holds no queued entry.
-func blockFirst(tb *testBus, pluginID string) (started, release chan struct{}) {
+// blockFirst makes pluginID's delivery of item "block" wait until release is called. started is
+// closed once that delivery is in progress, so the worker holds no queued entry. The test's
+// cleanup releases it too, so a failed assertion doesn't leave the worker blocked.
+func blockFirst(t *testing.T, tb *testBus, pluginID string) (started chan struct{}, release func()) {
 	started = make(chan struct{})
-	release = make(chan struct{})
+	block, release := newRelease(t)
 	tb.hooks.setOnSignal(func(id string, d *model.SignalDelivery) error {
 		if id == pluginID && d.Payload["item_id"].Text == "block" {
 			close(started)
-			<-release
+			<-block
 		}
 		return nil
 	})
 	return started, release
+}
+
+// newRelease returns a channel and an idempotent function that closes it, also run on cleanup.
+func newRelease(t *testing.T) (<-chan struct{}, func()) {
+	ch := make(chan struct{})
+	var once sync.Once
+	release := func() { once.Do(func() { close(ch) }) }
+	t.Cleanup(release)
+	return ch, release
+}
+
+func subscriberQueue(t *testing.T, tb *testBus, pluginID string) *queue {
+	t.Helper()
+	tb.subs.mu.RLock()
+	defer tb.subs.mu.RUnlock()
+	existing := tb.subs.subscribers[pluginID]
+	require.NotNil(t, existing)
+	return existing.queue
 }
 
 func waitClosed(t *testing.T, ch chan struct{}) {
@@ -67,14 +87,14 @@ func TestQueueFullDropsDeliveries(t *testing.T) {
 	tb := newTestBus(t, 2)
 	tb.registerItemSignals(t)
 	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
-	started, release := blockFirst(tb, subscriberID)
+	started, release := blockFirst(t, tb, subscriberID)
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 	waitClosed(t, started)
 	for _, id := range []string{"queued1", "queued2", "dropped"} {
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload(id), "", nil), "emit never fails because a queue is full")
 	}
-	close(release)
+	release()
 
 	waitForDeliveries(t, tb.hooks, subscriberID, 3)
 	time.Sleep(50 * time.Millisecond)
@@ -87,8 +107,7 @@ func TestSlowSubscriberDoesNotBlockEmitOrOthers(t *testing.T) {
 	for _, id := range []string{subscriberID, otherID} {
 		require.NoError(t, tb.SetSubscriptions(id, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
 	}
-	started, release := blockFirst(tb, subscriberID)
-	defer close(release)
+	started, _ := blockFirst(t, tb, subscriberID)
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 	waitClosed(t, started)
@@ -109,6 +128,8 @@ func TestSetSubscriptionsAppliesToQueuedDeliveries(t *testing.T) {
 	tests := []struct {
 		name    string
 		replace []model.SignalSubscription
+		// restore, if set, is applied after replace.
+		restore []model.SignalSubscription
 		wantIDs [][]string
 	}{
 		{
@@ -131,6 +152,12 @@ func TestSetSubscriptionsAppliesToQueuedDeliveries(t *testing.T) {
 			replace: []model.SignalSubscription{{ID: "b", Signal: publisherID + "/items/*"}},
 			wantIDs: [][]string{{"b"}},
 		},
+		{
+			name:    "removed and restored subscription drops its ID",
+			replace: []model.SignalSubscription{{ID: "b", Signal: publisherID + "/items/*"}},
+			restore: []model.SignalSubscription{{ID: "a", Signal: "*"}, {ID: "b", Signal: publisherID + "/items/*"}},
+			wantIDs: [][]string{{"b"}},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -142,14 +169,17 @@ func TestSetSubscriptionsAppliesToQueuedDeliveries(t *testing.T) {
 				{ID: "b", Signal: publisherID + "/items/*"},
 				flushSubscription,
 			}, model.SubscriptionOptions{}))
-			started, release := blockFirst(tb, subscriberID)
+			started, release := blockFirst(t, tb, subscriberID)
 
 			require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 			waitClosed(t, started)
 			require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("queued"), "", nil))
 
 			require.NoError(t, tb.SetSubscriptions(subscriberID, append(tc.replace, flushSubscription), model.SubscriptionOptions{}))
-			close(release)
+			if tc.restore != nil {
+				require.NoError(t, tb.SetSubscriptions(subscriberID, append(tc.restore, flushSubscription), model.SubscriptionOptions{}))
+			}
+			release()
 			tb.flush(t, subscriberID)
 
 			var gotIDs [][]string
@@ -184,18 +214,20 @@ func TestDropPlugin(t *testing.T) {
 		tb := newTestBus(t, 0)
 		tb.registerItemSignals(t)
 		require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
-		started, release := blockFirst(tb, subscriberID)
+		started, release := blockFirst(t, tb, subscriberID)
 
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 		waitClosed(t, started)
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("pending"), "", nil))
 
+		q := subscriberQueue(t, tb, subscriberID)
 		tb.DropPlugin(subscriberID)
-		close(release)
+		release()
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("after"), "", nil))
 
-		time.Sleep(50 * time.Millisecond)
+		waitClosed(t, q.done)
 		assert.Equal(t, []string{"block"}, itemIDs(tb.hooks.delivered(subscriberID)))
+		assert.False(t, q.enqueue(&queuedDelivery{}), "a retired queue accepts nothing")
 		assert.Empty(t, tb.subs.match(&signalEnvelope{PublisherID: publisherID, Name: "item_created"}))
 	})
 
@@ -218,13 +250,13 @@ func TestDeliveryToInactiveSubscriberIsDropped(t *testing.T) {
 	tb.registerFlush(t)
 	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
 	require.NoError(t, tb.SetSubscriptions(otherID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/*"}, flushSubscription}, model.SubscriptionOptions{}))
-	started, release := blockFirst(tb, subscriberID)
+	started, release := blockFirst(t, tb, subscriberID)
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 	waitClosed(t, started)
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("pending"), "", nil))
 	tb.hooks.setInactive(subscriberID, true)
-	close(release)
+	release()
 
 	tb.flush(t, otherID)
 	time.Sleep(50 * time.Millisecond)
@@ -264,13 +296,13 @@ func TestDisabledBus(t *testing.T) {
 		tb := newTestBus(t, 0)
 		tb.registerItemSignals(t)
 		require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
-		started, release := blockFirst(tb, subscriberID)
+		started, release := blockFirst(t, tb, subscriberID)
 
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 		waitClosed(t, started)
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("queued"), "", nil))
 		tb.enabled.Store(false)
-		close(release)
+		release()
 
 		time.Sleep(50 * time.Millisecond)
 		assert.Equal(t, []string{"block"}, itemIDs(tb.hooks.delivered(subscriberID)))
@@ -310,11 +342,26 @@ func TestDropPluginWhileStartingStopsTheWait(t *testing.T) {
 	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("early"), "", nil))
 
-	tb.subs.mu.RLock()
-	q := tb.subs.subscribers[subscriberID].queue
-	tb.subs.mu.RUnlock()
+	q := subscriberQueue(t, tb, subscriberID)
+	require.Eventually(t, func() bool { return tb.hooks.startingObserved(subscriberID) > 0 }, 5*time.Second, 5*time.Millisecond,
+		"the worker is waiting for OnActivate")
 	tb.DropPlugin(subscriberID)
 	waitClosed(t, q.done)
+	assert.Empty(t, tb.hooks.delivered(subscriberID))
+}
+
+func TestBusDisabledWhileSubscriberStartsDropsTheDelivery(t *testing.T) {
+	tb := newTestBus(t, 0)
+	tb.registerItemSignals(t)
+	tb.hooks.setStarting(subscriberID, true)
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
+	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("early"), "", nil))
+
+	require.Eventually(t, func() bool { return tb.hooks.startingObserved(subscriberID) > 0 }, 5*time.Second, 5*time.Millisecond)
+	tb.enabled.Store(false)
+	tb.hooks.setStarting(subscriberID, false)
+
+	time.Sleep(4 * startingPollInterval)
 	assert.Empty(t, tb.hooks.delivered(subscriberID))
 }
 
@@ -326,7 +373,7 @@ func TestResubscribingDoesNotOverlapDeliveries(t *testing.T) {
 
 	var inFlight, maxInFlight atomic.Int32
 	started := make(chan struct{})
-	release := make(chan struct{})
+	block, release := newRelease(t)
 	tb.hooks.setOnSignal(func(id string, d *model.SignalDelivery) error {
 		n := inFlight.Add(1)
 		defer inFlight.Add(-1)
@@ -338,7 +385,7 @@ func TestResubscribingDoesNotOverlapDeliveries(t *testing.T) {
 		}
 		if d.Payload["item_id"].Text == "block" {
 			close(started)
-			<-release
+			<-block
 		}
 		return nil
 	})
@@ -346,14 +393,17 @@ func TestResubscribingDoesNotOverlapDeliveries(t *testing.T) {
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
 	waitClosed(t, started)
 
-	// Clear and restore the subscriptions while the old worker is mid-delivery.
-	require.NoError(t, tb.SetSubscriptions(subscriberID, nil, model.SubscriptionOptions{}))
-	require.NoError(t, tb.SetSubscriptions(subscriberID, subs, model.SubscriptionOptions{}))
+	// Clear and restore the subscriptions twice while the old worker is mid-delivery, so the
+	// second queue is closed while it is still waiting.
+	for range 2 {
+		require.NoError(t, tb.SetSubscriptions(subscriberID, nil, model.SubscriptionOptions{}))
+		require.NoError(t, tb.SetSubscriptions(subscriberID, subs, model.SubscriptionOptions{}))
+	}
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("after"), "", nil))
 
 	time.Sleep(50 * time.Millisecond)
 	assert.Len(t, tb.hooks.delivered(subscriberID), 0, "the new worker waits for the old delivery")
-	close(release)
+	release()
 
 	waitForDeliveries(t, tb.hooks, subscriberID, 2)
 	assert.Equal(t, []string{"block", "after"}, itemIDs(tb.hooks.delivered(subscriberID)))

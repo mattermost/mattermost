@@ -4,6 +4,7 @@
 package signalbus
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -88,6 +89,8 @@ func TestExecuteAction(t *testing.T) {
 		setup   func(tb *testBus)
 		req     func() *model.ActionRequest
 		wantErr error
+		// reachesTarget marks failures that happen after the target's hook was called.
+		reachesTarget bool
 	}{
 		{
 			name:    "nil request",
@@ -194,7 +197,8 @@ func TestExecuteAction(t *testing.T) {
 					return nil, errors.New("connection closed")
 				}
 			},
-			wantErr: model.ErrActionCallFailed,
+			wantErr:       model.ErrActionCallFailed,
+			reachesTarget: true,
 		},
 		{
 			name: "invalid result",
@@ -203,7 +207,26 @@ func TestExecuteAction(t *testing.T) {
 					return &model.ActionResult{Fields: map[string]model.SignalValue{"count": model.SignalTextValue("seven")}}, nil
 				}
 			},
-			wantErr: model.ErrActionResultInvalid,
+			wantErr:       model.ErrActionResultInvalid,
+			reachesTarget: true,
+		},
+		{
+			name: "encoded response over 1 MiB",
+			setup: func(tb *testBus) {
+				action := createItemAction()
+				action.Results = []model.SignalField{{Key: "body", Type: model.SignalTypeTextarea}}
+				require.NoError(t, tb.RegisterAction(publisherID, action))
+
+				// The results alone fit exactly; the response wrapper pushes it over.
+				overhead, err := json.Marshal(map[string]model.SignalValue{"body": model.SignalTextareaValue("")})
+				require.NoError(t, err)
+				body := model.SignalTextareaValue(strings.Repeat("x", model.ActionMaxBytes-len(overhead)))
+				tb.hooks.onActionCall = func(string, *model.ActionCall) (*model.ActionResult, error) {
+					return &model.ActionResult{Fields: map[string]model.SignalValue{"body": body}}, nil
+				}
+			},
+			wantErr:       model.ErrActionResultInvalid,
+			reachesTarget: true,
 		},
 	}
 	for _, tc := range tests {
@@ -219,14 +242,56 @@ func TestExecuteAction(t *testing.T) {
 			resp, err := tb.ExecuteAction(subscriberID, req, "")
 			require.ErrorIs(t, err, tc.wantErr)
 			assert.Nil(t, resp)
+			if tc.reachesTarget {
+				assert.Len(t, tb.hooks.actionCalls(publisherID), 1)
+			} else {
+				assert.Empty(t, tb.hooks.actionCalls(publisherID), "rejected before reaching the target")
+			}
 		})
 	}
 
-	t.Run("validation failures never reach the target", func(t *testing.T) {
+	t.Run("a disallowed caller without a bot is told it is not allowed", func(t *testing.T) {
 		tb := newActionBus(t)
-		_, err := tb.ExecuteAction(subscriberID, &model.ActionRequest{PluginID: publisherID, Action: "create_item", Fields: map[string]model.SignalValue{"x": {}}}, "")
-		require.Error(t, err)
-		assert.Empty(t, tb.hooks.actionCalls(publisherID))
+		action := createItemAction()
+		action.AllowedCallers = []string{otherID}
+		require.NoError(t, tb.RegisterAction(publisherID, action))
+		delete(tb.hooks.bots, subscriberID)
+
+		_, err := tb.ExecuteAction(subscriberID, createItemRequest(), "")
+		require.ErrorIs(t, err, model.ErrActionCallerNotAllowed)
+	})
+
+	t.Run("target changes during the bot lookup are enforced", func(t *testing.T) {
+		tests := []struct {
+			name    string
+			change  func(tb *testBus)
+			wantErr error
+		}{
+			{
+				name: "caller removed from the allowlist",
+				change: func(tb *testBus) {
+					action := createItemAction()
+					action.AllowedCallers = []string{otherID}
+					require.NoError(t, tb.RegisterAction(publisherID, action))
+				},
+				wantErr: model.ErrActionCallerNotAllowed,
+			},
+			{
+				name:    "target restarting",
+				change:  func(tb *testBus) { tb.hooks.setStarting(publisherID, true) },
+				wantErr: model.ErrActionNotFound,
+			},
+		}
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				tb := newActionBus(t)
+				tb.hooks.onBotLookup = func() { tc.change(tb) }
+
+				_, err := tb.ExecuteAction(subscriberID, createItemRequest(), "")
+				require.ErrorIs(t, err, tc.wantErr)
+				assert.Empty(t, tb.hooks.actionCalls(publisherID))
+			})
+		}
 	})
 
 	t.Run("an AppError from the target is returned unchanged", func(t *testing.T) {

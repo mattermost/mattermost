@@ -23,23 +23,22 @@ func (b *Bus) ExecuteAction(callerID string, req *model.ActionRequest, cause mod
 		return nil, model.ErrActionNotFound.Wrapf("a plugin ID and an action are required")
 	}
 
-	action, ok := b.registry.action(req.PluginID, req.Action)
-	// A target still in OnActivate is listed but can't be called yet, so it counts as not active.
-	if !ok || !b.hooks.IsActive(req.PluginID) || b.hooks.IsStarting(req.PluginID) || !b.hooks.Implements(req.PluginID, plugin.OnActionCallID) {
-		return nil, model.ErrActionNotFound.Wrapf("%s/%s", req.PluginID, req.Action)
+	if _, err := b.callableAction(callerID, req); err != nil {
+		return nil, err
 	}
-	if !action.IsCallerAllowed(callerID) {
-		return nil, model.ErrActionCallerNotAllowed.Wrapf("%s may not call %s/%s", callerID, req.PluginID, req.Action)
+	actingUserID, err := b.resolveActingUser(callerID)
+	if err != nil {
+		return nil, err
+	}
+	// The target may have restarted during the lookup, so check again against what will get the call.
+	action, err := b.callableAction(callerID, req)
+	if err != nil {
+		return nil, err
 	}
 
 	fields, err := model.ValidateActionInputs(action.Fields, req.Fields)
 	if err != nil {
 		return nil, model.ErrActionFieldsInvalid.Wrapf("%s/%s: %v", req.PluginID, req.Action, err)
-	}
-
-	actingUserID, err := b.resolveActingUser(callerID)
-	if err != nil {
-		return nil, err
 	}
 
 	call := &model.ActionCall{
@@ -75,7 +74,29 @@ func (b *Bus) ExecuteAction(callerID string, req *model.ActionRequest, cause mod
 		return nil, model.ErrActionResultInvalid.Wrapf("%s/%s: %v", req.PluginID, req.Action, err)
 	}
 
-	return &model.ActionResponse{Fields: filtered}, nil
+	resp := &model.ActionResponse{Fields: filtered}
+	encoded, err = json.Marshal(resp)
+	if err != nil {
+		return nil, model.ErrActionResultInvalid.Wrapf("%v", err)
+	}
+	if len(encoded) > model.ActionMaxBytes {
+		return nil, model.ErrActionResultInvalid.Wrapf("%s/%s: encoded response exceeds %d bytes", req.PluginID, req.Action, model.ActionMaxBytes)
+	}
+	return resp, nil
+}
+
+// callableAction returns the target's action descriptor if the target can be called now and the
+// caller is allowed to call it.
+func (b *Bus) callableAction(callerID string, req *model.ActionRequest) (model.ActionDescriptor, error) {
+	action, ok := b.registry.action(req.PluginID, req.Action)
+	// A target still in OnActivate is listed but can't be called yet, so it counts as not active.
+	if !ok || !b.hooks.IsActive(req.PluginID) || b.hooks.IsStarting(req.PluginID) || !b.hooks.Implements(req.PluginID, plugin.OnActionCallID) {
+		return model.ActionDescriptor{}, model.ErrActionNotFound.Wrapf("%s/%s", req.PluginID, req.Action)
+	}
+	if !action.IsCallerAllowed(callerID) {
+		return model.ActionDescriptor{}, model.ErrActionCallerNotAllowed.Wrapf("%s may not call %s/%s", callerID, req.PluginID, req.Action)
+	}
+	return action, nil
 }
 
 // resolveActingUser returns the caller's bot user, which must exist and be active.

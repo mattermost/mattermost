@@ -29,25 +29,28 @@ type queue struct {
 	done     chan struct{}
 }
 
-// newQueue starts the worker. If prev is set, the worker waits for prev's worker to exit first,
-// so a plugin never has two deliveries in progress at once, even across re-subscription.
-func newQueue(pluginID string, size int, prev *queue, handle func(q *queue, qd *queuedDelivery)) *queue {
+// newQueue starts the worker. If prevDone is set, the worker waits for it to close first, so a
+// plugin never has two deliveries in progress at once, even across re-subscription.
+func newQueue(pluginID string, size int, prevDone <-chan struct{}, handle func(q *queue, qd *queuedDelivery)) *queue {
 	q := &queue{
 		pluginID: pluginID,
 		ch:       make(chan *queuedDelivery, size),
 		stop:     make(chan struct{}),
 		done:     make(chan struct{}),
 	}
-	go q.run(prev, handle)
+	go q.run(prevDone, handle)
 	return q
 }
 
-func (q *queue) run(prev *queue, handle func(q *queue, qd *queuedDelivery)) {
+func (q *queue) run(prevDone <-chan struct{}, handle func(q *queue, qd *queuedDelivery)) {
 	defer close(q.done)
-	if prev != nil {
+	if prevDone != nil {
 		select {
-		case <-prev.done:
+		case <-prevDone:
 		case <-q.stop:
+			// A queue created after this one waits on done, so done must not close before the
+			// predecessor's delivery finishes.
+			<-prevDone
 			return
 		}
 	}
@@ -66,8 +69,14 @@ func (q *queue) run(prev *queue, handle func(q *queue, qd *queuedDelivery)) {
 	}
 }
 
-// enqueue adds the delivery without blocking and reports whether there was room.
+// enqueue adds the delivery without blocking and reports whether there was room. A closed queue
+// accepts nothing.
 func (q *queue) enqueue(qd *queuedDelivery) bool {
+	select {
+	case <-q.stop:
+		return false
+	default:
+	}
 	select {
 	case q.ch <- qd:
 		return true
@@ -111,13 +120,13 @@ func (b *Bus) deliver(q *queue, qd *queuedDelivery) {
 		mlog.String("delivery_id", d.ID),
 	}
 
-	if !b.isEnabled() {
-		b.logger.Debug("Dropped signal delivery because the signal bus is disabled", logFields...)
+	if !b.waitUntilStarted(q) {
+		b.logger.Debug("Dropped signal delivery because the subscriber stopped while starting", logFields...)
 		return
 	}
 
-	if !b.waitUntilStarted(q) {
-		b.logger.Debug("Dropped signal delivery because the subscriber stopped while starting", logFields...)
+	if !b.isEnabled() {
+		b.logger.Debug("Dropped signal delivery because the signal bus is disabled", logFields...)
 		return
 	}
 

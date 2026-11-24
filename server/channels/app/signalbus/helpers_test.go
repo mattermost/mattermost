@@ -25,9 +25,11 @@ const (
 // fakeHooks is a HookInvoker where every plugin is active and implements every hook unless told
 // otherwise.
 type fakeHooks struct {
-	mu            sync.Mutex
-	inactive      map[string]bool
-	starting      map[string]bool
+	mu       sync.Mutex
+	inactive map[string]bool
+	starting map[string]bool
+	// startingSeen counts IsStarting calls that returned true.
+	startingSeen  map[string]int
 	missingHooks  map[string]map[int]bool
 	bots          map[string]string
 	botErr        error
@@ -38,12 +40,15 @@ type fakeHooks struct {
 	// onSignal, if set, runs before the delivery is recorded. It may block.
 	onSignal     func(pluginID string, d *model.SignalDelivery) error
 	onActionCall func(pluginID string, call *model.ActionCall) (*model.ActionResult, error)
+	// onBotLookup, if set, runs at the start of BotUserID without the lock held.
+	onBotLookup func()
 }
 
 func newFakeHooks() *fakeHooks {
 	return &fakeHooks{
 		inactive:      map[string]bool{},
 		starting:      map[string]bool{},
+		startingSeen:  map[string]int{},
 		missingHooks:  map[string]map[int]bool{},
 		bots:          map[string]string{},
 		inactiveUsers: map[string]bool{},
@@ -61,7 +66,16 @@ func (f *fakeHooks) IsActive(pluginID string) bool {
 func (f *fakeHooks) IsStarting(pluginID string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.starting[pluginID] {
+		f.startingSeen[pluginID]++
+	}
 	return f.starting[pluginID]
+}
+
+func (f *fakeHooks) startingObserved(pluginID string) int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.startingSeen[pluginID]
 }
 
 func (f *fakeHooks) setStarting(pluginID string, starting bool) {
@@ -105,6 +119,9 @@ func (f *fakeHooks) OnActionCall(pluginID string, call *model.ActionCall) (*mode
 }
 
 func (f *fakeHooks) BotUserID(pluginID string) (string, error) {
+	if f.onBotLookup != nil {
+		f.onBotLookup()
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.bots[pluginID], f.botErr

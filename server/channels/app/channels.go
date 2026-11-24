@@ -333,7 +333,9 @@ func (ch *Channels) Start() error {
 
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
-	ch.signalBus.Close()
+	if ch.signalBus != nil {
+		ch.signalBus.Close()
+	}
 
 	ch.dndTask.stop()
 	ch.postReminderTask.stop()
