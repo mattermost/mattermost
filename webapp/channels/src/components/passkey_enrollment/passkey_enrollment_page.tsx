@@ -40,10 +40,10 @@ const messages = defineMessages({
         defaultMessage: 'Use existing passkey',
         description: 'Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.',
     },
-    confirmed: {
-        id: 'passkey_enrollment_page.confirmed',
-        defaultMessage: 'Passkey confirmed. You can close this page and return to the app.',
-        description: 'Shown after the user\'s existing passkey was checked on the page opened from the Mattermost app.',
+    confirmedTitle: {
+        id: 'passkey_enrollment_page.confirmedTitle',
+        defaultMessage: 'Passkey confirmed',
+        description: 'Title shown after the user\'s existing passkey was checked on the page opened from the Mattermost app.',
     },
     noneRegistered: {
         id: 'passkey_enrollment_page.noneRegistered',
@@ -55,10 +55,20 @@ const messages = defineMessages({
         defaultMessage: 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.',
         description: 'Error shown when the passkey the user chose is not one of their account\'s passkeys.',
     },
-    done: {
-        id: 'passkey_enrollment_page.done',
-        defaultMessage: 'Passkey added. You can close this page and return to the app.',
-        description: 'Shown after a passkey was added on the page opened from the Mattermost app.',
+    addedTitle: {
+        id: 'passkey_enrollment_page.addedTitle',
+        defaultMessage: 'Passkey added',
+        description: 'Title shown after a passkey was added on the page opened from the Mattermost app.',
+    },
+    returnToApp: {
+        id: 'passkey_enrollment_page.returnToApp',
+        defaultMessage: 'You can close this page and return to the app.',
+        description: 'Shown after a passkey was added or confirmed on the page opened from the Mattermost app.',
+    },
+    cantAdd: {
+        id: 'passkey_enrollment_page.cantAdd',
+        defaultMessage: 'Can\'t add a passkey here',
+        description: 'Title of the page, opened from the Mattermost app, when a passkey cannot be added: in the desktop app, in a browser without passkey support, from an incomplete link, or after an error that cannot be retried.',
     },
     incomplete: {
         id: 'passkey_enrollment_page.incomplete',
@@ -123,19 +133,29 @@ export default function PasskeyEnrollmentPage() {
     // A refusal that retrying cannot fix removes the button; any other error leaves it for another try.
     const [error, setError] = useState<{text: string; final: boolean} | null>(null);
 
-    let message;
+    let title = messages.title;
+    let message: React.ReactNode;
     let canAct = false;
     if (isDesktopApp()) {
+        title = messages.cantAdd;
         message = formatMessage(messages.desktop);
     } else if (typeof window.PublicKeyCredential === 'undefined') {
+        title = messages.cantAdd;
         message = formatMessage(messages.unsupported);
     } else if (!ticket) {
+        title = messages.cantAdd;
         message = formatMessage(messages.incomplete);
     } else if (done) {
-        message = formatMessage(done === 'added' ? messages.done : messages.confirmed);
+        title = done === 'added' ? messages.addedTitle : messages.confirmedTitle;
+        message = formatMessage(messages.returnToApp);
+    } else if (error?.final) {
+        title = messages.cantAdd;
+
+        // Without a banner, the subtitle is the only place the refusal can be announced.
+        message = <span role='alert'>{error.text}</span>;
     } else {
         message = formatMessage(messages.body);
-        canAct = !error?.final;
+        canAct = true;
     }
 
     const run = async (kind: 'add' | 'verify', action: () => Promise<boolean>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
@@ -176,11 +196,11 @@ export default function PasskeyEnrollmentPage() {
 
     return (
         <ColumnLayout
-            title={formatMessage(messages.title)}
+            title={formatMessage(title)}
             message={message}
             extraContent={(
                 <div className='PasskeyEnrollmentPage__actions'>
-                    {error && (
+                    {error && !error.final && (
                         <div role='alert'>
                             <AlertBanner
                                 mode='danger'

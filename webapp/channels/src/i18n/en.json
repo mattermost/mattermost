@@ -28771,6 +28771,10 @@
     "defaultMessage": "Add passkey",
     "description": "Button that starts adding a passkey, on the page opened from the Mattermost app."
   },
+  "passkey_enrollment_page.addedTitle": {
+    "defaultMessage": "Passkey added",
+    "description": "Title shown after a passkey was added on the page opened from the Mattermost app."
+  },
   "passkey_enrollment_page.alreadyHave": {
     "defaultMessage": "Use existing passkey",
     "description": "Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
@@ -28783,17 +28787,17 @@
     "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
     "description": "Explanation shown above the button that adds a passkey, on the page opened from the Mattermost app."
   },
-  "passkey_enrollment_page.confirmed": {
-    "defaultMessage": "Passkey confirmed. You can close this page and return to the app.",
-    "description": "Shown after the user's existing passkey was checked on the page opened from the Mattermost app."
+  "passkey_enrollment_page.cantAdd": {
+    "defaultMessage": "Can't add a passkey here",
+    "description": "Title of the page, opened from the Mattermost app, when a passkey cannot be added: in the desktop app, in a browser without passkey support, from an incomplete link, or after an error that cannot be retried."
+  },
+  "passkey_enrollment_page.confirmedTitle": {
+    "defaultMessage": "Passkey confirmed",
+    "description": "Title shown after the user's existing passkey was checked on the page opened from the Mattermost app."
   },
   "passkey_enrollment_page.desktop": {
     "defaultMessage": "Open this page in your web browser.",
     "description": "Shown when the passkey enrollment page is opened inside the Mattermost desktop app, which cannot create passkeys."
-  },
-  "passkey_enrollment_page.done": {
-    "defaultMessage": "Passkey added. You can close this page and return to the app.",
-    "description": "Shown after a passkey was added on the page opened from the Mattermost app."
   },
   "passkey_enrollment_page.expired": {
     "defaultMessage": "This link has expired or was already used. Return to the app, sign in again and retry.",
@@ -28810,6 +28814,10 @@
   "passkey_enrollment_page.noneRegistered": {
     "defaultMessage": "You don't have a passkey for this account yet. Add one instead.",
     "description": "Error shown when the user says they already have a passkey but their account has none."
+  },
+  "passkey_enrollment_page.returnToApp": {
+    "defaultMessage": "You can close this page and return to the app.",
+    "description": "Shown after a passkey was added or confirmed on the page opened from the Mattermost app."
   },
   "passkey_enrollment_page.title": {
     "defaultMessage": "Add a passkey",

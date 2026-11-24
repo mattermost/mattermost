@@ -72,8 +72,7 @@ const TOO_LONG = 'That took too long. Try again.';
 const ON_DEVICE = 'This device already has a passkey for your account. Choose "Use existing passkey".';
 const NONE_REGISTERED = 'You don\'t have a passkey for this account yet. Add one instead.';
 const INVALID_CREDENTIAL = 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.';
-const CONFIRMED = 'Passkey confirmed. You can close this page and return to the app.';
-const DONE = 'Passkey added. You can close this page and return to the app.';
+const RETURN_TO_APP = 'You can close this page and return to the app.';
 const INCOMPLETE = 'This link is incomplete. Return to the app and try again.';
 const NO_WEBAUTHN = 'This browser can\'t create passkeys. Open this page in a different browser.';
 const OPEN_IN_BROWSER = 'Open this page in your web browser.';
@@ -97,6 +96,7 @@ describe('PasskeyEnrollmentPage', () => {
 
     // compass Button renders its spinner in an aria-hidden slot; it sets no aria-busy outside asChild.
     const hasSpinner = (button: HTMLElement | null) => Boolean(button?.querySelector('[aria-hidden="true"]'));
+    const cantAddHeading = () => screen.findByRole('heading', {name: 'Can\'t add a passkey here'});
     const clickExisting = async () => userEvent.click(await screen.findByRole('button', {name: 'Use existing passkey'}));
 
     beforeEach(() => {
@@ -132,7 +132,8 @@ describe('PasskeyEnrollmentPage', () => {
         renderPage();
         await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
 
-        expect(await screen.findByText(DONE)).toBeInTheDocument();
+        expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Passkey added'})).toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
         expect(isEnrolled()).toBe(true);
         expect(beginVerification).not.toHaveBeenCalled();
@@ -164,6 +165,7 @@ describe('PasskeyEnrollmentPage', () => {
         renderPage('/login/passkey/enroll');
 
         expect(await screen.findByText(INCOMPLETE)).toBeInTheDocument();
+        expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
     });
@@ -172,6 +174,7 @@ describe('PasskeyEnrollmentPage', () => {
         renderPage('/login/passkey/enroll?ticket=t1');
 
         expect(await screen.findByText(INCOMPLETE)).toBeInTheDocument();
+        expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
         expect(beginRegistration).not.toHaveBeenCalled();
@@ -181,6 +184,7 @@ describe('PasskeyEnrollmentPage', () => {
         renderPage('/login/passkey/enroll#ticket=');
 
         expect(await screen.findByText(INCOMPLETE)).toBeInTheDocument();
+        expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
     });
@@ -190,6 +194,7 @@ describe('PasskeyEnrollmentPage', () => {
         renderPage();
 
         expect(await screen.findByText(NO_WEBAUTHN)).toBeInTheDocument();
+        expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
     });
@@ -199,6 +204,7 @@ describe('PasskeyEnrollmentPage', () => {
         renderPage();
 
         expect(await screen.findByText(OPEN_IN_BROWSER)).toBeInTheDocument();
+        expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
     });
@@ -213,6 +219,8 @@ describe('PasskeyEnrollmentPage', () => {
         await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
 
         expect(await screen.findByRole('alert')).toHaveTextContent(text);
+        expect(document.querySelector('.AlertBanner')).toBeNull();
+        expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
         expect(isEnrolled()).toBe(false);
@@ -269,7 +277,7 @@ describe('PasskeyEnrollmentPage', () => {
         expect(isEnrolled()).toBe(false);
 
         await userEvent.click(screen.getByRole('button', {name: 'Add passkey'}));
-        expect(await screen.findByText(DONE)).toBeInTheDocument();
+        expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
         expect(beginRegistration).toHaveBeenLastCalledWith('t1');
     });
 
@@ -278,7 +286,8 @@ describe('PasskeyEnrollmentPage', () => {
             renderPage();
             await clickExisting();
 
-            expect(await screen.findByText(CONFIRMED)).toBeInTheDocument();
+            expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Passkey confirmed'})).toBeInTheDocument();
             expect(screen.queryByRole('button')).not.toBeInTheDocument();
             expect(isEnrolled()).toBe(true);
             expect(beginVerification).toHaveBeenCalledWith('t1');
@@ -320,6 +329,7 @@ describe('PasskeyEnrollmentPage', () => {
             await clickExisting();
 
             expect(await screen.findByRole('alert')).toHaveTextContent(EXPIRED);
+            expect(await cantAddHeading()).toBeInTheDocument();
             expect(addButton()).not.toBeInTheDocument();
             expect(existingButton()).not.toBeInTheDocument();
         });
@@ -330,6 +340,7 @@ describe('PasskeyEnrollmentPage', () => {
             await clickExisting();
 
             expect(await screen.findByRole('alert')).toHaveTextContent(UNAVAILABLE);
+            expect(await cantAddHeading()).toBeInTheDocument();
             expect(addButton()).not.toBeInTheDocument();
             expect(existingButton()).not.toBeInTheDocument();
         });
@@ -343,7 +354,7 @@ describe('PasskeyEnrollmentPage', () => {
 
             await clickExisting();
 
-            expect(await screen.findByText(CONFIRMED)).toBeInTheDocument();
+            expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
             expect(beginVerification).toHaveBeenCalledWith('t1');
         });
 
@@ -355,7 +366,7 @@ describe('PasskeyEnrollmentPage', () => {
 
             await clickExisting();
 
-            expect(await screen.findByText(CONFIRMED)).toBeInTheDocument();
+            expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
         });
 
@@ -372,7 +383,7 @@ describe('PasskeyEnrollmentPage', () => {
             expect(hasSpinner(existingButton())).toBe(true);
             expect(hasSpinner(addButton())).toBe(false);
             release(assertionCredential);
-            expect(await screen.findByText(CONFIRMED)).toBeInTheDocument();
+            expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
         });
 
         test('the add button disables the verify button while it runs', async () => {
@@ -388,7 +399,7 @@ describe('PasskeyEnrollmentPage', () => {
             expect(hasSpinner(addButton())).toBe(true);
             expect(hasSpinner(existingButton())).toBe(false);
             release(rawCredential);
-            expect(await screen.findByText(DONE)).toBeInTheDocument();
+            expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
         });
     });
 });
