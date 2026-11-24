@@ -6081,17 +6081,16 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 		return th, NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 	}
 
-	// grantedField creates a post field in channelID whose only way to a value write is a plugin
+	// grantedField creates a system post field whose only way to a value write is a plugin
 	// grant naming grantee: no human tier allows one.
-	grantedField := func(t *testing.T, th *propertyValuesTestHelper, channelID, grantee string) *model.PropertyField {
+	grantedField := func(t *testing.T, th *propertyValuesTestHelper, grantee string) *model.PropertyField {
 		t.Helper()
 		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    th.groupID,
 			Name:       "f_" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypePost,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channelID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Permissions: &model.Permissions{
 				Restrictions: &model.Restrictions{
 					Value: model.ReadWrite{Write: model.PermissionLevelNone},
@@ -6124,7 +6123,7 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 		values, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
 			TargetType: model.PropertyValueTargetTypePost,
 			TargetIDs:  []string{postID},
-			PerPage:    model.PostAttributesMaxApplicableFields + 1,
+			PerPage:    model.PostAttributesMaxFields + 1,
 		})
 		require.Nil(t, appErr)
 		return values
@@ -6134,7 +6133,7 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 		th, api := setup(t, true)
 
 		t.Run("a field granting the plugin a value write takes the value", func(t *testing.T) {
-			field := grantedField(t, th, th.BasicChannel.Id, pluginID)
+			field := grantedField(t, th, pluginID)
 			posts := th.watchPostStore(t, nil)
 
 			created, appErr := api.CreatePost(postWithValue(th, field))
@@ -6155,7 +6154,7 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 		})
 
 		t.Run("a field granting another plugin refuses the value and the post is removed", func(t *testing.T) {
-			field := grantedField(t, th, th.BasicChannel.Id, "com.example.other")
+			field := grantedField(t, th, "com.example.other")
 			posts := th.watchPostStore(t, nil)
 
 			created, appErr := api.CreatePost(postWithValue(th, field))
@@ -6172,8 +6171,8 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 			assert.Empty(t, storedValues(t, th, posts.savedIDs[0]))
 		})
 
-		t.Run("a field scoped to another channel is refused before the post is saved", func(t *testing.T) {
-			field := grantedField(t, th, th.CreateChannel(t, th.BasicTeam).Id, pluginID)
+		t.Run("a field from another group is refused before the post is saved", func(t *testing.T) {
+			field := th.createOtherGroupField(t)
 			posts := th.watchPostStore(t, nil)
 
 			created, appErr := api.CreatePost(postWithValue(th, field))
@@ -6184,7 +6183,7 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 		})
 
 		t.Run("a post without values runs with the plugin API's own context", func(t *testing.T) {
-			grantedField(t, th, th.BasicChannel.Id, pluginID)
+			grantedField(t, th, pluginID)
 			posts := th.watchPostStore(t, nil)
 
 			created, appErr := api.CreatePost(&model.Post{
@@ -6208,7 +6207,7 @@ func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
 
 	t.Run("flag off refuses values before the post is saved", func(t *testing.T) {
 		th, api := setup(t, false)
-		field := grantedField(t, th, th.BasicChannel.Id, pluginID)
+		field := grantedField(t, th, pluginID)
 		posts := th.watchPostStore(t, nil)
 
 		created, appErr := api.CreatePost(postWithValue(th, field))

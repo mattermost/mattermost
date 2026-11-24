@@ -36,7 +36,56 @@ export type FieldValueType =
 // Mirrors model/property_field.go, including the creator level that grants the
 // author of the entity the action concerns. Empty means the server fills in the
 // default for the field's object type.
-export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | 'creator' | '';
+export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | 'creator' | 'everyone' | '';
+
+// The actions a property permission tier or grant applies to. Mirrors the
+// PropertyAction constants in model/property_permissions.go.
+export type PropertyAction = 'field.write' | 'option.read' | 'option.write' | 'value.read' | 'value.write';
+
+// Who a grant or a masking exception names. Mirrors model.Identity.
+export type PropertyIdentity = {
+    type: 'user' | 'role' | 'plugin' | 'service';
+    id: string;
+};
+
+// Admits the identity to the listed actions whatever the restrictions say. A
+// grant with scopes applies only within them. Mirrors model.Grant.
+export type PropertyGrant = PropertyIdentity & {
+    scopes?: string[];
+    allow: PropertyAction[];
+};
+
+// The tier each action requires. An omitted leaf means none. Mirrors
+// model.Restrictions, which has no field.read by construction.
+export type PropertyRestrictions = {
+    value: {read?: PropertyPermissionLevel; write?: PropertyPermissionLevel};
+    option: {read?: PropertyPermissionLevel; write?: PropertyPermissionLevel};
+    field: {write?: PropertyPermissionLevel};
+};
+
+// The read filter for a field whose option list is sensitive. Mirrors model.Masking.
+export type PropertyMasking = {
+    mask_by_field_id?: string;
+    except?: PropertyIdentity[];
+};
+
+// A field's PSv3 permissions. Mirrors model.Permissions.
+export type PropertyPermissions = {
+    restrictions?: PropertyRestrictions;
+    grants: PropertyGrant[];
+    masking?: PropertyMasking;
+
+    // Set only on a copy the server stripped for a caller who may not see all of it.
+    filtered?: boolean;
+};
+
+// A change to a field's permissions, applied key by key: an absent key keeps
+// what the field has, and null clears it. Mirrors model.PermissionsPatch.
+export type PropertyPermissionsPatch = {
+    restrictions?: PropertyRestrictions | null;
+    grants?: PropertyGrant[] | null;
+    masking?: PropertyMasking | null;
+};
 
 export type PropertyField = {
     id: string;
@@ -53,11 +102,13 @@ export type PropertyField = {
     linked_field_id?: string;
     protected?: boolean;
 
-    // The server is authoritative on all three; the client reads permission_values
-    // only to decide whether to offer an editing affordance.
+    // The server is authoritative on all of these; the client reads them only to
+    // decide whether to offer an editing affordance. A field in a PSv3 group
+    // carries `permissions`, which supersedes the legacy permission_* levels.
     permission_field?: PropertyPermissionLevel;
     permission_values?: PropertyPermissionLevel;
     permission_options?: PropertyPermissionLevel;
+    permissions?: PropertyPermissions;
     create_at: number;
     update_at: number;
     delete_at: number;
