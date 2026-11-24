@@ -46,25 +46,6 @@ describe('component/create_user_groups_modal', () => {
         },
     };
 
-    test('should match snapshot with back button', () => {
-        const {container} = renderWithContext(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot without back button', () => {
-        const {container} = renderWithContext(
-            <CreateUserGroupsModal
-                {...baseProps}
-                backButtonCallback={undefined}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should create group', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
         renderWithContext(

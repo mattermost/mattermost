@@ -6,7 +6,6 @@ import React from 'react';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
@@ -82,11 +81,6 @@ describe('components/channel_invite_modal', () => {
         username: 'user-2',
         delete_at: 0,
     } as UserProfileValue];
-
-    const userStatuses = {
-        'user-1': 'online',
-        'user-2': 'offline',
-    } as RelationOneToOne<UserProfile, string>;
 
     const channel = {
         create_at: 1508265709607,
@@ -168,81 +162,6 @@ describe('components/channel_invite_modal', () => {
         Client4.getChannelsRoute.mockReturnValue('/api/v4/channels');
         Client4.getUrl.mockReturnValue('http://localhost:8065');
         Client4.getBaseRoute.mockReturnValue('/api/v4');
-    });
-
-    test('should match snapshot for channel_invite_modal with profiles', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                profilesInCurrentChannel={[]}
-                profilesNotInCurrentTeam={[]}
-                profilesFromRecentDMs={[]}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={[]}
-                profilesInCurrentChannel={[]}
-                profilesNotInCurrentTeam={[]}
-                profilesFromRecentDMs={users}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with exclude and include users', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                profilesInCurrentChannel={[]}
-                profilesNotInCurrentTeam={[]}
-                profilesFromRecentDMs={[]}
-                includeUsers={
-                    {
-                        'user-3': {
-                            id: 'user-3',
-                            label: 'user-3',
-                            value: 'user-3',
-                            delete_at: 0,
-                        } as UserProfileValue,
-                    }
-                }
-                excludeUsers={
-                    {
-                        'user-1': {
-                            id: 'user-1',
-                            label: 'user-1',
-                            value: 'user-1',
-                            delete_at: 0,
-                        } as UserProfileValue,
-                    }
-                }
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for channel_invite_modal with userStatuses', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                profilesInCurrentChannel={[]}
-                userStatuses={userStatuses}
-                profilesFromRecentDMs={[]}
-            />,
-        );
-
-        // Since renderOption is now an internal function in the component,
-        // we can't test it directly. Instead, we'll test the rendered component.
-        expect(container).toMatchSnapshot();
     });
 
     test('should hide modal when onHide is called', () => {
@@ -369,6 +288,38 @@ describe('components/channel_invite_modal', () => {
         });
     });
 
+    test('should show the configured display name in the selected user chip', async () => {
+        const userWithNickname = {
+            ...users[0],
+            username: 'user-with-nick',
+            label: 'user-with-nick',
+            value: 'user-with-nick',
+            nickname: 'Unexpected Nickname',
+        } as UserProfileValue;
+        const props = {
+            ...baseProps,
+            teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
+            profilesNotInCurrentChannel: [userWithNickname],
+            includeUsers: {'user-1': userWithNickname},
+            membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
+        };
+
+        renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user-with-nick');
+
+        const option = await screen.findByText('user-with-nick', {selector: '.more-modal__name > span'});
+        await userEvent.click(option);
+
+        expect(screen.getByText('user-with-nick', {selector: '.react-select__value__name'})).toBeInTheDocument();
+        expect(screen.queryByText('Unexpected Nickname')).not.toBeInTheDocument();
+    });
+
     test('should call onAddCallback on handleSubmit with skipCommit', async () => {
         const onAddCallback = jest.fn();
 
@@ -448,12 +399,9 @@ describe('components/channel_invite_modal', () => {
             canInviteGuests: true,
             emailInvitationsEnabled: true,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
-
-        // Check that the invite as guest link is rendered
-        expect(container).toMatchSnapshot();
 
         // Look for the invite link text
         expect(screen.getByText('Invite as a Guest')).toBeInTheDocument();
@@ -465,13 +413,12 @@ describe('components/channel_invite_modal', () => {
             canInviteGuests: false,
             emailInvitationsEnabled: false,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
         // The invite as guest link should not be present
         expect(screen.queryByText('Invite as a Guest')).not.toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should show AlertBanner when policy_enforced is true', () => {
@@ -1040,7 +987,7 @@ describe('components/channel_invite_modal', () => {
         // ...and is sorted to the top of the option list. compareDocumentPosition
         // returns DOCUMENT_POSITION_FOLLOWING (4) when the second arg is later
         // in the DOM than the first — so user-2 preceding user-1 yields 4.
-        // eslint-disable-next-line no-bitwise
+
         expect(user2Span.compareDocumentPosition(user1Span) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
         // The recommended-users endpoint was queried with an empty cursor

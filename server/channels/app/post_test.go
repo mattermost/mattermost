@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -7557,6 +7558,7 @@ func TestAppendABACEtag(t *testing.T) {
 	t.Run("changes when the request's own session attributes change", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
@@ -7569,24 +7571,32 @@ func TestAppendABACEtag(t *testing.T) {
 		etagFor := func(rctx request.CTX) string {
 			return th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
 		}
-		withIP := func(ip string) request.CTX {
-			return WithServerDerivedAttributes(rctx, map[string]any{model.SessionAttributesPropertyFieldIPAddress: ip})
+		withRequestAttrs := func(ip, deviceID string) request.CTX {
+			return WithRequestSessionAttributes(rctx, &platform.RequestSessionAttributes{
+				Platform:      model.SessionAttributePlatformBrowser,
+				ServerDerived: map[string]any{model.SessionAttributesPropertyFieldIPAddress: ip},
+				ProxyDeviceID: deviceID,
+			})
 		}
 
 		noRequestAttrs := etagFor(rctx)
-		office := etagFor(withIP("10.0.0.1"))
+		office := etagFor(withRequestAttrs("10.0.0.1", ""))
 		assert.NotEqual(t, noRequestAttrs, office)
-		assert.NotEqual(t, office, etagFor(withIP("203.0.113.7")))
-		assert.Equal(t, office, etagFor(withIP("10.0.0.1")), "the same request attributes must give the same ETag")
+		assert.NotEqual(t, office, etagFor(withRequestAttrs("203.0.113.7", "")))
+		assert.Equal(t, office, etagFor(withRequestAttrs("10.0.0.1", "")), "the same request attributes must give the same ETag")
 
-		managedDevice := etagFor(WithProxyDeviceID(rctx, "managed-device"))
-		assert.NotEqual(t, noRequestAttrs, managedDevice)
+		managedDevice := etagFor(withRequestAttrs("10.0.0.1", "managed-device"))
+		assert.NotEqual(t, office, managedDevice)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = model.NewPointer(false)
 		})
-		assert.Equal(t, noRequestAttrs, etagFor(WithProxyDeviceID(rctx, "managed-device")),
+		assert.Equal(t, office, etagFor(withRequestAttrs("10.0.0.1", "managed-device")),
 			"an untrusted device ID is not evaluated, so it must not change the ETag")
+
+		disableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldIPAddress)
+		assert.Equal(t, noRequestAttrs, etagFor(withRequestAttrs("10.0.0.1", "")),
+			"a disabled field is not evaluated, so it must not change the ETag")
 	})
 }
 
@@ -7690,4 +7700,18 @@ func TestPostMutationsReadFromMaster(t *testing.T) {
 		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
+}
+
+func TestCheckPostRemindersWithoutSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+
+	th.App.CheckPostReminders(th.Context)
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := th.LogBuffer.String()
+	testlib.AssertNoLog(t, strings.NewReader(logs), mlog.LvlError.Name, "Failed to get system bot")
+	testlib.AssertLog(t, strings.NewReader(logs), mlog.LvlDebug.Name, "Skipping post reminders because there is no system admin to own the system bot")
 }

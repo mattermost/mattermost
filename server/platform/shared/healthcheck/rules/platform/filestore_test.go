@@ -150,6 +150,23 @@ func TestFilestoreConfigRules(t *testing.T) {
 			}),
 		},
 		{
+			name: "s3 with ssl off and endpoint unreadable",
+			snapshot: clusterSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"), func(cfg *model.Config) {
+				cfg.FileSettings.AmazonS3SSL = new(false)
+				cfg.FileSettings.AmazonS3Endpoint = nil
+			})),
+			want: with(map[string]want{
+				"FILESTORE_S3_SSL_OFF": configUnknown,
+			}),
+		},
+		{
+			name: "s3 with ssl on and endpoint unreadable",
+			snapshot: clusterSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"), func(cfg *model.Config) {
+				cfg.FileSettings.AmazonS3Endpoint = nil
+			})),
+			want: allResolved,
+		},
+		{
 			name: "local with empty bucket and ssl off",
 			snapshot: clusterSnapshot(all(filestoreConfig(false, model.ImageDriverLocal, "./data/"), func(cfg *model.Config) {
 				cfg.FileSettings.AmazonS3SSL = new(false)
@@ -173,6 +190,35 @@ func TestFilestoreConfigRules(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assertRules(t, rules, tc.snapshot, tc.want)
+		})
+	}
+}
+
+func TestFilestoreS3SSLOffEndpoint(t *testing.T) {
+	t.Parallel()
+
+	sslOff := firing("health.rule.filestore_s3_ssl_off.message", nil)
+	for endpoint, want := range map[string]want{
+		"localhost:9000":       resolved,
+		"localhost":            resolved,
+		"127.0.0.1:9000":       resolved,
+		"0.0.0.0:9000":         resolved,
+		"[::1]:9000":           resolved,
+		"[::1]":                resolved,
+		"minio.localhost:9000": resolved,
+		"10.0.0.5:9000":        sslOff,
+		"10.0.0.5":             sslOff,
+		"minio:9000":           sslOff,
+		"s3.amazonaws.com":     sslOff,
+		"[2001:db8::1]:9000":   sslOff,
+	} {
+		t.Run(endpoint, func(t *testing.T) {
+			t.Parallel()
+			snapshot := clusterSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"), func(cfg *model.Config) {
+				cfg.FileSettings.AmazonS3SSL = new(false)
+				cfg.FileSettings.AmazonS3Endpoint = new(endpoint)
+			}))
+			assertResult(t, want, filestoreS3SSLOff.Eval(snapshot))
 		})
 	}
 }

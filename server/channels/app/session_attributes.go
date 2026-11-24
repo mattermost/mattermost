@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
@@ -32,10 +33,32 @@ func (a *App) sessionAttributesEnabled() bool {
 	return model.MinimumEnterpriseAdvancedLicense(a.License())
 }
 
-func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*model.PropertyField, *model.AppError) {
+// sessionAttributeField is parsed once per schema version and shared by every
+// request, so it must not be modified.
+type sessionAttributeField struct {
+	*model.SAField
+	validator *model.SessionAttributeValueValidator
+}
+
+type sessionAttributeSchema struct {
+	version string
+	fields  map[string]*sessionAttributeField
+}
+
+func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*sessionAttributeField, *model.AppError) {
 	group, err := a.Srv().propertyService.Group(model.SessionAttributesPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_group.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Read the version before the fields: a change landing in between leaves
+	// newer fields under the older version, which the next call parses again.
+	version, err := a.Srv().Store().PropertyField().GetForGroupVersion(rctx, group.ID)
+	if err != nil {
+		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_field.get_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if schema := a.Srv().sessionAttributeSchema.Load(); schema != nil && schema.version == version {
+		return schema.fields, nil
 	}
 
 	fields, err := a.Srv().Store().PropertyField().GetForGroup(rctx, group.ID)
@@ -43,27 +66,25 @@ func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*mod
 		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_field.get_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	fieldsByName := make(map[string]*model.PropertyField, len(fields))
+	fieldsByName := make(map[string]*sessionAttributeField, len(fields))
 	for _, field := range fields {
-		fieldsByName[field.Name] = field
+		saField, err := model.SAFieldFromPropertyField(field)
+		if err != nil {
+			continue
+		}
+		fieldsByName[field.Name] = &sessionAttributeField{SAField: saField, validator: model.NewSessionAttributeValueValidator(field)}
 	}
+	a.Srv().sessionAttributeSchema.Store(&sessionAttributeSchema{version: version, fields: fieldsByName})
 	return fieldsByName, nil
 }
 
 func validatedSessionAttributeField(
-	fieldsByName map[string]*model.PropertyField,
+	fieldsByName map[string]*sessionAttributeField,
 	name, platform string,
 	value any,
 ) bool {
 	field, ok := fieldsByName[name]
-	if !ok {
-		return false
-	}
-	saField, err := model.SAFieldFromPropertyField(field)
-	if err != nil || !saField.EnabledForPlatform(platform) {
-		return false
-	}
-	return model.IsValidSessionAttributeValue(field, value)
+	return ok && field.EnabledForPlatform(platform) && field.validator.IsValid(value)
 }
 
 func inferSessionAttributePlatform(r *http.Request) string {
@@ -80,64 +101,92 @@ func inferSessionAttributePlatform(r *http.Request) string {
 	}
 }
 
-type proxyDeviceIDContextKey struct{}
-type serverDerivedAttributesContextKey struct{}
+type requestSessionAttributesContextKey struct{}
 
-// WithProxyDeviceID returns rctx carrying the tls_device_id proven by the
-// proxy header of the request (or websocket upgrade request) it serves.
-func WithProxyDeviceID(rctx request.CTX, deviceID string) request.CTX {
-	if deviceID == "" {
+// WithRequestSessionAttributes returns rctx carrying the request-scoped session
+// attribute inputs of the request (or websocket upgrade request) it serves.
+func WithRequestSessionAttributes(rctx request.CTX, attrs *platform.RequestSessionAttributes) request.CTX {
+	if attrs == nil {
 		return rctx
 	}
-	return rctx.WithContext(context.WithValue(rctx.Context(), proxyDeviceIDContextKey{}, deviceID))
+	return rctx.WithContext(context.WithValue(rctx.Context(), requestSessionAttributesContextKey{}, attrs))
 }
 
-// ProxyDeviceID returns the tls_device_id recorded on rctx by WithProxyDeviceID.
-func ProxyDeviceID(rctx request.CTX) string {
-	deviceID, _ := rctx.Context().Value(proxyDeviceIDContextKey{}).(string)
-	return deviceID
-}
-
-// WithServerDerivedAttributes returns rctx carrying the server-derived session
-// attributes (IP address, user agent fields) proven by the current request.
-func WithServerDerivedAttributes(rctx request.CTX, attrs map[string]any) request.CTX {
-	if len(attrs) == 0 {
-		return rctx
-	}
-	return rctx.WithContext(context.WithValue(rctx.Context(), serverDerivedAttributesContextKey{}, attrs))
-}
-
-// ServerDerivedAttributes returns the server-derived attributes recorded on rctx.
-func ServerDerivedAttributes(rctx request.CTX) map[string]any {
-	attrs, _ := rctx.Context().Value(serverDerivedAttributesContextKey{}).(map[string]any)
+// RequestSessionAttributes returns the inputs recorded on rctx by WithRequestSessionAttributes.
+func RequestSessionAttributes(rctx request.CTX) *platform.RequestSessionAttributes {
+	attrs, _ := rctx.Context().Value(requestSessionAttributesContextKey{}).(*platform.RequestSessionAttributes)
 	return attrs
-}
-
-// WithWebSocketRequestAttributes returns rctx carrying the device ID and server-derived
-// attributes that the websocket upgrade request proved. Use this to restore request-scoped
-// attributes when evaluating permissions during WebSocket broadcasts.
-func WithWebSocketRequestAttributes(rctx request.CTX, proxyDeviceID string, serverDerivedAttrs map[string]any) request.CTX {
-	rctx = WithProxyDeviceID(rctx, proxyDeviceID)
-	return WithServerDerivedAttributes(rctx, serverDerivedAttrs)
 }
 
 // requestScopedSessionAttributes returns the session attributes proven by the
-// request rctx serves: the server-derived ones and, while the proxy header is
-// trusted, tls_device_id.
-func (a *App) requestScopedSessionAttributes(rctx request.CTX) map[string]any {
-	serverDerived := ServerDerivedAttributes(rctx)
-	deviceID := ProxyDeviceID(rctx)
-	useDeviceID := deviceID != "" && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader
-	if len(serverDerived) == 0 && !useDeviceID {
-		return nil
+// request rctx serves, checked against the current schema: the server-derived
+// ones and, while the proxy header is trusted, tls_device_id.
+func (a *App) requestScopedSessionAttributes(rctx request.CTX) (map[string]any, *model.AppError) {
+	inputs := RequestSessionAttributes(rctx)
+	if inputs == nil {
+		return nil, nil
 	}
 
-	attrs := make(map[string]any, len(serverDerived)+1)
-	maps.Copy(attrs, serverDerived)
-	if useDeviceID {
-		attrs[model.SessionAttributesPropertyFieldTLSDDeviceID] = deviceID
+	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
+	if appErr != nil {
+		return nil, appErr
 	}
-	return attrs
+
+	attrs := make(map[string]any, len(inputs.ServerDerived)+1)
+	for name, value := range inputs.ServerDerived {
+		if validatedSessionAttributeField(fieldsByName, name, inputs.Platform, value) {
+			attrs[name] = value
+		}
+	}
+	if inputs.ProxyDeviceID != "" &&
+		*a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader &&
+		validatedSessionAttributeField(fieldsByName, model.SessionAttributesPropertyFieldTLSDDeviceID, inputs.Platform, inputs.ProxyDeviceID) {
+		attrs[model.SessionAttributesPropertyFieldTLSDDeviceID] = inputs.ProxyDeviceID
+	}
+	if len(attrs) == 0 {
+		return nil, nil
+	}
+	return attrs, nil
+}
+
+// serverDerivedSessionAttributes returns the platform r comes from and the IP
+// address and user agent values it offers, before validation.
+func (a *App) serverDerivedSessionAttributes(session *model.Session, r *http.Request) (string, map[string]any) {
+	attrs := make(map[string]any, len(model.SessionAttributesRequestDerivedFieldNames))
+	if ip := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader); ip != "" {
+		attrs[model.SessionAttributesPropertyFieldIPAddress] = ip
+	}
+
+	uaStr := r.UserAgent()
+	if uaStr == "" && session.IsMobileApp() {
+		// The mobile app's websocket upgrade request has no User-Agent. Its login request
+		// had one, and the session props hold what the same helpers derived from it.
+		browserName, browserVersion, _ := strings.Cut(session.Props[model.SessionPropBrowser], "/")
+		for name, v := range map[string]string{
+			model.SessionAttributesPropertyFieldUserAgentPlatform:       session.Props[model.SessionPropPlatform],
+			model.SessionAttributesPropertyFieldUserAgentOS:             session.Props[model.SessionPropOs],
+			model.SessionAttributesPropertyFieldUserAgentBrowserName:    browserName,
+			model.SessionAttributesPropertyFieldUserAgentBrowserVersion: browserVersion,
+		} {
+			if v != "" {
+				attrs[name] = v
+			}
+		}
+		return model.SessionAttributePlatformMobile, attrs
+	}
+
+	ua := uasurfer.Parse(uaStr)
+	for name, v := range map[string]string{
+		model.SessionAttributesPropertyFieldUserAgentPlatform:       getPlatformName(ua, uaStr),
+		model.SessionAttributesPropertyFieldUserAgentOS:             getOSName(ua, uaStr),
+		model.SessionAttributesPropertyFieldUserAgentBrowserName:    getBrowserName(ua, uaStr),
+		model.SessionAttributesPropertyFieldUserAgentBrowserVersion: getBrowserVersion(ua, uaStr),
+	} {
+		if v != "" {
+			attrs[name] = v
+		}
+	}
+	return inferSessionAttributePlatform(r), attrs
 }
 
 // requestScopedSessionAttributesFingerprint returns a stable hash of attrs, or
@@ -155,20 +204,16 @@ func requestScopedSessionAttributesFingerprint(attrs map[string]any) string {
 }
 
 // ProcessSessionAttributesRequest refreshes the session's cached attributes
-// from r and returns rctx carrying the device ID and server-derived attributes
-// that r itself proved.
+// from r and returns rctx carrying the request-scoped attribute inputs r offered.
 func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request) request.CTX {
-	proxyDeviceID, serverDerivedAttrs := a.refreshSessionAttributes(rctx, r)
-	rctx = WithProxyDeviceID(rctx, proxyDeviceID)
-	return WithServerDerivedAttributes(rctx, serverDerivedAttrs)
+	return WithRequestSessionAttributes(rctx, a.refreshSessionAttributes(rctx, r))
 }
 
-// refreshSessionAttributes returns the validated proxy device ID of r and the
-// server-derived attributes (IP, user agent fields) extracted from r.
-func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) (string, map[string]any) {
-	emptyResult := func() (string, map[string]any) { return "", nil }
+// refreshSessionAttributes returns the request-scoped session attribute inputs
+// of r, or nil when r's session may not carry session attributes.
+func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) *platform.RequestSessionAttributes {
 	if !a.sessionAttributesEnabled() {
-		return emptyResult()
+		return nil
 	}
 
 	// Only process session attributes for actual end-user sessions. Local
@@ -176,48 +221,26 @@ func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) (strin
 	// with a real security posture, so they must not be able to self-attest
 	// session attributes.
 	if rctx.Session().Local || rctx.Session().IsOAuth {
-		return emptyResult()
+		return nil
 	}
 	switch rctx.Session().Props[model.SessionPropType] {
 	case model.SessionTypeUserAccessToken, model.SessionTypeCloudKey, model.SessionTypeRemoteclusterToken:
-		return emptyResult()
+		return nil
 	}
 
 	if err := rctx.Session().IsValid(); err != nil || rctx.Session().IsExpired() {
-		return emptyResult()
+		return nil
 	}
 
 	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to load session attribute schema", mlog.Err(appErr))
-		return emptyResult()
+		return nil
 	}
 
-	platform := inferSessionAttributePlatform(r)
-	uaStr := r.UserAgent()
-	ua := uasurfer.Parse(uaStr)
+	inputs := &platform.RequestSessionAttributes{}
+	inputs.Platform, inputs.ServerDerived = a.serverDerivedSessionAttributes(rctx.Session(), r)
 	attrsToMerge := make(map[string]any)
-	serverDerivedAttrs := make(map[string]any)
-
-	for name := range model.SessionAttributesRequestDerivedFieldNames {
-		var v string
-		switch name {
-		case model.SessionAttributesPropertyFieldUserAgentPlatform:
-			v = getPlatformName(ua, uaStr)
-		case model.SessionAttributesPropertyFieldUserAgentOS:
-			v = getOSName(ua, uaStr)
-		case model.SessionAttributesPropertyFieldUserAgentBrowserName:
-			v = getBrowserName(ua, uaStr)
-		case model.SessionAttributesPropertyFieldUserAgentBrowserVersion:
-			v = getBrowserVersion(ua, uaStr)
-		case model.SessionAttributesPropertyFieldIPAddress:
-			v = utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
-		}
-		if v == "" || !validatedSessionAttributeField(fieldsByName, name, platform, v) {
-			continue
-		}
-		serverDerivedAttrs[name] = v
-	}
 
 	if headerValue := r.Header.Get(model.SessionAttributeHeaderClientAttributes); headerValue != "" {
 		decoded, decodeErr := base64.StdEncoding.DecodeString(headerValue)
@@ -238,7 +261,7 @@ func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) (strin
 					if _, isServerDerived := model.SessionAttributesRequestDerivedFieldNames[name]; isServerDerived {
 						continue
 					}
-					if !validatedSessionAttributeField(fieldsByName, name, platform, value) {
+					if !validatedSessionAttributeField(fieldsByName, name, inputs.Platform, value) {
 						continue
 					}
 					attrsToMerge[name] = value
@@ -247,25 +270,24 @@ func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) (strin
 		}
 	}
 
-	var proxyDeviceID string
 	if *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
-		if headerValue := strings.TrimSpace(r.Header.Get(model.SessionAttributeHeaderProxyDeviceID)); headerValue != "" {
-			if validatedSessionAttributeField(fieldsByName, model.SessionAttributesPropertyFieldTLSDDeviceID, platform, headerValue) {
-				proxyDeviceID = headerValue
-				// Cache tls_device_id for device ID consistency checks, but ABAC
-				// evaluation uses only the request-scoped value (ProxyDeviceID).
-				attrsToMerge[model.SessionAttributesPropertyFieldTLSDDeviceID] = proxyDeviceID
-			}
+		inputs.ProxyDeviceID = strings.TrimSpace(r.Header.Get(model.SessionAttributeHeaderProxyDeviceID))
+		if inputs.ProxyDeviceID != "" && validatedSessionAttributeField(fieldsByName, model.SessionAttributesPropertyFieldTLSDDeviceID, inputs.Platform, inputs.ProxyDeviceID) {
+			// Cache tls_device_id for device ID consistency checks, but ABAC
+			// evaluation uses only the request-scoped value.
+			attrsToMerge[model.SessionAttributesPropertyFieldTLSDDeviceID] = inputs.ProxyDeviceID
+		}
+	}
+
+	cached, timestamps, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
+	if err != nil && !errors.Is(err, cache.ErrKeyNotFound) {
+		rctx.Logger().Warn("Failed to load cached session attributes", mlog.Err(err))
+		if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
+			return nil
 		}
 	}
 
 	if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
-		cached, _, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
-		if err != nil && !errors.Is(err, cache.ErrKeyNotFound) {
-			rctx.Logger().Warn("Failed to load cached session attributes for device ID consistency check", mlog.Err(err))
-			return emptyResult()
-		}
-
 		for name := range model.SessionAttributesDeviceIDFieldNames {
 			var incomingValue, cachedValue string
 			if v := attrsToMerge[name]; v != nil {
@@ -293,7 +315,16 @@ func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) (strin
 				defer a.LogAuditRec(rctx, auditRec, nil)
 			}
 
-			return emptyResult()
+			return nil
+		}
+	}
+
+	// Skip values that are unchanged and younger than half their TTL; the rest of
+	// the TTL plus the grace period covers a lost cluster broadcast.
+	now := model.GetMillis()
+	for name, value := range attrsToMerge {
+		if cached[name] == value && now-timestamps[name] < int64(fieldsByName[name].Attrs.TTLSeconds)*500 {
+			delete(attrsToMerge, name)
 		}
 	}
 
@@ -306,7 +337,7 @@ func (a *App) refreshSessionAttributes(rctx request.CTX, r *http.Request) (strin
 		}
 	}
 
-	return proxyDeviceID, serverDerivedAttrs
+	return inputs
 }
 
 func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, attrs map[string]any, refreshAt int64) {
@@ -344,30 +375,30 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 
 	platform := inferSessionAttributePlatform(r)
 	manifest := make([]*model.SessionAttributeManifestEntry, 0, len(fieldsByName))
-	for _, field := range fieldsByName {
-		saField, err := model.SAFieldFromPropertyField(field)
-		if err != nil || !saField.EnabledForPlatform(platform) {
+	for name, field := range fieldsByName {
+		if !field.EnabledForPlatform(platform) {
 			continue
 		}
-		if _, isDerived := model.SessionAttributesRequestDerivedFieldNames[field.Name]; isDerived {
+		if _, isDerived := model.SessionAttributesRequestDerivedFieldNames[name]; isDerived {
 			continue
 		}
 		manifest = append(manifest, &model.SessionAttributeManifestEntry{
-			Name:               field.Name,
+			Name:               name,
 			Type:               string(field.Type),
-			TTLSeconds:         saField.Attrs.TTLSeconds,
-			GracePeriodSeconds: saField.Attrs.GracePeriodSeconds,
-			Platforms:          saField.Attrs.Platforms,
-			DisplayName:        saField.Attrs.DisplayName,
+			TTLSeconds:         field.Attrs.TTLSeconds,
+			GracePeriodSeconds: field.Attrs.GracePeriodSeconds,
+			Platforms:          field.Attrs.Platforms,
+			DisplayName:        field.Attrs.DisplayName,
 		})
 	}
 
 	return manifest, nil
 }
 
-// GetSessionAttributes returns the unexpired cached attributes of sessionID.
-// It knows nothing about the current request, so ABAC evaluation must go
-// through BuildAccessControlSubjectForSession instead.
+// GetSessionAttributes returns the unexpired cached attributes of sessionID
+// that ABAC evaluation uses. IP address, user agent and tls_device_id are left
+// out: evaluation takes them only from the request it serves, so a cached copy
+// proves only what an earlier request had.
 func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[string]any, *model.AppError) {
 	if !a.sessionAttributesEnabled() {
 		return nil, nil
@@ -386,10 +417,18 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 		return nil, appErr
 	}
 
-	return filterStaleSessionAttributes(attrs, timestamps, fieldsByName), nil
+	filtered := filterStaleSessionAttributes(attrs, timestamps, fieldsByName)
+	for name := range model.SessionAttributesRequestDerivedFieldNames {
+		delete(filtered, name)
+	}
+	delete(filtered, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	if len(filtered) == 0 {
+		return nil, nil
+	}
+	return filtered, nil
 }
 
-func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*model.PropertyField) map[string]any {
+func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField) map[string]any {
 	if len(attrs) == 0 {
 		return nil
 	}
@@ -401,15 +440,11 @@ func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]in
 		if !ok {
 			continue
 		}
-		saField, err := model.SAFieldFromPropertyField(field)
-		if err != nil {
-			continue
-		}
 		timestamp, ok := timestamps[name]
 		if !ok {
 			continue
 		}
-		expiry := time.Duration(saField.Attrs.TTLSeconds+saField.Attrs.GracePeriodSeconds) * time.Second
+		expiry := time.Duration(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds) * time.Second
 		if now.After(time.UnixMilli(timestamp).Add(expiry)) {
 			continue
 		}

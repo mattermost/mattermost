@@ -74,24 +74,22 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket:               ws,
-		Session:                 *c.AppContext.Session(),
-		TFunc:                   c.AppContext.T,
-		Locale:                  "",
-		Active:                  true,
-		PostedAck:               r.URL.Query().Get(postedAckParam) == "true",
-		RemoteAddress:           c.AppContext.IPAddress(),
-		XForwardedFor:           c.AppContext.XForwardedFor(),
-		ProxyDeviceID:           app.ProxyDeviceID(c.AppContext),
-		ServerDerivedAttributes: app.ServerDerivedAttributes(c.AppContext),
+		WebSocket:                ws,
+		Session:                  *c.AppContext.Session(),
+		TFunc:                    c.AppContext.T,
+		Locale:                   "",
+		Active:                   true,
+		PostedAck:                r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress:            c.AppContext.IPAddress(),
+		XForwardedFor:            c.AppContext.XForwardedFor(),
+		RequestSessionAttributes: app.RequestSessionAttributes(c.AppContext),
 	}
 
 	if c.AppContext.Session().UserId == "" {
 		// The handler blocks in wc.Pump() for the connection's lifetime, so r and
 		// c.AppContext remain valid when the authentication challenge arrives.
-		cfg.ResolveRequestAttributes = func(session *model.Session) (string, map[string]any) {
-			rctx := c.App.ProcessSessionAttributesRequest(c.AppContext.WithSession(session), r)
-			return app.ProxyDeviceID(rctx), app.ServerDerivedAttributes(rctx)
+		cfg.ResolveRequestAttributes = func(session *model.Session) *platform.RequestSessionAttributes {
+			return app.RequestSessionAttributes(c.App.ProcessSessionAttributesRequest(c.AppContext.WithSession(session), r))
 		}
 	}
 

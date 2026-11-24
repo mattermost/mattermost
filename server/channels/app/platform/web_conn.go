@@ -81,25 +81,37 @@ type pluginWSPostedHook struct {
 	req          *model.WebSocketRequest
 }
 
+// RequestSessionAttributes holds what a request offered for the session attributes that
+// are taken from the request itself rather than from the session cache. The values are
+// checked against the session attribute schema when a policy is evaluated, not when the
+// request arrives, so a long-lived websocket connection follows schema changes.
+type RequestSessionAttributes struct {
+	// Platform is the session attribute platform the request came from.
+	Platform string
+	// ServerDerived are the IP address and user agent values, not yet validated.
+	ServerDerived map[string]any
+	// ProxyDeviceID is the proxy's device ID header, only recorded while that header is trusted.
+	ProxyDeviceID string
+}
+
 type WebConnConfig struct {
-	WebSocket               *websocket.Conn
-	Session                 model.Session
-	TFunc                   i18n.TranslateFunc
-	Locale                  string
-	ConnectionID            string
-	Active                  bool
-	ReuseCount              int
-	OriginClient            string
-	PostedAck               bool
-	RemoteAddress           string
-	XForwardedFor           string
-	DisconnectErrCode       string
-	ProxyDeviceID           string
-	ServerDerivedAttributes map[string]any
+	WebSocket                *websocket.Conn
+	Session                  model.Session
+	TFunc                    i18n.TranslateFunc
+	Locale                   string
+	ConnectionID             string
+	Active                   bool
+	ReuseCount               int
+	OriginClient             string
+	PostedAck                bool
+	RemoteAddress            string
+	XForwardedFor            string
+	DisconnectErrCode        string
+	RequestSessionAttributes *RequestSessionAttributes
 	// ResolveRequestAttributes processes the upgrade request's session attributes
 	// for the session an authentication challenge supplies. Only set when the
 	// upgrade request had no session.
-	ResolveRequestAttributes func(session *model.Session) (proxyDeviceID string, serverDerivedAttrs map[string]any)
+	ResolveRequestAttributes func(session *model.Session) *RequestSessionAttributes
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -123,12 +135,10 @@ type WebConn struct {
 	UserId            string
 	PostedAck         bool
 	DisconnectErrCode string
-	// ProxyDeviceID is the tls_device_id proven by the websocket upgrade request.
-	ProxyDeviceID string
-	// ServerDerivedAttributes are the server-derived session attributes (IP, user agent fields)
-	// proven by the websocket upgrade request.
-	ServerDerivedAttributes  map[string]any
-	resolveRequestAttributes func(session *model.Session) (string, map[string]any)
+	// RequestSessionAttributes are the request-scoped session attribute inputs of the
+	// websocket upgrade request.
+	RequestSessionAttributes *RequestSessionAttributes
+	resolveRequestAttributes func(session *model.Session) *RequestSessionAttributes
 
 	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
@@ -151,6 +161,10 @@ type WebConn struct {
 	// active indicates whether there is an open websocket connection attached
 	// to this webConn or not.
 	Active atomic.Bool
+
+	sendClosed           atomic.Bool
+	authChallengeHandled atomic.Bool
+
 	// reuseCount indicates how many times this connection has been reused.
 	// This is used to differentiate between a fresh connection and
 	// a reused connection.
@@ -294,8 +308,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		Locale:                   cfg.Locale,
 		PostedAck:                cfg.PostedAck,
 		DisconnectErrCode:        cfg.DisconnectErrCode,
-		ProxyDeviceID:            cfg.ProxyDeviceID,
-		ServerDerivedAttributes:  cfg.ServerDerivedAttributes,
+		RequestSessionAttributes: cfg.RequestSessionAttributes,
 		resolveRequestAttributes: cfg.ResolveRequestAttributes,
 		reuseCount:               cfg.ReuseCount,
 		endWritePump:             make(chan struct{}),
@@ -507,20 +520,23 @@ func (wc *WebConn) Pump() {
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
 
-	wc.readPump()
-	close(wc.endWritePump)
-	close(wc.pluginPosted)
-	wg.Wait()
-	wc.Platform.HubUnregister(wc)
-	close(wc.pumpFinished)
+	defer func() {
+		close(wc.endWritePump)
+		close(wc.pluginPosted)
+		wg.Wait()
+		wc.Platform.HubUnregister(wc)
+		close(wc.pumpFinished)
 
-	userID := wc.UserId
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
-			return true
-		}, plugin.OnWebSocketDisconnectID)
-	})
+		userID := wc.UserId
+		wc.Platform.Go(func() {
+			wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}()
+
+	wc.readPump()
 }
 
 func (wc *WebConn) readPump() {
@@ -913,6 +929,17 @@ func (wc *WebConn) InvalidateCache() {
 	wc.SetSessionExpiresAt(0)
 }
 
+func (wc *WebConn) sessionLogFields(err error) []mlog.Field {
+	fields := []mlog.Field{
+		mlog.String("user_id", wc.UserId),
+		mlog.String("connection_id", wc.GetConnectionID()),
+	}
+	if session := wc.GetSession(); session != nil {
+		fields = append(fields, mlog.String("session_id", session.Id))
+	}
+	return append(fields, mlog.Err(err))
+}
+
 // IsBasicAuthenticated returns whether the given WebConn has a valid session.
 func (wc *WebConn) IsBasicAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
@@ -926,7 +953,7 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", wc.sessionLogFields(err)...)
 			}
 
 			wc.SetSessionToken("")
@@ -1253,7 +1280,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byt
 			return false
 		}
 
-		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+		if wc.Platform.hubChannelIteration {
 			// We don't need to do any further checks because this is already scoped
 			// to channel members from web_hub.
 			return true
@@ -1314,7 +1341,7 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", wc.sessionLogFields(err)...)
 			}
 			return false
 		}

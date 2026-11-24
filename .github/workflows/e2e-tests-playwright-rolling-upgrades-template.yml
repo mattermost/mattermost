@@ -309,6 +309,10 @@ jobs:
       # running, the swap has to keep Postgres and file storage while only the server is replaced,
       # and dispatch-run's per-spec invocations all have to land on that same upgraded server.
       PW_TESTCONTAINERS_REUSE: "true"
+      # The server upgrade-to swaps in is started without withReuse(), so with Ryuk on it is reaped
+      # ~10 s after upgrade-to exits and dispatch-run finds no server. The runner is ephemeral, so
+      # nothing needs Ryuk's cleanup (same as e2e-tests-playwright-template.yml).
+      TESTCONTAINERS_RYUK_DISABLED: "true"
     steps:
       - name: ci/checkout-actions
         # Sparse-checkout just .github/actions from the triggering ref (master)
@@ -451,7 +455,10 @@ jobs:
   # triage keeps its own per-lane check, as master contexts do.
   lane-result:
     needs: [prepare-run, dispatch-begin, workers, report]
-    if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+    # cancelled() is true only when the run is cancelled (by a person, or by a newer run through concurrency),
+    # and then the lane leaves its pending status alone. A job its own time limit cancels does not cancel the
+    # run: the lane still publishes and triages what arrived, and triage can ask for a re-run.
+    if: ${{ !cancelled() }}
     permissions:
       actions: read
       contents: read

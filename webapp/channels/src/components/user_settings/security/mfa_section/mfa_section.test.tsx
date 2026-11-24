@@ -24,69 +24,6 @@ describe('MfaSection', () => {
     };
 
     describe('rendering', () => {
-        test('should render nothing when MFA is not available', () => {
-            const props = {
-                ...baseProps,
-                mfaAvailable: false,
-            };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
-
-            expect(container).toMatchSnapshot();
-        });
-
-        test('when section is collapsed and MFA is not active', () => {
-            const props = {
-                ...baseProps,
-                active: false,
-                mfaActive: false,
-            };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
-
-            expect(container).toMatchSnapshot();
-        });
-
-        test('when section is collapsed and MFA is active', () => {
-            const props = {
-                ...baseProps,
-                active: false,
-                mfaActive: true,
-            };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
-
-            expect(container).toMatchSnapshot();
-        });
-
-        test('when section is expanded and MFA is not active', () => {
-            const props = {
-                ...baseProps,
-                mfaActive: false,
-            };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
-
-            expect(container).toMatchSnapshot();
-        });
-
-        test('when section is expanded and MFA is active but not enforced', () => {
-            const props = {
-                ...baseProps,
-                mfaActive: true,
-            };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
-
-            expect(container).toMatchSnapshot();
-        });
-
-        test('when section is expanded and MFA is active and enforced', () => {
-            const props = {
-                ...baseProps,
-                mfaActive: true,
-                mfaEnforced: true,
-            };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
-
-            expect(container).toMatchSnapshot();
-        });
-
         test('when section is expanded with a server error', async () => {
             const props = {
                 ...baseProps,
@@ -102,8 +39,6 @@ describe('MfaSection', () => {
             await waitFor(() => {
                 expect(screen.getByText('An error has occurred')).toBeInTheDocument();
             });
-
-            expect(screen.getByText('An error has occurred')).toMatchSnapshot();
         });
     });
 

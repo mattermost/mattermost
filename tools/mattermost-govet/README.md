@@ -20,6 +20,7 @@ This package contains mattermost-specific go-vet rules that are used to maintain
 1. **noSelectStar** - check for SQL queries using SELECT * which breaks forwards compatibility
 1. **requestCtxNaming** - check that request.CTX parameters are consistently named 'rctx'
 1. **sortSlices** - check for sort.Strings/sort.Ints/sort.Slice/sort.SliceStable calls, which should use the slices package instead
+1. **appErrorReturn** - check that functions in the app layer return `error` rather than `*model.AppError`, except those on a shrinking baseline (`-appErrorReturn.baseline`), which is regenerated with `-appErrorReturn.list`
 
 ## Running Locally
 

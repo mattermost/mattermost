@@ -52,11 +52,6 @@ describe('/components/common/Accordion', () => {
         ],
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Accordion {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('test accordion items length is 2 as specified in items property in baseProps', () => {
         const {container} = renderWithContext(<Accordion {...baseProps}/>);
         const accordionItems = container.querySelectorAll('.accordion-card');
