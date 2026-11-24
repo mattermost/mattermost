@@ -5769,7 +5769,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.SqlSettings.DataSource = sanitizeDataSourceField(*o.SqlSettings.DataSource, "SqlSettings.DataSource")
 	}
 
-	if o.ElasticsearchSettings.Password != nil {
+	if o.ElasticsearchSettings.Password != nil && *o.ElasticsearchSettings.Password != "" {
 		*o.ElasticsearchSettings.Password = FakeSetting
 	}
 
@@ -5806,7 +5806,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.ServiceSettings.GiphySdkKey = FakeSetting
 	}
 
-	if o.CacheSettings.RedisPassword != nil {
+	if o.CacheSettings.RedisPassword != nil && *o.CacheSettings.RedisPassword != "" {
 		*o.CacheSettings.RedisPassword = FakeSetting
 	}
 

@@ -135,11 +135,17 @@ func TestFlattenConfig(t *testing.T) {
 			cfg := &model.Config{}
 			cfg.SetDefaults()
 			*cfg.EmailSettings.SMTPPassword = value
+			*cfg.CacheSettings.RedisPassword = value
+			*cfg.ElasticsearchSettings.Password = value
 			cfg.Sanitize(nil, nil)
 			return &model.SupportPacketConfig{Config: cfg, FeatureFlags: *cfg.FeatureFlags}
 		}
 		assert.Empty(t, differing(secret("one"), secret("two")))
-		assert.Equal(t, []string{"EmailSettings.SMTPPassword"}, differing(secret(""), secret("one")))
+		assert.Equal(t, []string{
+			"CacheSettings.RedisPassword",
+			"ElasticsearchSettings.Password",
+			"EmailSettings.SMTPPassword",
+		}, differing(secret(""), secret("one")))
 	})
 
 	t.Run("no config", func(t *testing.T) {

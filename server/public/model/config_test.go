@@ -3137,6 +3137,8 @@ func TestConfigSanitize(t *testing.T) {
 	*c.ServiceSettings.GoogleDeveloperKey = "google-api-key"
 	*c.ServiceSettings.GiphySdkKey = "giphy-sdk-key"
 	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
+	*c.ElasticsearchSettings.Password = "elastic-password"
+	*c.CacheSettings.RedisPassword = "redis-password"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
@@ -3157,6 +3159,7 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FakeSetting, *c.CacheSettings.RedisPassword)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
@@ -3173,6 +3176,17 @@ func TestConfigSanitize(t *testing.T) {
 		c.Sanitize(nil, nil)
 
 		assert.Len(t, c.SqlSettings.ReplicaLagSettings, 0)
+	})
+
+	t.Run("unset secrets stay empty", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		*c.ElasticsearchSettings.Password = ""
+		*c.CacheSettings.RedisPassword = ""
+		c.Sanitize(nil, nil)
+
+		assert.Empty(t, *c.ElasticsearchSettings.Password)
+		assert.Empty(t, *c.CacheSettings.RedisPassword)
 	})
 
 	t.Run("partially sanitize DataSource", func(t *testing.T) {
