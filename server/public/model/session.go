@@ -48,8 +48,7 @@ const (
 	// SessionLoginMethodStandard marks a session started by any interactive sign-in
 	// other than a passkey: password, LDAP, SAML, OAuth/OpenID, magic link, SSO hand-offs.
 	SessionLoginMethodStandard = "standard"
-	// SessionLoginMethodPasskey marks a session started by signing in with a passkey.
-	SessionLoginMethodPasskey = "passkey"
+	SessionLoginMethodPasskey  = "passkey"
 )
 
 //msgp:tuple StringMap

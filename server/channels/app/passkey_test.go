@@ -690,7 +690,6 @@ func TestFinishPasskeyLogin(t *testing.T) {
 	})
 	const origin = "http://localhost:8065"
 
-	// register stores a passkey for the user through the real registration ceremony.
 	register := func(t *testing.T, user *model.User, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) {
 		t.Helper()
 		session := recentSession(user.Id)

@@ -25,8 +25,7 @@ type SoftAuthenticator struct {
 	// UserHandle is the user.id from the creation options CreateResponse last answered, which is what
 	// the authenticator returns as the user handle when signing in. Tests may overwrite it.
 	UserHandle []byte
-	// SignCount is the counter GetAssertion reports.
-	SignCount uint32
+	SignCount  uint32
 }
 
 func NewSoftAuthenticator() (*SoftAuthenticator, error) {
