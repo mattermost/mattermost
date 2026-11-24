@@ -739,8 +739,6 @@ func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID s
 	}
 	sessionData := *ceremony.SessionData
 	sessionData.UserID = passkey.UserHandle
-	// The library checks the user handle, origin, RP ID hash, challenge, signature and that user
-	// verification was performed.
 	cred, err := rp.ValidateLogin(&passkeyUser{user: user, handle: passkey.UserHandle, passkeys: []*model.Passkey{passkey}}, sessionData, parsed)
 	if err != nil {
 		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)

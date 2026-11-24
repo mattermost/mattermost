@@ -47,8 +47,8 @@ export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();
     const enrollmentEnabled = useSelector(getConfig).PasskeyEnrollmentEnabled === 'true';
 
-    // Both are fixed at mount: a skip is recorded against the login that was current when the prompt opened,
-    // and nothing that changes afterwards reopens it.
+    // Fixed at mount: a skip is recorded against the login that was current when the prompt opened, and
+    // nothing that changes afterwards reopens it.
     const [loginKey] = useState(() => Client4.getCSRFFromCookie());
     const [eligible] = useState(() => (
         enrollmentEnabled &&
