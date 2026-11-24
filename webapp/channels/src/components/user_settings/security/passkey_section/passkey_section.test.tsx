@@ -167,7 +167,7 @@ describe('PasskeySection', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
         const dialog = await screen.findByRole('dialog');
         expect(within(dialog).getByText('Delete passkey?')).toBeInTheDocument();
-        expect(dialog.querySelector('.GenericModal__compassDesign')).not.toBeNull();
+        expect(within(dialog).getByRole('button', {name: 'Delete'}).closest('.modal-footer')).not.toBeNull();
 
         await dismiss(dialog);
 
