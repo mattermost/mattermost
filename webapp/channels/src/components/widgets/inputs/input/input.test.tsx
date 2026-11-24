@@ -51,6 +51,121 @@ describe('components/widgets/inputs/Input', () => {
         expect(onClear).toHaveBeenCalledTimes(1);
     });
 
+    describe('customMessage prop', () => {
+        const TestInput = () => {
+            const [value, setValue] = React.useState('');
+            return (
+                <Input
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    customMessage={{type: 'info', value: 'Helper text'}}
+                />
+            );
+        };
+
+        test('should render the custom message', () => {
+            renderWithContext(<TestInput/>);
+
+            expect(screen.getByText('Helper text')).toBeInTheDocument();
+        });
+
+        test('should not unmount the custom message while typing', async () => {
+            renderWithContext(<TestInput/>);
+            const container = document.querySelector('.Input_container')!;
+            const records: MutationRecord[] = [];
+            const observer = new MutationObserver((mutations) => records.push(...mutations));
+            observer.observe(container, {childList: true, subtree: true});
+
+            await userEvent.type(screen.getByRole('textbox'), 'abc');
+
+            records.push(...observer.takeRecords());
+            const removedMessages = records.flatMap((record) => Array.from(record.removedNodes)).filter((node) => (node as Element).classList?.contains('Input___customMessage'));
+            observer.disconnect();
+
+            expect(removedMessages).toHaveLength(0);
+            expect(screen.getByText('Helper text')).toBeInTheDocument();
+        });
+
+        test('should remove the custom message when the prop is cleared', () => {
+            const {rerender} = renderWithContext(
+                <Input customMessage={{type: 'error', value: 'Bad value'}}/>,
+            );
+            expect(screen.getByText('Bad value')).toBeInTheDocument();
+
+            rerender(<Input customMessage={null}/>);
+
+            expect(screen.queryByText('Bad value')).not.toBeInTheDocument();
+        });
+
+        test('should show a parent error instead of a local required error', async () => {
+            const {rerender} = renderWithContext(
+                <Input
+                    value=''
+                    required={true}
+                />,
+            );
+            const input = screen.getByRole('textbox');
+
+            await act(async () => {
+                input.focus();
+                input.blur();
+            });
+            expect(await screen.findByText(/This field is required/i)).toBeInTheDocument();
+
+            rerender(
+                <Input
+                    value=''
+                    required={true}
+                    customMessage={{type: 'error', value: 'Name already taken'}}
+                />,
+            );
+
+            expect(screen.getByText('Name already taken')).toBeInTheDocument();
+            expect(screen.queryByText(/This field is required/i)).not.toBeInTheDocument();
+        });
+
+        test('should show a local error instead of parent info text', async () => {
+            renderWithContext(
+                <Input
+                    value=''
+                    required={true}
+                    customMessage={{type: 'info', value: 'Helper text'}}
+                />,
+            );
+            const input = screen.getByRole('textbox');
+
+            await act(async () => {
+                input.focus();
+                input.blur();
+            });
+
+            expect(await screen.findByText(/This field is required/i)).toBeInTheDocument();
+            expect(screen.queryByText('Helper text')).not.toBeInTheDocument();
+        });
+
+        test('should still clear validation errors when typing', async () => {
+            renderWithContext(
+                <Input
+                    value=''
+                    required={true}
+                    customMessage={{type: 'info', value: 'Helper text'}}
+                />,
+            );
+            const input = screen.getByRole('textbox');
+
+            await act(async () => {
+                input.focus();
+                input.blur();
+            });
+            expect(await screen.findByText(/This field is required/i)).toBeInTheDocument();
+
+            await userEvent.type(input, 'a');
+
+            expect(screen.queryByText(/This field is required/i)).not.toBeInTheDocument();
+            expect(screen.getByText('Helper text')).toBeInTheDocument();
+        });
+    });
+
     describe('handleOnBlur functionality', () => {
         test('should validate immediately when blur occurs without relatedTarget', async () => {
             const mockValidate = jest.fn();

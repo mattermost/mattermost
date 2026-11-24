@@ -47,9 +47,9 @@ export function resolveOption(field: PropertyField, value: unknown): PropertyFie
 /**
  * The chips a stored value earns, in stored order.
  *
- * The single answer to "what does this value put on screen?", shared by both chip
- * renderers and by the post row's budget so they cannot disagree about how many
- * chips a field is worth.
+ * For a field whose choices may live outside it, such as content flagging's
+ * `reporting_reason`; post attributes keep theirs on the field and use
+ * `resolveFieldOptionChips`.
  *
  * Two cases, and the difference matters:
  *
@@ -72,8 +72,32 @@ export function resolveOption(field: PropertyField, value: unknown): PropertyFie
 export function resolveOptionChips(field: PropertyField, value: unknown): OptionChip[] {
     const entries = toValueList(value);
 
-    const chips = hasOptions(field) ? resolveEach(field, entries) : rawChips(entries);
+    return capByArity(field, hasOptions(field) ? resolveEach(field, entries) : rawChips(entries));
+}
 
+/**
+ * The chips a stored value earns on a field that always keeps its options on the
+ * field, such as every post attribute.
+ *
+ * Unlike `resolveOptionChips`, an empty or missing list is not read as "the choices
+ * live elsewhere": such a field has none elsewhere, so it means every option was
+ * deleted, and the stored ids name nothing. The server cannot tell the two apart
+ * either, since it rebuilds the list from stored options on every read and leaves
+ * it out when there are none, so it's the caller that knows which kind of field it
+ * has.
+ */
+export function resolveFieldOptionChips(field: PropertyField, value: unknown): OptionChip[] {
+    const entries = toValueList(value);
+
+    if (field.attrs?.options_omitted === true) {
+        return capByArity(field, rawChips(entries));
+    }
+
+    return capByArity(field, resolveEach(field, entries));
+}
+
+// Only a `multiselect` renders more than one chip.
+function capByArity(field: PropertyField, chips: OptionChip[]): OptionChip[] {
     return field.type === 'multiselect' ? chips : chips.slice(0, 1);
 }
 

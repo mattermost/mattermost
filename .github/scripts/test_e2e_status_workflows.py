@@ -412,7 +412,7 @@ class InfrastructureRetries(unittest.TestCase):
         """The refresh is skipped only for a green lane that published: its publication refreshed and triage did not run."""
         lane = lane_result_workflow()['jobs']['lane-result']
         self.assertEqual(step(lane, 'ci/refresh-lane-summary')['if'],
-                         "${{ !cancelled() && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}")
+                         "${{ !cancelled() && inputs.composite_identity_json != '' && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}")
         self.assertIn("steps.result.outputs.state != 'success'", step(lane, 'ci/e2e-triage')['if'])
 
     def run_api_wait(self, rate_limit, now=1_000_000):

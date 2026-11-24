@@ -113,7 +113,7 @@ jobs:
         id: publish
         # The diagnostic summary runs even on cancellation. A cancelled lane
         # must leave its current pending status (or a newer owner's result) alone.
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' }}
         # A failed publication is tried once more below; the retry decides the job.
         continue-on-error: true
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
@@ -198,7 +198,7 @@ jobs:
       # the cache action saves only when the job succeeds, and a red run is the
       # one most likely to be re-run.
       - name: Restore triage answers
-        if: ${{ !cancelled() && steps.result.outputs.state != 'success' }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' && steps.result.outputs.state != 'success' }}
         continue-on-error: true
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -216,7 +216,7 @@ jobs:
         # Only a red run is worth triaging: the verdict can turn a red run green
         # and never the other way round, so on a green one there is nothing for
         # it to change.
-        if: ${{ !cancelled() && steps.result.outputs.state != 'success' }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' && steps.result.outputs.state != 'success' }}
         continue-on-error: true
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-triage@main # actions/e2e-test-triage
         with:
@@ -252,7 +252,7 @@ jobs:
           rerun-attempts: "1"
           lane-start-job: prepare-run
       - name: Save triage answers
-        if: always() && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
+        if: always() && inputs.composite_identity_json != '' && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
         continue-on-error: true
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -261,7 +261,7 @@ jobs:
       # A green lane that published has already refreshed the summary in that publication, and triage
       # did not run to change it since: refreshing again would only re-read every status on the commit.
       - name: ci/refresh-lane-summary
-        if: ${{ !cancelled() && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
         with:
           composite-identity: ${{ inputs.composite_identity_json }}

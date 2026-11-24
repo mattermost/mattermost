@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import MissingRequiredAttributesNotice from 'components/channel_attributes/missing_required_attributes_notice';
 import LoadingScreen from 'components/loading_screen';
 
 import {Preferences} from 'utils/constants';
@@ -92,6 +93,7 @@ export default class PostView extends React.PureComponent<Props, State> {
                 id='post-list'
                 role='main'
             >
+                <MissingRequiredAttributesNotice channelId={this.props.channelId}/>
                 <PostList
                     unreadChunkTimeStamp={this.state.unreadChunkTimeStamp}
                     channelId={this.props.channelId}

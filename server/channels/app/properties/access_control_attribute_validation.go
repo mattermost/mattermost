@@ -152,6 +152,18 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
 }
 
+// validatePostField refuses a post field that is not system-scoped. Any other
+// field passes. The error never names the field.
+func validatePostField(field *model.PropertyField) error {
+	if field.ObjectType != model.PropertyFieldObjectTypePost {
+		return nil
+	}
+	if field.TargetType != string(model.PropertyFieldTargetLevelSystem) {
+		return fmt.Errorf("post fields must be system-scoped: %w", ErrInvalidFieldAttrs)
+	}
+	return nil
+}
+
 // openIDAttributeSyncEnabled reports whether attributes may be linked to
 // OpenID Connect claims. A nil provider defaults to enabled.
 func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool {
@@ -696,12 +708,16 @@ func pinFieldPermission(field, existing *model.PropertyField) {
 // that any member reading the channel would otherwise be able to overwrite,
 // and these values are expected to feed access-control policy decisions, so
 // the safer default is channel-admin (or sysadmin) rather than membership.
+// Post fields default to creator for the same reason: at member, anyone who can
+// read the channel could set the values on anyone's post there.
 func defaultPermissionValuesForObjectType(objectType string) model.PermissionLevel {
 	switch objectType {
 	case model.PropertyFieldObjectTypeSystem, model.PropertyFieldObjectTypeTemplate:
 		return model.PermissionLevelSysadmin
 	case model.PropertyFieldObjectTypeChannel:
 		return model.PermissionLevelAdmin
+	case model.PropertyFieldObjectTypePost:
+		return model.PermissionLevelCreator
 	default:
 		return model.PermissionLevelMember
 	}
@@ -719,6 +735,10 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 	// fallback (no sentinel wrap).
 	if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
 		return nil, appErr
+	}
+
+	if err := validatePostField(field); err != nil {
+		return nil, err
 	}
 
 	// Create: no prior type, actions, or required state, so a rank field here is
@@ -751,6 +771,9 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
+	if err := validatePostField(field); err != nil {
+		return nil, err
+	}
 	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 		return nil, err
 	}
@@ -787,6 +810,10 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
 				return nil, fmt.Errorf("field %s: %w", field.ID, appErr)
 			}
+		}
+
+		if err := validatePostField(field); err != nil {
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
 		// existing is nil when the field isn't found (the store surfaces the
@@ -867,14 +894,14 @@ func (ps *PropertyService) isDefinitionSync(rctx request.CTX, field *model.Prope
 
 // syncedOptionsLockedError is an AppError so that its i18n key survives the
 // HTTP layer's mapPropertyServiceError fallback.
-func syncedOptionsLockedError(where string, field *model.PropertyField) *model.AppError {
+func syncedOptionsLockedError(where string, field *model.PropertyField) error {
 	details := fmt.Sprintf("field %s: options of a synced field are managed by %s sync", field.ID, model.GetPropertyFieldSyncSource(field))
 	return model.NewAppError(where, "app.property_field.synced_options_locked.app_error", nil, details, http.StatusForbidden)
 }
 
 // syncSourceUnlinkedError refuses a sync changing a field that is not synced
 // from its source, such as one an admin unlinked while a sync job was running.
-func syncSourceUnlinkedError(where string, field *model.PropertyField, source string) *model.AppError {
+func syncSourceUnlinkedError(where string, field *model.PropertyField, source string) error {
 	details := fmt.Sprintf("field %s is not synced from %s", field.ID, source)
 	return model.NewAppError(where, "app.property_field.sync_source_unlinked.app_error", nil, details, http.StatusConflict)
 }
@@ -984,19 +1011,7 @@ func optionNamesByID(field *model.PropertyField) (map[string]string, error) {
 func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) ([]string, error) {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
-		var str string
-		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return nil, fmt.Errorf("expected string value: %w", err)
-		}
-		if len(strings.TrimSpace(str)) > model.PropertyFieldValueTypeTextMaxLength {
-			return nil, fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
-		}
-
-		valueType := model.GetPropertyFieldValueType(field)
-		if valueType == "" {
-			return nil, nil
-		}
-		return nil, model.ValidatePropertyValueForValueType(valueType, value.Value)
+		return nil, model.ValidatePropertyTextValue(field, value.Value)
 
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var str string

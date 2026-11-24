@@ -7,13 +7,12 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
-import type {CustomProfileAttribute} from './helpers';
+import type {CpaFieldsMap, CustomProfileAttribute} from './helpers';
 import {
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
-    deleteCustomProfileAttributes,
     verifyAttributeInPopover,
     verifyAttributeNotInPopover,
     updateCustomProfileAttributeVisibility,
@@ -27,25 +26,38 @@ import {
     TEST_MESSAGE,
 } from './helpers';
 
+// Field names are unique to this run. Specs that ran earlier on the same server
+// can leave behind fields with the plain names (e.g. an admin-managed
+// 'Department' from the ABAC specs); reusing one of those makes the user's own
+// value write fail, and changing its visibility here would break those specs.
+const fieldSuffix = getRandomId();
+const FIELD_NAMES = {
+    department: `Department_${fieldSuffix}`,
+    location: `Location_${fieldSuffix}`,
+    title: `Title_${fieldSuffix}`,
+    phone: `Phone_${fieldSuffix}`,
+    website: `Website_${fieldSuffix}`,
+};
+
 // Custom attribute definitions
 const customAttributes: CustomProfileAttribute[] = [
     {
-        name: 'Department',
+        name: FIELD_NAMES.department,
         value: TEST_DEPARTMENT,
         type: 'text',
     },
     {
-        name: 'Location',
+        name: FIELD_NAMES.location,
         value: TEST_LOCATION,
         type: 'text',
     },
     {
-        name: 'Title',
+        name: FIELD_NAMES.title,
         value: TEST_TITLE,
         type: 'text',
     },
     {
-        name: 'Phone',
+        name: FIELD_NAMES.phone,
         value: TEST_PHONE,
         type: 'text',
         attrs: {
@@ -53,7 +65,7 @@ const customAttributes: CustomProfileAttribute[] = [
         },
     },
     {
-        name: 'Website',
+        name: FIELD_NAMES.website,
         value: TEST_URL,
         type: 'text',
         attrs: {
@@ -69,6 +81,10 @@ let testChannel: Channel;
 let attributeFieldsMap: Record<string, UserPropertyField>;
 let adminClient: Client4;
 let userClient: Client4;
+
+// Only the first beforeEach creates the fields; later ones reuse them, so the
+// IDs are collected across tests for afterAll to delete.
+const createdFieldIds = new Set<string>();
 
 test.beforeEach(async ({pw}) => {
     // Skip test if no license for "Custom Profile Attributes"
@@ -93,7 +109,9 @@ test.beforeEach(async ({pw}) => {
     await adminClient.addToChannel(user.id, testChannel.id);
 
     // Set up custom profile attribute fields
-    attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, customAttributes);
+    const fieldsMap: CpaFieldsMap = await setupCustomProfileAttributeFields(adminClient, customAttributes);
+    fieldsMap.ownedIds.forEach((id) => createdFieldIds.add(id));
+    attributeFieldsMap = fieldsMap;
 
     // Login as the test user
     const {page} = await pw.testBrowser.login(user);
@@ -101,13 +119,32 @@ test.beforeEach(async ({pw}) => {
     // Set up initial values for custom profile attributes
     await setupCustomProfileAttributeValues(userClient, customAttributes, attributeFieldsMap);
 
+    // The setup helpers log and swallow API errors, which otherwise surfaces
+    // as a popover timeout far from the cause.
+    expect(
+        Object.values(attributeFieldsMap)
+            .map((field) => field.name)
+            .sort(),
+    ).toEqual(Object.values(FIELD_NAMES).sort());
+    const savedValues = await adminClient.getUserCustomProfileAttributesValues(user.id);
+    expect(Object.keys(savedValues).sort()).toEqual(Object.keys(attributeFieldsMap).sort());
+
     // Visit the test channel
     await page.goto(`/${team.name}/channels/${testChannel.name}`);
 });
 
 test.afterAll(async () => {
-    // Clean up by deleting custom profile attributes
-    await deleteCustomProfileAttributes(adminClient, attributeFieldsMap);
+    if (!adminClient) {
+        return;
+    }
+    for (const id of createdFieldIds) {
+        try {
+            await adminClient.deleteCustomProfileAttributeField(id);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.log(`Failed to delete field ${id}:`, error);
+        }
+    }
 });
 
 /**
@@ -202,12 +239,12 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     // 5. Update custom profile attributes
     const updatedAttributes: CustomProfileAttribute[] = [
         {
-            name: 'Department',
+            name: FIELD_NAMES.department,
             value: TEST_UPDATED_DEPARTMENT,
             type: 'text',
         },
         {
-            name: 'Location',
+            name: FIELD_NAMES.location,
             value: TEST_UPDATED_LOCATION,
             type: 'text',
         },
@@ -225,7 +262,7 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     }
 
     // * Verify non-updated attribute is still displayed correctly
-    await verifyAttributeInPopover(channelsPage, 'Title', TEST_TITLE);
+    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.title, TEST_TITLE);
 });
 
 /**
@@ -242,7 +279,7 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     pw,
 }) => {
     // 1. Update the visibility of the Department attribute to hidden
-    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Department', 'hidden');
+    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, FIELD_NAMES.department, 'hidden');
 
     // 2. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
@@ -256,10 +293,10 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Department attribute is not displayed
-    await verifyAttributeNotInPopover(channelsPage, 'Department');
+    await verifyAttributeNotInPopover(channelsPage, FIELD_NAMES.department);
 
     // * Verify other attributes are still displayed
-    await verifyAttributeInPopover(channelsPage, 'Location', TEST_LOCATION);
+    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.location, TEST_LOCATION);
 });
 
 /**
@@ -276,7 +313,7 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
     pw,
 }) => {
     // 1. Update the visibility of the Title attribute to always
-    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Title', 'always');
+    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, FIELD_NAMES.title, 'always');
 
     // 2. Login as the other user
     const {channelsPage} = await pw.testBrowser.login(otherUser);
@@ -291,10 +328,10 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
 
     // * Verify custom attributes are displayed correctly
     for (const attribute of customAttributes) {
-        if (attribute.name === 'Title') {
+        if (attribute.name === FIELD_NAMES.title) {
             // * Verify the Title attribute is displayed even though it has no value
             const popover = channelsPage.userProfilePopover.container;
-            const nameElement = popover.getByText('Title', {exact: false});
+            const nameElement = popover.getByText(FIELD_NAMES.title, {exact: false});
             await expect(nameElement).toBeVisible();
         } else {
             await verifyAttributeNotInPopover(channelsPage, attribute.name);
@@ -327,10 +364,10 @@ test('MM-T5778 Display phone and URL type custom profile attributes correctly @c
     await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Phone attribute is displayed correctly
-    await verifyAttributeInPopover(channelsPage, 'Phone', TEST_PHONE);
+    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.phone, TEST_PHONE);
 
     // * Verify the Website attribute is displayed correctly
-    await verifyAttributeInPopover(channelsPage, 'Website', TEST_URL);
+    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.website, TEST_URL);
 });
 
 /**

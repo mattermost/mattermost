@@ -14,6 +14,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 const (
@@ -27,6 +29,19 @@ func response(message string) *model.CommandResponse {
 		Text:         message,
 		Type:         model.PostTypeDefault,
 	}
+}
+
+// channelManagementDenied evaluates channel_management_access for the user the command
+// runs as, whether or not the request carries that user's session. Commands run through
+// the plugin API (a Playbooks checklist item, say) have none, and must not skip the
+// policy for it. Without a session the user is evaluated on their attributes and roles
+// alone, so a rule over user.session.* denies: the policy fails closed.
+func channelManagementDenied(a *app.App, rctx request.CTX, args *model.CommandArgs, channel *model.Channel) bool {
+	return !a.EnforceChannelManagementAccess(rctx, args.UserId, channel)
+}
+
+func channelManagementDeniedByID(a *app.App, rctx request.CTX, args *model.CommandArgs, channelID string) bool {
+	return !a.EnforceChannelManagementAccessByID(rctx, args.UserId, channelID)
 }
 
 // parseNamedArgs parses a command string into a map of arguments. It is assumed the

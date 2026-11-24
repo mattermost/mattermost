@@ -47,6 +47,10 @@
         svg {
             color: rgba(var(--center-channel-color-rgb), 0.48);
         }
+
+        &--missing {
+            color: var(--error-text);
+        }
     }
 
     &__value {
@@ -237,6 +241,18 @@
         color: rgba(var(--center-channel-color-rgb), 0.48);
         font-size: 12px;
         font-weight: 400;
+        line-height: 16px;
+    }
+
+    &__missingValue {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(var(--error-text-color-rgb), 0.08);
+        color: var(--error-text);
+        font-size: 12px;
+        font-weight: 600;
         line-height: 16px;
     }
 
