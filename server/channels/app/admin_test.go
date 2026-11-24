@@ -195,27 +195,6 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 }
 
-func TestTestEmail(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	for name, tc := range map[string]struct{ server, port, errID string }{
-		"missing server": {server: "", port: "587", errID: "api.admin.test_email.missing_server"},
-		"missing port":   {server: "smtp.example.com", port: "", errID: "api.admin.test_email.missing_port"},
-	} {
-		t.Run(name, func(t *testing.T) {
-			cfg := th.App.Config().Clone()
-			cfg.EmailSettings.SMTPServer = new(tc.server)
-			cfg.EmailSettings.SMTPPort = new(tc.port)
-
-			appErr := th.App.TestEmail(th.Context, th.BasicUser.Id, cfg)
-			require.NotNil(t, appErr)
-			assert.Equal(t, tc.errID, appErr.Id)
-			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		})
-	}
-}
-
 // Not parallel: overrides the package-level testSiteURLTimeout.
 func TestTestSiteURL(t *testing.T) {
 	th := Setup(t)

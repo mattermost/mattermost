@@ -2306,12 +2306,11 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 }
 
 func TestInviteNewUsersToTeamGracefullySMTPNotConfigured(t *testing.T) {
-	// CI points MM_EMAILSETTINGS_SMTPSERVER at a mail server, which would override UpdateConfig.
+	// An empty server; the environment variable also overrides the mail server CI sets there.
 	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
 	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
-		*cfg.EmailSettings.SMTPServer = ""
 	})
 
 	memberInvite := &model.MemberInvite{Emails: []string{"idontexist@mattermost.com"}}

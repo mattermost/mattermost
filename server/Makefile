@@ -711,10 +711,9 @@ build-templates: ## Compile all mjml email templates
 
 # Sends email from a fresh development config to Inbucket in the development docker-compose. Custom defaults
 # apply only to settings the config does not set, so they stay editable in the System Console.
-DEV_CUSTOM_DEFAULTS_PATH := $(CURDIR)/build/dev-custom-defaults.json
+run-server run-server-faketime debug-server debug-server-headless: export MM_CUSTOM_DEFAULTS_PATH ?= $(CURDIR)/build/dev-custom-defaults.json
 
 .PHONY: run-server
-run-server: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 run-server: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server.
 	@echo Running mattermost for development
 ifeq ($(MM_USE_PGVECTOR),true)
@@ -725,7 +724,6 @@ endif
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 .PHONY: run-server-faketime
-run-server-faketime: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 run-server-faketime: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server with FAKETIME.
 ifndef FAKETIME
 	$(error FAKETIME is not set. Usage: make run-server-faketime FAKETIME="+30d")
@@ -755,7 +753,6 @@ run-server-pgvector: ## Starts the server with pgvector PostgreSQL image.
 	@MM_USE_PGVECTOR=true $(MAKE) run-server
 
 .PHONY: debug-server
-debug-server: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 debug-server: setup-go-work start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
@@ -767,7 +764,6 @@ debug-server: setup-go-work start-docker ## Compile and start server using delve
 		-tags '$(BUILD_TAGS)'"
 
 .PHONY: debug-server-headless
-debug-server-headless: export MM_CUSTOM_DEFAULTS_PATH ?= $(DEV_CUSTOM_DEFAULTS_PATH)
 debug-server-headless: setup-go-work start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\

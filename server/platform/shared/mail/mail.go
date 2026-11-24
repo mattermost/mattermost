@@ -48,6 +48,11 @@ type SMTPConfig struct {
 	ReplyToAddress                    string
 }
 
+// IsConfigured reports whether both the SMTP server and port are set.
+func (c *SMTPConfig) IsConfigured() bool {
+	return c.Server != "" && c.Port != ""
+}
+
 type mailData struct {
 	mimeTo        string
 	smtpTo        string
@@ -127,7 +132,7 @@ func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
 // ServerTimeout bounds the dial and ctx can cancel it. It returns ErrSMTPNotConfigured, without
 // dialing, when the server or port is empty.
 func connectToSMTPServer(ctx context.Context, config *SMTPConfig) (net.Conn, error) {
-	if config.Server == "" || config.Port == "" {
+	if !config.IsConfigured() {
 		return nil, ErrSMTPNotConfigured
 	}
 

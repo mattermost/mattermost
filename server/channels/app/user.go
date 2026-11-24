@@ -1938,7 +1938,7 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 
 func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError) {
 	// Checked before the user lookup, so every address gets the same answer and no unusable token is created.
-	if emailSettings := a.Config().EmailSettings; *emailSettings.SMTPServer == "" || *emailSettings.SMTPPort == "" {
+	if !a.Srv().MailServiceConfig().IsConfigured() {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.smtp_not_configured.app_error", nil, "", http.StatusNotImplemented).Wrap(mail.ErrSMTPNotConfigured)
 	}
 

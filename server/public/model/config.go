@@ -121,11 +121,9 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
-	// Deprecated: SMTPServer no longer has a default. EmailSMTPDefaultServer only identifies the old
-	// default, localhost:10025, still saved in the config of older servers.
+	// Deprecated: the old SMTPServer default, only used to recognize it in older configs.
 	EmailSMTPDefaultServer = "localhost"
-	// Deprecated: SMTPPort no longer has a default. EmailSMTPDefaultPort only identifies the old
-	// default, localhost:10025, still saved in the config of older servers.
+	// Deprecated: the old SMTPPort default, only used to recognize it in older configs.
 	EmailSMTPDefaultPort = "10025"
 
 	CacheTypeLRU   = "lru"
@@ -2432,7 +2430,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 }
 
 // IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
-// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+// old default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
 func (s *EmailSettings) IsSMTPConfigured() bool {
 	server := SafeDereference(s.SMTPServer)
 	if server == "" {

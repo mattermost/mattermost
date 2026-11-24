@@ -254,17 +254,10 @@ func TestSMTPNotConfigured(t *testing.T) {
 		},
 		{name: "empty server", snapshot: smtpSnapshot(true, new(""), new("10025")), want: firing},
 		{
-			// A new server: SetDefaults leaves SMTPServer and SMTPPort empty and the Support Packet skips the probe.
-			name: "defaults without SMTP values",
-			snapshot: func() *healthcheck.Snapshot {
-				cfg := &model.Config{}
-				cfg.SetDefaults()
-				s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{leaderWithEmail(model.StatusDisabled, "")})
-				s.Config = &model.SupportPacketConfig{Config: cfg}
-				s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
-				return s
-			}(),
-			want: firing,
+			// A new server: no SMTP server or port, so the Support Packet skips the probe.
+			name:     "empty server and port, probe skipped",
+			snapshot: smtpSnapshot(true, new(""), new(""), leaderWithEmail(model.StatusDisabled, "")),
+			want:     firing,
 		},
 		{name: "server unset", snapshot: smtpSnapshot(true, nil, new("10025")), want: configUnknownWant},
 		{

@@ -3908,22 +3908,20 @@ func TestConsumeTokenOnce(t *testing.T) {
 }
 
 func TestSendPasswordResetSMTPNotConfigured(t *testing.T) {
-	// CI points MM_EMAILSETTINGS_SMTPSERVER at a mail server, which would override UpdateConfig.
-	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	// In CI, MM_EMAILSETTINGS_SMTPSERVER keeps the server set; the empty port alone leaves SMTP not configured.
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.SMTPServer = ""
+		*cfg.EmailSettings.SMTPPort = ""
 	})
 
-	sent, appErr := th.App.SendPasswordReset(th.Context, th.BasicUser.Email, "http://localhost:8065")
-	require.NotNil(t, appErr)
-	assert.False(t, sent)
-	assert.Equal(t, "api.user.send_password_reset.smtp_not_configured.app_error", appErr.Id)
-	assert.ErrorIs(t, appErr, mail.ErrSMTPNotConfigured)
-
-	// An unknown address gets the same answer, so the error does not reveal which accounts exist.
-	sent, appErr = th.App.SendPasswordReset(th.Context, "idontexist@example.com", "http://localhost:8065")
-	require.NotNil(t, appErr)
-	assert.False(t, sent)
-	assert.Equal(t, "api.user.send_password_reset.smtp_not_configured.app_error", appErr.Id)
+	// Known and unknown addresses get the same answer, so the error does not reveal which accounts exist.
+	for _, email := range []string{th.BasicUser.Email, "idontexist@example.com"} {
+		sent, appErr := th.App.SendPasswordReset(th.Context, email, "http://localhost:8065")
+		require.NotNil(t, appErr, email)
+		assert.False(t, sent)
+		assert.Equal(t, "api.user.send_password_reset.smtp_not_configured.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, mail.ErrSMTPNotConfigured)
+	}
 }

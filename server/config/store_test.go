@@ -40,6 +40,8 @@ func TestNewTestMemoryStoreSMTPDefaults(t *testing.T) {
 	// An environment override would win over both the defaults and Set.
 	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
 	require.NoError(t, os.Unsetenv("MM_EMAILSETTINGS_SMTPSERVER"))
+	t.Setenv("MM_EMAILSETTINGS_SMTPPORT", "")
+	require.NoError(t, os.Unsetenv("MM_EMAILSETTINGS_SMTPPORT"))
 
 	store := NewTestMemoryStore()
 	require.Equal(t, "localhost", *store.Get().EmailSettings.SMTPServer)
