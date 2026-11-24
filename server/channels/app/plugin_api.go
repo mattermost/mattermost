@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -39,6 +40,14 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
+}
+
+// Close releases what the plugin registered through this API. The plugin
+// environment calls it once the plugin's process and RPC connection are gone.
+func (api *PluginAPI) Close() error {
+	api.app.ch.unregisterPluginCommands(api.id)
+	entities.RemoveOwner(api.id)
+	return nil
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {
@@ -83,6 +92,26 @@ func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
 
 func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 	return api.app.RegisterPluginCommand(api.id, command)
+}
+
+func (api *PluginAPI) RegisterEntityType(t *model.EntityType) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityType(api.id, t))
+}
+
+func (api *PluginAPI) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityMatcher(api.id, m))
+}
+
+func (api *PluginAPI) UnregisterEntityMatcher(name string) *model.AppError {
+	return model.AsAppError(api.app.UnregisterPluginEntityMatcher(api.id, name))
+}
+
+func (api *PluginAPI) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityProvider(api.id, p))
+}
+
+func (api *PluginAPI) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityTerms(api.id, typeName, terms))
 }
 
 func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {

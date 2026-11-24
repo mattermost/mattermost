@@ -531,6 +531,11 @@ func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
 		}
 
 		for _, bot := range userBots {
+			// A bot converted from a user owns itself and is already being deactivated by the caller.
+			if bot.UserId == userID {
+				continue
+			}
+
 			_, err := a.UpdateBotActive(rctx, bot.UserId, false)
 			if err != nil {
 				rctx.Logger().Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))

@@ -1171,6 +1171,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
 		// MM-67055: Strip embeds - always server-generated. Preserves Priority/Acks for Shared Channels sync.
 		newPost.Metadata.Embeds = nil
+		// Property values are never written by an edit, and newPost goes out unfiltered to every
+		// channel member in `post_edited`. They change only through the property value API.
+		newPost.Metadata.PropertyValues = nil
+		newPost.Metadata.PropertyValuesUnavailable = nil
 	} else {
 		// Restore the post metadata that was stripped by the plugin. Set it to
 		// the last known good.
@@ -1258,7 +1262,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	userID := rctx.Session().UserId
 	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, rpost, userID)
 	if appErr != nil {
-		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+		rctx.Logger().Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = rpost.Clone()
@@ -1754,7 +1758,7 @@ func (a *App) GetPostsEtag(rctx request.CTX, channel *model.Channel, collapsedTh
 	}
 	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
 	base = a.AppendABACEtag(rctx, base, channel.Id)
-	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
+	return a.AppendEntityEtag(fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages))
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

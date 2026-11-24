@@ -48,6 +48,19 @@ describe('AttributeDetails', () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
 
+        // The Channels row's missing-values banner (MM-70717) fetches on
+        // every expand; stub it to zero so it never blocks the Required
+        // toggle in the tests below, none of which are about that fetch.
+        jest.spyOn(Client4, 'getChannelAttributeComplianceSummary').mockResolvedValue({
+            required: false,
+            missing_channel_count: 0,
+            shared_channel_count: 0,
+            unique_admin_count: 0,
+            channels_without_admin_count: 0,
+            message_preview: '',
+            notify_cooldown_ms: 0,
+        });
+
         // The page lists user fields and templates on mount to resolve name
         // conflicts, whatever else a test is about. Unmocked that reaches the
         // network, and every case here would log the rejection the page catches.
@@ -585,9 +598,8 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
         });
 
-        // No licence here: Posts is gated on its flag alone, unlike Channels.
-        it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
-            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}}}});
+        it('is offered with the PostAttributes feature flag and an Enterprise licence, and adds a Posts row', async () => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license: {IsLicensed: 'true', SkuShortName: 'enterprise'}}}});
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
@@ -595,6 +607,19 @@ describe('AttributeDetails', () => {
             await userEvent.click(screen.getByRole('menuitem', {name: 'Posts'}));
 
             expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
+        });
+
+        // The server refuses access_control post requests below Enterprise (501),
+        // so an unlicensed or Professional admin is not offered Posts.
+        it.each([
+            ['no licence', {IsLicensed: 'false'}],
+            ['a Professional licence', {IsLicensed: 'true', SkuShortName: 'professional'}],
+        ])('is not offered with the PostAttributes feature flag and %s', async (_name, license) => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license}}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
         });
     });
 
@@ -1402,6 +1427,36 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField).not.toHaveBeenCalled();
         });
 
+        it('pins creator as who may set the value on the linked post field, and leaves the Users and Channels values as they are', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'post-field-id'} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                permission_values: 'member',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
+                permission_values: 'admin',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(4, 'access_control', 'post', expect.objectContaining({
+                linked_field_id: 'template-id',
+                permission_values: 'creator',
+            }));
+
+            // Only the linked fields pin it; the template keeps the server's default.
+            expect(createPropertyField.mock.calls[0][2]).not.toHaveProperty('permission_values');
+        });
+
         it('picks up the current appliesTo value even though canSave does not depend on it (stale-closure regression)', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
                 mockResolvedValueOnce({id: 'template-id'} as PropertyField).
@@ -1498,6 +1553,22 @@ describe('AttributeDetails', () => {
             // so the inner rollback loop runs zero iterations) -- confirms
             // the template itself is still cleaned up in this zero-survivor case.
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
+        });
+
+        it("shows the server's own message when Required is refused for channels missing a value", async () => {
+            jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('api.property_field.required.channels_missing_values.app_error', 'Some active channels have no value yet.'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Some active channels have no value yet.');
+            expect(banner).not.toHaveTextContent('Please try again');
         });
 
         it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {
@@ -2840,6 +2911,31 @@ describe('AttributeDetails', () => {
                 linked_field_id: FIELD_ID,
             }));
             expect(deletePropertyField).not.toHaveBeenCalled();
+        });
+
+        it('pins creator on a post field added to an existing attribute, next to a channel field added in the same save', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'channel-field'} as PropertyField).
+                mockResolvedValueOnce({id: 'post-field'} as PropertyField);
+
+            renderEdit();
+            await waitForForm();
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(2);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({
+                linked_field_id: FIELD_ID,
+                permission_values: 'admin',
+            }));
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'post', expect.objectContaining({
+                linked_field_id: FIELD_ID,
+                permission_values: 'creator',
+            }));
         });
 
         it('does not PATCH Users on retry after a later resource create failed', async () => {

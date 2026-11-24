@@ -54,6 +54,7 @@ import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import {POST_VALUE_SETTER} from '../applies_to/posts';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, canSyncAttributeType, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
@@ -142,6 +143,7 @@ type ErrorKind =
     'invalid_options' |
     'generic' |
     'type_change_with_dependents' |
+    'required_channels_missing_values' |
     'applies_to_failed' |
     'applies_to_remove_failed' |
     'applies_to_remove_partial_save' |
@@ -182,6 +184,8 @@ function errorKindFromError(error: unknown): ErrorKind {
         return 'invalid_options';
     case 'app.property_field.update.type_change_with_dependents.app_error':
         return 'type_change_with_dependents';
+    case 'api.property_field.required.channels_missing_values.app_error':
+        return 'required_channels_missing_values';
     default:
         return 'generic';
     }
@@ -205,6 +209,21 @@ function appliesToErrorKindFromError(error: unknown): 'applies_to_name_conflict'
     default:
         return null;
     }
+}
+
+// The server refuses Required while channels still lack a value, with a
+// message that says what to do; it is shown as is wherever the channel
+// field is created or patched.
+function requiredGateFailure(error: unknown): (SaveOutcome & {success: false}) | null {
+    if (errorKindFromError(error) !== 'required_channels_missing_values') {
+        return null;
+    }
+    return {
+        success: false,
+        errorKind: 'required_channels_missing_values',
+        serverErrorMessage: (error as ClientError | undefined)?.message ?? null,
+        failedResourceTypes: null,
+    };
 }
 
 // Formats a resource-type list for interpolation into an error banner, e.g.
@@ -279,6 +298,11 @@ async function rollbackLinkedFields(
     // CPA name-conflict / cap banners only make sense for a Users-linked
     // field (that namespace is shared with Custom Profile Attributes).
     // Channels/Posts use the generic applies-to-failed copy.
+    const gateFailure = requiredGateFailure(creationError);
+    if (gateFailure) {
+        return gateFailure;
+    }
+
     const cpaErrorKind = failedType === 'user' ? appliesToErrorKindFromError(creationError) : null;
     return {
         success: false,
@@ -1067,7 +1091,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // Dispatches each resource type's own config onto its create request --
         // Users' Profile display/Who can set the value, or Channels' own
         // required/change-policy attrs and pinned permission_values. Posts has
-        // no config panel yet, so it always gets undefined (server defaults).
+        // no config panel yet, so it gets no attrs (server defaults) but does
+        // pin its permission_values.
         const newResourceAttrsFor = (type: ResourceObjectType): Record<string, unknown> | undefined => {
             switch (type) {
             case 'user':
@@ -1084,6 +1109,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return userConfigPermissionValues;
             case 'channel':
                 return CHANNEL_VALUE_SETTER;
+            case 'post':
+                return POST_VALUE_SETTER;
             default:
                 return undefined;
             }
@@ -1241,7 +1268,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     }
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
-                    finalizeSave({
+                    finalizeSave(requiredGateFailure(error) ?? {
                         success: false,
                         errorKind: cpaErrorKind ?? 'applies_to_partial_save',
                         serverErrorMessage: null,
@@ -1343,8 +1370,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         },
                     );
                     persistedLinkedFieldsRef.current.channel = patchedChannelField;
-                } catch {
-                    finalizeSave({
+                } catch (error) {
+                    finalizeSave(requiredGateFailure(error) ?? {
                         success: false,
                         errorKind: 'applies_to_partial_save',
                         serverErrorMessage: null,
@@ -1584,7 +1611,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             name: displayName,
             resources,
         }) : formatMessage(errorMessages.applies_to_template_rollback_failed, {name: displayName});
-    } else if (errorKind === 'name_conflict' && serverErrorMessage) {
+    } else if ((errorKind === 'name_conflict' || errorKind === 'required_channels_missing_values') && serverErrorMessage) {
         errorContent = serverErrorMessage;
     } else if (errorKind) {
         errorContent = formatMessage(errorMessages[errorKind]);
@@ -1858,6 +1885,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}
+                        channelFieldId={objectType === 'channel' ? fieldId : persistedLinkedFieldsRef.current.channel?.id}
+                        attributeDisplayName={displayName}
                     />
                 </div>
             </div>
@@ -2100,6 +2129,10 @@ const errorMessages = defineMessages({
     generic: {
         id: 'admin.global_attributes.attribute_details.save_error.generic',
         defaultMessage: 'Something went wrong while saving this attribute. Please try again.',
+    },
+    required_channels_missing_values: {
+        id: 'admin.global_attributes.attribute_details.save_error.required_channels_missing_values',
+        defaultMessage: "This attribute can't be made required while some channels have no value for it. Notify their channel admins, then try again.",
     },
     type_change_with_dependents: {
         id: 'admin.global_attributes.attribute_details.save_error.type_change_with_dependents',

@@ -7,12 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
 
+import {Illustration} from '@mattermost/compass-ui/components/illustration';
+import OfficeSvg from '@mattermost/compass-ui/illustrations/office';
 import type {Team} from '@mattermost/types/teams';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
-import CompanySVG from 'components/common/svg_images_components/company_svg';
 import QuickInput from 'components/quick_input';
 
 import Constants from 'utils/constants';
@@ -139,10 +140,12 @@ const Organization = (props: Props) => {
                 <div className='Organization-right-col'>
                     <div className='Organization-form-wrapper'>
                         <div className='Organization__progress-path'>
-                            <CompanySVG
-                                width={205}
-                                height={180}
-                            />
+                            <Illustration
+                                width='180px'
+                                height='139px'
+                            >
+                                <OfficeSvg/>
+                            </Illustration>
                             <PageLine
                                 style={{
                                     marginTop: '5px',

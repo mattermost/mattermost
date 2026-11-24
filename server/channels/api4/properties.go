@@ -58,6 +58,17 @@ func (api *API) InitProperties() {
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(patchPropertyValues)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(patchSystemPropertyValues)).Methods(http.MethodPatch)
 	}
+
+	// Required-channel-attribute compliance: reporting and remediation for the
+	// Global Attributes "Required" toggle (MM-70717). Channel-attributes-only,
+	// so gated on its own flag rather than the broader OR-of-six-flags block
+	// above.
+	if api.srv.Config().FeatureFlags.ChannelAttributes {
+		api.BaseRoutes.PropertyFields.Handle("/missing_values/summary", api.APISessionRequired(getPropertyFieldsComplianceSummary)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyField.Handle("/missing_values", api.APISessionRequired(getPropertyFieldMissingValues)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyField.Handle("/missing_values/summary", api.APISessionRequired(getPropertyFieldComplianceSummary)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyField.Handle("/missing_values/notify", api.APISessionRequired(notifyPropertyFieldMissingValues)).Methods(http.MethodPost)
+	}
 }
 
 // getPropertyAPIGroup resolves c.Params.GroupName to a PSAv2/PSAv3 property group.
@@ -152,6 +163,14 @@ func resolvePropertyGroupParam(c *Context, r *http.Request) string {
 	c.Params.GroupName = raw
 	group := getPropertyAPIGroup(c, "resolvePropertyGroupParam")
 	if group == nil {
+		return ""
+	}
+
+	// The licence hook refuses every access_control read without an Enterprise
+	// licence, so hydrating would mark every post property_values_unavailable.
+	// Refuse the request once, with a clear status, instead.
+	if group.Name == model.AccessControlPropertyGroupName && !model.MinimumEnterpriseLicense(c.App.License()) {
+		c.Err = model.NewAppError("resolvePropertyGroupParam", "api.property.post_attributes.license.app_error", nil, "", http.StatusNotImplemented)
 		return ""
 	}
 
