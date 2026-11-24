@@ -278,6 +278,31 @@ describe('DynamicVirtualizedList', () => {
         expect(scroller.scrollTop).toBe(totalHeight() - LIST_HEIGHT);
     });
 
+    test('does not undo a scroll requested after a resize correction when another row above the viewport resizes', () => {
+        const listRef = React.createRef<DynamicVirtualizedList>();
+        render(
+            <DynamicVirtualizedList
+                {...baseProps}
+                ref={listRef}
+                itemData={currentItemData}
+            />,
+        );
+        const scroller = screen.getByRole('list').parentElement as HTMLElement;
+        userScrollTo(scroller, 440);
+
+        resizeRow('item-8', 250);
+        expect(scroller.scrollTop).toBe(590);
+
+        // Neither the correction nor this scroll has been reported by a scroll event yet
+        act(() => {
+            listRef.current?.scrollTo(700);
+        });
+        expect(scroller.scrollTop).toBe(700);
+
+        resizeRow('item-6', 200);
+        expect(scroller.scrollTop).toBe(800);
+    });
+
     test('does not change the scroll position when a row is measured for the first time above the viewport', () => {
         const {scroller, setItemData} = renderList({loaderId: 'loader'});
         userScrollTo(scroller, 440);
@@ -321,6 +346,22 @@ describe('DynamicVirtualizedList', () => {
 
         resizeRow('item-9', 250);
         expect(scroller.scrollTop).toBe(590);
+    });
+
+    test('does not measure the rendered rows when items are added at the bottom', () => {
+        const {scroller, setItemData} = renderList();
+        userScrollTo(scroller, 440);
+
+        const getBoundingClientRect = jest.spyOn(Element.prototype, 'getBoundingClientRect');
+        try {
+            setItemData(['item-new', ...currentItemData]);
+
+            const measuredRows = getBoundingClientRect.mock.contexts.
+                filter((element) => (element as Element).firstElementChild?.getAttribute('data-testid') !== 'item-new');
+            expect(measuredRows).toHaveLength(0);
+        } finally {
+            getBoundingClientRect.mockRestore();
+        }
     });
 
     test('keeps the visible rows in place when older items are rendered while scrolling up', async () => {

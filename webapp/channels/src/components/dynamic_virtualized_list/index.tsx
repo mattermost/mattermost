@@ -146,6 +146,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             } else if (scrollOffset) {
                 element.scrollTop = scrollOffset;
             }
+            this._scrollTopAfterResizeCorrection = null;
         }
 
         this._scrollCorrectionInProgress = false;
@@ -233,10 +234,16 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return null;
         }
 
+        // Only rows added or removed at the top change the size of rendered rows in the same commit (e.g. a post losing
+        // its header), and that's when the parent compensates for the change in scroll height
+        const rowsChangedAtTop = itemDataChanged &&
+            prevProps.itemData[0] === this.props.itemData[0] &&
+            (prevProps.itemData.length !== this.props.itemData.length || prevProps.itemData[prevProps.itemData.length - 1] !== this.props.itemData[this.props.itemData.length - 1]);
+
         return {
             previousScrollTop: element.scrollTop,
             previousScrollHeight: element.scrollHeight,
-            renderedRows: itemDataChanged ? this._getRenderedRows(prevProps.itemData, this._getScrollTopBeforeResize(element)) : undefined,
+            renderedRows: rowsChangedAtTop ? this._getRenderedRows(prevProps.itemData, this._getScrollTopBeforeResize(element)) : undefined,
             wasAtBottom: prevProps.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin,
         };
     }
@@ -605,6 +612,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         const element = this._outerRef;
         if (element) {
             element.scrollTop = scrollOffset;
+            this._scrollTopAfterResizeCorrection = null;
             this._scrollCorrectionInProgress = false;
             this._correctedInstances = 0;
             this._mountingCorrections = 0;
