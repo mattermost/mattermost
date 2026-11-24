@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -15,6 +16,7 @@ import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {getNavigationBlocked} from 'selectors/views/admin';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import useAdminPluginsSync from 'components/common/hooks/useAdminPluginsSync';
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import type {GlobalState} from 'types/store';
@@ -60,4 +62,9 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connector(AdminSidebar);
+const ConnectedAdminSidebar = connector(AdminSidebar);
+
+export default function AdminSidebarWithPluginsSync(props: React.ComponentProps<typeof ConnectedAdminSidebar>) {
+    useAdminPluginsSync();
+    return <ConnectedAdminSidebar {...props}/>;
+}
