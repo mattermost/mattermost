@@ -108,6 +108,11 @@ export class ChannelInfoAttributes {
         return this.container.getByTestId(`channelInfoAttributeUnset-${name}`);
     }
 
+    // The "Select a value" / "Enter a value" pill on a required row that has none.
+    missingValue(name: string) {
+        return this.row(name).getByTestId(`channelInfoAttributeMissing-${name}`);
+    }
+
     get addButton() {
         return this.container.getByTestId('channelInfoAddAttributeButton');
     }
@@ -188,5 +193,50 @@ export class ChannelInfoAttributes {
         if (option !== undefined) {
             await this.pickOption(option);
         }
+    }
+}
+
+/**
+ * The indicators a channel shows its admins while a required attribute has no
+ * value: the notice over the message list, the dot on the Info button and the
+ * "Set <attribute>" chips in the header.
+ */
+export class MissingRequiredAttributes {
+    readonly container: Locator;
+
+    constructor(container: Locator) {
+        this.container = container;
+    }
+
+    get notice() {
+        return this.container.getByTestId('missingRequiredAttributesNotice');
+    }
+
+    get addValuesButton() {
+        return this.container.getByTestId('missingRequiredAttributesNoticeAddValues');
+    }
+
+    get infoButtonMissingBadge() {
+        return this.container.locator(
+            '#channel-info-btn.channelInfoButton--missingValues [class*="icon-button__unread-badge"]',
+        );
+    }
+
+    headerChip(name: string) {
+        return this.container.getByTestId(`channelHeaderMissingAttributeChip-${name}`);
+    }
+
+    async toBeVisible(name: string) {
+        await expect(this.notice).toBeVisible();
+        await expect(this.notice).toContainText('Channel attribute values are missing');
+        await expect(this.addValuesButton).toHaveText('Add values');
+        await expect(this.infoButtonMissingBadge).toBeVisible();
+        await expect(this.headerChip(name)).toBeVisible();
+    }
+
+    async toBeHidden(name: string) {
+        await expect(this.notice).toHaveCount(0);
+        await expect(this.infoButtonMissingBadge).toHaveCount(0);
+        await expect(this.headerChip(name)).toHaveCount(0);
     }
 }

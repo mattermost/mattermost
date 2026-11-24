@@ -199,7 +199,7 @@ jobs:
               SHOULD_RUN="true"
             fi
 
-            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
+            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/(e2e-.*|server-image-check)\.yml$'; then
               echo "Found E2E CI workflow file changes"
               SHOULD_RUN="true"
             fi
@@ -267,10 +267,43 @@ jobs:
           echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
           echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
 
+  # Each edition's lanes start only once its server image is on Docker Hub (server-image-check.yml).
+  # Skip-only PRs still run the enterprise lanes to post their skip status, so the check passes at
+  # once unless a lane will boot a server: the full suites, rolling upgrades or subpath.
+  server-image-enterprise:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server_edition: enterprise
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      report_type: "PR"
+      should_run: "${{ (needs.check-changes.outputs.should_run != 'false' || needs.check-changes.outputs.should_run_rolling_upgrades == 'true' || needs.check-changes.outputs.should_run_subpath == 'true') && 'true' || 'false' }}"
+
+  server-image-fips:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server_edition: fips
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      report_type: "PR"
+
   e2e-cypress:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       actions: read
@@ -301,6 +334,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       actions: read
@@ -329,6 +363,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_subpath == 'true'
     permissions:
       actions: read
@@ -356,6 +391,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-fips
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
       actions: read
@@ -386,6 +422,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-fips
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
       actions: read

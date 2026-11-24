@@ -4007,3 +4007,75 @@ func TestAccessControlAttributeValidationHookRefusesUnsupportedTypes(t *testing.
 		})
 	}
 }
+
+func TestAccessControlAttributeValidationHook_PostFields(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_post_fields", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+	unmanaged, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_post_fields_unmanaged", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
+
+	newField := func(groupID, objectType, targetType, targetID string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: targetType,
+			TargetID:   targetID,
+		}
+	}
+	cloneField := func(f *model.PropertyField) *model.PropertyField {
+		c := *f
+		return &c
+	}
+	mustCreate := func(t *testing.T, f *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		created, createErr := th.service.CreatePropertyField(th.Context, f)
+		require.NoError(t, createErr)
+		return created
+	}
+
+	t.Run("a system-scoped post field is accepted on create", func(t *testing.T) {
+		mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypePost, "system", ""))
+	})
+
+	t.Run("channel and team scoped post fields are refused on create", func(t *testing.T) {
+		for _, target := range []string{"channel", "team"} {
+			f := newField(group.ID, model.PropertyFieldObjectTypePost, target, model.NewId())
+			_, createErr := th.service.CreatePropertyField(th.Context, f)
+			require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+			assert.NotContains(t, createErr.Error(), f.Name)
+		}
+	})
+
+	t.Run("updating a system post field to channel scope is refused, single and batch", func(t *testing.T) {
+		created := mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypePost, "system", ""))
+
+		single := cloneField(created)
+		single.TargetType = "channel"
+		single.TargetID = model.NewId()
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, single)
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+
+		batch := cloneField(created)
+		batch.TargetType = "channel"
+		batch.TargetID = model.NewId()
+		_, _, _, updateErr = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{batch})
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+	})
+
+	t.Run("a post field linked to a template is accepted", func(t *testing.T) {
+		template := mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypeTemplate, "system", ""))
+		linked := newField(group.ID, model.PropertyFieldObjectTypePost, "system", "")
+		linked.LinkedFieldID = &template.ID
+		mustCreate(t, linked)
+	})
+
+	t.Run("a group the hook does not manage is untouched", func(t *testing.T) {
+		mustCreate(t, newField(unmanaged.ID, model.PropertyFieldObjectTypePost, "channel", model.NewId()))
+	})
+}

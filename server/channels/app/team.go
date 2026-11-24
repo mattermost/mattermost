@@ -1666,7 +1666,7 @@ func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite 
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
 					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+						if !a.Config().EmailSettings.IsSMTPConfigured() {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
@@ -1807,7 +1807,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
 					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+						if !a.Config().EmailSettings.IsSMTPConfigured() {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)

@@ -64,9 +64,6 @@ type Props = WrappedComponentProps & {
     markAllAsReadWithoutConfirm: boolean;
     markAllAsReadShortcutEnabled: boolean;
 
-    // When the product rail is on it shows Threads, so the list doesn't repeat it.
-    isProductRailShown: boolean;
-
     // The product rail is showing Boards and the team has none the user can see.
     showNoBoards: boolean;
 
@@ -592,7 +589,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                {!this.props.isProductRailShown && <GlobalThreadsLink/>}
+                <GlobalThreadsLink/>
                 <DraftsLink/>
                 <RecapsLink/>
                 <div

@@ -9440,6 +9440,22 @@ func (s *TimerLayerPropertyFieldStore) GetOptionParentEdges(fieldID string, chil
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionRanks(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionRanks", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
 	start := time.Now()
 

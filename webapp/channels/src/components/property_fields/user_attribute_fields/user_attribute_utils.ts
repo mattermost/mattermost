@@ -54,6 +54,7 @@ export function canEditUserAttribute(field: UserPropertyField, opts: UserAttribu
     case 'sysadmin':
     case 'admin':
         return opts.canEditAdminManaged;
+    case 'everyone':
     case 'member':
     case '':
         return true;

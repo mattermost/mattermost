@@ -501,13 +501,12 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
 		mlog.String("session_id", c.AppContext.Session().Id),
-		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
-		mlog.Error(msg, fields...)
+		c.Logger.Error(msg, fields...)
 	} else {
-		mlog.Debug(msg, fields...)
+		c.Logger.Debug(msg, fields...)
 	}
 
 	m["message"] = msg
@@ -1104,7 +1103,12 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "onboarding_request", onboardingRequest)
 
-	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
+	savedSiteURL, appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
+	// The request's site_url is only what the client asked for, so record whether it was saved.
+	// Record it even on an error, since the config may have changed before a later step failed.
+	if savedSiteURL != "" {
+		model.AddEventParameterToAuditRec(auditRec, "saved_site_url", savedSiteURL)
+	}
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -153,6 +154,97 @@ func TestPropertyFieldOptionsPage(t *testing.T) {
 	})
 }
 
+// TestPropertyFieldOptionsPageRank covers the rank branch of the filtered page:
+// a candidate passes when its rank is at or below the highest rank held.
+func TestPropertyFieldOptionsPageRank(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		groupID := model.NewId()
+		fieldStore := ss.PropertyField().(*SqlPropertyFieldStore)
+
+		// All options of one Create share a CreateAt, so the page order is the ID
+		// order; sorted IDs make Internal, Secret, Top Secret, Unranked the
+		// listing order.
+		raw := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
+		slices.Sort(raw)
+		internal, secret, topSecret, unranked := raw[0], raw[1], raw[2], raw[3]
+		names := map[string]string{internal: "Internal", secret: "Secret", topSecret: "Top Secret", unranked: "Unranked"}
+		retired := model.NewId()
+
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "RankPage-" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"id": internal, "name": "Internal", "rank": 1},
+				map[string]any{"id": secret, "name": "Secret", "rank": 2},
+				map[string]any{"id": topSecret, "name": "Top Secret", "rank": 3},
+				map[string]any{"id": unranked, "name": "Unranked"},
+				map[string]any{"id": retired, "name": "Retired", "rank": 9},
+			}},
+		})
+		require.NoError(t, err)
+		require.NoError(t, fieldStore.DeleteOptions(groupID, template.ID, 0, []string{retired}))
+
+		// walk pages the whole listing and returns the names it reached, in order.
+		walk := func(t *testing.T, field *model.PropertyField, coveredBy []string, perPage, maxCandidates int) []string {
+			t.Helper()
+			filter := &model.PropertyFieldOptionPageFilter{CoveredBy: coveredBy}
+			reached := []string{}
+			var createAt int64
+			var cursor string
+			for {
+				page, err := fieldStore.getFieldOptionsPage(field, createAt, cursor, perPage, filter, maxCandidates)
+				require.NoError(t, err)
+				for _, option := range page.Options {
+					reached = append(reached, names[option.ID])
+				}
+				if !page.HasMore {
+					return reached
+				}
+				createAt, cursor = page.NextCursorCreateAt, page.NextCursorID
+			}
+		}
+
+		t.Run("pages every option at or below the highest held rank", func(t *testing.T) {
+			require.Equal(t, []string{"Internal"}, walk(t, template, []string{internal}, 1, 2000))
+			require.Equal(t, []string{"Internal", "Secret"}, walk(t, template, []string{secret}, 1, 2000))
+			require.Equal(t, []string{"Internal", "Secret", "Top Secret"}, walk(t, template, []string{topSecret}, 1, 2000))
+		})
+
+		t.Run("the highest of several held options counts", func(t *testing.T) {
+			require.Equal(t, []string{"Internal", "Secret"}, walk(t, template, []string{internal, secret}, 5, 2000))
+		})
+
+		t.Run("an unranked or unknown held option covers nothing", func(t *testing.T) {
+			require.Empty(t, walk(t, template, []string{unranked}, 5, 2000))
+			require.Empty(t, walk(t, template, []string{model.NewId()}, 5, 2000))
+		})
+
+		t.Run("a deleted held option covers nothing", func(t *testing.T) {
+			require.Empty(t, walk(t, template, []string{retired}, 5, 2000))
+		})
+
+		t.Run("a small candidate window still reaches every passing option", func(t *testing.T) {
+			require.Equal(t, []string{"Internal", "Secret", "Top Secret"}, walk(t, template, []string{topSecret}, 1, 1))
+		})
+
+		t.Run("a linked field pages its template's options by the same rule", func(t *testing.T) {
+			linked, err := ss.PropertyField().Create(&model.PropertyField{
+				GroupID:       groupID,
+				Name:          "RankPageLinked-" + model.NewId(),
+				Type:          model.PropertyFieldTypeRank,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &template.ID,
+			})
+			require.NoError(t, err)
+			require.Equal(t, []string{"Internal", "Secret"}, walk(t, linked, []string{secret}, 1, 2000))
+		})
+	})
+}
+
 func TestPropertyFieldOptionsChunkedWrites(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		groupID := model.NewId()
@@ -215,5 +307,82 @@ func TestPropertyFieldOptionsChunkedWrites(t *testing.T) {
 			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID)
 		require.NoError(t, err)
 		require.Equal(t, 0, count)
+	})
+}
+
+func TestPropertyFieldOptionRanks(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		groupID := model.NewId()
+		fieldStore := ss.PropertyField().(*SqlPropertyFieldStore)
+
+		ranked, unranked, deleted := model.NewId(), model.NewId(), model.NewId()
+		zero := model.NewId()
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "OptionRanks-" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"id": ranked, "name": "Ranked", "rank": 3},
+				map[string]any{"id": zero, "name": "Zero", "rank": 0},
+				map[string]any{"id": unranked, "name": "Unranked"},
+				map[string]any{"id": deleted, "name": "Deleted", "rank": 9},
+			}},
+		})
+		require.NoError(t, err)
+		require.NoError(t, fieldStore.DeleteOptions(groupID, field.ID, 0, []string{deleted}))
+
+		t.Run("ranked options come back with their ranks, rank 0 included", func(t *testing.T) {
+			ranks, err := fieldStore.GetOptionRanks(field, []string{ranked, zero, ranked})
+			require.NoError(t, err)
+			require.Equal(t, map[string]int64{ranked: 3, zero: 0}, ranks)
+		})
+
+		t.Run("unranked, deleted and unknown options are absent", func(t *testing.T) {
+			ranks, err := fieldStore.GetOptionRanks(field, []string{unranked, deleted, model.NewId()})
+			require.NoError(t, err)
+			require.Empty(t, ranks)
+		})
+
+		t.Run("an option of another field is absent", func(t *testing.T) {
+			other, err := ss.PropertyField().Create(&model.PropertyField{
+				GroupID:    groupID,
+				Name:       "OptionRanksOther-" + model.NewId(),
+				Type:       model.PropertyFieldTypeRank,
+				ObjectType: model.PropertyFieldObjectTypeTemplate,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+			})
+			require.NoError(t, err)
+			ranks, err := fieldStore.GetOptionRanks(other, []string{ranked})
+			require.NoError(t, err)
+			require.Empty(t, ranks)
+		})
+
+		t.Run("a linked field gets its template's ranks", func(t *testing.T) {
+			linked, err := ss.PropertyField().Create(&model.PropertyField{
+				GroupID:       groupID,
+				Name:          "OptionRanksLinked-" + model.NewId(),
+				Type:          model.PropertyFieldTypeRank,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &field.ID,
+			})
+			require.NoError(t, err)
+			ranks, err := fieldStore.GetOptionRanks(linked, []string{ranked})
+			require.NoError(t, err)
+			require.Equal(t, map[string]int64{ranked: 3}, ranks)
+		})
+
+		t.Run("empty input and a nil field give an empty map", func(t *testing.T) {
+			ranks, err := fieldStore.GetOptionRanks(field, nil)
+			require.NoError(t, err)
+			require.NotNil(t, ranks)
+			require.Empty(t, ranks)
+
+			ranks, err = fieldStore.GetOptionRanks(nil, []string{ranked})
+			require.NoError(t, err)
+			require.Empty(t, ranks)
+		})
 	})
 }
