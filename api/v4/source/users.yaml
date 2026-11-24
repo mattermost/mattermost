@@ -83,6 +83,151 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/login/passkey/begin:
+    post:
+      tags:
+        - users
+      summary: Begin a passkey sign-in
+      description: >
+        Start a usernameless sign-in with a passkey. Returns a ceremony ID and the
+        WebAuthn `PublicKeyCredentialRequestOptions` to pass to
+        `navigator.credentials.get()`. The options carry no list of allowed
+        credentials, so the authenticator offers the passkeys it holds for this
+        site, and require user verification. Finish the sign-in with
+        `POST /api/v4/users/login/passkey/finish` within 5 minutes.
+
+
+        Available only when the `Passkeys` feature flag is on, the server has a
+        Professional or higher license, the Site URL is HTTPS (or
+        `http://localhost`) with a domain name as its host, and "Enable passkey
+        login" is on. Otherwise the endpoint responds with 501.
+
+
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled (5 requests per second, bursts of 10, shared with the
+        other passkey sign-in and registration endpoints and login); a client over
+        the limit gets 429 with a plain-text body.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No permission required.
+      operationId: BeginPasskeyLogin
+      responses:
+        "200":
+          description: Sign-in started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ceremony_id:
+                    description: Identifies this sign-in; pass it to the finish request
+                    type: string
+                  options:
+                    description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
+                      form, with binary fields base64url-encoded
+                    type: object
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/login/passkey/finish:
+    post:
+      tags:
+        - users
+      summary: Finish a passkey sign-in
+      description: >
+        Complete a sign-in started with `POST /api/v4/users/login/passkey/begin`.
+        On success the response carries the user, and the session token is in the
+        `Token` response header. When the request has the header
+        `X-Requested-With: XMLHttpRequest` the session cookies are set as well.
+        The session lasts as long as one from the user's usual sign-in method
+        would, and counts as having passed multi-factor authentication, so no MFA
+        code is asked for. A ceremony can be finished once; a failed attempt uses
+        it up and the client must begin again.
+
+
+        The same account checks as password sign-in apply: the user must not be
+        deactivated, locked out by failed password attempts, have an unverified
+        email when verification is required, or be a bot, a remote user or a guest
+        the server does not allow. A failed passkey sign-in does not count as a
+        failed password attempt, and a successful one does not reset the count.
+
+
+        The error `id` tells the client what to do. `app.passkey.unknown_credential.app_error`
+        means the passkey is not registered on this server (for example it was
+        deleted); the browser can be told to forget it. `app.passkey.counter_regressed.app_error`
+        means the authenticator's signature counter went backwards, which can
+        indicate a cloned authenticator; the sign-in is refused. A counter that
+        stays at 0 is accepted, as synced passkeys do not count.
+
+
+        Available only under the same conditions as the begin request (501
+        otherwise), and rate limited the same way (429).
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No permission required.
+      operationId: FinishPasskeyLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ceremony_id
+                - credential
+              properties:
+                ceremony_id:
+                  description: The `ceremony_id` returned by the begin request
+                  type: string
+                credential:
+                  description: The browser's assertion response (the result of
+                    `navigator.credentials.get()`) in WebAuthn JSON form
+                  type: object
+        required: true
+      responses:
+        "200":
+          description: Passkey sign-in successful
+          headers:
+            Token:
+              description: The session token
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: >
+            The request body is invalid, or `ceremony_id` or `credential` is
+            missing. Also returned when the ceremony is unknown, already used or
+            expired, or the credential cannot be parsed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          description: >
+            The passkey is not registered on this server, the assertion failed
+            verification, the signature counter went backwards, or the account
+            may not sign in (see above).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/users/login/cws:
     post:
       tags:
@@ -2074,6 +2219,44 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/sessions/revoke/passkey:
+    post:
+      tags:
+        - users
+      summary: Revoke all passkey-started sessions
+      description: >
+        Signs out every session of every user that was started by a passkey
+        sign-in. Sessions started any other way, and the passkeys themselves, are
+        kept; users can sign in again with a passkey unless passkey sign-in is
+        turned off. Use it after turning passkey sign-in off or after a suspected
+        compromise.
+
+
+        Requires the `Passkeys` feature flag and a Professional or higher license;
+        otherwise the endpoint responds with 501. It works whether or not "Enable
+        passkey login" is currently on.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must have the `manage_system` permission.
+      operationId: RevokePasskeySessions
+      responses:
+        "200":
+          description: Passkey sessions revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/users/sessions/device:
     put:
       tags:
@@ -2320,6 +2503,11 @@
 
 
         Additionally, specify `mfa_code` when trying to switch an account on LDAP/AD or email that has MFA activated.
+
+
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403, whatever the direction of the switch. Other sessions of the same
+        user are not affected.
 
 
         ##### Permissions
@@ -2651,6 +2839,10 @@
         endpoint responds with 501.
 
 
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled; a client over the limit gets 429 with a plain-text body.
+
+
         __Minimum server version__: 12.2
 
 
@@ -2695,6 +2887,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
         "501":
           $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/passkeys/registration/finish":
@@ -2709,7 +2903,8 @@
         user is sent a "passkey added" email.
 
 
-        The same availability conditions as the begin request apply (501 otherwise).
+        The same availability conditions as the begin request apply (501 otherwise),
+        and so does its rate limit (429).
 
 
         __Minimum server version__: 12.2
@@ -2772,6 +2967,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
         "501":
           $ref: "#/components/responses/NotImplemented"
   /api/v4/users/tokens:
@@ -3165,6 +3362,10 @@
         For `auth_service` set to `email`, omit `auth_data`; this clears external
         authentication and switches the user to email authentication. For other
         authentication services, `auth_data` must be present and non-empty.
+
+
+        A session that was started by a passkey sign-in cannot change its own user's
+        authentication method (403). Changing another user's is not affected.
 
 
         __Minimum server version__: 4.6
