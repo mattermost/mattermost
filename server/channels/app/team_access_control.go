@@ -214,19 +214,44 @@ func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.Acces
 	return a.requesterMatchesFirstEffectiveRule(rctx, policy, requesterID)
 }
 
-// requesterMatchesFirstEffectiveRule reports whether requesterID satisfies the
-// policy's first effective rule. No effective rules is a match. Expression
-// errors are returned to the caller.
+// requesterMatchesFirstEffectiveRule reports whether requesterID satisfies any
+// membership rule in the policy. The engine ORs membership rules together, so
+// this function checks all rules with the membership action (or legacy "*") and
+// returns true if the requester matches at least one. No effective rules is a
+// match. Expression errors are returned to the caller.
 func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string) (bool, error) {
 	effectiveRules := policy.EffectiveRules()
 	if len(effectiveRules) == 0 {
 		return true, nil
 	}
-	matches, appErr := a.ValidateExpressionAgainstRequester(rctx, effectiveRules[0].Expression, requesterID)
-	if appErr != nil {
-		return false, appErr
+
+	// Filter for membership rules (membership action or legacy "*").
+	var membershipRules []model.AccessControlPolicyRule
+	for _, rule := range effectiveRules {
+		if slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) || slices.Contains(rule.Actions, "*") {
+			membershipRules = append(membershipRules, rule)
+		}
 	}
-	return matches, nil
+
+	// If there are no membership rules, treat it as a match to maintain
+	// backwards compatibility with permission-only policies.
+	if len(membershipRules) == 0 {
+		return true, nil
+	}
+
+	// Check each membership rule. Return true if any matches (OR semantics).
+	for _, rule := range membershipRules {
+		matches, appErr := a.ValidateExpressionAgainstRequester(rctx, rule.Expression, requesterID)
+		if appErr != nil {
+			return false, appErr
+		}
+		if matches {
+			return true, nil
+		}
+	}
+
+	// No membership rule matched.
+	return false, nil
 }
 
 // ValidateTeamAdminPolicySelfInclusion reports whether userID satisfies the
