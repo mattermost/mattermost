@@ -724,20 +724,28 @@ func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID s
 	if appErr != nil {
 		return appErr
 	}
-	// The library checks that the credential is one of the user's passkeys, the user handle, origin, RP
-	// ID hash, challenge, signature and that user verification was performed.
-	cred, err := rp.ValidateLogin(&passkeyUser{user: user, handle: ceremony.SessionData.UserID, passkeys: passkeys}, *ceremony.SessionData, parsed)
+	// Passkeys registered while the user had none each carry their own user handle, and the library
+	// refuses an assertion whose handle is not the one it is told, so validate against the presented
+	// passkey alone. Looking it up among the user's own passkeys is what refuses any other credential.
+	var passkey *model.Passkey
+	for _, p := range passkeys {
+		if bytes.Equal(p.CredentialId, parsed.RawID) {
+			passkey = p
+			break
+		}
+	}
+	if passkey == nil {
+		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized)
+	}
+	sessionData := *ceremony.SessionData
+	sessionData.UserID = passkey.UserHandle
+	// The library checks the user handle, origin, RP ID hash, challenge, signature and that user
+	// verification was performed.
+	cred, err := rp.ValidateLogin(&passkeyUser{user: user, handle: passkey.UserHandle, passkeys: []*model.Passkey{passkey}}, sessionData, parsed)
 	if err != nil {
 		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 
-	// The library only returns a credential it matched in passkeys, so this always finds one.
-	var passkey *model.Passkey
-	for _, p := range passkeys {
-		if bytes.Equal(p.CredentialId, cred.ID) {
-			passkey = p
-		}
-	}
 	if appErr := checkPasskeyCounter(where, parsed, cred, passkey); appErr != nil {
 		return appErr
 	}

@@ -1389,6 +1389,36 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.Equal(t, 2, refreshed.FailedAttempts)
 	})
 
+	t.Run("accepts any of the user's passkeys whatever user handle each was registered with", func(t *testing.T) {
+		user := th.CreateUser(t)
+		auths := []*testlib.SoftAuthenticator{newAuthenticator(t), newAuthenticator(t)}
+		sessions := []*model.Session{recentSession(user.Id), recentSession(user.Id)}
+		// Each registration begun while the user has no passkeys draws its own random handle.
+		begun := make([]*model.PasskeyRegistrationOptions, len(auths))
+		for i, session := range sessions {
+			opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+			require.Nil(t, appErr)
+			begun[i] = opts
+		}
+		for i, auth := range auths {
+			resp, err := auth.CreateResponse(begun[i].Options, origin)
+			require.NoError(t, err)
+			_, appErr := th.App.FinishPasskeyRegistration(th.Context, sessions[i], begun[i].CeremonyId, "a", "", resp)
+			require.Nil(t, appErr)
+		}
+		passkeys := stored(t, user.Id)
+		require.Len(t, passkeys, 2)
+		require.NotEqual(t, passkeys[0].UserHandle, passkeys[1].UserHandle)
+		session := storedPasskeySession(t, th, user.Id, model.SessionLoginMethodStandard)
+
+		require.Nil(t, verify(t, issuePasskeyTicket(t, th, session), auths[1]))
+		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
+		require.Positive(t, stored(t, user.Id)[1].LastUsedAt)
+
+		require.Nil(t, verify(t, issuePasskeyTicket(t, th, session), auths[0]))
+		require.Positive(t, stored(t, user.Id)[0].LastUsedAt)
+	})
+
 	t.Run("verification tokens expire after the ceremony window", func(t *testing.T) {
 		now := model.GetMillis()
 		require.True(t, (&model.Token{Type: model.TokenTypePasskeyVerification, CreateAt: now - 6*60*1000}).IsExpired())
