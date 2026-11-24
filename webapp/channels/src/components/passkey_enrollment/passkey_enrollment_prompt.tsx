@@ -70,7 +70,14 @@ export default function PasskeyEnrollmentPrompt() {
         let cancelled = false;
         Client4.getSessions('me').then((sessions) => {
             const current = sessions.find((s) => s.props?.csrf === loginKey);
-            if (!cancelled && current?.props.login_method === 'standard' && Date.now() - current.create_at <= RECENT_LOGIN_WINDOW_MS) {
+
+            // The list comes from a read replica, so a session missing from it was written after the
+            // replica's copy: this request is authenticated by it, so it is brand new, hence recent.
+            // Passkey sessions never get here (`eligible` excludes them).
+            if (current && (current.props.login_method !== 'standard' || Date.now() - current.create_at > RECENT_LOGIN_WINDOW_MS)) {
+                // It can never become eligible; skip so later mounts in this sign-in do not ask again.
+                LocalStorageStore.setPasskeyPromptSkipped(loginKey);
+            } else if (!cancelled) {
                 setOpen(true);
             }
         }, () => {

@@ -164,17 +164,46 @@ describe('PasskeyEnrollmentPrompt', () => {
             expect(getSessions).toHaveBeenCalledWith('me');
         });
 
+        // The list is read from a replica, so the session behind this request may not be in it yet.
+        test.each([
+            ['recent only for other sessions', () => [session({csrf: 'tok2', login_method: 'standard'})]],
+            ['an empty list', () => []],
+        ])('opens the prompt when the list lacks this session: %s', async (_name, answer) => {
+            await renderWithSessions(answer);
+
+            expect(await screen.findByRole('dialog')).toBeInTheDocument();
+        });
+
         test.each([
             ['older than 10 minutes', () => [session({csrf: 'tok1', login_method: 'standard'}, 11 * MINUTE)]],
             ['a passkey session', () => [session({csrf: 'tok1', login_method: 'passkey'})]],
             ['a session with no login method', () => [session({csrf: 'tok1'})]],
-            ['recent only for other sessions', () => [session({csrf: 'tok2', login_method: 'standard'})]],
-            ['an empty list', () => []],
-            ['a failed lookup', () => {
-                throw new Error('network');
-            }],
-        ])('renders nothing and records no skip when the session is %s', async (_name, answer) => {
+        ])('renders nothing and skips this login when the session is %s', async (_name, answer) => {
             const {container} = await renderWithSessions(answer);
+
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            expect(container).toBeEmptyDOMElement();
+            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(true);
+        });
+
+        test('does not look the sessions up again on a later mount after an old-session answer', async () => {
+            const old = () => [session({csrf: 'tok1', login_method: 'standard'}, 11 * MINUTE)];
+            const first = await renderWithSessions(old);
+            first.unmount();
+
+            const {container} = renderPrompt();
+            await new Promise((r) => setTimeout(r, 50));
+
+            expect(getSessions).toHaveBeenCalledTimes(1);
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            expect(container).toBeEmptyDOMElement();
+        });
+
+        test('renders nothing and records no skip when the lookup fails', async () => {
+            const {container} = await renderWithSessions(() => {
+                throw new Error('network');
+            });
 
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
             expect(container).toBeEmptyDOMElement();
