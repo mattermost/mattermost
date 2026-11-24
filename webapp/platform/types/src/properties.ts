@@ -276,7 +276,14 @@ export function isOrderedChangePolicy(policy: PropertyChangePolicy): boolean {
 export type PropertiesState = {
     fields: PropertyFieldsState;
     values: PropertyValuesState;
+    loadedValueTargets: LoadedValueTargetsState;
     groups: PropertyGroupsState;
+};
+
+// Targets whose values have been fetched, so an empty bucket in values.byTargetId
+// can be told apart from one that was never loaded.
+export type LoadedValueTargetsState = {
+    [targetId: string]: true;
 };
 
 export type PropertyFieldsState = {
@@ -311,4 +318,63 @@ export type PropertyValuesUpdated<T> = {
     target_id?: string;
     field_id?: string;
     values: Array<PropertyValue<T>>;
+};
+
+// Required-channel-attribute compliance (MM-70717). Mirrors
+// model/channel_attribute_compliance.go.
+
+export type ChannelAttributeAdmin = {
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    nickname: string;
+};
+
+export type ChannelMissingAttributeValue = {
+    channel_id: string;
+    channel_name: string;
+    channel_display_name: string;
+    channel_type: string;
+    team_id: string;
+    team_display_name: string;
+
+    // False for shared/remote channels. Those are informational only -- they
+    // are excluded from the required-attribute gate and count.
+    is_local: boolean;
+
+    // Empty when the channel has no channel admin to notify.
+    channel_admins: ChannelAttributeAdmin[];
+};
+
+export type ChannelsMissingAttributeValueList = {
+    channels: ChannelMissingAttributeValue[];
+    total_count: number;
+};
+
+// The count-only view behind the Required toggle's banner. field_id is
+// omitted in create mode, before the attribute has been saved.
+export type ChannelAttributeComplianceSummary = {
+    field_id?: string;
+    required: boolean;
+    missing_channel_count: number;
+    shared_channel_count: number;
+    unique_admin_count: number;
+    channels_without_admin_count: number;
+    message_preview: string;
+
+    // Milliseconds until a notify for this field is accepted again; 0 when it
+    // is accepted now.
+    notify_cooldown_ms: number;
+};
+
+export type ChannelAttributeNotifyResult = {
+    queued_admin_count: number;
+    queued_channel_count: number;
+    channels_without_admin_count: number;
+
+    // True when the server's (admin, channel) assignment scan hit its batch
+    // cap -- some admins may not have been queued for every one of their
+    // affected channels.
+    truncated: boolean;
 };

@@ -171,6 +171,22 @@ export function formatPropertyFieldLabel(name: string): string {
 }
 
 // display_name is the admin-facing override; name is the CEL-safe slug fallback.
+/**
+ * Orders fields by attrs.sort_order ascending, then name. Ties break on name, not
+ * create_at: chip order is something people are told to read, so it must follow
+ * the configuration rather than insertion timing. The name compare uses a fixed
+ * locale; the default is the viewer's, which would order equal-ranked chips
+ * differently per user. Names are ASCII slugs, so this is total.
+ */
+export function comparePropertyFieldOrder(a: PropertyField, b: PropertyField): number {
+    const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+    const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+    if (rankA !== rankB) {
+        return rankA - rankB;
+    }
+    return a.name.localeCompare(b.name, 'en');
+}
+
 export function getPropertyFieldLabel(field: PropertyField): string {
     const displayName = field.attrs?.display_name;
     const raw = typeof displayName === 'string' && displayName ? displayName : field.name;

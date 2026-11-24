@@ -16,7 +16,7 @@ import {ActionTypes, RHSStates, Threads} from 'utils/constants';
 import {defaultMentionFilters} from 'utils/mention_search';
 
 import type {MMAction} from 'types/store';
-import type {MentionFilters, RhsState} from 'types/store/rhs';
+import type {MentionFilters, PendingChannelAttributeEdit, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -431,6 +431,25 @@ function editChannelMembers(state = false, action: MMAction) {
     }
 }
 
+function pendingChannelAttributeEdit(state: PendingChannelAttributeEdit | null = null, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT:
+        return {channelId: action.channelId, fieldId: action.fieldId};
+    case ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT:
+        return null;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (!action.state) {
+            return null;
+        }
+        return state;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
 function shouldFocusRHS(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
@@ -469,5 +488,6 @@ export default combineReducers({
     isSidebarExpanded,
     isMenuOpen,
     editChannelMembers,
+    pendingChannelAttributeEdit,
     shouldFocusRHS,
 });

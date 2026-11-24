@@ -352,9 +352,11 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 
 	// Required attributes are system-wide, so one left behind by a subtest would
 	// have to be satisfied by every later one. Each field lives for one subtest.
+	// Fields are seeded through the property service: App.CreatePropertyField
+	// refuses one created already required while any active channel lacks a value.
 	createField := func(t *testing.T, fieldType model.PropertyFieldType, level model.PermissionLevel, attrs model.StringInterface) *model.PropertyField {
 		t.Helper()
-		field, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		field, fieldErr := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
 			Name:              "f_" + model.NewId(),
 			Type:              fieldType,
 			GroupID:           group.ID,
@@ -364,8 +366,8 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			PermissionValues:  &level,
 			PermissionOptions: &memberLevel,
 			Attrs:             attrs,
-		}, false, "")
-		require.Nil(t, fieldErr)
+		})
+		require.NoError(t, fieldErr)
 		t.Cleanup(func() {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
 		})
@@ -575,7 +577,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
 		})
 
-		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		classificationField, classificationErr := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
 			Name:             "classification",
 			Type:             model.PropertyFieldTypeSelect,
 			GroupID:          group.ID,
@@ -587,8 +589,8 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttrRequired: true,
 			},
-		}, false, "")
-		require.Nil(t, fieldErr)
+		})
+		require.NoError(t, classificationErr)
 		t.Cleanup(func() {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
 		})
@@ -715,7 +717,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
 		})
 
-		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		classificationField, classificationErr := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
 			Name:             "classification",
 			Type:             model.PropertyFieldTypeSelect,
 			GroupID:          group.ID,
@@ -727,8 +729,8 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttrRequired: true,
 			},
-		}, false, "")
-		require.Nil(t, fieldErr)
+		})
+		require.NoError(t, classificationErr)
 		t.Cleanup(func() {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
 		})
@@ -5829,6 +5831,76 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.SystemAdminUser.Id, s4)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestUpdateChannelMemberRolesNotifiesNewAdminOfMissingRequiredAttributes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	bot, appErr := th.App.GetSystemBot(th.Context)
+	require.Nil(t, appErr)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	viaRoles := th.CreatePublicChannel(t)
+	viaSchemeRoles := th.CreatePublicChannel(t)
+	th.AddUserToChannel(t, th.BasicUser2, viaRoles)
+	th.AddUserToChannel(t, th.BasicUser2, viaSchemeRoles)
+
+	// Seeded through the property service: App.CreatePropertyField refuses a field
+	// created already required while any active channel lacks a value.
+	sysadmin := model.PermissionLevelSysadmin
+	admin := model.PermissionLevelAdmin
+	field, err := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "f_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        model.PropertyFieldObjectTypeChannel,
+		TargetType:        model.PropertyValueTargetTypeSystem,
+		PermissionField:   &sysadmin,
+		PermissionValues:  &admin,
+		PermissionOptions: &sysadmin,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttrDisplayName: "Program",
+			model.PropertyFieldAttrRequired:    true,
+		},
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
+	})
+
+	announcedChannels := func() []any {
+		dm, storeErr := th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.BasicUser2.Id), false)
+		if storeErr != nil {
+			return nil
+		}
+		posts, storeErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: dm.Id, PerPage: 50}, false, map[string]bool{})
+		require.NoError(t, storeErr)
+		var channelIDs []any
+		for _, post := range posts.Posts {
+			if post.GetProp("property_field_ids") != nil {
+				ids, _ := post.GetProp("channel_ids").([]any)
+				channelIDs = append(channelIDs, ids...)
+			}
+		}
+		return channelIDs
+	}
+
+	_, err = th.Client.UpdateChannelRoles(context.Background(), viaRoles.Id, th.BasicUser2.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.NoError(t, err)
+	_, err = th.Client.UpdateChannelMemberSchemeRoles(context.Background(), viaSchemeRoles.Id, th.BasicUser2.Id, &model.SchemeRoles{SchemeUser: true, SchemeAdmin: true})
+	require.NoError(t, err)
+
+	// Each endpoint's promotion is announced once
+	require.Eventually(t, func() bool {
+		return len(announcedChannels()) == 2
+	}, 10*time.Second, 100*time.Millisecond)
+	assert.ElementsMatch(t, []any{viaRoles.Id, viaSchemeRoles.Id}, announcedChannels())
 }
 
 func TestUpdateChannelMemberAutotranslation(t *testing.T) {

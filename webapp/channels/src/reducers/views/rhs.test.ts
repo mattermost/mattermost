@@ -34,6 +34,7 @@ describe('Reducers.RHS', () => {
         isSidebarOpen: false,
         isSidebarExpanded: false,
         editChannelMembers: false,
+        pendingChannelAttributeEdit: null,
         shouldFocusRHS: false,
         searchTeam: null,
         mentionFilters: defaultMentionFilters,
@@ -89,6 +90,7 @@ describe('Reducers.RHS', () => {
         expect(nextStateFalse).toEqual({
             ...initialState,
             editChannelMembers: false,
+            pendingChannelAttributeEdit: null,
         });
 
         // When turning off RHS, set the value to false
@@ -105,7 +107,27 @@ describe('Reducers.RHS', () => {
         expect(nextStateTrueThenCloseRHS).toEqual({
             ...initialState,
             editChannelMembers: false,
+            pendingChannelAttributeEdit: null,
         });
+    });
+
+    test('pending channel attribute edit', () => {
+        const edit = {channelId: 'channel1', fieldId: 'field1'};
+
+        const set = rhsReducer({}, {type: ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT, ...edit});
+        expect(set.pendingChannelAttributeEdit).toEqual(edit);
+
+        const cleared = rhsReducer({pendingChannelAttributeEdit: edit}, {type: ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT});
+        expect(cleared.pendingChannelAttributeEdit).toBeNull();
+
+        const closed = rhsReducer({pendingChannelAttributeEdit: edit}, {type: ActionTypes.UPDATE_RHS_STATE, state: null});
+        expect(closed.pendingChannelAttributeEdit).toBeNull();
+
+        const switched = rhsReducer({pendingChannelAttributeEdit: edit}, {type: ActionTypes.UPDATE_RHS_STATE, state: RHSStates.CHANNEL_INFO, channelId: 'channel1'});
+        expect(switched.pendingChannelAttributeEdit).toEqual(edit);
+
+        const loggedOut = rhsReducer({pendingChannelAttributeEdit: edit}, {type: UserTypes.LOGOUT_SUCCESS});
+        expect(loggedOut.pendingChannelAttributeEdit).toBeNull();
     });
 
     test('should match RHS state to channel files', () => {
@@ -713,6 +735,7 @@ describe('Reducers.RHS', () => {
             isSidebarOpen: true,
             isSidebarExpanded: true,
             editChannelMembers: false,
+            pendingChannelAttributeEdit: null,
             shouldFocusRHS: false,
             searchTeam: null,
             mentionFilters: defaultMentionFilters,
