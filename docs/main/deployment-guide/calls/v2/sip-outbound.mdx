@@ -8,6 +8,10 @@ Draft. Based on the Docker Compose and Kubernetes deployment artifacts under rev
 
 SIP outbound dialing lets users dial phone numbers from a Calls v2 call. It is available only in Calls v2. Calls v1 has no phone support.
 
+:::important
+Outbound phone dialing requires an **Enterprise Advanced** license. Without it, the **Enable outbound phone dialing** setting has no effect and users cannot dial phone numbers.
+:::
+
 It needs two extra components next to LiveKit:
 
 - A **SIP bridge** (LiveKit SIP) that connects calls to your SIP provider.
@@ -32,7 +36,8 @@ In **System Console > Plugins > Calls > SIP Outbound**:
 
 1. Enable outbound phone dialing.
 2. Set the trunk mode to **managed**.
-3. Enter your provider's trunk address, caller ID number and credentials.
+3. Enter your provider's trunk address and caller ID number, plus credentials if your provider requires them.
+4. Optionally adjust the transport, media encryption and dialing rules. See the [settings reference](#sip-settings-reference).
 
 The plugin creates the trunk in LiveKit. The status should show `ready` with a trunk ID.
 
@@ -47,8 +52,44 @@ The plugin creates the trunk in LiveKit. The status should show `ready` with a t
 With self-hosted LiveKit, use **managed** mode. In **existing** mode the plugin does not re-create the trunk, so outbound dialing stops working if Redis restarts and the trunk is lost, until you create the trunk again.
 :::
 
+### SIP settings reference
 
-{/* TODO: confirm the exact System Console labels for the SIP settings against the v2 build. */}
+These settings are in **System Console > Plugins > Calls > Outbound phone calls**. {/* TODO: confirm the section name and the labels below against the v2 build. They come from the plugin manifest. The trunk fields have no help text in the console; screenshots would help. */}
+
+**General**
+
+| Setting | Default | Description |
+|---|---|---|
+| **Enable outbound phone dialing** | Off | Lets users dial external phone numbers through LiveKit SIP. Requires a SIP outbound trunk and an Enterprise Advanced license. |
+| **SIP outbound trunk** (mode) | `existing` | `managed` or `existing`. See [Choose a trunk mode](#choose-a-trunk-mode). |
+| **SIP outbound trunk status** | n/a | Read-only. Shows the trunk state (for example `ready`, `pending`, `error`, `found` or `not_found`), the trunk ID and any error. |
+
+**Trunk, managed mode.** The plugin creates the trunk in LiveKit from these fields and updates it when they change.
+
+| Setting | Default | Description |
+|---|---|---|
+| **Trunk address** | None | Required. The host your SIP provider expects the bridge to send calls to. Enter a hostname only, without `sip:` or a protocol prefix. |
+| **Caller ID number** | None | Required. The caller ID in E.164 format, such as `+15555550123`. It must be attached to the trunk at your SIP provider. |
+| **Auth username** | None | The username for your provider. Leave empty if your provider does not use authentication. |
+| **Auth password** | None | The password for your provider. Stored as a secret. |
+| **SIP transport** | `auto` | SIP signaling transport: `auto`, `udp`, `tcp` or `tls`. |
+| **Media encryption** | `disable` | SRTP media encryption: `disable`, `allow` or `require`. Carriers that require TLS signaling generally require encrypted media too. |
+
+**Trunk, existing mode**
+
+| Setting | Default | Description |
+|---|---|---|
+| **SIP outbound trunk ID** | None | The ID of a trunk that already exists in LiveKit (for example `ST_xxx`). Used only in existing mode. |
+
+**Dialing rules.** These apply to both trunk modes.
+
+| Setting | Default | Description |
+|---|---|---|
+| **Default country code** | None | Country calling code (digits only, for example `1`) added to numbers entered without one. Leave empty to add none, for example on closed networks such as DSN. Numbers that start with `+` are never changed. |
+| **Extension max digits** | 0 | Numbers with this many digits or fewer are treated as PBX extensions and dialed as-is, without a country code. Set it to the length of your longest extension. `0` turns this off. |
+| **Enable outbound phone number allowlist** | Off | When on, only numbers in the allowlist can be dialed. Intended for development and test environments, to prevent accidental calls to real numbers. |
+| **Outbound phone number allowlist** | None | Numbers allowed when the allowlist is on, one per line, optionally followed by the owner's name (for example `+1 555-123-4567 John Doe`). A name that starts with a digit must follow a `#` (for example `+1 555-123-4567 # 3rd floor lobby`). Numbers are matched after conversion to E.164, so `+1 555-123-4567` and `+15551234567` are the same number. Numbers without a leading `+` use the default country code. |
+| **SIP outbound allowed teams** | None | Team URL names (from the team's web address) whose members may place outbound calls, separated by semicolons or commas. Leave empty to allow all authenticated users. |
 
 ### If the trunk status shows an error
 
@@ -62,7 +103,7 @@ It does not do this on every Save. The built-in diagnostic (`/call diag`) only r
 
 If the status shows an error, for example `sip not connected (redis required)` because Redis was not running yet, fix the cause. The next outbound call attempt then retries by itself. To retry without placing a call, turn **Enable outbound phone dialing** off and on again, saving each time. Saving again without toggling does not retry, and the System Console can keep showing the old error until a retry succeeds. Disabling and re-enabling the Calls plugin also triggers a new attempt.
 
-In **existing** mode the plugin never creates or repairs the trunk. If the trunk is missing, the status shows `missing` (trunk not found on this LiveKit server) and calls fail until the trunk exists again.
+In **existing** mode the plugin never creates or repairs the trunk. If the trunk is missing, the status shows `not_found` (trunk not found on this LiveKit server) and calls fail until the trunk exists again.
 
 ### Check the trunk state without the System Console
 

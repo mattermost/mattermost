@@ -20,7 +20,7 @@ Mattermost Calls provides self-hosted audio calling and screen sharing. Two vers
 | You need 1:1 video calls in direct messages | Both versions support them once Calls v2 is released. Until then, use v1. |
 | You need multi-party video calls | Neither version supports them today. Multi-party video is planned for v2 after its first release. |
 | You cannot deploy or operate separate media infrastructure | Use v1 with integrated media. v2 does not work without external LiveKit infrastructure. |
-| You need to dial phone numbers from calls | Use v2. v1 has no phone (SIP) support. |
+| You need to dial phone numbers from calls | Use v2 (requires an Enterprise Advanced license). v1 has no phone (SIP) support. |
 
 ## How versions are selected
 
@@ -61,7 +61,7 @@ Calls v2 requires a LiveKit deployment that you set up and operate, or LiveKit C
 | Integrated media (no extra infrastructure) | Yes | **No.** LiveKit is required. |
 | Audio calls and screen sharing | Yes | Yes |
 | Video | 1:1 calls in direct messages | 1:1 calls in direct messages, included in the first v2 release. Multi-party video is planned after that. |
-| Phone dialing (SIP outbound) | No | Yes |
+| Phone dialing (SIP outbound) | No | Yes, with an Enterprise Advanced license |
 | High availability | RTCD with an external load balancer | Multiple LiveKit nodes sharing state through Redis |
 | Recording, transcription and live captions | Yes, using [Calls Offloader](calls-offloader-setup.mdx) | Yes, using [Calls Offloader](calls-offloader-setup.mdx) |
 | Minimum mobile and desktop app versions | See the [v1 guide](calls-deployment-guide.mdx) | **TBD** |
