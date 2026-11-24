@@ -1302,7 +1302,10 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         );
 
         return (
-            <div className='admin-console__wrapper PluginManagement'>
+            <div
+                className='admin-console__wrapper PluginManagement'
+                data-surface='admin.plugin_management--region'
+            >
                 <div className='admin-console__content'>
                     <SettingsGroup
                         id={'PluginSettings'}
@@ -1413,6 +1416,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         ref={this.fileInput}
                                         className='PluginManagement__fileInput'
                                         type='file'
+                                        data-surface='admin.plugin_upload'
                                         accept='.tar.gz,.gz'
                                         onChange={this.handleUpload}
                                         disabled={uploadDropzoneDisabled}

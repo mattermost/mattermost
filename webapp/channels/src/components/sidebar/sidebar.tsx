@@ -248,6 +248,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 )}
                 <div
                     id='lhsNavigator'
+                    data-surface='lhs.sidebar--region'
                     role='application'
                     aria-label={ariaLabel}
                     className='a11y__region'

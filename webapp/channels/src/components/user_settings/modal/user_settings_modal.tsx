@@ -369,6 +369,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             >
                 <div
                     ref={this.modalBodyRef}
+                    data-surface='user_settings.root--region'
                 >
                     {/* Admin Mode: wait for user + preferences */}
                     {this.props.adminMode &&

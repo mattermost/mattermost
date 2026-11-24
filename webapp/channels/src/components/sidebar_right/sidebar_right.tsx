@@ -360,6 +360,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 >
                     <div
                         tabIndex={-1}
+                        data-surface='rhs.root--region'
                         className='sidebar-right-container'
                         ref={this.sidebarRight}
                     >

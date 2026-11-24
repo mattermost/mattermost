@@ -976,7 +976,10 @@ function ChannelSettingsPermissionsPolicyTab({
 
     // ── Render: list view ────────────────────────────────────────────────
     return (
-        <div className='ChannelSettingsModal__permissionsPolicyTab'>
+        <div
+            className='ChannelSettingsModal__permissionsPolicyTab'
+            data-surface='channel_settings.permissions_policy--region'
+        >
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
 
             {/* One-line system-policy banner: signal that policies defined
@@ -1001,6 +1004,7 @@ function ChannelSettingsPermissionsPolicyTab({
                     onClick={startNew}
                     disabled={!attributesLoaded || isReadOnly}
                     data-testid='permissions-policy-add-rule'
+                    data-surface='channel_settings.add_rule--button'
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
                     <FormattedMessage
@@ -1033,6 +1037,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         defaultMessage: 'Search permission rules by name or permission',
                     })}
                     data-testid='permissions-policy-search'
+                    data-surface='channel_settings.policy_search--searchbox'
                 />
             </div>
 

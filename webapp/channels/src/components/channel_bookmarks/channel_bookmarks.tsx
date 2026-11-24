@@ -75,6 +75,7 @@ function ChannelBookmarks({channelId}: Props) {
         <Container
             ref={containerRef}
             data-testid='channel-bookmarks-container'
+            data-surface='channel_bookmarks.bar--region'
             className='channel-bookmarks-container'
         >
             <BookmarksBarContent>

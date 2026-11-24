@@ -158,7 +158,10 @@ const Recaps = () => {
     }
 
     return (
-        <div className='recaps-container'>
+        <div
+            className='recaps-container'
+            data-surface='recaps.root--region'
+        >
             <div className='recaps-header'>
                 <div className='recaps-header-left'>
                     <div className='recaps-title-container'>

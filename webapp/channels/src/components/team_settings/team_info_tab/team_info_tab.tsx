@@ -169,6 +169,7 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
         <div
             className='modal-info-tab-content user-settings'
             id='infoSettings'
+            data-surface='team_settings.info--region'
             aria-labelledby='infoButton'
             role='tabpanel'
         >

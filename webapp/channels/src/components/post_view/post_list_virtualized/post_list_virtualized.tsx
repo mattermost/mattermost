@@ -681,6 +681,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                     >
                         <div
                             id='postListContent'
+                            data-surface='post_list.feed--region'
                             className='post-list__content'
                             data-channel-id={this.props.channelId}
                         >

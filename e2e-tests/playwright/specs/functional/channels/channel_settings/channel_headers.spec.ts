@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a multi-line channel header is truncated in the header bar, that hovering it opens a
@@ -17,6 +17,7 @@ test(
         await adminClient.addToChannel(user.id, channel.id);
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
+        const surface = createSurface(page);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
@@ -24,8 +25,9 @@ test(
         const header = ['Header text line one', '', '- Two', '- [Google](https://google.com/)', '- Four'].join('\n');
         const channelSettings = await channelsPage.openChannelSettings();
         const infoSettings = await channelSettings.openInfoTab();
+        const savePanel = surface.save_panel(channelSettings.container);
         await infoSettings.updateHeader(header);
-        await channelSettings.save();
+        await settle(savePanel.save, {wait: Api.PatchChannel, params: {channel_id: channel.id}}).click();
         await channelSettings.close();
 
         // * Verify the header bar shows the first line of the header

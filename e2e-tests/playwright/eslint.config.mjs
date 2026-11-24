@@ -5,11 +5,14 @@ import globals from 'globals';
 
 import eslintPlugin from '@mattermost/eslint-plugin';
 
+import uiSurfacePlugin from './ui-surface/lint/index.mjs';
+
 export default [
     {
         ignores: [
             '**/node_modules',
             '**/dist',
+            '**/surface/generated',
             '**/playwright-report',
             '**/test-results',
             '**/results',
@@ -81,6 +84,49 @@ export default [
                     message: "toHaveURL('/path') drops the server subpath. Use toHavePath('/path') instead.",
                 },
             ],
+        },
+    },
+    {
+        files: ['specs/**/*.ts', 'upgrade-specs/**/*.ts'],
+        plugins: {
+            'ui-surface': uiSurfacePlugin,
+        },
+        rules: {
+            'ui-surface/no-sleeps': 'warn',
+            'ui-surface/no-probes': 'warn',
+            'ui-surface/no-swallowed-catch': 'warn',
+            'ui-surface/no-positional-picks': 'warn',
+            'ui-surface/no-raw-css-locators': 'warn',
+        },
+    },
+    {
+        files: [
+            'specs/functional/auth/password_length.spec.ts',
+            'specs/functional/channels/channel_attributes/channel_attribute_editing.spec.ts',
+            'specs/functional/channels/channel_settings/channel_headers.spec.ts',
+            'specs/functional/channels/channel_settings/default_channel_url.spec.ts',
+            'specs/functional/channels/channel_settings/join_leave_messages.spec.ts',
+            'specs/functional/channels/channel_settings/modal_behavior.spec.ts',
+            'specs/functional/channels/channel_settings/unsaved_changes_on_open.spec.ts',
+            'specs/functional/channels/drafts/draft_send_from_panel.spec.ts',
+            'specs/functional/channels/messaging/edit_history_restore.spec.ts',
+            'specs/functional/channels/messaging/message_reply_too_long.spec.ts',
+            'specs/functional/channels/plugin_marketplace/install_configure_remove_plugin.spec.ts',
+            'specs/functional/channels/team_settings/team_settings_info.spec.ts',
+            'specs/functional/channels/team_settings/team_settings_unsaved_changes.spec.ts',
+            'specs/functional/channels/threads/threads_list.spec.ts',
+            'specs/functional/system_console/concurrent_config_save.spec.ts',
+            'specs/functional/system_console/plugins/restrict_unauthenticated_webapp_plugins.spec.ts',
+        ],
+        plugins: {
+            'ui-surface': uiSurfacePlugin,
+        },
+        rules: {
+            'ui-surface/no-sleeps': 'error',
+            'ui-surface/no-probes': 'error',
+            'ui-surface/no-swallowed-catch': 'error',
+            'ui-surface/no-positional-picks': 'error',
+            'ui-surface/no-raw-css-locators': 'error',
         },
     },
 ];

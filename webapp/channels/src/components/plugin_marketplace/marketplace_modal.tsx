@@ -164,16 +164,18 @@ const MarketplaceModal = () => {
             footerContent={getFooterContent()}
             appendedContent={getAppendedContent()}
         >
-            {loading ? (
-                <LoadingScreen className='loading'/>
-            ) : (
-                <MarketplaceList
-                    listRef={listRef}
-                    listing={listing}
-                    page={page}
-                    noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
-                />
-            )}
+            <div data-surface='marketplace_modal.root--region'>
+                {loading ? (
+                    <LoadingScreen className='loading'/>
+                ) : (
+                    <MarketplaceList
+                        listRef={listRef}
+                        listing={listing}
+                        page={page}
+                        noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
+                    />
+                )}
+            </div>
         </GenericModal>
     );
 };

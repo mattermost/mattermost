@@ -133,6 +133,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                         {archivedIcon}
                         <strong
                             id='channelHeaderTitle'
+                            data-surface='channel_header.title--text'
                             className='heading'
                         >
                             {channelTitle as string}

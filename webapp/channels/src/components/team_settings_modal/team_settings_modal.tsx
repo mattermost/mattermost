@@ -153,7 +153,10 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
             modalLocation={'top'}
             enforceFocus={false}
         >
-            <div className='TeamSettingsModal__bodyWrapper'>
+            <div
+                className='TeamSettingsModal__bodyWrapper'
+                data-surface='team_settings.root--region'
+            >
                 <div
                     ref={modalBodyRef}
                     className='settings-table'

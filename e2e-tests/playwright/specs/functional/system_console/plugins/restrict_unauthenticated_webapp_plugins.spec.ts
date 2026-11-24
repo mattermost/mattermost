@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
+    createSurface,
     ensureTestWebappPlugins,
     expect,
     getAdminClient,
@@ -9,6 +10,7 @@ import {
     preAuthTestPluginId,
     removeTestWebappPlugins,
     test,
+    toHavePath,
 } from '@mattermost/playwright-lib';
 
 test.afterAll(async () => {
@@ -39,8 +41,11 @@ test(
         };
 
         // # Open Plugin Management as a system admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const surface = createSurface(page);
         await systemConsolePage.gotoPluginManagement();
+        await toHavePath(page, surface.pages.plugin_management.pathFor({}));
+        await surface.admin().pluginManagement.toBeVisible();
         const pluginManagement = systemConsolePage.pluginManagement;
 
         // * Verify the setting is shown as true with help text about webapp.pre_auth

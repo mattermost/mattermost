@@ -162,6 +162,7 @@ const GlobalThreads = () => {
     return (
         <div
             id='app-content'
+            data-surface='threads.feed--region'
             className={classNames('GlobalThreads app__content', {'thread-selected': Boolean(selectedThread)})}
         >
             {isLoading || isEmptyList ? (

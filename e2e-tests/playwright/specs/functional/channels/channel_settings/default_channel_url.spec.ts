@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
 
 const DEFAULT_CHANNEL_URL_LOCKED_TEXT = 'The URL of the default channel cannot be changed.';
 
@@ -15,7 +15,8 @@ test(
     {tag: '@channel_settings'},
     async ({pw}) => {
         const {adminUser, adminClient, team} = await pw.initSetup();
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
+        const {channelsPage, page} = await pw.testBrowser.login(adminUser);
+        const surface = createSurface(page);
 
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
@@ -23,6 +24,7 @@ test(
         // # Open the Channel Settings modal on the Info tab
         const channelSettings = await channelsPage.openChannelSettings();
         const infoSettings = await channelSettings.openInfoTab();
+        const savePanel = surface.save_panel(channelSettings.container);
 
         // * Verify the URL is shown read-only, with no way to edit it and an explanation why
         await expect(infoSettings.urlLabel).toContainText('town-square');
@@ -32,10 +34,10 @@ test(
 
         // # Rename the display name, which the server does allow on the default channel
         await infoSettings.updateName('Company Wide');
-        await channelSettings.save();
+        await settle(savePanel.save, {wait: Api.PatchChannel}).click();
 
         // * Verify the save succeeded: the save panel disappears rather than showing a form error
-        await expect(channelSettings.saveButton).not.toBeVisible();
+        await savePanel.save.toBeHidden();
         await channelSettings.close();
         await channelsPage.centerView.header.toHaveTitle('Company Wide');
 
@@ -55,13 +57,15 @@ test('allows the URL of an ordinary channel to be changed', {tag: '@channel_sett
     const {adminUser, adminClient, team} = await pw.initSetup();
     const createdChannel = await adminClient.createPublicChannel(team.id, 'Ordinary Channel');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
+    const {channelsPage, page} = await pw.testBrowser.login(adminUser);
+    const surface = createSurface(page);
     await channelsPage.goto(team.name, createdChannel.name);
     await channelsPage.toBeVisible();
 
     // # Open the Channel Settings modal on the Info tab
     const channelSettings = await channelsPage.openChannelSettings();
     const infoSettings = await channelSettings.openInfoTab();
+    const savePanel = surface.save_panel(channelSettings.container);
 
     // * Verify an ordinary channel is not affected by the default-channel restriction
     await expect(infoSettings.container.getByText(DEFAULT_CHANNEL_URL_LOCKED_TEXT)).not.toBeVisible();
@@ -70,10 +74,10 @@ test('allows the URL of an ordinary channel to be changed', {tag: '@channel_sett
     // # Change the channel URL and save
     const updatedUrl = `renamed-${pw.random.id()}`;
     await infoSettings.updateUrl(updatedUrl);
-    await channelSettings.save();
+    await settle(savePanel.save, {wait: Api.PatchChannel, params: {channel_id: createdChannel.id}}).click();
 
     // * Verify the save succeeded: the save panel disappears rather than showing a form error
-    await expect(channelSettings.saveButton).not.toBeVisible();
+    await savePanel.save.toBeHidden();
     await channelSettings.close();
 
     const channel = await adminClient.getChannel(createdChannel.id);

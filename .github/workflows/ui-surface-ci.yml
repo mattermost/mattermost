@@ -1,0 +1,56 @@
+name: UI Surface CI
+
+on:
+  pull_request:
+    paths:
+      - 'webapp/**'
+      - 'api/v4/source/**'
+      - 'e2e-tests/playwright/ui-surface/**'
+      - 'e2e-tests/playwright/lib/src/surface/**'
+      - 'e2e-tests/playwright/specs/**'
+      - '.github/workflows/ui-surface-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ui-surface:
+    name: UI Surface Check, Build & Host Contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: e2e-tests/playwright
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: e2e-tests/playwright/package-lock.json
+
+      - name: Install Playwright workspace dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build and test @mattermost/ui-surface
+        run: |
+          npm run build --workspace @mattermost/ui-surface
+          npm test --workspace @mattermost/ui-surface
+
+      - name: Scan webapp and check stale references
+        run: node ui-surface/bin/ui-surface.mjs check
+
+      - name: Build @mattermost/playwright-lib and typecheck workspaces
+        run: |
+          npm run build --workspace @mattermost/playwright-lib
+          npm run tsc --workspaces
+
+      - name: Emit 3-layer Host-Plugin Contract artifact
+        run: node ui-surface/bin/ui-surface.mjs host-contract --out host-contract.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mattermost-host-contract
+          path: e2e-tests/playwright/host-contract.json
+          retention-days: 30

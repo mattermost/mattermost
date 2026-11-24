@@ -1,0 +1,90 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+
+import {checkStaleRefs, extractSurface, parseTestId} from '../dist/scan.js';
+
+test('parseTestId validates scope.name[:key][--role] grammar', () => {
+    assert.deepEqual(parseTestId('channel_settings.save--button'), {
+        raw: 'channel_settings.save--button',
+        scope: 'channel_settings',
+        name: 'save',
+        key: undefined,
+        role: 'button',
+        valid: true,
+    });
+    assert.equal(parseTestId('post_list.post:abc123--listitem').key, 'abc123');
+    assert.equal(parseTestId('unscoped').valid, false);
+    assert.equal(parseTestId('channel.save--bogus').valid, false);
+});
+
+test('extractSurface extracts literal, keyed, and data-surface scopes while catching duplicates and role mismatches', () => {
+    const report = extractSurface({
+        roots: [],
+        files: {
+            'panel.tsx': [
+                'const Panel = ({id, editing}: {id: string; editing: boolean}) => (',
+                '  <div data-surface="channel_settings">',
+                '    <button data-testid="channel_settings.save--button">Save</button>',
+                '    <span data-testid="channel_settings.bad--checkbox">Not a checkbox</span>',
+                '    <input type="checkbox" data-testid="channel_settings.ok--checkbox" />',
+                // eslint-disable-next-line no-template-curly-in-string
+                '    <li data-testid={`channel_settings.row:${id}--listitem`} />',
+                '    {editing ? <p data-testid="channel_settings.dup--text" /> : <p data-testid="channel_settings.dup--text" />}',
+                '    <p data-testid="channel_settings.sib--text" />',
+                '    <p data-testid="channel_settings.sib--text" />',
+                '  </div>',
+                ');',
+            ].join('\n'),
+        },
+    });
+
+    assert.equal(report.entries.length, 8);
+    assert.deepEqual(report.scopes.channel_settings.containerFiles, ['panel.tsx']);
+    assert.deepEqual(
+        report.diagnostics.map((d) => ({rule: d.rule, id: d.id})),
+        [
+            {rule: 'role-fit', id: 'channel_settings.bad--checkbox'},
+            {rule: 'duplicates', id: 'channel_settings.sib--text'},
+        ],
+    );
+});
+
+test('checkStaleRefs detects stale Playwright and Cypress literals and ignores comments', () => {
+    const report = extractSurface({
+        roots: [],
+        files: {'panel.tsx': 'export const P = () => <button data-testid="settings.save--button" />;'},
+    });
+    const knownIds = new Set(report.entries.map((e) => e.id));
+    const diags = checkStaleRefs({
+        knownIds,
+        onlyGrammarIds: true,
+        files: {
+            'good.spec.ts': '// page.getByTestId("settings.missing--button")\npage.getByTestId("settings.save--button").click();',
+            'bad.spec.ts': 'page.getByTestId("settings.old--button").click();\ncy.findByTestId("settings.gone--button").click();\ncy.get(\'[data-testid="settings.css_gone--button"]\');',
+        },
+    });
+    assert.deepEqual(diags.map((d) => d.id), ['settings.old--button', 'settings.gone--button', 'settings.css_gone--button']);
+});
+
+test('extractSurface supports dual data-surface coexistence alongside legacy data-testid', () => {
+    const report = extractSurface({
+        roots: [],
+        files: {
+            'save_panel.tsx': [
+                'export const Panel = () => (',
+                '  <div data-surface="save_panel">',
+                '    <button data-testid="SaveChangesPanel__save-btn" data-surface="save_panel.save--button">Save</button>',
+                '  </div>',
+                ');',
+            ].join('\n'),
+        },
+    });
+    assert.equal(report.diagnostics.length, 0);
+    assert.deepEqual(report.scopes.save_panel.containerFiles, ['save_panel.tsx']);
+    assert.equal(report.entries.length, 1);
+    assert.equal(report.entries[0].id, 'save_panel.save--button');
+    assert.equal(report.entries[0].attr, 'data-surface');
+});

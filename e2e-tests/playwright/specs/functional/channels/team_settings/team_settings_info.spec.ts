@@ -7,7 +7,7 @@
  */
 
 import {getAsset} from '@/asset';
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {Api, ChannelsPage, createSurface, expect, Msg, settle, test} from '@mattermost/playwright-lib';
 
 test.describe('Team Settings Modal - Info Tab', () => {
     /**
@@ -53,6 +53,9 @@ test.describe('Team Settings Modal - Info Tab', () => {
 
         // # Open Team Settings Modal
         const teamSettings = await channelsPage.openTeamSettings();
+        const surface = createSurface(page);
+        const savePanel = surface.save_panel(teamSettings.container);
+        await surface.team_settings(teamSettings.container).info.toBeVisible();
 
         // * Verify current team name is displayed
         await expect(teamSettings.infoSettings.nameInput).toHaveValue(team.display_name);
@@ -61,11 +64,11 @@ test.describe('Team Settings Modal - Info Tab', () => {
         const newTeamName = `Updated Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
-        // # Save changes
-        await teamSettings.save();
+        // # Save changes and wait for PatchTeam API
+        await settle(savePanel.save, {wait: Api.PatchTeam, params: {team_id: team.id}}).click();
 
         // * Wait for "Settings saved" message
-        await teamSettings.verifySavedMessage();
+        await expect(savePanel.message.locator).toContainText(Msg['saveChangesPanel.saved']);
 
         // * Verify team name updated via API
         const updatedTeam = await adminClient.getTeam(team.id);
@@ -94,16 +97,18 @@ test.describe('Team Settings Modal - Info Tab', () => {
 
         // # Open Team Settings Modal
         const teamSettings = await channelsPage.openTeamSettings();
+        const surface = createSurface(page);
+        const savePanel = surface.save_panel(teamSettings.container);
 
         // # Edit team description
         const newDescription = `Test description ${pw.random.id()}`;
         await teamSettings.infoSettings.updateDescription(newDescription);
 
-        // # Save changes
-        await teamSettings.save();
+        // # Save changes and wait for PatchTeam API
+        await settle(savePanel.save, {wait: Api.PatchTeam, params: {team_id: team.id}}).click();
 
         // * Wait for "Settings saved" message
-        await teamSettings.verifySavedMessage();
+        await expect(savePanel.message.locator).toContainText(Msg['saveChangesPanel.saved']);
 
         // * Verify description updated via API
         const updatedTeam = await adminClient.getTeam(team.id);

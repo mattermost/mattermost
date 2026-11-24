@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ChannelsPage} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, settle, test, toHavePath} from '@mattermost/playwright-lib';
 
 // The LHS Drafts entry itself stays rendered for as long as the /drafts URL matches, so only
 // its count badge can show that the last draft is gone.
@@ -28,11 +28,12 @@ test.describe('sending a draft from the Drafts panel', () => {
         });
         await adminClient.addToTeam(team2.id, user.id);
 
-        const {channelsPage, draftsPage} = await pw.testBrowser.login(user);
+        const {channelsPage, draftsPage, page} = await pw.testBrowser.login(user);
+        const surface = createSurface(page);
 
         // # Type a draft in Town Square without sending it
         await channelsPage.goto(team1.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await surface.center().composer.toBeVisible();
         await channelsPage.centerView.postCreate.writeMessage(draftMessage);
 
         // # Switch channels so the draft is synced to the server
@@ -45,7 +46,8 @@ test.describe('sending a draft from the Drafts panel', () => {
 
         // # Send the draft from the Drafts panel
         await channelsPage.sidebarLeft.goToDrafts();
-        await draftsPage.toBeVisible();
+        await toHavePath(page, surface.pages.drafts.pathFor({team: team1.name}));
+        await surface.drafts().header.toBeVisible();
         await draftsPage.expectDraftCount(1);
         await draftsPage.sendDraft(await draftsPage.getDraftByChannelName('Town Square'));
 
@@ -86,13 +88,15 @@ test.describe('sending a draft from the Drafts panel', () => {
         const replyDraft = `thread-reply-draft-${pw.random.id()}`;
 
         const {user, team, userClient} = await pw.initSetup();
-        const {channelsPage, draftsPage} = await pw.testBrowser.login(user);
+        const {channelsPage, draftsPage, page} = await pw.testBrowser.login(user);
+        const surface = createSurface(page);
 
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         // # Start a thread and leave a reply draft in it
-        await channelsPage.centerView.postCreate.postMessage(rootMessage);
+        await channelsPage.centerView.postCreate.writeMessage(rootMessage);
+        await settle(surface.center(surface.center().composer.locator).send, {wait: Api.CreatePost}).click();
         await (await channelsPage.getLastPost()).openAThread();
         await channelsPage.sidebarRight.postCreate.writeMessage(replyDraft);
 

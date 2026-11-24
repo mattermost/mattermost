@@ -953,6 +953,7 @@ const AdvancedTextEditor = ({
         <form
             id={rootId ? undefined : 'create_post'}
             data-testid={rootId ? undefined : 'create-post'}
+            data-surface={rootId ? 'rhs.composer--region' : 'center.composer--region'}
             className={(!rootId && !fullWidthTextBox) ? 'center' : undefined}
             onSubmit={handleSubmitWithEvent}
         >

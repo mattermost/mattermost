@@ -972,6 +972,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             data-testid='login-body-card'
+                            data-surface='login.body_card--region'
                             className='login-body-card-content'
                         >
                             {magicLinkSuccessful ? (
@@ -1000,6 +1001,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             <div className='login-body-card-form'>
                                                 <Input
                                                     data-testid='login-id-input'
+                                                    data-surface='login.id--textbox'
                                                     ref={loginIdInput}
                                                     name='loginId'
                                                     containerClassName='login-body-card-form-input'
@@ -1017,6 +1019,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     <>
                                                         <PasswordInput
                                                             ref={passwordInput}
+                                                            data-surface='login.password--textbox'
                                                             className='login-body-card-form-password-input'
                                                             value={password}
                                                             inputSize={SIZE.LARGE}
@@ -1028,6 +1031,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     </>
                                                 )}
                                                 <SaveButton
+                                                    data-surface='login.submit--button'
                                                     extraClasses='login-body-card-form-button-submit large'
                                                     saving={isWaiting}
                                                     onClick={preSubmit}

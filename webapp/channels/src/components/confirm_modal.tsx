@@ -171,6 +171,7 @@ const ConfirmModal = ({
                 <label>
                     <input
                         type='checkbox'
+                        data-surface='confirm_modal.checkbox--checkbox'
                         onChange={handleCheckboxChange}
                         checked={checked}
                     />
@@ -198,6 +199,7 @@ const ConfirmModal = ({
             <Button
                 type='button'
                 data-testid='cancel-button'
+                data-surface='confirm_modal.cancel--button'
                 emphasis='tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'
@@ -220,6 +222,7 @@ const ConfirmModal = ({
         >
             <div
                 data-testid={id}
+                data-surface='confirm_modal'
             >
                 <div
                     className='ConfirmModal__body'
@@ -234,6 +237,7 @@ const ConfirmModal = ({
                     {!hideConfirm && (
                         <Button
                             type='button'
+                            data-surface='confirm_modal.confirm--button'
                             emphasis='primary'
                             destructive={destructive}
                             onClick={handleConfirm}

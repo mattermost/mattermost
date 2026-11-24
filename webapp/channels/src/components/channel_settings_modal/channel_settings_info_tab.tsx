@@ -483,6 +483,7 @@ function ChannelSettingsInfoTab({
         <div
             className='ChannelSettingsModal__infoTab'
             data-testid='channel-settings-info-tab'
+            data-surface='channel_settings.info--region'
         >
             {/* ConvertConfirmModal for channel privacy changes */}
             <ConvertConfirmModal
@@ -563,6 +564,7 @@ function ChannelSettingsInfoTab({
                         disabled={!canManageDiscoverability}
                         onChange={handleDiscoverableToggle}
                         data-testid='channel-settings-discoverable-toggle'
+                        data-surface='channel_settings.discoverable--switch'
                         tabIndex={0}
                         semiBold={true}
                         secondaryLabel={discoverableDescription}

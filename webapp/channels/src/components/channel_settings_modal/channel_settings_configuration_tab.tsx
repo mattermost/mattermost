@@ -858,6 +858,7 @@ function ChannelSettingsConfigurationTab({
         <div
             className={`ChannelSettingsModal__configurationTab${showSaveChangesPanel ? ' ChannelSettingsModal__configurationTab--with-save-panel' : ''}`}
             data-testid='channel-settings-configuration-tab'
+            data-surface='channel_settings.configuration--region'
         >
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             {canManageSharedChannels && (
@@ -904,6 +905,7 @@ function ChannelSettingsConfigurationTab({
                         disabled={isReadOnly}
                         onChange={handleClassificationToggle}
                         data-testid='channelClassificationToggle-button'
+                        data-surface='channel_settings.classification--switch'
                         tabIndex={0}
                         semiBold={true}
                         secondaryLabel={formatMessage(messages.classificationDescription[channelKind])}
@@ -970,6 +972,7 @@ function ChannelSettingsConfigurationTab({
                         disabled={isReadOnly || bannerLockedByClassification || bannerRequiredByAttribute}
                         onChange={handleBannerToggle}
                         data-testid='channelBannerToggle-button'
+                        data-surface='channel_settings.banner--switch'
                         tabIndex={0}
                         semiBold={true}
                         secondaryLabel={bannerSubHeading}
@@ -1083,6 +1086,7 @@ function ChannelSettingsConfigurationTab({
                     disabled={isReadOnly}
                     onChange={handleJoinLeaveMessagesToggle}
                     data-testid='channelJoinLeaveMessagesToggle-button'
+                    data-surface='channel_settings.join_leave--switch'
                     tabIndex={0}
                     semiBold={true}
                     secondaryLabel={joinLeaveMessagesSubHeading}
@@ -1103,6 +1107,7 @@ function ChannelSettingsConfigurationTab({
                     disabled={isReadOnly}
                     onChange={handleAutoTranslationToggle}
                     data-testid='channelTranslationToggle-button'
+                    data-surface='channel_settings.translation--switch'
                     tabIndex={0}
                     semiBold={true}
                     secondaryLabel={autoTranslationSubHeading}

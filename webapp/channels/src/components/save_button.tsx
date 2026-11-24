@@ -28,6 +28,7 @@ type Props = {
     savingMessage?: React.ReactNode;
     defaultMessage?: React.ReactNode;
     extraClasses?: string;
+    'data-surface'?: string;
 };
 
 function mapSize(size?: SharedSize | CompassButtonSize): CompassButtonSize | undefined {

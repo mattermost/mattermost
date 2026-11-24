@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a user can view a message's edit history and restore a previous version, and that
  * cancelling the restore confirmation keeps the edited version.
  */
 test('MM-T5537 views message edit history and restores a previous version', {tag: '@messaging'}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
+    const {user, team, userClient} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);
+    const surface = createSurface(page);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Post a message
+    // # Post a message and wait for the server CreatePost response
     const message = 'This is a message to post and then edit';
-    await channelsPage.postMessage(message);
+    await channelsPage.centerView.postCreate.input.fill(message);
+    const createdPost = await settle<{id: string}>(surface.center().send, {wait: Api.CreatePost}).click();
 
     // # Open the inline edit box for the last post, append text, and save
     await channelsPage.centerView.postCreate.input.focus();
@@ -35,7 +37,7 @@ test('MM-T5537 views message edit history and restores a previous version', {tag
     await channelsPage.sidebarRight.toBeVisible();
 
     // # Open the restore confirmation for the previous version, then cancel it
-    await channelsPage.sidebarRight.restorePreviousPostVersionIcon.first().click();
+    await channelsPage.sidebarRight.restorePreviousPostVersionIcon.click();
     const restoreModal = channelsPage.centerView.postEdit.restorePostConfirmationDialog;
     await restoreModal.toBeVisible();
     await restoreModal.cancelButton.click();
@@ -45,13 +47,14 @@ test('MM-T5537 views message edit history and restores a previous version', {tag
     await post.toContainText(editedMessage);
 
     // # Restore the previous version and confirm
-    await channelsPage.sidebarRight.restorePreviousPostVersionIcon.first().click();
+    await channelsPage.sidebarRight.restorePreviousPostVersionIcon.click();
     await restoreModal.toBeVisible();
     await restoreModal.confirmRestore();
     await restoreModal.notToBeVisible();
 
-    // * Verify the post is reverted to the original message
+    // * Verify the post is reverted to the original message in UI and on server
     const restoredPost = await channelsPage.getLastPost();
     await restoredPost.toContainText(message);
     await restoredPost.toNotContainText('I have now edited this message');
+    await expect.poll(async () => (await userClient.getPost(createdPost.id)).message).toBe(message);
 });

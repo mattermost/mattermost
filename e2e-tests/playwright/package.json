@@ -1,7 +1,8 @@
 {
   "name": "mattermost-playwright",
   "workspaces": [
-    "lib"
+    "lib",
+    "ui-surface"
   ],
   "scripts": {
     "postinstall": "script/post_install.sh && npm run build",

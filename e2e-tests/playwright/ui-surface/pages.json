@@ -1,0 +1,47 @@
+{
+  "channels": {
+    "path": "/:team/channels/:channel",
+    "ready": ["center.composer--region"],
+    "scopes": ["center", "channel_header", "lhs", "rhs", "channel_settings", "post_list"]
+  },
+  "threads": {
+    "path": "/:team/threads",
+    "ready": ["threads.feed--region"],
+    "scopes": ["threads"]
+  },
+  "drafts": {
+    "path": "/:team/drafts",
+    "ready": ["drafts.header--region"],
+    "scopes": ["drafts"]
+  },
+  "scheduled_posts": {
+    "path": "/:team/scheduled_posts",
+    "ready": ["drafts.header--region"],
+    "scopes": ["scheduled_posts"]
+  },
+  "login": {
+    "path": "/login",
+    "ready": ["login.body_card--region"],
+    "scopes": ["login"]
+  },
+  "signup": {
+    "path": "/signup_user_complete",
+    "ready": ["signup.body_card--region"],
+    "scopes": ["signup"]
+  },
+  "system_console": {
+    "path": "/admin_console",
+    "ready": ["admin.sidebar--region"],
+    "scopes": ["admin"]
+  },
+  "plugin_management": {
+    "path": "/admin_console/plugins/plugin_management",
+    "ready": ["admin.sidebar--region", "admin.plugin_management--region"],
+    "scopes": ["admin"]
+  },
+  "integrations": {
+    "path": "/:team/integrations",
+    "ready": ["integrations.root--region"],
+    "scopes": ["integrations"]
+  }
+}

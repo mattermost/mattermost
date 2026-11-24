@@ -728,6 +728,7 @@ function TableEditor({
         <div
             className='table-editor'
             data-testid='table-editor'
+            data-surface='abac.table_editor--region'
         >
             <table className='table-editor__table'>
                 <thead>

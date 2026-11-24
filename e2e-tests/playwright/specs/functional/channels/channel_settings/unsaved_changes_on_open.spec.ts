@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, Msg, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that Channel Settings opens with no unsaved-changes warning and no channel name
@@ -22,18 +22,20 @@ test(
         await adminClient.patchChannel(channel.id, {purpose: paddedPurpose, header: paddedHeader});
         await adminClient.addToChannel(user.id, channel.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const surface = createSurface(page);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
         // # Open Channel Settings without touching any field
         const channelSettings = await channelsPage.openChannelSettings();
         const infoSettings = await channelSettings.openInfoTab();
+        const savePanel = surface.save_panel(channelSettings.container);
 
         // * Verify the stored text is shown as-is and the form does not report unsaved changes
         await expect(infoSettings.purposeInput).toHaveValue(paddedPurpose);
         await expect(infoSettings.headerInput).toHaveValue(paddedHeader);
-        await expect(infoSettings.saveChangesPanel).not.toBeVisible();
+        await savePanel.save.toBeHidden();
 
         // * Verify no channel name validation error is shown for the populated name field
         await expect(infoSettings.nameInput).toHaveValue(channel.display_name);
@@ -65,23 +67,25 @@ test(
         await adminClient.patchChannel(channel.id, {purpose: '  padded purpose  ', header: paddedHeader});
         await adminClient.addToChannel(user.id, channel.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const surface = createSurface(page);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
         // # Open Channel Settings and edit the purpose
         const channelSettings = await channelsPage.openChannelSettings();
         const infoSettings = await channelSettings.openInfoTab();
+        const savePanel = surface.save_panel(channelSettings.container);
         await infoSettings.updatePurpose('A brand new purpose');
 
         // * Verify the edit is recognised as an unsaved change
-        await expect(channelSettings.container.getByText('You have unsaved changes')).toBeVisible();
+        await expect(savePanel.message.locator).toContainText(Msg['saveChangesPanel.message']);
 
         // # Save the edit
-        await channelSettings.save();
+        await settle(savePanel.save, {wait: Api.PatchChannel, params: {channel_id: channel.id}}).click();
 
         // * Verify the save completes and the panel leaves the unsaved state
-        await expect(channelSettings.saveButton).not.toBeVisible();
+        await savePanel.save.toBeHidden();
 
         // # Close and reopen Channel Settings
         await channelSettings.close();
@@ -92,6 +96,6 @@ test(
         // * reopened form is clean
         await expect(reopenedInfo.purposeInput).toHaveValue('A brand new purpose');
         await expect(reopenedInfo.headerInput).toHaveValue(paddedHeader);
-        await expect(reopenedInfo.saveChangesPanel).not.toBeVisible();
+        await surface.save_panel(reopenedSettings.container).save.toBeHidden();
     },
 );

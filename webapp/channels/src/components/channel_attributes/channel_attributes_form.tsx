@@ -78,6 +78,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
         <div
             className='channel-attributes-form'
             data-testid='channelAttributesForm'
+            data-surface='channel_attributes.form--region'
         >
             <h4 className='channel-attributes-form__title'>
                 <FormattedMessage

@@ -35,7 +35,10 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
     );
 
     return (
-        <div className='admin-console-save'>
+        <div
+            className='admin-console-save'
+            data-surface='admin_save_panel'
+        >
             <SaveButton
                 saving={saving}
                 disabled={isDisabled || !saveNeeded}
@@ -48,6 +51,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                         asChild={true}
                         emphasis='tertiary'
                         id='cancelButtonSettings'
+                        data-surface='admin_save_panel.cancel--button'
                     >
                         <BlockableLink to={cancelLink}>
                             {cancelLabel}
@@ -56,6 +60,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                 ) : (
                     <Button
                         id='cancelButtonSettings'
+                        data-surface='admin_save_panel.cancel--button'
                         type='button'
                         emphasis='tertiary'
                         onClick={() => onCancel?.()}
@@ -67,6 +72,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             <div
                 className='error-message'
                 data-testid='saveChangesPanel-errorMessage'
+                data-surface='admin_save_panel.error--text'
             >
                 {serverError}
             </div>

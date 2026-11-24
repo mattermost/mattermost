@@ -270,6 +270,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             <div
                 className='admin-sidebar'
                 data-testid='admin-sidebar'
+                data-surface='admin.sidebar--region'
             >
                 <AdminSidebarHeader/>
                 <div className='filter-container'>

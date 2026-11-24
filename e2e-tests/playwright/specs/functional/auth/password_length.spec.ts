@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {createSurface, expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify Minimum password length rejects values outside 5-72 (or 14-72 on FIPS).
@@ -45,20 +45,22 @@ test('MM-T1772 applies a new minimum password length on signup', {tag: '@authent
 
     await pw.hasSeenLandingPage();
     await pw.signupPage.goto();
-    await pw.signupPage.toBeVisible();
-    await pw.signupPage.emailInput.fill(`test-${pw.random.id()}@example.com`);
-    await pw.signupPage.usernameInput.fill(`user${pw.random.id()}`);
+    const surface = createSurface(pw.signupPage.page);
+    const signup = surface.signup();
+    await signup.bodyCard.toBeVisible();
+    await signup.email.fill(`test-${pw.random.id()}@example.com`);
+    await signup.username.fill(`user${pw.random.id()}`);
     await pw.signupPage.termsAndPrivacyCheckBox.check();
 
     // # Submit a password that is too short
-    await pw.signupPage.passwordInput.fill('less');
-    await pw.signupPage.createAccountButton.click();
-    await expect(pw.signupPage.passwordLengthError).toBeVisible();
+    await signup.password.fill('less');
+    await signup.submit.click();
+    await expect(pw.signupPage.passwordLengthError).toHaveText('Your password must be 15-72 characters long.');
 
     // # Submit a password that meets the new minimum
-    await pw.signupPage.passwordInput.fill('GreaterThan15Chr!');
+    await signup.password.fill('GreaterThan15Chr!');
     await pw.signupPage.termsAndPrivacyCheckBox.check();
-    await pw.signupPage.createAccountButton.click();
+    await signup.submit.click();
 
     // * Verify signup succeeds
     await pw.selectTeamPage.toBeVisible();

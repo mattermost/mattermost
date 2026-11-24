@@ -13,7 +13,7 @@
  * channel, so tests use `adminClient.addToChannel()` to produce them.
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {Api, ChannelsPage, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
 
 test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
     /**
@@ -40,13 +40,13 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
         // # Open Channel Settings and navigate to Configuration tab
         const channelSettings = await channelsPage.openChannelSettings();
-        const configSettings = await channelSettings.openConfigurationTab();
+        await channelSettings.openConfigurationTab();
+        const surface = createSurface(page);
+        const settings = surface.channel_settings(channelSettings.container);
 
-        // * Toggle is visible
-        await expect(configSettings.joinLeaveMessagesToggle).toBeVisible();
-
-        // * Toggle defaults to ON (messages shown)
-        await expect(configSettings.joinLeaveMessagesToggle).toBeChecked();
+        // * Toggle is visible and defaults to ON (messages shown)
+        await settings.joinLeave.toBeVisible();
+        await expect(settings.joinLeave.locator).toBeChecked();
 
         await channelSettings.close();
     });
@@ -96,9 +96,13 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // # Open Channel Settings → Configuration tab and disable join/leave messages
             const channelSettings = await channelsPage.openChannelSettings();
-            const configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.disableJoinLeaveMessages();
-            await configSettings.save();
+            await channelSettings.openConfigurationTab();
+            const surface = createSurface(page);
+            await surface.channel_settings(channelSettings.container).joinLeave.uncheck();
+            await settle(surface.save_panel(channelSettings.container).save, {
+                wait: Api.PatchChannel,
+                params: {channel_id: channel.id},
+            }).click();
             await channelSettings.close();
 
             // * The join system post is no longer visible — wait for post-list re-fetch after ETag bust
@@ -208,9 +212,13 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await adminChannelsPage.toBeVisible();
 
             const channelSettings = await adminChannelsPage.openChannelSettings();
-            const configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.disableJoinLeaveMessages();
-            await configSettings.save();
+            await channelSettings.openConfigurationTab();
+            const surface = createSurface(adminPage);
+            await surface.channel_settings(channelSettings.container).joinLeave.uncheck();
+            await settle(surface.save_panel(channelSettings.container).save, {
+                wait: Api.PatchChannel,
+                params: {channel_id: channel.id},
+            }).click();
             await channelSettings.close();
 
             // * secondUser's view updates in real time — join post disappears without a page reload
@@ -251,10 +259,14 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await channelsPage.toBeVisible();
 
             // # Disable join/leave messages and save
+            const surface = createSurface(page);
             let channelSettings = await channelsPage.openChannelSettings();
-            let configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.disableJoinLeaveMessages();
-            await configSettings.save();
+            await channelSettings.openConfigurationTab();
+            await surface.channel_settings(channelSettings.container).joinLeave.uncheck();
+            await settle(surface.save_panel(channelSettings.container).save, {
+                wait: Api.PatchChannel,
+                params: {channel_id: channel.id},
+            }).click();
             await channelSettings.close();
 
             // * Join system post is hidden after disabling — wait for post-list re-fetch
@@ -264,9 +276,12 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // # Re-open Channel Settings → Configuration tab and re-enable join/leave messages
             channelSettings = await channelsPage.openChannelSettings();
-            configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.enableJoinLeaveMessages();
-            await configSettings.save();
+            await channelSettings.openConfigurationTab();
+            await surface.channel_settings(channelSettings.container).joinLeave.check();
+            await settle(surface.save_panel(channelSettings.container).save, {
+                wait: Api.PatchChannel,
+                params: {channel_id: channel.id},
+            }).click();
             await channelSettings.close();
 
             // * Join system post is visible again after re-enabling

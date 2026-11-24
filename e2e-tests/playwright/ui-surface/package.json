@@ -1,0 +1,18 @@
+{
+  "name": "@mattermost/ui-surface",
+  "version": "1.0.0",
+  "description": "Lean UI surface extractor, OpenAPI/i18n codegen, agent query CLI, and 3-layer Host-Plugin contract",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/scan.js",
+  "types": "dist/scan.d.ts",
+  "bin": {
+    "ui-surface": "./bin/ui-surface.mjs"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "tsc": "tsc -b",
+    "test": "node --test test/*.test.mjs",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  }
+}

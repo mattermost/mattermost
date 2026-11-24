@@ -715,6 +715,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             data-testid='signup-body-card'
+                            data-surface='signup.body_card--region'
                             className='signup-body-card-content'
                         >
                             <h2 className='signup-body-card-title'>
@@ -744,6 +745,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 <form className='signup-body-card-form'>
                                     <Input
                                         ref={emailInput}
+                                        data-surface='signup.email--textbox'
                                         name='email'
                                         className='signup-body-card-form-email-input'
                                         type='text'
@@ -760,6 +762,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     />
                                     <Input
                                         ref={nameInput}
+                                        data-surface='signup.username--textbox'
                                         name='name'
                                         className='signup-body-card-form-name-input'
                                         type='text'
@@ -776,6 +779,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     />
                                     <PasswordInput
                                         ref={passwordInput}
+                                        data-surface='signup.password--textbox'
                                         className='signup-body-card-form-password-input'
                                         value={password}
                                         inputSize={SIZE.LARGE}
@@ -815,6 +819,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         checked={acceptedTerms}
                                     />
                                     <SaveButton
+                                        data-surface='signup.submit--button'
                                         extraClasses='signup-body-card-form-button-submit large'
                                         saving={isWaiting}
                                         disabled={!canSubmit}

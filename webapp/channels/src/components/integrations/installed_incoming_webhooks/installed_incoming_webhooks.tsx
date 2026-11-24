@@ -129,7 +129,8 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
 
     render() {
         return (
-            <BackstageList
+            <div data-surface='integrations.incoming_webhooks--region'>
+                <BackstageList
                 header={
                     <FormattedMessage
                         id='installed_incoming_webhooks.header'
@@ -202,7 +203,8 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                     const children = this.incomingWebhooks(filter);
                     return [children, children.length > 0];
                 }}
-            </BackstageList>
+                </BackstageList>
+            </div>
         );
     }
 }

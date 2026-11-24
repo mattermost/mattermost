@@ -61,6 +61,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, chan
         <div
             className={classNames('ChannelsResourceRow', {'ChannelsResourceRow--open': expanded})}
             data-testid='channelsResourceRow'
+            data-surface='global_attributes.channels_row--region'
         >
             <div className='ChannelsResourceRow__header'>
                 <button

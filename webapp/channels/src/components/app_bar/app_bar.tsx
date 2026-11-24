@@ -99,6 +99,7 @@ export default function AppBar() {
         <div
             className={'app-bar'}
             data-testid='app-bar'
+            data-surface='app_bar.root--region'
         >
             <div className={'app-bar__top'}>
                 {items}

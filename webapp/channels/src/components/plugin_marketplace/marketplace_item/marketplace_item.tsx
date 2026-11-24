@@ -191,6 +191,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
                     className={classNames('more-modal__row', 'more-modal__row--link', {item_error: this.props.error})}
                     key={this.props.id}
                     id={'marketplace-plugin-' + this.props.id}
+                    data-surface={`marketplace_modal.plugin:${this.props.id}--region`}
                 >
                     {icon}
                     <div className='more-modal__details'>

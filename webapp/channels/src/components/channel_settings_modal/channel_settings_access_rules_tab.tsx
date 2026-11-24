@@ -720,7 +720,10 @@ function ChannelSettingsAccessRulesTab({
     const accessRulesSubtitle = formatMessage(subtitleMessages[channelKind]);
 
     return (
-        <div className='ChannelSettingsModal__accessRulesTab'>
+        <div
+            className='ChannelSettingsModal__accessRulesTab'
+            data-surface='channel_settings.access_rules--region'
+        >
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             {/* Display system policies indicator if any are applied */}
             {!policiesLoading && systemPolicies.length > 0 && (

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {Api, createSurface, settle, test, toHavePath} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that users can navigate through threads list using keyboard arrow keys
@@ -12,21 +12,26 @@ test('Should be able to change threads with arrow keys', {tag: ['@smoke']}, asyn
     const {team, user} = await pw.initSetup();
 
     const {channelsPage, page, threadsPage} = await pw.testBrowser.login(user);
+    const surface = createSurface(page);
 
     await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    await surface.center().composer.toBeVisible();
 
     // # Start some threads, and leave a draft in one of them
-    await channelsPage.centerView.postCreate.postMessage('aaa');
+    const centerSend = surface.center(surface.center().composer.locator).send;
+    await channelsPage.centerView.postCreate.writeMessage('aaa');
+    await settle(centerSend, {wait: Api.CreatePost}).click();
     await (await channelsPage.getLastPost()).openAThread();
     await channelsPage.sidebarRight.postMessage('aaa reply');
 
-    await channelsPage.centerView.postCreate.postMessage('bbb');
+    await channelsPage.centerView.postCreate.writeMessage('bbb');
+    await settle(centerSend, {wait: Api.CreatePost}).click();
     await (await channelsPage.getLastPost()).openAThread();
     await channelsPage.sidebarRight.postMessage('bbb reply');
     await channelsPage.sidebarRight.postCreate.writeMessage('bbb second reply');
 
-    await channelsPage.centerView.postCreate.postMessage('ccc');
+    await channelsPage.centerView.postCreate.writeMessage('ccc');
+    await settle(centerSend, {wait: Api.CreatePost}).click();
     await (await channelsPage.getLastPost()).openAThread();
     await channelsPage.sidebarRight.postMessage('ccc reply');
 
@@ -35,7 +40,8 @@ test('Should be able to change threads with arrow keys', {tag: ['@smoke']}, asyn
 
     // # Switch to the threads list
     await threadsPage.goto(team.name);
-    await threadsPage.toBeVisible();
+    await toHavePath(page, surface.pages.threads.pathFor({team: team.name}));
+    await surface.threads().feed.toBeVisible();
 
     // * Ensure no thread starts selected
     await threadsPage.toNotHaveThreadSelected();

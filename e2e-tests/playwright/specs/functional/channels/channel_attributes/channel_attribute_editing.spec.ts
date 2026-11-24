@@ -6,7 +6,7 @@ import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {createSurface, expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_LABEL_HEADER,
@@ -72,12 +72,14 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, note, 'first draft');
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
+            const {channelsPage, page} = await pw.testBrowser.login(channelAdmin);
+            const surface = createSurface(page);
             await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            await surface.center().composer.toBeVisible();
 
             // # Replace the existing value and commit with Enter
             const info = await channelsPage.openChannelInfo();
+            await surface.channel_attributes(info.container).form.toBeVisible();
             await expect(info.attributes.chip(note.name)).toHaveText('first draft');
             await info.attributes.setText(note.name, 'second draft', 'enter');
 

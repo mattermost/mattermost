@@ -367,6 +367,7 @@ class ChannelHeader extends React.PureComponent<Props> {
         return (
             <div
                 id='channel-header'
+                data-surface='channel_header.root--region'
                 aria-label={ariaLabelChannelHeader}
                 role='banner'
                 tabIndex={-1}

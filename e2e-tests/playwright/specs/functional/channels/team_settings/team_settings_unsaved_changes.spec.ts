@@ -6,7 +6,7 @@
  * @reference MM-67920
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {Api, ChannelsPage, createSurface, expect, Msg, settle, test} from '@mattermost/playwright-lib';
 
 test.describe('Team Settings Modal - Unsaved Changes', () => {
     /**
@@ -25,6 +25,8 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
 
         // # Open Team Settings Modal
         const teamSettings = await channelsPage.openTeamSettings();
+        const surface = createSurface(page);
+        const savePanel = surface.save_panel(teamSettings.container);
 
         // # Edit team name to create unsaved changes
         const newTeamName = `Modified Team ${pw.random.id()}`;
@@ -34,10 +36,10 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
         await teamSettings.close();
 
         // * Verify "You have unsaved changes" warning appears
-        await teamSettings.verifyUnsavedChanges();
+        await expect(savePanel.message.locator).toContainText(Msg['saveChangesPanel.message']);
 
         // * Verify Save button is visible
-        await expect(teamSettings.saveButton).toBeVisible();
+        await savePanel.save.toBeVisible();
 
         // * Verify modal is still open
         await expect(teamSettings.container).toBeVisible();
@@ -65,6 +67,8 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
 
         // # Open Team Settings Modal
         const teamSettings = await channelsPage.openTeamSettings();
+        const surface = createSurface(page);
+        const savePanel = surface.save_panel(teamSettings.container);
 
         // * Verify Access tab is visible (admin has INVITE_USER permission)
         await expect(teamSettings.accessTab).toBeVisible();
@@ -77,13 +81,13 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
         await teamSettings.openAccessTab();
 
         // * Verify "You have unsaved changes" error appears
-        await teamSettings.verifyUnsavedChanges();
+        await expect(savePanel.message.locator).toContainText(Msg['saveChangesPanel.message']);
 
         // * Verify still on Info tab
         await expect(teamSettings.infoTab).toHaveAttribute('aria-selected', 'true');
 
         // # Click Undo button
-        await teamSettings.undo();
+        await savePanel.cancel.click();
 
         // * Verify can now switch to Access tab
         await teamSettings.openAccessTab();
@@ -106,16 +110,18 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
 
         // # Open Team Settings Modal
         const teamSettings = await channelsPage.openTeamSettings();
+        const surface = createSurface(page);
+        const savePanel = surface.save_panel(teamSettings.container);
 
         // # Edit team name
         const newTeamName = `Updated Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
-        // # Save changes
-        await teamSettings.save();
+        // # Save changes and wait for PatchTeam API
+        await settle(savePanel.save, {wait: Api.PatchTeam, params: {team_id: team.id}}).click();
 
         // * Wait for "Settings saved" message
-        await teamSettings.verifySavedMessage();
+        await expect(savePanel.message.locator).toContainText(Msg['saveChangesPanel.saved']);
 
         // * Verify team name updated via API
         const updatedTeam = await adminClient.getTeam(team.id);

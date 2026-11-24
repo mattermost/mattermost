@@ -15,6 +15,7 @@ export default function DraftsAndSchedulePostsPageHeader(props: Props) {
     return (
         <div
             id='app-content'
+            data-surface='drafts.header--region'
             className='Drafts app__content'
         >
             <Header

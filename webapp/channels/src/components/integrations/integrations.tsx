@@ -252,7 +252,10 @@ export default class Integrations extends React.PureComponent <Props> {
         );
 
         return (
-            <div className='backstage-content row'>
+            <div
+                className='backstage-content row'
+                data-surface='integrations.root--region'
+            >
                 <div className='backstage-header'>
                     <h1>
                         <FormattedMessage

@@ -116,6 +116,7 @@ function SaveChangesPanel({
             <div className='SaveChangesPanel__btn-ctr'>
                 <Button
                     data-testid='SaveChangesPanel__cancel-btn'
+                    data-surface='save_panel.cancel--button'
                     emphasis='tertiary'
                     size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
@@ -131,6 +132,7 @@ function SaveChangesPanel({
                 </Button>
                 <Button
                     data-testid='SaveChangesPanel__save-btn'
+                    data-surface='save_panel.save--button'
                     emphasis='primary'
                     size='small'
                     className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
@@ -155,8 +157,14 @@ function SaveChangesPanel({
     };
 
     return (
-        <div className={panelClassName}>
-            <p className={messageClassName}>
+        <div
+            className={panelClassName}
+            data-surface='save_panel'
+        >
+            <p
+                className={messageClassName}
+                data-surface='save_panel.message--text'
+            >
                 <AlertCircleOutlineIcon
                     size={18}
                     color={'currentcolor'}

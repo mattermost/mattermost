@@ -106,6 +106,7 @@ const AppBarPluginComponent = ({
         >
             <div
                 id={buttonId}
+                data-surface={`app_bar.plugin:${component.pluginId}--button`}
                 className={classNames('app-bar__icon', {'app-bar__icon--active': isButtonActive})}
                 onClick={() => {
                     if ('rhsComponentId' in component) {

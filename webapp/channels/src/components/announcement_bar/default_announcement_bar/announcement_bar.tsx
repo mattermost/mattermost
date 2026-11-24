@@ -242,6 +242,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 // eslint-disable-next-line react/no-unknown-property
                 css={{gridArea: 'announcement'}}
                 data-testid={this.props.id}
+                data-surface='announcement_bar.root--region'
             >
                 {barContent}
                 {closeButton}

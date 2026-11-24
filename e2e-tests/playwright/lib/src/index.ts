@@ -184,3 +184,5 @@ export {
     verifyUserNotInChannel,
     updateUserAttributes,
 } from './server';
+
+export * from './surface';

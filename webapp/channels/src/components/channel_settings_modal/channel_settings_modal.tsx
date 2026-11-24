@@ -546,7 +546,10 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
             modalLocation={'top'}
             enforceFocus={false}
         >
-            <div className='ChannelSettingsModal__bodyWrapper'>
+            <div
+                className='ChannelSettingsModal__bodyWrapper'
+                data-surface='channel_settings'
+            >
                 {renderModalBody()}
             </div>
         </GenericModal>

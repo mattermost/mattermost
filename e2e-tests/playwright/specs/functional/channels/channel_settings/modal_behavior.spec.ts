@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {createSurface, expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that releasing a mouse drag that started inside a modal but ends outside it does not
@@ -10,12 +10,14 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T841 keeps a modal open when a drag is released outside it', {tag: '@channel_settings'}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);
+    const surface = createSurface(page);
     await channelsPage.goto(team.name, 'off-topic');
     await channelsPage.toBeVisible();
 
     // # Open the Channel Settings modal
     const channelSettings = await channelsPage.openChannelSettings();
     const modal = channelSettings.container;
+    await surface.channel_settings(modal).info.toBeVisible();
 
     // # Press the mouse down inside the modal, drag to outside the modal, then release
     const box = await modal.boundingBox();
@@ -69,6 +71,7 @@ test(
         const cancelledChannel = `AB ${pw.random.id()}`;
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.displayNameInput.fill(cancelledChannel);
+        await expect(newChannelModal.displayNameInput).toHaveValue(cancelledChannel);
         await newChannelModal.cancel();
 
         // * Verify the modal is closed and the cancelled channel was never created or joined

@@ -867,7 +867,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {fields, header} = this.props.form;
 
         return (
-            <form onSubmit={this.handleSubmit}>
+            <form
+                onSubmit={this.handleSubmit}
+                data-surface='apps_form.root--region'
+            >
                 <div>
                     {this.renderHeader()}
                 </div>
