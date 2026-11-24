@@ -996,10 +996,13 @@ class MainTest(unittest.TestCase):
         gc.place_missing_with_ai = lambda notes: ("", True)
         gc.main()  # PR #1 is recorded, so it isn't sent again: the list must still name its note
         self.assertIn("- [ ] `mattermost/mattermost#1`: Second note of PR 1.", (self.out / "pr_body.md").read_text())
+        self.assertEqual([(n["source"], n["excerpt"], n["recorded"]) for n in self._payload()["readiness"]["not_placed"]],
+                         [("mattermost/mattermost#1", "Second note of PR 1.", True)])
         body.write_text((self.out / "pr_body.md").read_text().replace("- [ ] `mattermost", "- [x] `mattermost"))
         gc.main()  # a reviewer added it by hand and ticked it
         self.assertNotIn("Second note of PR 1", (self.out / "pr_body.md").read_text())
         self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
+        self.assertEqual(self._payload()["readiness"]["not_placed"], [])
 
     def test_update_drops_a_listed_note_once_a_later_run_places_it(self):
         self.changelog.write_text(ENTRY_V12_1)

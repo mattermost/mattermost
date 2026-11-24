@@ -1258,6 +1258,18 @@ _NOT_PLACED_RE = re.compile(r"\n*<!-- changelog-not-placed -->.*?<!-- /changelog
 _NOT_PLACED_ITEM_RE = re.compile(r"^- (?:\[( |x|X)\] )?`([^`]+)`: (.*)$")
 
 
+def carried_not_placed(body: str, recorded: set | frozenset, sent: set | frozenset) -> list[tuple[str, str]]:
+    """The unticked (source, excerpt) items on a body's not-placed list that stay on it: their
+    PR is recorded, so no run sends the note again, and it wasn't sent this run."""
+    block = _NOT_PLACED_RE.search(body)
+    carried = []
+    for line in (block.group(0).splitlines() if block else []):
+        match = _NOT_PLACED_ITEM_RE.match(line.strip())
+        if match and match.group(1) in (None, " ") and match.group(2) in recorded and match.group(2) not in sent:
+            carried.append((match.group(2), match.group(3)))
+    return carried
+
+
 def render_not_placed(body: str, dropped: list[dict], recorded: set | frozenset = frozenset(),
                       sent: set | frozenset = frozenset()) -> str:
     """Write the notes the model left out into a PR body for a reviewer, as a task list.
@@ -1269,12 +1281,7 @@ def render_not_placed(body: str, dropped: list[dict], recorded: set | frozenset 
     A PR whose notes were sent this run (``sent``) is never carried: its notes were either
     placed, and so are off the list, or dropped again, and so are in ``dropped``.
     """
-    carried = []
-    block = _NOT_PLACED_RE.search(body)
-    for line in (block.group(0).splitlines() if block else []):
-        match = _NOT_PLACED_ITEM_RE.match(line.strip())
-        if match and match.group(1) in (None, " ") and match.group(2) in recorded and match.group(2) not in sent:
-            carried.append((match.group(2), match.group(3)))
+    carried = carried_not_placed(body, recorded, sent)
     body = _NOT_PLACED_RE.sub("\n\n", body).rstrip() + "\n"
     entries = [(note["source"], " ".join(note["text"].split())[:160].replace("`", "'")) for note in dropped]
     entries += [entry for entry in carried if entry not in entries]
@@ -2892,6 +2899,11 @@ def main():
          "recorded": note["source"] in recorded_now}
         for note in dropped_notes(all_notes, referenced)
     ] if ai_polished else []
+    # Still missing until a reviewer ticks it, though no run sends it again.
+    not_placed += [
+        {"source": source, "id": None, "excerpt": excerpt, "recorded": True}
+        for source, excerpt in carried_not_placed(pr_body, included, set(sources_by_id.values()))
+    ]
     for note in not_placed:
         print(f"::warning title=Release note not placed::{note['source']}: the model left this note out of the changelog")
     readiness["not_placed"] = not_placed

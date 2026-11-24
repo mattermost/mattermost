@@ -1077,6 +1077,11 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("if: ${{ !cancelled() && steps.labelToken.outcome == 'success' }}", label_step[:200])
         self.assertIn("GH_TOKEN: ${{ steps.labelToken.outputs.token }}", label_step[:400])
 
+    def test_a_failed_suggestion_step_never_fails_the_published_run(self):
+        step = self.text[self.text.index("- name: Suggest rewrites for weak notes"):]
+        step = step[:step.index("\n      - name: ")]
+        self.assertIn("\n        continue-on-error: true\n", step)
+
     def test_merge_on_release_holds_no_secret_and_starts_the_merge_on_master(self):
         job = workflow_jobs(self.text)["merge-on-release"]
         self.assertNotIn("secrets.", job)

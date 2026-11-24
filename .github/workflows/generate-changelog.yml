@@ -505,8 +505,11 @@ jobs:
       # A review comment with a suggestion block on each weak bullet, once per bullet.
       # Comments only: the changelog text is never edited. The counts of suggestions
       # accepted, dismissed and pending go into sections.json's metrics.
+      # Optional: a failure here must not fail the run, or Release Day, which reads only
+      # successful runs' reports, would read an older report than the one just published.
       - name: Suggest rewrites for weak notes
         if: ${{ !cancelled() && steps.publish.outcome == 'success' && needs.resolve.outputs.mode == 'auto' && (steps.publish.outputs.number != '' || steps.pr.outputs.number != '') }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
           SOURCE_TOKEN: ${{ steps.readToken.outputs.token }} # reads the source PRs; only this repo's get a rewrite
