@@ -65,7 +65,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await expect(modal.createButton).toBeDisabled();
 
             await page.getByTestId(`channelAttribute-${required.name}`).click();
-            await page.getByText('ALPHA', {exact: true}).click();
+            await page.getByTestId('dropdownMenu').getByText('ALPHA', {exact: true}).click();
 
             await expect(modal.createButton).toBeEnabled();
             await modal.create();
