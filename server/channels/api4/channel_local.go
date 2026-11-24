@@ -37,18 +37,37 @@ func (api *API) InitChannelLocal() {
 }
 
 func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	var channel *model.Channel
-	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil || channel == nil {
+	var req *model.ChannelCreateRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req == nil {
 		c.SetInvalidParamWithErr("channel", err)
+		return
+	}
+	channel := &req.Channel
+
+	if channel.IsBoard() {
+		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
+		return
+	}
+
+	if channel.IsSpace() {
+		c.SetInvalidParamWithDetails("type", "cannot create space channels via /channels endpoint")
 		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
+	// Count only: the values themselves can be markings.
+	model.AddEventParameterToAuditRec(auditRec, "property_value_count", len(req.PropertyValues))
 
-	sc, appErr := c.App.CreateChannel(c.AppContext, channel, false)
+	propertyValues, appErr := channelAttributeValuesForCreate(c, channel, c.App.Channels().License(), req.PropertyValues)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	sc, appErr := c.App.CreateChannel(c.AppContext, channel, false, propertyValues...)
 	if appErr != nil {
 		c.Err = appErr
 		return
