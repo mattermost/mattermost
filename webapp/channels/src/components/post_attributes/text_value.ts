@@ -67,14 +67,20 @@ export function limitTextValue(text: string): string {
 
 // `model.IsValidEmail` takes only a bare `local@domain` that Go's `net/mail`
 // parses back unchanged: both halves dot-atoms, so no spaces, specials, or
-// empty or doubled dots.
+// empty or doubled dots. The domain may also be a bracketed IPv4 address.
 const ATOM = '[^\\x00-\\x20\\x7f()<>\\[\\]:;@\\\\,".]+';
 const DOT_ATOM = `${ATOM}(?:\\.${ATOM})*`;
-const EMAIL_PATTERN = new RegExp(`^${DOT_ATOM}@${DOT_ATOM}$`);
+const IPV4_OCTET = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)';
+const IPV4_LITERAL = `\\[(?:${IPV4_OCTET}\\.){3}${IPV4_OCTET}\\]`;
+const EMAIL_PATTERN = new RegExp(`^${DOT_ATOM}@(?:${DOT_ATOM}|${IPV4_LITERAL})$`);
 
 // `new URL` repairs `https:example.com` into a URL with a host, which Go's
 // `url.ParseRequestURI` does not, so the `//` is required up front.
 const URL_PREFIX_PATTERN = /^[a-z][a-z\d+.-]*:\/\//i;
+
+// Go accepts an IPv6 zone in the host (`[fe80::1%25eth0]`), which `new URL`
+// refuses, so the zone is dropped before the check.
+const IPV6_ZONE_PATTERN = /^([a-z][a-z\d+.-]*:\/\/[^/?#]*\[[\da-f:.]+)%25[\w.~-]+\]/i;
 
 function isValidUrl(text: string): boolean {
     if (!URL_PREFIX_PATTERN.test(text)) {
@@ -82,7 +88,7 @@ function isValidUrl(text: string): boolean {
     }
 
     try {
-        return new URL(text).host !== '';
+        return new URL(text.replace(IPV6_ZONE_PATTERN, '$1]')).host !== '';
     } catch {
         return false;
     }

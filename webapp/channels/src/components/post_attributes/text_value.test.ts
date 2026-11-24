@@ -71,6 +71,8 @@ describe('validateTextValue', () => {
         'first.last+tag@sub.example.co',
         "o'brien@x.com",
         'josé@bücher.de',
+        'user@[192.168.1.10]',
+        'user@[0.0.0.0]',
     ])('email: accepts %j, as the server does', (value) => {
         expect(validateTextValue(textField('email'), value)).toBeUndefined();
     });
@@ -85,6 +87,11 @@ describe('validateTextValue', () => {
         'foo@bar..com',
         'a@b.com, c@d.com',
         'a@@b.com',
+        'user@[256.1.1.1]',
+        'user@[010.0.0.1]',
+        'user@[1.2.3]',
+        'user@[IPv6:2001:db8::1]',
+        'user@[foo]',
     ])('email: refuses %j, as the server does', (value) => {
         expect(validateTextValue(textField('email'), value)?.id).toBe('post_attributes.text_value.invalid_email');
     });
@@ -97,6 +104,9 @@ describe('validateTextValue', () => {
         'https://example.com/path',
         'ftp://files.example.com',
         'http://localhost:8065',
+        'http://[::1]:8065/',
+        'http://[fe80::1%25eth0]/',
+        'http://user@[fe80::1%25en0]:8080/path',
     ])('url: accepts %j, as the server does', (value) => {
         expect(validateTextValue(textField('url'), value)).toBeUndefined();
     });
@@ -110,6 +120,9 @@ describe('validateTextValue', () => {
         'example.com',
         'file:///etc/hosts',
         'mailto:a@b.com',
+        'http://[fe80::1%25]/',
+        'http://[fe80::1%eth0]/',
+        'http://[abc]/',
     ])('url: refuses %j, as the server does', (value) => {
         expect(validateTextValue(textField('url'), value)?.id).toBe('post_attributes.text_value.invalid_url');
     });
