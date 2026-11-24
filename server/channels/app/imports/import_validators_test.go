@@ -1914,9 +1914,9 @@ func TestValidateGuestRoles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := validateGuestRoles(tc.input)
 			if tc.expectError {
-				assert.NotNil(t, err, tc.name)
+				assert.Error(t, err, tc.name)
 			} else {
-				assert.Nil(t, err, tc.name)
+				assert.NoError(t, err, tc.name)
 			}
 		})
 	}

@@ -1808,7 +1808,7 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.EnableWebhookDebugging == nil {
-		s.EnableWebhookDebugging = new(true)
+		s.EnableWebhookDebugging = new(false)
 	}
 
 	if s.EnableDiagnostics == nil {
@@ -2425,6 +2425,16 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.EmailNotificationContentsType == nil {
 		s.EmailNotificationContentsType = new(EmailNotificationContentsFull)
 	}
+}
+
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
+// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+func (s *EmailSettings) IsSMTPConfigured() bool {
+	server := SafeDereference(s.SMTPServer)
+	if server == "" {
+		return false
+	}
+	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
 }
 
 type RateLimitSettings struct {

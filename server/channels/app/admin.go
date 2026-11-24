@@ -4,7 +4,7 @@
 package app
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
 	"maps"
@@ -20,14 +20,23 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
-	Size: 1,
+	Size: 2,
 })
 
-// LatestVersionURL is the GitHub endpoint for the latest server release.
-const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
+const (
+	latestVersionCacheKey        = "latest_version_cache"
+	latestVersionFailureCacheKey = "latest_version_failure_cache"
+	// latestVersionFailureExpiry spaces out retries from servers that cannot reach GitHub, which
+	// also keeps servers behind a shared IP under its unauthenticated rate limit.
+	latestVersionFailureExpiry = 6 * time.Hour
+)
+
+// testSiteURLTimeout matches how long the webapp waits for the Site URL test before giving up.
+var testSiteURLTimeout = 10 * time.Second
 
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
@@ -199,14 +208,20 @@ func (a *App) RecycleDatabaseConnection(rctx request.CTX) {
 
 func (a *App) TestSiteURL(rctx request.CTX, siteURL string) *model.AppError {
 	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
-	res, err := http.Get(url)
-	if err != nil || res.StatusCode != 200 {
-		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
+	client := &http.Client{Timeout: testSiteURLTimeout}
+	res, err := client.Get(url)
+	if err != nil {
+		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	defer func() {
-		_, _ = io.Copy(io.Discard, res.Body)
+
+	// A non-200 body is closed without draining so a stalled body can't delay the error until the timeout.
+	if res.StatusCode != http.StatusOK {
 		_ = res.Body.Close()
-	}()
+		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, fmt.Sprintf("status_code=%d", res.StatusCode), http.StatusBadRequest)
+	}
+
+	_, _ = io.Copy(io.Discard, res.Body)
+	_ = res.Body.Close()
 
 	return nil
 }
@@ -242,41 +257,38 @@ func (a *App) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *mod
 	return nil
 }
 
+// GetLatestVersion fetches the latest release from latestVersionUrl. It makes no request while
+// ServiceSettings.EnableSecurityFixAlert is off, the setting that stops the server contacting
+// external services for update information.
 func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableSecurityFixAlert {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.get_latest_version.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	var cachedLatestVersion *model.GithubReleaseInfo
-	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get(latestVersionCacheKey, &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
 	}
 
-	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
+	var cachedFailure string
+	if cacheErr := latestVersionCache.Get(latestVersionFailureCacheKey, &cachedFailure); cacheErr == nil {
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, cachedFailure, http.StatusInternalServerError)
+	}
+
+	ctx, cancel := context.WithTimeout(rctx.Context(), 10*time.Second)
+	defer cancel()
+	releaseInfoResponse, err := releases.FetchLatest(ctx, latestVersionUrl)
 	if err != nil {
+		// A cancelled request says nothing about whether the feed is reachable.
+		if rctx.Context().Err() == nil {
+			if cacheErr := latestVersionCache.SetWithExpiry(latestVersionFailureCacheKey, err.Error(), latestVersionFailureExpiry); cacheErr != nil {
+				rctx.Logger().Warn("Failed to cache the latest version failure", mlog.Err(cacheErr))
+			}
+		}
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	defer res.Body.Close()
-
-	responseData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	var releaseInfoResponse *model.GithubReleaseInfo
-	err = json.Unmarshal(responseData, &releaseInfoResponse)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
-	}
-
-	err = latestVersionCache.SetWithExpiry("latest_version_cache", releaseInfoResponse, 24*time.Hour)
+	err = latestVersionCache.SetWithExpiry(latestVersionCacheKey, releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -285,5 +297,17 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 }
 
 func (a *App) clearLatestVersionCache() error {
-	return latestVersionCache.Remove("latest_version_cache")
+	return latestVersionCache.Purge()
+}
+
+// clearLatestVersionCacheOnFlip drops a cached release or failure when EnableSecurityFixAlert is
+// toggled, so an admin who fixed the server's network access can retry by toggling it.
+func (ch *Channels) clearLatestVersionCacheOnFlip(prevCfg, cfg *model.Config) {
+	if *prevCfg.ServiceSettings.EnableSecurityFixAlert == *cfg.ServiceSettings.EnableSecurityFixAlert {
+		return
+	}
+
+	if err := latestVersionCache.Purge(); err != nil {
+		ch.srv.Log().Warn("Failed to clear the latest version cache", mlog.Err(err))
+	}
 }

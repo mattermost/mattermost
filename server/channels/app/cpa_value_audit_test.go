@@ -383,3 +383,47 @@ func TestCPAValueChangeAuditForChannelValues(t *testing.T) {
 		require.False(t, auditMetaHasKey(t, rec, "new_value"))
 	})
 }
+
+// Post values live in access_control, so a change to one reaches the same content-level audit sink
+// as a channel value: post fields are not exempt from the audit hook.
+func TestCPAValueChangeAuditForPostValues(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	// LicenseCheckHook gates access_control writes on an Enterprise license.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	capture := startPluginAuditCapture(t, th)
+
+	rctx := RequestContextWithCallerID(request.TestContext(t), th.BasicUser.Id)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+
+	field, fieldErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       "post_attr_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypePost,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, fieldErr)
+
+	before := len(capture.recordsFor(model.AuditEventCPAValueChange))
+	_, upsertErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+		TargetID:   th.BasicPost.Id,
+		TargetType: model.PropertyValueTargetTypePost,
+		GroupID:    cpaGroup.ID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`"AURORA"`),
+	}}, model.PropertyValueTargetTypePost, th.BasicPost.Id, "")
+	require.Nil(t, upsertErr)
+
+	records := capture.recordsFor(model.AuditEventCPAValueChange)
+	require.Len(t, records, before+1, "expected exactly one new %s record", model.AuditEventCPAValueChange)
+	rec := records[len(records)-1]
+
+	require.Equal(t, model.AuditStatusSuccess, rec[model.AuditKeyStatus])
+	require.Equal(t, model.AccessControlPropertyGroupName, auditMeta(t, rec, "group"))
+	require.Equal(t, properties.ValueAuditActionUpsert, auditMeta(t, rec, "action"))
+	require.Equal(t, model.PropertyValueTargetTypePost, auditMeta(t, rec, "target_type"))
+	require.Equal(t, th.BasicPost.Id, auditMeta(t, rec, "target_id"))
+	require.Equal(t, field.ID, auditMeta(t, rec, "field_id"))
+	require.Equal(t, `"AURORA"`, auditMeta(t, rec, "new_value"))
+}

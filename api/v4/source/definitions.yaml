@@ -786,6 +786,99 @@ components:
           description: >
             Set to empty string to unlink a linked field. Cannot be set to a new
             value on an existing field; linking is only allowed at creation time.
+    ChannelAttributeAdmin:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        nickname:
+          type: string
+    ChannelMissingAttributeValue:
+      type: object
+      properties:
+        channel_id:
+          type: string
+        channel_name:
+          type: string
+        channel_display_name:
+          type: string
+        channel_type:
+          type: string
+        team_id:
+          type: string
+        team_display_name:
+          type: string
+        is_local:
+          type: boolean
+          description: False for shared channels, which do not block making the attribute required.
+        channel_admins:
+          type: array
+          description: Empty when the channel has no channel admin.
+          items:
+            $ref: "#/components/schemas/ChannelAttributeAdmin"
+    ChannelsMissingAttributeValueList:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelMissingAttributeValue"
+        total_count:
+          type: integer
+          format: int64
+    ChannelAttributeComplianceSummary:
+      type: object
+      properties:
+        field_id:
+          type: string
+        required:
+          type: boolean
+        missing_channel_count:
+          type: integer
+          format: int64
+        shared_channel_count:
+          type: integer
+          format: int64
+        unique_admin_count:
+          type: integer
+          format: int64
+        channels_without_admin_count:
+          type: integer
+          format: int64
+        message_preview:
+          type: string
+          description: The message channel admins would receive, as Markdown, without the list of their own channels that follows it in the direct message.
+        notify_cooldown_ms:
+          type: integer
+          format: int64
+          description: Milliseconds until notifying the channel admins about this attribute is accepted again. 0 when it is accepted now, and always 0 in create mode.
+    ChannelAttributeNotifyResult:
+      type: object
+      description: >
+        Returned when the notification is accepted. Direct messages are
+        delivered in the background after the response, so the counts describe
+        who was queued to receive a message, not who has received one.
+      properties:
+        queued_admin_count:
+          type: integer
+          format: int64
+          description: The number of channel admins queued to receive a direct message.
+        queued_channel_count:
+          type: integer
+          format: int64
+          description: The number of channels with an admin that are covered by the queued messages.
+        channels_without_admin_count:
+          type: integer
+          format: int64
+        truncated:
+          type: boolean
+          description: True when the number of channel admins to notify hit the server's limit, so some were not queued.
     PropertyValue:
       type: object
       properties:
@@ -2319,6 +2412,45 @@ components:
           properties:
             MaxUsersForStatistics:
               type: integer
+    ConfigHistoryEntry:
+      type: object
+      description: A configuration saved by the server
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds the configuration was saved
+          type: integer
+          format: int64
+        active:
+          description: Whether this is the configuration the server is using
+          type: boolean
+        unreadable:
+          description: >
+            Whether the saved configuration can't be loaded, such as one that
+            isn't valid JSON. It can't be retrieved or rolled back to.
+          type: boolean
+        changes:
+          description: >
+            The settings that changed from the configuration saved before this
+            one, or null when they aren't known: for the oldest saved
+            configuration, for an unreadable one, and for one saved right after
+            an unreadable one
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/ConfigChange"
+    ConfigChange:
+      type: object
+      description: A setting whose value differs between two configurations
+      properties:
+        path:
+          description: The setting, such as `ServiceSettings.SiteURL`
+          type: string
+        old_value:
+          description: The previous value, or asterisks for a sensitive setting
+        new_value:
+          description: The new value, or asterisks for a sensitive setting
     EnvironmentConfig:
       type: object
       properties:
@@ -5079,8 +5211,7 @@ components:
           items:
             type: string
           description: |
-            Permission actions to simulate (e.g. `upload_file_attachment`,
-            `download_file_attachment`). At least one action is required —
+            Permission actions to simulate. At least one action is required —
             the picker UX only makes sense once an action is in scope. The
             backend rejects empty arrays with `app.pap.simulate.missing_actions`
             (HTTP 400); `minItems` lets OpenAPI tooling catch that earlier
@@ -5930,7 +6061,11 @@ components:
             Actions to evaluate, at most 16. Leave empty or omit for discovery
             mode, which returns the permitted set of all registered actions for
             the resource type. An unregistered action returns 400, including
-            `create_burn_on_read_post` on servers earlier than 12.1.
+            `create_burn_on_read_post` on servers earlier than 12.1. Actions
+            whose enforcement is inactive (a disabled feature flag,
+            attribute-based access control turned off, or an insufficient
+            license) are still accepted and are answered with their inactive
+            default, which is allowed, in both targeted and discovery mode.
           maxItems: 16
           items:
             type: string
@@ -6115,6 +6250,157 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the scheduled recap was soft-deleted (0 if not deleted)
+    PostEntity:
+      type: object
+      description: One detected entity occurrence in a post message
+      properties:
+        id:
+          type: string
+          description: Occurrence id (`start:end` UTF-16 offsets)
+        start:
+          type: integer
+          description: Inclusive UTF-16 start offset into the post message
+        end:
+          type: integer
+          description: Exclusive UTF-16 end offset into the post message
+        type_ids:
+          type: array
+          items:
+            type: string
+          description: Entity type ids that apply to this span
+        matcher_id:
+          type: string
+        value:
+          type: string
+        url:
+          type: string
+        display_name:
+          type: string
+        title:
+          type: string
+        has_card:
+          type: boolean
+          description: Whether a provider can open a detail card for this span
+    EntityCard:
+      type: object
+      description: Read-time detail card for one entity value
+      properties:
+        type_id:
+          type: string
+        value:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        score:
+          type: string
+        severity:
+          type: string
+        exploited:
+          type: boolean
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardRow"
+        vector:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardMetric"
+        related:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardLink"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardSection"
+        blocks:
+          type: array
+          items:
+            type: object
+          description: Optional Mattermost Blocks body preferred by clients when present
+        url:
+          type: string
+        map:
+          $ref: "#/components/schemas/EntityCardMap"
+        instant:
+          type: integer
+          format: int64
+          description: Unix milliseconds instant when the entity represents a point in time
+    EntityCardRow:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+    EntityCardMetric:
+      type: object
+      properties:
+        metric:
+          type: string
+        value:
+          type: string
+        severe:
+          type: boolean
+    EntityCardLink:
+      type: object
+      properties:
+        label:
+          type: string
+        text:
+          type: string
+        url:
+          type: string
+        type_id:
+          type: string
+    EntityCardSection:
+      type: object
+      properties:
+        title:
+          type: string
+        count:
+          type: integer
+        url:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardItem"
+    EntityCardItem:
+      type: object
+      properties:
+        head:
+          type: string
+        text:
+          type: string
+        url:
+          type: string
+    EntityCardMap:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [point, cell, runway]
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardPin"
+        geojson:
+          type: object
+          description: Optional GeoJSON payload for map rendering
+    EntityCardPin:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+        label:
+          type: string
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

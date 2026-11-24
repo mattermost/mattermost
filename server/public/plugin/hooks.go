@@ -76,6 +76,7 @@ const (
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
+	EntityLookupID                            = 59
 	TotalHooksID                              = iota
 )
 
@@ -575,4 +576,24 @@ type Hooks interface {
 	//
 	// Minimum server version: 12.2
 	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
+
+	// EntityLookup asks the plugin for the card of a value it provides.
+	// UserID is always the caller.
+	// When PostID is set, the server has already required that this caller can
+	// read the post. A nil card then falls through to a glossary term or the
+	// built-in card. A shared card is stored once for every reader of that
+	// post, so it must not depend on UserID. A card that does uses cache "user"
+	// or "none".
+	// When PostID is empty, the server has checked that the caller is logged in
+	// and that an unscoped matcher accepts the value. A matcher limited to a
+	// team or channel is not enough, and the plugin is not asked. The answer
+	// is not stored. A nil card or an error refuses the lookup, except for
+	// mm:time, which falls through to the built-in clock. A value that is only
+	// a glossary term is not asked.
+	// Return a nil card and a nil error when this plugin does not provide the
+	// type. With a post, that falls through. With no post, it is a refusal,
+	// except for mm:time.
+	//
+	// Minimum server version: 12.2
+	EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)
 }

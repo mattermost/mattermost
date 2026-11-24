@@ -15,6 +15,7 @@ import {getLicense, getConfig, isPostAttributesEnabled} from 'mattermost-redux/s
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {makeGetPostAttributeFields} from 'mattermost-redux/selectors/entities/properties';
+import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 import {
     getCurrentTeamId,
     getCurrentTeam,
@@ -42,7 +43,7 @@ import {canQuoteFromPost} from 'selectors/drafts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {canEditPostAttributeValue, isChannelPropertyAdmin} from 'components/post_attributes/permissions';
+import {canEditPostAttributeValue, getCurrentUserSystemRoles, isChannelPropertyAdmin} from 'components/post_attributes/permissions';
 import {hasPostAttributeContent} from 'components/post_attributes/utils';
 
 import {isArchivedChannel} from 'utils/channel_utils';
@@ -134,10 +135,11 @@ function makeMapStateToProps() {
             const postValues = state.entities.properties.values.byTargetId[post.id];
             const isSysAdmin = isCurrentUserSystemAdmin(state);
             const isChanAdmin = channel ? isChannelPropertyAdmin(state, channel) : false;
+            const userRoles = getCurrentUserSystemRoles(state);
             hasPostAttributes = hasPostAttributeContent(
                 postAttributeFields,
                 (fieldId) => postValues?.[fieldId],
-                (field) => canEditPostAttributeValue(field, post, userId, isSysAdmin, isChanAdmin),
+                (field) => canEditPostAttributeValue(field, post, userId, userRoles, isSysAdmin, isChanAdmin),
             );
         }
 
@@ -159,7 +161,7 @@ function makeMapStateToProps() {
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
             canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
-            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER,
+            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER && !isChannelWriteDenied(state, post.channel_id),
             canForward: !systemMessage && !isBoRPost,
             canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
                 !ownProps.location ||
@@ -167,7 +169,7 @@ function makeMapStateToProps() {
                 ownProps.location === Locations.RHS_ROOT ||
                 ownProps.location === Locations.RHS_COMMENT
             ),
-            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
+            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && !isChannelWriteDenied(state, post.channel_id),
             canCopyText: !systemMessage && !isBoRPost,
             canQuote: !systemMessage && (isCenter || isRHS) && canQuoteFromPost(state, post.id, isRHS),
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),

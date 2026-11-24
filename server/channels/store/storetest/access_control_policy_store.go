@@ -35,6 +35,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SearchByTeamIDWithScope", func(t *testing.T) { testAccessControlPolicyStoreSearchByTeamIDWithScope(t, rctx, ss) })
 	t.Run("GetActionsForPolicy", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicy(t, rctx, ss) })
 	t.Run("GetActionsForPolicies", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicies(t, rctx, ss) })
+	t.Run("GetTypesByIDs", func(t *testing.T) { testAccessControlPolicyStoreGetTypesByIDs(t, rctx, ss) })
 	t.Run("GetEtagEpoch", func(t *testing.T) { testAccessControlPolicyStoreGetEtagEpoch(t, rctx, ss) })
 	t.Run("PluginPolicy", func(t *testing.T) { testAccessControlPolicyStorePluginPolicy(t, rctx, ss) })
 	t.Run("TypeImmutableOnSave", func(t *testing.T) { testAccessControlPolicyStoreTypeImmutableOnSave(t, rctx, ss) })
@@ -1949,6 +1950,67 @@ func testAccessControlPolicyStoreGetActionsForPolicy(t *testing.T, rctx request.
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr), "expected ErrInvalidInput, got %T: %v", err, err)
+	})
+}
+
+func testAccessControlPolicyStoreGetTypesByIDs(t *testing.T, rctx request.CTX, ss store.Store) {
+	savePolicy := func(t *testing.T, policy *model.AccessControlPolicy) *model.AccessControlPolicy {
+		t.Helper()
+		saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = ss.AccessControlPolicy().Delete(rctx, saved.ID)
+		})
+		return saved
+	}
+
+	t.Run("empty input returns empty map", func(t *testing.T) {
+		result, err := ss.AccessControlPolicy().GetTypesByIDs(rctx, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Empty(t, result)
+	})
+
+	t.Run("returns the type of each stored policy and omits missing IDs", func(t *testing.T) {
+		pluginPolicy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Types Plugin " + model.NewId(),
+			Type:     testPluginPolicyType,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_5,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{testPluginPolicyAction},
+				Expression: `user.attributes.department == "eng"`,
+			}},
+		})
+		parentPolicy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Types Parent " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		})
+		missing := model.NewId()
+
+		result, err := ss.AccessControlPolicy().GetTypesByIDs(rctx, []string{pluginPolicy.ID, parentPolicy.ID, missing})
+		require.NoError(t, err)
+		require.Equal(t, map[string]string{
+			pluginPolicy.ID: testPluginPolicyType,
+			parentPolicy.ID: model.AccessControlPolicyTypeParent,
+		}, result)
+	})
+
+	t.Run("rejects a malformed ID", func(t *testing.T) {
+		_, err := ss.AccessControlPolicy().GetTypesByIDs(rctx, []string{model.NewId(), "not-a-valid-id"})
+		require.Error(t, err)
+		var invalidInput *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invalidInput)
 	})
 }
 
