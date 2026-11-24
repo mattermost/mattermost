@@ -538,6 +538,7 @@ const (
 	AuditEventResetPasswordFailedAttempts        = "resetPasswordFailedAttempts"        // reset failed password attempt counter
 	AuditEventRevokeAllSessionsAllUsers          = "revokeAllSessionsAllUsers"          // revoke all active sessions for all users
 	AuditEventRevokeAllSessionsForUser           = "revokeAllSessionsForUser"           // revoke all active sessions for specific user
+	AuditEventRevokePasskeySessions              = "revokePasskeySessions"              // revoke all active passkey-started sessions for all users
 	AuditEventRevokeSession                      = "revokeSession"                      // revoke specific user session
 	AuditEventRejectExpiredUserAccessToken       = "rejectExpiredUserAccessToken"       // rejected an API request because the personal access token has expired
 	AuditEventRevokeUserAccessToken              = "revokeUserAccessToken"              // revoke user personal access token

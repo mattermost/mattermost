@@ -840,3 +840,132 @@ func TestPasskeyRateLimit(t *testing.T) {
 		assert.False(t, limited(th, "/users/login/passkey/begin"))
 	})
 }
+
+func TestRevokePasskeySessions(t *testing.T) {
+	const path = "/users/sessions/revoke/passkey"
+
+	revoke := func(client *model.Client4) (*model.Response, error) {
+		r, err := client.DoAPIPost(context.Background(), path, "")
+		if r == nil {
+			return nil, err
+		}
+		return model.BuildResponse(r), err
+	}
+
+	// sessionClient returns a client holding a fresh session of the user with the given login method.
+	sessionClient := func(t *testing.T, th *TestHelper, user *model.User, method string) *model.Client4 {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: user.Id,
+			Roles:  user.GetRawRoles(),
+			Props:  model.StringMap{model.SessionPropLoginMethod: method},
+		})
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.SetToken(session.Token)
+		return client
+	}
+
+	works := func(t *testing.T, client *model.Client4) bool {
+		t.Helper()
+		_, resp, err := client.GetMe(context.Background(), "")
+		if err != nil {
+			require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+			return false
+		}
+		return true
+	}
+
+	t.Run("system admin revokes every user's passkey sessions and leaves the rest", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		passkeyA := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+		passkeyB := sessionClient(t, th, th.BasicUser2, model.SessionLoginMethodPasskey)
+		passwordA := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodStandard)
+		passwordB := sessionClient(t, th, th.BasicUser2, model.SessionLoginMethodStandard)
+
+		resp, err := revoke(th.SystemAdminClient)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.False(t, works(t, passkeyA))
+		assert.False(t, works(t, passkeyB))
+		assert.True(t, works(t, passwordA))
+		assert.True(t, works(t, passwordB))
+	})
+
+	t.Run("a system admin's own passkey session is revoked too", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		adminPasskey := sessionClient(t, th, th.SystemAdminUser, model.SessionLoginMethodPasskey)
+
+		resp, err := revoke(adminPasskey)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.False(t, works(t, adminPasskey))
+	})
+
+	t.Run("works with passkey login and enrollment turned off", func(t *testing.T) {
+		th := setupPasskeyLogin(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePasskeyLogin = false
+			*cfg.ServiceSettings.EnablePasskeyEnrollment = false
+		})
+		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+
+		resp, err := revoke(th.SystemAdminClient)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.False(t, works(t, passkey))
+	})
+
+	t.Run("a regular user is forbidden and nothing is revoked", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+
+		resp, err := revoke(th.Client)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		resp, err = revoke(passkey)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		assert.True(t, works(t, passkey))
+	})
+
+	t.Run("flag off", func(t *testing.T) {
+		th := setupPasskeyLogin(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.Passkeys = false
+		})
+		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+
+		resp, err := revoke(th.SystemAdminClient)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		assert.True(t, works(t, passkey))
+	})
+
+	t.Run("no license", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := revoke(th.SystemAdminClient)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		assert.True(t, works(t, passkey))
+	})
+
+	t.Run("local mode", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+
+		resp, err := revoke(th.LocalClient)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.False(t, works(t, passkey))
+	})
+}

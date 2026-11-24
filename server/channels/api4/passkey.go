@@ -21,6 +21,7 @@ func (api *API) InitPasskey() {
 	api.BaseRoutes.User.Handle("/passkeys/registration/finish", api.RateLimitedHandler(api.APISessionRequired(finishPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/passkey/begin", api.RateLimitedHandler(api.APIHandler(beginPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/passkey/finish", api.RateLimitedHandler(api.APIHandler(finishPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/sessions/revoke/passkey", api.APISessionRequired(revokePasskeySessions)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/{passkey_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePasskey)).Methods(http.MethodDelete)
 }
 
@@ -264,4 +265,31 @@ func deletePasskey(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.ReturnStatusOK(w)
+}
+
+// revokePasskeySessions checks the permission before the flag and license so a non-admin learns
+// nothing about them. It ignores the login and enrollment settings: the moment an admin needs it is
+// right after turning passkey sign-in off, when sessions started while it was on still exist.
+func revokePasskeySessions(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if !requirePasskeyFlagAndLicense(c) {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRevokePasskeySessions, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	if appErr := c.App.RevokePasskeySessions(c.AppContext); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("")
+
+	ReturnStatusOK(w)
 }
