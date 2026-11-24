@@ -76,10 +76,11 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeCloud:          generalJobPermissions,
 	model.JobTypeExtractContent: generalJobPermissions,
 
-	// No manage permission: like cancelling, a status update could cancel a run whose worker doesn't
+	// Site health shows runs to everyone who can read Site Statistics, system admins included. No
+	// manage permission: like cancelling, a status update could cancel a run whose worker doesn't
 	// watch for cancellation.
 	model.JobTypeHealthCheck: {
-		read:   model.PermissionManageSystem,
+		read:   model.PermissionSysconsoleReadReportingSiteStatistics,
 		create: model.PermissionManageSystem,
 	},
 
@@ -174,10 +175,6 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 			return true, model.PermissionManageSystem
 		}
 		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
-	}
-	// Site health shows health_check runs to delegated admins who can read Site Statistics.
-	if jobType == model.JobTypeHealthCheck && a.SessionHasPermissionTo(session, model.PermissionSysconsoleReadReportingSiteStatistics) {
-		return true, model.PermissionSysconsoleReadReportingSiteStatistics
 	}
 
 	return a.sessionHasJobPermission(session, jobPermissions[jobType].read)
