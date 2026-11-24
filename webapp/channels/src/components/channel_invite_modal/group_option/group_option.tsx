@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {AccountMultipleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
@@ -30,6 +30,11 @@ export type Props = {
 };
 
 const displayNameGetter = makeDisplayNameGetter();
+
+const emptyGroupTooltip = defineMessage({
+    id: 'multiselect.addGroupMembers.emptyGroupTooltip',
+    defaultMessage: 'This group has no members',
+});
 
 const GroupOption = (props: Props) => {
     const {
@@ -100,7 +105,7 @@ const GroupOption = (props: Props) => {
                         {'@'}{group.name}
                     </span>
                     <WithTooltip
-                        title={overflowNames}
+                        title={overflowNames || emptyGroupTooltip}
                     >
                         <span
                             className='add-group-members'

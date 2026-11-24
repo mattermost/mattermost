@@ -7,7 +7,8 @@ import type {Group} from '@mattermost/types/groups';
 
 import type {Value} from 'components/multiselect/multiselect';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import GroupOption from './group_option';
 import type {Props} from './group_option';
@@ -72,6 +73,45 @@ describe('GroupOption', () => {
 
         waitFor(() => {
             expect(addUserProfileMock).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('member tooltip', () => {
+        const emptyGroup = {...mockGroup, member_ids: [], member_count: 0} as Group & Value;
+
+        it('should show a default message when the group has no members', async () => {
+            renderWithContext(
+                <GroupOption
+                    {...props}
+                    group={emptyGroup}
+                />,
+            );
+
+            await userEvent.hover(screen.getByText('Add 0 people'));
+
+            expect(await screen.findByRole('tooltip')).toHaveTextContent('This group has no members');
+        });
+
+        it('should list the member names when the group has members', async () => {
+            const state = {
+                entities: {
+                    users: {
+                        profiles: {
+                            user1: TestHelper.getUserMock({id: 'user1', username: 'alice'}),
+                            user2: TestHelper.getUserMock({id: 'user2', username: 'bob'}),
+                        },
+                    },
+                },
+            };
+
+            renderWithContext(
+                <GroupOption {...props}/>,
+                state,
+            );
+
+            await userEvent.hover(screen.getByText('Add 2 people'));
+
+            expect(await screen.findByRole('tooltip')).toHaveTextContent('alice, bob');
         });
     });
 });

@@ -27975,6 +27975,10 @@
     "defaultMessage": "Add {number} people",
     "description": "Confirm button for adding selected people to a user group; {number} is how many people are selected."
   },
+  "multiselect.addGroupMembers.emptyGroupTooltip": {
+    "defaultMessage": "This group has no members",
+    "description": "Tooltip on the Add N people action in the add people to channel modal when the selected user group has no members."
+  },
   "multiselect.addGroupsPlaceholder": {
     "defaultMessage": "Search and add groups",
     "description": "Placeholder for the multi-select input used to search for and select user groups."
