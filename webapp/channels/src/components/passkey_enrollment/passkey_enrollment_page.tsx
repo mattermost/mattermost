@@ -111,7 +111,9 @@ const verifyErrors: Record<string, typeof messages.expired> = {
 
 export default function PasskeyEnrollmentPage() {
     const {formatMessage} = useIntl();
-    const ticket = new URLSearchParams(useLocation().search).get('ticket');
+
+    // The fragment is never sent to the server, so the ticket stays out of access logs.
+    const ticket = new URLSearchParams(useLocation().hash.slice(1)).get('ticket');
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState<'added' | 'confirmed' | null>(null);
 

@@ -86,7 +86,7 @@ describe('PasskeyEnrollmentPage', () => {
     let beginVerification: jest.SpyInstance;
     let finishVerification: jest.SpyInstance;
 
-    const renderPage = (url = '/login/passkey/enroll?ticket=t1', state = {}) => {
+    const renderPage = (url = '/login/passkey/enroll#ticket=t1', state = {}) => {
         const history = createMemoryHistory({initialEntries: [url]});
         renderWithContext(<PasskeyEnrollmentPage/>, state, {history});
         return history;
@@ -138,7 +138,7 @@ describe('PasskeyEnrollmentPage', () => {
     });
 
     test('a signed-out visitor stays on the page', async () => {
-        const history = renderPage('/login/passkey/enroll?ticket=t1', {entities: {users: {currentUserId: ''}}});
+        const history = renderPage('/login/passkey/enroll#ticket=t1', {entities: {users: {currentUserId: ''}}});
 
         expect(await screen.findByRole('button', {name: 'Add passkey'})).toBeInTheDocument();
         expect(history.location.pathname).toBe('/login/passkey/enroll');
@@ -152,8 +152,17 @@ describe('PasskeyEnrollmentPage', () => {
         expect(existingButton()).not.toBeInTheDocument();
     });
 
+    test('a ticket in the query string is not read: shows the incomplete-link text and no button', async () => {
+        renderPage('/login/passkey/enroll?ticket=t1');
+
+        expect(await screen.findByText(INCOMPLETE)).toBeInTheDocument();
+        expect(addButton()).not.toBeInTheDocument();
+        expect(existingButton()).not.toBeInTheDocument();
+        expect(beginRegistration).not.toHaveBeenCalled();
+    });
+
     test('an empty ticket shows the incomplete-link text and no button', async () => {
-        renderPage('/login/passkey/enroll?ticket=');
+        renderPage('/login/passkey/enroll#ticket=');
 
         expect(await screen.findByText(INCOMPLETE)).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();

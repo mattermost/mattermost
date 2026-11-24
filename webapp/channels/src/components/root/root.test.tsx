@@ -273,7 +273,7 @@ describe('components/Root', () => {
                 ...{
                     location: {
                         pathname: '/login/passkey/enroll',
-                        search: '?ticket=t1',
+                        hash: '#ticket=t1',
                     },
                 } as RouteComponentProps,
             };
