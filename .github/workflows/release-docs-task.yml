@@ -12,6 +12,14 @@ name: Release Docs Task
 # release-agent/dot-release-docs/<first version>.
 # A missing input is written as TODO(release-agent) and fails the run.
 #
+# Write key: CHANGELOG_WRITE_PRIVATE_KEY is a secret of the environment `release-write`, which only
+# the master branch can use, so only reviewed, merged workflows can mint write tokens. This job
+# declares it and runs only with ref master: on a schedule, or a workflow_dispatch on master.
+# Tag pushes, release events and PR edits don't run it: their runs' ref is the tag or the PR, so
+# release-docs-trigger.yml checks the event without any secret and starts the calling workflow on
+# master, with the version it resolved and source_event. Every write token names its repository
+# and permissions (contents and pull requests: write), never actions.
+#
 # Release Day is the due date of the release's vX.Y.0 milestone in mattermost/mattermost (the
 # Desktop App's and the mobile app's in mattermost/desktop and mattermost/mattermost-mobile, for
 # their releases pages). A milestone with no due date is a TODO, never a guess.
@@ -74,25 +82,30 @@ on:
         required: false
         type: string
         default: ''
+      source_event:
+        description: The event release-docs-trigger.yml started this run for (release, push or pull_request), or empty
+        required: false
+        type: string
+        default: ''
 
 permissions: {}
 
 jobs:
   run:
+    # The write key is in `release-write`, which only master can use (see the top of this file).
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    environment: release-write
     permissions:
       contents: read
       actions: read # the changelog runs' sections.json (release-docs)
       issues: read # the vX.Y.0 milestones' due dates (release-docs)
     steps:
-      # On a PR edit (a marker changed), the task's code comes from the default branch, as for
-      # every other event, not from the PR.
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'pull_request' && github.event.repository.default_branch || '' }}
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -151,6 +164,8 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           owner: mattermost
           repositories: ${{ inputs.task == 'docker-env' && 'docker' || inputs.task == 'upgrade-notice' && 'notices' || 'mattermost' }}
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Explain a failed write token
         if: steps.write.outcome == 'failure'
@@ -173,6 +188,8 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           owner: mattermost
           repositories: mattermost-mobile
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Explain a failed mattermost-mobile write token
         if: steps.mobile_write.outcome == 'failure'
@@ -193,6 +210,7 @@ jobs:
           VERSION: ${{ steps.resolve.outputs.version }}
           MODE: ${{ steps.resolve.outputs.mode }}
           EVENT_NAME: ${{ github.event_name }}
+          SOURCE_EVENT: ${{ inputs.source_event }}
           GITHUB_TOKEN: ${{ github.token }}
           # Reads the changelog runs' sections.json (actions: read).
           ACTIONS_TOKEN: ${{ github.token }}

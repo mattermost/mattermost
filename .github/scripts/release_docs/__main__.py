@@ -61,6 +61,13 @@ MARKER_EDITS = {release_docs_pr.TASK: (RELEASE_DOCS_BRANCH, upgrade_docs.MARKER_
 
 # ── Resolve: does this event run the task, for which version, in which mode ─────────
 
+def from_release(env: dict) -> bool:
+    """Whether a release event started this run: the event itself, or (since a release event's run
+    can't use the write key in `release-write`) a dispatch on master that its trigger job started
+    with source_event=release. The trigger job validated the tag first."""
+    return env.get("EVENT_NAME") == "release" or env.get("SOURCE_EVENT") == "release"
+
+
 def release_at_rc(gh) -> Version | None:
     """The release between its RC-1 and its final tag: the oldest cut ``release-X.Y`` with a
     ``vX.Y.0-rcN`` tag and no ``vX.Y.0`` tag. Same rule as generate-changelog.yml, from
@@ -255,7 +262,7 @@ def run_task(task: str, raw_version: str, env: dict, gh, claude, fetch=None, sle
     if task == dot_release.TASK:
         versions = parse_versions(raw_version)
         result_notes = []
-        if env.get("EVENT_NAME") == "release" and versions:
+        if from_release(env) and versions:
             others = released_together(gh, versions[0], datetime.now(timezone.utc))
             versions += [v for v in others if v not in versions]
             if others:
@@ -272,7 +279,7 @@ def run_task(task: str, raw_version: str, env: dict, gh, claude, fetch=None, sle
         return Run(result, "ESR comms." if result.text else "Nothing done.")
 
     version = Version.parse(raw_version)
-    released_event = env.get("EVENT_NAME") == "release"
+    released_event = from_release(env)
 
     if task == "version-archive" and version.is_dot:
         return Run(Result(task, version.tag, skipped=f"{version} is a dot release: {DOT_RELEASE_HANDLED}"),

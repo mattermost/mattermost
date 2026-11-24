@@ -29,6 +29,9 @@ name: Release Docs - Release Docs PR
 # GitHub App token, whose edits start workflows (GITHUB_TOKEN's would not). PRs from forks never run.
 # See release-docs-task.yml.
 
+# A tag push or PR edit run's ref is the tag or the PR, which can't use the write key in `release-write`, so the
+# `trigger` job (release-docs-trigger.yml, no secrets) checks it and starts this workflow on master;
+# the task job runs only on master.
 on:
   push:
     tags:
@@ -53,24 +56,38 @@ on:
           - default
           - dry_run
           - live
+      source_event:
+        description: 'Set by release-docs-trigger.yml for a release, tag or PR edit; leave empty'
+        required: false
+        default: ''
+        type: string
 
 permissions: {}
 
 jobs:
-  release-docs:
-    # A push runs only when it created the vX.Y.0-rc1 tag; the task checks it is on release-X.Y.
-    # A PR edit runs only for the release docs PR itself; the task checks the marker changed.
+  # A push runs only when it created the vX.Y.0-rc1 tag; the trigger checks it is on release-X.Y.
+  # A PR edit runs only for the release docs PR itself; the trigger checks the marker changed.
+  trigger:
     if: >-
-      (github.event_name != 'push' || github.event.created) &&
-      (github.event_name != 'pull_request' || (
+      (github.event_name == 'push' && github.event.created) ||
+      (github.event_name == 'pull_request' &&
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.event.pull_request.base.ref == 'master' &&
         startsWith(github.event.pull_request.head.ref, 'release-agent/') &&
-        endsWith(github.event.pull_request.head.ref, '/release-docs')))
-    # One group for the tag event, the weekday run, marker edits and manual runs, so two of them
-    # never race to open the same PR. queue: max keeps every waiting run, so a no-op description
-    # edit can't replace a pending tag, weekday or manual run. On the job, not the workflow, so
-    # edits to other PRs (skipped above) never enter the group.
+        endsWith(github.event.pull_request.head.ref, '/release-docs'))
+    uses: ./.github/workflows/release-docs-trigger.yml
+    with:
+      task: release-docs
+      workflow: release-docs-release-pr.yml
+    permissions:
+      contents: read
+      actions: write # start this workflow on master
+
+  release-docs:
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master'
+    # One group for the weekday run and the dispatches (by hand, or for the tag and marker edits),
+    # so two of them never race to open the same PR. queue: max keeps every waiting run, so a
+    # no-op description edit can't replace a pending tag, weekday or manual run.
     concurrency:
       group: release-docs-release-docs
       cancel-in-progress: false
@@ -80,6 +97,7 @@ jobs:
       task: release-docs
       version: ${{ inputs.version }}
       mode: ${{ inputs.mode }}
+      source_event: ${{ inputs.source_event }}
     secrets: inherit
     permissions:
       contents: read

@@ -1,0 +1,87 @@
+name: Release Docs Trigger
+
+# Starts a release docs task on master for an event whose run can't use the write key: a tag
+# push, a release event or a PR description edit. Their runs' ref is the tag or the PR's merge
+# ref, and the changelog write app's key is a secret of the `release-write` environment, which
+# only master can use (see release-docs-task.yml).
+#
+# This job holds no secret. It checks the event the same way the task does (`release_docs
+# resolve`: a final vX.Y.Z tag, a vX.Y.0-rc1 tag created on release-X.Y, or an edit that changed
+# the task PR's marker), and only then starts the calling workflow on master with
+# workflow_dispatch, passing the version it resolved and source_event, using GITHUB_TOKEN
+# (actions: write). A workflow_dispatch made with GITHUB_TOKEN does start a run. The task's code
+# always comes from the default branch, never from a PR.
+
+on:
+  workflow_call:
+    inputs:
+      task:
+        required: true
+        type: string
+      workflow:
+        description: The workflow file to start on master, e.g. release-docs-version-archive.yml
+        required: true
+        type: string
+      version_input:
+        description: That workflow's version input (version, or versions for dot-release-docs)
+        required: false
+        type: string
+        default: version
+
+permissions: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read # resolve reads refs (the rc1 tag is on release-X.Y)
+      actions: write # start the task on master
+    steps:
+      - name: Checkout the default branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests==2.32.3 cryptography==44.0.2 pyyaml==6.0.2 --quiet
+
+      - name: Check the event
+        id: resolve
+        working-directory: .github/scripts
+        env:
+          TASK: ${{ inputs.task }}
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -m release_docs resolve "$TASK"
+
+      - name: Start the task on master
+        if: steps.resolve.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW: ${{ inputs.workflow }}
+          VERSION_INPUT: ${{ inputs.version_input }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          SOURCE_EVENT: ${{ github.event_name }}
+          REASON: ${{ steps.resolve.outputs.reason }}
+        run: |
+          if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Resolved an unexpected version, so nothing was started."
+            exit 1
+          fi
+          gh workflow run "$WORKFLOW" --repo "$GITHUB_REPOSITORY" --ref master \
+            -f "$VERSION_INPUT=$VERSION" -f mode=default -f source_event="$SOURCE_EVENT"
+          echo "Started $WORKFLOW on master for $VERSION ($REASON)." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Not started
+        if: steps.resolve.outputs.run == 'false'
+        env:
+          REASON: ${{ steps.resolve.outputs.reason }}
+        run: |
+          echo "Not started: $REASON" | tee -a "$GITHUB_STEP_SUMMARY"

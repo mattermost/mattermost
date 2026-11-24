@@ -282,6 +282,15 @@ class ReleaseEventTest(unittest.TestCase):
         self.assertEqual(gh.writes, [])
         self.assertTrue(run.result.failed)
 
+    def test_a_dispatch_the_release_trigger_started_is_still_a_release_run(self):
+        # release-docs-trigger.yml starts the task on master with source_event=release, since a
+        # release event's own run can't use the write key.
+        gh = self.github()
+        env = {"EVENT_NAME": "workflow_dispatch", "SOURCE_EVENT": "release", "MODE": "live", "ESR_VERSIONS": ESR}
+        run = cli.run_task("upgrade-notice", "v11.7.15", env, gh, FakeClaude(HIGHLIGHT_ANSWER))
+        self.assertIn("is not the latest release", run.result.skipped)
+        self.assertFalse(cli.from_release({"EVENT_NAME": "workflow_dispatch"}))
+
     def test_released_but_not_latest_is_skipped(self):
         gh = self.github()
         for task in ("github-release", "upgrade-notice"):

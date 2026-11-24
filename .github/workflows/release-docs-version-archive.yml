@@ -7,6 +7,9 @@ name: Release Docs - Version Archive
 # skipped: their archive entries are in the dot release docs PR
 # (release-docs-dot-release.yml). See release-docs-task.yml for modes and settings.
 
+# A release event run's ref is the tag, which can't use the write key in `release-write`, so the
+# `trigger` job (release-docs-trigger.yml, no secrets) checks it and starts this workflow on master;
+# the task job runs only on master.
 on:
   release:
     types: [published]
@@ -25,20 +28,36 @@ on:
           - default
           - dry_run
           - live
+      source_event:
+        description: 'Set by release-docs-trigger.yml for a release, tag or PR edit; leave empty'
+        required: false
+        default: ''
+        type: string
 
 permissions: {}
 
-concurrency:
-  group: release-docs-version-archive-${{ github.event.release.tag_name || inputs.version }}
-  cancel-in-progress: false
-
 jobs:
+  trigger:
+    if: github.event_name == 'release'
+    uses: ./.github/workflows/release-docs-trigger.yml
+    with:
+      task: version-archive
+      workflow: release-docs-version-archive.yml
+    permissions:
+      contents: read
+      actions: write # start this workflow on master
+
   version-archive:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+    concurrency:
+      group: release-docs-version-archive-${{ inputs.version }}
+      cancel-in-progress: false
     uses: ./.github/workflows/release-docs-task.yml
     with:
       task: version-archive
       version: ${{ inputs.version }}
       mode: ${{ inputs.mode }}
+      source_event: ${{ inputs.source_event }}
     secrets: inherit
     permissions:
       contents: read

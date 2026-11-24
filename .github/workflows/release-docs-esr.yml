@@ -43,6 +43,8 @@ concurrency:
 
 jobs:
   esr-comms:
+    # The write key is in `release-write`, which only master can use.
+    if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/release-docs-task.yml
     with:
       task: esr-comms
