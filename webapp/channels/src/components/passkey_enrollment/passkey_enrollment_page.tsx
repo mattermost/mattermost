@@ -17,43 +17,15 @@ import ColumnLayout from 'components/header_footer_route/content_layouts/column'
 
 import {createPasskey, verifyPasskey} from 'utils/passkeys';
 
+import {sharedMessages} from './messages';
+
 import './passkey_enrollment_page.scss';
 
 const messages = defineMessages({
-    title: {
-        id: 'passkey_enrollment_page.title',
-        defaultMessage: 'Add a passkey',
-        description: 'Title of the page, opened from the Mattermost app, where a passkey is added to the user\'s account.',
-    },
-    body: {
-        id: 'passkey_enrollment_page.body',
-        defaultMessage: 'Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.',
-        description: 'Explanation shown above the button that adds a passkey, on the page opened from the Mattermost app.',
-    },
-    add: {
-        id: 'passkey_enrollment_page.add',
-        defaultMessage: 'Add passkey',
-        description: 'Button that starts adding a passkey, on the page opened from the Mattermost app.',
-    },
-    alreadyHave: {
-        id: 'passkey_enrollment_page.alreadyHave',
-        defaultMessage: 'Use existing passkey',
-        description: 'Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.',
-    },
     confirmedTitle: {
         id: 'passkey_enrollment_page.confirmedTitle',
         defaultMessage: 'Passkey confirmed',
         description: 'Title shown after the user\'s existing passkey was checked on the page opened from the Mattermost app.',
-    },
-    noneRegistered: {
-        id: 'passkey_enrollment_page.noneRegistered',
-        defaultMessage: 'You don\'t have a passkey for this account yet. Add one instead.',
-        description: 'Error shown when the user says they already have a passkey but their account has none.',
-    },
-    invalidCredential: {
-        id: 'passkey_enrollment_page.invalidCredential',
-        defaultMessage: 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.',
-        description: 'Error shown when the passkey the user chose is not one of their account\'s passkeys.',
     },
     addedTitle: {
         id: 'passkey_enrollment_page.addedTitle',
@@ -118,8 +90,8 @@ const retryableErrors: Record<string, typeof messages.expired> = {
 
 // The add path returns invalid_credential for an attestation it cannot verify, so this wording is only true for verify.
 const verifyErrors: Record<string, typeof messages.expired> = {
-    'app.passkey.none_registered.app_error': messages.noneRegistered,
-    'app.passkey.invalid_credential.app_error': messages.invalidCredential,
+    'app.passkey.none_registered.app_error': sharedMessages.noneRegistered,
+    'app.passkey.invalid_credential.app_error': sharedMessages.invalidCredential,
 };
 
 export default function PasskeyEnrollmentPage() {
@@ -133,7 +105,7 @@ export default function PasskeyEnrollmentPage() {
     // A refusal that retrying cannot fix removes the button; any other error leaves it for another try.
     const [error, setError] = useState<{text: string; final: boolean} | null>(null);
 
-    let title = messages.title;
+    let title = sharedMessages.title;
     let message: React.ReactNode;
     let canAct = false;
     if (isDesktopApp()) {
@@ -154,7 +126,7 @@ export default function PasskeyEnrollmentPage() {
         // Without a banner, the subtitle is the only place the refusal can be announced.
         message = <span role='alert'>{error.text}</span>;
     } else {
-        message = formatMessage(messages.body);
+        message = formatMessage(sharedMessages.body);
         canAct = true;
     }
 
@@ -217,7 +189,7 @@ export default function PasskeyEnrollmentPage() {
                                 disabled={busy !== null}
                                 onClick={add}
                             >
-                                {formatMessage(messages.add)}
+                                {formatMessage(sharedMessages.add)}
                             </Button>
                             <Button
                                 emphasis='tertiary'
@@ -226,7 +198,7 @@ export default function PasskeyEnrollmentPage() {
                                 disabled={busy !== null}
                                 onClick={verifyExisting}
                             >
-                                {formatMessage(messages.alreadyHave)}
+                                {formatMessage(sharedMessages.useExisting)}
                             </Button>
                         </>
                     )}

@@ -28767,25 +28767,13 @@
     "defaultMessage": "1-50",
     "description": "Company size option '1-50' employees in the Start Trial form dropdown; keep the numeric range."
   },
-  "passkey_enrollment_page.add": {
-    "defaultMessage": "Add passkey",
-    "description": "Button that starts adding a passkey, on the page opened from the Mattermost app."
-  },
   "passkey_enrollment_page.addedTitle": {
     "defaultMessage": "Passkey added",
     "description": "Title shown after a passkey was added on the page opened from the Mattermost app."
   },
-  "passkey_enrollment_page.alreadyHave": {
-    "defaultMessage": "Use existing passkey",
-    "description": "Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
-  },
   "passkey_enrollment_page.alreadyOnDevice": {
     "defaultMessage": "This device already has a passkey for your account. Choose \"Use existing passkey\".",
     "description": "Error shown when the device refuses to create a passkey because it already holds one for the account."
-  },
-  "passkey_enrollment_page.body": {
-    "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
-    "description": "Explanation shown above the button that adds a passkey, on the page opened from the Mattermost app."
   },
   "passkey_enrollment_page.cantAdd": {
     "defaultMessage": "Can't add a passkey here",
@@ -28807,21 +28795,9 @@
     "defaultMessage": "This link is incomplete. Return to the app and try again.",
     "description": "Shown when the page opened from the Mattermost app has no enrollment ticket in its link."
   },
-  "passkey_enrollment_page.invalidCredential": {
-    "defaultMessage": "That passkey doesn't belong to your account on this server. Choose another, or add a new one.",
-    "description": "Error shown when the passkey the user chose is not one of their account's passkeys."
-  },
-  "passkey_enrollment_page.noneRegistered": {
-    "defaultMessage": "You don't have a passkey for this account yet. Add one instead.",
-    "description": "Error shown when the user says they already have a passkey but their account has none."
-  },
   "passkey_enrollment_page.returnToApp": {
     "defaultMessage": "You can close this page and return to the app.",
     "description": "Shown after a passkey was added or confirmed on the page opened from the Mattermost app."
-  },
-  "passkey_enrollment_page.title": {
-    "defaultMessage": "Add a passkey",
-    "description": "Title of the page, opened from the Mattermost app, where a passkey is added to the user's account."
   },
   "passkey_enrollment_page.tooLong": {
     "defaultMessage": "That took too long. Try again.",
@@ -28835,26 +28811,6 @@
     "defaultMessage": "This browser can't create passkeys. Open this page in a different browser.",
     "description": "Shown when the browser opening the passkey enrollment page has no WebAuthn support."
   },
-  "passkey_enrollment_prompt.add": {
-    "defaultMessage": "Add passkey",
-    "description": "Button in the post-sign-in prompt that starts adding a passkey."
-  },
-  "passkey_enrollment_prompt.alreadyHave": {
-    "defaultMessage": "Use existing passkey",
-    "description": "Button in the post-sign-in passkey prompt for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
-  },
-  "passkey_enrollment_prompt.body": {
-    "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
-    "description": "Body of the prompt shown after sign-in that offers to add a passkey."
-  },
-  "passkey_enrollment_prompt.invalidCredential": {
-    "defaultMessage": "That passkey doesn't belong to your account on this server. Choose another, or add a new one.",
-    "description": "Error shown in the passkey prompt when the passkey the user chose is not one of their account's passkeys."
-  },
-  "passkey_enrollment_prompt.noneRegistered": {
-    "defaultMessage": "You don't have a passkey for this account yet. Add one instead.",
-    "description": "Error shown in the passkey prompt when the user says they already have a passkey but their account has none."
-  },
   "passkey_enrollment_prompt.notNow": {
     "defaultMessage": "Not now",
     "description": "Button in the post-sign-in passkey prompt that dismisses it until the next sign-in."
@@ -28863,9 +28819,29 @@
     "defaultMessage": "For your security, sign out and sign back in, then add your passkey within 10 minutes.",
     "description": "Error shown in the passkey prompt when adding a passkey is refused because the user did not sign in recently enough."
   },
-  "passkey_enrollment_prompt.title": {
+  "passkey_enrollment.add": {
+    "defaultMessage": "Add passkey",
+    "description": "Button, in the prompt after sign-in and on the page opened from the Mattermost app, that starts adding a passkey."
+  },
+  "passkey_enrollment.body": {
+    "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
+    "description": "Explanation shown in the prompt after sign-in, and on the page opened from the Mattermost app, that offers to add a passkey."
+  },
+  "passkey_enrollment.invalidCredential": {
+    "defaultMessage": "That passkey doesn't belong to your account on this server. Choose another, or add a new one.",
+    "description": "Error shown when the passkey the user chose is not one of their account's passkeys."
+  },
+  "passkey_enrollment.noneRegistered": {
+    "defaultMessage": "You don't have a passkey for this account yet. Add one instead.",
+    "description": "Error shown when the user says they already have a passkey but their account has none."
+  },
+  "passkey_enrollment.title": {
     "defaultMessage": "Add a passkey",
-    "description": "Title of the prompt shown after sign-in that offers to add a passkey."
+    "description": "Title of the prompt shown after sign-in, and of the page opened from the Mattermost app, that offers to add a passkey."
+  },
+  "passkey_enrollment.useExisting": {
+    "defaultMessage": "Use existing passkey",
+    "description": "Button, in the prompt after sign-in and on the page opened from the Mattermost app, for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
   },
   "password_form.change": {
     "defaultMessage": "Change my password",

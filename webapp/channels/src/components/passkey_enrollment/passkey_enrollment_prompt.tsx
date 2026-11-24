@@ -17,6 +17,8 @@ import LocalStorageStore from 'stores/local_storage_store';
 import {createPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
 
+import {sharedMessages} from './messages';
+
 import './passkey_enrollment_prompt.scss';
 
 const messages = defineMessages({
@@ -25,24 +27,14 @@ const messages = defineMessages({
         defaultMessage: 'For your security, sign out and sign back in, then add your passkey within 10 minutes.',
         description: 'Error shown in the passkey prompt when adding a passkey is refused because the user did not sign in recently enough.',
     },
-    noneRegistered: {
-        id: 'passkey_enrollment_prompt.noneRegistered',
-        defaultMessage: 'You don\'t have a passkey for this account yet. Add one instead.',
-        description: 'Error shown in the passkey prompt when the user says they already have a passkey but their account has none.',
-    },
-    invalidCredential: {
-        id: 'passkey_enrollment_prompt.invalidCredential',
-        defaultMessage: 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.',
-        description: 'Error shown in the passkey prompt when the passkey the user chose is not one of their account\'s passkeys.',
-    },
 });
 
 // The server's recent-login window for adding a passkey.
 const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
 
-const verifyErrors: Record<string, typeof messages.noneRegistered> = {
-    'app.passkey.none_registered.app_error': messages.noneRegistered,
-    'app.passkey.invalid_credential.app_error': messages.invalidCredential,
+const verifyErrors: Record<string, typeof sharedMessages.noneRegistered> = {
+    'app.passkey.none_registered.app_error': sharedMessages.noneRegistered,
+    'app.passkey.invalid_credential.app_error': sharedMessages.invalidCredential,
 };
 
 export default function PasskeyEnrollmentPrompt() {
@@ -153,11 +145,7 @@ export default function PasskeyEnrollmentPrompt() {
         <GenericModal
             compassDesign={true}
             modalHeaderText={
-                <FormattedMessage
-                    id='passkey_enrollment_prompt.title'
-                    defaultMessage='Add a passkey'
-                    description='Title of the prompt shown after sign-in that offers to add a passkey.'
-                />
+                <FormattedMessage {...sharedMessages.title}/>
             }
             showCloseButton={false}
             backdrop='static'
@@ -172,11 +160,7 @@ export default function PasskeyEnrollmentPrompt() {
                         disabled={busy !== null}
                         onClick={verifyExisting}
                     >
-                        <FormattedMessage
-                            id='passkey_enrollment_prompt.alreadyHave'
-                            defaultMessage='Use existing passkey'
-                            description='Button in the post-sign-in passkey prompt for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.'
-                        />
+                        <FormattedMessage {...sharedMessages.useExisting}/>
                     </Button>
                     <Button
                         emphasis='tertiary'
@@ -194,21 +178,13 @@ export default function PasskeyEnrollmentPrompt() {
                         disabled={busy !== null}
                         onClick={add}
                     >
-                        <FormattedMessage
-                            id='passkey_enrollment_prompt.add'
-                            defaultMessage='Add passkey'
-                            description='Button in the post-sign-in prompt that starts adding a passkey.'
-                        />
+                        <FormattedMessage {...sharedMessages.add}/>
                     </Button>
                 </>
             }
         >
             <p>
-                <FormattedMessage
-                    id='passkey_enrollment_prompt.body'
-                    defaultMessage='Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.'
-                    description='Body of the prompt shown after sign-in that offers to add a passkey.'
-                />
+                <FormattedMessage {...sharedMessages.body}/>
             </p>
         </GenericModal>
     );
