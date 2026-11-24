@@ -24,13 +24,11 @@ const (
 )
 
 var (
-	createIndexRegex       = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\b`)
-	concurrentlyRegex      = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\b`)
-	createIfNotExistsRegex = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+IF\s+NOT\s+EXISTS\b`)
-	dropIndexRegex         = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b`)
-	dropConcurrentlyRegex  = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\b`)
-	dropIfExistsRegex      = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\s+IF\s+EXISTS\b`)
-	ignoreRegex            = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
+	// Submatch 1 is CONCURRENTLY and submatch 2 the existence clause, so each
+	// occurrence is judged on its own even if statement splitting goes wrong.
+	createIndexRegex = regexp.MustCompile(`(?i)\bCREATE\s+(?:UNIQUE\s+)?INDEX\b(\s+CONCURRENTLY\b)?(\s+IF\s+NOT\s+EXISTS\b)?`)
+	dropIndexRegex   = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b(\s+CONCURRENTLY\b)?(\s+IF\s+EXISTS\b)?`)
+	ignoreRegex      = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
 )
 
 var sqlPath string
@@ -52,11 +50,15 @@ func init() {
 type statement struct {
 	start int    // byte offset of the first non-space character
 	text  string // raw text, including comments
-	code  string // text with -- line comments removed
+	code  string // text with comments removed
+}
+
+func isIdentByte(c byte) bool {
+	return c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
 }
 
 // splitStatements splits s on semicolons outside quoted strings, quoted
-// identifiers and -- line comments.
+// identifiers, -- line comments and /* */ block comments.
 func splitStatements(s string) []statement {
 	var stmts []statement
 	var code strings.Builder
@@ -71,23 +73,54 @@ func splitStatements(s string) []statement {
 	}
 
 	var quote byte
-	inComment := false
+	backslashEscapes := false
+	inLineComment := false
+	blockDepth := 0
 	for i := 0; i < len(s); i++ {
 		c := s[i]
+		next := byte(0)
+		if i+1 < len(s) {
+			next = s[i+1]
+		}
 		switch {
-		case inComment:
+		case inLineComment:
 			if c != '\n' {
 				continue
 			}
-			inComment = false
+			inLineComment = false
+		case blockDepth > 0:
+			switch {
+			case c == '/' && next == '*':
+				blockDepth++
+				i++
+			case c == '*' && next == '/':
+				blockDepth--
+				i++
+				if blockDepth == 0 {
+					code.WriteByte(' ')
+				}
+			}
+			continue
 		case quote != 0:
+			if backslashEscapes && c == '\\' && next != 0 {
+				code.WriteByte(c)
+				code.WriteByte(next)
+				i++
+				continue
+			}
 			if c == quote {
 				quote = 0
 			}
 		case c == '\'' || c == '"':
 			quote = c
-		case c == '-' && i+1 < len(s) && s[i+1] == '-':
-			inComment = true
+			// E'...' strings allow backslash escapes such as \'.
+			backslashEscapes = c == '\'' && i > 0 && (s[i-1] == 'E' || s[i-1] == 'e') && (i < 2 || !isIdentByte(s[i-2]))
+		case c == '-' && next == '-':
+			inLineComment = true
+			i++
+			continue
+		case c == '/' && next == '*':
+			blockDepth = 1
 			i++
 			continue
 		case c == ';':
@@ -104,24 +137,23 @@ func checkStatement(st statement) string {
 	if ignoreRegex.MatchString(st.text) {
 		return ""
 	}
-	stmt := st.code
-	if createIndexRegex.MatchString(stmt) {
-		if !concurrentlyRegex.MatchString(stmt) {
-			return diagCreateIndex
+	if msg := checkIndexDDL(st.code, createIndexRegex, diagCreateIndex, diagCreateIfNotExists); msg != "" {
+		return msg
+	}
+	return checkIndexDDL(st.code, dropIndexRegex, diagDropIndex, diagDropIfExists)
+}
+
+func checkIndexDDL(code string, re *regexp.Regexp, missingConcurrently, missingExistence string) string {
+	msg := ""
+	for _, m := range re.FindAllStringSubmatch(code, -1) {
+		if m[1] == "" {
+			return missingConcurrently
 		}
-		if !createIfNotExistsRegex.MatchString(stmt) {
-			return diagCreateIfNotExists
+		if m[2] == "" {
+			msg = missingExistence
 		}
 	}
-	if dropIndexRegex.MatchString(stmt) {
-		if !dropConcurrentlyRegex.MatchString(stmt) {
-			return diagDropIndex
-		}
-		if !dropIfExistsRegex.MatchString(stmt) {
-			return diagDropIfExists
-		}
-	}
-	return ""
+	return msg
 }
 
 func containsIndexKeyword(s string) bool {

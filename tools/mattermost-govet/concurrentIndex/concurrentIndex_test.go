@@ -252,6 +252,30 @@ func TestCheckLine(t *testing.T) {
 			line:    `SELECT 1 AS "a--b"; DROP INDEX idx_old;`,
 			wantMsg: diagDropIndex,
 		},
+		{
+			name:    "apostrophe inside a block comment does not open a string",
+			line:    "/* Don't block writes. */\nCREATE INDEX CONCURRENTLY IF NOT EXISTS idx_a ON t(a);\nCREATE INDEX idx_b ON t(b);",
+			wantMsg: diagCreateIndex,
+		},
+		{
+			name: "index DDL only in a nested block comment",
+			line: "/* outer /* CREATE INDEX idx_a ON t(a); */ DROP INDEX idx_b; */ SELECT 1;",
+		},
+		{
+			name:    "escaped apostrophe inside an E string",
+			line:    "SELECT E'can\\'t';\nDROP INDEX CONCURRENTLY IF EXISTS idx_a;\nDROP INDEX idx_b;",
+			wantMsg: diagDropIndex,
+		},
+		{
+			name:    "backslash is literal in a standard string",
+			line:    `SELECT 'a\'; DROP INDEX idx_old;`,
+			wantMsg: diagDropIndex,
+		},
+		{
+			name:    "unbalanced quote cannot hide a blocking statement behind a safe one",
+			line:    "-- x\nSELECT 'oops;\nCREATE INDEX CONCURRENTLY IF NOT EXISTS idx_a ON t(a);\nCREATE INDEX idx_b ON t(b);",
+			wantMsg: diagCreateIndex,
+		},
 	}
 
 	for _, tt := range tests {
