@@ -154,11 +154,11 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 	} else {
 		if requestor == nil {
 			if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		} else {
 			if err := a.PostAddToChannelMessage(rctx, requestor, user, channel, ""); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		}
 	}
@@ -222,8 +222,8 @@ func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *
 		return nil, err
 	}
 
-	if err = a.postJoinChannelMessage(rctx, user, channel); err != nil {
-		return nil, err
+	if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil, "")
@@ -1153,25 +1153,25 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	a.addChannelToDefaultCategory(rctx, userID, channel)
 
 	if oldChannelDisplayName != channel.DisplayName {
-		if err = a.PostUpdateChannelDisplayNameMessage(rctx, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
+		if err := a.PostUpdateChannelDisplayNameMessage(rctx, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
 
 	if channel.Header != oldChannelHeader {
-		if err = a.PostUpdateChannelHeaderMessage(rctx, userID, channel, oldChannelHeader, channel.Header); err != nil {
+		if err := a.PostUpdateChannelHeaderMessage(rctx, userID, channel, oldChannelHeader, channel.Header); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {
-		if err = a.PostUpdateChannelPurposeMessage(rctx, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
+		if err := a.PostUpdateChannelPurposeMessage(rctx, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
 
 	if channel.AutoTranslation != oldChannelAutotranslation {
-		if err = a.postUpdateChannelAutotranslationMessage(rctx, userID, channel, channel.AutoTranslation); err != nil {
+		if err := a.postUpdateChannelAutotranslationMessage(rctx, userID, channel, channel.AutoTranslation); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
@@ -2158,7 +2158,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 	} else {
 		a.Srv().Go(func() {
@@ -2207,7 +2207,7 @@ func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.Use
 	return nil
 }
 
-func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
+func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) error {
 	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -2241,7 +2241,7 @@ func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, ch
 	return nil
 }
 
-func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) error {
 	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -2274,7 +2274,7 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 	return nil
 }
 
-func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
+func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) error {
 	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -2305,7 +2305,7 @@ func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID s
 	return nil
 }
 
-func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
+func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) error {
 	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -2910,13 +2910,13 @@ func (a *App) JoinChannel(rctx request.CTX, channel *model.Channel, userID strin
 	})
 
 	if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
 }
 
-func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	message := fmt.Sprintf(i18n.T("api.channel.join_channel.post_and_forget"), user.Username)
 	postType := model.PostTypeJoinChannel
 
@@ -3022,7 +3022,7 @@ func (a *App) LeaveChannel(rctx request.CTX, channelID string, userID string) *m
 	return nil
 }
 
-func (a *App) postLeaveChannelMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postLeaveChannelMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
@@ -3043,7 +3043,7 @@ func (a *App) postLeaveChannelMessage(rctx request.CTX, user *model.User, channe
 	return nil
 }
 
-func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) error {
 	message := fmt.Sprintf(i18n.T("api.channel.add_member.added"), addedUser.Username, user.Username)
 	postType := model.PostTypeAddToChannel
 
@@ -3094,7 +3094,7 @@ func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser
 	return nil
 }
 
-func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId string, removedUser *model.User, channel *model.Channel) error {
 	messageUserId := removerUserId
 	if messageUserId == "" {
 		systemBot, err := a.GetSystemBot(rctx)
@@ -3274,7 +3274,7 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	if userIDToRemove == removerUserId {
 		if err := a.postLeaveChannelMessage(rctx, user, channel); err != nil {
-			return err
+			return model.AsAppError(err)
 		}
 	} else {
 		if err := a.postRemoveFromChannelMessage(rctx, removerUserId, user, channel); err != nil {
@@ -4105,7 +4105,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 	return nil
 }
 
-func (a *App) postChannelMoveMessage(rctx request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
+func (a *App) postChannelMoveMessage(rctx request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),

@@ -16,13 +16,10 @@ import (
 func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store().Group().Get(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetGroup", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetGroup", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetGroup", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if opts != nil && opts.IncludeMemberIDs {
@@ -53,13 +50,10 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *mo
 func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store().Group().GetByName(name, opts)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetGroupByName", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetGroupByName", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetGroupByName", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return group, nil
@@ -68,13 +62,10 @@ func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Gr
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store().Group().GetByRemoteID(remoteID, groupSource)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetGroupByRemoteID", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetGroupByRemoteID", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetGroupByRemoteID", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return group, nil
@@ -114,16 +105,13 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 	group, err := a.Srv().Store().Group().Create(group)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateGroup", "app.insert_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
+			return nil, model.NewAppError("CreateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.NewAppError("CreateGroup", "app.insert_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return group, nil
@@ -174,19 +162,16 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 
 	newGroup, err := a.Srv().Store().Group().CreateWithUserIds(group)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		var dupKey *store.ErrUniqueConstraint
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &dupKey):
-			return nil, model.NewAppError("CreateGroupWithUserIds", "app.custom_group.unique_name", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateGroupWithUserIds", "app.insert_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if _, ok := errors.AsType[*store.ErrUniqueConstraint](err); ok {
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.custom_group.unique_name", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.NewAppError("CreateGroupWithUserIds", "app.insert_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	count, err := a.Srv().Store().Group().GetMemberCount(newGroup.Id)
@@ -221,19 +206,16 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 	updatedGroup, err := a.Srv().Store().Group().Update(group)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		var dupKey *store.ErrUniqueConstraint
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateGroup", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &dupKey):
-			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateGroup", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("UpdateGroup", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		if _, ok := errors.AsType[*store.ErrUniqueConstraint](err); ok {
+			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.NewAppError("UpdateGroup", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	count, err := a.Srv().Store().Group().GetMemberCount(updatedGroup.Id)
@@ -254,13 +236,10 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	deletedGroup, err := a.Srv().Store().Group().Delete(groupID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("DeleteGroup", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("DeleteGroup", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("DeleteGroup", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	count, err := a.Srv().Store().Group().GetMemberCount(groupID)
@@ -281,13 +260,10 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 func (a *App) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
 	restoredGroup, err := a.Srv().Store().Group().Restore(groupID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if nfErr, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("RestoreGroup", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(nfErr)
-		default:
-			return nil, model.NewAppError("RestoreGroup", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("RestoreGroup", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	count, err := a.Srv().Store().Group().GetMemberCount(groupID)
@@ -352,19 +328,16 @@ func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int, view
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	groupMember, err := a.Srv().Store().Group().UpsertMember(groupID, userID)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpsertGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpsertGroupMember", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpsertGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
+			return nil, model.NewAppError("UpsertGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if nfErr, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("UpsertGroupMember", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.NewAppError("UpsertGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
@@ -377,13 +350,10 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	groupMember, err := a.Srv().Store().Group().DeleteMember(groupID, userID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("DeleteGroupMember", "app.group.no_rows", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {

@@ -2,17 +2,32 @@
 // See LICENSE.txt for license information.
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
-import type {PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {PropertyField, PropertyGrant, PropertyPermissionLevel} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 
 import {TestHelper} from 'utils/test_helper';
 
-import {canEditPostAttributeValue, isChannelPropertyAdmin} from './permissions';
+import {canEditPostAttributeValue, getCurrentUserSystemRoles, isChannelPropertyAdmin} from './permissions';
 
 const AUTHOR_ID = 'user_author';
 const OTHER_ID = 'user_other';
+
+// No system roles: only the cases about role grants pass any.
+const NO_ROLES = '';
+
+// A field the way a PSv3 group serves it: value.write in `permissions`, with
+// no legacy permission_values unless a case adds one.
+function makeV3Field(valueWrite: PropertyPermissionLevel, grants: PropertyGrant[] = []): PropertyField {
+    return {
+        ...makeField(undefined),
+        permissions: {
+            restrictions: {value: {read: 'everyone', write: valueWrite}, option: {read: 'everyone'}, field: {write: 'sysadmin'}},
+            grants,
+        },
+    };
+}
 
 function makeField(permissionValues?: PropertyPermissionLevel, objectType = 'post'): PropertyField {
     return {
@@ -42,16 +57,16 @@ describe('canEditPostAttributeValue', () => {
     it('denies a field with no permission_values at all, for everyone', () => {
         const field = makeField(undefined);
 
-        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, false, false)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, false, false)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, true, false)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, true, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, false, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, true, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, true, false)).toBe(false);
 
         // And a channel admin is no more entitled to it than anyone else.
-        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, false, true)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, false, true)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, true, true)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, true, true)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, false, true)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, true)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, true, true)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, true, true)).toBe(false);
     });
 
     // The function is named for posts and resolves against a post. A field of
@@ -59,58 +74,58 @@ describe('canEditPostAttributeValue', () => {
     // the one that proves the guard runs before the switch rather than after.
     it('denies a field that is not post-object, however permissive the level', () => {
         for (const objectType of ['channel', 'user', 'system', '']) {
-            expect(canEditPostAttributeValue(makeField('member', objectType), post, AUTHOR_ID, true, true)).toBe(false);
-            expect(canEditPostAttributeValue(makeField('admin', objectType), post, AUTHOR_ID, true, true)).toBe(false);
-            expect(canEditPostAttributeValue(makeField('creator', objectType), post, AUTHOR_ID, true, true)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('member', objectType), post, AUTHOR_ID, NO_ROLES, true, true)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('admin', objectType), post, AUTHOR_ID, NO_ROLES, true, true)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('creator', objectType), post, AUTHOR_ID, NO_ROLES, true, true)).toBe(false);
         }
 
         // Same level, same user, post-object: allowed. Isolates object_type as
         // the only thing the assertions above are measuring.
-        expect(canEditPostAttributeValue(makeField('member'), post, AUTHOR_ID, true, true)).toBe(true);
+        expect(canEditPostAttributeValue(makeField('member'), post, AUTHOR_ID, NO_ROLES, true, true)).toBe(true);
     });
 
     it("denies 'none' even to a system admin", () => {
         const field = makeField('none');
 
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, false, false)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, false, false)).toBe(false);
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, true, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, false, false)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, true, false)).toBe(false);
 
         // Nor to a channel admin.
-        expect(canEditPostAttributeValue(field, post, OTHER_ID, false, true)).toBe(false);
+        expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, true)).toBe(false);
     });
 
     it("allows 'member' for a plain member who did not write the post", () => {
-        expect(canEditPostAttributeValue(makeField('member'), post, OTHER_ID, false, false)).toBe(true);
+        expect(canEditPostAttributeValue(makeField('member'), post, OTHER_ID, NO_ROLES, false, false)).toBe(true);
     });
 
     describe("'sysadmin'", () => {
         it('allows a system admin', () => {
-            expect(canEditPostAttributeValue(makeField('sysadmin'), post, OTHER_ID, true, false)).toBe(true);
+            expect(canEditPostAttributeValue(makeField('sysadmin'), post, OTHER_ID, NO_ROLES, true, false)).toBe(true);
         });
 
         it('denies a plain member, including the post author', () => {
-            expect(canEditPostAttributeValue(makeField('sysadmin'), post, OTHER_ID, false, false)).toBe(false);
-            expect(canEditPostAttributeValue(makeField('sysadmin'), post, AUTHOR_ID, false, false)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('sysadmin'), post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('sysadmin'), post, AUTHOR_ID, NO_ROLES, false, false)).toBe(false);
         });
 
         it('denies a channel admin who is not a system admin', () => {
-            expect(canEditPostAttributeValue(makeField('sysadmin'), post, OTHER_ID, false, true)).toBe(false);
-            expect(canEditPostAttributeValue(makeField('sysadmin'), post, AUTHOR_ID, false, true)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('sysadmin'), post, OTHER_ID, NO_ROLES, false, true)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('sysadmin'), post, AUTHOR_ID, NO_ROLES, false, true)).toBe(false);
         });
     });
 
     describe("'creator'", () => {
         it('allows the post author', () => {
-            expect(canEditPostAttributeValue(makeField('creator'), post, AUTHOR_ID, false, false)).toBe(true);
+            expect(canEditPostAttributeValue(makeField('creator'), post, AUTHOR_ID, NO_ROLES, false, false)).toBe(true);
         });
 
         it('denies another member', () => {
-            expect(canEditPostAttributeValue(makeField('creator'), post, OTHER_ID, false, false)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('creator'), post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
         });
 
         it('allows a system admin who did not write the post', () => {
-            expect(canEditPostAttributeValue(makeField('creator'), post, OTHER_ID, true, false)).toBe(true);
+            expect(canEditPostAttributeValue(makeField('creator'), post, OTHER_ID, NO_ROLES, true, false)).toBe(true);
         });
 
         // hasPropertyFieldValueCreator checks post.UserId == userID and then
@@ -118,7 +133,7 @@ describe('canEditPostAttributeValue', () => {
         // (app/authorization.go:748), so a channel admin qualifies without
         // having written the post.
         it('allows a channel admin who did not write the post', () => {
-            expect(canEditPostAttributeValue(makeField('creator'), post, OTHER_ID, false, true)).toBe(true);
+            expect(canEditPostAttributeValue(makeField('creator'), post, OTHER_ID, NO_ROLES, false, true)).toBe(true);
         });
     });
 
@@ -127,16 +142,16 @@ describe('canEditPostAttributeValue', () => {
         // no membership fact to resolve against. It has one now, so the level
         // is resolved rather than waved through.
         it('allows a channel admin', () => {
-            expect(canEditPostAttributeValue(makeField('admin'), post, OTHER_ID, false, true)).toBe(true);
+            expect(canEditPostAttributeValue(makeField('admin'), post, OTHER_ID, NO_ROLES, false, true)).toBe(true);
         });
 
         it('allows a system admin', () => {
-            expect(canEditPostAttributeValue(makeField('admin'), post, OTHER_ID, true, false)).toBe(true);
+            expect(canEditPostAttributeValue(makeField('admin'), post, OTHER_ID, NO_ROLES, true, false)).toBe(true);
         });
 
         it('denies a plain member, including the post author', () => {
-            expect(canEditPostAttributeValue(makeField('admin'), post, OTHER_ID, false, false)).toBe(false);
-            expect(canEditPostAttributeValue(makeField('admin'), post, AUTHOR_ID, false, false)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('admin'), post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+            expect(canEditPostAttributeValue(makeField('admin'), post, AUTHOR_ID, NO_ROLES, false, false)).toBe(false);
         });
     });
 
@@ -155,8 +170,8 @@ describe('canEditPostAttributeValue', () => {
             for (const isSystemAdmin of [false, true]) {
                 for (const isChannelAdmin of [false, true]) {
                     const combination = {currentUserId, isSystemAdmin, isChannelAdmin};
-                    const admin = canEditPostAttributeValue(adminField, post, currentUserId, isSystemAdmin, isChannelAdmin);
-                    const creator = canEditPostAttributeValue(creatorField, post, currentUserId, isSystemAdmin, isChannelAdmin);
+                    const admin = canEditPostAttributeValue(adminField, post, currentUserId, NO_ROLES, isSystemAdmin, isChannelAdmin);
+                    const creator = canEditPostAttributeValue(creatorField, post, currentUserId, NO_ROLES, isSystemAdmin, isChannelAdmin);
 
                     if (admin) {
                         // Spread the combination into the assertion so a
@@ -166,6 +181,90 @@ describe('canEditPostAttributeValue', () => {
                 }
             }
         }
+    });
+
+    it("allows 'everyone' for anyone, as the server does", () => {
+        expect(canEditPostAttributeValue(makeField('everyone'), post, OTHER_ID, NO_ROLES, false, false)).toBe(true);
+        expect(canEditPostAttributeValue(makeV3Field('everyone'), post, OTHER_ID, NO_ROLES, false, false)).toBe(true);
+    });
+
+    describe('a field with permissions', () => {
+        it('takes the tier from permissions.restrictions.value.write', () => {
+            expect(canEditPostAttributeValue(makeV3Field('creator'), post, AUTHOR_ID, NO_ROLES, false, false)).toBe(true);
+            expect(canEditPostAttributeValue(makeV3Field('creator'), post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+            expect(canEditPostAttributeValue(makeV3Field('sysadmin'), post, OTHER_ID, NO_ROLES, true, false)).toBe(true);
+        });
+
+        // permissions supersedes the legacy level, so a stale permission_values
+        // must not widen or narrow the answer.
+        it('ignores a stale permission_values', () => {
+            const narrowed = {...makeV3Field('sysadmin'), permission_values: 'member' as const};
+            expect(canEditPostAttributeValue(narrowed, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+
+            const widened = {...makeV3Field('member'), permission_values: 'none' as const};
+            expect(canEditPostAttributeValue(widened, post, OTHER_ID, NO_ROLES, false, false)).toBe(true);
+        });
+
+        it('denies when permissions has no restrictions', () => {
+            const field: PropertyField = {...makeField(undefined), permissions: {grants: []}};
+            expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, true, true)).toBe(false);
+        });
+    });
+
+    // A grant admits the write whatever the tier says, as
+    // decidePropertyFieldPermission does on the server. The server serves a
+    // caller only the grants that name them, but the matching is still checked
+    // here, so a field shared between callers in a test or a cache cannot leak.
+    describe('a value.write grant', () => {
+        const userGrant = (id: string, allow: PropertyGrant['allow'] = ['value.write']): PropertyGrant => ({type: 'user', id, allow});
+        const roleGrant = (id: string): PropertyGrant => ({type: 'role', id, allow: ['value.write']});
+
+        it('admits the user it names on a field no tier allows', () => {
+            const field = makeV3Field('none', [userGrant(OTHER_ID)]);
+
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(true);
+            expect(canEditPostAttributeValue(field, post, AUTHOR_ID, NO_ROLES, false, false)).toBe(false);
+        });
+
+        it('admits a holder of the role it names, matched against system roles', () => {
+            const field = makeV3Field('none', [roleGrant('system_user')]);
+
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, 'system_user', false, false)).toBe(true);
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, 'system_guest', false, false)).toBe(false);
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        });
+
+        it('does not admit a grant for another action', () => {
+            const field = makeV3Field('none', [userGrant(OTHER_ID, ['value.read'])]);
+
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        });
+
+        // MatchingGrant is called with no scope for a value write, so a scoped
+        // grant never applies to one.
+        it('does not admit a scoped grant', () => {
+            const field = makeV3Field('none', [{...userGrant(OTHER_ID), scopes: ['some_scope']}]);
+
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        });
+
+        it('does not admit a plugin or service grant for a human', () => {
+            const field = makeV3Field('none', [{type: 'plugin', id: OTHER_ID, allow: ['value.write']}]);
+
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        });
+
+        it('still requires a post-object field', () => {
+            const field = {...makeV3Field('none', [userGrant(OTHER_ID)]), object_type: 'channel'};
+
+            expect(canEditPostAttributeValue(field, post, OTHER_ID, NO_ROLES, false, false)).toBe(false);
+        });
+    });
+});
+
+describe('getCurrentUserSystemRoles', () => {
+    it("returns the current user's own roles, not team or channel roles", () => {
+        expect(getCurrentUserSystemRoles(makeState({systemRoles: 'system_user system_admin', channelRoles: ['channel_admin']}))).toBe('system_user system_admin');
     });
 });
 
