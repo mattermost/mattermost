@@ -773,7 +773,7 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 				mockApp := &MockAppIface{}
 				scs := newService(t, userStore, mockApp)
 
-				saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+				saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
 				require.NoError(t, err)
 				assert.Equal(t, tt.wantRoles, saved.Roles)
 				mockApp.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, mock.Anything)
@@ -787,11 +787,14 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 			name          string
 			existingRoles string
 			incomingRoles string
+			oldSender     bool
 			wantDemote    bool
 			wantPromote   bool
 		}{
 			{name: "user demoted to guest", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemGuestRoleId, wantDemote: true},
 			{name: "guest promoted to user", existingRoles: model.SystemGuestRoleId, incomingRoles: model.SystemUserRoleId, wantPromote: true},
+			{name: "old sender demotes user to guest", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemGuestRoleId, oldSender: true, wantDemote: true},
+			{name: "old sender cannot promote guest", existingRoles: model.SystemGuestRoleId, incomingRoles: model.SystemUserRoleId, oldSender: true},
 			{name: "guest unchanged", existingRoles: model.SystemGuestRoleId, incomingRoles: model.SystemGuestRoleId},
 			{name: "user unchanged", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemUserRoleId},
 			{name: "admin roles from remote ignored", existingRoles: model.SystemUserRoleId, incomingRoles: model.SystemAdminRoleId + " " + model.SystemUserRoleId},
@@ -841,7 +844,7 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 				}
 				scs := newService(t, userStore, mockApp)
 
-				saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+				saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, !tt.oldSender)
 				require.NoError(t, err)
 				assert.Equal(t, wantRoles, saved.Roles)
 				mockApp.AssertExpectations(t)
@@ -867,7 +870,7 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 
 		scs := newServiceWithGuests(t, userStore, &MockAppIface{}, false)
 
-		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
 		require.NoError(t, err)
 		assert.Positive(t, saved.DeleteAt)
 	})
@@ -884,7 +887,7 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 
 		scs := newServiceWithGuests(t, userStore, &MockAppIface{}, false)
 
-		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
 		require.NoError(t, err)
 		assert.Zero(t, saved.DeleteAt)
 	})
@@ -919,7 +922,7 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 		mockApp.On("UpdateActive", mock.Anything, demoted, false).Return(deactivated, nil).Once()
 		scs := newServiceWithGuests(t, userStore, mockApp, false)
 
-		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
 		require.NoError(t, err)
 		assert.Equal(t, model.SystemGuestRoleId, saved.Roles)
 		assert.Positive(t, saved.DeleteAt)
@@ -952,11 +955,47 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 		}), false).Return(deactivated, nil).Once()
 		scs := newServiceWithGuests(t, userStore, mockApp, false)
 
-		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
 		require.NoError(t, err)
 		assert.Positive(t, saved.DeleteAt)
 		mockApp.AssertExpectations(t)
 		mockApp.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, mock.Anything)
+	})
+
+	t.Run("guest kept by old sender is deactivated when guest accounts are disabled", func(t *testing.T) {
+		rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
+		existing := &model.User{
+			Id:       model.NewId(),
+			Username: "alice:test-remote",
+			Email:    model.NewId(),
+			RemoteId: model.NewPointer(rc.RemoteId),
+			Roles:    model.SystemGuestRoleId,
+		}
+		incoming := &model.User{Id: existing.Id, Username: "alice", Email: "alice@example.com", Roles: model.SystemUserRoleId}
+
+		userStore := &mocks.UserStore{}
+		userStore.On("Get", mock.Anything, existing.Id).Return(existing, nil).Once()
+		userStore.On("Update", mock.Anything, mock.Anything, false).Return(func(_ request.CTX, u *model.User, _ bool) *model.UserUpdate {
+			updated := u.DeepCopy()
+			updated.Roles = model.SystemGuestRoleId
+			return &model.UserUpdate{New: updated}
+		}, nil)
+
+		deactivated := existing.DeepCopy()
+		deactivated.DeleteAt = model.GetMillis()
+
+		mockApp := &MockAppIface{}
+		mockApp.On("UpdateActive", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+			return u.Id == existing.Id
+		}), false).Return(deactivated, nil).Once()
+		scs := newServiceWithGuests(t, userStore, mockApp, false)
+
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, false)
+		require.NoError(t, err)
+		assert.Equal(t, model.SystemGuestRoleId, saved.Roles)
+		assert.Positive(t, saved.DeleteAt)
+		mockApp.AssertExpectations(t)
+		mockApp.AssertNotCalled(t, "PromoteGuestToUser", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("update returns error when demote fails", func(t *testing.T) {
@@ -983,7 +1022,7 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 			Return(model.NewAppError("DemoteUserToGuest", "test", nil, "", http.StatusInternalServerError))
 		scs := newService(t, userStore, mockApp)
 
-		_, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc)
+		_, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
 		require.Error(t, err)
 	})
 }

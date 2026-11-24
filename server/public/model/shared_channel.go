@@ -298,12 +298,16 @@ type SyncMsg struct {
 	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
 	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 	MentionTransforms map[string]string      `json:"mention_transforms,omitempty"`
+	// Older servers omit this and send every guest as system_user, so a receiver must not
+	// promote a guest based on a message without it.
+	GuestRolesSynced bool `json:"guest_roles_synced,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
 	return &SyncMsg{
-		Id:        NewId(),
-		ChannelId: channelID,
+		Id:               NewId(),
+		ChannelId:        channelID,
+		GuestRolesSynced: true,
 	}
 }
 

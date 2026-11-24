@@ -114,7 +114,7 @@ func TestUpsertSyncUserUpdatesRemoteEmail(t *testing.T) {
 			}
 
 			saved, err := scs.upsertSyncUser(
-				request.TestContext(t), incoming, nil, rc,
+				request.TestContext(t), incoming, nil, rc, true,
 			)
 			require.NoError(t, err)
 
@@ -203,7 +203,7 @@ func TestUpsertSyncUserInsertRemoteEmail(t *testing.T) {
 			}
 
 			saved, err := scs.upsertSyncUser(
-				request.TestContext(t), incoming, nil, rc,
+				request.TestContext(t), incoming, nil, rc, true,
 			)
 			require.NoError(t, err)
 

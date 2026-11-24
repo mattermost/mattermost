@@ -60,7 +60,7 @@ func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncM
 
 	// Process all users in the sync message
 	for _, user := range syncMsg.Users {
-		if userSaved, err := scs.upsertSyncUser(rctx, user, nil, rc); err != nil {
+		if userSaved, err := scs.upsertSyncUser(rctx, user, nil, rc, syncMsg.GuestRolesSynced); err != nil {
 			syncResp.UserErrors = append(syncResp.UserErrors, user.Id)
 		} else {
 			syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
@@ -140,7 +140,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
-		if userSaved, err := scs.upsertSyncUser(rctx, user, targetChannel, rc); err != nil {
+		if userSaved, err := scs.upsertSyncUser(rctx, user, targetChannel, rc, syncMsg.GuestRolesSynced); err != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync user",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),
@@ -297,7 +297,7 @@ func (scs *Service) processSyncMessageForRemote(rctx request.CTX, syncMsg *model
 	return response.SetPayload(syncResp)
 }
 
-func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster, canPromote bool) (*model.User, error) {
 	var err error
 
 	// Check if user already exists
@@ -357,7 +357,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
-		if userSaved, err = scs.updateSyncUserGuestRole(rctx, userSaved, isGuest); err != nil {
+		if userSaved, err = scs.updateSyncUserGuestRole(rctx, userSaved, isGuest, canPromote); err != nil {
 			return nil, err
 		}
 	}
@@ -487,11 +487,9 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
-// updateSyncUserGuestRole promotes or demotes an existing synced user so their guest status
-// matches their home server. User().Update does not change roles, and promote/demote also
-// update the scheme flags on existing team and channel memberships.
-func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, isGuest bool) (*model.User, error) {
-	if user.IsGuest() != isGuest {
+// User().Update does not change roles, so guest status is synced here.
+func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, isGuest, canPromote bool) (*model.User, error) {
+	if user.IsGuest() != isGuest && (isGuest || canPromote) {
 		var appErr *model.AppError
 		if isGuest {
 			appErr = scs.app.DemoteUserToGuest(rctx, user)
@@ -510,7 +508,7 @@ func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, 
 	}
 
 	// Outside the role-change branch so a retry finishes a deactivation that failed after the demote.
-	if isGuest && user.DeleteAt == 0 && !scs.guestAccountsEnabled() {
+	if user.IsGuest() && user.DeleteAt == 0 && !scs.guestAccountsEnabled() {
 		deactivated, appErr := scs.app.UpdateActive(rctx, user, false)
 		if appErr != nil {
 			return nil, fmt.Errorf("error deactivating sync guest %s: %w", user.Id, appErr)
