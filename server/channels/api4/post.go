@@ -159,6 +159,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		SilentNotification: silentBool,
 	}
 
+	propertyValues, appErr := postAttributeValuesForCreate(c, &post)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Only touched when there is something to write, so a post without values reaches
+	// CreatePost exactly as the client sent it. Values only come from post.Metadata, so it is
+	// non-nil here. This replaces the client's submission with the validated values, which is
+	// what CreatePost reads back off the saved post.
+	if len(propertyValues) > 0 {
+		post.Metadata.PropertyValues = propertyValues
+	}
+
 	rp, isMemberForPreviews, err := c.App.CreatePostAsUserWithFlags(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, createFlags)
 	if err != nil {
 		c.Err = err
@@ -325,32 +339,42 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Leaving the ETag unset also suppresses the response header below, which is only
+	// written when the ETag is non-empty.
+	hydrating := propertyGroupID != ""
+
 	var list *model.PostList
 	etag := ""
 
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
+		if !hydrating {
+			etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
-		if c.HandleEtag(etag, "Get Posts After", w, r) {
-			return
+			if c.HandleEtag(etag, "Get Posts After", w, r) {
+				return
+			}
 		}
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
+		if !hydrating {
+			etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
-		if c.HandleEtag(etag, "Get Posts Before", w, r) {
-			return
+			if c.HandleEtag(etag, "Get Posts Before", w, r) {
+				return
+			}
 		}
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
+		if !hydrating {
+			etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
-		if c.HandleEtag(etag, "Get Posts", w, r) {
-			return
+			if c.HandleEtag(etag, "Get Posts", w, r) {
+				return
+			}
 		}
 
 		list, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
@@ -438,12 +462,18 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
+	// Leaving the ETag unset also suppresses the response header below, which is only
+	// written when the ETag is non-empty.
+	hydrating := propertyGroupID != ""
+
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
+		if !hydrating {
+			etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
-		if c.HandleEtag(etag, "Get Posts", w, r) {
-			return
+			if c.HandleEtag(etag, "Get Posts", w, r) {
+				return
+			}
 		}
 
 		postList, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
@@ -605,6 +635,8 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hydrating := propertyGroupID != ""
+
 	post, err, isMember := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), includeDeleted)
 	if err != nil {
 		c.Err = err
@@ -617,7 +649,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
+	if !hydrating && c.HandleEtag(post.Etag(), "Get Post", w, r) {
+		return
+	}
+
+	postEtag := c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId))
+	if !hydrating && c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
 
@@ -631,12 +668,9 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postEtag := c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId)
-	if c.HandleEtag(postEtag, "Get Post", w, r) {
-		return
+	if !hydrating {
+		w.Header().Set(model.HeaderEtagServer, postEtag)
 	}
-
-	w.Header().Set(model.HeaderEtagServer, postEtag)
 
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -675,7 +709,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIds(postIDs)
+	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIdsForUser(c.AppContext, c.AppContext.Session().UserId, postIDs)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -753,13 +787,21 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	// Edit history is a read surface that happens to be gated on edit_post, because
+	// only the author may see it. That permission is a write, so the channel gate does
+	// not evaluate channel_read_access for it and this has to ask explicitly.
+	if !c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, originalPost.ChannelId) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -866,16 +908,17 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For now, by default we return all items unless it's set to maintain
-	// backwards compatibility with mobile. But when the next ESR passes, we need to
-	// change this to web.PerPageDefault.
-	perPage := 0
+	// Requests that don't ask for a page size get a full page. When the next ESR
+	// passes, we need to change this to web.PerPageDefault.
+	perPage := web.PerPageMaximum
 	if perPageStr := r.URL.Query().Get("perPage"); perPageStr != "" {
-		var err error
-		perPage, err = strconv.Atoi(perPageStr)
-		if err != nil || perPage > web.PerPageMaximum {
+		val, err := strconv.Atoi(perPageStr)
+		if err != nil || val < 0 || val > web.PerPageMaximum {
 			c.SetInvalidParamWithErr("perPage", err)
 			return
+		}
+		if val > 0 {
+			perPage = val
 		}
 	}
 
@@ -936,6 +979,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hydrating := propertyGroupID != ""
+
 	opts := model.GetPostsOptions{
 		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
 		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
@@ -976,9 +1021,14 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threadEtag := c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId)
-	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
-		return
+	// Leaving the ETag unset also suppresses the response header below, which is only
+	// written when the ETag is non-empty.
+	threadEtag := ""
+	if !hydrating {
+		threadEtag = c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId))
+		if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
+			return
+		}
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
@@ -988,7 +1038,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, threadEtag)
+	if threadEtag != "" {
+		w.Header().Set(model.HeaderEtagServer, threadEtag)
+	}
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1157,7 +1209,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// a lagging read replica would report it missing (MM-70867).
 	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
@@ -1244,6 +1296,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(rpost)
 
+	// The updated post carries other users' reactions and files.
+	if !sessionCanReadChannel(c, rpost.ChannelId) {
+		rpost = postWithoutContent(rpost)
+	}
+
 	if err := rpost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1300,6 +1357,12 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedPost)
 
+	// A patch that changes nothing still returns the whole post, with its reactions
+	// and files.
+	if !sessionCanReadChannel(c, patchedPost.ChannelId) {
+		patchedPost = postWithoutContent(patchedPost)
+	}
+
 	if err := patchedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1312,7 +1375,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 	// a lagging read replica would report it missing (MM-70867).
 	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return nil, false
 	}
 	auditRec.AddEventPriorState(originalPost)
@@ -1421,7 +1484,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	// a lagging read replica would report it missing (MM-70867).
 	post, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.Err = err
 		return
 	}
 	auditRec.AddEventPriorState(post)
@@ -1435,6 +1498,11 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	ok, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Pinning changes what every member of the channel sees, like a reaction.
+	if !requireChannelWriteAccess(c, channel) {
 		return
 	}
 
@@ -1493,6 +1561,17 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// An acknowledgement is shown to every member of the channel, like a reaction.
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
+		return
+	}
+
 	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1532,9 +1611,13 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 
@@ -1613,6 +1696,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, sourcePost.ChannelId) || !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
 		return
 	}
 
@@ -1750,19 +1837,19 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermissionToAccessChannel, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	hasChannelReadAccess, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 
 	// Join metadata is independent of ComplianceSettings. Compliance still blocks
 	// reading public-channel *content* for non-members (HasPermissionToReadChannel),
 	// including permalink previews. GetPostInfo returns only channel/team identifiers
 	// so the client can join, which creates the compliance trail, then load the post.
-	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen {
+	if !hasChannelReadAccess && channel.Type == model.ChannelTypeOpen {
 		canJoinOpenChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels)
 		canJoinOpenTeam := team != nil && team.AllowOpenInvite && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams)
-		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam
+		hasChannelReadAccess = canJoinOpenChannel || canJoinOpenTeam
 	}
 
-	if !hasPermissionToAccessChannel {
+	if !hasChannelReadAccess || !c.App.HasChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		c.Err = notFoundError
 		return
 	}
@@ -1802,6 +1889,11 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
+	if _, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false); err != nil {
+		c.Err = err
+		return
+	}
+
 	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -1837,6 +1929,11 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedPost)
+
+	// The restored version is content the caller may not otherwise read.
+	if !sessionCanReadChannel(c, updatedPost.ChannelId) {
+		updatedPost = postWithoutContent(updatedPost)
+	}
 
 	if err := updatedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -2007,6 +2104,10 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.Err = err
 		}
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 

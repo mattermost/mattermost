@@ -129,10 +129,44 @@ jobs:
           echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
           echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
 
-  # Enterprise Edition
-  e2e-cypress:
+  # Each edition's lanes start only once its server image is on Docker Hub (server-image-check.yml).
+  server-image-enterprise:
     needs: generate-build-variables
     permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_edition: enterprise
+      server_image_tag: ${{ inputs.server_image_tag }}
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # FIPS builds were introduced in release-11.0; skip for older branches.
+  server-image-fips:
+    needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_edition: fips
+      server_image_tag: ${{ inputs.server_image_tag }}
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Enterprise Edition
+  e2e-cypress:
+    needs:
+      - generate-build-variables
+      - server-image-enterprise
+    permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -158,7 +192,9 @@ jobs:
     needs:
       - generate-build-variables
       - check-changes
+      - server-image-enterprise
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -179,9 +215,12 @@ jobs:
   # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
   # Only when subpath-specific server code or test specs changed in this commit.
   e2e-playwright-subpath:
-    needs: generate-build-variables
+    needs:
+      - generate-build-variables
+      - server-image-enterprise
     if: needs.generate-build-variables.outputs.should_run_subpath == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -203,9 +242,12 @@ jobs:
   # Enterprise FIPS Edition
   # FIPS builds were introduced in release-11.0; skip for older branches.
   e2e-cypress-fips:
-    needs: generate-build-variables
+    needs:
+      - generate-build-variables
+      - server-image-fips
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -232,8 +274,10 @@ jobs:
     needs:
       - generate-build-variables
       - check-changes
+      - server-image-fips
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write

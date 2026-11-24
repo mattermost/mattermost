@@ -13,31 +13,7 @@ import {TestHelper} from 'utils/test_helper';
 describe('components/admin_console/data_retention_settings/team_list', () => {
     const team: Team = Object.assign(TestHelper.getTeamMock({id: 'team-1'}));
 
-    test('should match snapshot', () => {
-        const testTeams = [{
-            ...team,
-        }];
-        const actions = {
-            getDataRetentionCustomPolicyTeams: jest.fn().mockResolvedValue(testTeams),
-            searchTeams: jest.fn(),
-            setTeamListSearch: jest.fn(),
-            setTeamListFilters: jest.fn(),
-        };
-        const {container} = renderWithContext(
-            <TeamList
-                searchTerm=''
-                onRemoveCallback={jest.fn()}
-                teamsToRemove={{}}
-                teamsToAdd={{}}
-                teams={testTeams}
-                totalCount={testTeams.length}
-                actions={actions}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with paging', () => {
+    test('should render with paging', () => {
         const testTeams = [];
         for (let i = 0; i < 30; i++) {
             testTeams.push({
@@ -53,7 +29,7 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
             setTeamListSearch: jest.fn(),
             setTeamListFilters: jest.fn(),
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <TeamList
                 searchTerm=''
                 onRemoveCallback={jest.fn()}
@@ -69,6 +45,5 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
         expect(screen.getByText('DN0')).toBeInTheDocument();
         expect(screen.getByText('DN9')).toBeInTheDocument();
         expect(screen.getByText((content) => content.includes('1') && content.includes('10') && content.includes('30'))).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 });

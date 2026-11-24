@@ -2462,8 +2462,8 @@ func TestExtractThreadMembersNilThreadFollowers(t *testing.T) {
 			LineNumber: 1,
 		}
 
-		memberships, lineNumber, appErr := th.App.extractThreadMembers(th.Context, line, map[string]*model.User{}, &model.Post{}, false, nil)
-		require.Nil(t, appErr)
+		memberships, lineNumber, err := th.App.extractThreadMembers(th.Context, line, map[string]*model.User{}, &model.Post{}, false, nil)
+		require.NoError(t, err)
 		assert.Equal(t, 0, lineNumber)
 		assert.Empty(t, memberships)
 	})
@@ -2476,8 +2476,8 @@ func TestExtractThreadMembersNilThreadFollowers(t *testing.T) {
 			LineNumber: 1,
 		}
 
-		memberships, lineNumber, appErr := th.App.extractThreadMembers(th.Context, line, map[string]*model.User{}, &model.Post{}, false, nil)
-		require.Nil(t, appErr)
+		memberships, lineNumber, err := th.App.extractThreadMembers(th.Context, line, map[string]*model.User{}, &model.Post{}, false, nil)
+		require.NoError(t, err)
 		assert.Equal(t, 0, lineNumber)
 		assert.Empty(t, memberships)
 	})
@@ -2692,7 +2692,7 @@ func TestImportUserTeams(t *testing.T) {
 		})
 	}
 
-	t.Run("Should fail if the MaxUserPerTeam is reached", func(t *testing.T) {
+	t.Run("Should not enforce MaxUsersPerTeam", func(t *testing.T) {
 		user := th.CreateUser(t)
 		data := &[]imports.UserTeamImportData{
 			{
@@ -2702,7 +2702,10 @@ func TestImportUserTeams(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
 		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
-		require.NotNil(t, appErr)
+		require.Nil(t, appErr)
+
+		_, err := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
+		require.NoError(t, err, "user should have joined the team despite it being over the limit")
 	})
 
 	t.Run("Group-synced admin should keep admin when imported roles omit team_admin", func(t *testing.T) {

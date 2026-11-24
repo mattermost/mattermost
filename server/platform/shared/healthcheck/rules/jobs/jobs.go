@@ -17,6 +17,8 @@ func init() {
 
 const (
 	stuckAfter = 24 * time.Hour
+	// Past two days an idle time reads better in days than in hours.
+	stuckDaysAfter = 48 * time.Hour
 	// wedgedAfter matches the server's own timeout for an idle migration job.
 	wedgedAfter = time.Hour
 	// retentionStaleAfter leaves the daily data retention schedule room to miss a few runs.
@@ -205,10 +207,19 @@ func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
 			return healthcheck.ResolvedSubject(jobType)
 		}
 
-		return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_stuck.message")).
+		messageID := healthcheck.TranslationId("health.rule.job_stuck.message")
+		if idle >= stuckDaysAfter {
+			messageID = healthcheck.TranslationId("health.rule.job_stuck.message.days")
+		}
+
+		result := healthcheck.FiringSubject(jobType, messageID).
 			WithDetail("job_type", jobType).
 			WithDetail("job_id", job.Id).
 			WithDetail("hours", hours(idle))
+		if idle >= stuckDaysAfter {
+			result = result.WithDetail("days", strconv.Itoa(int(idle/(24*time.Hour))))
+		}
+		return result
 	})
 }
 

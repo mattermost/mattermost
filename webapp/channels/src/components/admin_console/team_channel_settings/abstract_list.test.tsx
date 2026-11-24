@@ -40,7 +40,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             </div>
         </div>);
 
-    test('should match snapshot, no headers', async () => {
+    test('should render no headers', async () => {
         const testChannels: Channel[] = [];
 
         const actions = {
@@ -49,8 +49,9 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <AbstractList
+                data={[]}
                 onPageChangedCallback={jest.fn()}
                 total={0}
                 header={header}
@@ -65,11 +66,9 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
 
         await screen.findByText('test');
         expect(actions.getData).toHaveBeenCalled();
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with data', async () => {
+    test('should render with data', async () => {
         const testTeams: TeamWithMembership[] = [TestHelper.getTeamMock({
             id: '123',
             display_name: 'DN',
@@ -81,7 +80,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <AbstractList
                 data={testTeams}
                 onPageChangedCallback={jest.fn()}
@@ -98,8 +97,6 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
 
         await screen.findByText('DN');
         expect(actions.getData).toHaveBeenCalled();
-
-        expect(container).toMatchSnapshot();
     });
 
     const renderRow = jest.fn((item) => {

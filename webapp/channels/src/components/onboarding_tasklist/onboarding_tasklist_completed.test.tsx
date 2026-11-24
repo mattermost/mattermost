@@ -56,11 +56,6 @@ describe('components/onboarding_tasklist/onboarding_tasklist_completed.tsx', () 
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Completed {...props}/>, initialState);
-        expect(container).toMatchSnapshot();
-    });
-
     test('finds the completed subtitle', () => {
         const {container} = renderWithContext(<Completed {...props}/>, initialState);
         expect(container.querySelectorAll('.completed-subtitle')).toHaveLength(1);

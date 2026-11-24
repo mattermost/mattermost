@@ -63,10 +63,46 @@ jobs:
 
           echo "ref_branch=${BRANCH}" >> $GITHUB_OUTPUT
 
-  # Enterprise Edition
-  e2e-cypress:
+  # Each edition's lanes start only once its server image is on Docker Hub (server-image-check.yml).
+  server-image-enterprise:
     needs: validate
     permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_edition: enterprise
+      server_image_repo: mattermost
+      server_image_tag: ${{ inputs.server_image_tag }}
+      report_type: RELEASE_CUT
+      ref_branch: ${{ needs.validate.outputs.ref_branch }}
+    secrets:
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # FIPS builds were introduced in release-11.0; skip for older branches.
+  server-image-fips:
+    needs: validate
+    if: needs.validate.outputs.fips_supported == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_edition: fips
+      server_image_repo: mattermost
+      server_image_tag: ${{ inputs.server_image_tag }}
+      report_type: RELEASE_CUT
+      ref_branch: ${{ needs.validate.outputs.ref_branch }}
+    secrets:
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Enterprise Edition
+  e2e-cypress:
+    needs:
+      - validate
+      - server-image-enterprise
+    permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -91,8 +127,11 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright:
-    needs: validate
+    needs:
+      - validate
+      - server-image-enterprise
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -115,8 +154,11 @@ jobs:
   # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
   # Release-cut only — not run on PR or master/release merges.
   e2e-playwright-subpath:
-    needs: validate
+    needs:
+      - validate
+      - server-image-enterprise
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -140,9 +182,12 @@ jobs:
   # Enterprise FIPS Edition
   # FIPS builds were introduced in release-11.0; skip for older branches.
   e2e-cypress-fips:
-    needs: validate
+    needs:
+      - validate
+      - server-image-fips
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -168,9 +213,12 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright-fips:
-    needs: validate
+    needs:
+      - validate
+      - server-image-fips
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write

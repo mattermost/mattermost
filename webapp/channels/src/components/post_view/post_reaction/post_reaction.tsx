@@ -5,6 +5,9 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -13,7 +16,6 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {Locations} from 'utils/constants';
 
@@ -69,18 +71,20 @@ export default function PostReaction({
             permissions={[Permissions.ADD_REACTION]}
         >
             <WithTooltip title={ariaLabel}>
-                <button
+                <IconButton
                     ref={setReference}
                     data-testid='post-reaction-emoji-icon'
                     id={`${location}_reaction_${postId}`}
-                    aria-label={ariaLabel}
+                    size='small'
+                    padding='compact'
                     className={classNames('post-menu__item', 'post-menu__item--reactions', {
                         'post-menu__item--active': showEmojiPicker,
                     })}
+                    icon={<Icon glyph={<EmoticonHappyOutlineIcon/>}/>}
+                    active={showEmojiPicker}
+                    aria-label={ariaLabel}
                     {...getReferenceProps()}
-                >
-                    <EmojiIcon className='icon icon--small'/>
-                </button>
+                />
             </WithTooltip>
             {emojiPicker}
         </ChannelPermissionGate>

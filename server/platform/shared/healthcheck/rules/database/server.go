@@ -41,7 +41,7 @@ var dbPoolSaturated = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    maxOpenConnsSubject,
-	Eval:       healthcheck.Single(evalDBPoolSaturated),
+	EvalNode:   healthcheck.SingleNode(evalDBPoolSaturated),
 }
 
 var dbReplicaUnused = healthcheck.Rule{
@@ -85,8 +85,7 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-// Collection is leader-only, so this covers the leader's pool.
-func evalDBPoolSaturated(s *healthcheck.Snapshot) healthcheck.Result {
+func evalDBPoolSaturated(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	maxOpen, ok := maxOpenConns(s)
 	if !ok {
 		return unknownConfig()
@@ -95,7 +94,7 @@ func evalDBPoolSaturated(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	diag, ok := s.LeaderDiag(model.SectionDatabasePool)
+	diag, ok := n.SectionDiag(model.SectionDatabasePool)
 	if !ok || diag.Database.MasterConnectionsInUse == nil {
 		return unknownDiagnostics()
 	}

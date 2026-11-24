@@ -5,7 +5,7 @@ import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, t
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectCallback} from 'react-bootstrap';
 import {Tabs, Tab} from 'react-bootstrap';
-import {useIntl, FormattedMessage} from 'react-intl';
+import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useParams, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
@@ -24,6 +24,7 @@ import {compassIconForName, useChannelIconOverrideName} from 'components/channel
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getChannelIconComponent} from 'utils/channel_utils';
 
@@ -31,10 +32,6 @@ import type {GlobalState} from 'types/store';
 
 import ChatSvg from './chat.svg';
 import {
-    AdminSection,
-    SectionHeader,
-    SectionHeading,
-    SectionContent,
     PlaceholderContainer,
     PlaceholderHeading,
     AdminWrapper,
@@ -122,87 +119,75 @@ export default function SecureConnectionDetail(props: Props) {
             </AdminHeader>
 
             <AdminWrapper>
-                <AdminSection data-testid='connection_detail_section'>
-                    <SectionHeader>
-                        <hgroup>
-                            <FormattedMessage
-                                tagName={SectionHeading}
-                                id='admin.secure_connections.details.title'
-                                defaultMessage='Connection Details'
-                            />
-                            <FormattedMessage
-                                id='admin.secure_connections.details.subtitle'
-                                defaultMessage='Connection name and other permissions'
-                            />
-                        </hgroup>
-                        {currentRemoteCluster && <ConnectionStatusLabel rc={currentRemoteCluster}/>}
-                    </SectionHeader>
-                    <SectionContent $compact={true}>
-                        {isPendingState(loading) ? (
-                            <LoadingScreen/>
-                        ) : (
-                            <>
-                                <FormField
-                                    label={formatMessage({
-                                        id: 'admin.secure_connections.details.org_name.label',
-                                        defaultMessage: 'Organization Name',
-                                    })}
-                                    helpText={formatMessage({
-                                        id: 'admin.secure_connections.details.org_name.help',
-                                        defaultMessage: 'Giving the connection a recognizable name will help you remember its purpose.',
-                                    })}
-                                >
-                                    <Input
-                                        type='text'
-                                        data-testid='organization-name-input'
-                                        value={remoteCluster?.display_name ?? ''}
-                                        onChange={handleNameChange}
-                                        autoFocus={isCreating}
+                <AdminPanel
+                    id='connection_detail'
+                    data-testid='connection_detail_section'
+                    title={panelMessages.detailsTitle}
+                    subtitle={panelMessages.detailsSubtitle}
+                    button={currentRemoteCluster ? <ConnectionStatusLabel rc={currentRemoteCluster}/> : undefined}
+                >
+                    {isPendingState(loading) ? (
+                        <LoadingScreen/>
+                    ) : (
+                        <>
+                            <FormField
+                                label={formatMessage({
+                                    id: 'admin.secure_connections.details.org_name.label',
+                                    defaultMessage: 'Organization Name',
+                                })}
+                                helpText={formatMessage({
+                                    id: 'admin.secure_connections.details.org_name.help',
+                                    defaultMessage: 'Giving the connection a recognizable name will help you remember its purpose.',
+                                })}
+                            >
+                                <Input
+                                    type='text'
+                                    data-testid='organization-name-input'
+                                    value={remoteCluster?.display_name ?? ''}
+                                    onChange={handleNameChange}
+                                    autoFocus={isCreating}
+                                />
+                            </FormField>
+                            <FormField
+                                label={formatMessage({
+                                    id: 'admin.secure_connections.details.team.label',
+                                    defaultMessage: 'Destination Team',
+                                })}
+                                helpText={(
+                                    <FormattedMessage
+                                        id='admin.secure_connections.details.team.help'
+                                        defaultMessage='Select the team where new incoming channels are added. {link}'
+                                        values={{
+                                            link: (
+                                                <ExternalLink
+                                                    href='https://mattermost.com/pl/connected-workspaces-destination'
+                                                    location='secure_connection_detail'
+                                                >
+                                                    <FormattedMessage
+                                                        id='admin.secure_connections.details.team.help.learn_more'
+                                                        defaultMessage='Learn more'
+                                                    />
+                                                </ExternalLink>
+                                            ),
+                                        }}
                                     />
-                                </FormField>
-                                <FormField
-                                    label={formatMessage({
-                                        id: 'admin.secure_connections.details.team.label',
-                                        defaultMessage: 'Destination Team',
-                                    })}
-                                    helpText={(
-                                        <FormattedMessage
-                                            id='admin.secure_connections.details.team.help'
-                                            defaultMessage='Select the team where new incoming channels are added. {link}'
-                                            values={{
-                                                link: (
-                                                    <ExternalLink
-                                                        href='https://mattermost.com/pl/connected-workspaces-destination'
-                                                        location='secure_connection_detail'
-                                                    >
-                                                        <FormattedMessage
-                                                            id='admin.secure_connections.details.team.help.learn_more'
-                                                            defaultMessage='Learn more'
-                                                        />
-                                                    </ExternalLink>
-                                                ),
-                                            }}
-                                        />
-                                    )}
-                                >
-                                    <TeamSelector
-                                        testId='destination-team-input'
-                                        value={remoteCluster.default_team_id ?? ''}
-                                        teamsById={teamsById}
-                                        onChange={handleTeamChange}
-                                    />
-                                </FormField>
-                            </>
-                        )}
-                    </SectionContent>
-                </AdminSection>
+                                )}
+                            >
+                                <TeamSelector
+                                    testId='destination-team-input'
+                                    value={remoteCluster.default_team_id ?? ''}
+                                    teamsById={teamsById}
+                                    onChange={handleTeamChange}
+                                />
+                            </FormField>
+                        </>
+                    )}
+                </AdminPanel>
                 {!isCreating && (
-                    <AdminSection data-testid='shared_channels_section'>
-                        <SharedChannelRemotes
-                            remoteId={remoteId}
-                            rc={currentRemoteCluster}
-                        />
-                    </AdminSection>
+                    <SharedChannelRemotes
+                        remoteId={remoteId}
+                        rc={currentRemoteCluster}
+                    />
                 )}
             </AdminWrapper>
 
@@ -223,6 +208,13 @@ export default function SecureConnectionDetail(props: Props) {
         </div>
     );
 }
+
+const panelMessages = defineMessages({
+    detailsTitle: {id: 'admin.secure_connections.details.title', defaultMessage: 'Connection Details'},
+    detailsSubtitle: {id: 'admin.secure_connections.details.subtitle', defaultMessage: 'Connection name and other permissions'},
+    sharedChannelsTitle: {id: 'admin.secure_connections.details.shared_channels.title', defaultMessage: 'Shared Channels'},
+    sharedChannelsSubtitle: {id: 'admin.secure_connections.details.shared_channels.subtitle', defaultMessage: "A list of all the channels shared with your organization and channels you're sharing externally."},
+});
 
 function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | undefined}) {
     const [filter, setFilter] = useState<'home' | 'remote'>();
@@ -279,19 +271,12 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
     }
 
     return (
-        <>
-            <SectionHeader $borderless={true}>
-                <hgroup>
-                    <FormattedMessage
-                        tagName={SectionHeading}
-                        id='admin.secure_connections.details.shared_channels.title'
-                        defaultMessage='Shared Channels'
-                    />
-                    <FormattedMessage
-                        id='admin.secure_connections.details.shared_channels.subtitle'
-                        defaultMessage="A list of all the channels shared with your organization and channels you're sharing externally."
-                    />
-                </hgroup>
+        <AdminPanel
+            id='shared_channels'
+            data-testid='shared_channels_section'
+            title={panelMessages.sharedChannelsTitle}
+            subtitle={panelMessages.sharedChannelsSubtitle}
+            button={(
                 <Button
                     onClick={handleAdd}
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
@@ -301,7 +286,8 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                         defaultMessage='Add channels'
                     />
                 </Button>
-            </SectionHeader>
+            )}
+        >
             <TabsWrapper>
                 {showTabs && (
                     <Tabs
@@ -327,11 +313,9 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                         />
                     </Tabs>
                 )}
-                <SectionContent $compact={Boolean(data)}>
-                    {content}
-                </SectionContent>
+                {content}
             </TabsWrapper>
-        </>
+        </AdminPanel>
     );
 }
 
@@ -381,7 +365,7 @@ const TabsWrapper = styled.div`
     }
 
     .nav-tabs {
-        padding: 0 32px;
+        padding: 0;
         margin: 0 0 8px;
 
         li {

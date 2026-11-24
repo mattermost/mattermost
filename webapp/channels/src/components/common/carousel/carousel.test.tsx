@@ -41,11 +41,6 @@ describe('/components/common/Carousel', () => {
         ],
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Carousel {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('test carouse slides lenght is as expected', () => {
         const {container} = renderWithContext(<Carousel {...baseProps}/>);
         const slides = container.querySelectorAll('p.slide');

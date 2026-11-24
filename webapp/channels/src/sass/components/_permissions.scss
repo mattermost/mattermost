@@ -72,7 +72,8 @@
 }
 
 .permissions-tree {
-    padding: 0.8em 1.5rem;
+    // Outer spacing comes from Compass AdminPanel body padding.
+    padding: 0;
 
     &.guest {
         .permission-row {
@@ -187,13 +188,17 @@
         }
 
         .permission-group-permissions {
-            overflow: hidden;
-            max-height: 0;
-            transition: max-height 300ms;
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 300ms;
 
             &.open {
-                max-height: 400px;
-                transition: max-height 300ms;
+                grid-template-rows: 1fr;
+            }
+
+            .permission-group-permissions-content {
+                overflow: hidden;
+                min-height: 0;
             }
 
             .permission-row {

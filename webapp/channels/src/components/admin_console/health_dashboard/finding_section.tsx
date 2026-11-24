@@ -74,6 +74,7 @@ const FindingSection = ({section, findings, now, expanded, onToggle, onMute, onU
                         onToggle={onToggle}
                         onMute={onMute}
                         onUnmute={onUnmute}
+                        hideSeverity={true}
                     />
                 ))}
             </ul>

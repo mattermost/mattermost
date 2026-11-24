@@ -56,6 +56,37 @@ describe('Actions.Admin', () => {
         expect(store.getState().entities.admin.logs).toEqual({default: [{level: 'info', msg: 'Websocket closed'}]});
     });
 
+    it('getLogs drops an aborted request without storing or reporting it', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/logs/query').
+            query(true).
+            delay(1000).
+            reply(200, {default: [{level: 'info', msg: 'stale'}]});
+
+        const controller = new AbortController();
+        const result = store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}, controller.signal));
+        controller.abort();
+
+        expect((await result).error).toBeTruthy();
+        expect(store.getState().entities.admin.logs).toEqual({});
+        expect(store.getState().errors).toEqual([]);
+    });
+
+    it('getLogs sends field filters', async () => {
+        let body;
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (b) => {
+                body = b;
+                return true;
+            }).
+            query(true).
+            reply(200, {default: []});
+
+        await store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', fields: {plugin_id: ['github', 'mattermost-ai']}}));
+
+        expect(body).toEqual({server_names: [], log_levels: [], date_from: '', date_to: '', search: '', fields: {plugin_id: ['github', 'mattermost-ai']}});
+    });
+
     it('getPlainLogs', async () => {
         nock(Client4.getBaseRoute()).
             get('/logs').
@@ -829,6 +860,69 @@ describe('Actions.Admin', () => {
         expect(pluginStatuses[testPluginStatus.plugin_id].active).toBeTruthy();
         expect(pluginStatuses[testPluginStatus2.plugin_id]).toBeTruthy();
         expect(!pluginStatuses[testPluginStatus2.plugin_id].active).toBeTruthy();
+    });
+
+    describe('getPluginStatuses with overlapping requests', () => {
+        const status = (state: number) => [{plugin_id: 'testplugin', state}];
+
+        function deferStatusRequests() {
+            const resolvers: Array<(value: unknown) => void> = [];
+            const rejecters: Array<(reason: unknown) => void> = [];
+            jest.spyOn(Client4, 'getPluginStatuses').mockImplementation(() => new Promise((resolve, reject) => {
+                resolvers.push(resolve as (value: unknown) => void);
+                rejecters.push(reject);
+            }) as ReturnType<typeof Client4.getPluginStatuses>);
+            return {resolvers, rejecters};
+        }
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('ignores an older response that resolves after a newer one', async () => {
+            const {resolvers} = deferStatusRequests();
+
+            const older = store.dispatch(Actions.getPluginStatuses());
+            const newer = store.dispatch(Actions.getPluginStatuses());
+
+            resolvers[1](status(2));
+            await newer;
+            resolvers[0](status(3));
+            const olderResult = await older;
+
+            expect(store.getState().entities.admin.pluginStatuses.testplugin.state).toBe(2);
+            expect(olderResult.data).toEqual(status(3));
+        });
+
+        it('applies both responses when they resolve in order', async () => {
+            const {resolvers} = deferStatusRequests();
+
+            const older = store.dispatch(Actions.getPluginStatuses());
+            const newer = store.dispatch(Actions.getPluginStatuses());
+
+            resolvers[0](status(3));
+            await older;
+            expect(store.getState().entities.admin.pluginStatuses.testplugin.state).toBe(3);
+
+            resolvers[1](status(2));
+            await newer;
+            expect(store.getState().entities.admin.pluginStatuses.testplugin.state).toBe(2);
+        });
+
+        it('still applies an older response when the newer request fails', async () => {
+            const {resolvers, rejecters} = deferStatusRequests();
+
+            const older = store.dispatch(Actions.getPluginStatuses());
+            const newer = store.dispatch(Actions.getPluginStatuses());
+
+            rejecters[1](new Error('failed'));
+            const newerResult = await newer;
+            resolvers[0](status(3));
+            await older;
+
+            expect(newerResult.error).toBeTruthy();
+            expect(store.getState().entities.admin.pluginStatuses.testplugin.state).toBe(3);
+        });
     });
 
     it('removePlugin', async () => {

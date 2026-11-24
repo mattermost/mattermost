@@ -1,0 +1,329 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PostAttributesModal {
+    &.modal-dialog,
+    .modal-content {
+        width: 704px;
+        max-width: 100%;
+    }
+
+    .GenericModal__header {
+        padding: 0;
+    }
+
+    .GenericModal__header__text_container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-s);
+        padding-block: var(--spacing-xxxxs);
+    }
+
+    .GenericModal__header h1 {
+        font-size: var(--font-size-500);
+        font-weight: var(--font-weight-semibold);
+        line-height: var(--line-height-500);
+    }
+
+    .modal-subheading-container {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-s);
+
+        &::before {
+            width: 1px;
+            height: 24px;
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+            content: '';
+        }
+    }
+
+    .modal-subheading {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-200);
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        padding: var(--spacing-l) var(--spacing-xl) var(--spacing-xl);
+        gap: var(--spacing-l);
+    }
+
+    &__reprise {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-m);
+    }
+
+    &__rows,
+    &__empty,
+    &__add {
+        margin-inline-start: 44px;
+    }
+
+    &__repriseBody {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: var(--spacing-xxxxs);
+    }
+
+    &__repriseHeader {
+        display: flex;
+        align-items: baseline;
+        gap: var(--spacing-xs);
+    }
+
+    &__repriseAuthor {
+        color: var(--center-channel-color);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-semibold);
+        line-height: var(--line-height-100);
+    }
+
+    &__repriseTime {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: var(--font-size-75);
+        line-height: var(--line-height-75);
+    }
+
+    &__repriseMessage {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        color: var(--center-channel-color);
+        font-size: var(--font-size-100);
+        -webkit-line-clamp: 3;
+        line-height: var(--line-height-100);
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    &__rows {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__empty {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: var(--font-size-100);
+        line-height: var(--line-height-100);
+    }
+
+    &__error {
+        padding: var(--spacing-xxxxs) 0 var(--spacing-xxs) 152px;
+        color: var(--error-text);
+        font-size: var(--font-size-75);
+        line-height: var(--line-height-75);
+    }
+
+    // A Compass `Button`, which draws itself; this only places it.
+    &__add {
+        align-self: flex-start;
+    }
+}
+
+.PostAttributesModalRow {
+    display: grid;
+    min-height: 32px;
+    align-items: center;
+    padding: var(--spacing-xxxxs) 0;
+    grid-template-columns: 152px minmax(0, 1fr) 28px;
+
+    &__label {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: var(--font-size-75);
+        font-weight: var(--font-weight-semibold);
+        gap: var(--spacing-xxxs);
+        line-height: var(--line-height-75);
+        padding-inline-end: var(--spacing-xs);
+    }
+
+    &__labelText {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__lock {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &__value {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-size: var(--font-size-75);
+        font-weight: var(--font-weight-semibold);
+        line-height: var(--line-height-75);
+    }
+
+    &__trigger,
+    &__input {
+        width: 100%;
+        height: 28px;
+        padding: 0 var(--spacing-xs);
+        border: none;
+        border-radius: var(--radius-s);
+        background: transparent;
+        color: var(--center-channel-color);
+        font-size: var(--font-size-75);
+        font-weight: var(--font-weight-semibold);
+        line-height: var(--line-height-75);
+        text-align: start;
+
+        &:hover:not(:disabled) {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+
+    &__trigger {
+        display: flex;
+        align-items: center;
+
+        // Tinted while its menu is open too, so the value being changed stays
+        // marked.
+        &[aria-expanded='true'] {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__input {
+        min-width: 0;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            box-shadow: none;
+            outline: none;
+        }
+    }
+
+    &__readOnly {
+        padding: 0 var(--spacing-xs);
+    }
+
+    &__users {
+        width: 100%;
+        min-width: 0;
+
+        .UserMultiSelector {
+            .UserMultiSelector__control {
+                min-height: 28px;
+                border: none !important;
+                background: transparent;
+                box-shadow: none !important;
+                color: var(--center-channel-color);
+            }
+
+            .UserMultiSelector__value-container {
+                padding: 0 var(--spacing-xs);
+                gap: var(--spacing-xxxs);
+            }
+
+            .UserMultiSelector__indicators {
+                height: 28px;
+            }
+
+            .UserMultiSelector__single-value,
+            .UserMultiSelector__input-container,
+            .UserMultiSelector__input {
+                color: var(--center-channel-color);
+            }
+
+            &.singleSelect .UserProfilePill {
+                background: transparent;
+                padding-inline: 0;
+            }
+        }
+    }
+
+    &__userPlaceholder {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        gap: var(--spacing-xxs);
+
+        i.icon.icon-account-outline {
+            width: 20px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0;
+            border-radius: 50%;
+            margin: 0;
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+            font-size: var(--font-size-75);
+        }
+    }
+
+    &__trailing {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // A Compass `IconButton`; hidden until the row is hovered or the button
+    // has keyboard focus.
+    &__clear {
+        opacity: 0;
+
+        &:focus-visible {
+            opacity: 1;
+        }
+    }
+
+    &:hover &__clear {
+        opacity: 1;
+    }
+}
+
+.app__body .modal .GenericModal.PostAttributesModal {
+    .modal-header {
+        align-items: center;
+        padding: var(--spacing-xxl) var(--spacing-xxxl);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+
+        .close {
+            position: static;
+            margin: -6px -12px -6px 0;
+        }
+
+        .GenericModal__header__text_container {
+            margin-top: 0;
+        }
+
+        div#genericModalSubheading {
+            font-size: var(--font-size-100);
+            line-height: var(--line-height-200);
+            margin-block: 0;
+        }
+    }
+}
+
+/*
+ * react-select portals its menu to the body, so the menu leaves the modal's
+ * stacking context altogether and `z-index` is the only thing keeping it in
+ * front. `selectable_user_property_renderer.scss` pins every `UserSelector`
+ * menu at 22, which is far under the modal's 1050 (`--z-index-modal`) — left
+ * alone, the user picker's menu opens *behind* the modal it belongs to.
+ *
+ * Raised only while this modal is mounted, rather than globally, because the
+ * 22 is right for the surfaces that rule was written for. The direct
+ * equivalent is `channel_attributes_form.tsx:27-32`, which does it through
+ * react-select's `styles` prop; `UserSelector` does not expose one.
+ */
+body:has(.PostAttributesModal) .UserMultiSelector__menu-portal {
+    z-index: calc(var(--z-index-modal) + 1) !important;
+}

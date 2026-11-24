@@ -1,0 +1,35 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PostAttributesChips {
+    display: flex;
+
+    width: fit-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+
+    // 4px under the header, 8px above the message, 6px between chips.
+    gap: var(--spacing-xxs);
+    margin-block: var(--spacing-xxxs) var(--spacing-xs);
+    text-align: start;
+}
+
+// Only a count; the hover card behind the row lists what it stands for, so
+// the badge itself takes no pointer events.
+.PostAttributesChips__overflow {
+    pointer-events: none;
+}
+
+.PostAttributesChips__unavailable {
+    display: inline-flex;
+    height: 20px;
+    align-items: center;
+    border-radius: var(--radius-s);
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: var(--font-size-50);
+    font-weight: var(--font-weight-semibold);
+    margin-block: var(--spacing-xxxs);
+    padding-inline: var(--spacing-xs);
+}

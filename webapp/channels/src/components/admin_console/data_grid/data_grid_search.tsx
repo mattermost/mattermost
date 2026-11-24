@@ -48,30 +48,31 @@ const DataGridSearch = ({
 
     return (
         <div className='DataGrid_search'>
-            <div className='DataGrid_searchBar'>
-                <span
-                    className='DataGrid_searchIcon'
-                    aria-hidden='true'
-                >
-                    <FaSearchIcon/>
-                </span>
+            <div className='DataGrid_searchControls'>
+                <div className='DataGrid_searchBar'>
+                    <span
+                        className='DataGrid_searchIcon'
+                        aria-hidden='true'
+                    >
+                        <FaSearchIcon/>
+                    </span>
 
-                <LocalizedPlaceholderInput
-                    type='text'
-                    placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
-                    onChange={handleSearch}
-                    value={termFromProps}
-                    data-testid='searchInput'
-                    disabled={disabled}
-                />
-                <i
-                    className={'DataGrid_clearButton fa fa-times-circle ' + (termFromProps.length ? '' : 'hidden')}
-                    onClick={resetSearch}
-                    data-testid='clear-search'
-                />
+                    <LocalizedPlaceholderInput
+                        type='text'
+                        placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+                        onChange={handleSearch}
+                        value={termFromProps}
+                        data-testid='searchInput'
+                        disabled={disabled}
+                    />
+                    <i
+                        className={'DataGrid_clearButton fa fa-times-circle ' + (termFromProps.length ? '' : 'hidden')}
+                        onClick={resetSearch}
+                        data-testid='clear-search'
+                    />
+                </div>
+                {filter}
             </div>
-
-            {filter}
             {extraComponent}
         </div>
     );
