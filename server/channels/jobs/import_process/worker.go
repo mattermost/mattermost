@@ -185,8 +185,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			ResumeFromLine:         resumeFromLine,
 			OnCheckpoint:           onCheckpoint,
 			// In local mode the file name is a reused path, so the JSONL entry's
-			// checksum and size tell a different export at that path apart.
-			RunID: fmt.Sprintf("%s:%08x:%d", importFileName, jsonZipFile.CRC32, jsonZipFile.UncompressedSize64),
+			// checksum and size tell a different export at that path apart. The
+			// destination keeps an import of the same file elsewhere from matching
+			// this one's markers.
+			RunID: fmt.Sprintf("%s:%08x:%d:%s:%s", importFileName, jsonZipFile.CRC32, jsonZipFile.UncompressedSize64,
+				job.Data["destination_team_name"], job.Data["destination_channel_name"]),
 		}
 		lineNumber, report, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {

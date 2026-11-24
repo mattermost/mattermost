@@ -183,7 +183,7 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 		require.False(t, app.removeFileCalled, "local_mode imports must not delete the source file")
 	})
 
-	t.Run("run ID is stable for the same archive and changes with its contents at the same path", func(t *testing.T) {
+	t.Run("run ID is stable for the same import and changes with its contents or destination", func(t *testing.T) {
 		jobServer, mockStore := makeTestJobServer(t)
 		expectJobDataUpdate(mockStore)
 
@@ -191,22 +191,29 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 		worker := MakeWorker(jobServer, app)
 
 		zipPath := makeImportZip(t, 0)
-		runJob := func() string {
+		runJob := func(team, channel string) string {
 			job := &model.Job{
-				Id:   model.NewId(),
-				Data: map[string]string{"import_file": zipPath, "local_mode": "true"},
+				Id: model.NewId(),
+				Data: map[string]string{
+					"import_file":              zipPath,
+					"local_mode":               "true",
+					"destination_team_name":    team,
+					"destination_channel_name": channel,
+				},
 			}
 			expectWorkerJobCompletion(mockStore, job)
 			worker.DoJob(job)
 			return app.receivedOpts.RunID
 		}
 
-		first := runJob()
+		first := runJob("engineering", "town-square")
 		require.NotEmpty(t, first)
-		require.Equal(t, first, runJob(), "a retry of the same archive must keep its run ID")
+		require.Equal(t, first, runJob("engineering", "town-square"), "a retry of the same import must keep its run ID")
+		require.NotEqual(t, first, runJob("sales", "town-square"), "an import into another team must get a new run ID")
+		require.NotEqual(t, first, runJob("engineering", "off-topic"), "an import into another channel must get a new run ID")
 
 		require.NoError(t, os.Rename(makeImportZip(t, 10), zipPath))
-		require.NotEqual(t, first, runJob(), "a different archive at the same path must get a new run ID")
+		require.NotEqual(t, first, runJob("engineering", "town-square"), "a different archive at the same path must get a new run ID")
 	})
 
 	// The job-data key is the only thing tying the mmctl flag to the importer. A
