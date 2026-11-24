@@ -23,6 +23,11 @@
         text-decoration-line: none;
     }
 
+    &[aria-disabled='true'] {
+        cursor: default;
+        opacity: 0.5;
+    }
+
     .external-login-button-label {
         margin-left: 7px;
     }

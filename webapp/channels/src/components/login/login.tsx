@@ -228,6 +228,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url: '#',
                 icon: <KeyVariantIcon size={18}/>,
                 label: formatMessage({id: 'login.passkey', defaultMessage: 'Passkey', description: 'Label of the login page button that signs in with a passkey.'}),
+                disabled: isWaiting,
                 onClick: (event: React.MouseEvent) => {
                     event.preventDefault();
                     if (!isWaiting) {

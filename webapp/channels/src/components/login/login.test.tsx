@@ -903,6 +903,23 @@ describe('components/login/Login', () => {
             await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
         });
 
+        it('marks the passkey option aria-disabled only while the ceremony is in flight', async () => {
+            let cancel: (reason: Error) => void = () => {};
+            get.mockReturnValueOnce(new Promise((_, reject) => {
+                cancel = reject;
+            }));
+            renderLogin(passkeyState);
+            expect(screen.getByRole('link', {name: 'Passkey'})).not.toHaveAttribute('aria-disabled', 'true');
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(screen.getByRole('link', {name: 'Passkey'})).toHaveAttribute('aria-disabled', 'true'));
+
+            cancel(abortError('NotAllowedError'));
+
+            await waitFor(() => expect(screen.getByRole('link', {name: 'Passkey'})).not.toHaveAttribute('aria-disabled', 'true'));
+        });
+
         it('says so, and tells the browser to forget the passkey, when the server does not know it', async () => {
             finishLogin.mockRejectedValue({server_error_id: 'app.passkey.unknown_credential.app_error', message: 'unknown'});
             renderLogin(passkeyState);
