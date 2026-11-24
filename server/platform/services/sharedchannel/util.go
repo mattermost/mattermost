@@ -50,7 +50,7 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	user.Password = model.NewId()
 	user.AuthData = nil
 	user.AuthService = ""
-	if user.IsGuest() {
+	if user.IsGuest() && !user.IsBot {
 		user.Roles = model.SystemGuestRoleId
 	} else {
 		user.Roles = model.SystemUserRoleId

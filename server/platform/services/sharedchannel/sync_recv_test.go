@@ -998,6 +998,55 @@ func TestUpsertSyncUserGuestRole(t *testing.T) {
 		mockApp.AssertNotCalled(t, "PromoteGuestToUser", mock.Anything, mock.Anything, mock.Anything)
 	})
 
+	t.Run("insert bot with guest role as user", func(t *testing.T) {
+		rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
+		incoming := &model.User{Id: model.NewId(), Username: "botty", Email: "botty@example.com", Roles: model.SystemGuestRoleId, IsBot: true}
+
+		userStore := &mocks.UserStore{}
+		userStore.On("Get", mock.Anything, incoming.Id).Return(nil, store.NewErrNotFound("User", incoming.Id))
+		userStore.On("Save", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+			return u.Roles == model.SystemUserRoleId && u.DeleteAt == 0
+		})).Return(incoming, nil)
+
+		scs := newServiceWithGuests(t, userStore, &MockAppIface{}, false)
+
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
+		require.NoError(t, err)
+		assert.Equal(t, model.SystemUserRoleId, saved.Roles)
+		assert.Zero(t, saved.DeleteAt)
+	})
+
+	t.Run("update ignores guest role for bot", func(t *testing.T) {
+		rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
+		existing := &model.User{
+			Id:       model.NewId(),
+			Username: "botty:test-remote",
+			Email:    model.NewId(),
+			RemoteId: model.NewPointer(rc.RemoteId),
+			Roles:    model.SystemUserRoleId,
+			IsBot:    true,
+		}
+		incoming := &model.User{Id: existing.Id, Username: "botty", Email: "botty@example.com", Roles: model.SystemGuestRoleId, IsBot: true}
+
+		userStore := &mocks.UserStore{}
+		userStore.On("Get", mock.Anything, existing.Id).Return(existing, nil).Once()
+		userStore.On("Update", mock.Anything, mock.Anything, false).Return(func(_ request.CTX, u *model.User, _ bool) *model.UserUpdate {
+			updated := u.DeepCopy()
+			updated.Roles = model.SystemUserRoleId
+			return &model.UserUpdate{New: updated}
+		}, nil)
+
+		mockApp := &MockAppIface{}
+		scs := newServiceWithGuests(t, userStore, mockApp, false)
+
+		saved, err := scs.upsertSyncUser(request.TestContext(t), incoming, nil, rc, true)
+		require.NoError(t, err)
+		assert.Equal(t, model.SystemUserRoleId, saved.Roles)
+		assert.Zero(t, saved.DeleteAt)
+		mockApp.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, mock.Anything)
+		mockApp.AssertNotCalled(t, "UpdateActive", mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	t.Run("update returns error when demote fails", func(t *testing.T) {
 		rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote"}
 		existing := &model.User{

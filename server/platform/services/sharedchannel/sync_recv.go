@@ -489,6 +489,10 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 
 // User().Update does not change roles, so guest status is synced here.
 func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, isGuest, canPromote bool) (*model.User, error) {
+	if user.IsBot {
+		return user, nil
+	}
+
 	if user.IsGuest() != isGuest && (isGuest || canPromote) {
 		var appErr *model.AppError
 		if isGuest {

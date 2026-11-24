@@ -267,4 +267,9 @@ func TestSanitizeUserForSyncRoles(t *testing.T) {
 			require.Equal(t, tt.want, user.Roles)
 		})
 	}
+
+	t.Run("bot is never a guest", func(t *testing.T) {
+		user := sanitizeUserForSync(&model.User{Roles: model.SystemGuestRoleId, IsBot: true})
+		require.Equal(t, model.SystemUserRoleId, user.Roles)
+	})
 }
