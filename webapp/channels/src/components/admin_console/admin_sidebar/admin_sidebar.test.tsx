@@ -12,12 +12,12 @@ import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
-import WebSocketClient from 'client/web_websocket_client';
 import AdminDefinition from 'components/admin_console/admin_definition';
 import ConnectedAdminSidebar from 'components/admin_console/admin_sidebar';
 import AdminSidebar from 'components/admin_console/admin_sidebar/admin_sidebar';
 import type {Props as OriginalProps} from 'components/admin_console/admin_sidebar/admin_sidebar';
 
+import WebSocketClient from 'client/web_websocket_client';
 import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {generateIndex} from 'utils/admin_console_index';
