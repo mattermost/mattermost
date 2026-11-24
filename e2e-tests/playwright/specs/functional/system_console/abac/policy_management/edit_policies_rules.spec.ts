@@ -18,6 +18,7 @@ import {
     waitForLatestSyncJob,
     getPolicyIdByName,
     enableUserManagedAttributes,
+    ensureUserAttributes,
 } from '../support';
 import {deleteFieldFromDB} from '../masking/masking_db_setup';
 
@@ -44,6 +45,9 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
+
+    // Rolling-upgrade runs skip the setup project, so Department may not be seeded.
+    await ensureUserAttributes(adminClient);
 
     // Ensure Office field exists with correct managed:admin permissions.
     // Fields created by older server versions may lack permission_values, causing 403
@@ -312,6 +316,9 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
+
+    // Rolling-upgrade runs skip the setup project, so Department may not be seeded.
+    await ensureUserAttributes(adminClient);
 
     // Ensure Office field exists with correct managed:admin permissions.
     // Fields created by older server versions may lack permission_values, causing 403
