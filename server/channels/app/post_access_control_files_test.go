@@ -7,9 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func createMarkedPost(t *testing.T, th *TestHelper, value string) *model.Post {
@@ -19,6 +22,25 @@ func createMarkedPost(t *testing.T, th *TestHelper, value string) *model.Post {
 	post, appErr := th.SetupPluginAPI().CreatePost(post)
 	require.Nil(t, appErr)
 	return post
+}
+
+// mockPostPolicyDecisionsForPluginType is mockPostPolicyDecisions limited to
+// the test plugin's policy type; channel-level checks such as file download
+// are allowed for everyone.
+func mockPostPolicyDecisionsForPluginType(t *testing.T, th *TestHelper, allowed ...string) {
+	t.Helper()
+	enablePluginAccessControl(t, th)
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	allowedSet := map[string]bool{}
+	for _, id := range allowed {
+		allowedSet[id] = true
+	}
+	mockACS.On("AccessEvaluation", mock.Anything, mock.AnythingOfType("model.AccessRequest")).
+		Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
+			return model.AccessDecision{Decision: req.Resource.Type != testPostPolicyType || allowedSet[req.Subject.ID]}
+		}, nil).Maybe()
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
 }
 
 func TestGetPostsByIdsForUserAccessControlResource(t *testing.T) {
@@ -138,7 +160,7 @@ func TestSearchFilesAccessControlResource(t *testing.T) {
 	markedFile := saveFile(marked)
 
 	t.Run("a denied file is dropped from results", func(t *testing.T) {
-		mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+		mockPostPolicyDecisionsForPluginType(t, th, th.BasicUser.Id)
 
 		results, _, appErr := th.App.SearchFilesInTeamForUser(th.Context, "acrfilesearch", th.BasicUser2.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 		require.Nil(t, appErr)
@@ -148,7 +170,7 @@ func TestSearchFilesAccessControlResource(t *testing.T) {
 	})
 
 	t.Run("an allowed user sees both", func(t *testing.T) {
-		mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+		mockPostPolicyDecisionsForPluginType(t, th, th.BasicUser.Id)
 
 		results, _, appErr := th.App.SearchFilesInTeamForUser(th.Context, "acrfilesearch", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 		require.Nil(t, appErr)
@@ -156,7 +178,7 @@ func TestSearchFilesAccessControlResource(t *testing.T) {
 	})
 
 	t.Run("flag off", func(t *testing.T) {
-		mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+		mockPostPolicyDecisionsForPluginType(t, th, th.BasicUser.Id)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PostAccessControlResource = false })
 
 		results, _, appErr := th.App.SearchFilesInTeamForUser(th.Context, "acrfilesearch", th.BasicUser2.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
