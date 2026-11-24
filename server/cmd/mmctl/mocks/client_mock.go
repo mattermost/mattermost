@@ -2415,6 +2415,21 @@ func (mr *MockClientMockRecorder) RevealPost(ctx, postID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevealPost", reflect.TypeOf((*MockClient)(nil).RevealPost), ctx, postID)
 }
 
+// RevokePasskeySessions mocks base method.
+func (m *MockClient) RevokePasskeySessions(ctx context.Context) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokePasskeySessions", ctx)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RevokePasskeySessions indicates an expected call of RevokePasskeySessions.
+func (mr *MockClientMockRecorder) RevokePasskeySessions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokePasskeySessions", reflect.TypeOf((*MockClient)(nil).RevokePasskeySessions), ctx)
+}
+
 // RevokeUserAccessToken mocks base method.
 func (m *MockClient) RevokeUserAccessToken(ctx context.Context, tokenID string) (*model.Response, error) {
 	m.ctrl.T.Helper()

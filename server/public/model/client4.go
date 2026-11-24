@@ -1806,6 +1806,16 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
+// RevokePasskeySessions revokes every session that was started by signing in with a passkey.
+func (c *Client4) RevokePasskeySessions(ctx context.Context) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.usersRoute().Join("sessions", "revoke", "passkey"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetSessionAttributesManifest returns the enabled session attribute schema for the caller's platform inferred from User-Agent.
 func (c *Client4) GetSessionAttributesManifest(ctx context.Context) ([]*SessionAttributeManifestEntry, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.usersRoute().Join("sessions", "attributes", "manifest"), "")

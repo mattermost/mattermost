@@ -842,14 +842,8 @@ func TestPasskeyRateLimit(t *testing.T) {
 }
 
 func TestRevokePasskeySessions(t *testing.T) {
-	const path = "/users/sessions/revoke/passkey"
-
 	revoke := func(client *model.Client4) (*model.Response, error) {
-		r, err := client.DoAPIPost(context.Background(), path, "")
-		if r == nil {
-			return nil, err
-		}
-		return model.BuildResponse(r), err
+		return client.RevokePasskeySessions(context.Background())
 	}
 
 	// sessionClient returns a client holding a fresh session of the user with the given login method.

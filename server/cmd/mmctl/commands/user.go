@@ -123,6 +123,16 @@ If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon 
 	RunE:    withClient(resetUserMfaCmdF),
 }
 
+var RevokePasskeySessionsCmd = &cobra.Command{
+	Use:   "revoke-passkey-sessions",
+	Short: "Revoke all passkey sessions",
+	Long: `Sign out every user whose session was started by signing in with a passkey.
+Sessions started any other way are not affected. Their passkeys are kept.`,
+	Example: "  user revoke-passkey-sessions --confirm",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(revokePasskeySessionsCmdF),
+}
+
 var UserEditCmd = &cobra.Command{
 	Use:   "edit",
 	Short: "Edit user properties",
@@ -382,6 +392,7 @@ func init() {
 	UserCreateCmd.Flags().Bool("email-verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
 	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
+	RevokePasskeySessionsCmd.Flags().Bool("confirm", false, "Confirm you really want to sign out every user who signed in with a passkey")
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
@@ -453,6 +464,7 @@ Global Flags:
 		SendPasswordResetEmailCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
+		RevokePasskeySessionsCmd,
 		UserEditCmd,
 		DeleteUsersCmd,
 		SearchUserCmd,
@@ -749,6 +761,22 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func revokePasskeySessionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getConfirmation("Are you sure you want to sign out every user who signed in with a passkey?", false); err != nil {
+			return err
+		}
+	}
+
+	if _, err := c.RevokePasskeySessions(context.TODO()); err != nil {
+		return fmt.Errorf("unable to revoke passkey sessions: %w", err)
+	}
+
+	printer.Print("All passkey sessions have been revoked.")
+	return nil
 }
 
 // userOut is the output format for users.

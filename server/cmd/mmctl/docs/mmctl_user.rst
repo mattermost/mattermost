@@ -53,6 +53,7 @@ SEE ALSO
 * `mmctl user promote <mmctl_user_promote.rst>`_ 	 - Promote guests to users
 * `mmctl user reset-password <mmctl_user_reset-password.rst>`_ 	 - Send users an email to reset their password
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
+* `mmctl user revoke-passkey-sessions <mmctl_user_revoke-passkey-sessions.rst>`_ 	 - Revoke all passkey sessions
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
 * `mmctl user status <mmctl_user_status.rst>`_ 	 - Get a user's status
 * `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Mark user's email as verified
