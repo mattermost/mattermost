@@ -11063,6 +11063,10 @@
     "defaultMessage": "Some attributes aren't available for bots",
     "description": "Warning title on the permission policy editor when a Bot accounts policy's rules reference attributes bots don't have, such as Email, Email verified or Bot account."
   },
+  "admin.permission_policies.edit.notice.session_only.title": {
+    "defaultMessage": "Session attributes are reported by the device and aren't verified by the server. Consider including other limiting attributes to ensure that only intended users are granted the permission listed below.",
+    "description": "Warning on the permission policy editor when the policy's rules reference only session attributes (device-reported values such as IP address or platform) and no user attributes."
+  },
   "admin.permission_policies.edit.notice.synced_bot.text": {
     "defaultMessage": "{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can't hold synced values. This policy will deny every bot.",
     "description": "Warning text (markdown) for a Bot accounts policy that references synced attributes; {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."

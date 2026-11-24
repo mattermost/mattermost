@@ -391,6 +391,45 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     });
 
+    describe('session attributes warning', () => {
+        const SESSION_ONLY_WARNING = 'Session attributes are reported by the device and aren\'t verified by the server. Consider including other limiting attributes to ensure that only intended users are granted the permission listed below.';
+
+        test.each([
+            ['a single session attribute', 'user.session.network_name == "office"'],
+            ['several session attributes', 'user.session.network_name == "office" && user.session.ip_address.inCIDR("10.0.0.0/8")'],
+            ['session and channel attributes', 'user.session.network_name == resource.attributes.network'],
+        ])('shows when the rules only use %s', async (_label, expression) => {
+            renderWithExpression(expression);
+            await screen.findByTestId(/editor/);
+
+            expect(screen.getByText(SESSION_ONLY_WARNING)).toBeInTheDocument();
+        });
+
+        test.each([
+            ['no rules', ''],
+            ['only user attributes', E],
+            ['a session and a user attribute', 'user.session.network_name == "office" && user.attributes.teams == "engineering"'],
+            ['a session and a built-in attribute', 'user.session.network_name == "office" && user.email.endsWith("@acme.com")'],
+        ])('hides when the rules use %s', async (_label, expression) => {
+            renderWithExpression(expression);
+            await screen.findByTestId(/editor/);
+
+            expect(screen.queryByText(SESSION_ONLY_WARNING)).not.toBeInTheDocument();
+        });
+
+        test('appears and disappears as the rules change', async () => {
+            renderWithExpression(E);
+            await screen.findByTestId('table-editor');
+            expect(screen.queryByText(SESSION_ONLY_WARNING)).not.toBeInTheDocument();
+
+            await act(() => lastTableProps().onChange('user.session.network_name == "office"'));
+            expect(screen.getByText(SESSION_ONLY_WARNING)).toBeInTheDocument();
+
+            await act(() => lastTableProps().onChange(`user.session.network_name == "office" && ${E}`));
+            expect(screen.queryByText(SESSION_ONLY_WARNING)).not.toBeInTheDocument();
+        });
+    });
+
     describe('copy', () => {
         test('switching to Bot accounts swaps the copy', async () => {
             renderWithExpression(E);

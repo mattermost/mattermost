@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {fixture} from './cel_expression_test_fixtures';
-import {isWrappedInParens, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
+import {isWrappedInParens, referencedSessionAttributeNames, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
 
 describe('referencedUserAttributeNames', () => {
     it.each([
@@ -69,6 +69,18 @@ describe('referencedUserAttributeNames', () => {
 
     it('still ignores names that appear only in string literals', () => {
         expect(referencedUserAttributeNames('user.attributes.A == "user.attributes.B" && user.attributes.C in [\'user.attributes.D\']')).toEqual(['A', 'C']);
+    });
+});
+
+describe('referencedSessionAttributeNames', () => {
+    it.each([
+        ['user.session.Platform == "desktop"', ['Platform']],
+        ['user.session.ip_address.inCIDR("10.0.0.0/8") && user.session["Platform"] == "desktop"', ['ip_address', 'Platform']],
+        ['user.attributes.A == "user.session.B" // user.session.C', []],
+        ['user.attributes.A == "x" && user.email == "a@b.c"', []],
+        ['', []],
+    ])('%j -> %j', (input, expected) => {
+        expect(referencedSessionAttributeNames(input)).toEqual(expected);
     });
 });
 

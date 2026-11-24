@@ -13,6 +13,7 @@ const LITERALS_AND_COMMENTS = new RegExp(LITERAL_OR_COMMENT, 'g');
 // comments are leading alternatives, so a reference inside one is consumed as part of it
 // and produces no capture. Captures: 1 = dotted name, 2 = "quoted" name, 3 = 'quoted' name.
 const USER_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\s*\.\s*attributes(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
+const SESSION_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\s*\.\s*session(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
 
 // A single-segment `user.<name>` selector such as `user.email`; `attributes` and `session` are namespaces, not fields.
 const NATIVE_USER_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|(?<![\w.])user\s*(?:\.\s*(\w+)|\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
@@ -70,6 +71,10 @@ function referencedNames(expr: string, pattern: RegExp): Set<string> {
 
 export function referencedUserAttributeNames(expr: string): string[] {
     return Array.from(referencedNames(expr, USER_ATTRIBUTE_REFERENCE));
+}
+
+export function referencedSessionAttributeNames(expr: string): string[] {
+    return Array.from(referencedNames(expr, SESSION_ATTRIBUTE_REFERENCE));
 }
 
 export function referencedNativeUserAttributeNames(expr: string): string[] {

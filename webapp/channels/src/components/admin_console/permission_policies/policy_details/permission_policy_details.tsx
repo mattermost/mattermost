@@ -47,6 +47,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 import RuleEditorCard, {type EditorMode, type PolicyScope, type SimulateBlockedReason} from './rule_editor_card';
 
 import {SYSTEM_BOT_ROLE, getHiddenNativeReferences, getSyncedAttributeReferences} from '../../access_control/bot_scope';
+import {referencedNativeUserAttributeNames, referencedSessionAttributeNames, referencedUserAttributeNames} from '../../access_control/cel_lexer';
 import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
@@ -286,6 +287,13 @@ function PermissionPolicyDetails({
             return field ? getUserPropertyFieldLabel(field) : name;
         });
     }, [isBotScope, expression, userFields]);
+
+    const sessionAttributesOnly = useMemo(
+        () => referencedSessionAttributeNames(expression).length > 0 &&
+            referencedUserAttributeNames(expression).length === 0 &&
+            referencedNativeUserAttributeNames(expression).length === 0,
+        [expression],
+    );
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
@@ -702,6 +710,20 @@ function PermissionPolicyDetails({
                                 onTestClick={handleTestClick}
                                 simulateBlockedBy={simulateBlockedBy}
                             />
+
+                            {sessionAttributesOnly && (
+                                <div className='admin-console__warning-notice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.permission_policies.edit.notice.session_only.title'
+                                                defaultMessage="Session attributes are reported by the device and aren't verified by the server. Consider including other limiting attributes to ensure that only intended users are granted the permission listed below."
+                                            />
+                                        }
+                                    />
+                                </div>
+                            )}
 
                             {/* "What permissions are modified" */}
                             <AdminPanel
