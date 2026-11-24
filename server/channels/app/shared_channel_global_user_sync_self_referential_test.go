@@ -153,6 +153,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		var mu sync.Mutex
 		var batchedUserIDs [][]string
+		sentRoles := make(map[string]string)
 		var syncHandler *SelfReferentialSyncHandler
 
 		// Create test HTTP server
@@ -212,8 +213,9 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create system admin
 		systemAdmin := th.CreateUser(t)
-		_, appErr = th.App.UpdateUserRoles(th.Context, systemAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
+		systemAdmin, appErr = th.App.UpdateUserRoles(th.Context, systemAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
 		require.Nil(t, appErr)
+		require.True(t, systemAdmin.IsSystemAdmin())
 		systemAdmin.UpdateAt = baseTime + 400
 		_, err = ss.User().Update(th.Context, systemAdmin, true)
 		require.NoError(t, err)
@@ -243,6 +245,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncHandler.OnGlobalUserSync = func(userIds []string, messageNumber int32) {
 			mu.Lock()
 			batchedUserIDs = append(batchedUserIDs, userIds)
+			mu.Unlock()
+		}
+		syncHandler.OnGlobalUsers = func(users map[string]*model.User) {
+			mu.Lock()
+			for id, u := range users {
+				sentRoles[id] = u.Roles
+			}
 			mu.Unlock()
 		}
 
@@ -292,6 +301,8 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		assert.Contains(t, allSyncedUserIDs, systemAdmin.Id, "System admin should be synced")
 		assert.Contains(t, allSyncedUserIDs, guest.Id, "Guest user should be synced")
 		assert.Contains(t, allSyncedUserIDs, userWithOldTimestamp.Id, "User with old timestamp should be synced")
+		assert.Equal(t, model.SystemUserRoleId, sentRoles[systemAdmin.Id], "Admin roles should not be sent to the remote")
+		assert.Equal(t, model.SystemGuestRoleId, sentRoles[guest.Id], "Guest role should be sent to the remote")
 		assert.NotContains(t, allSyncedUserIDs, remoteUser.Id, "Remote user should NOT be synced")
 		assert.NotContains(t, allSyncedUserIDs, inactiveUser.Id, "Inactive user should NOT be synced")
 

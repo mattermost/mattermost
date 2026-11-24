@@ -1092,6 +1092,7 @@ func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
 	// Add users to sync data
 	sd.users = users
 	sd.GlobalUserSyncLastTimestamp = latestTimestamp
+	sanitizeSyncData(sd)
 
 	// Send the collected users to remote
 	if err := scs.sendUserSyncData(sd); err != nil {

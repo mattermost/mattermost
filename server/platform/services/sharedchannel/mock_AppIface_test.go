@@ -820,6 +820,38 @@ func (_m *MockAppIface) SetupBroadcastHookForChannelReadAccess(channelID string,
 	_m.Called(channelID, message)
 }
 
+// UpdateActive provides a mock function with given fields: rctx, user, active
+func (_m *MockAppIface) UpdateActive(rctx request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
+	ret := _m.Called(rctx, user, active)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateActive")
+	}
+
+	var r0 *model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) (*model.User, *model.AppError)); ok {
+		return rf(rctx, user, active)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) *model.User); ok {
+		r0 = rf(rctx, user, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, bool) *model.AppError); ok {
+		r1 = rf(rctx, user, active)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdatePost provides a mock function with given fields: rctx, post, updatePostOptions
 func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError) {
 	ret := _m.Called(rctx, post, updatePostOptions)

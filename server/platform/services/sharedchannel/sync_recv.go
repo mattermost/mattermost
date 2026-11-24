@@ -389,6 +389,9 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 
 	// ensure the new user is created with system_user or system_guest role and random password.
 	user = sanitizeUserForSync(user)
+	if user.IsGuest() && user.DeleteAt == 0 && !scs.guestAccountsEnabled() {
+		user.DeleteAt = model.GetMillis()
+	}
 
 	// RemoteEmail was selected before the incoming RemoteId was rewritten.
 	// Preserve it instead of replacing it with a synthetic email.
@@ -506,7 +509,17 @@ func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, 
 	if err != nil {
 		return nil, fmt.Errorf("error fetching sync user %s after guest role update: %w", user.Id, err)
 	}
+
+	if isGuest && updated.DeleteAt == 0 && !scs.guestAccountsEnabled() {
+		if updated, appErr = scs.app.UpdateActive(rctx, updated, false); appErr != nil {
+			return nil, fmt.Errorf("error deactivating sync guest %s: %w", user.Id, appErr)
+		}
+	}
 	return updated, nil
+}
+
+func (scs *Service) guestAccountsEnabled() bool {
+	return *scs.server.Config().GuestAccountsSettings.Enable
 }
 
 func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) (*model.Post, error) {
