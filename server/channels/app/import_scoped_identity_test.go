@@ -347,6 +347,49 @@ func TestScopedImportPreservesExistingUserIdentity(t *testing.T) {
 		assert.Empty(t, favoritePrefs, "scoped import must not write the archive's favorite channel preference for an account matched only by username")
 	})
 
+	t.Run("new memberships of a username-matched account are visible to its cached session and channel members", func(t *testing.T) {
+		th := setupIdentityTest(t)
+
+		victim := createIdentityTestUser(t, th, model.SystemUserRoleId)
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			Name:        model.NewRandomTeamName(),
+			DisplayName: "Existing Destination Team",
+			Email:       "team-" + model.NewId() + "@example.com",
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team.Id,
+			Name:        model.NewId(),
+			DisplayName: "Existing Destination Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: victim.Id})
+		require.Nil(t, appErr)
+		cached, appErr := th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		require.Nil(t, cached.GetTeamByTeamId(team.Id))
+		cachedChannels, err := th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.Context, victim.Id, true, false)
+		require.NoError(t, err)
+		require.NotContains(t, cachedChannels, channel.Id)
+
+		runIdentityTestImport(t, th, identityTestArchive{
+			scoped:      true,
+			teamName:    team.Name,
+			channelName: channel.Name,
+			user:        archiveUserFor(victim.Username, model.SystemUserRoleId),
+		})
+
+		refreshed, appErr := th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		assert.NotNil(t, refreshed.GetTeamByTeamId(team.Id), "the session cache must reflect the imported team membership")
+		channels, err := th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.Context, victim.Id, true, false)
+		require.NoError(t, err)
+		assert.Contains(t, channels, channel.Id, "the channel member cache must reflect the imported channel membership")
+	})
+
 	t.Run("existing team and channel memberships of a username-matched account are not demoted or overwritten", func(t *testing.T) {
 		th := setupIdentityTest(t)
 

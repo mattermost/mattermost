@@ -183,6 +183,32 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 		require.False(t, app.removeFileCalled, "local_mode imports must not delete the source file")
 	})
 
+	t.Run("run ID is stable for the same archive and changes with its contents at the same path", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		runJob := func() string {
+			job := &model.Job{
+				Id:   model.NewId(),
+				Data: map[string]string{"import_file": zipPath, "local_mode": "true"},
+			}
+			expectWorkerJobCompletion(mockStore, job)
+			worker.DoJob(job)
+			return app.receivedOpts.RunID
+		}
+
+		first := runJob()
+		require.NotEmpty(t, first)
+		require.Equal(t, first, runJob(), "a retry of the same archive must keep its run ID")
+
+		require.NoError(t, os.Rename(makeImportZip(t, 10), zipPath))
+		require.NotEqual(t, first, runJob(), "a different archive at the same path must get a new run ID")
+	})
+
 	// The job-data key is the only thing tying the mmctl flag to the importer. A
 	// typo here would silently drop the operator's choice, and a scoped import
 	// would then fail with "choice required" despite the flag having been passed.

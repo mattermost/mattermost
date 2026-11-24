@@ -94,10 +94,10 @@ type BulkImportOpts struct {
 	// Nil means no checkpointing.
 	OnCheckpoint func(lineNumber int)
 
-	// RunID identifies the import file across retries. In a scoped import, the
-	// accounts a run creates are marked with a hash of it until the run completes,
-	// so a retry of the same file keeps setting them up instead of treating them as
-	// username collisions. Empty disables the markers.
+	// RunID identifies the import file and its contents across retries. In a
+	// scoped import, the accounts a run creates are marked with a hash of it until
+	// the run completes, so a retry of the same file keeps setting them up instead
+	// of treating them as username collisions. Empty disables the markers.
 	RunID string
 }
 

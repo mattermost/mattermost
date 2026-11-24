@@ -184,7 +184,9 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			ImportedUsers:          model.ImportedUsersPosture(job.Data["imported_users"]),
 			ResumeFromLine:         resumeFromLine,
 			OnCheckpoint:           onCheckpoint,
-			RunID:                  importFileName,
+			// In local mode the file name is a reused path, so the JSONL entry's
+			// checksum and size tell a different export at that path apart.
+			RunID: fmt.Sprintf("%s:%08x:%d", importFileName, jsonZipFile.CRC32, jsonZipFile.UncompressedSize64),
 		}
 		lineNumber, report, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {

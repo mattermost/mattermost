@@ -1619,6 +1619,8 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 				rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 			}
 		}
+	} else if len(newMembers) > 0 {
+		a.ClearSessionCacheForUser(user.Id)
 	}
 
 	for _, team := range allTeams {
@@ -1865,6 +1867,8 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 				rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 			}
 		}
+	} else if len(newMembers) > 0 {
+		a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	}
 
 	for _, channel := range allChannels {
