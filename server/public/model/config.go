@@ -2427,6 +2427,16 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
+// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+func (s *EmailSettings) IsSMTPConfigured() bool {
+	server := SafeDereference(s.SMTPServer)
+	if server == "" {
+		return false
+	}
+	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
+}
+
 type RateLimitSettings struct {
 	Enable           *bool  `access:"environment_rate_limiting,write_restrictable,cloud_restrictable"`
 	PerSec           *int   `access:"environment_rate_limiting,write_restrictable,cloud_restrictable"`

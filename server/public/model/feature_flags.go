@@ -86,6 +86,9 @@ type FeatureFlags struct {
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
 
+	// Enable the entities framework: detect enrichable tokens in posts.
+	Entities bool
+
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
@@ -122,7 +125,7 @@ type FeatureFlags struct {
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
 
-	// Gates the Post Attributes feature (post_attributes property group).
+	// Gates the Post Attributes feature (post fields in the access_control property group).
 	PostAttributes bool
 
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
@@ -245,6 +248,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableShiftEscapeToMarkAllRead = false
 
 	f.AutoTranslation = true
+
+	f.Entities = false
 
 	f.ClassificationMarkings = true
 
