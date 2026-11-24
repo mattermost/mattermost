@@ -121,5 +121,36 @@ describe('Utils.Route', () => {
             config.EnableMultifactorAuthentication = 'true';
             expect(!checkIfMFARequired(user, license, config, '')).toBeTruthy();
         });
+
+        describe('login method cookie', () => {
+            const user = {mfa_active: false, auth_service: 'email', roles: ''} as UserProfile;
+            const config: ConfigOption = {EnableMultifactorAuthentication: 'true', EnforceMultifactorAuthentication: 'true'};
+            const license: ClientLicense = {MFA: 'true'};
+
+            afterEach(() => {
+                for (const name of ['MMLOGINMETHOD', 'XMMLOGINMETHOD']) {
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+                }
+            });
+
+            test('passkey session is not sent to MFA setup', () => {
+                document.cookie = 'MMLOGINMETHOD=passkey';
+                expect(checkIfMFARequired(user, license, config, '')).toBe(false);
+            });
+
+            test('no cookie still requires MFA', () => {
+                expect(checkIfMFARequired(user, license, config, '')).toBe(true);
+            });
+
+            test('another login method still requires MFA', () => {
+                document.cookie = 'MMLOGINMETHOD=standard';
+                expect(checkIfMFARequired(user, license, config, '')).toBe(true);
+            });
+
+            test('a cookie whose name only ends in the login method name is ignored', () => {
+                document.cookie = 'XMMLOGINMETHOD=passkey';
+                expect(checkIfMFARequired(user, license, config, '')).toBe(true);
+            });
+        });
     });
 });
