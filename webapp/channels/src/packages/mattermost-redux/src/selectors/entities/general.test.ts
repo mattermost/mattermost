@@ -458,13 +458,13 @@ describe('Selectors.General', () => {
             },
         } as unknown as GlobalState);
 
-        const enterprise = {IsLicensed: 'true', SkuShortName: General.SKUEnterprise};
+        const enterpriseAdvanced = {IsLicensed: 'true', SkuShortName: General.SKUEnterpriseAdvanced};
 
-        test('returns true when the flag is on and the licence is Enterprise', () => {
+        test('returns false when the flag is on and the licence is Enterprise', () => {
             const state = buildState({
                 FeatureFlagPostAttributes: 'true',
-            }, enterprise);
-            expect(Selectors.isPostAttributesEnabled(state)).toBe(true);
+            }, {IsLicensed: 'true', SkuShortName: General.SKUEnterprise});
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
         });
 
         test.each([
@@ -498,15 +498,15 @@ describe('Selectors.General', () => {
             expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
         });
 
-        test('returns false when the flag is off, even with an Enterprise licence', () => {
+        test('returns false when the flag is off, even with an Enterprise Advanced licence', () => {
             const state = buildState({
                 FeatureFlagPostAttributes: 'false',
-            }, enterprise);
+            }, enterpriseAdvanced);
             expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
         });
 
         test('returns false when the flag is absent', () => {
-            const state = buildState({}, enterprise);
+            const state = buildState({}, enterpriseAdvanced);
             expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
         });
     });
@@ -521,15 +521,16 @@ describe('Selectors.General', () => {
             },
         } as unknown as GlobalState);
 
-        test('returns access_control when the flag is on and the licence is Enterprise', () => {
-            const state = buildState('true', {IsLicensed: 'true', SkuShortName: General.SKUEnterprise});
+        test('returns access_control when the flag is on and the licence is Enterprise Advanced', () => {
+            const state = buildState('true', {IsLicensed: 'true', SkuShortName: General.SKUEnterpriseAdvanced});
             expect(Selectors.getPostPropertyGroups(state)).toBe('access_control');
         });
 
         test.each([
+            ['flag on, Enterprise', 'true', {IsLicensed: 'true', SkuShortName: General.SKUEnterprise}],
             ['flag on, Professional', 'true', {IsLicensed: 'true', SkuShortName: 'professional'}],
             ['flag on, no licence', 'true', {IsLicensed: 'false'}],
-            ['flag off, Enterprise', 'false', {IsLicensed: 'true', SkuShortName: General.SKUEnterprise}],
+            ['flag off, Enterprise Advanced', 'false', {IsLicensed: 'true', SkuShortName: General.SKUEnterpriseAdvanced}],
         ])('returns undefined when %s', (_name, flag, license) => {
             expect(Selectors.getPostPropertyGroups(buildState(flag, license))).toBeUndefined();
         });

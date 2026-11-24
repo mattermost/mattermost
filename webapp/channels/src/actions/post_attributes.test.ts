@@ -15,7 +15,7 @@ describe('actions/post_attributes', () => {
             entities: {
                 general: {
                     config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'},
-                    license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
                 },
                 properties: {
                     fields: {byId: {}, byObjectType: {}},

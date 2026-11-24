@@ -54,7 +54,7 @@ test.afterEach(async ({pw}) => {
  * from the edit modal, and draws the chip.
  *
  * @precondition The PostAttributes feature flag is enabled, and the server has an
- * Enterprise-level licence (Entry counts).
+ * Enterprise Advanced licence (Entry counts).
  */
 test('sets a value on a template-linked post field from the edit modal', {tag: '@post_attributes'}, async ({pw}) => {
     await skipIfNoPostAttributesLicense();
@@ -119,7 +119,7 @@ test('sets a value on a template-linked post field from the edit modal', {tag: '
  * the visibility follows each user's holdings after a reload.
  *
  * @precondition The PostAttributes feature flag and PropertyFieldPermissionsV3 are enabled,
- * and the server has an Enterprise-level licence (Entry counts).
+ * and the server has an Enterprise Advanced licence (Entry counts).
  */
 test('shows a masked value only to the user who holds it', {tag: '@post_attributes'}, async ({pw}, testInfo) => {
     await skipIfNoPostAttributesLicense();

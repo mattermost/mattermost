@@ -775,7 +775,7 @@ test(
  * which is what refuses the write.
  *
  * @precondition The PostAttributes feature flag is enabled, and the server has an
- * Enterprise-level licence (Entry counts).
+ * Enterprise Advanced licence (Entry counts).
  */
 test(
     'shows the refusal on the row when a write is refused, and keeps the chip',

@@ -598,8 +598,8 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
         });
 
-        it('is offered with the PostAttributes feature flag and an Enterprise licence, and adds a Posts row', async () => {
-            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license: {IsLicensed: 'true', SkuShortName: 'enterprise'}}}});
+        it('is offered with the PostAttributes feature flag and an Enterprise Advanced licence, and adds a Posts row', async () => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license: {IsLicensed: 'true', SkuShortName: 'advanced'}}}});
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
@@ -609,11 +609,12 @@ describe('AttributeDetails', () => {
             expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
         });
 
-        // The server refuses access_control post requests below Enterprise (501),
-        // so an unlicensed or Professional admin is not offered Posts.
+        // The server refuses access_control post requests below Enterprise
+        // Advanced (501), so those admins are not offered Posts.
         it.each([
             ['no licence', {IsLicensed: 'false'}],
             ['a Professional licence', {IsLicensed: 'true', SkuShortName: 'professional'}],
+            ['an Enterprise licence', {IsLicensed: 'true', SkuShortName: 'enterprise'}],
         ])('is not offered with the PostAttributes feature flag and %s', async (_name, license) => {
             withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license}}});
 

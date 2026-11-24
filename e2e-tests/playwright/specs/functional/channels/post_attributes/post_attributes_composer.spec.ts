@@ -1382,7 +1382,7 @@ test('edits a message without touching its attributes', {tag: '@post_attributes'
  * the server still enforces the tightened permission, which is what is asserted.
  *
  * @precondition The PostAttributes feature flag is enabled, and the server has an
- * Enterprise-level licence (Entry counts).
+ * Enterprise Advanced licence (Entry counts).
  */
 test('keeps the values on a post whose send was refused', {tag: '@post_attributes'}, async ({pw}) => {
     await skipIfNoPostAttributesLicense();
