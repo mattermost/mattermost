@@ -25,17 +25,12 @@ const (
 	clientSequenceMismatchErrCode = 4001
 )
 
-// validateDisconnectErrCode ensures the specified disconnect error code
-// is a valid websocket close code
-func validateDisconnectErrCode(errCode string) bool {
-	if errCode == "" {
-		return false
-	}
-
-	// Ensure the disconnect code is a standard close code
+// normalizeDisconnectErrCode returns the canonical form of a valid websocket
+// close code, or an empty string if the code is not supported
+func normalizeDisconnectErrCode(errCode string) string {
 	code, err := strconv.Atoi(errCode)
 	if err != nil {
-		return false
+		return ""
 	}
 
 	// We only support the standard close codes between
@@ -43,10 +38,10 @@ func validateDisconnectErrCode(errCode string) bool {
 	if (code < 1000 || code > 1016) &&
 		code != clientPingTimeoutErrCode &&
 		code != clientSequenceMismatchErrCode {
-		return false
+		return ""
 	}
 
-	return true
+	return strconv.Itoa(code)
 }
 
 func (api *API) InitWebSocket() {
@@ -83,10 +78,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		XForwardedFor: c.AppContext.XForwardedFor(),
 	}
 
-	disconnectErrCode := r.URL.Query().Get(disconnectErrCodeParam)
-	if codeValid := validateDisconnectErrCode(disconnectErrCode); codeValid {
-		cfg.DisconnectErrCode = disconnectErrCode
-	}
+	cfg.DisconnectErrCode = normalizeDisconnectErrCode(r.URL.Query().Get(disconnectErrCodeParam))
 
 	// The WebSocket upgrade request coming from mobile is missing the
 	// user agent so we need to fallback on the session's metadata.
