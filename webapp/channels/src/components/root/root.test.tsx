@@ -264,6 +264,29 @@ describe('components/Root', () => {
             });
         });
 
+        test('should not show for the passkey enrollment page', async () => {
+            // An earlier test sets the seen flag, which would end the check before it reaches the path.
+            localStorage.removeItem(StoragePrefixes.LANDING_PAGE_SEEN);
+
+            const props = {
+                ...landingProps,
+                ...{
+                    location: {
+                        pathname: '/login/passkey/enroll',
+                        search: '?ticket=t1',
+                    },
+                } as RouteComponentProps,
+            };
+
+            renderWithContext(<Root {...props}/>);
+
+            // The landing page check runs right after this call, so waiting on it makes the assertion below meaningful.
+            await waitFor(() => {
+                expect(props.actions.loadRecentlyUsedCustomEmojis).toHaveBeenCalled();
+            });
+            expect(props.history.push).not.toHaveBeenCalled();
+        });
+
         test('should not show when disabled', async () => {
             const props = {
                 ...landingProps,

@@ -28767,6 +28767,50 @@
     "defaultMessage": "1-50",
     "description": "Company size option '1-50' employees in the Start Trial form dropdown; keep the numeric range."
   },
+  "passkey_enrollment_page.add": {
+    "defaultMessage": "Add passkey",
+    "description": "Button that starts adding a passkey, on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.alreadyOnDevice": {
+    "defaultMessage": "This device already has a passkey for your account.",
+    "description": "Error shown when the device refuses to create a passkey because it already holds one for the account."
+  },
+  "passkey_enrollment_page.body": {
+    "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
+    "description": "Explanation shown above the button that adds a passkey, on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.desktop": {
+    "defaultMessage": "Open this page in your web browser.",
+    "description": "Shown when the passkey enrollment page is opened inside the Mattermost desktop app, which cannot create passkeys."
+  },
+  "passkey_enrollment_page.done": {
+    "defaultMessage": "Passkey added. You can close this page and return to the app.",
+    "description": "Shown after a passkey was added on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.expired": {
+    "defaultMessage": "This link has expired or was already used. Return to the app, sign in again and retry.",
+    "description": "Error shown when the enrollment ticket in the page's link was already used, expired, or was issued to a session that did not sign in recently."
+  },
+  "passkey_enrollment_page.incomplete": {
+    "defaultMessage": "This link is incomplete. Return to the app and try again.",
+    "description": "Shown when the page opened from the Mattermost app has no enrollment ticket in its link."
+  },
+  "passkey_enrollment_page.title": {
+    "defaultMessage": "Add a passkey",
+    "description": "Title of the page, opened from the Mattermost app, where a passkey is added to the user's account."
+  },
+  "passkey_enrollment_page.tooLong": {
+    "defaultMessage": "That took too long. Try again.",
+    "description": "Error shown when the passkey setup started on the page timed out on the server."
+  },
+  "passkey_enrollment_page.unavailable": {
+    "defaultMessage": "Passkeys aren't available on this server.",
+    "description": "Error shown when the server has passkeys or passkey enrollment turned off."
+  },
+  "passkey_enrollment_page.unsupported": {
+    "defaultMessage": "This browser can't create passkeys. Open this page in a different browser.",
+    "description": "Shown when the browser opening the passkey enrollment page has no WebAuthn support."
+  },
   "passkey_enrollment_prompt.add": {
     "defaultMessage": "Add passkey",
     "description": "Button in the post-sign-in prompt that starts adding a passkey."

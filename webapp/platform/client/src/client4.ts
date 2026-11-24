@@ -1384,6 +1384,20 @@ export default class Client4 {
         );
     };
 
+    beginPasskeyEnrollmentRegistration = (ticket: string) => {
+        return this.doFetch<PasskeyRegistrationOptions>(
+            `${this.getUsersRoute()}/passkeys/enrollment/registration/begin`,
+            {method: 'post', body: JSON.stringify({ticket})},
+        );
+    };
+
+    finishPasskeyEnrollmentRegistration = (ceremonyId: string, name: string, credential: PasskeyRegistrationCredential) => {
+        return this.doFetch<Passkey>(
+            `${this.getUsersRoute()}/passkeys/enrollment/registration/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, name, credential})},
+        );
+    };
+
     beginPasskeyLogin = () => {
         return this.doFetch<PasskeyLoginOptions>(
             `${this.getUsersRoute()}/login/passkey/begin`,

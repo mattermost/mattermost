@@ -52,6 +52,7 @@ const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => imp
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
 const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
+const PasskeyEnrollmentPage = makeAsyncComponent('PasskeyEnrollmentPage', lazy(() => import('components/passkey_enrollment/passkey_enrollment_page')));
 const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', lazy(() => import('components/password_reset_send_link')));
 const PasswordResetForm = makeAsyncComponent('PasswordResetForm', lazy(() => import('components/password_reset_form')));
 const Signup = makeAsyncComponent('SignupController', lazy(() => import('components/signup/signup')));
@@ -157,6 +158,11 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // We don't want to show when we're doing Desktop App external login
         if (this.props.location.pathname === '/login/desktop') {
+            return;
+        }
+
+        // The mobile app opens this page in its own auth browser, which has never seen the landing page
+        if (this.props.location.pathname === '/login/passkey/enroll') {
             return;
         }
 
@@ -316,6 +322,10 @@ export default class Root extends React.PureComponent<Props, State> {
                     <Route
                         path={'/error'}
                         component={ErrorPage}
+                    />
+                    <HFRoute
+                        path={'/login/passkey/enroll'}
+                        component={PasskeyEnrollmentPage}
                     />
                     <HFRoute
                         path={'/login'}
