@@ -17,8 +17,7 @@
 
         ##### Permissions
 
-        Must have `manage_system` or `sysconsole_read_reporting_site_statistics` permission. Also available
-        over local mode.
+        Must have `manage_system` or `sysconsole_read_reporting_site_statistics` permission.
 
         Findings the caller may not read are left out. A compliance finding needs read access to the
         System Console page of its setting, and a job finding needs permission to read that job type's
