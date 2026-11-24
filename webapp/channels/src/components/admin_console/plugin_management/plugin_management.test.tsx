@@ -533,6 +533,70 @@ describe('components/PluginManagement', () => {
         });
     });
 
+    describe('plugin notices', () => {
+        const renderWithNotice = (notice?: {deprecated: boolean; status?: string; message: string}) => {
+            const props = {
+                ...defaultProps,
+                plugins: {
+                    ...defaultProps.plugins,
+                    plugin_0: {
+                        ...defaultProps.plugins.plugin_0,
+                        notice,
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('shows the deprecated badge, status label and message for a deprecated plugin', () => {
+            renderWithNotice({deprecated: true, message: 'This plugin is deprecated.'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(within(row).getByTestId('plugin-deprecated-badge')).toHaveTextContent('Deprecated');
+            expect(within(row).getByTestId('plugin-status-label')).toHaveTextContent('Deprecated');
+            expect(within(row).getByTestId('plugin-notice')).toHaveTextContent('This plugin is deprecated.');
+            expect(within(row).getByTestId('plugin-notice')).toHaveClass('alert-warning');
+            expect(row).toHaveTextContent('This plugin is not enabled.');
+            expect(row).toHaveTextContent('Enable');
+        });
+
+        test('shows the custom status without the deprecated badge for a status-only notice', () => {
+            renderWithNotice({deprecated: false, status: 'Unsupported', message: 'Not supported on your license.'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(within(row).queryByTestId('plugin-deprecated-badge')).not.toBeInTheDocument();
+            expect(within(row).getByTestId('plugin-status-label')).toHaveTextContent('Unsupported');
+            expect(within(row).getByTestId('plugin-notice')).toHaveTextContent('Not supported on your license.');
+        });
+
+        test('keeps the real instance state in the cluster table when the status is overridden', () => {
+            renderWithNotice({deprecated: false, status: 'Unsupported', message: 'Not supported on your license.'});
+
+            const row = screen.getByTestId('plugin_1');
+            expect(within(row).queryByTestId('plugin-status-label')).not.toBeInTheDocument();
+            expect(row).toHaveTextContent('Running');
+        });
+
+        test('renders unchanged when there is no notice', () => {
+            renderWithNotice(undefined);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(within(row).queryByTestId('plugin-deprecated-badge')).not.toBeInTheDocument();
+            expect(within(row).queryByTestId('plugin-status-label')).not.toBeInTheDocument();
+            expect(within(row).queryByTestId('plugin-notice')).not.toBeInTheDocument();
+            expect(row).toHaveTextContent('This plugin is not enabled.');
+        });
+    });
+
     describe('server logs links', () => {
         const renderWithLogs = (canReadLogs: boolean, restrictSystemAdmin = false, fileJson = true) => {
             const props = {

@@ -2380,3 +2380,43 @@ func TestUploadReservedPlugin(t *testing.T) {
 		require.NotEqual(t, model.CoreServerPluginID, b.Manifest.Id)
 	}
 }
+
+func TestGetPluginsNotices(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+	})
+
+	pluginDir, err := filepath.Abs(*th.App.Config().PluginSettings.Directory)
+	require.NoError(t, err)
+	for id, version := range map[string]string{
+		model.PluginIdPlaybooks:   "1.0.0",
+		"com.example.notice.test": "1.0.0",
+	} {
+		require.NoError(t, os.MkdirAll(filepath.Join(pluginDir, id), 0700))
+		manifest := fmt.Sprintf(`{"id": %q, "version": %q}`, id, version)
+		require.NoError(t, os.WriteFile(filepath.Join(pluginDir, id, "plugin.json"), []byte(manifest), 0600))
+	}
+
+	pluginsResp, _, err := th.SystemAdminClient.GetPlugins(context.Background())
+	require.NoError(t, err)
+
+	byID := map[string]*model.PluginInfo{}
+	for _, list := range [][]*model.PluginInfo{pluginsResp.Active, pluginsResp.Inactive} {
+		for _, info := range list {
+			byID[info.Id] = info
+		}
+	}
+
+	playbooks := byID[model.PluginIdPlaybooks]
+	require.NotNil(t, playbooks)
+	require.NotNil(t, playbooks.Notice)
+	assert.True(t, playbooks.Notice.Deprecated)
+	assert.NotEmpty(t, playbooks.Notice.Message)
+
+	other := byID["com.example.notice.test"]
+	require.NotNil(t, other)
+	assert.Nil(t, other.Notice)
+}

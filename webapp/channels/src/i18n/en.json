@@ -12947,6 +12947,10 @@
     "defaultMessage": "In order to view this setting, enable the plugin.",
     "description": "Warning banner replacing a single custom plugin setting when the plugin is disabled."
   },
+  "admin.plugin.deprecated": {
+    "defaultMessage": "Deprecated",
+    "description": "Badge next to the plugin name and status label in System Console > Plugin Management for a plugin the server reports as deprecated; compact space."
+  },
   "admin.plugin.disable": {
     "defaultMessage": "Disable",
     "description": "Button/link label on an installed plugin entry in System Console > Plugin Management; disables (deactivates) the plugin."

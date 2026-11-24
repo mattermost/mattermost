@@ -1,4 +1,8 @@
 .PluginManagement {
+    &__deprecatedBadge {
+        margin-left: 8px;
+    }
+
     &__uploadDropzone {
         position: relative;
         display: flex;

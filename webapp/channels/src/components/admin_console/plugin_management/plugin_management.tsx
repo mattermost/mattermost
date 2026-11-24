@@ -10,6 +10,7 @@ import semver from 'semver';
 
 import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+import type {PluginNotice} from '@mattermost/types/plugins';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
@@ -195,6 +196,7 @@ type PluginItemProps = {
         homepage_url?: string;
         release_notes_url?: string;
         required_add_on?: string;
+        notice?: PluginNotice;
     };
     license?: ClientLicense;
     removing: boolean;
@@ -409,6 +411,20 @@ const PluginItem = ({
         );
     }
 
+    const notice = plugin?.notice;
+    if (notice?.message) {
+        notices.push(
+            <div
+                key='plugin-notice'
+                className='alert alert-warning'
+                data-testid='plugin-notice'
+            >
+                <i className='fa fa-warning'/>
+                {notice.message}
+            </div>,
+        );
+    }
+
     notices.push(
         <PluginItemStateDescription
             key='state-description'
@@ -493,6 +509,33 @@ const PluginItem = ({
         );
     }
 
+    let deprecatedBadge: React.ReactNode = null;
+    if (notice?.deprecated) {
+        deprecatedBadge = (
+            <span
+                className='PluginManagement__deprecatedBadge label label-warning'
+                data-testid='plugin-deprecated-badge'
+            >
+                <FormattedMessage
+                    id='admin.plugin.deprecated'
+                    defaultMessage='Deprecated'
+                />
+            </span>
+        );
+    }
+
+    let statusLabel: React.ReactNode = null;
+    if (notice?.status) {
+        statusLabel = notice.status;
+    } else if (notice?.deprecated) {
+        statusLabel = (
+            <FormattedMessage
+                id='admin.plugin.deprecated'
+                defaultMessage='Deprecated'
+            />
+        );
+    }
+
     return (
         <div data-testid={pluginStatus.id}>
             <PluginMetadataPanel
@@ -502,6 +545,22 @@ const PluginItem = ({
                 homepageUrl={plugin?.homepage_url}
                 releaseNotesUrl={plugin?.release_notes_url}
             />
+            {deprecatedBadge}
+            {statusLabel && (
+                <div
+                    className='pt-1'
+                    data-testid='plugin-status-label'
+                >
+                    <strong>
+                        <FormattedMessage
+                            id='admin.plugin.state'
+                            defaultMessage='State'
+                        />
+                        {': '}
+                    </strong>
+                    {statusLabel}
+                </div>
+            )}
             {description}
             <div className='pt-2'>
                 {activateButton}
