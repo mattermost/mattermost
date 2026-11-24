@@ -37,7 +37,7 @@ export const sharedMessages = defineMessages({
     },
 });
 
-// The add path returns invalid_credential for an attestation it cannot verify, so this wording is only true for verify.
+// For verifying an existing passkey only: adding a passkey also returns invalid_credential, for an attestation the server cannot verify, and "doesn't belong to your account" would be wrong there.
 export const verifyErrors: Record<string, typeof sharedMessages.noneRegistered> = {
     'app.passkey.none_registered.app_error': sharedMessages.noneRegistered,
     'app.passkey.invalid_credential.app_error': sharedMessages.invalidCredential,
