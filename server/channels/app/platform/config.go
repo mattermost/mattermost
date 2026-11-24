@@ -7,6 +7,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -260,6 +261,10 @@ func (ps *PlatformService) regenerateClientConfig() {
 		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
+	clientConfigJSON, _ := json.Marshal(clientConfig)
+
+	// AuditLoggingActive reflects this node's audit logger, so it is left out of the hash that
+	// cluster nodes compare to detect config drift.
 	auditLoggingActive := false
 	if isActive := ps.auditLoggingActive.Load(); isActive != nil {
 		auditLoggingActive = (*isActive)()
@@ -268,7 +273,7 @@ func (ps *PlatformService) regenerateClientConfig() {
 
 	ps.clientConfig.Store(clientConfig)
 	ps.limitedClientConfig.Store(limitedClientConfig)
-	ps.clientConfigHash.Store(config.ClientConfigHash(clientConfig))
+	ps.clientConfigHash.Store(fmt.Sprintf("%x", sha256.Sum256(clientConfigJSON)))
 }
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.

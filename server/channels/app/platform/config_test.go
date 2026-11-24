@@ -445,16 +445,3 @@ func TestAuditLoggingActiveNotInClientConfigHash(t *testing.T) {
 	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName += " renamed" })
 	require.NotEqual(t, inactiveHash, th.Service.ClientConfigHash(), "other client config changes still change the hash")
 }
-
-func TestRunJobsNotInClientConfigHash(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-
-	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.JobSettings.RunJobs = false })
-	require.Equal(t, "false", th.Service.ClientConfig()["RunJobs"])
-	noJobsHash := th.Service.ClientConfigHash()
-
-	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.JobSettings.RunJobs = true })
-	require.Equal(t, "true", th.Service.ClientConfig()["RunJobs"], "RunJobs stays in the client config")
-	require.Equal(t, noJobsHash, th.Service.ClientConfigHash(), "nodes that differ only in RunJobs report the same hash")
-}

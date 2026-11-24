@@ -5,11 +5,9 @@ package config
 
 import (
 	"fmt"
-	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -951,34 +949,4 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestClientConfigHash(t *testing.T) {
-	t.Parallel()
-
-	cfg := &model.Config{}
-	cfg.SetDefaults()
-	clientConfig := GenerateClientConfig(cfg, "", nil)
-	clientConfig["AuditLoggingActive"] = "false"
-	baseHash := ClientConfigHash(clientConfig)
-
-	for _, key := range NodeLocalClientConfigKeys {
-		t.Run(key+" is left out", func(t *testing.T) {
-			t.Parallel()
-
-			require.Contains(t, clientConfig, key)
-			changed := maps.Clone(clientConfig)
-			changed[key] = "changed"
-			assert.Equal(t, baseHash, ClientConfigHash(changed))
-			assert.Equal(t, "changed", changed[key], "the client config keeps the key")
-		})
-	}
-
-	t.Run("other keys change the hash", func(t *testing.T) {
-		t.Parallel()
-
-		changed := maps.Clone(clientConfig)
-		changed["SiteName"] += " renamed"
-		assert.NotEqual(t, baseHash, ClientConfigHash(changed))
-	})
 }

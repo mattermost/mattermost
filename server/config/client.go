@@ -4,33 +4,13 @@
 package config
 
 import (
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
-	"maps"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/fips"
 )
-
-// NodeLocalClientConfigKeys are client config keys that legitimately differ per node: RunJobs
-// chooses which nodes run jobs, and AuditLoggingActive reflects the node's audit logger. They are
-// left out of ClientConfigHash, so a change to one alone does not make clients re-fetch config.
-var NodeLocalClientConfigKeys = []string{"RunJobs", "AuditLoggingActive"}
-
-// ClientConfigHash hashes a client config for clients to tell when to re-fetch it and for
-// cluster nodes to compare to detect config drift.
-func ClientConfigHash(clientConfig map[string]string) string {
-	hashed := maps.Clone(clientConfig)
-	for _, key := range NodeLocalClientConfigKeys {
-		delete(hashed, key)
-	}
-
-	hashedJSON, _ := json.Marshal(hashed)
-	return fmt.Sprintf("%x", sha256.Sum256(hashedJSON))
-}
 
 // GenerateClientConfig renders the given configuration for a client.
 func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {

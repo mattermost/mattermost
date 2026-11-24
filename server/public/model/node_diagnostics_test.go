@@ -37,6 +37,26 @@ func TestNodeDiagnosticsJSON(t *testing.T) {
 		assert.EqualError(t, out.Errors[SectionSMTPProbe], "dial tcp: timeout")
 	})
 
+	t.Run("config section hashes travel with the diagnostics", func(t *testing.T) {
+		in := NodeDiagnostics{
+			Diagnostics:         &SupportPacketDiagnostics{},
+			ConfigSectionHashes: map[string]string{"SqlSettings": "fedcba9876543210", "TeamSettings": "0123456789abcdef"},
+		}
+
+		data, err := json.Marshal(in)
+		require.NoError(t, err)
+
+		var out NodeDiagnostics
+		require.NoError(t, json.Unmarshal(data, &out))
+		assert.Equal(t, in.ConfigSectionHashes, out.ConfigSectionHashes)
+	})
+
+	t.Run("a node on an older build sends no config section hashes", func(t *testing.T) {
+		var out NodeDiagnostics
+		require.NoError(t, json.Unmarshal([]byte(`{"diagnostics":{},"errors":{}}`), &out))
+		assert.Nil(t, out.ConfigSectionHashes)
+	})
+
 	t.Run("a pointer encodes the same as a value", func(t *testing.T) {
 		in := &NodeDiagnostics{Diagnostics: &SupportPacketDiagnostics{}, Errors: SectionErrors{SectionServerHost: nil}}
 
