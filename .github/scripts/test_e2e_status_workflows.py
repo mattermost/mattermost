@@ -59,10 +59,19 @@ class StatusPublicationContract(unittest.TestCase):
         for name, job in lanes.items():
             with self.subTest(lane=name):
                 self.assertEqual(job.get('secrets', {}).get('ANTHROPIC_API_KEY'), '${{ secrets.ANTHROPIC_API_KEY }}')
-        for suite in ('cypress', 'playwright'):
+        for suite in ('cypress', 'playwright', 'playwright-rolling-upgrades'):
             with self.subTest(template=suite):
                 lane = workflow(f'{suite}-template')['jobs']['lane-result']
                 self.assertEqual(lane['secrets']['ANTHROPIC_API_KEY'], '${{ secrets.ANTHROPIC_API_KEY }}')
+                trigger = workflow(f'{suite}-template').get('on', workflow(f'{suite}-template').get(True))
+                self.assertIs(trigger['workflow_call']['secrets']['ANTHROPIC_API_KEY']['required'], False)
+        pw_rolling = workflow('playwright')['jobs']['playwright-rolling-upgrades']
+        self.assertEqual(pw_rolling['secrets']['ANTHROPIC_API_KEY'], '${{ secrets.ANTHROPIC_API_KEY }}')
+        rolling = workflow('playwright-rolling-upgrades')
+        rolling_trigger = rolling.get('on', rolling.get(True))
+        self.assertIs(rolling_trigger['workflow_call']['secrets']['ANTHROPIC_API_KEY']['required'], False)
+        self.assertEqual(rolling['jobs']['playwright-rolling-upgrades']['secrets']['ANTHROPIC_API_KEY'],
+                         '${{ secrets.ANTHROPIC_API_KEY }}')
 
     def test_manual_and_automatic_dispatches_share_lane_keys(self):
         """Manual and automatic dispatches share lane keys."""
@@ -333,8 +342,7 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertEqual(caller['needs'], ['prepare-run', 'dispatch-begin', 'workers', 'report'])
         self.assertEqual(caller['permissions'], PERMISSIONS)
         self.assertEqual(caller['if'], '${{ !cancelled() }}')
-        # No model key: upgrade lanes are triaged by rules only, as before.
-        self.assertEqual(set(caller['secrets']), {'REPORT_WEBHOOK_URL'})
+        self.assertEqual(set(caller['secrets']), {'ANTHROPIC_API_KEY', 'REPORT_WEBHOOK_URL'})
         self.assertEqual(caller['with']['execution_success'], "${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' }}")
         self.assertEqual(caller['with']['summary_ok'], "${{ needs.report.outputs.summary_ok == 'true' }}")
         self.assertEqual(caller['with']['test_root'], 'e2e-tests/playwright/specs')
@@ -408,12 +416,49 @@ class InfrastructureRetries(unittest.TestCase):
                 'STATE': 'failure', 'REPORTS_COMPLETE': 'false', 'PUBLISHED': 'true', 'GITHUB_OUTPUT': str(output)})
             self.assertEqual(output.read_text(), 'state=failure\nreports-complete=false\npublished=true\n')
 
-    def test_summary_refresh_is_skipped_only_when_publication_already_did_it(self):
-        """The refresh is skipped only for a green lane that published: its publication refreshed and triage did not run."""
+    def test_summary_refresh_is_skipped_only_when_publication_or_triage_already_did_it(self):
+        """The refresh is skipped when publication already refreshed a green lane, or when enforced triage already settled a listed PR lane."""
         lane = lane_result_workflow()['jobs']['lane-result']
-        self.assertEqual(step(lane, 'ci/refresh-lane-summary')['if'],
-                         "${{ !cancelled() && inputs.composite_identity_json != '' && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}")
+        cond = step(lane, 'ci/refresh-lane-summary')['if']
+        self.assertEqual(
+            cond,
+            "${{ !cancelled() && inputs.composite_identity_json != '' && "
+            "!(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') && "
+            "!(steps.triage.outcome == 'success' && steps.triage.outputs.effective-mode == 'enforce' && "
+            "steps.triage.outputs.published == 'true' && steps.lanes.outputs.triage-lanes != '') }}",
+        )
         self.assertIn("steps.result.outputs.state != 'success'", step(lane, 'ci/e2e-triage')['if'])
+        expr = cond.removeprefix('${{').removesuffix('}}').strip()
+        for src, dst in (
+            ('!=', '__NE__'), ('!', ' not '), ('__NE__', '!='), ('&&', ' and '), ('||', ' or '),
+            ('cancelled()', 'cancelled'), ('inputs.composite_identity_json', 'identity'),
+            ('steps.result.outputs.state', 'result_state'), ('steps.result.outputs.published', 'result_published'),
+            ('steps.triage.outcome', 'triage_outcome'), ('steps.triage.outputs.effective-mode', 'triage_mode'),
+            ('steps.triage.outputs.published', 'triage_published'), ('steps.lanes.outputs.triage-lanes', 'triage_lanes'),
+        ):
+            expr = expr.replace(src, dst)
+        base = {
+            'cancelled': False, 'identity': '{"commit_sha":"abc"}',
+            'result_state': 'failure', 'result_published': 'true',
+            'triage_outcome': 'success', 'triage_mode': 'enforce', 'triage_published': 'true',
+            'triage_lanes': 'e2e-test/playwright-full/enterprise',
+        }
+        cases = [
+            ('green published skips', {'result_state': 'success', 'result_published': 'true', 'triage_outcome': 'skipped'}, False),
+            ('green unpublished refreshes', {'result_state': 'success', 'result_published': 'false', 'triage_outcome': 'skipped'}, True),
+            ('red enforced published listed PR lane skips', {}, False),
+            ('red report-only still refreshes', {'triage_mode': 'report-only'}, True),
+            ('red triage unpublished still refreshes', {'triage_published': 'false'}, True),
+            ('red triage empty published still refreshes', {'triage_published': ''}, True),
+            ('red triage failed still refreshes', {'triage_outcome': 'failure'}, True),
+            ('red triage skipped still refreshes', {'triage_outcome': 'skipped'}, True),
+            ('red non-listed lane still refreshes', {'triage_lanes': ''}, True),
+            ('cancelled skips', {'cancelled': True}, False),
+            ('empty identity skips', {'identity': ''}, False),
+        ]
+        for label, overrides, expected in cases:
+            with self.subTest(case=label):
+                self.assertEqual(bool(eval(expr, {'__builtins__': {}}, {**base, **overrides})), expected)
 
     def run_api_wait(self, rate_limit, now=1_000_000):
         """Runs ci/wait-for-github-api with a fake gh answering rate_limit (None: the call fails); returns its sleep."""
