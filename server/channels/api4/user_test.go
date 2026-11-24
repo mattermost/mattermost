@@ -6728,7 +6728,6 @@ func TestSwitchAccount(t *testing.T) {
 	})
 
 	t.Run("Passkey session cannot switch sign-in method", func(t *testing.T) {
-		// passkeyClient returns a client signed in with a session that carries the passkey login method.
 		passkeyClient := func(t *testing.T) *model.Client4 {
 			t.Helper()
 			session, appErr := th.App.CreateSession(th.Context, &model.Session{

@@ -502,7 +502,6 @@ func TestPasskeyRegistration(t *testing.T) {
 	})
 }
 
-// setupPasskeyLogin is setupPasskeyRegistration with sign-in on too.
 func setupPasskeyLogin(t *testing.T, mutate ...func(cfg *model.Config)) *TestHelper {
 	t.Helper()
 
@@ -511,8 +510,6 @@ func setupPasskeyLogin(t *testing.T, mutate ...func(cfg *model.Config)) *TestHel
 	}}, mutate...)...)
 }
 
-// registerAndAuthenticator registers a passkey for the basic user as th.Client and returns the
-// authenticator that holds it.
 func registerAndAuthenticator(t *testing.T, th *TestHelper) (*testlib.SoftAuthenticator, *model.Passkey) {
 	t.Helper()
 
@@ -523,7 +520,6 @@ func registerAndAuthenticator(t *testing.T, th *TestHelper) (*testlib.SoftAuthen
 	return auth, pk
 }
 
-// signInWithPasskey runs begin, the authenticator's assertion and finish on client.
 func signInWithPasskey(t *testing.T, client *model.Client4, auth *testlib.SoftAuthenticator) (*model.User, *model.Response, error) {
 	t.Helper()
 
@@ -627,7 +623,7 @@ func TestPasskeyLogin(t *testing.T) {
 	t.Run("satisfies enforced MFA that a password session does not", func(t *testing.T) {
 		th := setupPasskeyLogin(t)
 		auth, _ := registerAndAuthenticator(t, th)
-		// Enforced only now: the password session that registered the passkey would be refused otherwise.
+		// Enforced after registration: the password session that registered the passkey would be refused otherwise.
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "mfa"))
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
@@ -846,7 +842,6 @@ func TestRevokePasskeySessions(t *testing.T) {
 		return client.RevokePasskeySessions(context.Background())
 	}
 
-	// sessionClient returns a client holding a fresh session of the user with the given login method.
 	sessionClient := func(t *testing.T, th *TestHelper, user *model.User, method string) *model.Client4 {
 		t.Helper()
 		session, appErr := th.App.CreateSession(th.Context, &model.Session{

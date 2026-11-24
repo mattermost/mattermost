@@ -707,7 +707,6 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		require.NoError(t, err)
 		return auth
 	}
-	// registered returns a user with one passkey and the authenticator holding it.
 	registered := func(t *testing.T, authOpts ...testlib.SoftAuthenticatorOption) (*model.User, *testlib.SoftAuthenticator) {
 		t.Helper()
 		user, auth := th.CreateUser(t), newAuthenticator(t)
