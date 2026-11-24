@@ -11,7 +11,7 @@ import {PropertyTypes} from 'mattermost-redux/action_types';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 
-import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, runPostRenderAct, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -1256,6 +1256,112 @@ describe('ChannelSettingsConfigurationTab', () => {
             // Save button should be enabled since a level is pre-selected.
             const saveButton = await screen.findByRole('button', {name: 'Save'});
             expect(saveButton).toBeEnabled();
+        });
+
+        describe('informational notice', () => {
+            const NOTICE_TITLE = 'Classification markings are informational only';
+            const {Client4} = require('mattermost-redux/client');
+
+            // Scoped here: other suites rely on property field fetches not resolving.
+            beforeEach(() => {
+                Client4.getPropertyFields = jest.fn();
+            });
+
+            afterEach(() => {
+                delete Client4.getPropertyFields;
+            });
+
+            function userField(overrides: Partial<PropertyField>): PropertyField {
+                return {
+                    id: 'user_field_1',
+                    group_id: 'access_control_group_id',
+                    name: 'clearance',
+                    type: 'rank',
+                    attrs: {},
+                    target_id: '',
+                    target_type: 'system',
+                    object_type: 'user',
+                    create_at: 1,
+                    update_at: 1,
+                    delete_at: 0,
+                    created_by: 'u1',
+                    updated_by: 'u1',
+                    ...overrides,
+                } as PropertyField;
+            }
+
+            async function renderAndEnableClassification({abacEnabled, userFields}: {abacEnabled: boolean; userFields: PropertyField[]}) {
+                Client4.getPropertyFields.mockResolvedValueOnce(userFields).mockResolvedValue([]);
+                enableClassification();
+
+                renderWithContext(
+                    <ChannelSettingsConfigurationTab {...baseProps}/>,
+                    {entities: {general: {config: {EnableAttributeBasedAccessControl: String(abacEnabled)}}}} as PartialState,
+                );
+
+                await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+                expect(screen.getByTestId('channelClassificationLevel')).toBeInTheDocument();
+            }
+
+            // The notice renders before the fetch settles, so a "shown" assertion
+            // only means something once the user fields have reached the store.
+            async function settleUserFieldsFetch() {
+                await waitFor(() => expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2));
+                await runPostRenderAct();
+            }
+
+            it('is shown while no user field is linked to the classification template', async () => {
+                await renderAndEnableClassification({
+                    abacEnabled: true,
+                    userFields: [
+                        userField({id: 'unlinked_clearance'}),
+                        userField({id: 'other_template_clearance', name: 'other', linked_field_id: 'another_template'}),
+                        userField({id: 'deleted_clearance', linked_field_id: TEMPLATE_FIELD_ID, delete_at: 5}),
+                    ],
+                });
+                await settleUserFieldsFetch();
+
+                expect(screen.getByText(NOTICE_TITLE)).toBeInTheDocument();
+            });
+
+            it('is not shown while the user field lookup is still pending', async () => {
+                Client4.getPropertyFields.mockReturnValue(new Promise(() => {}));
+                enableClassification();
+
+                renderWithContext(
+                    <ChannelSettingsConfigurationTab {...baseProps}/>,
+                    {entities: {general: {config: {EnableAttributeBasedAccessControl: 'true'}}}} as PartialState,
+                );
+
+                await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+                expect(screen.getByTestId('channelClassificationLevel')).toBeInTheDocument();
+                await runPostRenderAct();
+
+                expect(Client4.getPropertyFields).toHaveBeenCalled();
+                expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+            });
+
+            it('is hidden once the clearance attribute is enabled', async () => {
+                await renderAndEnableClassification({
+                    abacEnabled: true,
+                    userFields: [userField({linked_field_id: TEMPLATE_FIELD_ID})],
+                });
+
+                await waitFor(() => {
+                    expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+                });
+            });
+
+            it('is shown when attribute-based access control is off, even with a clearance attribute', async () => {
+                // Without ABAC no policy can read the clearance, so markings stay informational.
+                await renderAndEnableClassification({
+                    abacEnabled: false,
+                    userFields: [userField({linked_field_id: TEMPLATE_FIELD_ID})],
+                });
+                await runPostRenderAct();
+
+                expect(screen.getByText(NOTICE_TITLE)).toBeInTheDocument();
+            });
         });
 
         it('saves banner_info via patchChannel when banner text is edited while classification is active', async () => {
