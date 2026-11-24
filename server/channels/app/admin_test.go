@@ -54,32 +54,37 @@ func TestGetLatestVersion(t *testing.T) {
 		require.Nil(t, err)
 	})
 
-	var requests atomic.Int32
-	countingServer := func(t *testing.T, status int) *httptest.Server {
-		requests.Store(0)
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			requests.Add(1)
-			w.WriteHeader(status)
-			_, err := w.Write(validJSON)
-			assert.NoError(t, err)
-		}))
-		t.Cleanup(server.Close)
-		return server
-	}
-
 	t.Run("get latest mm version from cache", func(t *testing.T) {
-		require.NoError(t, th.App.clearLatestVersionCache())
-		server := countingServer(t, http.StatusOK)
-		for range 2 {
-			_, appErr := th.App.GetLatestVersion(th.Context, server.URL)
-			require.Nil(t, appErr)
-		}
-		assert.Equal(t, int32(1), requests.Load(), "did not get cached result")
-
-		other := countingServer(t, http.StatusOK)
-		_, appErr := th.App.GetLatestVersion(th.Context, other.URL)
+		err := th.App.clearLatestVersionCache()
+		require.NoError(t, err)
+		originalResult, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
 		require.Nil(t, appErr)
-		assert.Equal(t, int32(1), requests.Load(), "another URL is looked up on its own")
+
+		// Call same function but mock the GET request to return a different result.
+		// We are hoping the function will use the cache instead of making the GET request
+		v := &model.GithubReleaseInfo{
+			Id:          57117096,
+			TagName:     "v6.3.1",
+			Name:        "v6.3.1",
+			CreatedAt:   "2022-01-13T14:19:44Z",
+			PublishedAt: "2022-01-14T13:45:09Z",
+			Body:        "Mattermost Platform Release v6.3.0",
+			Url:         "https://github.com/mattermost/mattermost-server/releases/tag/v6.3.0",
+		}
+
+		updatedJSON, jsonErr := json.Marshal(v)
+		require.NoError(t, jsonErr)
+
+		updatedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, err := w.Write(updatedJSON)
+			require.NoError(t, err)
+		}))
+		defer updatedServer.Close()
+
+		cachedResult, appErr := th.App.GetLatestVersion(th.Context, updatedServer.URL)
+		require.Nil(t, appErr)
+
+		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
@@ -101,6 +106,19 @@ func TestGetLatestVersion(t *testing.T) {
 		require.NotNil(t, appErr)
 	})
 
+	var requests atomic.Int32
+	countingServer := func(t *testing.T, status int) *httptest.Server {
+		requests.Store(0)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(status)
+			_, err := w.Write(validJSON)
+			assert.NoError(t, err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+
 	t.Run("a failure is cached", func(t *testing.T) {
 		require.NoError(t, th.App.clearLatestVersionCache())
 		badGateway := countingServer(t, http.StatusBadGateway)
@@ -113,34 +131,24 @@ func TestGetLatestVersion(t *testing.T) {
 		assert.Equal(t, int32(1), requests.Load())
 
 		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
-		require.Nil(t, appErr, "a failure is cached only for the URL that failed")
-		assert.Equal(t, version.TagName, release.TagName)
+		require.NotNil(t, appErr, "the cached failure is returned until it expires")
+		assert.Nil(t, release)
 	})
 
 	t.Run("toggling security alerts clears a cached failure", func(t *testing.T) {
 		require.NoError(t, th.App.clearLatestVersionCache())
-		var recovered atomic.Bool
-		flaky := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !recovered.Load() {
-				w.WriteHeader(http.StatusBadGateway)
-				return
-			}
-			_, err := w.Write(validJSON)
-			assert.NoError(t, err)
-		}))
-		t.Cleanup(flaky.Close)
-		_, appErr := th.App.GetLatestVersion(th.Context, flaky.URL)
+		badGateway := countingServer(t, http.StatusBadGateway)
+		_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
 		require.NotNil(t, appErr)
-		recovered.Store(true)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://other.example.com") })
-		_, appErr = th.App.GetLatestVersion(th.Context, flaky.URL)
+		_, appErr = th.App.GetLatestVersion(th.Context, ts.URL)
 		require.NotNil(t, appErr, "an unrelated config change keeps the cached failure")
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
 
-		release, appErr := th.App.GetLatestVersion(th.Context, flaky.URL)
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
 		require.Nil(t, appErr)
 		assert.Equal(t, version.TagName, release.TagName)
 	})

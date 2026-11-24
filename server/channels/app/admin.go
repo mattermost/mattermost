@@ -23,14 +23,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
-// latestVersionCache holds a release or a failure for each URL the latest release was looked up at.
 var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
-	Size: 4,
+	Size: 2,
 })
 
 const (
-	latestVersionCacheKeyPrefix        = "latest_version_cache:"
-	latestVersionFailureCacheKeyPrefix = "latest_version_failure_cache:"
+	latestVersionCacheKey        = "latest_version_cache"
+	latestVersionFailureCacheKey = "latest_version_failure_cache"
 	// latestVersionFailureExpiry spaces out retries from servers that cannot reach GitHub, which
 	// also keeps servers behind a shared IP under its unauthenticated rate limit.
 	latestVersionFailureExpiry = 6 * time.Hour
@@ -266,16 +265,13 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.get_latest_version.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	cacheKey := latestVersionCacheKeyPrefix + latestVersionUrl
-	failureCacheKey := latestVersionFailureCacheKeyPrefix + latestVersionUrl
-
 	var cachedLatestVersion *model.GithubReleaseInfo
-	if cacheErr := latestVersionCache.Get(cacheKey, &cachedLatestVersion); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get(latestVersionCacheKey, &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
 	}
 
 	var cachedFailure string
-	if cacheErr := latestVersionCache.Get(failureCacheKey, &cachedFailure); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get(latestVersionFailureCacheKey, &cachedFailure); cacheErr == nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, cachedFailure, http.StatusInternalServerError)
 	}
 
@@ -285,14 +281,14 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	if err != nil {
 		// A cancelled request says nothing about whether the feed is reachable.
 		if rctx.Context().Err() == nil {
-			if cacheErr := latestVersionCache.SetWithExpiry(failureCacheKey, err.Error(), latestVersionFailureExpiry); cacheErr != nil {
+			if cacheErr := latestVersionCache.SetWithExpiry(latestVersionFailureCacheKey, err.Error(), latestVersionFailureExpiry); cacheErr != nil {
 				rctx.Logger().Warn("Failed to cache the latest version failure", mlog.Err(cacheErr))
 			}
 		}
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = latestVersionCache.SetWithExpiry(cacheKey, releaseInfoResponse, 24*time.Hour)
+	err = latestVersionCache.SetWithExpiry(latestVersionCacheKey, releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
