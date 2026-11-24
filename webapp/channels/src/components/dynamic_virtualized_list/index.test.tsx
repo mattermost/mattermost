@@ -261,6 +261,23 @@ describe('DynamicVirtualizedList', () => {
         expect(scroller.scrollTop).toBe(totalHeight() - LIST_HEIGHT);
     });
 
+    test('stays at the bottom when rows above the viewport grow before scrolling to the bottom is applied', () => {
+        const {scroller} = renderList();
+        expect(scroller.scrollTop).toBe(740);
+
+        // The state update that scrolls to the bottom isn't applied until the end of act, like in browsers that
+        // apply it after the next frame, where another image can finish loading and be observed before that
+        act(() => {
+            rowHeights['item-8'] = 250;
+            mockResizeCallbacks.get('item-8')?.(renderedRowHeight(screen.getByTestId('item-8').parentElement as HTMLElement));
+            rowHeights['item-7'] = 250;
+            mockResizeCallbacks.get('item-7')?.(renderedRowHeight(screen.getByTestId('item-7').parentElement as HTMLElement));
+        });
+
+        expect(totalHeight()).toBe(1340);
+        expect(scroller.scrollTop).toBe(totalHeight() - LIST_HEIGHT);
+    });
+
     test('does not change the scroll position when a row is measured for the first time above the viewport', () => {
         const {scroller, setItemData} = renderList({loaderId: 'loader'});
         userScrollTo(scroller, 440);

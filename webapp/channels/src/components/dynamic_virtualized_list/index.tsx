@@ -672,6 +672,11 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         ) {
             this._generateOffsetMeasurements();
             this.scrollToItem(0, 'end');
+
+            // scrollToItem only scrolls once the state update is applied, which some browsers (e.g. Safari) do after
+            // the next frame. Rows resizing before that must still see the list at the bottom, otherwise they're
+            // compensated for from the old position and the list ends up above the bottom.
+            this._scrollTopAfterResizeCorrection = Math.max(0, element.scrollHeight - this.props.height);
             this.forceUpdate();
             return;
         }
