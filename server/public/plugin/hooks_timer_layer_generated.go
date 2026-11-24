@@ -390,6 +390,19 @@ func (hooks *hooksTimerLayer) EntityLookup(c *Context, req *model.EntityLookupRe
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) OnSignal(c *Context, delivery *model.SignalDelivery) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnSignal(c, delivery)
+	hooks.recordTime(startTime, "OnSignal", true)
+}
+
+func (hooks *hooksTimerLayer) OnActionCall(c *Context, call *model.ActionCall) (*model.ActionResult, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnActionCall(c, call)
+	hooks.recordTime(startTime, "OnActionCall", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -695,5 +708,19 @@ func (hooks *hooksTimerLayer) EntityLookupWithRPCErr(c *Context, req *model.Enti
 	startTime := timePkg.Now()
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.EntityLookupWithRPCErr(c, req)
 	hooks.recordTime(startTime, "EntityLookupWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSignalWithRPCErr(c *Context, delivery *model.SignalDelivery) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSignalWithRPCErr(c, delivery)
+	hooks.recordTime(startTime, "OnSignalWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnActionCallWithRPCErr(c *Context, call *model.ActionCall) (*model.ActionResult, *model.AppError, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnActionCallWithRPCErr(c, call)
+	hooks.recordTime(startTime, "OnActionCallWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
 }

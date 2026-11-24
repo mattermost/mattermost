@@ -220,6 +220,12 @@ type FeatureFlags struct {
 	// already linked keep their link, and their values stay sync-locked and
 	// untouched.
 	OpenIdAttributeSync bool
+
+	// FEATURE_FLAG_REMOVAL: PluginSignalBus - Remove this when the plugin signal bus is GA.
+	// Gates the plugin signal bus: registering signals and actions, subscriptions, emits and
+	// action calls between plugins. While off, every signal bus API method returns
+	// ErrSignalBusDisabled and no signal bus hook is invoked.
+	PluginSignalBus bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -305,6 +311,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableBrotliCompression = false
 
 	f.OpenIdAttributeSync = true
+
+	f.PluginSignalBus = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

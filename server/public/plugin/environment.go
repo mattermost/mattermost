@@ -35,6 +35,8 @@ type registeredPlugin struct {
 	Error      string
 
 	supervisor *supervisor
+	// implemented is recorded before OnActivate runs, while supervisor is still nil.
+	implemented [TotalHooksID]bool
 }
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
@@ -61,6 +63,26 @@ type Environment struct {
 	prepackagedPlugins               []*PrepackagedPlugin
 	transitionallyPrepackagedPlugins []*PrepackagedPlugin
 	prepackagedPluginsLock           sync.RWMutex
+
+	onActivate   func(pluginID string)
+	onDeactivate func(pluginID string)
+}
+
+type EnvironmentOption func(*Environment)
+
+// WithOnActivate sets a callback invoked when a plugin's server starts, before its OnActivate hook.
+func WithOnActivate(f func(pluginID string)) EnvironmentOption {
+	return func(env *Environment) {
+		env.onActivate = f
+	}
+}
+
+// WithOnDeactivate sets a callback invoked after a plugin is deactivated by any path, and after
+// a plugin's OnActivate hook fails.
+func WithOnDeactivate(f func(pluginID string)) EnvironmentOption {
+	return func(env *Environment) {
+		env.onDeactivate = f
+	}
 }
 
 func NewEnvironment(
@@ -70,15 +92,20 @@ func NewEnvironment(
 	webappPluginDir string,
 	logger *mlog.Logger,
 	metrics metricsInterface,
+	opts ...EnvironmentOption,
 ) (*Environment, error) {
-	return &Environment{
+	env := &Environment{
 		logger:          logger,
 		metrics:         metrics,
 		newAPIImpl:      newAPIImpl,
 		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
-	}, nil
+	}
+	for _, opt := range opts {
+		opt(env)
+	}
+	return env, nil
 }
 
 // Performs a full scan of the given path.
@@ -220,6 +247,27 @@ func (env *Environment) setPluginSupervisor(id string, supervisor *supervisor) {
 	}
 }
 
+func (env *Environment) setPluginImplemented(id string, implemented [TotalHooksID]bool) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.implemented = implemented
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
+// PluginImplements reports whether the active plugin with the given id implements hookID.
+// Unlike HooksForPlugin, it answers while the plugin's OnActivate is still running.
+func (env *Environment) PluginImplements(id string, hookID int) bool {
+	if hookID < 0 || hookID >= TotalHooksID || !env.IsActive(id) {
+		return false
+	}
+	rp, ok := env.registeredPlugins.Load(id)
+	if !ok {
+		return false
+	}
+	return rp.(registeredPlugin).implemented[hookID]
+}
+
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) PublicFilesPath(id string) (string, error) {
@@ -311,9 +359,17 @@ func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...
 	// Therefore, setting the state to running prevents this from happening,
 	// and in case there is an error, the defer clause will set the proper state anyways.
 	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
+	env.setPluginImplemented(pluginInfo.Manifest.Id, sup.implemented)
+
+	if env.onActivate != nil {
+		env.onActivate(pluginInfo.Manifest.Id)
+	}
 
 	if err := sup.Hooks().OnActivate(); err != nil {
 		sup.Shutdown()
+		if env.onDeactivate != nil {
+			env.onDeactivate(pluginInfo.Manifest.Id)
+		}
 		return err
 	}
 	env.setPluginSupervisor(pluginInfo.Manifest.Id, sup)
@@ -484,6 +540,10 @@ func (env *Environment) RemovePlugin(id string) {
 // its restart limit.
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
+
+	if env.onDeactivate != nil {
+		defer env.onDeactivate(id)
+	}
 
 	if !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)

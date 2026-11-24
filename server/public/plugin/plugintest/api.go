@@ -1337,6 +1337,24 @@ func (_m *API) DisablePlugin(id string) *model.AppError {
 	return r0
 }
 
+// EmitSignal provides a mock function with given fields: name, payload, cause, opts
+func (_m *API) EmitSignal(name string, payload map[string]model.SignalValue, cause model.SignalCause, opts *model.EmitOptions) error {
+	ret := _m.Called(name, payload, cause, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EmitSignal")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]model.SignalValue, model.SignalCause, *model.EmitOptions) error); ok {
+		r0 = rf(name, payload, cause, opts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EnablePlugin provides a mock function with given fields: id
 func (_m *API) EnablePlugin(id string) *model.AppError {
 	ret := _m.Called(id)
@@ -1444,6 +1462,36 @@ func (_m *API) EvaluateAccessControlBatch(userID string, resourceType string, ac
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// ExecuteAction provides a mock function with given fields: req, cause
+func (_m *API) ExecuteAction(req *model.ActionRequest, cause model.SignalCause) (*model.ActionResponse, error) {
+	ret := _m.Called(req, cause)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExecuteAction")
+	}
+
+	var r0 *model.ActionResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.ActionRequest, model.SignalCause) (*model.ActionResponse, error)); ok {
+		return rf(req, cause)
+	}
+	if rf, ok := ret.Get(0).(func(*model.ActionRequest, model.SignalCause) *model.ActionResponse); ok {
+		r0 = rf(req, cause)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ActionResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.ActionRequest, model.SignalCause) error); ok {
+		r1 = rf(req, cause)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -4918,6 +4966,36 @@ func (_m *API) ListPluginCommands(teamID string) ([]*model.Command, error) {
 	return r0, r1
 }
 
+// ListSignalContributions provides a mock function with no fields
+func (_m *API) ListSignalContributions() (*model.SignalCatalog, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListSignalContributions")
+	}
+
+	var r0 *model.SignalCatalog
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (*model.SignalCatalog, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() *model.SignalCatalog); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SignalCatalog)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LoadPluginConfiguration provides a mock function with given fields: dest
 func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 	ret := _m.Called(dest)
@@ -5273,6 +5351,24 @@ func (_m *API) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) 
 	return r0, r1
 }
 
+// RegisterAction provides a mock function with given fields: action
+func (_m *API) RegisterAction(action model.ActionDescriptor) error {
+	ret := _m.Called(action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAction")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.ActionDescriptor) error); ok {
+		r0 = rf(action)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterChannelGuard provides a mock function with given fields: channelID
 func (_m *API) RegisterChannelGuard(channelID string) *model.AppError {
 	ret := _m.Called(channelID)
@@ -5465,6 +5561,42 @@ func (_m *API) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) 
 	}
 
 	return r0, r1
+}
+
+// RegisterSignal provides a mock function with given fields: signal
+func (_m *API) RegisterSignal(signal model.SignalDescriptor) error {
+	ret := _m.Called(signal)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterSignal")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.SignalDescriptor) error); ok {
+		r0 = rf(signal)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterSignalGroup provides a mock function with given fields: group
+func (_m *API) RegisterSignalGroup(group model.SignalGroup) error {
+	ret := _m.Called(group)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterSignalGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.SignalGroup) error); ok {
+		r0 = rf(group)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // RemovePlugin provides a mock function with given fields: id
@@ -6084,6 +6216,24 @@ func (_m *API) SetProfileImage(userID string, data []byte) *model.AppError {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
 		}
+	}
+
+	return r0
+}
+
+// SetSubscriptions provides a mock function with given fields: subs, opts
+func (_m *API) SetSubscriptions(subs []model.SignalSubscription, opts model.SubscriptionOptions) error {
+	ret := _m.Called(subs, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetSubscriptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]model.SignalSubscription, model.SubscriptionOptions) error); ok {
+		r0 = rf(subs, opts)
+	} else {
+		r0 = ret.Error(0)
 	}
 
 	return r0

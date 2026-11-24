@@ -77,6 +77,8 @@ const (
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
 	EntityLookupID                            = 59
+	OnSignalID                                = 60
+	OnActionCallID                            = 61
 	TotalHooksID                              = iota
 )
 
@@ -596,4 +598,19 @@ type Hooks interface {
 	//
 	// Minimum server version: 12.2
 	EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)
+
+	// OnSignal is invoked asynchronously with a signal that matched one or more of the plugin's
+	// subscriptions, set with API.SetSubscriptions. A signal that matches several subscriptions
+	// is delivered once, listing every matched subscription ID. A delivery may arrive more than
+	// once, so dedupe on delivery.ID.
+	//
+	// Minimum server version: 12.3
+	OnSignal(c *Context, delivery *model.SignalDelivery)
+
+	// OnActionCall is invoked when another plugin calls an action this plugin registered with
+	// API.RegisterAction. The server has already validated the fields against the descriptor and
+	// set the caller and acting user. Results not declared by the descriptor are dropped.
+	//
+	// Minimum server version: 12.3
+	OnActionCall(c *Context, call *model.ActionCall) (*model.ActionResult, *model.AppError)
 }

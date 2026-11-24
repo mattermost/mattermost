@@ -528,6 +528,38 @@ func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotificati
 	return r0, r1
 }
 
+// OnActionCall provides a mock function with given fields: c, call
+func (_m *Hooks) OnActionCall(c *plugin.Context, call *model.ActionCall) (*model.ActionResult, *model.AppError) {
+	ret := _m.Called(c, call)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OnActionCall")
+	}
+
+	var r0 *model.ActionResult
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ActionCall) (*model.ActionResult, *model.AppError)); ok {
+		return rf(c, call)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ActionCall) *model.ActionResult); ok {
+		r0 = rf(c, call)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ActionResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.ActionCall) *model.AppError); ok {
+		r1 = rf(c, call)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // OnActivate provides a mock function with no fields
 func (_m *Hooks) OnActivate() error {
 	ret := _m.Called()
@@ -718,6 +750,11 @@ func (_m *Hooks) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteClu
 	}
 
 	return r0, r1
+}
+
+// OnSignal provides a mock function with given fields: c, delivery
+func (_m *Hooks) OnSignal(c *plugin.Context, delivery *model.SignalDelivery) {
+	_m.Called(c, delivery)
 }
 
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID

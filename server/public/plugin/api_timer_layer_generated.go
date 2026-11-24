@@ -1958,3 +1958,52 @@ func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.Ent
 	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) RegisterSignalGroup(group model.SignalGroup) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterSignalGroup(group)
+	api.recordTime(startTime, "RegisterSignalGroup", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterSignal(signal model.SignalDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterSignal(signal)
+	api.recordTime(startTime, "RegisterSignal", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterAction(action model.ActionDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterAction(action)
+	api.recordTime(startTime, "RegisterAction", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SetSubscriptions(subs []model.SignalSubscription, opts model.SubscriptionOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetSubscriptions(subs, opts)
+	api.recordTime(startTime, "SetSubscriptions", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) EmitSignal(name string, payload map[string]model.SignalValue, cause model.SignalCause, opts *model.EmitOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.EmitSignal(name, payload, cause, opts)
+	api.recordTime(startTime, "EmitSignal", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) ExecuteAction(req *model.ActionRequest, cause model.SignalCause) (*model.ActionResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ExecuteAction(req, cause)
+	api.recordTime(startTime, "ExecuteAction", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListSignalContributions() (*model.SignalCatalog, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListSignalContributions()
+	api.recordTime(startTime, "ListSignalContributions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
