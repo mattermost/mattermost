@@ -160,8 +160,8 @@ test.describe(
             // * Now it is asked for, and holds up Create until a level is chosen
             await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toBeVisible();
             await expect(modal.createButton).toBeDisabled();
-            await asAdmin.channelsPage.page.getByTestId('channelAttribute-classification').click();
-            await asAdmin.channelsPage.page.getByText(levels[0].name, {exact: true}).click();
+            await channelsPage.page.getByTestId('channelAttribute-classification').click();
+            await channelsPage.page.getByText(levels[0].name, {exact: true}).click();
             await expect(modal.createButton).toBeEnabled();
         });
 
