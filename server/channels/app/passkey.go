@@ -134,6 +134,8 @@ type passkeyCeremony struct {
 	UserID      string                `json:"user_id"`
 	SessionID   string                `json:"session_id"`
 	SessionData *webauthn.SessionData `json:"session_data"`
+	// Ticket is the enrollment ticket the ceremony was begun with; empty for one begun from a session.
+	Ticket string `json:"ticket,omitempty"`
 }
 
 // passkeyEnrollmentTicket is the Extra of a passkey_enrollment_ticket token: the session that asked for
@@ -154,6 +156,63 @@ func passkeySignedInRecently(session *model.Session) bool {
 // BeginPasskeyRegistration starts a registration ceremony for the session's user. It does not check
 // the Passkeys feature flag or license: the API layer decides whether the caller may get here.
 func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session) (*model.PasskeyRegistrationOptions, *model.AppError) {
+	return a.beginPasskeyRegistration(rctx, session, "")
+}
+
+// BeginPasskeyRegistrationWithTicket starts a registration ceremony for the user of the session that
+// issued the enrollment ticket. The ticket is only read here, not consumed, so the browser page may
+// begin again while the ticket is valid; the first successful finish spends it. The recent sign-in
+// rule applies to the issuing session, not to any other session of the user.
+func (a *App) BeginPasskeyRegistrationWithTicket(rctx request.CTX, ticket string) (*model.PasskeyRegistrationOptions, *model.AppError) {
+	session, appErr := a.passkeyTicketSession(rctx, ticket)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return a.beginPasskeyRegistration(rctx, session, ticket)
+}
+
+// passkeyTicketSession resolves an enrollment ticket to the session that issued it without consuming
+// the ticket. Every way the ticket can be unusable (unknown, other type, expired, unreadable, or its
+// session gone, expired or someone else's) gives the same ticket_invalid, so callers learn nothing
+// about which.
+func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Session, *model.AppError) {
+	const where = "passkeyTicketSession"
+
+	invalid := func() *model.AppError {
+		return model.NewAppError(where, "app.passkey.ticket_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+	readFailed := func(err error) *model.AppError {
+		return model.NewAppError(where, "app.passkey.get_ticket.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	token, err := a.Srv().Store().Token().GetByToken(ticket)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, invalid()
+		}
+		return nil, readFailed(err)
+	}
+	var t passkeyEnrollmentTicket
+	if token.Type != model.TokenTypePasskeyEnrollmentTicket || token.IsExpired() || json.Unmarshal([]byte(token.Extra), &t) != nil {
+		return nil, invalid()
+	}
+
+	session, appErr := a.GetSessionById(rctx, t.SessionID)
+	if appErr != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](appErr); ok {
+			return nil, invalid()
+		}
+		return nil, readFailed(appErr)
+	}
+	if session.IsExpired() || session.UserId != t.UserID {
+		return nil, invalid()
+	}
+	return session, nil
+}
+
+// beginPasskeyRegistration is the begin step for both entry points. ticket is stored in the ceremony
+// so finish can tell which entry point began it; it is empty for a ceremony begun from a session.
+func (a *App) beginPasskeyRegistration(rctx request.CTX, session *model.Session, ticket string) (*model.PasskeyRegistrationOptions, *model.AppError) {
 	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil {
 		return nil, appErr
@@ -201,7 +260,7 @@ func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session)
 	if err != nil {
 		return nil, model.NewAppError("BeginPasskeyRegistration", "app.passkey.begin_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	extra, err := json.Marshal(passkeyCeremony{UserID: user.Id, SessionID: session.Id, SessionData: sessionData})
+	extra, err := json.Marshal(passkeyCeremony{UserID: user.Id, SessionID: session.Id, SessionData: sessionData, Ticket: ticket})
 	if err != nil {
 		return nil, model.NewAppError("BeginPasskeyRegistration", "app.passkey.save_ceremony.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -289,9 +348,48 @@ func defaultPasskeyName(userAgent string) string {
 func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, *model.AppError) {
 	const where = "FinishPasskeyRegistration"
 
+	name, ceremony, appErr := a.takePasskeyCeremony(where, ceremonyID, name, userAgent)
+	if appErr != nil {
+		return nil, appErr
+	}
+	// A ceremony begun with a ticket must finish through the ticket, or the ticket would outlive it.
+	if ceremony.Ticket != "" || ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
+		return nil, model.NewAppError(where, "app.passkey.ceremony_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+	return a.completePasskeyRegistration(rctx, where, session, ceremony, name, credential)
+}
+
+// FinishPasskeyRegistrationWithTicket verifies the authenticator's response to a ceremony begun by
+// BeginPasskeyRegistrationWithTicket and stores the new passkey. The issuing session is resolved again
+// from the ticket and must still be a recent sign-in. The ticket is spent once the library accepts
+// the credential, before the passkey is saved: a refused credential leaves the ticket usable, and
+// two finishes on one ticket save at most one passkey.
+func (a *App) FinishPasskeyRegistrationWithTicket(rctx request.CTX, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, *model.AppError) {
+	const where = "FinishPasskeyRegistrationWithTicket"
+
+	name, ceremony, appErr := a.takePasskeyCeremony(where, ceremonyID, name, userAgent)
+	if appErr != nil {
+		return nil, appErr
+	}
+	invalidCeremony := model.NewAppError(where, "app.passkey.ceremony_invalid.app_error", nil, "", http.StatusBadRequest)
+	if ceremony.Ticket == "" {
+		return nil, invalidCeremony
+	}
+	session, appErr := a.passkeyTicketSession(rctx, ceremony.Ticket)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
+		return nil, invalidCeremony
+	}
+	return a.completePasskeyRegistration(rctx, where, session, ceremony, name, credential)
+}
+
+// takePasskeyCeremony validates the name, then consumes the registration ceremony and decodes it.
+func (a *App) takePasskeyCeremony(where, ceremonyID, name, userAgent string) (string, *passkeyCeremony, *model.AppError) {
 	name = strings.TrimSpace(name)
 	if utf8.RuneCountInString(name) > model.PasskeyNameMaxRunes {
-		return nil, model.NewAppError(where, "app.passkey.name_too_long.app_error", nil, "", http.StatusBadRequest)
+		return "", nil, model.NewAppError(where, "app.passkey.name_too_long.app_error", nil, "", http.StatusBadRequest)
 	}
 	if name == "" {
 		name = defaultPasskeyName(userAgent)
@@ -303,16 +401,20 @@ func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session
 	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyRegistration, ceremonyID)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			return nil, invalidCeremony()
+			return "", nil, invalidCeremony()
 		}
-		return nil, model.NewAppError(where, "app.passkey.finish_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return "", nil, model.NewAppError(where, "app.passkey.finish_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	var ceremony passkeyCeremony
-	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil ||
-		ceremony.SessionData == nil || ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
-		return nil, invalidCeremony()
+	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil || ceremony.SessionData == nil {
+		return "", nil, invalidCeremony()
 	}
+	return name, &ceremony, nil
+}
 
+// completePasskeyRegistration is the part of finishing that both entry points share, once the
+// ceremony is consumed and the session it is bound to is known.
+func (a *App) completePasskeyRegistration(rctx request.CTX, where string, session *model.Session, ceremony *passkeyCeremony, name string, credential []byte) (*model.Passkey, *model.AppError) {
 	// Checked again here: the session may have been recent when the ceremony began but not by now.
 	if !passkeySignedInRecently(session) {
 		return nil, model.NewAppError(where, "app.passkey.recent_login_required.app_error", nil, "", http.StatusForbidden)
@@ -342,6 +444,16 @@ func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session
 	cred, err := rp.CreateCredential(&passkeyUser{user: user, handle: ceremony.SessionData.UserID, passkeys: passkeys}, *ceremony.SessionData, parsed)
 	if err != nil {
 		return nil, invalidCredential(err)
+	}
+
+	if ceremony.Ticket != "" {
+		ticket, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyEnrollmentTicket, ceremony.Ticket)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			return nil, model.NewAppError(where, "app.passkey.finish_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+		if appErr != nil || ticket.IsExpired() {
+			return nil, model.NewAppError(where, "app.passkey.ticket_invalid.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	transports := make([]string, len(cred.Transport))

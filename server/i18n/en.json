@@ -10837,6 +10837,11 @@
     "description": "API error when listing a user's passkeys from the database fails."
   },
   {
+    "id": "app.passkey.get_ticket.app_error",
+    "translation": "Unable to read the passkey enrollment ticket.",
+    "description": "API error when reading the short-lived ticket that lets the system browser enroll a passkey, or the session that issued it, fails for a reason other than the ticket being invalid."
+  },
+  {
     "id": "app.passkey.invalid_credential.app_error",
     "translation": "The passkey could not be verified. Try again.",
     "description": "API error when the authenticator response to a registration or sign-in is malformed or fails verification (wrong origin, relying party, challenge, signature, or user verification missing)."
@@ -10875,6 +10880,11 @@
     "id": "app.passkey.save_ticket.app_error",
     "translation": "Unable to save the passkey enrollment ticket.",
     "description": "API error when storing the short-lived ticket that lets the system browser enroll a passkey fails."
+  },
+  {
+    "id": "app.passkey.ticket_invalid.app_error",
+    "translation": "This enrollment link has expired or was already used. Sign in again and retry.",
+    "description": "API error when the system browser tries to add a passkey with an enrollment link (ticket) that is unknown, expired, already used, or whose sign-in session has since ended."
   },
   {
     "id": "app.passkey.unavailable.app_error",

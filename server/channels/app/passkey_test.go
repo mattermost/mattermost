@@ -775,6 +775,436 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	})
 }
 
+func TestPasskeyRegistrationWithTicket(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+	const origin = "http://localhost:8065"
+	const chromeOnMac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	const ticketInvalid = "app.passkey.ticket_invalid.app_error"
+
+	// Sessions are stored because the ticket resolves its issuing session from the store.
+	storedSession := func(t *testing.T, userID, method string) *model.Session {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: userID,
+			Props:  model.StringMap{model.SessionPropLoginMethod: method},
+		})
+		require.Nil(t, appErr)
+		return session
+	}
+	ageSession := func(t *testing.T, session *model.Session) {
+		t.Helper()
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Sessions SET CreateAt = ? WHERE Id = ?`, model.GetMillis()-11*60*1000, session.Id)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+	ageTicket := func(t *testing.T, ticket string) {
+		t.Helper()
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-11*60*1000, ticket)
+		require.NoError(t, err)
+	}
+	issue := func(t *testing.T, session *model.Session) string {
+		t.Helper()
+		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
+		require.Nil(t, appErr)
+		return ticket.Ticket
+	}
+	// fresh returns a user, its recently signed-in stored session and a ticket issued by it.
+	fresh := func(t *testing.T) (*model.User, *model.Session, string) {
+		t.Helper()
+		user := th.CreateUser(t)
+		session := storedSession(t, user.Id, model.SessionLoginMethodStandard)
+		return user, session, issue(t, session)
+	}
+	begin := func(t *testing.T, ticket string) *model.PasskeyRegistrationOptions {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyRegistrationWithTicket(th.Context, ticket)
+		require.Nil(t, appErr)
+		return opts
+	}
+	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
+		t.Helper()
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		return auth
+	}
+	respond := func(t *testing.T, auth *testlib.SoftAuthenticator, opts *model.PasskeyRegistrationOptions, authOpts ...testlib.SoftAuthenticatorOption) []byte {
+		t.Helper()
+		resp, err := auth.CreateResponse(opts.Options, origin, authOpts...)
+		require.NoError(t, err)
+		return resp
+	}
+	finish := func(t *testing.T, opts *model.PasskeyRegistrationOptions, name string, resp []byte) (*model.Passkey, *model.AppError) {
+		t.Helper()
+		return th.App.FinishPasskeyRegistrationWithTicket(th.Context, opts.CeremonyId, name, chromeOnMac, resp)
+	}
+	requireFails := func(t *testing.T, pk *model.Passkey, appErr *model.AppError, status int, id string) {
+		t.Helper()
+		require.Nil(t, pk)
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+	requireBeginFails := func(t *testing.T, ticket string, status int, id string) {
+		t.Helper()
+		opts, appErr := th.App.BeginPasskeyRegistrationWithTicket(th.Context, ticket)
+		require.Nil(t, opts)
+		require.NotNil(t, appErr)
+		require.Equal(t, status, appErr.StatusCode)
+		require.Equal(t, id, appErr.Id)
+	}
+	stored := func(t *testing.T, userID string) []*model.Passkey {
+		t.Helper()
+		passkeys, appErr := th.App.GetPasskeysForUser(userID)
+		require.Nil(t, appErr)
+		return passkeys
+	}
+	// register finishes a ticket registration that must succeed.
+	register := func(t *testing.T, ticket string) *model.Passkey {
+		t.Helper()
+		opts := begin(t, ticket)
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		require.Nil(t, appErr)
+		return pk
+	}
+	withTicketStore := func(t *testing.T, tokens *ticketTokenStore) {
+		t.Helper()
+		original := th.App.Srv().Store()
+		tokens.TokenStore = original.Token()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: original.Passkey(), tokens: tokens})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+	}
+
+	t.Run("begin then finish stores a passkey for the ticket's user, named after the browser", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		auth := newAuthenticator(t)
+
+		pk, appErr := finish(t, opts, " ", respond(t, auth, opts))
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+		require.Equal(t, "Chrome on Mac OS", pk.Name)
+
+		passkeys := stored(t, user.Id)
+		require.Len(t, passkeys, 1)
+		require.Equal(t, user.Id, passkeys[0].UserId)
+		require.Equal(t, auth.CredentialID, passkeys[0].CredentialId)
+	})
+
+	t.Run("a given name is kept", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+
+		pk, appErr := finish(t, opts, " My laptop ", respond(t, newAuthenticator(t), opts))
+		require.Nil(t, appErr)
+		require.Equal(t, "My laptop", pk.Name)
+	})
+
+	t.Run("a too long name is refused without using up the ticket", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		resp := respond(t, newAuthenticator(t), opts)
+
+		pk, appErr := finish(t, opts, strings.Repeat("é", model.PasskeyNameMaxRunes+1), resp)
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.name_too_long.app_error")
+
+		pk, appErr = finish(t, opts, "ok", resp)
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("begin does not consume the ticket, so the page may begin again", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		first, second := begin(t, ticket), begin(t, ticket)
+		require.NotEqual(t, first.CeremonyId, second.CeremonyId)
+
+		pk, appErr := finish(t, second, "a", respond(t, newAuthenticator(t), second))
+		require.Nil(t, appErr)
+		require.NotNil(t, pk)
+
+		// The first ceremony is still unexpired, but the ticket behind it is spent.
+		pk, appErr = finish(t, first, "b", respond(t, newAuthenticator(t), first))
+		requireFails(t, pk, appErr, http.StatusBadRequest, ticketInvalid)
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("a spent ticket cannot begin again", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		register(t, ticket)
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("unknown ticket is refused at begin", func(t *testing.T) {
+		requireBeginFails(t, model.NewRandomString(model.TokenSize), http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("a token of another type is not a ticket", func(t *testing.T) {
+		// A ceremony token carries the same user and session ids as a ticket, so only its type refuses it.
+		session := storedSession(t, th.CreateUser(t).Id, model.SessionLoginMethodStandard)
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+
+		requireBeginFails(t, opts.CeremonyId, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("an expired ticket is refused at begin", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		ageTicket(t, ticket)
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("a ticket that expires between begin and finish is refused at finish", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		ageTicket(t, ticket)
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, ticketInvalid)
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("a ticket whose issuing session was revoked is refused at begin", func(t *testing.T) {
+		_, session, ticket := fresh(t)
+		require.Nil(t, th.App.RevokeSession(th.Context, session))
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("an issuing session revoked after begin is refused at finish", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		opts := begin(t, ticket)
+		require.Nil(t, th.App.RevokeSession(th.Context, session))
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, ticketInvalid)
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("an expired issuing session is refused at begin and at finish", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		opts := begin(t, ticket)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Sessions SET ExpiresAt = ? WHERE Id = ?`, model.GetMillis()-1000, session.Id)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(user.Id)
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, ticketInvalid)
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("a ticket naming another user than its session is refused", func(t *testing.T) {
+		_, session, _ := fresh(t)
+		extra, err := json.Marshal(passkeyEnrollmentTicket{UserID: th.CreateUser(t).Id, SessionID: session.Id})
+		require.NoError(t, err)
+		token := model.NewToken(model.TokenTypePasskeyEnrollmentTicket, string(extra))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		requireBeginFails(t, token.Token, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("a ticket with unreadable contents is refused", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypePasskeyEnrollmentTicket, "not json")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		requireBeginFails(t, token.Token, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("a failure to read the ticket is a server error", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		withTicketStore(t, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, errors.New("db down") }})
+
+		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+	})
+
+	t.Run("an issuing session that is not a recent sign-in is refused even if another session is", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		ageSession(t, session)
+		storedSession(t, user.Id, model.SessionLoginMethodStandard)
+
+		requireBeginFails(t, ticket, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("an issuing session that ages before finish is refused even if another session is recent", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		opts := begin(t, ticket)
+		ageSession(t, session)
+		storedSession(t, user.Id, model.SessionLoginMethodStandard)
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("a passkey-started issuing session never qualifies", func(t *testing.T) {
+		user := th.CreateUser(t)
+		ticket := issue(t, storedSession(t, user.Id, model.SessionLoginMethodPasskey))
+		storedSession(t, user.Id, model.SessionLoginMethodStandard)
+
+		requireBeginFails(t, ticket, http.StatusForbidden, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("a remote user is refused", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		_, err := th.SQLStore.GetMaster().Exec(`UPDATE Users SET RemoteId = ? WHERE Id = ?`, model.NewId(), user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+
+		requireBeginFails(t, ticket, http.StatusForbidden, "app.passkey.user_not_allowed.app_error")
+	})
+
+	t.Run("a user at the limit is refused at begin", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		for i := range model.PasskeyMaxPerUser {
+			savePasskey(t, th, user.Id, fmt.Sprintf("key %d", i), model.GetMillis())
+		}
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, "app.passkey.limit_reached.app_error")
+	})
+
+	t.Run("a limit reached after the ticket is consumed leaves it spent", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		for i := range model.PasskeyMaxPerUser - 1 {
+			savePasskey(t, th, user.Id, fmt.Sprintf("key %d", i), model.GetMillis())
+		}
+		opts := begin(t, ticket)
+		savePasskey(t, th, user.Id, "late", model.GetMillis())
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.limit_reached.app_error")
+		require.Len(t, stored(t, user.Id), model.PasskeyMaxPerUser)
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+	})
+
+	t.Run("the same authenticator cannot be registered twice", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		auth := newAuthenticator(t)
+		sessionOpts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+		_, appErr = th.App.FinishPasskeyRegistration(th.Context, session, sessionOpts.CeremonyId, "a", chromeOnMac, respond(t, auth, sessionOpts))
+		require.Nil(t, appErr)
+
+		opts := begin(t, ticket)
+		pk, appErr := finish(t, opts, "b", respond(t, auth, opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.already_registered.app_error")
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("a ceremony begun with a ticket is refused by session registration, and the ticket still works", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		opts := begin(t, ticket)
+
+		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+		require.Empty(t, stored(t, user.Id))
+
+		register(t, ticket)
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("a ceremony begun from a session is refused by ticket registration", func(t *testing.T) {
+		user, session, ticket := fresh(t)
+		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
+		require.Nil(t, appErr)
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+		require.Empty(t, stored(t, user.Id))
+
+		register(t, ticket)
+	})
+
+	t.Run("an unknown ceremony is refused", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+
+		pk, appErr := th.App.FinishPasskeyRegistrationWithTicket(th.Context, model.NewId(), "a", chromeOnMac, respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
+	})
+
+	t.Run("a credential the library refuses leaves the ticket usable", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts, testlib.WithoutUserVerification()))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
+		require.Empty(t, stored(t, user.Id))
+
+		register(t, ticket)
+		require.Len(t, stored(t, user.Id), 1)
+	})
+
+	t.Run("a garbage credential leaves the ticket usable", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+
+		pk, appErr := finish(t, opts, "a", []byte(`{"id":`))
+		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
+
+		register(t, ticket)
+	})
+
+	t.Run("a ticket consumed by a concurrent finish saves nothing", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		withTicketStore(t, &ticketTokenStore{consumeTicket: func(next func() (*model.Token, error)) (*model.Token, error) {
+			_, err := next()
+			require.NoError(t, err)
+			return next()
+		}})
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, ticketInvalid)
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("a ticket that expires while being consumed saves nothing", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		withTicketStore(t, &ticketTokenStore{consumeTicket: func(next func() (*model.Token, error)) (*model.Token, error) {
+			ageTicket(t, ticket)
+			return next()
+		}})
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusBadRequest, ticketInvalid)
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("a failure to consume the ticket is a server error and saves nothing", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		withTicketStore(t, &ticketTokenStore{consumeTicket: func(func() (*model.Token, error)) (*model.Token, error) {
+			return nil, errors.New("db down")
+		}})
+
+		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
+		requireFails(t, pk, appErr, http.StatusInternalServerError, "app.passkey.finish_registration.app_error")
+		require.Empty(t, stored(t, user.Id))
+	})
+
+	t.Run("sends the passkey added email", func(t *testing.T) {
+		user, _, ticket := fresh(t)
+		opts := begin(t, ticket)
+		mockSvc := &emailmocks.ServiceInterface{}
+		orig := th.App.Srv().EmailService
+		th.App.Srv().EmailService = mockSvc
+		t.Cleanup(func() { th.App.Srv().EmailService = orig })
+		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
+
+		_, appErr := finish(t, opts, "My laptop", respond(t, newAuthenticator(t), opts))
+		require.Nil(t, appErr)
+		mockSvc.AssertExpectations(t)
+	})
+}
+
 func TestFinishPasskeyLogin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1143,6 +1573,29 @@ type failingSaveTokenStore struct {
 }
 
 func (failingSaveTokenStore) Save(*model.Token) error { return errors.New("db down") }
+
+// ticketTokenStore lets a test run code around, or instead of, reading and consuming a passkey
+// enrollment ticket. Nil hooks, and every other call, pass through to the real store.
+type ticketTokenStore struct {
+	store.TokenStore
+	getByToken    func() (*model.Token, error)
+	consumeTicket func(next func() (*model.Token, error)) (*model.Token, error)
+}
+
+func (s *ticketTokenStore) GetByToken(token string) (*model.Token, error) {
+	if s.getByToken != nil {
+		return s.getByToken()
+	}
+	return s.TokenStore.GetByToken(token)
+}
+
+func (s *ticketTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, error) {
+	next := func() (*model.Token, error) { return s.TokenStore.ConsumeOnce(tokenType, tokenStr) }
+	if tokenType == model.TokenTypePasskeyEnrollmentTicket && s.consumeTicket != nil {
+		return s.consumeTicket(next)
+	}
+	return next()
+}
 
 // racingPasskeyStore lets a test run code around, or instead of, UpdateUsage. Every other
 // call passes through to the real store.
