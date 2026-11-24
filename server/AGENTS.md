@@ -8,7 +8,7 @@ Every entry in `i18n/en.json` carries a `description` explaining where the strin
 
 Add or change server strings only in `i18n/en.json`. `make i18n-extract` regenerates `en.json` alone; the other locale files come from the translation pipeline, so do not edit or regenerate them alongside feature work. `make i18n-verify` checks them against `en.json`.
 
-Do not interpolate internal file-store or filesystem paths into error text shown to non-admin users. Keep that text generic and put the path in the error details or the log.
+Do not interpolate internal file-store or filesystem paths into error text shown to non-admin users. Keep that text generic and put the path only in the server log; error details reach any client when developer mode is enabled.
 
 Prefer request-scoped loggers when logging from request paths. If a method needs to log and does not have access to the request logger, it is reasonable to add `request.CTX` to the method signature when the caller can provide it.
 In the store layer, do not use `context.Context` in store method signatures. Use `request.CTX` and only call `rctx.Context()` inside internals that require a standard `context.Context`.

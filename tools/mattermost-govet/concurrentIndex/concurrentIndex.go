@@ -78,11 +78,36 @@ func containsIndexKeyword(s string) bool {
 	return strings.Contains(strings.ToLower(s), "index")
 }
 
+// statementEnd returns the index of the first ';' outside a -- line comment, or -1.
+func statementEnd(s string) int {
+	inComment := false
+	for i := 0; i < len(s); i++ {
+		switch {
+		case inComment:
+			if s[i] == '\n' {
+				inComment = false
+			}
+		case s[i] == '-' && i+1 < len(s) && s[i+1] == '-':
+			inComment = true
+			i++
+		case s[i] == ';':
+			return i
+		}
+	}
+	return -1
+}
+
 func checkLine(line string) string {
 	if !containsIndexKeyword(line) {
 		return ""
 	}
-	for _, stmt := range strings.Split(line, ";") {
+	rest := line
+	for rest != "" {
+		stmt := rest
+		rest = ""
+		if end := statementEnd(stmt); end >= 0 {
+			stmt, rest = stmt[:end], stmt[end+1:]
+		}
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" {
 			continue
@@ -190,7 +215,7 @@ func checkSQLFile(pass *analysis.Pass, name string) error {
 
 		for {
 			current := stmtBuf.String()
-			semi := strings.Index(current, ";")
+			semi := statementEnd(current)
 			if semi < 0 {
 				break
 			}

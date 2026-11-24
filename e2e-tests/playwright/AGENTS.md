@@ -50,8 +50,9 @@ This is enforced by review, not tooling.
 Before every test, the `resetConfigAndRoles` auto fixture
 (`lib/src/test_fixture.ts`) re-applies the on-prem config patch from
 `getOnPremServerConfigPatch()` (`lib/src/server/default_config.ts`) and resets
-roles, and `ensure*()` helpers re-apply their own baseline. Settings covered by
-these need no `afterEach` restore. If a test changes any other setting, restore
+roles (except when the upgrade-path project is selected), and `ensure*()`
+helpers re-apply their own baseline. Settings covered by these need no
+`afterEach` restore. If a test changes any other setting, restore
 the value it found, not a hardcoded default. For settings that can lock out the
 admin, call the `restore()` returned by `patchConfig()` in a `finally` block.
 

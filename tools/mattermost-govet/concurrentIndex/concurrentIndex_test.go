@@ -234,6 +234,10 @@ func TestCheckLine(t *testing.T) {
 			line: "-- recreated later with CREATE INDEX CONCURRENTLY\nALTER TABLE foo ADD COLUMN bar int;",
 		},
 		{
+			name: "semicolons inside a comment do not split statements",
+			line: "-- Rollback: DROP INDEX CONCURRENTLY idx_a; DROP INDEX CONCURRENTLY idx_b;\nSELECT 1;",
+		},
+		{
 			name:    "comment does not hide the statement on the next line",
 			line:    "-- drop the old index\nDROP INDEX CONCURRENTLY idx_foo;",
 			wantMsg: diagDropIfExists,

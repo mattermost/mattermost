@@ -88,9 +88,10 @@ reviews:
 
     - path: "server/channels/app/*access_control*.go"
       instructions: |
-        Access-control policy lookups fetch up to 1000 policies (the store's `MaxPerPage`)
-        and then filter in memory where CEL expressions must be evaluated. Do not flag that
-        cap as a pagination bug.
+        Policy searches that must filter results in memory by evaluating CEL expressions
+        fetch up to 1000 policies (the store's `MaxPerPage`); do not flag that cap on those
+        searches. Lookups that must process every requested policy or channel still need
+        complete pagination, so flag a single capped page there.
 
     - path: "server/public/model/permission.go"
       instructions: |
