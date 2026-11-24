@@ -16,6 +16,7 @@ Outline:
 4. Plan a quiet window. Switching disconnects users and ends active calls. Use `/call list-all` on v1 to see active calls and `/call end-all` to end them.
 5. Set the Calls version to `v2` in **System Console > Plugin Management** (or `PluginSettings.CallsVersion` / `MM_PLUGINSETTINGS_CALLSVERSION=v2`). The field is only shown when **Enable Automatic Prepackaged Plugins** is on, and a manually uploaded Calls plugin is not switched by this setting. In a high availability cluster, the plugin is reinstalled on all nodes.
 6. Verify: run `/call diag` (see [Run the built-in diagnostic](v2/calls-v2-overview.mdx#run-the-built-in-diagnostic)), then start a call, join from outside the network, and share a screen.
+   Your [usage metrics](calls-usage-metrics.mdx) history from v1 is preserved, so the usage dashboard shows calls from both versions.
 7. Move recording and transcription to the v2 [Calls Offloader](calls-offloader-setup.mdx) setup if used.
 8. Roll back: set the Calls version back to `v1`. The database changes are additive, so v1 keeps working. (You cannot return the setting to Automatic from the System Console once it is set.)
 9. High availability setups: confirm what happens to calls that were active on other nodes at the time of the switch.

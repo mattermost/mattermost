@@ -322,6 +322,7 @@ const DEPLOYMENT_GROUPS = {
         'calls/v2/sip-outbound',
       ]},
       'calls/calls-offloader-setup',
+      'calls/calls-usage-metrics',
       'calls/migrate-v1-to-v2',
     ],
   },
