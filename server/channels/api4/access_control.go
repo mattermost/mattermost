@@ -140,33 +140,6 @@ func requireTeamAdminPolicySelfInclusion(c *Context, policyID string, addedChann
 	return true
 }
 
-// teamAdminOnPolicyGet reports whether this read is from a team admin of the
-// team_id query, or of the channel's team when that query does not identify one.
-func teamAdminOnPolicyGet(c *Context, channelID, teamID string) bool {
-	if teamID != "" && model.IsValidId(teamID) &&
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-		return true
-	}
-	if channelID == "" || !model.IsValidId(channelID) {
-		return false
-	}
-	channel, appErr := c.App.GetChannel(c.AppContext, channelID)
-	if appErr != nil || channel.TeamId == "" || channel.TeamId == teamID {
-		return false
-	}
-	return c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeamAccessRules)
-}
-
-// requireParentPolicySelfInclusion runs the stored-rule check when policy is a
-// parent. Returns false when the handler should stop. Any other type returns
-// true so the caller keeps the channel read result.
-func requireParentPolicySelfInclusion(c *Context, policy *model.AccessControlPolicy) bool {
-	if policy.Type != model.AccessControlPolicyTypeParent {
-		return true
-	}
-	return requireTeamAdminPolicySelfInclusion(c, policy.ID, nil)
-}
-
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var policy model.AccessControlPolicy
 	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
@@ -345,7 +318,6 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	// Extract optional channelId from query parameters for context
 	channelID := r.URL.Query().Get("channelId")
 
-	var policy *model.AccessControlPolicy
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
 		// Try delegated admin permissions: channel admin first, then team admin
@@ -371,17 +343,6 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-		} else if teamAdminOnPolicyGet(c, channelID, r.URL.Query().Get("team_id")) {
-			// Team admins run the stored-rule check on this read as well.
-			var getErr *model.AppError
-			policy, getErr = c.App.GetAccessControlPolicy(c.AppContext, policyID)
-			if getErr != nil {
-				c.Err = getErr
-				return
-			}
-			if !requireParentPolicySelfInclusion(c, policy) {
-				return
-			}
 		}
 
 		if channelPermErr == nil {
@@ -399,13 +360,10 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if policy == nil {
-		var appErr *model.AppError
-		policy, appErr = c.App.GetAccessControlPolicy(c.AppContext, policyID)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
+	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
 
 	// Stamp assigned-resource counts (channel_count, team_count, child_ids) so the

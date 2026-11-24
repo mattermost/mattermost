@@ -448,6 +448,77 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	assert.Equal(t, int64(0), total, "total should reflect filtered count")
 }
 
+// TestSearchTeamAccessPolicies_ChannellessParentSelfInclusion verifies that a
+// team-scoped parent with no channels is listed only when the requester
+// satisfies its rules, matching ValidateTeamAdminPolicySelfInclusion.
+func TestSearchTeamAccessPolicies_ChannellessParentSelfInclusion(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const matchingExpr = "user.attributes.department == 'platform'"
+	const excludingExpr = "user.attributes.clearance == 'top-secret'"
+
+	saveChannellessParent := func(expression string) *model.AccessControlPolicy {
+		t.Helper()
+		policy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Name:     "Channelless Policy " + model.NewId(),
+			Scope:    model.AccessControlPolicyScopeTeam,
+			ScopeID:  th.BasicTeam.Id,
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: expression, Actions: []string{"*"}},
+			},
+		})
+		require.NoError(t, err)
+		return policy
+	}
+	matching := saveChannellessParent(matchingExpr)
+	excluding := saveChannellessParent(excludingExpr)
+
+	originalACS := th.App.Srv().ch.AccessControl
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+		mockACS.AssertExpectations(t)
+	})
+
+	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			return policy, nil
+		}).Maybe()
+	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), matchingExpr, mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil)
+	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), excludingExpr, mock.Anything).
+		Return([]*model.User{}, int64(0), nil)
+
+	policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+	require.Nil(t, appErr)
+	ids := make([]string, 0, len(policies))
+	for _, p := range policies {
+		ids = append(ids, p.ID)
+	}
+	assert.Contains(t, ids, matching.ID)
+	assert.NotContains(t, ids, excluding.ID)
+	assert.Equal(t, int64(1), total)
+
+	for _, tc := range []struct {
+		policyID string
+		want     bool
+	}{
+		{policyID: matching.ID, want: true},
+		{policyID: excluding.ID, want: false},
+	} {
+		included, err := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, tc.policyID, nil)
+		require.NoError(t, err)
+		assert.Equal(t, tc.want, included)
+	}
+}
+
 func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

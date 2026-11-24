@@ -118,9 +118,8 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	// Filter by self-inclusion. Skip the filter for parent policies whose
 	// children are all public channels — public-channel ABAC is advisory and
 	// can never lock the requesting admin out, so a non-matching expression
-	// is not a reason to hide the policy from them. Channel-less parents are
-	// also left in the list: policyAppliesToPrivateChannel is false when
-	// child_ids is empty.
+	// is not a reason to hide the policy from them. Parents with no children
+	// keep the filter, so the list matches what get, update and delete allow.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
 		visible, matchErr := a.teamPolicyVisibleToRequester(rctx, policy, requesterID, idToType, batchLookupFailed)
@@ -196,15 +195,20 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 }
 
 // teamPolicyVisibleToRequester is the per-policy self-inclusion predicate used
-// by SearchTeamAccessPolicies. A parent stays visible when it has no effective
-// rules, or when none of its children is a private channel. Otherwise the
-// requester must satisfy the first effective rule.
+// by SearchTeamAccessPolicies and ValidateTeamAdminPolicySelfInclusion. A
+// parent stays visible when it has no effective rules, or when it has children
+// and none of them is a private channel. Otherwise, including for a parent
+// with no children, the requester must satisfy the first effective rule.
 //
 // visible is false when the requester does not satisfy that rule. A non-nil
 // error means the expression could not be evaluated; the listing hides the
 // policy, and a single-policy caller fails closed.
 func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string, idToType map[string]model.ChannelType, batchLookupFailed bool) (bool, error) {
-	if len(policy.EffectiveRules()) == 0 || !policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
+	if len(policy.EffectiveRules()) == 0 {
+		return true, nil
+	}
+	if childIDs, ok := childIDsFromPolicyProps(policy); ok && len(childIDs) > 0 &&
+		!policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
 		return true, nil
 	}
 	return a.requesterMatchesFirstEffectiveRule(rctx, policy, requesterID)
@@ -229,10 +233,6 @@ func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model
 // stored rules of a parent policy. addedChannelIDs are included with the
 // policy's children before teamPolicyVisibleToRequester runs, so a channel
 // being assigned is part of the same check the team policy list uses.
-//
-// A parent that still has no children after that is checked against its stored
-// rules anyway. The list does not hide those parents; this helper does when
-// the rules do not match.
 //
 // Returns (true, nil) when the check passes, (false, nil) when it does not,
 // or (false, err) when the policy cannot be loaded or the expression cannot
@@ -272,10 +272,6 @@ func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, pol
 	addChildChannelIDs(policy, addedChannelIDs)
 
 	childIDs, propsOk := childIDsFromPolicyProps(policy)
-	if propsOk && len(childIDs) == 0 {
-		return a.requesterMatchesFirstEffectiveRule(rctx, policy, userID)
-	}
-
 	var idToType map[string]model.ChannelType
 	batchLookupFailed := false
 	if propsOk {
@@ -624,9 +620,7 @@ func policyAppliesToPrivateChannel(rctx request.CTX, policy *model.AccessControl
 	}
 
 	if len(childIDs) == 0 {
-		// Channel-less policy (newly created, not yet assigned). Until a
-		// channel is attached there's nothing to lock anyone out of, so the
-		// filter is meaningless here.
+		// Channel-less policy (newly created, not yet assigned).
 		return false
 	}
 
