@@ -105,6 +105,38 @@ export async function enableUserManagedAttributes(client: Client4): Promise<void
 }
 
 /**
+ * Server-wide ABAC state the suite expects: ABAC enabled and an unmanaged `Department` attribute.
+ * Seeded once per run by the `setup` project, and by upgrade-to on upgrade paths, which skip it.
+ * Unmanaged, so users can set their own value (a `managed: 'admin'` field rejects that with a 403).
+ * Failures are swallowed: on an unlicensed server individual tests skip via pw.skipIfNoLicense().
+ */
+export async function ensureAbacSuiteBaseline(client: Client4): Promise<void> {
+    try {
+        await client.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
+    } catch {
+        // Server is not licensed for ABAC
+    }
+
+    try {
+        const fields = await client.getCustomProfileAttributeFields();
+        if (!fields.some((f) => f.name === 'Department')) {
+            await client.createCustomProfileAttributeField({
+                name: 'Department',
+                type: 'text',
+                attrs: {sort_order: 0},
+            } as any);
+        }
+    } catch {
+        // ABAC tests handle their own attribute setup
+    }
+}
+
+/**
  * Ensure required user attributes exist via API
  */
 export async function ensureUserAttributes(client: Client4, attributeNames?: string[]): Promise<void> {
@@ -1338,16 +1370,23 @@ export async function getPolicyIdByName(
 /**
  * Create a permission policy using the CEL (Advanced) editor.
  * Caller must already be on the Permission Policies list page.
- * Available permissions: 'download_file_attachment' | 'upload_file_attachment'
- * Available roles: 'system_guest' | 'system_user' | 'system_admin'
+ * Available permissions: 'Download Files' | 'Upload Files' | 'Channel Read Access' | 'Channel Write Access' | 'Manage Channel' | 'Create Burn-on-Read Message'
+ * Available roles: 'system_guest' | 'system_user' | 'system_admin' | 'system_bot' (Bot accounts)
  */
 export async function createPermissionPolicy(
     page: Page,
     options: {
         name: string;
         celExpression: string;
-        permissions: Array<'Download Files' | 'Upload Files' | 'Create Burn-on-Read Message'>;
-        role?: 'system_guest' | 'system_user' | 'system_admin';
+        permissions: Array<
+            | 'Download Files'
+            | 'Upload Files'
+            | 'Channel Read Access'
+            | 'Channel Write Access'
+            | 'Manage Channel'
+            | 'Create Burn-on-Read Message'
+        >;
+        role?: 'system_guest' | 'system_user' | 'system_admin' | 'system_bot';
         adminClient?: Client4;
     },
 ): Promise<void> {
@@ -1414,6 +1453,9 @@ export async function createPermissionPolicy(
     const permissionIdMap: Record<string, string> = {
         'Download Files': 'pp-add-permission-download_file_attachment',
         'Upload Files': 'pp-add-permission-upload_file_attachment',
+        'Channel Read Access': 'pp-add-permission-channel_read_access',
+        'Channel Write Access': 'pp-add-permission-channel_write_access',
+        'Manage Channel': 'pp-add-permission-channel_management_access',
         'Create Burn-on-Read Message': 'pp-add-permission-create_burn_on_read_post',
     };
     for (const permission of options.permissions) {
@@ -1422,6 +1464,16 @@ export async function createPermissionPolicy(
     }
 
     await page.getByRole('button', {name: 'Save'}).last().click();
+
+    // A policy with Channel Read Access or Manage Channel shows a confirmation dialog
+    // before saving. Channel Write Access and file-only policies save straight through,
+    // so the dialog is optional.
+    if (options.permissions.includes('Channel Read Access') || options.permissions.includes('Manage Channel')) {
+        const confirmModal = page.locator('#channel-access-confirm-modal');
+        await confirmModal.waitFor({state: 'visible'});
+        await confirmModal.getByRole('button', {name: 'Save policy'}).click();
+    }
+
     await page.waitForLoadState('networkidle');
 }
 

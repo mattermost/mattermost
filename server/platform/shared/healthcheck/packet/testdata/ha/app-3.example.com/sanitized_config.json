@@ -11,10 +11,14 @@
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
-        "ExtendSessionLengthWithActivity": true
+        "EnableInsecureOutgoingConnections": false,
+        "ExtendSessionLengthWithActivity": true,
+        "EnableDeveloper": false,
+        "EnableTesting": false
     },
     "TeamSettings": {
-        "MaxNotificationsPerChannel": 1000
+        "MaxNotificationsPerChannel": 1000,
+        "EnableOpenServer": false
     },
     "SqlSettings": {
         "DriverName": "postgres",
@@ -41,7 +45,8 @@
         "EnableFile": true,
         "FileLevel": "INFO",
         "FileJson": true,
-        "FileLocation": ""
+        "FileLocation": "",
+        "EnableWebhookDebugging": false
     },
     "FileSettings": {
         "DriverName": "local",

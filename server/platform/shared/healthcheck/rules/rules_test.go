@@ -42,6 +42,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"SAML_ID_IS_EMAIL",
 		"SAML_ID_MUTABLE",
 		"SESSION_EXTEND_OFF",
+		"OPEN_SIGNUP_UNVERIFIED",
 
 		// cluster
 		"CLUSTER_GOSSIP_UNENCRYPTED",
@@ -49,6 +50,8 @@ func TestBuiltinRegistry(t *testing.T) {
 		"CLUSTER_SINGLE_NODE",
 		"CLUSTER_BAD_ADVERTISE",
 		"CLUSTER_CONFIG_WRITABLE",
+		"CLUSTER_NOT_ENABLED",
+		"CLUSTER_NOT_ENABLED_AT_SCALE",
 		"CLUSTER_VERSION_SKEW",
 		"NODE_NOT_RESPONDING",
 
@@ -62,6 +65,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"DB_HA_FAILOVER_STORM_RISK",
 		"DB_POSTGRES_UNSUPPORTED",
 		"DB_POOL_SATURATED",
+		"DB_POSTS_DEAD_TUPLES",
 		"DB_REPLICA_UNUSED",
 		"DB_NO_READ_REPLICA",
 		"DB_NO_SEARCH_REPLICA",
@@ -85,6 +89,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		// notifications
 		"PUSH_ID_ONLY",
 		"MAX_NOTIFICATIONS_PER_CHANNEL",
+		"SMTP_NOT_CONFIGURED",
 		"SMTP_UNREACHABLE",
 		"PUSH_EMPTY_URL",
 		"PUSH_BAD_SCHEME",
@@ -92,6 +97,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"PUSH_PROXY_UNREACHABLE",
 
 		// platform
+		"DEVELOPER_MODE_ON",
 		"FILESTORE_LOCAL_IN_CLUSTER",
 		"FILESTORE_S3_NO_BUCKET",
 		"FILESTORE_S3_SSL_OFF",
@@ -110,6 +116,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"NODE_HOST_LOAD_HIGH",
 		"LOG_DEBUG_PROD",
 		"LOG_FILE_OFF",
+		"LOG_WEBHOOK_PAYLOADS",
 		"METRICS_OFF",
 		"PLUGINS_OFF",
 		"PLUGIN_HEALTH_OFF",
@@ -118,6 +125,8 @@ func TestBuiltinRegistry(t *testing.T) {
 		"RATELIMIT_STORE_SMALL",
 		"SITE_URL_EMPTY",
 		"SITE_URL_HTTP",
+		"TESTING_MODE_ON",
+		"TLS_VERIFY_OUTGOING_OFF",
 
 		// search
 		"ES_LOCALHOST_URL",

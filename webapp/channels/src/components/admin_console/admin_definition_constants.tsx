@@ -49,7 +49,7 @@ const SECTION_STARTTLS = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityStartDescription'
-                defaultMessage='Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'
+                defaultMessage="Upgrades an existing insecure connection to TLS. The connection fails if the server doesn't support STARTTLS."
             />
         </td>
     </tr>

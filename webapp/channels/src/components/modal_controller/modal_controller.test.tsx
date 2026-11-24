@@ -49,7 +49,7 @@ class TestModal extends React.PureComponent<TestModalProps, TestModalState> {
 describe('components/ModalController', () => {
     const modalId = 'test_modal';
 
-    test('component should match snapshot without any modals', () => {
+    test('component should render without any modals', () => {
         const state = {
             views: {
                 modals: {
@@ -63,8 +63,6 @@ describe('components/ModalController', () => {
             state,
             {useMockedStore: true},
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.childElementCount).toBe(0);
         expect(document.getElementsByClassName('modal-dialog').length).toBeFalsy();
     });

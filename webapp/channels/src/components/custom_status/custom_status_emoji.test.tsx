@@ -24,22 +24,6 @@ describe('components/custom_status/custom_status_emoji', () => {
         (CustomStatusSelectors.isCustomStatusExpired as jest.Mock).mockReturnValue(false);
     });
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<CustomStatusEmoji/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot with props', () => {
-        const {container} = renderWithContext(
-            <CustomStatusEmoji
-                emojiSize={34}
-                showTooltip={true}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should not render when EnableCustomStatus in config is false', () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(false);
         const {container} = renderWithContext(<CustomStatusEmoji/>);

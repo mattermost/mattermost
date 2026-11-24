@@ -18,7 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, operatorSupportsChannelTarget, celPathFor, excludeHiddenNativeFields, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -176,8 +176,8 @@ export interface TableEditorProps {
     /** Force the test button into the disabled state (overrides default). */
     testButtonDisabled?: boolean;
 
-    /** Tooltip shown when the test button is disabled. Useful for explaining
-     *  why simulation is unavailable (e.g. no attributes loaded). */
+    /** Tooltip shown when the test button is disabled, in place of the
+     *  built-in reason. Useful for explaining why simulation is unavailable. */
     testButtonTooltip?: string;
 
     /** Optional label override for the test button. Lets the
@@ -187,6 +187,17 @@ export interface TableEditorProps {
 
     // Callback to notify parent when masked state changes (for CEL editor integration)
     onMaskedStateChange?: (hasMasked: boolean) => void;
+
+    /** Names of native (built-in) user attributes to omit from the attribute
+     *  picker and from the Add-row default. Rows that already reference one
+     *  still render with its label, operators and values. */
+    hiddenPickerAttributeNames?: string[];
+
+    /** Replaces the default help text under the table. Rendered as Markdown. */
+    helpText?: string;
+
+    /** Replaces the default message shown when the table has no rows. */
+    emptyStateText?: string;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
@@ -373,10 +384,13 @@ function TableEditor({
     isSystemAdmin = false,
     validateExpressionAgainstRequester,
     onTestClick,
-    testButtonDisabled,
+    testButtonDisabled = false,
     testButtonTooltip,
     testButtonLabel,
     onMaskedStateChange,
+    hiddenPickerAttributeNames,
+    helpText,
+    emptyStateText,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -407,6 +421,13 @@ function TableEditor({
         }
         return {userFields: uf, resourceAttributes: ra};
     }, [userAttributes]);
+
+    // Attributes the picker may offer. Rows on a hidden attribute still resolve
+    // against the full userFields (see fieldForRow).
+    const pickerFields = useMemo(
+        () => excludeHiddenNativeFields(userFields, hiddenPickerAttributeNames),
+        [userFields, hiddenPickerAttributeNames],
+    );
 
     // The field definition behind a row. Resolved by name AND namespace: a CPA
     // and a session attribute can share a name, so object_type disambiguates.
@@ -551,8 +572,8 @@ function TableEditor({
     }, [onChange, onValidate]);
 
     const findFirstAvailableAttribute = useCallback(() => {
-        return findFirstAvailableAttributeFromList(userFields, enableUserManagedAttributes);
-    }, [userFields, enableUserManagedAttributes]);
+        return findFirstAvailableAttributeFromList(pickerFields, enableUserManagedAttributes);
+    }, [pickerFields, enableUserManagedAttributes]);
 
     const addRow = useCallback(() => {
         if (userFields.length === 0) {
@@ -742,7 +763,7 @@ function TableEditor({
                                 className='table-editor__blank-state'
                             >
                                 <span>
-                                    {formatMessage({
+                                    {emptyStateText ?? formatMessage({
                                         id: 'admin.access_control.table_editor.blank_state',
                                         defaultMessage: 'Select a user attribute and values to create a rule',
                                     })}
@@ -779,6 +800,7 @@ function TableEditor({
                                             currentAttribute={row.attribute}
                                             currentAttributeObjectType={row.attribute_object_type}
                                             availableAttributes={userFields}
+                                            selectableAttributes={pickerFields}
                                             disabled={cellDisabled}
                                             onChange={(attributeId) => updateRowAttribute(index, attributeId)}
                                             menuId={`attribute-selector-menu-${index}`}
@@ -850,7 +872,7 @@ function TableEditor({
                         >
                             <AddAttributeButton
                                 onClick={addRow}
-                                disabled={disabled || userFields.length === 0}
+                                disabled={disabled || pickerFields.length === 0}
                             />
                         </td>
                     </tr>
@@ -859,7 +881,7 @@ function TableEditor({
 
             <div className='table-editor__actions-row'>
                 <HelpText
-                    message={formatMessage({
+                    message={helpText ?? formatMessage({
                         id: 'admin.access_control.table_editor.help_text',
                         defaultMessage: 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                     })}
@@ -867,24 +889,11 @@ function TableEditor({
                 <div className='access-control-test-controls'>
                     <TestButton
                         onClick={onTestClick ?? (() => setShowTestResults(true))}
-                        disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
-                        disabledTooltip={
-
-                            // Precedence: an explicit parent-supplied tooltip
-                            // paired with `testButtonDisabled` (the parent
-                            // already chose what the user should see and why),
-                            // then the user-excluded message, then any other
-                            // testButtonTooltip the parent passed alongside
-                            // other disable reasons. `testButtonDisabled` must be
-                            // checked first, or the self-exclusion tooltip would
-                            // override an explicit parent tooltip whenever both
-                            // conditions are true.
-                            (testButtonDisabled && testButtonTooltip) ||
-                            (userWouldBeExcluded ? formatMessage({
-                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                            }) : testButtonTooltip)
-                        }
+                        disabled={testButtonDisabled || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
+                        disabledTooltip={testButtonTooltip ?? (userWouldBeExcluded ? formatMessage({
+                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                        }) : undefined)}
                         label={testButtonLabel}
                     />
                 </div>

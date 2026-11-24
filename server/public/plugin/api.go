@@ -1411,6 +1411,7 @@ type API interface {
 	// GetSharedChannelCursor returns the sync cursor for the specified channel and RemoteID (passed by
 	// the plugin when registering). The remote must belong to the calling plugin. This can be used to
 	// track the progress of a re-sync started by rewinding the cursor with UpdateSharedChannelCursor.
+	// Returns an error if the remote is not invited to the channel or its invite is not yet confirmed.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 12.2
@@ -1870,11 +1871,24 @@ type API interface {
 	// each of the plugin-owned resources (resourceType, resourceIDs[i]) and
 	// returns one decision per resource ID, keyed by ID. The user's subject is
 	// built once for the whole batch, so this is the method to use when
-	// filtering a list of resources for a single user.
+	// filtering a list of resources for a single user. It is the plugin form of
+	// the access control engine's "evaluate candidates" step: any future
+	// plugin-facing resource or subject search must verify candidates with these
+	// same semantics (an omitted ID is a deny, IsNoPolicy() is a vacuous allow)
+	// rather than introduce a second set.
+	//
+	// Evaluation per resource is a cheap lookup once its policy is compiled; the
+	// first call for a cold policy is slower. The subject is built once but each
+	// resource is evaluated on its own, so a policy or attribute change during a
+	// call can give a mixed view across the resources.
 	//
 	// Each decision has the same semantics as EvaluateAccessControl, including
-	// IsNoPolicy(). A resource ID that is missing from the returned map could
-	// not be evaluated and the plugin MUST treat it as a deny. The returned
+	// IsNoPolicy(), and failures resolve the same way: when a resource could not
+	// be evaluated, the server checks whether a policy of resourceType exists
+	// for it and reports IsNoPolicy() only if none does. A resource ID that is
+	// missing from the returned map has a policy that could not be evaluated, or
+	// its existence could not be determined, and the plugin MUST treat it as a
+	// deny. The returned
 	// error covers failures that affect the whole batch (invalid arguments,
 	// more than 500 distinct resource IDs, or the store being unreachable while
 	// the access control engine is unavailable); the plugin MUST treat it as a
@@ -1896,6 +1910,17 @@ type API interface {
 	// not-found error if no policy exists OR the stored policy's type is not
 	// owned by the calling plugin (fail closed, no existence leak).
 	//
+	// Since server version 12.3, when the access control engine is unavailable
+	// (not licensed, disabled, or not registered) the stored policy is still
+	// returned, read straight from the store, so a plugin can show its
+	// restrictions after a license lapse. In that case CPA attribute references
+	// in rule expressions are returned as stored (id-encoded, for example
+	// "user.id_<groupID>.id_<fieldID>", not "user.attributes.<name>"), so a
+	// policy editor must expect that form during a lapse. The policy is for
+	// display only and must not be passed back to SaveAccessControlPolicy;
+	// re-read it once the engine is available. Servers before 12.3 return a not-implemented error instead,
+	// which plugins can use to detect the older behavior.
+	//
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
@@ -1903,6 +1928,13 @@ type API interface {
 	// DeleteAccessControlPolicy deletes the policy stored under id after
 	// verifying the stored policy's type equals resourceType and is owned by
 	// the calling plugin. Type mismatches return a not-found error (fail closed).
+	//
+	// Since server version 12.3, when the access control engine is unavailable
+	// (not licensed, disabled, or not registered) the policy is deleted straight
+	// from the store, so a plugin can always clear a restriction; only the
+	// delete is available then, as SaveAccessControlPolicy still requires the
+	// engine. Servers before 12.3 return a not-implemented error instead, which
+	// plugins can use to detect the older behavior.
 	//
 	// @tag AccessControl
 	// Minimum server version: 11.10
@@ -1947,6 +1979,46 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
+
+	// RegisterEntityType registers a type owned by the calling plugin. Its id
+	// is the plugin id, a colon, and the name. Registration is idempotent: the
+	// same name replaces the previous display name.
+	// Returns an error with id EntitiesDisabledError when entities are off.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityType(t *model.EntityType) *model.AppError
+
+	// RegisterEntityMatcher registers a RE2 pattern for a built-in type or a
+	// type this plugin registered. Registration is idempotent for the same
+	// matcher name.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError
+
+	// UnregisterEntityMatcher removes one matcher this plugin registered, by name.
+	//
+	// Minimum server version: 12.2
+	UnregisterEntityMatcher(name string) *model.AppError
+
+	// RegisterEntityProvider registers this plugin as a source of cards or
+	// links for types it is allowed to provide. HasCard asks the server to
+	// call EntityLookup when a reader opens a value of that type. The request
+	// always names the caller. A post id means the server has already checked
+	// that the caller can read the post. No post id means the plugin decides,
+	// and only a value an unscoped matcher accepts is asked. A scoped matcher
+	// is not enough. A glossary term with no matching pattern is not asked.
+	// A shared card stored for a post must not
+	// depend on the caller. Use cache "user" or "none" when it does.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityProvider(p *model.EntityProvider) *model.AppError
+
+	// RegisterEntityTerms replaces the exact tokens this plugin contributes
+	// to one type it owns, given by name. Each term is an autolink: the hover
+	// shows Title and URL. An empty list clears the type.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

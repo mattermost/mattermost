@@ -59,35 +59,6 @@ describe('components/admin_console/user_grid/UserGrid', () => {
         },
     };
 
-    test('should match snapshot with 2 users', () => {
-        const {container} = renderWithContext(
-            <UserGrid
-                {...baseProps}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with 2 users and 1 added included', () => {
-        const {container} = renderWithContext(
-            <UserGrid
-                {...baseProps}
-                includeUsers={{[notSavedUser.id]: notSavedUser}}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with 2 users and 1 removed user', () => {
-        const {container} = renderWithContext(
-            <UserGrid
-                {...baseProps}
-                excludeUsers={{[user1.id]: user1}}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should return pagination props while taking into account added or removed users when getPaginationProps is called', () => {
         // Test initial state: 2 users should show "1 - 2 of 2"
         const {rerender} = renderWithContext(

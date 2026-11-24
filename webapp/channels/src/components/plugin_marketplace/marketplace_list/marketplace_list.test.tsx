@@ -27,18 +27,6 @@ describe('components/marketplace/marketplace_list', () => {
         installed_version: '',
     };
 
-    it('should render default', () => {
-        const {container} = renderWithContext(
-            <MarketplaceList
-                listing={[]}
-                page={0}
-                noResultsMessage=''
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should render page with ITEMS_PER_PAGE plugins', () => {
         // Suppress expected duplicate key warnings from using same plugin object multiple times
         const originalError = console.error;

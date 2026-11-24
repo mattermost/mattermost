@@ -223,10 +223,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 	exclusive := filename == ""
 	var file *os.File
 	if exclusive {
-		filename = model.SanitizeFilename(rFilename)
-		if filename == "" {
-			filename = "mm_support_packet.zip"
-		}
+		filename = safeServerFilename(rFilename, "mm_support_packet.zip")
 		file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	} else {
 		file, err = os.Create(filename)

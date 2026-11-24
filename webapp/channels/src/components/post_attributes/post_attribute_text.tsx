@@ -14,7 +14,7 @@ import {useUser} from 'components/common/hooks/useUser';
 import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
 import {hasSpecialisedTextRenderer, textSubtype} from 'components/properties_card_view/propertyValueRenderer/renderable';
 
-import {resolveOptionChips} from 'utils/property_options';
+import {resolveFieldOptionChips} from 'utils/property_options';
 
 import {usePropertyValueMetadata} from './use_property_value_metadata';
 import {storedEntries} from './utils';
@@ -40,7 +40,7 @@ export default function PostAttributeText({field, value}: Props) {
     case 'select':
     case 'multiselect':
     case 'rank':
-        return <FormattedList value={resolveOptionChips(field, value.value).map((chip) => chip.label)}/>;
+        return <FormattedList value={resolveFieldOptionChips(field, value.value).map((chip) => chip.label)}/>;
 
     case 'text':
         return (

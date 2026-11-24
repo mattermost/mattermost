@@ -15,7 +15,6 @@ type Props = {
     link: string;
     show: boolean;
     metadata?: OpenGraphMetadata;
-    youtubeReferrerPolicy?: boolean;
 };
 
 type State = {
@@ -169,7 +168,9 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                         frameBorder='0'
                         allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                         allowFullScreen={true}
-                        referrerPolicy={this.props.youtubeReferrerPolicy ? 'origin' : undefined}
+
+                        // YouTube refuses to play embeds without a referrer (Error 153), and the page itself is no-referrer.
+                        referrerPolicy='strict-origin-when-cross-origin'
                         sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
                     />
                 </div>

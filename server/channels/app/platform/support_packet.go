@@ -46,17 +46,17 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.os":                              {yaml.HeadComment(" Machine")},
 	"$.server.cpu_cores":                       {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
 	"$.server.total_memory_mb":                 {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
-	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo; Linux only")},
-	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux only")},
-	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux only")},
+	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo on Linux; free plus cached file and purgeable pages on macOS")},
+	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux and macOS")},
+	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux and macOS")},
 	"$.server.container_cpu_limit":             {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
 	"$.server.container_memory_limit_mb":       {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
 	"$.server.container_memory_usage_mb":       {yaml.LineComment(" cgroup v2 memory.current in MB, including page cache; Linux only")},
 	"$.server.container_memory_working_set_mb": {yaml.LineComment(" cgroup v2 memory.current minus inactive file cache in MB; Linux only")},
 	"$.server.container_oom_kills":             {yaml.LineComment(" cgroup v2 OOM kills since the cgroup was created; Linux only")},
-	"$.server.load_average_1m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 1 minute; Linux only")},
-	"$.server.load_average_5m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 5 minutes; Linux only")},
-	"$.server.load_average_15m":                {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 15 minutes; Linux only")},
+	"$.server.load_average_1m":                 {yaml.LineComment(" host-wide runnable (and on Linux, uninterruptible) tasks averaged over 1 minute; Linux and macOS")},
+	"$.server.load_average_5m":                 {yaml.LineComment(" host-wide runnable (and on Linux, uninterruptible) tasks averaged over 5 minutes; Linux and macOS")},
+	"$.server.load_average_15m":                {yaml.LineComment(" host-wide runnable (and on Linux, uninterruptible) tasks averaged over 15 minutes; Linux and macOS")},
 	"$.server.container_cpu_periods":           {yaml.LineComment(" cgroup v2 CPU scheduling periods since the cgroup was created; Linux only")},
 	"$.server.container_cpu_throttled_periods": {yaml.LineComment(" throttled periods divided by total periods is the CPU throttling ratio")},
 	"$.server.container_cpu_throttled_seconds": {yaml.LineComment(" total cgroup v2 CPU throttling time since the cgroup was created")},
@@ -92,6 +92,9 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.database.longest_query_duration_seconds": {yaml.LineComment(" point-in-time; max age of any active query right now")},
 	"$.database.waiting_for_lock_count":         {yaml.LineComment(" point-in-time count of backends waiting on a Lock wait_event_type")},
 	"$.database.posts_dead_tuples":              {yaml.LineComment(" n_dead_tup for the posts table from pg_stat_user_tables")},
+	"$.database.posts_estimated_rows":           {yaml.LineComment(" pg_class.reltuples for the posts table; an estimate kept by VACUUM and ANALYZE")},
+	"$.database.posts_vacuum_in_progress":       {yaml.LineComment(" whether a VACUUM, VACUUM FULL or CLUSTER of posts is running")},
+	"$.database.posts_last_vacuum":              {yaml.LineComment(" last manual vacuum on posts; null if never manually vacuumed (then omitted)")},
 	"$.database.posts_last_autovacuum":          {yaml.LineComment(" last autovacuum on posts; null if never autovacuumed (then omitted)")},
 
 	// file_store: local driver only fields
@@ -608,6 +611,9 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	diagnostics.Database.LongestQueryDurationSeconds = storeDiagnostics.LongestQueryDurationSeconds
 	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
 	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
+	diagnostics.Database.PostsEstimatedRows = storeDiagnostics.PostsEstimatedRows
+	diagnostics.Database.PostsVacuumInProgress = storeDiagnostics.PostsVacuumInProgress
+	diagnostics.Database.PostsLastVacuum = storeDiagnostics.PostsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
 
 	if err != nil {

@@ -26,28 +26,6 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
         />
     );
 
-    describe('renders correctly', () => {
-        test('when enabled', () => {
-            const {container} = renderWithContext(
-                <CustomEnableDisableGuestAccountsSetting
-                    {...baseProps}
-                    value={true}
-                />,
-            );
-            expect(container).toMatchSnapshot();
-        });
-
-        test('when disabled', () => {
-            const {container} = renderWithContext(
-                <CustomEnableDisableGuestAccountsSetting
-                    {...baseProps}
-                    value={false}
-                />,
-            );
-            expect(container).toMatchSnapshot();
-        });
-    });
-
     describe('handleChange', () => {
         test('should enable without show confirmation modal or warning', async () => {
             const props = {

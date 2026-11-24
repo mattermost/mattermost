@@ -511,6 +511,59 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		}
 	})
 
+	s.Run("uses default name when server filename is not a safe zip name", func() {
+		const body = "support packet bytes"
+		const defaultName = "mm_support_packet.zip"
+		for _, tc := range rejectedServerFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				workDir := s.T().TempDir()
+				s.T().Chdir(workDir)
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+					w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, tc.filename))
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+				err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+				s.Require().NoFileExists(filepath.Join(workDir, tc.filename))
+				s.Require().NoError(err)
+				assertOnlyFileInDir(s.T(), workDir, defaultName, []byte(body))
+				s.Require().Equal([]any{"Downloading Support Packet", "Downloaded Support Packet to " + defaultName}, printer.GetLines())
+			})
+		}
+	})
+
+	s.Run("keeps safe server filename", func() {
+		const body = "support packet bytes"
+		for _, tc := range acceptedServerFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				workDir := s.T().TempDir()
+				s.T().Chdir(workDir)
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+					w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, tc.filename))
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+				err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+				s.Require().NoError(err)
+				assertOnlyFileInDir(s.T(), workDir, tc.filename, []byte(body))
+			})
+		}
+	})
+
 	s.Run("returns an error when the response has no filename header", func() {
 		printer.Clean()
 
@@ -672,12 +725,62 @@ func serverFilenameCases() []struct {
 			},
 			baseName: baseName,
 		},
-		{
-			name:        "percent-encoded filename",
-			disposition: func(string) string { return `attachment; filename="%2e%2e%2fpacket.zip"` },
-			baseName:    "%2e%2e%2fpacket.zip",
-		},
 	}
+}
+
+// rejectedServerFilenameCases are server-suggested filenames that must not be
+// used as the local file name.
+func rejectedServerFilenameCases() []struct {
+	name     string
+	filename string
+} {
+	return []struct {
+		name     string
+		filename string
+	}{
+		{name: "dotfile", filename: ".config"},
+		{name: "dotfile with extension", filename: ".data.txt"},
+		{name: "non-zip extension", filename: "packet.txt"},
+		{name: "hidden zip", filename: ".hidden.zip"},
+		{name: "leading dash", filename: "-dash.zip"},
+		{name: "contains space", filename: "my packet.zip"},
+		{name: "uppercase extension", filename: "foo.ZIP"},
+		{name: "no extension", filename: "packet"},
+		{name: "zip followed by another extension", filename: "packet.zip.txt"},
+		{name: "percent-encoded traversal", filename: "%2e%2e%2fpacket.zip"},
+		{name: "longer than 255 characters", filename: strings.Repeat("a", 252) + ".zip"},
+	}
+}
+
+// acceptedServerFilenameCases are server-suggested filenames that must be kept.
+func acceptedServerFilenameCases() []struct {
+	name     string
+	filename string
+} {
+	return []struct {
+		name     string
+		filename string
+	}{
+		{name: "support packet name", filename: "mm_support_packet_Acme-Corp_2026-01-02T15-04.zip"},
+		{name: "compliance export name", filename: "compliance-export-2026-01-02-15h04m-1-2.zip"},
+		{name: "255 characters", filename: strings.Repeat("a", 251) + ".zip"},
+	}
+}
+
+// assertOnlyFileInDir checks that workDir contains exactly one entry, named
+// wantName, holding wantBody.
+func assertOnlyFileInDir(t *testing.T, workDir, wantName string, wantBody []byte) {
+	t.Helper()
+	entries, err := os.ReadDir(workDir)
+	require.NoError(t, err)
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		names = append(names, e.Name())
+	}
+	require.Equal(t, []string{wantName}, names)
+	got, err := os.ReadFile(filepath.Join(workDir, wantName))
+	require.NoError(t, err)
+	require.Equal(t, wantBody, got)
 }
 
 // emptyServerFilenameCases are Content-Disposition values that have no usable last path element.

@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -39,6 +40,14 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
+}
+
+// Close releases what the plugin registered through this API. The plugin
+// environment calls it once the plugin's process and RPC connection are gone.
+func (api *PluginAPI) Close() error {
+	api.app.ch.unregisterPluginCommands(api.id)
+	entities.RemoveOwner(api.id)
+	return nil
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {
@@ -83,6 +92,26 @@ func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
 
 func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 	return api.app.RegisterPluginCommand(api.id, command)
+}
+
+func (api *PluginAPI) RegisterEntityType(t *model.EntityType) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityType(api.id, t))
+}
+
+func (api *PluginAPI) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityMatcher(api.id, m))
+}
+
+func (api *PluginAPI) UnregisterEntityMatcher(name string) *model.AppError {
+	return model.AsAppError(api.app.UnregisterPluginEntityMatcher(api.id, name))
+}
+
+func (api *PluginAPI) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityProvider(api.id, p))
+}
+
+func (api *PluginAPI) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	return model.AsAppError(api.app.RegisterPluginEntityTerms(api.id, typeName, terms))
 }
 
 func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
@@ -197,7 +226,7 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 }
 
 func (api *PluginAPI) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
-	return api.app.GetTeamsUnreadForUser("", userID, false)
+	return api.app.GetTeamsUnreadForUser(api.ctx, "", userID, false)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -919,6 +948,22 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
+	rctx := api.ctx
+	if values := post.Metadata.GetPropertyValues(); len(values) > 0 {
+		// The property hook judges the write against the plugin's own grants when CreatePost
+		// stores the values after the save; a denial there removes the post again.
+		rctx = api.psaPluginContext()
+
+		// With the flag off, CreatePost refuses the values itself before saving.
+		if api.app.Config().FeatureFlags.PostAttributes {
+			prepared, _, err := api.app.PreparePostPropertyValuesForCreate(rctx, values, channel)
+			if err != nil {
+				return nil, model.AsAppError(err)
+			}
+			post.Metadata.PropertyValues = prepared
+		}
+	}
+
 	// access_control_resource was stripped above with everything else; put it
 	// back and grant it only when it names this plugin.
 	flags := model.CreatePostFlags{
@@ -932,7 +977,7 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 		flags.AllowAccessControlResource = true
 	}
 
-	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, flags)
+	post, _, appErr = api.app.CreatePost(rctx, post, channel, flags)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1688,8 +1733,8 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	if appErr := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
-		return nil, appErr
+	if err := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); err != nil {
+		return nil, err
 	}
 
 	return api.app.Srv().Store().Command().Update(updatedCmd)
@@ -2215,7 +2260,8 @@ func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, ac
 func (api *PluginAPI) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
 	// Same attribution as EvaluateAccessControl: the subject build reads
 	// properties on the plugin's behalf.
-	return api.app.EvaluatePluginAccessRequestBatch(api.psaPluginContext(), api.id, userID, resourceType, action, resourceIDs)
+	decisions, err := api.app.EvaluatePluginAccessRequestBatch(api.psaPluginContext(), api.id, userID, resourceType, action, resourceIDs)
+	return decisions, model.AsAppError(err)
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
@@ -2240,7 +2286,8 @@ func (api *PluginAPI) CheckAccessControlExpression(actingUserID, resourceType, e
 }
 
 func (api *PluginAPI) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
-	return api.app.CheckPluginAccessControlExpressionForSearch(api.ctx, api.id, actingUserID, resourceType, expression)
+	errs, err := api.app.CheckPluginAccessControlExpressionForSearch(api.ctx, api.id, actingUserID, resourceType, expression)
+	return errs, model.AsAppError(err)
 }
 
 func (api *PluginAPI) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {

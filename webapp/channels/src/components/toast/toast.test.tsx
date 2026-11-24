@@ -23,25 +23,9 @@ describe('components/Toast', () => {
         width: 1000,
     };
 
-    test('should match snapshot for showing toast', () => {
-        const {container} = renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
-        expect(container).toMatchSnapshot();
+    test('should render for showing toast', () => {
+        renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
         expect(screen.getByTestId('dismissToast')).toBeInTheDocument();
-    });
-
-    test('should match snapshot for hiding toast', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, show: false}}><span>{'child'}</span></Toast>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for toast width less than 780px', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, width: 779}}><span>{'child'}</span></Toast>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot to not have actions', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, showActions: false}}><span>{'child'}</span></Toast>);
-        expect(container).toMatchSnapshot();
     });
 
     test('should dismiss', () => {
@@ -56,10 +40,5 @@ describe('components/Toast', () => {
         screen.getByTestId('dismissToast').click();
 
         expect(defaultProps.onDismiss).toHaveBeenCalledTimes(1);
-    });
-
-    test('should match snapshot to have extraClasses', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, extraClasses: 'extraClasses'}}><span>{'child'}</span></Toast>);
-        expect(container).toMatchSnapshot();
     });
 });

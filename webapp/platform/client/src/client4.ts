@@ -114,10 +114,10 @@ import type {
     PluginsResponse,
     PluginStatus,
 } from '@mattermost/types/plugins';
-import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
+import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, EntityCard} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
+import type {ChannelAttributeComplianceSummary, ChannelAttributeNotifyResult, ChannelsMissingAttributeValueList, NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyPermissionsPatch, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -375,6 +375,17 @@ export default class Client4 {
 
     getPropertyFieldOptionsRoute(groupName: string, objectType: string, fieldId: string) {
         return `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}/options`;
+    }
+
+    // channelAttributeMissingValuesRoute builds the route for the required-
+    // channel-attribute compliance endpoints. An empty fieldId targets the
+    // field-less "create mode" form, used before the attribute has been saved
+    // and thus has no ID yet.
+    channelAttributeMissingValuesRoute(groupName: string, fieldId?: string) {
+        if (!fieldId) {
+            return `${this.getPropertyFieldsRoute(groupName, 'channel')}/missing_values`;
+        }
+        return `${this.getPropertyFieldRoute(groupName, 'channel', fieldId)}/missing_values`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -2343,9 +2354,13 @@ export default class Client4 {
         );
     };
 
+    // One target holds at most one value per field, and the access_control
+    // group caps its fields at 200 (AccessControlGroupFieldLimit), the
+    // server's per_page maximum -- so one page always holds every value. The
+    // default page of 60 would silently drop the rest.
     getPropertyValues = <T>(groupName: string, objectType: string, targetId: string) => {
         return this.doFetch<Array<PropertyValue<T>>>(
-            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}${buildQueryString({per_page: 200})}`,
             {method: 'get'},
         );
     };
@@ -2602,7 +2617,14 @@ export default class Client4 {
         );
     };
 
-    patchPropertyField = async (groupName: string, objectType: string, fieldId: string, patch: Partial<PropertyField> & Record<string, unknown>) => {
+    // `permissions` is patched key by key on the server, so it takes the patch
+    // shape rather than the full object a field is read back with.
+    patchPropertyField = async (
+        groupName: string,
+        objectType: string,
+        fieldId: string,
+        patch: Partial<Omit<PropertyField, 'permissions'>> & {permissions?: PropertyPermissionsPatch} & Record<string, unknown>,
+    ) => {
         return this.doFetch<PropertyField>(
             `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
             {method: 'PATCH', body: JSON.stringify(patch)},
@@ -2613,6 +2635,35 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
             {method: 'DELETE'},
+        );
+    };
+
+    // getChannelsMissingAttributeValue returns a paginated list of active
+    // channels lacking a value for the given channel attribute field.
+    getChannelsMissingAttributeValue = async (groupName: string, fieldId: string, page: number, perPage: number) => {
+        const params = new URLSearchParams({page: String(page), per_page: String(perPage)});
+        return this.doFetch<ChannelsMissingAttributeValueList>(
+            `${this.getPropertyFieldRoute(groupName, 'channel', fieldId)}/missing_values?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
+    // getChannelAttributeComplianceSummary returns the compliance counts used
+    // by the Required toggle's banner. An empty fieldId reports the count for
+    // every active channel (create mode).
+    getChannelAttributeComplianceSummary = async (groupName: string, fieldId?: string) => {
+        return this.doFetch<ChannelAttributeComplianceSummary>(
+            `${this.channelAttributeMissingValuesRoute(groupName, fieldId)}/summary`,
+            {method: 'GET'},
+        );
+    };
+
+    // notifyChannelAdminsOfMissingAttributeValue sends a batched system-bot DM
+    // to every unique channel admin of a channel missing a value for fieldId.
+    notifyChannelAdminsOfMissingAttributeValue = async (groupName: string, fieldId: string) => {
+        return this.doFetch<ChannelAttributeNotifyResult>(
+            `${this.channelAttributeMissingValuesRoute(groupName, fieldId)}/notify`,
+            {method: 'POST'},
         );
     };
 
@@ -3799,10 +3850,10 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT, signal?: AbortSignal) => {
         return this.doFetch<LogsByNode>(
             `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
-            {method: 'post', body: JSON.stringify(logFilter)},
+            {method: 'post', body: JSON.stringify(logFilter), signal},
         );
     };
 
@@ -4872,6 +4923,41 @@ export default class Client4 {
         );
     };
 
+    getSupportPacket = async (
+        {basicServerLogs, pluginPackets = []}: {basicServerLogs: boolean; pluginPackets?: string[]},
+        signal?: AbortSignal,
+    ): Promise<{blob: Blob; filename: string}> => {
+        const params = new URLSearchParams({basic_server_logs: String(basicServerLogs)});
+        pluginPackets.forEach((pluginId) => params.append('plugin_packets', pluginId));
+
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            `${this.getSystemRoute()}/support_packet?${params}`,
+            {method: 'get', signal},
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
+            ),
+        };
+    };
+
+    getEntityCard = (typeId: string, value: string, postId?: string, occurrence?: string) => {
+        const params = new URLSearchParams({type_id: typeId, value});
+        if (postId) {
+            params.set('post_id', postId);
+        }
+        if (occurrence) {
+            params.set('id', occurrence);
+        }
+        return this.doFetch<EntityCard>(
+            `${this.getBaseRoute()}/entities/card?${params.toString()}`,
+            {method: 'get'},
+        );
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
@@ -4914,13 +5000,16 @@ export default class Client4 {
         let data;
         try {
             const contentType = headers.get('Content-Type');
+
+            // The media type without parameters such as "; charset=binary", which proxies may add.
+            const mediaType = contentType?.split(';')[0].trim().toLowerCase();
             if (contentType === 'application/json') {
                 data = await response.json();
             } else if (contentType === 'application/x-ndjson') {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
+            } else if (mediaType === 'application/zip' || mediaType === 'application/octet-stream' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -5503,6 +5592,18 @@ export default class Client4 {
             `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
             {method: 'delete'},
         );
+    };
+
+    exportHealthFindings = async (format: 'html' | 'md'): Promise<{content: string; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<string>(
+            `${this.getHealthFindingsRoute()}/export${buildQueryString({format})}`,
+            {method: 'get'},
+        );
+
+        return {
+            content: data,
+            filename: extractFilenameFromContentDisposition(headers.get('Content-Disposition'), `site-health.${format}`),
+        };
     };
 
     getFlaggedPostReportUrl = (postId: string) => {

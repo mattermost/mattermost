@@ -1,0 +1,718 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package api4
+
+import (
+	"context"
+	"encoding/json"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
+
+type postPropertyCreateTestHelper struct {
+	*TestHelper
+	groupID string
+}
+
+func setupPostPropertyCreateTest(t *testing.T, flagEnabled bool) *postPropertyCreateTestHelper {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostAttributes = flagEnabled
+	}).InitBasic(t)
+
+	// config.Store.Set re-applies environment overrides on every write, so MM_FEATUREFLAGS_POSTATTRIBUTES
+	// exported in a shell wins over the flag asked for here. Fail on the flag rather than on whatever
+	// the first subtest happens to assert.
+	require.Equal(t, flagEnabled, th.App.Config().FeatureFlags.PostAttributes,
+		"unset MM_FEATUREFLAGS_POSTATTRIBUTES: it overrides the flag this suite configures")
+
+	// Post fields live in access_control, which answers only to an Enterprise licence.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	return &postPropertyCreateTestHelper{TestHelper: th, groupID: group.ID}
+}
+
+// createField makes a system-scoped post-object field: access_control refuses post fields at any
+// other scope.
+func (th *postPropertyCreateTestHelper) createField(t *testing.T, permission model.PermissionLevel) *model.PropertyField {
+	t.Helper()
+	return th.createFieldOfObjectType(t, model.PropertyFieldObjectTypePost, permission)
+}
+
+// createOtherGroupField registers a system-scoped post-object field in a group of its own, so it is
+// not one of the fields a post's values may name.
+func (th *postPropertyCreateTestHelper) createOtherGroupField(t *testing.T) *model.PropertyField {
+	t.Helper()
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "post_values_test_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:          group.ID,
+		Name:             "f_" + model.NewId(),
+		Type:             model.PropertyFieldTypeText,
+		ObjectType:       model.PropertyFieldObjectTypePost,
+		TargetType:       string(model.PropertyFieldTargetLevelSystem),
+		PermissionValues: model.NewPointer(model.PermissionLevelMember),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	return field
+}
+
+// createFieldOfObjectType sets PermissionValues explicitly because the nil-fill lives in the
+// property API handler rather than in App.CreatePropertyField, and CanSetPostPropertyValueOnCreate
+// denies a field whose PermissionValues is nil.
+func (th *postPropertyCreateTestHelper) createFieldOfObjectType(t *testing.T, objectType string, permission model.PermissionLevel) *model.PropertyField {
+	t.Helper()
+
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:          th.groupID,
+		Name:             "f_" + model.NewId(),
+		Type:             model.PropertyFieldTypeText,
+		ObjectType:       objectType,
+		TargetType:       string(model.PropertyFieldTargetLevelSystem),
+		PermissionValues: model.NewPointer(permission),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	t.Cleanup(func() {
+		require.Nil(t, th.App.DeletePropertyField(th.Context, th.groupID, field.ID, true, ""))
+	})
+
+	return field
+}
+
+// storedValues reads back what was actually written for a post, so a test proves persistence
+// rather than only trusting the response body.
+func (th *postPropertyCreateTestHelper) storedValues(t *testing.T, postID string) []*model.PropertyValue {
+	t.Helper()
+
+	values, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
+		TargetType: model.PropertyValueTargetTypePost,
+		TargetIDs:  []string{postID},
+		PerPage:    model.PostAttributesMaxFields,
+	})
+	require.Nil(t, appErr)
+	return values
+}
+
+// refuseInvalidAttribute posts the given values and requires the request to come back as a bad
+// attribute. When the request was about a real field, pass it as offending: the set of attributes a
+// server defines is itself sensitive, so no error may name one.
+func (th *postPropertyCreateTestHelper) refuseInvalidAttribute(t *testing.T, channelID string, offending *model.PropertyField, values ...*model.PropertyValue) {
+	t.Helper()
+
+	_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(channelID, values...))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.post.create_post.invalid_attribute.app_error")
+	if offending != nil {
+		require.NotContains(t, err.Error(), offending.Name)
+	}
+}
+
+// submittedPropertyValue builds the shape a client sends: a full PropertyValue with only FieldID
+// and Value filled in.
+func submittedPropertyValue(fieldID, raw string) *model.PropertyValue {
+	return &model.PropertyValue{FieldID: fieldID, Value: json.RawMessage(raw)}
+}
+
+func postWithPropertyValues(channelID string, values ...*model.PropertyValue) *model.Post {
+	return &model.Post{
+		ChannelId: channelID,
+		Message:   "attributes " + model.NewId(),
+		Metadata:  &model.PostMetadata{PropertyValues: values},
+	}
+}
+
+// requirePropertyValues asserts that values holds exactly one entry per field ID in expected, and
+// that each value's raw JSON matches what was expected for that field. Checking value content this
+// way -- rather than just the set of field IDs -- catches a value written under the wrong field.
+func requirePropertyValues(t *testing.T, values []*model.PropertyValue, expected map[string]string) {
+	t.Helper()
+
+	require.Len(t, values, len(expected))
+
+	byFieldID := make(map[string]*model.PropertyValue, len(values))
+	for _, value := range values {
+		byFieldID[value.FieldID] = value
+	}
+
+	for fieldID, raw := range expected {
+		value, ok := byFieldID[fieldID]
+		require.True(t, ok, "no value found for field %s", fieldID)
+		assert.JSONEq(t, raw, string(value.Value), "unexpected value for field %s", fieldID)
+	}
+}
+
+func TestCreatePostWithPropertyValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPostPropertyCreateTest(t, true)
+	memberLevel := model.PermissionLevelMember
+
+	t.Run("several system fields all apply to one post", func(t *testing.T) {
+		firstField := th.createField(t, memberLevel)
+		secondField := th.createField(t, memberLevel)
+		thirdField := th.createField(t, memberLevel)
+
+		expected := map[string]string{
+			firstField.ID:  `"one"`,
+			secondField.ID: `"two"`,
+			thirdField.ID:  `"three"`,
+		}
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(firstField.ID, expected[firstField.ID]),
+			submittedPropertyValue(secondField.ID, expected[secondField.ID]),
+			submittedPropertyValue(thirdField.ID, expected[thirdField.ID]),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// The response carries the values: they are attached before PreparePostForClient, so a
+		// client does not have to re-read the post it just created.
+		require.NotNil(t, created.Metadata)
+		requirePropertyValues(t, created.Metadata.PropertyValues, expected)
+
+		stored := th.storedValues(t, created.Id)
+		requirePropertyValues(t, stored, expected)
+
+		for _, value := range stored {
+			assert.Equal(t, created.Id, value.TargetID)
+			assert.Equal(t, model.PropertyValueTargetTypePost, value.TargetType)
+			assert.Equal(t, th.groupID, value.GroupID)
+			assert.Equal(t, th.BasicUser.Id, value.CreatedBy)
+		}
+	})
+
+	t.Run("a reply carries values the same way a root post does", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		root, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root " + model.NewId(),
+		})
+		require.NoError(t, err)
+
+		reply := postWithPropertyValues(th.BasicChannel.Id, submittedPropertyValue(field.ID, `"on a reply"`))
+		reply.RootId = root.Id
+
+		created, resp, err := th.Client.CreatePost(context.Background(), reply)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, root.Id, created.RootId)
+
+		stored := th.storedValues(t, created.Id)
+		require.Len(t, stored, 1)
+		assert.Equal(t, field.ID, stored[0].FieldID)
+		assert.JSONEq(t, `"on a reply"`, string(stored[0].Value))
+	})
+
+	// A DM and a GM have no team, so the field search runs with an empty TeamID. System fields
+	// still resolve. postAttributeValuesForCreate reads nothing off the channel but its ID and
+	// TeamID, so both channel types are the same input to it and are checked the same way.
+	requireTeamlessCreate := func(t *testing.T, channel *model.Channel) {
+		t.Helper()
+		require.Empty(t, channel.TeamId)
+
+		systemField := th.createField(t, memberLevel)
+		expected := map[string]string{systemField.ID: `"sys"`}
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(channel.Id,
+			submittedPropertyValue(systemField.ID, expected[systemField.ID]),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		requirePropertyValues(t, th.storedValues(t, created.Id), expected)
+	}
+
+	t.Run("direct message: system fields apply", func(t *testing.T) {
+		requireTeamlessCreate(t, th.CreateDmChannel(t, th.BasicUser2))
+	})
+
+	t.Run("group message: system fields apply", func(t *testing.T) {
+		gm, appErr := th.App.CreateGroupChannel(th.Context,
+			[]string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		requireTeamlessCreate(t, gm)
+	})
+
+	// One subtest per server-owned field rather than a loop, so a regression in handling any one
+	// of them names itself in the failure output.
+	t.Run("server-owned fields set by the client are refused", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		refuse := func(t *testing.T, value *model.PropertyValue) {
+			t.Helper()
+			th.refuseInvalidAttribute(t, th.BasicChannel.Id, field, value)
+		}
+
+		t.Run("id", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.ID = model.NewId()
+			refuse(t, value)
+		})
+
+		t.Run("group_id", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.GroupID = th.groupID
+			refuse(t, value)
+		})
+
+		t.Run("target_id", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.TargetID = model.NewId()
+			refuse(t, value)
+		})
+
+		t.Run("target_type", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.TargetType = model.PropertyValueTargetTypePost
+			refuse(t, value)
+		})
+
+		t.Run("created_by", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.CreatedBy = th.BasicUser.Id
+			refuse(t, value)
+		})
+
+		t.Run("updated_by", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.UpdatedBy = th.BasicUser.Id
+			refuse(t, value)
+		})
+
+		t.Run("create_at", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.CreateAt = model.GetMillis()
+			refuse(t, value)
+		})
+
+		t.Run("update_at", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.UpdateAt = model.GetMillis()
+			refuse(t, value)
+		})
+
+		t.Run("delete_at", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.DeleteAt = model.GetMillis()
+			refuse(t, value)
+		})
+	})
+
+	t.Run("a field from another group is unknown to this post", func(t *testing.T) {
+		otherGroupField := th.createOtherGroupField(t)
+
+		th.refuseInvalidAttribute(t, th.BasicChannel.Id, otherGroupField, submittedPropertyValue(otherGroupField.ID, `"x"`))
+	})
+
+	t.Run("a channel-object field is not a post field", func(t *testing.T) {
+		channelObjectField := th.createFieldOfObjectType(t, model.PropertyFieldObjectTypeChannel, memberLevel)
+
+		th.refuseInvalidAttribute(t, th.BasicChannel.Id, channelObjectField, submittedPropertyValue(channelObjectField.ID, `"x"`))
+	})
+
+	t.Run("the same field twice in one request is refused", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		th.refuseInvalidAttribute(t, th.BasicChannel.Id, field,
+			submittedPropertyValue(field.ID, `"first"`),
+			submittedPropertyValue(field.ID, `"second"`),
+		)
+	})
+
+	t.Run("a malformed field id is refused", func(t *testing.T) {
+		th.refuseInvalidAttribute(t, th.BasicChannel.Id, nil, submittedPropertyValue("not-an-id", `"x"`))
+	})
+
+	t.Run("an empty field id is refused", func(t *testing.T) {
+		th.refuseInvalidAttribute(t, th.BasicChannel.Id, nil, submittedPropertyValue("", `"x"`))
+	})
+
+	t.Run("a well-formed but nonexistent field id is refused", func(t *testing.T) {
+		th.refuseInvalidAttribute(t, th.BasicChannel.Id, nil, submittedPropertyValue(model.NewId(), `"x"`))
+	})
+
+	// The access_control hook refuses a text value over the cap too, but only once the post is
+	// saved, which then has to be deleted again. Checked before the save, the refusal comes back as
+	// an invalid attribute and the uploaded file stays, unattached, for a retry to reuse.
+	t.Run("a text value over the length cap is refused before the post is saved", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		uploaded, _, err := th.Client.UploadFile(context.Background(), []byte("attachment"), th.BasicChannel.Id, "attachment.txt")
+		require.NoError(t, err)
+		require.Len(t, uploaded.FileInfos, 1)
+		fileID := uploaded.FileInfos[0].Id
+
+		post := postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"`+strings.Repeat("a", model.PropertyFieldValueTypeTextMaxLength+1)+`"`))
+		post.FileIds = model.StringArray{fileID}
+
+		_, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.invalid_attribute.app_error")
+		require.NotContains(t, err.Error(), field.Name)
+
+		posts, _, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		for _, p := range posts.Posts {
+			assert.NotEqual(t, post.Message, p.Message, "the refused post was saved")
+		}
+
+		info, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Empty(t, info.PostId)
+		assert.Zero(t, info.DeleteAt)
+
+		post.Metadata.PropertyValues = []*model.PropertyValue{
+			submittedPropertyValue(field.ID, `"`+strings.Repeat("a", model.PropertyFieldValueTypeTextMaxLength)+`"`),
+		}
+		created, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, model.StringArray{fileID}, created.FileIds)
+	})
+
+	// The author wrote the value, so the response gives it back even where the field doesn't let
+	// the author read it later: the same as the property value API returns a write.
+	t.Run("a value the author may write but not read comes back in the response", func(t *testing.T) {
+		restrictedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:          th.groupID,
+			Name:             "f_" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: model.NewPointer(memberLevel),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		}, false, "")
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, th.groupID, restrictedField.ID, true, ""))
+		})
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(restrictedField.ID, `"secret"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, created.Metadata)
+		requirePropertyValues(t, created.Metadata.PropertyValues, map[string]string{restrictedField.ID: `"secret"`})
+		requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{restrictedField.ID: `"secret"`})
+	})
+
+	t.Run("a sysadmin-level field is refused for a member and accepted for a sysadmin", func(t *testing.T) {
+		field := th.createField(t, model.PermissionLevelSysadmin)
+
+		_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"classified"`),
+		))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.attribute_no_permission.app_error")
+
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+
+		created, resp, err := th.SystemAdminClient.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"classified"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		stored := th.storedValues(t, created.Id)
+		require.Len(t, stored, 1)
+		assert.Equal(t, field.ID, stored[0].FieldID)
+		assert.Equal(t, th.SystemAdminUser.Id, stored[0].CreatedBy)
+	})
+
+	// The author of a post being created is always themselves, so the creator level resolves for
+	// any member who may post in the channel.
+	t.Run("a creator-level field is accepted from an ordinary member", func(t *testing.T) {
+		field := th.createField(t, model.PermissionLevelCreator)
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"mine"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		stored := th.storedValues(t, created.Id)
+		require.Len(t, stored, 1)
+		assert.Equal(t, field.ID, stored[0].FieldID)
+	})
+
+	t.Run("an everyone-level field is accepted from an ordinary member", func(t *testing.T) {
+		field := th.createField(t, model.PermissionLevelEveryone)
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"open"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		stored := th.storedValues(t, created.Id)
+		require.Len(t, stored, 1)
+		assert.Equal(t, field.ID, stored[0].FieldID)
+	})
+
+	// A value.write grant admits a write the tier does not, and a value set on a new post goes
+	// through the same rule as one written after the post exists.
+	t.Run("a value.write grant lets a member set a value no tier allows", func(t *testing.T) {
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+					Allow:    []string{model.PropertyActionValueWrite},
+				}},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, th.groupID, field.ID, true, ""))
+		})
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"granted"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{field.ID: `"granted"`})
+
+		// The grant names BasicUser only, so BasicUser2 is refused before anything is saved.
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+		otherClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, otherClient)
+
+		_, resp, err = otherClient.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"not granted"`),
+		))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.attribute_no_permission.app_error")
+	})
+
+	// A restrictions change made through the property API decides the next create, in both directions:
+	// the create-time gate reads the permissions object, not a column left over from before the patch.
+	t.Run("a restrictions patch decides who may set the value on create", func(t *testing.T) {
+		field := th.createField(t, memberLevel)
+
+		patchValueWrite := func(t *testing.T, write model.PermissionLevel) {
+			t.Helper()
+			restrictions, err := json.Marshal(model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: write},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			})
+			require.NoError(t, err)
+			patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), model.AccessControlPropertyGroupName,
+				model.PropertyFieldObjectTypePost, field.ID, &model.PropertyFieldPatch{
+					Permissions: &model.PermissionsPatch{Restrictions: restrictions},
+				})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotNil(t, patched.Permissions)
+			require.NotNil(t, patched.Permissions.Restrictions)
+			require.Equal(t, write, patched.Permissions.Restrictions.Value.Write)
+		}
+
+		t.Run("member to sysadmin: a member is refused and a sysadmin is let in", func(t *testing.T) {
+			patchValueWrite(t, model.PermissionLevelSysadmin)
+
+			_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+				submittedPropertyValue(field.ID, `"member"`),
+			))
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.post.create_post.attribute_no_permission.app_error")
+
+			created, resp, err := th.SystemAdminClient.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+				submittedPropertyValue(field.ID, `"sysadmin"`),
+			))
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{field.ID: `"sysadmin"`})
+		})
+
+		t.Run("sysadmin back to member: the member is let in again", func(t *testing.T) {
+			patchValueWrite(t, model.PermissionLevelMember)
+
+			created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+				submittedPropertyValue(field.ID, `"member"`),
+			))
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{field.ID: `"member"`})
+		})
+	})
+
+	t.Run("a post with no metadata stores no property values", func(t *testing.T) {
+		// A field exists for this channel, so a stored value would mean createPost looked it up
+		// despite the request submitting nothing.
+		th.createField(t, memberLevel)
+
+		created, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "no attributes " + model.NewId(),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Empty(t, th.storedValues(t, created.Id))
+	})
+
+	// Same branch as above, reached with metadata present, which is what makes GetPropertyValues'
+	// nil handling irrelevant here.
+	t.Run("an empty values array is accepted the same way as no metadata", func(t *testing.T) {
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Empty(t, th.storedValues(t, created.Id))
+	})
+}
+
+func TestCreatePostWithPropertyValuesBurnOnRead(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPostPropertyCreateTest(t, true)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = new(true)
+	})
+	field := th.createField(t, model.PermissionLevelMember)
+
+	t.Run("a burn-on-read post with values is refused and nothing is stored", func(t *testing.T) {
+		post := postWithPropertyValues(th.BasicChannel.Id, submittedPropertyValue(field.ID, `"x"`))
+		post.Type = model.PostTypeBurnOnRead
+
+		_, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.attributes_burn_on_read.app_error")
+
+		posts, _, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		for _, p := range posts.Posts {
+			assert.NotEqual(t, post.Message, p.Message, "the refused post was saved")
+		}
+	})
+
+	t.Run("a burn-on-read post without values is created", func(t *testing.T) {
+		_, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn after reading " + model.NewId(),
+			Type:      model.PostTypeBurnOnRead,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+}
+
+func TestCreatePostWithPropertyValuesFeatureFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPostPropertyCreateTest(t, false)
+
+	t.Run("submitting values is refused", func(t *testing.T) {
+		// The field exists and would be applicable with the flag on, so the refusal is the flag's
+		// doing and not a lookup that failed to find it.
+		field := th.createField(t, model.PermissionLevelMember)
+
+		_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"x"`),
+		))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.attributes_feature_disabled.app_error")
+	})
+
+	t.Run("a post with no values is created normally", func(t *testing.T) {
+		_, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "flag off " + model.NewId(),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+}
+
+func TestCreatePostWithPropertyValuesUnlicensed(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPostPropertyCreateTest(t, true)
+	field := th.createField(t, model.PermissionLevelMember)
+
+	// Past api4's own checks, access_control refuses every operation without an Enterprise licence.
+	th.App.Srv().SetLicense(nil)
+	// The field's own cleanup deletes it through the same licence gate.
+	t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)) })
+
+	_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+		submittedPropertyValue(field.ID, `"x"`),
+	))
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "app.property.license_error")
+}
+
+func TestCreatePostWithPropertyValuesAsGuest(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Its own helper rather than a subtest of the suite above: guest accounts need a license, and
+	// that suite doesn't set one.
+	th := setupPostPropertyCreateTest(t, true)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+	// Guest accounts need their feature on the licence, and access_control needs an Enterprise SKU on it.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	guest, guestClient := th.CreateGuestAndClient(t)
+
+	// The member level resolves through read_channel, which a guest in the channel has.
+	field := th.createField(t, model.PermissionLevelMember)
+
+	created, resp, err := guestClient.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+		submittedPropertyValue(field.ID, `"from a guest"`),
+	))
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	stored := th.storedValues(t, created.Id)
+	require.Len(t, stored, 1)
+	assert.Equal(t, field.ID, stored[0].FieldID)
+	assert.Equal(t, guest.Id, stored[0].CreatedBy)
+}

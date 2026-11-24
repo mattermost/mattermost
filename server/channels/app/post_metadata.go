@@ -6,6 +6,7 @@ package app
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"io"
@@ -144,13 +145,22 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 	}
 
 	withheld := make(map[string]bool)
+	page := rctx.WithContext(context.WithValue(rctx.Context(), entityPageKey{}, true))
 	for id, originalPost := range originalList.Posts {
-		post, blanked := a.preparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
+		post, blanked := a.preparePostForClientWithEmbedsAndImages(page, originalPost, &model.PreparePostForClientOpts{})
 		list.Posts[id] = post
 		if blanked {
 			withheld[id] = true
 		}
 	}
+
+	visible := make([]*model.Post, 0, len(list.Posts))
+	for id, post := range list.Posts {
+		if post != nil && !withheld[id] {
+			visible = append(visible, post)
+		}
+	}
+	a.hydratePostList(page, visible)
 
 	if a.IsPostPriorityEnabled() {
 		priority, _ := a.GetPriorityForPostList(list)
@@ -367,6 +377,12 @@ func (a *App) preparePostForClient(rctx request.CTX, originalPost *model.Post, o
 
 	if opts.PropertyGroupID != "" && !metadataWithheld {
 		a.hydratePropertyValues(rctx, []*model.Post{post}, opts.PropertyGroupID)
+	}
+
+	if !metadataWithheld {
+		if page, _ := rctx.Context().Value(entityPageKey{}).(bool); !page {
+			a.hydratePostEntities(rctx, post)
+		}
 	}
 
 	return post, metadataWithheld
@@ -1062,6 +1078,7 @@ func filterSVGImage(image *model.PostImage, imageURL string) *model.PostImage {
 
 func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
+	skipCache := previewedPostPropVal != "" && *a.Config().ServiceSettings.EnablePermalinkPreviews && looksLikeAPermalink(requestURL, a.GetSiteURL())
 
 	// If it's an embedded image, nothing to do.
 	if strings.HasPrefix(strings.ToLower(requestURL), "data:image/") {
@@ -1076,7 +1093,7 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 		permalink = nil
 	}
 
-	if ok && previewedPostPropVal == "" {
+	if ok && !skipCache {
 		og = model.TruncateOpenGraph(og)
 		image = filterSVGImage(image, requestURL)
 		return og, image, permalink, nil
@@ -1085,7 +1102,7 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
-		if ok && previewedPostPropVal == "" {
+		if ok && !skipCache {
 			og = model.TruncateOpenGraph(og)
 			image = filterSVGImage(image, requestURL)
 			cacheLinkMetadata(rctx, requestURL, timestamp, og, image, nil)

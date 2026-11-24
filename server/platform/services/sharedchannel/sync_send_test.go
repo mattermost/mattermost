@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
@@ -49,6 +50,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		mockServer := &MockServerIface{}
 		mockServer.On("GetStore").Return(mockStore)
 		mockServer.On("GetMetrics").Return(nil)
+		mockServer.On("GetCluster").Return(nil)
 		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
 
 		return &Service{
@@ -86,7 +88,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		task := newSyncTask(channelID, "", remoteID, nil, nil)
 		scs.addTask(task)
 
-		scs.doSync()
+		scs.doSync(nil)
 
 		assert.Empty(t, scs.tasks, "the orphaned task must be drained, not re-enqueued for retry")
 		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
@@ -220,6 +222,8 @@ type mockRCSForSync struct {
 	cbErr        error
 
 	enqueueErr error // when set, SendMsg returns this WITHOUT invoking the callback
+
+	sent []model.RemoteClusterMsg
 }
 
 func (m *mockRCSForSync) NotifySyncFailed(remoteId string) {
@@ -239,6 +243,9 @@ func (m *mockRCSForSync) AddConnectionStateListener(listener remotecluster.Conne
 }
 func (m *mockRCSForSync) RemoveConnectionStateListener(listenerId string) {}
 func (m *mockRCSForSync) SendMsg(_ context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	m.mu.Lock()
+	m.sent = append(m.sent, msg)
+	m.mu.Unlock()
 	// Simulate an enqueue failure (e.g. BufferFullError): the callback never runs.
 	if m.enqueueErr != nil {
 		return m.enqueueErr
@@ -295,6 +302,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail immediately
 
 	scs := &Service{
@@ -307,7 +315,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	scs.addTask(task)
 
 	before := time.Now()
-	scs.doSync()
+	scs.doSync(nil)
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
@@ -341,6 +349,7 @@ func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs makes syncForRemote fail for each remote
 
 	scs := &Service{
@@ -352,7 +361,7 @@ func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
 	// Fan-out task: empty remoteID.
 	scs.addTask(newSyncTask(channelID, "", "", nil, nil))
 
-	scs.doSync()
+	scs.doSync(nil)
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
@@ -576,6 +585,7 @@ func TestDoSync_CatchUpRetryKeepsFlag(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail
 
 	scs := newTestService()
@@ -585,7 +595,7 @@ func TestDoSync_CatchUpRetryKeepsFlag(t *testing.T) {
 	task.catchUp = true
 	scs.addTask(task)
 
-	scs.doSync()
+	scs.doSync(nil)
 
 	require.Len(t, scs.tasks, 1, "failed task should be re-enqueued for retry")
 	for _, retried := range scs.tasks {
@@ -820,4 +830,105 @@ func TestFetchReactionsAndAcknowledgementsForSync(t *testing.T) {
 	assert.Equal(t, acks, sd.acknowledgements)
 	mockReactionStore.AssertExpectations(t)
 	mockAckStore.AssertExpectations(t)
+}
+
+func TestFetchPostsForSync_Repeat(t *testing.T) {
+	const maxPosts = 10
+
+	makePosts := func(n int) []*model.Post {
+		posts := make([]*model.Post, n)
+		for i := range posts {
+			posts[i] = &model.Post{Id: model.NewId(), CreateAt: int64(1000 + i), UpdateAt: int64(1000 + i)}
+		}
+		return posts
+	}
+	newPosts := makePosts(3)
+	updatedPosts := makePosts(5)
+	burst := makePosts(6)
+
+	tests := []struct {
+		name       string
+		newPosts   []*model.Post
+		updated    []*model.Post // nil when the updated-posts query must not run
+		wantPosts  int
+		wantRepeat bool
+	}{
+		{
+			// The updated-posts query also returns posts created after the cursor.
+			name:       "full updated page that repeats new posts",
+			newPosts:   newPosts,
+			updated:    append([]*model.Post{newPosts[0], newPosts[1]}, updatedPosts...),
+			wantPosts:  len(newPosts) + len(updatedPosts),
+			wantRepeat: true,
+		},
+		{
+			name:       "partial updated page",
+			newPosts:   newPosts,
+			updated:    updatedPosts[:4],
+			wantPosts:  len(newPosts) + 4,
+			wantRepeat: false,
+		},
+		{
+			name:       "full updated page of only new posts",
+			newPosts:   burst,
+			updated:    burst[:maxPosts-len(burst)],
+			wantPosts:  len(burst),
+			wantRepeat: true,
+		},
+		{
+			name:       "full new page",
+			newPosts:   makePosts(maxPosts),
+			wantPosts:  maxPosts,
+			wantRepeat: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			last := tt.newPosts[len(tt.newPosts)-1]
+			createdCursor := model.GetPostsSinceForSyncCursor{LastPostCreateAt: last.CreateAt, LastPostCreateID: last.Id}
+			wantCursor := createdCursor
+
+			mockPostStore := &mocks.PostStore{}
+			mockPostStore.On("GetPostsSinceForSync",
+				mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return o.SinceCreateAt }),
+				mock.Anything, maxPosts).Return(tt.newPosts, createdCursor, nil)
+			if tt.updated != nil {
+				updatedCursor := createdCursor
+				updatedCursor.LastPostUpdateAt = 2000
+				updatedCursor.LastPostUpdateID = model.NewId()
+				mockPostStore.On("GetPostsSinceForSync",
+					mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return !o.SinceCreateAt }),
+					createdCursor, maxPosts-len(tt.newPosts)).Return(tt.updated, updatedCursor, nil)
+				wantCursor = updatedCursor
+			}
+
+			mockStore := &mocks.Store{}
+			mockStore.On("Post").Return(mockPostStore)
+
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			cfg.ConnectedWorkspacesSettings.MaxPostsPerSync = model.NewPointer(maxPosts)
+
+			mockServer := &MockServerIface{}
+			mockServer.On("GetStore").Return(mockStore)
+			mockServer.On("GetMetrics").Return(nil)
+			mockServer.On("Config").Return(cfg)
+			mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+			mockApp := &MockAppIface{}
+			mockApp.On("PreparePostForClient", mock.Anything, mock.Anything, mock.Anything).
+				Return(func(_ request.CTX, p *model.Post, _ *model.PreparePostForClientOpts) *model.Post { return p })
+
+			scs := &Service{server: mockServer, app: mockApp}
+			sd := newSyncData(syncTask{channelID: model.NewId()}, &model.RemoteCluster{RemoteId: model.NewId()}, &model.SharedChannelRemote{})
+
+			require.NoError(t, scs.fetchPostsForSync(sd))
+
+			assert.Len(t, sd.posts, tt.wantPosts)
+			assert.Equal(t, tt.wantRepeat, sd.resultRepeat)
+			assert.Equal(t, wantCursor, sd.resultNextCursor)
+			mockPostStore.AssertExpectations(t)
+		})
+	}
 }
