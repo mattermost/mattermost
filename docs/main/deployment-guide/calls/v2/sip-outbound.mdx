@@ -36,13 +36,33 @@ In **System Console > Plugins > Calls > SIP Outbound**:
 
 The plugin creates the trunk in LiveKit. The status should show `ready` with a trunk ID.
 
-Alternatively, use mode **existing**: create the trunk yourself with `lk sip outbound create` and enter the trunk ID.
+### Choose a trunk mode
+
+| Mode | Use it when | Notes |
+|---|---|---|
+| **managed** | Self-hosted LiveKit (Docker Compose or Kubernetes). This is the recommended mode. | The plugin creates the trunk and re-creates it automatically if Redis restarts. |
+| **existing** | You use LiveKit Cloud and the SIP trunk is already set up there. | LiveKit Cloud manages the trunk. Enter the trunk ID. |
+
+:::important
+With self-hosted LiveKit, use **managed** mode. In **existing** mode the plugin does not re-create the trunk, so outbound dialing stops working if Redis restarts and the trunk is lost, until you create the trunk again.
+:::
+
 
 {/* TODO: confirm the exact System Console labels for the SIP settings against the v2 build. */}
 
 ### If the trunk status shows an error
 
-The plugin tries to create the trunk when a SIP setting changes or when the plugin starts, not on every Save. If the status shows an error, for example `sip not connected (redis required)` because Redis was not running yet, fix the cause and then trigger a new attempt by turning **Enable outbound phone dialing** off and on again, saving each time. Saving again without toggling does not retry, and the System Console can keep showing the old error. Disabling and re-enabling the Calls plugin also triggers a new attempt.
+In **managed** mode the plugin creates, or re-creates, the trunk when:
+
+- the plugin starts,
+- a SIP setting changes,
+- a user places an outbound call and the plugin has no working trunk. This is attempted at most once every 30 seconds. If LiveKit reports that the trunk no longer exists (for example after a Redis restart), the plugin re-creates it and retries the call automatically.
+
+It does not do this on every Save. The built-in diagnostic (`/call diag`) only reports the trunk status. It does not create or repair the trunk.
+
+If the status shows an error, for example `sip not connected (redis required)` because Redis was not running yet, fix the cause. The next outbound call attempt then retries by itself. To retry without placing a call, turn **Enable outbound phone dialing** off and on again, saving each time. Saving again without toggling does not retry, and the System Console can keep showing the old error until a retry succeeds. Disabling and re-enabling the Calls plugin also triggers a new attempt.
+
+In **existing** mode the plugin never creates or repairs the trunk. If the trunk is missing, the status shows `missing` (trunk not found on this LiveKit server) and calls fail until the trunk exists again.
 
 ### Check the trunk state without the System Console
 
@@ -59,7 +79,16 @@ A `ready` status does not prove the bridge is healthy. It can show `ready` befor
 
 ## Verify
 
-Place a call to a phone number in E.164 format (`+1...`). Then check the bridge logs:
+Place a test call to a phone number you control:
+
+1. In any channel, post a `tel:` link with the number in E.164 format, for example `[Test call](tel:+15555550123)`.2. Click the link. The plugin dials the number through your SIP trunk and joins you to the call.
+3. Answer the phone and confirm you can hear each other.
+
+Clicking `tel:` links in the web app and desktop app dials through the plugin while outbound dialing is enabled. If the click opens your operating system's phone app instead, outbound dialing is turned off or not licensed. If it shows an error, the trunk or SIP settings need attention: see [If the trunk status shows an error](#if-the-trunk-status-shows-an-error).
+
+{/* TODO: confirm in the final v2 build that the Markdown `tel:` link renders and dials as described, and whether a bare `tel:+1...` is auto-linked. Mobile apps and call pop-out windows are not intercepted; mobile hands tel: links to the phone's own dialer. */}
+
+Then check the bridge logs:
 
 - Docker Compose: `docker compose logs livekit-sip`
 - Kubernetes: `kubectl -n livekit logs deploy/livekit-sip`
