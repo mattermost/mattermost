@@ -20,6 +20,8 @@ func (api *API) InitPasskey() {
 	api.BaseRoutes.User.Handle("/passkeys/registration/begin", api.RateLimitedHandler(api.APISessionRequired(beginPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/registration/finish", api.RateLimitedHandler(api.APISessionRequired(finishPasskeyRegistration), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/passkeys/enrollment/ticket", api.RateLimitedHandler(api.APISessionRequired(createPasskeyEnrollmentTicket), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/passkeys/enrollment/registration/begin", api.RateLimitedHandler(api.APIHandler(beginPasskeyRegistrationWithTicket), loginRateLimit())).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/passkeys/enrollment/registration/finish", api.RateLimitedHandler(api.APIHandler(finishPasskeyRegistrationWithTicket), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/passkey/begin", api.RateLimitedHandler(api.APIHandler(beginPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/passkey/finish", api.RateLimitedHandler(api.APIHandler(finishPasskeyLogin), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/passkey", api.APISessionRequired(revokePasskeySessions)).Methods(http.MethodPost)
@@ -64,6 +66,16 @@ func requirePasskeyFlagAndLicense(c *Context) bool {
 // that can serve as a relying party, and enrollment turned on. Login being off does not matter.
 func requirePasskeyEnrollment(c *Context) bool {
 	if !requirePasskeys(c) {
+		return false
+	}
+
+	return requirePasskeyEnrollmentEnabled(c)
+}
+
+// requirePasskeyEnrollmentEnabled gates the ticket enrollment endpoints, which have no caller: flag,
+// license, a usable Site URL, then the enrollment setting. Login being on or off does not matter.
+func requirePasskeyEnrollmentEnabled(c *Context) bool {
+	if !requirePasskeyFlagAndLicense(c) {
 		return false
 	}
 
@@ -207,21 +219,35 @@ func finishPasskeyRegistration(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var finish model.PasskeyRegistrationFinish
-	if err := json.NewDecoder(r.Body).Decode(&finish); err != nil {
-		c.SetInvalidParamWithErr("passkey", err)
-		return
-	}
-	if finish.CeremonyId == "" {
-		c.SetInvalidParam("ceremony_id")
-		return
-	}
-	if len(finish.Credential) == 0 {
-		c.SetInvalidParam("credential")
+	finish := decodePasskeyRegistrationFinish(c, r)
+	if finish == nil {
 		return
 	}
 
 	passkey, appErr := c.App.FinishPasskeyRegistration(c.AppContext, c.AppContext.Session(), finish.CeremonyId, finish.Name, r.UserAgent(), finish.Credential)
+	writePasskeyRegistered(c, w, passkey, appErr)
+}
+
+// decodePasskeyRegistrationFinish reads and validates the finish body, returning nil with c.Err set
+// when it is unusable.
+func decodePasskeyRegistrationFinish(c *Context, r *http.Request) *model.PasskeyRegistrationFinish {
+	var finish model.PasskeyRegistrationFinish
+	if err := json.NewDecoder(r.Body).Decode(&finish); err != nil {
+		c.SetInvalidParamWithErr("passkey", err)
+		return nil
+	}
+	if finish.CeremonyId == "" {
+		c.SetInvalidParam("ceremony_id")
+		return nil
+	}
+	if len(finish.Credential) == 0 {
+		c.SetInvalidParam("credential")
+		return nil
+	}
+	return &finish
+}
+
+func writePasskeyRegistered(c *Context, w http.ResponseWriter, passkey *model.Passkey, appErr *model.AppError) {
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -231,6 +257,49 @@ func finishPasskeyRegistration(c *Context, w http.ResponseWriter, r *http.Reques
 	if err := json.NewEncoder(w).Encode(passkey); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// beginPasskeyRegistrationWithTicket and finishPasskeyRegistrationWithTicket never read the request's
+// session: the browser page may be signed out or signed in as anyone, and the ticket alone decides
+// which account gets the passkey.
+func beginPasskeyRegistrationWithTicket(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requirePasskeyEnrollmentEnabled(c) {
+		return
+	}
+
+	var body model.PasskeyEnrollmentTicket
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		c.SetInvalidParamWithErr("ticket", err)
+		return
+	}
+	if body.Ticket == "" {
+		c.SetInvalidParam("ticket")
+		return
+	}
+
+	options, appErr := c.App.BeginPasskeyRegistrationWithTicket(c.AppContext, body.Ticket)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(options); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func finishPasskeyRegistrationWithTicket(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requirePasskeyEnrollmentEnabled(c) {
+		return
+	}
+
+	finish := decodePasskeyRegistrationFinish(c, r)
+	if finish == nil {
+		return
+	}
+
+	passkey, appErr := c.App.FinishPasskeyRegistrationWithTicket(c.AppContext, finish.CeremonyId, finish.Name, r.UserAgent(), finish.Credential)
+	writePasskeyRegistered(c, w, passkey, appErr)
 }
 
 // createPasskeyEnrollmentTicket hands the app the request's own session: the ticket borrows that

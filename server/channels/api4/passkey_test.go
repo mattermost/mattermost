@@ -420,6 +420,224 @@ func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
 	})
 }
 
+// registerWithTicket runs a full ticket ceremony on client, which needs no session.
+func registerWithTicket(t *testing.T, client *model.Client4, ticket string) (*model.Passkey, *model.Response, error) {
+	t.Helper()
+
+	opts, _, err := client.BeginPasskeyRegistrationWithTicket(context.Background(), ticket)
+	require.NoError(t, err)
+	auth, err := testlib.NewSoftAuthenticator()
+	require.NoError(t, err)
+	credential, err := auth.CreateResponse(opts.Options, "http://localhost:8065")
+	require.NoError(t, err)
+
+	return client.FinishPasskeyRegistrationWithTicket(context.Background(), &model.PasskeyRegistrationFinish{
+		CeremonyId: opts.CeremonyId,
+		Credential: credential,
+	})
+}
+
+func TestPasskeyRegistrationWithTicket(t *testing.T) {
+	issue := func(t *testing.T, client *model.Client4) string {
+		t.Helper()
+		ticket, _, err := client.CreatePasskeyEnrollmentTicket(context.Background(), model.Me)
+		require.NoError(t, err)
+		return ticket.Ticket
+	}
+
+	checkBeginFails := func(t *testing.T, client *model.Client4, ticket string, check func(testing.TB, *model.Response), id string) {
+		t.Helper()
+		_, resp, err := client.BeginPasskeyRegistrationWithTicket(context.Background(), ticket)
+		require.Error(t, err)
+		check(t, resp)
+		CheckErrorID(t, err, id)
+	}
+
+	t.Run("a client that never signed in registers a passkey for the ticket's user", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		browser := th.CreateClient()
+
+		pk, resp, err := registerWithTicket(t, browser, issue(t, th.Client))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, th.BasicUser.Id, pk.UserId)
+
+		list, _, err := th.Client.GetPasskeysForUser(context.Background(), model.Me)
+		require.NoError(t, err)
+		require.Len(t, list, 1)
+		assert.Equal(t, pk.Id, list[0].Id)
+	})
+
+	t.Run("the ticket, not the browser's session, decides the account", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		browser := th.CreateClient()
+		th.LoginBasic2WithClient(t, browser)
+
+		pk, _, err := registerWithTicket(t, browser, issue(t, th.Client))
+		require.NoError(t, err)
+		assert.Equal(t, th.BasicUser.Id, pk.UserId)
+
+		mine, _, err := th.Client.GetPasskeysForUser(context.Background(), model.Me)
+		require.NoError(t, err)
+		assert.Len(t, mine, 1)
+		theirs, _, err := browser.GetPasskeysForUser(context.Background(), model.Me)
+		require.NoError(t, err)
+		assert.Empty(t, theirs)
+	})
+
+	t.Run("login off still registers", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePasskeyLogin = false
+		})
+
+		_, resp, err := registerWithTicket(t, th.CreateClient(), issue(t, th.Client))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a spent ticket is refused", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		browser := th.CreateClient()
+		ticket := issue(t, th.Client)
+
+		_, _, err := registerWithTicket(t, browser, ticket)
+		require.NoError(t, err)
+
+		checkBeginFails(t, browser, ticket, CheckBadRequestStatus, "app.passkey.ticket_invalid.app_error")
+	})
+
+	t.Run("an expired ticket is refused", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		ticket := issue(t, th.Client)
+		_, err := th.Server.Store().GetInternalMasterDB().Exec(
+			`UPDATE Tokens SET CreateAt = $1 WHERE Token = $2`,
+			model.GetMillis()-model.PasskeyEnrollmentTicketExpiryTime-1000, ticket)
+		require.NoError(t, err)
+
+		checkBeginFails(t, th.CreateClient(), ticket, CheckBadRequestStatus, "app.passkey.ticket_invalid.app_error")
+	})
+
+	t.Run("a ticket whose issuing session signed out is refused", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		ticket := issue(t, th.Client)
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+
+		checkBeginFails(t, th.CreateClient(), ticket, CheckBadRequestStatus, "app.passkey.ticket_invalid.app_error")
+	})
+
+	t.Run("recency is judged on the issuing session", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		fresh := th.CreateClient()
+		th.LoginBasicWithClient(t, fresh)
+		ticket := issue(t, th.Client)
+		ageSession(t, th, th.Client)
+
+		checkBeginFails(t, th.CreateClient(), ticket, CheckForbiddenStatus, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("a ticket issued from a passkey sign-in is refused", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		auth, _ := registerAndAuthenticator(t, th)
+		viaPasskey := th.CreateClient()
+		_, _, err := signInWithPasskey(t, viaPasskey, auth)
+		require.NoError(t, err)
+
+		checkBeginFails(t, th.CreateClient(), issue(t, viaPasskey), CheckForbiddenStatus, "app.passkey.recent_login_required.app_error")
+	})
+
+	t.Run("a ceremony begun with a ticket cannot finish through the session route", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		browser := th.CreateClient()
+		ticket := issue(t, th.Client)
+
+		opts, _, err := browser.BeginPasskeyRegistrationWithTicket(context.Background(), ticket)
+		require.NoError(t, err)
+		auth, err := testlib.NewSoftAuthenticator()
+		require.NoError(t, err)
+		credential, err := auth.CreateResponse(opts.Options, "http://localhost:8065")
+		require.NoError(t, err)
+
+		_, _, err = th.Client.FinishPasskeyRegistration(context.Background(), model.Me, &model.PasskeyRegistrationFinish{
+			CeremonyId: opts.CeremonyId, Credential: credential,
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.passkey.ceremony_invalid.app_error")
+
+		_, resp, err := registerWithTicket(t, browser, ticket)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	checkGated := func(t *testing.T, th *TestHelper, id string) {
+		t.Helper()
+		browser := th.CreateClient()
+		_, resp, err := browser.BeginPasskeyRegistrationWithTicket(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, id)
+
+		_, resp, err = browser.FinishPasskeyRegistrationWithTicket(context.Background(), &model.PasskeyRegistrationFinish{
+			CeremonyId: model.NewId(), Credential: json.RawMessage(`{}`),
+		})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, id)
+	}
+
+	t.Run("flag off", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) { cfg.FeatureFlags.Passkeys = false })
+		checkGated(t, th, "api.passkey.feature_disabled.app_error")
+	})
+
+	t.Run("no license", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		th.App.Srv().SetLicense(nil)
+		checkGated(t, th, "api.passkey.license.app_error")
+	})
+
+	t.Run("enrollment off", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePasskeyEnrollment = false
+		})
+		checkGated(t, th, "api.passkey.enrollment_disabled.app_error")
+	})
+
+	t.Run("Site URL that cannot serve passkeys", func(t *testing.T) {
+		th := setupPasskeyRegistration(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://chat.example.com"
+		})
+		checkGated(t, th, "api.passkey.unavailable.app_error")
+	})
+
+	t.Run("malformed body or missing fields", func(t *testing.T) {
+		th := setupPasskeyRegistration(t)
+		browser := th.CreateClient()
+
+		for _, path := range []string{"begin", "finish"} {
+			r, err := browser.DoAPIPost(context.Background(), "/users/passkeys/enrollment/registration/"+path, "not json")
+			require.Error(t, err)
+			CheckBadRequestStatus(t, model.BuildResponse(r))
+		}
+
+		_, resp, err := browser.BeginPasskeyRegistrationWithTicket(context.Background(), "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = browser.FinishPasskeyRegistrationWithTicket(context.Background(), &model.PasskeyRegistrationFinish{
+			Credential: json.RawMessage(`{}`),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = browser.FinishPasskeyRegistrationWithTicket(context.Background(), &model.PasskeyRegistrationFinish{
+			CeremonyId: model.NewId(),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestPasskeyRegistration(t *testing.T) {
 	t.Run("registers a passkey through me and the explicit id", func(t *testing.T) {
 		th := setupPasskeyRegistration(t)
@@ -947,6 +1165,8 @@ func TestPasskeyRateLimit(t *testing.T) {
 			"/users/me/passkeys/registration/begin",
 			"/users/me/passkeys/registration/finish",
 			"/users/me/passkeys/enrollment/ticket",
+			"/users/passkeys/enrollment/registration/begin",
+			"/users/passkeys/enrollment/registration/finish",
 		} {
 			assert.True(t, limited(th, path), path)
 		}
