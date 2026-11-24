@@ -9,6 +9,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
+import {KeyVariantIcon} from '@mattermost/compass-icons/components';
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Team} from '@mattermost/types/teams';
 
@@ -22,7 +23,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {login, getUserLoginType} from 'actions/views/login';
+import {login, loginWithPasskey, getUserLoginType} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import AlertBanner from 'components/alert_banner';
@@ -51,6 +52,7 @@ import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
+import {assertionToJSON, requestOptionsFromJSON, signalUnknownPasskey} from 'utils/passkeys';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -104,6 +106,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         ExperimentalPrimaryTeam,
         ForgotPasswordLink,
         PasswordEnableForgotLink,
+        PasskeyLoginEnabled,
     } = useSelector(getConfig);
     const {IsLicensed, GuestAccounts} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -150,6 +153,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
+
+    // The desktop app runs no passkey ceremony.
+    const showPasskey = PasskeyLoginEnabled === 'true' && !isDesktopApp() && typeof window.PublicKeyCredential !== 'undefined';
+    const hasExternalOptions = enableExternalSignup || showPasskey;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
     const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
 
@@ -157,10 +164,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const getExternalLoginOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
-
-        if (!enableExternalSignup) {
-            return externalLoginOptions;
-        }
 
         if (enableSignUpWithGitLab) {
             const url = `${Client4.getOAuthRoute()}/gitlab/login${search}`;
@@ -216,6 +219,21 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
                 onClick: handleExternalAuth(url, 'saml'),
+            });
+        }
+
+        if (showPasskey) {
+            externalLoginOptions.push({
+                id: 'passkey',
+                url: '#',
+                icon: <KeyVariantIcon size={18}/>,
+                label: formatMessage({id: 'login.passkey', defaultMessage: 'Passkey', description: 'Label of the login page button that signs in with a passkey.'}),
+                onClick: (event: React.MouseEvent) => {
+                    event.preventDefault();
+                    if (!isWaiting) {
+                        signInWithPasskey();
+                    }
+                },
             });
         }
 
@@ -729,6 +747,53 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         await postSubmit();
     };
 
+    const signInWithPasskey = async () => {
+        setIsWaiting(true);
+        dismissAlert();
+
+        const showError = (title: string) => {
+            setAlertBanner({mode: 'danger', title});
+            setHasError(true);
+            setIsWaiting(false);
+        };
+
+        try {
+            const {ceremony_id: ceremonyId, options} = await Client4.beginPasskeyLogin();
+            const credential = await navigator.credentials.get({publicKey: requestOptionsFromJSON(options.publicKey)}) as PublicKeyCredential | null;
+            if (!credential) {
+                setIsWaiting(false);
+                return;
+            }
+
+            const {error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
+            if (error) {
+                if (error.server_error_id === 'app.passkey.unknown_credential.app_error') {
+                    // An omitted rpId means the page's own host to WebAuthn.
+                    signalUnknownPasskey(options.publicKey.rpId ?? window.location.hostname, credential.id);
+                    showError(formatMessage({
+                        id: 'login.passkeyUnknown',
+                        defaultMessage: 'This passkey isn’t registered on this server. Choose another passkey or log in another way.',
+                        description: 'Login page error when the chosen passkey is not registered on this server.',
+                    }));
+                } else {
+                    showError(error.message);
+                }
+                return;
+            }
+        } catch (e) {
+            const err = e as Error;
+            if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
+                // The user dismissed the browser prompt; the unused ceremony expires on the server.
+                setIsWaiting(false);
+            } else {
+                showError(err.message);
+            }
+            return;
+        }
+
+        await postSubmit();
+    };
+
     const checkUserLoginType = async (loginId: string) => {
         setIsWaiting(true);
         const result = await dispatch(getUserLoginType(loginId));
@@ -849,7 +914,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return CustomDescriptionText;
         }
 
-        if (!enableBaseLogin && enableExternalSignup) {
+        if (!enableBaseLogin && hasExternalOptions) {
             return formatMessage({id: 'login.cardtitle.external', defaultMessage: 'Log in with one of the following:'});
         }
 
@@ -932,7 +997,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             );
         }
 
-        if (!enableBaseLogin && !enableExternalSignup) {
+        if (!enableBaseLogin && !hasExternalOptions) {
             return (
                 <ColumnLayout
                     title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
@@ -1037,14 +1102,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             </div>
                                         </form>
                                     )}
-                                    {enableBaseLogin && enableExternalSignup && (
+                                    {enableBaseLogin && hasExternalOptions && (
                                         <div className='login-body-card-form-divider'>
                                             <span className='login-body-card-form-divider-label'>
                                                 {formatMessage({id: 'login.or', defaultMessage: 'or log in with'})}
                                             </span>
                                         </div>
                                     )}
-                                    {enableExternalSignup && (
+                                    {hasExternalOptions && (
                                         <div className={classNames('login-body-card-form-login-options', {column: !enableBaseLogin})}>
                                             {getExternalLoginOptions().map((option) => (
                                                 <ExternalLoginButton

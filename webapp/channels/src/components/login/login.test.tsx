@@ -6,7 +6,9 @@ import nock from 'nock';
 import React from 'react';
 
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+import type {UserProfile} from '@mattermost/types/users';
 
+import * as userActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
 
@@ -758,6 +760,181 @@ describe('components/login/Login', () => {
                     },
                 },
             }));
+        });
+    });
+
+    describe('passkey sign-in', () => {
+        const passkeyState = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                        PasskeyLoginEnabled: 'true',
+                    },
+                },
+            },
+        });
+        const onlyPasskeyState = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        PasskeyLoginEnabled: 'true',
+                    },
+                },
+            },
+        });
+        const redirectPath = '/boards/team/teamID/boardID';
+        const beginResult = {
+            ceremony_id: 'ceremony1',
+            options: {publicKey: {challenge: 'AQID', rpId: 'mm.example.com', userVerification: 'required' as const}},
+        };
+        const rawCredential = {
+            id: 'credential1',
+            rawId: new Uint8Array([1, 2, 3]).buffer,
+            type: 'public-key',
+            authenticatorAttachment: 'platform',
+            getClientExtensionResults: () => ({}),
+            response: {
+                clientDataJSON: new Uint8Array([4]).buffer,
+                authenticatorData: new Uint8Array([5]).buffer,
+                signature: new Uint8Array([6]).buffer,
+                userHandle: new Uint8Array([7]).buffer,
+            },
+        };
+        const abortError = (name: string) => Object.assign(new Error(name), {name});
+
+        let get: jest.Mock;
+        let signalUnknownCredential: jest.Mock;
+        let beginLogin: jest.SpyInstance;
+        let finishLogin: jest.SpyInstance;
+
+        const renderLogin = (state: GlobalState) => {
+            const history = createMemoryHistory({initialEntries: [{pathname: '/login', search: '?redirect_to=' + redirectPath}]});
+            renderWithContext(<Login/>, state, {history});
+            return history;
+        };
+
+        beforeEach(() => {
+            (isDesktopApp as jest.Mock).mockReturnValue(false);
+            beginLogin = jest.spyOn(Client4, 'beginPasskeyLogin').mockResolvedValue(beginResult);
+            finishLogin = jest.spyOn(Client4, 'finishPasskeyLogin').mockResolvedValue({id: 'user1', roles: ''} as UserProfile);
+            jest.spyOn(userActions, 'loadMe').mockReturnValue(async () => ({data: true}));
+            get = jest.fn().mockResolvedValue(rawCredential);
+            Object.defineProperty(navigator, 'credentials', {value: {get}, configurable: true});
+
+            // jsdom has no WebAuthn; the option is hidden without it.
+            signalUnknownCredential = jest.fn().mockResolvedValue(undefined);
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential}), configurable: true});
+        });
+
+        afterEach(() => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            Reflect.deleteProperty(navigator, 'credentials');
+        });
+
+        it('shows a passkey option under the form when passkey sign-in is enabled', () => {
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('link', {name: 'Passkey'})).toBeVisible();
+            expect(screen.getByText('or log in with')).toBeVisible();
+        });
+
+        it('shows no passkey option, and no divider, when passkey sign-in is disabled', () => {
+            renderLogin(mergeObjects(passkeyState, {entities: {general: {config: {PasskeyLoginEnabled: 'false'}}}}));
+
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+            expect(screen.queryByText('or log in with')).not.toBeInTheDocument();
+            expect(screen.getByText('Log in', {selector: 'p'})).toBeVisible();
+        });
+
+        it('shows no passkey option in the desktop app', () => {
+            (isDesktopApp as jest.Mock).mockReturnValue(true);
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+        });
+
+        it('shows no passkey option when the browser has no WebAuthn', () => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+        });
+
+        it('offers the passkey option instead of the no-methods page when it is the only method', () => {
+            renderLogin(onlyPasskeyState);
+
+            expect(screen.getByText('Log in with one of the following:')).toBeVisible();
+            expect(screen.getByRole('link', {name: 'Passkey'})).toBeVisible();
+            expect(screen.queryByText('This server doesn’t have any sign-in methods enabled')).not.toBeInTheDocument();
+        });
+
+        it('shows the no-methods page when passkeys are the only method but the browser cannot use them', () => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            renderLogin(onlyPasskeyState);
+
+            expect(screen.getByText('This server doesn’t have any sign-in methods enabled')).toBeVisible();
+        });
+
+        it('signs in with the chosen passkey and redirects as after a password login', async () => {
+            const history = renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+            expect(get.mock.calls[0][0].publicKey.challenge).toBeInstanceOf(ArrayBuffer);
+            expect(finishLogin.mock.calls[0][0]).toBe('ceremony1');
+            expect(finishLogin.mock.calls[0][1]).toMatchObject({id: 'credential1', response: {userHandle: 'Bw'}});
+        });
+
+        it.each(['NotAllowedError', 'AbortError'])('stays silent and usable when the browser prompt ends with %s', async (name) => {
+            get.mockRejectedValueOnce(abortError(name));
+            const history = renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(screen.getByLabelText('Email')).toBeEnabled());
+            expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+            expect(history.location.pathname).toBe('/login');
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+            await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+        });
+
+        it('says so, and tells the browser to forget the passkey, when the server does not know it', async () => {
+            finishLogin.mockRejectedValue({server_error_id: 'app.passkey.unknown_credential.app_error', message: 'unknown'});
+            renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('This passkey isn’t registered on this server. Choose another passkey or log in another way.')).toBeVisible();
+            expect(signalUnknownCredential).toHaveBeenCalledWith({rpId: 'mm.example.com', credentialId: 'credential1'});
+            expect(screen.getByLabelText('Email')).toBeEnabled();
+        });
+
+        it('shows the server message when the server refuses the sign-in', async () => {
+            finishLogin.mockRejectedValue({server_error_id: 'api.user.login.not_verified.app_error', message: 'Email not verified'});
+            const history = renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('Email not verified')).toBeVisible();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+            expect(history.location.pathname).toBe('/login');
+            expect(screen.getByLabelText('Email')).toBeEnabled();
+        });
+
+        it('shows the server message when the sign-in cannot begin', async () => {
+            beginLogin.mockRejectedValue({server_error_id: 'api.passkey.login_disabled.app_error', message: 'Passkey sign-in is turned off'});
+            renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('Passkey sign-in is turned off')).toBeVisible();
+            expect(get).not.toHaveBeenCalled();
+            expect(screen.getByLabelText('Email')).toBeEnabled();
         });
     });
 });

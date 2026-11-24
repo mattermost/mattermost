@@ -27315,6 +27315,14 @@
     "defaultMessage": "Log in - {siteName}",
     "description": "Browser tab/window title of the login page; {siteName} is the server or site name."
   },
+  "login.passkey": {
+    "defaultMessage": "Passkey",
+    "description": "Label of the login page button that signs in with a passkey."
+  },
+  "login.passkeyUnknown": {
+    "defaultMessage": "This passkey isn’t registered on this server. Choose another passkey or log in another way.",
+    "description": "Login page error when the chosen passkey is not registered on this server."
+  },
   "login.passwordChanged": {
     "defaultMessage": "Password updated successfully",
     "description": "Success banner on the login page after the user's password was reset, prompting them to log in again."

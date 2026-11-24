@@ -4,6 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {PasskeyAssertionCredential} from '@mattermost/types/passkeys';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {UserTypes} from 'mattermost-redux/action_types';
@@ -67,6 +68,12 @@ export function login(loginId: string, password: string, mfaToken = ''): ActionF
 export function loginWithDesktopToken(token: string): ActionFuncAsync {
     return async (dispatch) => {
         return performLogin(dispatch, () => Client4.loginWithDesktopToken(token));
+    };
+}
+
+export function loginWithPasskey(ceremonyId: string, credential: PasskeyAssertionCredential): ActionFuncAsync {
+    return async (dispatch) => {
+        return performLogin(dispatch, () => Client4.finishPasskeyLogin(ceremonyId, credential));
     };
 }
 
