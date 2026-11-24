@@ -5,9 +5,11 @@ import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
+import DisabledReasonTooltip from 'components/common/disabled_reason_tooltip';
 
 type Props = {
 
@@ -22,9 +24,14 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
+
+    // Why burn-on-read can't be used on this message right now, such as
+    // attributes being attached to it. Disables the button and replaces its
+    // tooltip with the reason.
+    blockedReason?: string;
 };
 
-const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props) => {
+const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, blockedReason}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleClick = () => {
@@ -48,24 +55,40 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props)
 
     const tooltipMessage = `${tooltipTitle}: ${tooltipHint}`;
 
+    const button = (
+        <IconButton
+            id='burnOnReadButton'
+            className='control'
+            size='small'
+            disabled={disabled || Boolean(blockedReason)}
+            aria-label={blockedReason ? `${tooltipTitle}: ${blockedReason}` : tooltipMessage}
+            onClick={handleClick}
+            icon={
+                <Icon
+                    glyph={<FireIcon color='currentColor'/>}
+                />
+            }
+        />
+    );
+
+    if (blockedReason) {
+        return (
+            <DisabledReasonTooltip
+                reason={blockedReason}
+                className='BurnOnReadButton__blocked'
+                data-testid='burn-on-read-blocked'
+            >
+                {button}
+            </DisabledReasonTooltip>
+        );
+    }
+
     return (
         <WithTooltip
             title={tooltipTitle}
             hint={tooltipHint}
         >
-            <IconContainer
-                id='burnOnReadButton'
-                className='control'
-                disabled={disabled}
-                type='button'
-                aria-label={tooltipMessage}
-                onClick={handleClick}
-            >
-                <FireIcon
-                    size={18}
-                    color='currentColor'
-                />
-            </IconContainer>
+            {button}
         </WithTooltip>
     );
 };

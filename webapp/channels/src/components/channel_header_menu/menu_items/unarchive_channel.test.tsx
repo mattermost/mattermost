@@ -42,4 +42,17 @@ describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
             dialogProps: {channel},
         });
     });
+
+    test('names it Unarchive Board for a board', () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <UnarchiveChannel
+                    channel={TestHelper.getChannelMock()}
+                    kind='board'
+                />
+            </WithTestMenuContext>, {},
+        );
+
+        expect(screen.getByText('Unarchive Board')).toBeInTheDocument();
+    });
 });

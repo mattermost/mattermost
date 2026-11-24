@@ -44,7 +44,7 @@ describe('Channel Settings - Channel Header', () => {
             cy.get('#channel_settings_header_textbox').
                 parents('.AdvancedTextbox').
                 find('#PreviewInputTextButton').
-                should('not.have.class', 'active');
+                should('have.attr', 'aria-pressed', 'false');
 
             // * Verify that before hitting the preview button, the style on the textbox is `display: block`
             cy.get('#channel_settings_header_textbox').should('have.css', 'display', 'block');
@@ -57,11 +57,11 @@ describe('Channel Settings - Channel Header', () => {
             // * Verify that the display is now none on the textbox element
             cy.get('#channel_settings_header_textbox').should('have.css', 'display', 'none');
 
-            // * Verify the "Preview" button has class active
+            // * Verify the "Preview" button is toggled on
             cy.get('#channel_settings_header_textbox').
                 parents('.AdvancedTextbox').
                 find('#PreviewInputTextButton').
-                should('have.class', 'active');
+                should('have.attr', 'aria-pressed', 'true');
         });
     });
 });

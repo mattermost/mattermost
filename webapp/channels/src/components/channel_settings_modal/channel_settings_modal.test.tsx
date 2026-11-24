@@ -7,7 +7,9 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {ChannelSettingsTabBodyProps} from 'types/plugins/channel_settings';
@@ -21,6 +23,7 @@ let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
 let mockManageSharedChannelsPermission = false;
+let mockIsChannelManagementDenied = false;
 const mockGetBasePath = jest.fn(() => '');
 const mockSettingsSidebar = jest.fn();
 const mockChannelSettingsPluginTab = jest.fn();
@@ -35,9 +38,14 @@ jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
     }),
 }));
 
-// Mock the roles selector which is used for permission checks
-jest.mock('mattermost-redux/selectors/entities/roles', () => ({
-    haveIChannelPermission: jest.fn().mockImplementation((state, teamId, channelId, permission) => {
+// Mock the roles selector which is used for permission checks.
+//
+// The modal asks haveIChannelPermissionRBACOnly for tab visibility so a channel_management_access
+// denial renders the tabs read-only instead of hiding them; isChannelManagementDenied is what
+// drives that read-only state. haveIChannelPermission is still mocked because the tab
+// components below reach for it.
+jest.mock('mattermost-redux/selectors/entities/roles', () => {
+    const rbacOnly = (permission: string) => {
         // Return different values based on the permission being checked
         if (permission === 'delete_private_channel') {
             return mockPrivateChannelPermission;
@@ -49,14 +57,29 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
             return mockManageChannelAccessRulesPermission;
         }
         return true;
-    }),
-    haveISystemPermission: jest.fn().mockImplementation((state, {permission}) => {
-        if (permission === 'manage_shared_channels') {
-            return mockManageSharedChannelsPermission;
-        }
-        return false;
-    }),
-}));
+    };
+
+    return {
+        haveIChannelPermissionRBACOnly: jest.fn().mockImplementation(
+            (state, teamId, channelId, permission) => rbacOnly(permission),
+        ),
+
+        // Mirrors the real selector: the role grant minus anything a management denial covers.
+        // Every permission the tabs check is in that set, so a test that asserts a tab is
+        // still visible under a denial only passes while the modal asks the RBAC-only
+        // variant for visibility.
+        haveIChannelPermission: jest.fn().mockImplementation(
+            (state, teamId, channelId, permission) => !mockIsChannelManagementDenied && rbacOnly(permission),
+        ),
+        haveISystemPermission: jest.fn().mockImplementation((state, {permission}) => {
+            if (permission === 'manage_shared_channels') {
+                return mockManageSharedChannelsPermission;
+            }
+            return false;
+        }),
+        isChannelManagementDenied: jest.fn().mockImplementation(() => mockIsChannelManagementDenied),
+    };
+});
 
 // Mock the general selectors
 jest.mock('selectors/general', () => ({
@@ -70,18 +93,26 @@ jest.mock('utils/url', () => ({
 
 // Mock child components to provide controlled testing interfaces
 jest.mock('./channel_settings_info_tab', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');
 
     return function MockChannelSettingsInfoTab({
         setAreThereUnsavedChanges,
         showTabSwitchError,
+        isReadOnly,
     }: {
         setAreThereUnsavedChanges?: (value: boolean) => void;
         showTabSwitchError?: boolean;
+        isReadOnly?: boolean;
     }) {
         return React.createElement('div', {'data-testid': 'info-tab'}, [
             'Info Tab Content',
+
+            // Stands in for the disabled controls and the explanatory banner the real tab
+            // renders, so the modal test can assert the flag is threaded through.
+            isReadOnly && React.createElement('div', {
+                key: 'read-only',
+                'data-testid': 'info-tab-read-only',
+            }, 'Read only'),
 
             // Provide test controls for state management
             setAreThereUnsavedChanges && React.createElement('button', {
@@ -367,12 +398,25 @@ describe('ChannelSettingsModal', () => {
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
         mockManageSharedChannelsPermission = false;
+        mockIsChannelManagementDenied = false;
         mockGetBasePath.mockReturnValue('');
         mockChannelSettingsPluginTab.mockClear();
         mockSettingsSidebar.mockClear();
         pluginSaveMocks.clear();
         pluginResetMocks.clear();
         baseProps.onExited.mockClear();
+    });
+
+    it('closes instead of rendering when the channel leaves the store', async () => {
+        const testState = makeTestState();
+        testState.entities.channels.channels = {};
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
 
     it('should render the modal with correct header text', async () => {
@@ -385,6 +429,19 @@ describe('ChannelSettingsModal', () => {
         await waitFor(() => {
             expect(screen.getByText('Channel Settings')).toBeInTheDocument();
         });
+    });
+
+    it('says Board Settings and Archive Board for a board', async () => {
+        const testState = mergeObjects(makeTestState(), boardChannelsState(channelId));
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+        await waitFor(() => {
+            expect(screen.getByText('Board Settings')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+        expect(await screen.findByRole('tab', {name: 'archive board'})).toBeInTheDocument();
+        expect(screen.queryByRole('tab', {name: 'archive channel'})).not.toBeInTheDocument();
     });
 
     it('should render Info tab by default', async () => {
@@ -780,6 +837,77 @@ describe('ChannelSettingsModal', () => {
             // The Membership Policy tab should not be visible (for multiple reasons: public + group-constrained)
             expect(screen.queryByRole('tab', {name: /membership policy/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
+        });
+
+        describe('channel_management_access policy', () => {
+            // A denial makes the modal read-only rather than hiding tabs. Every tab here is
+            // gated on a permission the management gate covers, so honouring the denial in
+            // the visibility checks would hide all of them and leave an empty modal.
+            const withPermissionPolicyFlags = () => {
+                const testState = makeTestState();
+                testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+                testState.entities.general.config = {
+                    FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagChannelPermissionPolicies: 'true',
+                };
+                return testState;
+            };
+
+            it('keeps both policy tabs visible when the policy denies management access', async () => {
+                mockManageChannelAccessRulesPermission = true;
+                mockIsChannelManagementDenied = true;
+
+                renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+                });
+
+                expect(screen.getByRole('tab', {name: /membership policy/i})).toBeInTheDocument();
+                expect(screen.getByRole('tab', {name: /permissions policy/i})).toBeInTheDocument();
+            });
+
+            it('keeps the other tabs visible when the policy denies management access', async () => {
+                // Info, Configuration and Archive are gated on management permissions too,
+                // so they are the reason the modal used to come up empty under a denial.
+                mockManageChannelAccessRulesPermission = true;
+                mockIsChannelManagementDenied = true;
+
+                renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+                });
+
+                expect(screen.getByRole('tab', {name: /info/i})).toBeInTheDocument();
+                expect(screen.getByRole('tab', {name: /archive channel/i})).toBeInTheDocument();
+            });
+
+            it('marks the rendered tab read-only when the policy denies management access', async () => {
+                mockManageChannelAccessRulesPermission = true;
+                mockIsChannelManagementDenied = true;
+
+                renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+                });
+
+                expect(screen.getByTestId('info-tab-read-only')).toBeInTheDocument();
+            });
+
+            it('does not mark tabs read-only when the policy allows management access', async () => {
+                mockManageChannelAccessRulesPermission = true;
+                mockIsChannelManagementDenied = false;
+
+                renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+                });
+
+                expect(screen.queryByTestId('info-tab-read-only')).not.toBeInTheDocument();
+            });
         });
     });
 

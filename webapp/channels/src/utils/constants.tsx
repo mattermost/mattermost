@@ -76,6 +76,16 @@ export const PreviousViewedTypes = {
     THREADS: 'threads',
 };
 
+export const MarkdownViews = {
+    RENDERED: 'rendered',
+    RAW: 'raw',
+} as const;
+
+// Holds a code block's raw Markdown while it is shown rendered, since the source isn't in the DOM then
+export const MARKDOWN_SOURCE_ATTRIBUTE = 'data-markdown-source';
+
+export type MarkdownView = typeof MarkdownViews[keyof typeof MarkdownViews];
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,
@@ -110,6 +120,8 @@ export const Preferences = {
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
     COLLAPSE_DISPLAY_DEFAULT: 'false',
+    COLLAPSE_CATEGORY_WITH_UNREADS: 'collapse_category_with_unreads',
+    COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT: 'false',
     AVAILABILITY_STATUS_ON_POSTS: 'availability_status_on_posts',
     AVAILABILITY_STATUS_ON_POSTS_DEFAULT: 'true',
     USE_MILITARY_TIME: 'use_military_time',
@@ -129,11 +141,17 @@ export const Preferences = {
     RECOMMENDED_NEXT_STEPS: 'recommended_next_steps',
     TEAMS_ORDER: 'teams_order',
 
-    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu.
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu (by default, it has).
     HIDE_TEAM_SIDEBAR: 'hide_team_sidebar',
 
     // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail's Channels view also lists boards.
     SHOW_BOARDS_IN_CHANNELS: 'show_boards_in_channels',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: a JSON array of the product rail items the user moved into its More menu.
+    PRODUCT_RAIL_HIDDEN_ITEMS: 'product_rail_hidden_items',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: a JSON array of product rail item ids in the order the user dragged them into.
+    PRODUCT_RAIL_ORDER: 'product_rail_order',
     CLOUD_UPGRADE_BANNER: 'cloud_upgrade_banner',
     CLOUD_TRIAL_BANNER: 'cloud_trial_banner',
     START_TRIAL_MODAL: 'start_trial_modal',
@@ -338,6 +356,8 @@ export const ActionTypes = keyMirror({
     UNSUPPRESS_RHS: null,
 
     SET_EDIT_CHANNEL_MEMBERS: null,
+    SET_PENDING_CHANNEL_ATTRIBUTE_EDIT: null,
+    CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
 
     SET_DRAFT_SOURCE: null,
@@ -385,6 +405,7 @@ export const ModalIdentifiers = {
     USER_SETTINGS: 'user_settings',
     QUICK_SWITCH: 'quick_switch',
     REMOVED_FROM_CHANNEL: 'removed_from_channel',
+    CHANNEL_ACCESS_DENIED: 'channel_access_denied',
     SHOW_TRANSLATION: 'show_translation',
     DISABLE_AUTOTRANSLATION_CONFIRM: 'disable_autotranslation_confirm',
     EMAIL_INVITE: 'email_invite',
@@ -410,6 +431,7 @@ export const ModalIdentifiers = {
     NEW_CHANNEL_MODAL: 'new_channel_modal',
     DND_CUSTOM_TIME_PICKER: 'dnd_custom_time_picker',
     POST_REMINDER_CUSTOM_TIME_PICKER: 'post_reminder_custom_time_picker',
+    POST_ATTRIBUTES: 'post_attributes',
     CUSTOM_STATUS: 'custom_status',
     COMMERCIAL_SUPPORT: 'commercial_support',
     NO_INTERNET_CONNECTION: 'no_internet_connection',
@@ -481,7 +503,8 @@ export const ModalIdentifiers = {
     GRAPH_NODE_DELETE: 'graph_node_delete',
     GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',
     GLOBAL_ATTRIBUTE_REMOVE_APPLIES_TO: 'global_attribute_remove_applies_to',
-
+    GLOBAL_ATTRIBUTE_CHANNELS_WITHOUT_VALUE: 'global_attribute_channels_without_value',
+    GLOBAL_ATTRIBUTE_NOTIFY_CHANNEL_ADMINS: 'global_attribute_notify_channel_admins',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     ATTRIBUTE_MODAL_OPENID: 'attribute_modal_openid',
@@ -580,6 +603,13 @@ export const CloudProductToSku = {
     [CloudProducts.PROFESSIONAL]: LicenseSkus.Professional,
     [CloudProducts.ENTERPRISE]: LicenseSkus.Enterprise,
 };
+
+// Mirrors the --z-index-* variables in sass/base/_css_variables.scss, for
+// components that take a numeric zIndex prop such as Compass Combobox.
+export const ZIndex = {
+    MENU: 1100,
+    POPOVER: 1200,
+} as const;
 
 export const A11yClassNames = {
     REGION: 'a11y__region',
@@ -994,6 +1024,7 @@ export const RHSStates = {
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
+    ENTITY: 'entity',
 };
 
 export const UploadStatuses = {
@@ -1068,6 +1099,7 @@ export const DocLinks = {
     ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
     FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
     FILE_STORAGE: 'https://mattermost.com/pl/configure-file-storage',
+    FIPS_MFA_TOTP: 'https://docs.mattermost.com/deployment-guide/server/containers/fips-stig#multi-factor-authentication-totp',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
     HIGH_AVAILABILITY_CLUSTER: 'https://mattermost.com/pl/high-availability-cluster',
     IN_PRODUCT_NOTICES: 'https://mattermost.com/pl/in-product-notices',
@@ -1178,6 +1210,7 @@ export const PermissionsScope = {
     [Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OAUTH]: 'system_scope',
+    [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]: 'system_scope',
     [Permissions.CREATE_POST]: 'channel_scope',
     [Permissions.CREATE_POST_PUBLIC]: 'channel_scope',
     [Permissions.EDIT_POST]: 'channel_scope',

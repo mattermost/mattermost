@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"cmp"
 	"net/http"
 	"slices"
@@ -27,6 +28,10 @@ func (a *App) hydratePropertyValues(rctx request.CTX, posts []*model.Post, group
 		if post == nil || post.Metadata == nil {
 			continue
 		}
+		// Hydration was requested for this post, so the response says how it went even when it
+		// went fine; a response without the flag tells the client to keep what it has. A failed
+		// lookup below overwrites this with true.
+		post.Metadata.PropertyValuesUnavailable = model.NewPointer(false)
 		eligible = append(eligible, post)
 	}
 
@@ -72,15 +77,15 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
 		ChannelID:   channelID,
 		TeamID:      channel.TeamId,
-		PerPage:     model.PostAttributesMaxApplicableFields + 1,
+		PerPage:     model.PostAttributesMaxFields + 1,
 	})
 	if appErr != nil {
 		return appErr
 	}
 
-	// Over the bound means the per-target cap was bypassed and the page may be truncated, so the
+	// Over the bound means the post field cap was bypassed and the page may be truncated, so the
 	// value set below would be silently incomplete. Report unavailable rather than partial.
-	if len(fields) > model.PostAttributesMaxApplicableFields {
+	if len(fields) > model.PostAttributesMaxFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.field_bound_exceeded.app_error",
 			nil, "applicable field count exceeds the per-post bound", http.StatusInternalServerError)
 	}
@@ -103,13 +108,13 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 	values, appErr := a.SearchPropertyValues(rctx, groupID, model.PropertyValueSearchOpts{
 		TargetType: model.PropertyValueTargetTypePost,
 		TargetIDs:  postIDs,
-		PerPage:    len(postIDs)*model.PostAttributesMaxApplicableFields + 1,
+		PerPage:    len(postIDs)*model.PostAttributesMaxFields + 1,
 	})
 	if appErr != nil {
 		return appErr
 	}
 
-	if len(values) > len(postIDs)*model.PostAttributesMaxApplicableFields {
+	if len(values) > len(postIDs)*model.PostAttributesMaxFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.value_bound_exceeded.app_error",
 			nil, "value count exceeds the per-page bound", http.StatusInternalServerError)
 	}
@@ -152,6 +157,206 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 		if post == nil || post.Metadata == nil {
 			continue
 		}
-		post.Metadata.PropertyValuesUnavailable = true
+		post.Metadata.PropertyValuesUnavailable = model.NewPointer(true)
 	}
+}
+
+// PreparePostPropertyValuesForCreate checks values submitted for a post about to be created in
+// channel and returns fresh PropertyValues carrying only the group, the field and the value,
+// together with the field each one is for, in the same order. It runs before the post is saved,
+// so bad input is refused before there is a post to roll back, including a missing value and a
+// value whose shape doesn't fit its field's type.
+//
+// It does not check whether the caller may set the values: an API caller asks
+// CanSetPostPropertyValueOnCreate for each returned field, and every caller's write is judged
+// again by the property hook when CreatePost stores the values. Nor does it check the feature
+// flag; callers do that first, so a request with the flag off makes no lookup.
+//
+// Errors never name an attribute: which attributes a server defines is itself sensitive, and
+// the caller may not be allowed to see them.
+func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*model.PropertyValue, channel *model.Channel) ([]*model.PropertyValue, []*model.PropertyField, error) {
+	invalid := func(detail string) *model.AppError {
+		return model.NewAppError("PreparePostPropertyValuesForCreate", "api.post.create_post.invalid_attribute.app_error", nil, detail, http.StatusBadRequest)
+	}
+
+	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	// One call covers all three scopes a post's fields can come from: the system, the
+	// post's team and its channel.
+	fields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+		ChannelID:   channel.Id,
+		TeamID:      channel.TeamId,
+		PerPage:     model.PostAttributesMaxFields + 1,
+	})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	// The post field cap keeps a post's applicable fields within the page. Were it ever
+	// bypassed, a field past PostAttributesMaxFields would be refused as unknown.
+	fieldByID := make(map[string]*model.PropertyField, len(fields))
+	for _, field := range fields {
+		fieldByID[field.ID] = field
+	}
+
+	seen := make(map[string]bool, len(submitted))
+	values := make([]*model.PropertyValue, 0, len(submitted))
+	valueFields := make([]*model.PropertyField, 0, len(submitted))
+	for _, item := range submitted {
+		if item == nil {
+			return nil, nil, invalid("nil value")
+		}
+		// The caller submits full PropertyValue structs, so everything the server owns has to
+		// be rejected rather than quietly dropped: a caller that sent an ID or a TargetID meant
+		// something by it and should not be told the write succeeded as asked.
+		if hasServerOwnedFields(item) {
+			return nil, nil, invalid("server-owned field set by caller")
+		}
+		if !model.IsValidId(item.FieldID) {
+			return nil, nil, invalid("invalid field id")
+		}
+		if seen[item.FieldID] {
+			return nil, nil, invalid("duplicate field")
+		}
+		field, ok := fieldByID[item.FieldID]
+		if !ok {
+			return nil, nil, invalid("unknown field")
+		}
+		// An entry without a value would reach the store as NULL, which the value column refuses
+		// only once the post exists. A JSON null is a value and goes through.
+		if len(bytes.TrimSpace(item.Value)) == 0 {
+			return nil, nil, invalid("missing value")
+		}
+		// The property hook runs the same checks when the values are stored, but by then the
+		// post exists and a failure removes it again. Its files are attached only after the
+		// values are written, so they survive unattached and a retry can reuse them.
+		if err := model.ValidatePropertyValueForFieldType(field.Type, item.Value); err != nil {
+			return nil, nil, invalid("value does not fit the field type")
+		}
+		if field.Type == model.PropertyFieldTypeText {
+			if err := model.ValidatePropertyTextValue(field, item.Value); err != nil {
+				return nil, nil, invalid("text value is not valid for the field")
+			}
+		}
+
+		seen[item.FieldID] = true
+		values = append(values, &model.PropertyValue{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			Value:   item.Value,
+		})
+		valueFields = append(valueFields, field)
+	}
+
+	return values, valueFields, nil
+}
+
+// hasServerOwnedFields reports whether a submitted value sets anything the server assigns
+// itself when it writes the value.
+func hasServerOwnedFields(v *model.PropertyValue) bool {
+	return v.ID != "" || v.GroupID != "" || v.TargetID != "" || v.TargetType != "" ||
+		v.CreateAt != 0 || v.UpdateAt != 0 || v.DeleteAt != 0 ||
+		v.CreatedBy != "" || v.UpdatedBy != ""
+}
+
+// CanSetPostPropertyValueOnCreate reports whether userID may set field's value on a post they
+// are about to create in channel.
+//
+// The value.write tier is read from the field's Permissions, and a user or role grant for
+// value.write admits the write whatever the tier says, as it does for a value written after the
+// post exists. A field without Permissions falls back to PermissionValues. A nil or
+// unrecognised level denies, matching the property API.
+//
+// The tier is resolved here rather than through the property API's evaluation because that
+// loads the post to resolve creator and admin, and the post does not exist yet. The property
+// access-control hook evaluates the write again after the post is saved, so this helper's job
+// is to give the caller an early refusal before the post exists.
+func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, field *model.PropertyField, channel *model.Channel) bool {
+	if field == nil || channel == nil {
+		return false
+	}
+
+	var tier model.PermissionLevel
+	switch {
+	case field.Permissions != nil:
+		tier = field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
+	case field.PermissionValues != nil:
+		tier = *field.PermissionValues
+	default:
+		return false
+	}
+
+	if a.postCreateTierAllows(rctx, userID, tier, channel) {
+		return true
+	}
+
+	return a.propertyGrantForHuman(rctx, userID, field, model.PropertyActionValueWrite) != nil
+}
+
+// postCreateTierAllows reports whether userID satisfies a value.write tier on a post they are
+// about to create in channel.
+func (a *App) postCreateTierAllows(rctx request.CTX, userID string, tier model.PermissionLevel, channel *model.Channel) bool {
+	switch tier {
+	case model.PermissionLevelMember:
+		ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannel)
+		return ok
+	case model.PermissionLevelCreator:
+		// The author of a post they are creating is themselves.
+		return true
+	case model.PermissionLevelAdmin:
+		return a.hasChannelPropertyAdmin(rctx, userID, channel.Id)
+	case model.PermissionLevelSysadmin:
+		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
+	case model.PermissionLevelEveryone:
+		return true
+	case model.PermissionLevelNone:
+		return false
+	default:
+		return false
+	}
+}
+
+// setPostPropertyValuesOnCreate writes a new post's attribute values, returning them as written,
+// and removes the post again if that write fails.
+//
+// The write runs before anything announces the post: no `posted` event, no notification and no
+// MessageHasBeenPosted hook has fired yet.
+func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	// The permission hook behind UpsertPropertyValues loads the post to resolve its channel
+	// and author. The post was saved a moment ago, so a replica may not have it yet.
+	rctx = RequestContextWithMaster(rctxWithSessionCallerID(rctx))
+
+	for _, value := range values {
+		value.TargetID = post.Id
+		value.TargetType = model.PropertyValueTargetTypePost
+		value.CreatedBy = post.UserId
+		value.UpdatedBy = post.UserId
+	}
+
+	written, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypePost, post.Id, "")
+	if appErr == nil {
+		// Clearing is required, not tidying: post still carries the values the caller
+		// submitted, and CreatePost sends it as is in the `posted` event to every channel
+		// member, with nothing filtering a value per reader. Members get the values from the
+		// property_values_updated event the write above sent, which withholds any a member
+		// may not read. CreatePost gives the written values back to its caller only, once
+		// that event has gone out.
+		post.Metadata.PropertyValues = nil
+		return written, nil
+	}
+
+	if deleteErr := a.PermanentDeletePost(rctx, post.Id, post.UserId); deleteErr != nil {
+		// The post now exists without the values it was created with, which is the state
+		// this path exists to prevent — logged loudly rather than folded into the returned
+		// error.
+		rctx.Logger().Error("Failed to remove post after its attribute values could not be written",
+			mlog.String("post_id", post.Id),
+			mlog.Err(deleteErr))
+	}
+
+	return nil, appErr
 }

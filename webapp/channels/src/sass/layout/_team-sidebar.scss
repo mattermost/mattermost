@@ -43,6 +43,12 @@
         }
     }
 
+    .team-sidebar__bottom {
+        display: flex;
+        flex: 0 0 auto;
+        flex-direction: column;
+    }
+
     .team-sidebar-bottom-plugin {
         width: 100%;
         flex: 0 0 auto;
@@ -158,6 +164,10 @@
 
         .team-container a:hover {
             text-decoration: none;
+        }
+
+        .team-container .add-team-button {
+            border-radius: var(--radius-m);
         }
     }
 }

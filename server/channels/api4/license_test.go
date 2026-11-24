@@ -126,6 +126,8 @@ func TestUploadLicenseFile(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
+		mills := model.GetMillis()
+
 		license := model.License{
 			Id: model.NewId(),
 			Features: &model.Features{
@@ -134,8 +136,8 @@ func TestUploadLicenseFile(t *testing.T) {
 			Customer: &model.Customer{
 				Name: "Test",
 			},
-			StartsAt:  model.GetMillis() + 100,
-			ExpiresAt: model.GetMillis() + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
+			StartsAt:  mills + 100,
+			ExpiresAt: mills + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
 		}
 
 		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()

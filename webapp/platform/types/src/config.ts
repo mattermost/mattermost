@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
+    FeatureFlagChannelPermissionActions: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
@@ -1013,6 +1014,7 @@ export type PluginSettings = {
     MarketplaceURL: string;
     SignaturePublicKeyFiles: string[];
     ChimeraOAuthProxyURL: string;
+    RestrictUnauthenticatedWebappPlugins: boolean;
 };
 
 export type DisplaySettings = {
@@ -1039,6 +1041,7 @@ export type CloudSettings = {
     CWSMock: boolean;
     Disable: boolean;
     PreviewModalBucketURL: string;
+    PreviewLandingPath: string;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;

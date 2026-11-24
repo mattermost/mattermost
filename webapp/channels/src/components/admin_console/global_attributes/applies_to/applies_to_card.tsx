@@ -8,7 +8,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 
-import Card from 'components/card/card';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import ChannelsResourceRow, {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './channels';
 import type {ChannelResourceConfig} from './channels';
@@ -41,6 +41,17 @@ type Props = {
     ordered?: boolean;
 
     disabled?: boolean;
+
+    // The persisted linked channel field's ID (undefined in create mode) and
+    // the attribute's display name, forwarded to the Required toggle's
+    // missing-values banner (MM-70717).
+    channelFieldId?: string;
+    attributeDisplayName?: string;
+
+    // The persisted channel field's update_at. A host that stays on the page
+    // after Save changes it, which refetches the saved Required state and
+    // the missing-values count.
+    channelFieldUpdateAt?: number;
 };
 
 /**
@@ -49,81 +60,71 @@ type Props = {
  * Global Attributes owns the real "Applies to" card, which does not exist yet.
  * Delete this file when it lands; ChannelsResourceRow is the part that survives.
  */
-const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResourceRemove, readOnlyResources = [], ordered, disabled}: Props) => {
+const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResourceRemove, readOnlyResources = [], ordered, disabled, channelFieldId, attributeDisplayName, channelFieldUpdateAt}: Props) => {
     return (
-        <Card
-            expanded={true}
-            disableExpandAnimation={true}
-            className='console AppliesToCard'
+        <AdminPanel
+            id='applies_to'
+            className='AppliesToCard'
+            title={messages.title}
+            subtitle={messages.subtitle}
         >
-            <Card.Header>
-                <div className='AppliesToCard__header'>
-                    <div className='AppliesToCard__headingGroup'>
-                        <div className='AppliesToCard__title'>
-                            <FormattedMessage {...messages.title}/>
-                        </div>
-                        <p className='AppliesToCard__subtitle'>
-                            <FormattedMessage {...messages.subtitle}/>
-                        </p>
-                    </div>
+            {readOnlyResources.length > 0 && (
+                <ul
+                    className='AppliesToCard__readOnlyResources'
+                    data-testid='appliesToReadOnlyResources'
+                >
+                    {readOnlyResources.map((resource) => (
+                        <li key={resource.type}>
+                            <ResourceTypeIcon type={resource.type}/>
+                            <FormattedMessage
+                                {...messages.readOnlyResource}
+                                values={{
+                                    resource: <FormattedMessage {...resourceTypeLabels[resource.type]}/>,
+                                    name: <code>{resource.name}</code>,
+                                }}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            )}
+            {channelResource && (
+                <div className='AppliesToCard__rows'>
+                    <ChannelsResourceRow
+                        value={channelResource}
+                        onChange={onChannelResourceChange}
+                        onRemove={onChannelResourceRemove ?? (() => onChannelResourceChange(null))}
+                        ordered={ordered}
+                        disabled={disabled}
+                        channelFieldId={channelFieldId}
+                        attributeDisplayName={attributeDisplayName}
+                        channelFieldUpdateAt={channelFieldUpdateAt}
+                    />
                 </div>
-            </Card.Header>
-            <Card.Body expanded={true}>
-                {readOnlyResources.length > 0 && (
-                    <ul
-                        className='AppliesToCard__readOnlyResources'
-                        data-testid='appliesToReadOnlyResources'
+            )}
+            {!channelResource && readOnlyResources.length === 0 && (
+                <p
+                    className='AppliesToCard__empty'
+                    data-testid='appliesToEmpty'
+                >
+                    <FormattedMessage {...messages.empty}/>
+                </p>
+            )}
+            {!channelResource && (
+                <div className='AppliesToCard__footer'>
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        className='AppliesToCard__addResource'
+                        onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
+                        disabled={disabled}
+                        data-testid='appliesToAddResource'
+                        leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                     >
-                        {readOnlyResources.map((resource) => (
-                            <li key={resource.type}>
-                                <ResourceTypeIcon type={resource.type}/>
-                                <FormattedMessage
-                                    {...messages.readOnlyResource}
-                                    values={{
-                                        resource: <FormattedMessage {...resourceTypeLabels[resource.type]}/>,
-                                        name: <code>{resource.name}</code>,
-                                    }}
-                                />
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                {channelResource && (
-                    <div className='AppliesToCard__rows'>
-                        <ChannelsResourceRow
-                            value={channelResource}
-                            onChange={onChannelResourceChange}
-                            onRemove={onChannelResourceRemove ?? (() => onChannelResourceChange(null))}
-                            ordered={ordered}
-                            disabled={disabled}
-                        />
-                    </div>
-                )}
-                {!channelResource && readOnlyResources.length === 0 && (
-                    <p
-                        className='AppliesToCard__empty'
-                        data-testid='appliesToEmpty'
-                    >
-                        <FormattedMessage {...messages.empty}/>
-                    </p>
-                )}
-                {!channelResource && (
-                    <div className='AppliesToCard__footer'>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className='AppliesToCard__addResource'
-                            onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
-                            disabled={disabled}
-                            data-testid='appliesToAddResource'
-                            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
-                        >
-                            <FormattedMessage {...messages.addResource}/>
-                        </Button>
-                    </div>
-                )}
-            </Card.Body>
-        </Card>
+                        <FormattedMessage {...messages.addResource}/>
+                    </Button>
+                </div>
+            )}
+        </AdminPanel>
     );
 };
 

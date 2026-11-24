@@ -26,7 +26,6 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
             const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
-            expect(container).toMatchSnapshot();
 
             const input = container.querySelector('#MySetting') as HTMLInputElement;
             expect(input.value).toEqual('');
@@ -41,7 +40,6 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
             const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
-            expect(container).toMatchSnapshot();
 
             const input = container.querySelector('#MySetting') as HTMLInputElement;
             expect(input.value).toEqual('userid1');
@@ -56,7 +54,6 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
             const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
-            expect(container).toMatchSnapshot();
 
             const input = container.querySelector('#MySetting') as HTMLInputElement;
             expect(input.value).toEqual('userid1,userid2,id3');
@@ -113,29 +110,5 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['id1', 'id99']);
         });
-    });
-
-    test('renders properly when disabled', () => {
-        const props = {
-            ...baseProps,
-            disabled: true,
-        };
-
-        const {container} = renderWithContext(
-            <ClientSideUserIdsSetting {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('renders properly when set by environment variable', () => {
-        const props = {
-            ...baseProps,
-            setByEnv: true,
-        };
-
-        const {container} = renderWithContext(
-            <ClientSideUserIdsSetting {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 });

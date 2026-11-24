@@ -122,7 +122,7 @@ describe('components/login/Login', () => {
         nock.cleanAll();
     });
 
-    it('should match snapshot', () => {
+    it('should render', () => {
         renderWithContext(
             <Login/>,
             baseState,
@@ -132,7 +132,7 @@ describe('components/login/Login', () => {
         expect(screen.queryByText('Log in to your account')).not.toBeInTheDocument();
     });
 
-    it('should match snapshot with base login', () => {
+    it('should render with base login', () => {
         const state = mergeObjects(baseState, {
             entities: {
                 general: {

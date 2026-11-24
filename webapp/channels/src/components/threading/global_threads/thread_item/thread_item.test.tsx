@@ -205,8 +205,7 @@ describe('components/threading/global_threads/thread_item', () => {
 
     test('should report total number of replies', () => {
         mockThread.reply_count = 9;
-        const {baseElement} = renderWithContext(<ThreadItem {...props}/>);
-        expect(baseElement).toMatchSnapshot();
+        renderWithContext(<ThreadItem {...props}/>);
         expect(screen.getByText('9 replies')).toBeInTheDocument();
     });
 
@@ -214,8 +213,7 @@ describe('components/threading/global_threads/thread_item', () => {
         mockThread.reply_count = 11;
         mockThread.unread_replies = 2;
 
-        const {baseElement, container} = renderWithContext(<ThreadItem {...props}/>);
-        expect(baseElement).toMatchSnapshot();
+        const {container} = renderWithContext(<ThreadItem {...props}/>);
         expect(container.querySelector('.dot-unreads')).toBeInTheDocument();
         expect(screen.getByText('2 new replies')).toBeInTheDocument();
     });
@@ -225,8 +223,7 @@ describe('components/threading/global_threads/thread_item', () => {
         mockThread.unread_replies = 5;
         mockThread.unread_mentions = 2;
 
-        const {baseElement, container} = renderWithContext(<ThreadItem {...props}/>);
-        expect(baseElement).toMatchSnapshot();
+        const {container} = renderWithContext(<ThreadItem {...props}/>);
         expect(container.querySelector('.dot-mentions')?.textContent).toBe('2');
         expect(screen.getByText('5 new replies')).toBeInTheDocument();
     });

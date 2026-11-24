@@ -143,7 +143,7 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                cy.wrap(downloadLink).parent().should('have.attr', 'download', file.filename).then((link) => {
+                cy.wrap(downloadLink).should('have.attr', 'download', file.filename).then((link) => {
                     const fileAttachmentURL = link.attr('href');
 
                     // * Verify that download link has correct name
@@ -177,7 +177,7 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                cy.wrap(downloadLink).should('have.attr', 'download', filename).then((link) => {
                     const fileAttachmentURL = link.attr('href');
 
                     // * Verify that download link has correct name
@@ -417,7 +417,7 @@ describe('Upload Files', () => {
 
         // * Download button should exist
         cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-            cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+            cy.wrap(downloadLink).should('have.attr', 'download', filename).then((link) => {
                 const fileAttachmentURL = link.attr('href');
 
                 // * Verify that download link has correct name

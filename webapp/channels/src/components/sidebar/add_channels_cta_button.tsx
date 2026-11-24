@@ -16,14 +16,19 @@ import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
+import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
+import {getBoardPluginIds} from 'selectors/views/product_rail';
 
 import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
+import {useProductRailKind} from 'hooks/useProductRailKind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 
 // Left-align the menu with the icon in the LHS
 const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
@@ -33,6 +38,9 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
+    const productRailKind = useProductRailKind();
+    const boardPluginIds = useSelector(getBoardPluginIds);
+    const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents) as SidebarBrowseOrAddChannelMenuAction[] | undefined;
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
@@ -40,6 +48,15 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const canCreateChannel = canCreatePrivateChannel || canCreatePublicChannel;
     const canJoinPublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.JOIN_PUBLIC_CHANNELS));
     const currentUserId = useSelector(getCurrentUserId);
+
+    // On the Boards item, the menu creates boards through the board plugin's own "Create new board"
+    // item. Its placement only says where it sits, so the item is a board action when the plugin that
+    // registered it is the one that registered the board kind. Without one (or without permission to
+    // create), there's no way to make a board from here, so it keeps the channel wording rather than
+    // promise one.
+    const boardMenuItems = (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel' && boardPluginIds.includes(item.pluginId));
+    const showBoardMenu = productRailKind === 'board' && canCreateChannel && boardMenuItems.length > 0;
+    const railKind = showBoardMenu ? 'board' : 'channel';
 
     let buttonClass = 'SidebarChannelNavigator__addChannelsCtaLhsButton';
 
@@ -80,7 +97,19 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             );
         }
 
-        if (canCreateChannel) {
+        if (showBoardMenu) {
+            for (const item of boardMenuItems) {
+                items.push(
+                    <Menu.Item
+                        key={item.id + '_pluginmenuitem'}
+                        id={item.id + '_pluginmenuitem'}
+                        onClick={() => item.action(currentTeamId)}
+                        leadingElement={item.icon}
+                        labels={<span>{item.text}</span>}
+                    />,
+                );
+            }
+        } else if (canCreateChannel) {
             items.push(
                 <Menu.Item
                     key='showNewChannel'
@@ -130,10 +159,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 className='icon-plus-box'
                 aria-hidden={true}
             />
-            <FormattedMessage
-                id='sidebar_left.addChannelsCta'
-                defaultMessage='Add Channels'
-            />
+            <FormattedMessage {...channelKindMessages.addChannelsCta[railKind]}/>
         </>
     );
 
@@ -166,7 +192,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             menu={{
                 id: 'AddChannelCtaDropdown',
                 className: 'AddChannelsCtaDropdown',
-                'aria-label': intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'}),
+                'aria-label': intl.formatMessage(channelKindMessages.addChannelsCta[railKind]),
                 onToggle: handleMenuToggle,
             }}
         >

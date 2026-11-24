@@ -59,6 +59,15 @@
         }
     }
 
+    .send_post_options_blocked {
+        display: flex;
+
+        // Lets the hover reach the wrapper that carries the tooltip
+        .button_send_post_options {
+            pointer-events: none;
+        }
+    }
+
     .button_send_post_options {
         width: 21px;
         border-radius: 0 4px 4px 0;

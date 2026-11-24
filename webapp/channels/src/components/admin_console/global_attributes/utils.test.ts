@@ -12,18 +12,19 @@ import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_const
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {
     ATTRIBUTE_FIELD_TYPES,
-    appliedResourceTypesByTemplateId,
     buildOptionsAttr,
     createAttributeField,
     createLinkedAttributeField,
     deleteAttributeField,
     deleteLinkedAttributeField,
     fetchAttributeField,
+    fetchChannelsMissingValue,
+    fetchChannelsMissingValueSummary,
     fetchLinkedFieldsForTemplate,
     findNameConflicts,
-    formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
+    notifyChannelAdminsOfMissingValue,
     syncUserAttributeFieldDelete,
     syncUserAttributeFieldUpsert,
     updateAttributeField,
@@ -703,9 +704,9 @@ describe('global_attributes/utils', () => {
 
             const fields = await fetchLinkedFieldsForTemplate('template-id', ALL_RESOURCE_TYPES);
 
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system', perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({targetType: 'system', perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', expect.objectContaining({targetType: 'system', perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 
@@ -736,43 +737,6 @@ describe('global_attributes/utils', () => {
         });
     });
 
-    describe('formatAttributeHeadingName', () => {
-        it('title-cases the first letter so internal names read as headings', () => {
-            expect(formatAttributeHeadingName('classification')).toBe('Classification');
-            expect(formatAttributeHeadingName('  department')).toBe('Department');
-        });
-
-        it('leaves an already-capitalized display name unchanged', () => {
-            expect(formatAttributeHeadingName('Test Attribute')).toBe('Test Attribute');
-        });
-
-        it('returns an empty string when the name is blank', () => {
-            expect(formatAttributeHeadingName('   ')).toBe('');
-        });
-    });
-
-    describe('appliedResourceTypesByTemplateId', () => {
-        it('groups live linked fields by template and keeps Users, Channels, Posts order', () => {
-            const byTemplate = appliedResourceTypesByTemplateId([
-                {id: 'p1', object_type: 'post', linked_field_id: 't1', delete_at: 0} as PropertyField,
-                {id: 'u1', object_type: 'user', linked_field_id: 't1', delete_at: 0} as PropertyField,
-                {id: 'c1', object_type: 'channel', linked_field_id: 't2', delete_at: 0} as PropertyField,
-                {id: 'u2', object_type: 'user', linked_field_id: 't1', delete_at: 0} as PropertyField,
-                {id: 'dead', object_type: 'channel', linked_field_id: 't1', delete_at: 1} as PropertyField,
-            ]);
-
-            expect(byTemplate.t1).toEqual(['user', 'post']);
-            expect(byTemplate.t2).toEqual(['channel']);
-        });
-
-        it('ignores fields without a linked template or a known resource type', () => {
-            expect(appliedResourceTypesByTemplateId([
-                {id: 'orphan', object_type: 'user', delete_at: 0} as PropertyField,
-                {id: 'other', object_type: 'template', linked_field_id: 't1', delete_at: 0} as PropertyField,
-            ])).toEqual({});
-        });
-    });
-
     describe('linkedFieldsByResourceType', () => {
         it('indexes the first live field per resource object type', () => {
             const byType = linkedFieldsByResourceType([
@@ -784,6 +748,74 @@ describe('global_attributes/utils', () => {
             expect(byType.user?.id).toBe('u1');
             expect(byType.channel?.id).toBe('c1');
             expect(byType.post).toBeUndefined();
+        });
+    });
+
+    // MM-70717
+    describe('fetchChannelsMissingValueSummary', () => {
+        it('passes the access_control group and the given field id through to Client4', async () => {
+            const getSummary = jest.spyOn(Client4, 'getChannelAttributeComplianceSummary').mockResolvedValue({
+                required: false,
+                missing_channel_count: 0,
+                shared_channel_count: 0,
+                unique_admin_count: 0,
+                channels_without_admin_count: 0,
+                message_preview: '',
+                notify_cooldown_ms: 0,
+            });
+
+            await fetchChannelsMissingValueSummary('field1');
+
+            expect(getSummary).toHaveBeenCalledWith('access_control', 'field1');
+        });
+
+        it('passes fieldId through as undefined in create mode', async () => {
+            const getSummary = jest.spyOn(Client4, 'getChannelAttributeComplianceSummary').mockResolvedValue({
+                required: false,
+                missing_channel_count: 0,
+                shared_channel_count: 0,
+                unique_admin_count: 0,
+                channels_without_admin_count: 0,
+                message_preview: '',
+                notify_cooldown_ms: 0,
+            });
+
+            await fetchChannelsMissingValueSummary(undefined);
+
+            expect(getSummary).toHaveBeenCalledWith('access_control', undefined);
+        });
+    });
+
+    describe('fetchChannelsMissingValue', () => {
+        it('passes the group, field id, page and per_page through to Client4', async () => {
+            const getChannels = jest.spyOn(Client4, 'getChannelsMissingAttributeValue').mockResolvedValue({channels: [], total_count: 0});
+
+            await fetchChannelsMissingValue('field1', 2, 20);
+
+            expect(getChannels).toHaveBeenCalledWith('access_control', 'field1', 2, 20);
+        });
+
+        it('defaults per_page when not given', async () => {
+            const getChannels = jest.spyOn(Client4, 'getChannelsMissingAttributeValue').mockResolvedValue({channels: [], total_count: 0});
+
+            await fetchChannelsMissingValue('field1', 0);
+
+            expect(getChannels).toHaveBeenCalledWith('access_control', 'field1', 0, expect.any(Number));
+        });
+    });
+
+    describe('notifyChannelAdminsOfMissingValue', () => {
+        it('passes the access_control group and field id through to Client4', async () => {
+            const notify = jest.spyOn(Client4, 'notifyChannelAdminsOfMissingAttributeValue').mockResolvedValue({
+                queued_admin_count: 0,
+                queued_channel_count: 0,
+                channels_without_admin_count: 0,
+                truncated: false,
+            });
+
+            await notifyChannelAdminsOfMissingValue('field1');
+
+            expect(notify).toHaveBeenCalledWith('access_control', 'field1');
         });
     });
 

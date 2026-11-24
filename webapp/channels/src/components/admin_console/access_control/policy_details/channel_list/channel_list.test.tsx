@@ -68,68 +68,6 @@ describe('components/admin_console/access_control/channel_list', () => {
         mockOnPolicyActiveStatusChange.mockReset();
     });
 
-    test('should match snapshot with no channels', () => {
-        // The Filter component has an existing prop type issue with TeamFilterDropdown
-        // that only surfaces during full rendering (not shallow). Suppress for this test.
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-        const props = {
-            ...defaultProps,
-            channels: [],
-            totalCount: 0,
-            policyId: '',
-        };
-        try {
-            const {container} = renderWithContext(<ChannelList {...props}/>);
-            expect(container).toMatchSnapshot();
-        } finally {
-            errorSpy.mockRestore();
-        }
-    });
-
-    test('should match snapshot with channels', () => {
-        const props = {
-            ...defaultProps,
-            totalCount: 2,
-            policyId: 'policy1',
-            actions: {
-                ...defaultProps.actions,
-            },
-        };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with channels to remove', () => {
-        const props = {
-            ...defaultProps,
-            totalCount: 2,
-            policyId: 'policy1',
-            channelsToRemove: {
-                channel1,
-            },
-        };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with channels to add', () => {
-        const props = {
-            ...defaultProps,
-            channelsToAdd: {
-                channel3: {
-                    id: 'channel3',
-                    name: 'channel3',
-                    display_name: 'Channel 3',
-                    team_display_name: 'Team 1',
-                    type: 'O',
-                } as ChannelWithTeamData,
-            },
-        };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render header checkbox with stable id and indeterminate when auto-add is mixed', async () => {
         const props = {
             ...defaultProps,

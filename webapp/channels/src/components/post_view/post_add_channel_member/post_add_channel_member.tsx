@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -11,7 +11,10 @@ import {sendAddToChannelEphemeralPost} from 'actions/global_actions';
 
 import AtMention from 'components/at_mention';
 
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants} from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 interface Actions {
     addChannelMember: (channelId: string, userId: string, rootId: string) => void;
@@ -21,6 +24,9 @@ interface Actions {
 export interface Props {
     currentUser: UserProfile;
     channelType: string;
+
+    /** The kind of channel the post is in, which picks the words the message uses for it. */
+    channelKind?: ChannelKind;
     postId: string;
     post: Post;
     userIds: string[];
@@ -147,7 +153,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 
     render() {
-        const {channelType, postId, usernames, noGroupsUsernames, isPolicyEnforced} = this.props;
+        const {channelKind = 'channel', channelType, postId, usernames, noGroupsUsernames, isPolicyEnforced} = this.props;
         if (!postId || !channelType) {
             return null;
         }
@@ -162,13 +168,11 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                 return null;
             }
 
-            const messageText = 'did not get notified by this mention because they are not in the channel.';
-
             return (
                 <p>
                     {allUsersAtMentions}
                     {' '}
-                    {messageText}
+                    <FormattedMessage {...kindMessages.policyEnforced[channelKind]}/>
                 </p>
             );
         }
@@ -176,19 +180,9 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         // Regular flow for non-ABAC channels
         let link;
         if (channelType === Constants.PRIVATE_CHANNEL) {
-            link = (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_mentions.link.private'
-                    defaultMessage='add them to this private channel'
-                />
-            );
+            link = <FormattedMessage {...kindMessages.linkPrivate[channelKind]}/>;
         } else if (channelType === Constants.OPEN_CHANNEL) {
-            link = (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_mentions.link.public'
-                    defaultMessage='add them to the channel'
-                />
-            );
+            link = <FormattedMessage {...kindMessages.linkPublic[channelKind]}/>;
         }
 
         // Separate invitable users from group-constrained users
@@ -200,16 +194,8 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         // Handle invitable users with invite functionality
         if (invitableUsers.length > 0) {
             const invitableAtMentions = this.generateAtMentions(invitableUsers);
-            const invitableMessagePart = invitableUsers.length === 1 ? (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_mentions.message.one'
-                    defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
-                />
-            ) : (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_mentions.message.multiple'
-                    defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
-                />
+            const invitableMessagePart = (
+                <FormattedMessage {...(invitableUsers.length === 1 ? kindMessages.notInChannelOne : kindMessages.notInChannelMultiple)[channelKind]}/>
             );
 
             messages.push(
@@ -234,12 +220,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         // Handle users not in required groups with specific messaging
         if (outOfGroupsUsers.length > 0) {
             const outOfGroupsAtMentions = this.generateAtMentions(outOfGroupsUsers);
-            const outOfGroupsMessagePart = (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_groups_mentions.message'
-                    defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'
-                />
-            );
+            const outOfGroupsMessagePart = <FormattedMessage {...kindMessages.notInGroups[channelKind]}/>;
 
             messages.push(
                 <p key='out-of-groups'>
@@ -257,3 +238,66 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         );
     }
 }
+
+const kindMessages = {
+    policyEnforced: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.policy_enforced',
+            defaultMessage: 'did not get notified by this mention because they are not in the channel.',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.policy_enforced.board',
+            defaultMessage: 'did not get notified by this mention because they are not in the board.',
+        }),
+    },
+    linkPrivate: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.link.private',
+            defaultMessage: 'add them to this private channel',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.link.private.board',
+            defaultMessage: 'add them to this private board',
+        }),
+    },
+    linkPublic: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.link.public',
+            defaultMessage: 'add them to the channel',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.link.public.board',
+            defaultMessage: 'add them to the board',
+        }),
+    },
+    notInChannelOne: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.message.one',
+            defaultMessage: 'did not get notified by this mention because they are not in the channel. Would you like to ',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.message.one.board',
+            defaultMessage: 'did not get notified by this mention because they are not in the board. Would you like to ',
+        }),
+    },
+    notInChannelMultiple: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.message.multiple',
+            defaultMessage: 'did not get notified by this mention because they are not in the channel. Would you like to ',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.message.multiple.board',
+            defaultMessage: 'did not get notified by this mention because they are not in the board. Would you like to ',
+        }),
+    },
+    notInGroups: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_groups_mentions.message',
+            defaultMessage: 'did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_groups_mentions.message.board',
+            defaultMessage: 'did not get notified by this mention because they are not in the board. They cannot be added to the board because they are not a member of the linked groups. To add them to this board, they must be added to the linked groups.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;

@@ -3,7 +3,7 @@
 
 import type {Dispatch} from 'redux';
 
-import {supportsHierarchy, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
+import {supportsHierarchy, type ChannelAttributeComplianceSummary, type ChannelAttributeNotifyResult, type ChannelsMissingAttributeValueList, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -137,9 +137,12 @@ export async function listPropertyFields(objectType: string): Promise<PropertyFi
         const page = await Client4.getPropertyFields(
             GLOBAL_ATTRIBUTES_GROUP_NAME,
             objectType,
-            GLOBAL_ATTRIBUTES_TARGET_TYPE,
-            undefined,
-            {perPage: MAX_PROPERTY_FIELDS_PER_PAGE, cursorId, cursorCreateAt},
+            {
+                targetType: GLOBAL_ATTRIBUTES_TARGET_TYPE,
+                perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         fields.push(...page);
         if (page.length === 0) {
@@ -200,27 +203,6 @@ export async function fetchLinkedFieldsForTemplate(templateFieldId: string, allo
         field.delete_at === 0 &&
         isResourceObjectType(field.object_type)
     ));
-}
-
-export function appliedResourceTypesByTemplateId(linkedFields: PropertyField[]): Record<string, ResourceObjectType[]> {
-    const present = new Map<string, Set<ResourceObjectType>>();
-    for (const field of linkedFields) {
-        if (!field.linked_field_id || field.delete_at !== 0 || !isResourceObjectType(field.object_type)) {
-            continue;
-        }
-        let types = present.get(field.linked_field_id);
-        if (!types) {
-            types = new Set();
-            present.set(field.linked_field_id, types);
-        }
-        types.add(field.object_type);
-    }
-
-    const byTemplate: Record<string, ResourceObjectType[]> = {};
-    for (const [templateId, types] of present) {
-        byTemplate[templateId] = ALL_RESOURCE_TYPES.filter((type) => types.has(type));
-    }
-    return byTemplate;
 }
 
 export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Record<ResourceObjectType, PropertyField>> {
@@ -408,10 +390,22 @@ export function patchLinkedAttributeField(
     });
 }
 
-export function formatAttributeHeadingName(name: string): string {
-    const trimmed = name.trim();
-    if (!trimmed) {
-        return trimmed;
-    }
-    return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
+// --- Required-channel-attribute compliance (MM-70717) ---
+//
+// fieldId is undefined in create mode: the channel-linked field has no ID yet
+// (nothing has been saved), so the server treats every active channel as
+// missing a value.
+
+const CHANNEL_MISSING_VALUES_PER_PAGE = 20;
+
+export function fetchChannelsMissingValueSummary(fieldId?: string): Promise<ChannelAttributeComplianceSummary> {
+    return Client4.getChannelAttributeComplianceSummary(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId);
+}
+
+export function fetchChannelsMissingValue(fieldId: string, page: number, perPage: number = CHANNEL_MISSING_VALUES_PER_PAGE): Promise<ChannelsMissingAttributeValueList> {
+    return Client4.getChannelsMissingAttributeValue(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId, page, perPage);
+}
+
+export function notifyChannelAdminsOfMissingValue(fieldId: string): Promise<ChannelAttributeNotifyResult> {
+    return Client4.notifyChannelAdminsOfMissingAttributeValue(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId);
 }

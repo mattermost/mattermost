@@ -1,0 +1,91 @@
+@use 'utils/mixins' as utils-mixins;
+@use 'mixins';
+
+// How far the form content is indented to make room for the illustration column.
+$content-offset: 200px;
+
+.SiteUrl-body {
+    display: flex;
+}
+
+.SiteUrl-form-wrapper {
+    position: relative;
+}
+
+.SiteUrl-right-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.SiteUrl {
+    &__input {
+        @include mixins.input;
+    }
+
+    &__help,
+    &__hint,
+    &__status {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+
+        .icon {
+            margin-right: 4px;
+            font-size: 16px;
+        }
+    }
+
+    &__status {
+        &--success {
+            color: var(--online-indicator);
+        }
+
+        &--error {
+            color: var(--dnd-indicator);
+        }
+    }
+
+    &__status-spinner {
+        width: 16px;
+        margin-right: 4px;
+    }
+
+    &__progress-path {
+        position: absolute;
+        top: -25px;
+
+        // Centres the 180px illustration on x=50, where the later steps draw their connector line.
+        left: -40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    &__line-above {
+        position: absolute;
+        bottom: 100%;
+        margin-bottom: 5px;
+    }
+
+    &__title {
+        position: relative;
+
+        // Spans the illustration column too, so the illustration is positioned as on the Organization step.
+        padding-left: $content-offset;
+        margin-left: -$content-offset;
+    }
+
+    &__content {
+        margin-left: $content-offset;
+
+        .tertiary-button {
+            margin-left: 8px;
+        }
+    }
+}
+
+@include utils-mixins.simple-in-and-out("SiteUrl");

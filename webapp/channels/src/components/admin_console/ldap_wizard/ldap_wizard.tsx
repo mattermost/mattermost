@@ -14,11 +14,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import SettingsGroup from 'components/admin_console/settings_group';
 import {useSectionNavigation} from 'components/common/hooks/useSectionNavigation';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 
 import Constants from 'utils/constants';
 import {isMessageDescriptor} from 'utils/i18n';
@@ -35,7 +35,7 @@ import LDAPTextSetting from './ldap_text_setting';
 import {ldapWizardAdminDefinition} from '../admin_definition_ldap_wizard';
 import {getConfigFromState, isSetByEnv, SchemaAdminSettings} from '../schema_admin_settings';
 import SchemaText from '../schema_text';
-import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess, SearchableStrings} from '../types';
 import './ldap_wizard.scss';
 
 const SECTION_OBSERVER_OPTIONS: IntersectionObserverInit = {
@@ -359,7 +359,7 @@ const LDAPWizard = (props: Props) => {
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
-                    {name}
+                    <span>{name}</span>
                 </AdminHeader>
             );
         }
@@ -430,13 +430,7 @@ const LDAPWizard = (props: Props) => {
     };
 
     const handleChange = (id: string, value: unknown, confirm = false, shouldSubmit = false, warning = false) => {
-        let saveNeeded: State['saveNeeded'] = state.saveNeeded === 'permissions' ? 'both' : 'config';
-
-        // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = props.license.Cloud === 'true' && props.license.SkuShortName === 'starter';
-        if (id === 'openidType' && value === 'openid' && isCloudStarter) {
-            saveNeeded = false;
-        }
+        const saveNeeded: State['saveNeeded'] = state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         const clientWarning = warning === false ? state.clientWarning : warning;
 
@@ -664,7 +658,6 @@ const LDAPWizard = (props: Props) => {
 
             return (
                 <div
-                    className={'config-section'}
                     key={section.key}
                     data-section-key={section.key}
                     ref={(el) => {
@@ -673,23 +666,21 @@ const LDAPWizard = (props: Props) => {
                         }
                     }}
                 >
-                    <SettingsGroup
-                        show={true}
+                    <AdminSectionPanel
                         title={section.title}
-                        subtitle={section.subtitle}
+                        description={section.subtitle || section.description}
+                        data-testid={section.key}
                     >
-                        <div className={'section-body'}>
-                            {header}
-                            {settingsList}
-                            {footer}
-                        </div>
-                    </SettingsGroup>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </AdminSectionPanel>
                 </div>
             );
         });
 
         return (
-            <div>
+            <div className='admin-console__schema-sections'>
                 {renderedSections}
             </div>
         );
@@ -768,5 +759,26 @@ const groupAttributeTestNames = new Set(['GroupDisplayNameAttribute', 'GroupIdAt
 const isFilterTestName = (testName: string) => filterTestNames.has(testName);
 const isAttributeTestName = (testName: string) => attributeTestNames.has(testName);
 const isGroupAttributeTestName = (testName: string) => groupAttributeTestNames.has(testName);
+
+const isSearchable = (text?: string | JSX.Element | MessageDescriptor): text is string | MessageDescriptor => {
+    return Boolean(text) && (typeof text === 'string' || isMessageDescriptor(text));
+};
+
+const getSettingsSearchableStrings = (settings: AdminDefinitionSetting[]): SearchableStrings => {
+    return settings.flatMap((setting) => {
+        const strings: SearchableStrings = [setting.label, setting.help_text].filter(isSearchable);
+        if (setting.type === Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING) {
+            strings.push(...getSettingsSearchableStrings(setting.settings));
+        }
+        return strings;
+    });
+};
+
+const sections: LDAPAdminDefinitionConfigSchemaSection[] = ldapWizardAdminDefinition.sections ?? [];
+
+export const searchableStrings: SearchableStrings = sections.flatMap((section) => [
+    ...[section.title, section.subtitle, section.sectionTitle].filter(isSearchable),
+    ...getSettingsSearchableStrings(section.settings),
+]);
 
 export default LDAPWizard;

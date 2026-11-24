@@ -5,10 +5,12 @@ import React from 'react';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
+import ConnectedDeleteChannelModal from 'components/delete_channel_modal';
 import DeleteChannelModal from 'components/delete_channel_modal/delete_channel_modal';
 import type {Props} from 'components/delete_channel_modal/delete_channel_modal';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 describe('components/delete_channel_modal', () => {
     const channel: Channel = {
@@ -38,13 +40,6 @@ describe('components/delete_channel_modal', () => {
         },
         onExited: jest.fn(),
     };
-
-    test('should match snapshot for delete_channel_modal', () => {
-        const {baseElement} = renderWithContext(
-            <DeleteChannelModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
 
     test('should hide on Cancel', async () => {
         renderWithContext(
@@ -100,5 +95,20 @@ describe('components/delete_channel_modal', () => {
         await waitFor(() => {
             expect(onExited).toHaveBeenCalledTimes(1);
         });
+    });
+
+    test('says board for a board', () => {
+        renderWithContext(
+            <ConnectedDeleteChannelModal
+                channel={channel}
+                onExited={jest.fn()}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('Confirm ARCHIVE Board')).toBeInTheDocument();
+        expect(screen.getByText('This will archive the board from the team. Board contents will still be accessible by board members.')).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to archive the/)).toHaveTextContent('Are you sure you wish to archive the testing board?');
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
     });
 });

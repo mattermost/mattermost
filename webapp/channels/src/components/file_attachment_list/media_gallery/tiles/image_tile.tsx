@@ -13,17 +13,17 @@ import {isGIFImage} from 'utils/utils';
 
 import TileUtilityButtons from './tile_utility_buttons';
 
+import {tileSizeVars} from '../tile_size';
+
 type Props = {
     fileInfo: FileInfo;
     index: number;
     total: number;
-    width: number;
-    height: number;
     enablePublicLink: boolean;
     onClick: (index: number) => void;
 };
 
-const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onClick}: Props) => {
+const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleActivate = useCallback(() => {
@@ -52,12 +52,6 @@ const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
         {current: index + 1, total, name: fileInfo.name || ''},
     );
 
-    const tileStyle: CSSProperties = {
-        width: `${width}px`,
-        height: `${height}px`,
-        flex: `0 0 ${width}px`,
-    };
-
     const imgStyle: CSSProperties = {};
     if (fileInfo.width && fileInfo.height) {
         imgStyle.maxWidth = `${fileInfo.width}px`;
@@ -72,7 +66,7 @@ const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
             aria-label={label}
             data-testid='media-gallery-tile'
             data-file-name={fileInfo.name || ''}
-            style={tileStyle}
+            style={tileSizeVars(fileInfo)}
             onKeyDown={handleKeyDown}
         >
             <img

@@ -957,6 +957,9 @@ func (a *App) sendNotifications(rctx request.CTX, post *model.Post, team *model.
 					}
 					auditRec.Success()
 
+					// Carries the thread's root post, so it must not reach a follower the
+					// channel's policy denies.
+					a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 					a.Publish(message)
 				}
 			}
@@ -1118,6 +1121,8 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("previous_unread_replies", previousUnreadReplies)
 				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
+				// Carries the thread's root post; see SendNotifications.
+				a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 				a.Publish(message)
 			}
 		}

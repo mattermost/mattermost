@@ -13,11 +13,11 @@ describe('productRail reducer', () => {
     test('should remember the last path per item and team', () => {
         let state = productRailReducer(initial, productRailPathViewed('boards', 'team1', '/one/channels/roadmap', 'boards'));
         state = productRailReducer(state, productRailPathViewed('boards', 'team2', '/two/channels/bugs', 'boards'));
-        state = productRailReducer(state, productRailPathViewed('threads', 'team1', '/one/threads/abc'));
+        state = productRailReducer(state, productRailPathViewed('product:playbooks', 'team1', '/playbooks/runs'));
 
         expect(state.lastPathByTeam).toEqual({
             boards: {team1: '/one/channels/roadmap', team2: '/two/channels/bugs'},
-            threads: {team1: '/one/threads/abc'},
+            'product:playbooks': {team1: '/playbooks/runs'},
         });
     });
 
@@ -25,7 +25,7 @@ describe('productRail reducer', () => {
         let state = productRailReducer(initial, productRailPathViewed('boards', 'team1', '/one/channels/roadmap', 'boards'));
         expect(state.section).toBe('boards');
 
-        state = productRailReducer(state, productRailPathViewed('threads', 'team1', '/one/threads'));
+        state = productRailReducer(state, productRailPathViewed('product:playbooks', 'team1', '/playbooks/runs'));
         expect(state.section).toBe('boards');
 
         state = productRailReducer(state, setProductRailSection('channels'));

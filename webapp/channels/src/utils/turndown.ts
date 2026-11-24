@@ -4,6 +4,7 @@
 import {gfm} from '@guyplusplus/turndown-plugin-gfm';
 import TurndownService from 'turndown';
 
+import {MARKDOWN_SOURCE_ATTRIBUTE} from 'utils/constants';
 import {getLanguageFromDisplayName} from 'utils/syntax_highlighting';
 
 /**
@@ -60,14 +61,30 @@ turndownService.addRule('emphasisReset', {
     replacement: (content) => content,
 });
 
+// Code that wraps is laid out as one row per source line with no line break between them, so the rows are rejoined
+function getCodeText(block: HTMLElement) {
+    const rows = block.querySelectorAll('.post-code__line');
+    if (rows.length) {
+        return Array.from(rows, (row) => row.textContent).join('\n');
+    }
+
+    return block.querySelector('code')?.textContent ?? '';
+}
+
 // Mattermost renders code blocks alongside a copy button, a language label and a column of line numbers, none of
 // which are part of the code itself.
 turndownService.addRule('mattermostCodeBlock', {
     filter: (node) => node.nodeName === 'DIV' && node.classList.contains('post-code'),
     replacement: (content, node) => {
         const element = node as HTMLElement;
-        const code = element.querySelector('code')?.textContent ?? '';
-        const languageLabel = element.querySelector('.post-code__language')?.textContent ?? '';
+        const code = element.getAttribute(MARKDOWN_SOURCE_ATTRIBUTE) ?? getCodeText(element);
+
+        // Only the block's own label counts: a code block rendered inside Markdown has one of its own. A quoted selection
+        // carries the label as a direct child instead of inside the overlay.
+        const ownChildren = Array.from(element.children);
+        const overlay = ownChildren.find((child) => child.classList.contains('post-code__overlay'));
+        const label = [...ownChildren, ...Array.from(overlay?.children ?? [])].find((child) => child.classList.contains('post-code__language'));
+        const languageLabel = label?.textContent ?? '';
         const fence = codeBlockFence(code);
 
         return `\n\n${fence}${getLanguageFromDisplayName(languageLabel)}\n${code}\n${fence}\n\n`;

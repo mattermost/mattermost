@@ -100,6 +100,19 @@ function render() {
 describe('ClassificationAttribute', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+
+        // The Channels row's missing-values banner (MM-70717) fetches on
+        // every render; stub it to zero so it never blocks the Required
+        // toggle in the tests below, none of which are about that fetch.
+        jest.spyOn(Client4, 'getChannelAttributeComplianceSummary').mockResolvedValue({
+            required: false,
+            missing_channel_count: 0,
+            shared_channel_count: 0,
+            unique_admin_count: 0,
+            channels_without_admin_count: 0,
+            message_preview: '',
+            notify_cooldown_ms: 0,
+        });
     });
 
     it('shows the definition without offering any way to edit it', async () => {
@@ -286,7 +299,7 @@ describe('ClassificationAttribute', () => {
         // scopes the linked-field lookup lists (that call passes no target id,
         // unlike the by-name channel lookup), so the template's channel field
         // really does come back and really is being excluded below.
-        expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.anything());
+        expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({targetType: 'system'}));
 
         const rows = within(screen.getByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
         expect(rows).toHaveLength(1);
@@ -360,7 +373,7 @@ describe('ClassificationAttribute', () => {
         // has failed -- waiting on the page alone would make the "no read-only rows"
         // assertion below a statement about the state the page starts in.
         await waitFor(() => {
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.anything());
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system'}));
         });
         await act(async () => {});
 

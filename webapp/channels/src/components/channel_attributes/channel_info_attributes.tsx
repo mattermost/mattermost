@@ -2,41 +2,56 @@
 // See LICENSE.txt for license information.
 
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {FormattedMessage, defineMessage, defineMessages, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {resolveDisplayValue} from 'mattermost-redux/selectors/entities/properties';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyFieldSourceManaged, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+
+import {clearPendingChannelAttributeEdit} from 'actions/views/rhs';
+import {getPendingChannelAttributeEdit} from 'selectors/rhs';
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
 import {selectChannelInfoAttributes} from 'components/common/hooks/useChannelInfoAttributes';
+import useFixableMissingRequiredAttributes from 'components/common/hooks/useFixableMissingRequiredAttributes';
 import useIsChannelAttributeAdmin from 'components/common/hooks/useIsChannelAttributeAdmin';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {GlobalState} from 'types/store';
+
 import AttributeChip from './attribute_chip';
+import {hasEditor} from './channel_attribute_editor_support';
 import ChannelAttributeRowEditor from './channel_attribute_row_editor';
+import MissingValuePill from './missing_value_pill';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 import {setChannelAttributeValue} from './set_channel_attribute_value';
 
 import './channel_info_attributes.scss';
+
+// The server's refusal of an empty value on a required field. Retrying can't
+// succeed, so it gets its own message instead of "Try again".
+function isRequiredValueError(err: unknown): boolean {
+    return Boolean(err && typeof err === 'object' && 'server_error_id' in err &&
+        err.server_error_id === 'app.property_value.required.app_error');
+}
 
 const EMPTY_ATTRIBUTES: ResolvedChannelAttribute[] = [];
 
 function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
     const color = attribute.option?.color;
     return typeof color === 'string' && color ? color : undefined;
-}
-
-// Date and user-valued attributes are storable through the API but have no editor
-// in this release, so they stay read-only rather than offering a dead affordance.
-function hasEditor(field: PropertyField): boolean {
-    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank' || field.type === 'graph';
 }
 
 // A directional policy can leave nothing to move to — already at the top rung
@@ -68,6 +83,17 @@ const lockReasons = defineMessages({
         defaultMessage: 'This attribute is managed by an integration and cannot be changed here',
     },
 });
+
+const headingMessages: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_attributes.info.heading',
+        defaultMessage: 'Channel Attributes',
+    }),
+    board: defineMessage({
+        id: 'channel_attributes.info.heading.board',
+        defaultMessage: 'Board Attributes',
+    }),
+};
 
 type Props = {
     channelId: string;
@@ -103,6 +129,7 @@ function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttri
  */
 const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
     const {formatMessage} = useIntl();
+    const channelKind = useChannelKind({id: channelId});
     const dispatch = useDispatch();
 
     // One resolved list, two views: a second hook would duplicate the fetch.
@@ -128,10 +155,36 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
     const isChannelAdmin = useIsChannelAttributeAdmin(channelId);
     const listed = useMemo(() => selectChannelInfoAttributes(allAttributes, isChannelAdmin), [allAttributes, isChannelAdmin]);
     const canSet = useCanSetChannelAttributes(channelId);
+    const {fields: fixableMissingFields} = useFixableMissingRequiredAttributes(channelId);
+    const fixableMissingIds = useMemo(() => new Set(fixableMissingFields.map((field) => field.id)), [fixableMissingFields]);
+
+    const pendingEdit = useSelector(getPendingChannelAttributeEdit);
+
+    // Whether what decides editability (the viewer's channel membership and its roles,
+    // or a system admin role) has arrived. Before that every row reads as not editable.
+    const editabilityLoaded = useSelector((state: GlobalState) => {
+        if (isCurrentUserSystemAdmin(state)) {
+            return true;
+        }
+        const member = getMyChannelMember(state, channelId);
+        if (!member) {
+            return false;
+        }
+        const roles = state.entities.roles.roles;
+        return member.roles.split(' ').filter(Boolean).every((roleName) => roleName in roles);
+    });
 
     const [editingFieldId, setEditingFieldId] = useState<string>();
     const [savingFieldId, setSavingFieldId] = useState<string>();
     const [failedFieldId, setFailedFieldId] = useState<string>();
+    const [failedAsRequired, setFailedAsRequired] = useState(false);
+    const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
+
+    // Bumped on every consumed request so a menu that was closed again reopens.
+    // It carries its channel: after a switch the row's editor remounts, and its
+    // mount effect runs before any reset here would, so a request from the
+    // previous channel must already read as none during render.
+    const [openRequest, setOpenRequest] = useState<{channelId: string; fieldId: string; signal: number}>();
 
     // Added through Add Attribute this session; nothing else keeps their row up.
     const [revealedFieldIds, setRevealedFieldIds] = useState<string[]>([]);
@@ -150,6 +203,13 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
         // Re-derived from the selector so a revealed attribute lands at its sort_order.
         return allAttributes.filter((attribute) => byId.has(attribute.field.id));
     }, [listed, revealedFieldIds, allAttributes]);
+
+    const isRowEditable = useCallback((attribute: ResolvedChannelAttribute) => {
+        const {field} = attribute;
+        const hasValue = isPropertyValueSet(attribute.value?.value);
+        const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
+        return isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
+    }, [isChannelAdmin, canSet]);
 
     const addableAttributes = useMemo(() => (isChannelAdmin ? allAttributes.filter((attribute) => {
         // Stored, not rendered: an attribute holding a value that fails to render
@@ -225,10 +285,11 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
             }
             setEditingFieldId(undefined);
             setRevealedFieldIds((prev) => prev.filter((id) => id !== field.id));
-        } catch {
+        } catch (err) {
             // Named in the row: the failure belongs beside the value it did not save.
             if (!isStale()) {
                 setFailedFieldId(field.id);
+                setFailedAsRequired(isRequiredValueError(err));
             }
         } finally {
             if (!isStale()) {
@@ -251,8 +312,9 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                 try {
                     // eslint-disable-next-line no-await-in-loop
                     await setChannelAttributeValue(dispatch, channelId, fieldId, value);
-                } catch {
+                } catch (err) {
                     setFailedFieldId(fieldId);
+                    setFailedAsRequired(isRequiredValueError(err));
                     return false;
                 }
             }
@@ -279,6 +341,50 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
         });
     }, [allAttributes]);
 
+    // A request made from outside (the channel notice, the header chip) names the field
+    // to open. It is honoured once and always cleared, so a stale one cannot reopen
+    // an editor later. Channel Settings hosts a deferred instance that never takes it.
+    useEffect(() => {
+        if (deferred || !pendingEdit) {
+            return;
+        }
+        if (pendingEdit.channelId !== channelId) {
+            dispatch(clearPendingChannelAttributeEdit());
+            return;
+        }
+
+        // Fields not loaded yet: keep the request until the rows can answer it.
+        if (allAttributes.length === 0) {
+            return;
+        }
+
+        // Roles not loaded yet: a cold open would read every row as not editable and
+        // drop the request, so hold it until the answer can be trusted.
+        if (!editabilityLoaded) {
+            return;
+        }
+
+        const target = rows.find((attribute) => attribute.field.id === pendingEdit.fieldId);
+        dispatch(clearPendingChannelAttributeEdit());
+        if (!target || !isRowEditable(target)) {
+            return;
+        }
+
+        const {field} = target;
+        setEditingFieldId(field.id);
+        setOpenRequest((previous) => ({channelId, fieldId: field.id, signal: (previous?.signal ?? 0) + 1}));
+        requestAnimationFrame(() => {
+            const row = rootRef.current?.querySelector(`[data-testid="channelInfoAttributeRow-${field.name}"]`);
+            row?.scrollIntoView({block: 'nearest'});
+
+            // Text focuses its own input and an option menu its first item; only the
+            // graph picker, which has no menu to open, takes focus on its trigger.
+            if (field.type === 'graph') {
+                document.getElementById(`channelInfoAttributeEdit-${field.name}`)?.focus();
+            }
+        });
+    }, [deferred, pendingEdit, channelId, allAttributes, rows, isRowEditable, editabilityLoaded, dispatch]);
+
     const handleCancel = useCallback((fieldId: string) => {
         setEditingFieldId(undefined);
         setRevealedFieldIds((prev) => prev.filter((id) => id !== fieldId));
@@ -295,10 +401,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
             data-testid='channelInfoAttributes'
         >
             <div className='ChannelInfoAttributes__heading'>
-                <FormattedMessage
-                    id='channel_attributes.info.heading'
-                    defaultMessage='Channel Attributes'
-                />
+                <FormattedMessage {...headingMessages[channelKind]}/>
             </div>
 
             <div className='ChannelInfoAttributes__body'>
@@ -320,7 +423,8 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                         const locked = sourceManaged || (hasValue && (policy === 'never' || stuck));
                         const lockReason = sourceManaged ? lockReasons.source_managed : (lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never);
                         const isText = field.type === 'text';
-                        const editable = isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
+                        const editable = isRowEditable(attribute);
+                        const isMissing = editable && !hasValue && fixableMissingIds.has(field.id);
                         const isEditing = editingFieldId === field.id;
                         const showMenu = editable && !isText;
                         const showTextEditor = editable && isText && isEditing;
@@ -337,6 +441,9 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     onSubmit={(value) => handleSubmit(field, value)}
                                     onCancel={() => handleCancel(field.id)}
                                     saving={savingFieldId === field.id}
+                                    missing={isMissing}
+                                    openSignal={openRequest?.channelId === channelId && openRequest.fieldId === field.id ? openRequest.signal : 0}
+                                    required={requiredEnforced && isPropertyFieldRequired(field)}
                                 />
                             );
                         } else if (editable && isText) {
@@ -351,14 +458,16 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     )}
                                     data-testid={`channelInfoAttributeEdit-${field.name}`}
                                 >
-                                    {attribute.displayValue ? (
+                                    {attribute.displayValue && (
                                         <span
                                             className='ChannelInfoAttributes__textValue'
                                             data-testid={`channelInfoAttributeTextValue-${field.name}`}
                                         >
                                             {attribute.displayValue}
                                         </span>
-                                    ) : (
+                                    )}
+                                    {!attribute.displayValue && isMissing && <MissingValuePill field={field}/>}
+                                    {!attribute.displayValue && !isMissing && (
                                         <span
                                             className='ChannelInfoAttributes__empty'
                                             data-testid={`channelInfoAttributeUnset-${field.name}`}
@@ -421,7 +530,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                 className='ChannelInfoAttributes__row'
                                 data-testid={`channelInfoAttributeRow-${field.name}`}
                             >
-                                <span className='ChannelInfoAttributes__label'>
+                                <span className={isMissing ? 'ChannelInfoAttributes__label ChannelInfoAttributes__label--missing' : 'ChannelInfoAttributes__label'}>
                                     {label}
                                     {locked && (
                                         <LockOutlineIcon
@@ -442,11 +551,19 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                         role='alert'
                                         data-testid={`channelInfoAttributeError-${field.name}`}
                                     >
-                                        <FormattedMessage
-                                            id='channel_attributes.info.save_failed'
-                                            defaultMessage="Couldn't save {label}. Try again."
-                                            values={{label}}
-                                        />
+                                        {failedAsRequired ? (
+                                            <FormattedMessage
+                                                id='channel_attributes.info.save_failed_required'
+                                                defaultMessage='{label} is required. Choose a value instead of clearing it.'
+                                                values={{label}}
+                                            />
+                                        ) : (
+                                            <FormattedMessage
+                                                id='channel_attributes.info.save_failed'
+                                                defaultMessage="Couldn't save {label}. Try again."
+                                                values={{label}}
+                                            />
+                                        )}
                                     </span>
                                 )}
                             </div>

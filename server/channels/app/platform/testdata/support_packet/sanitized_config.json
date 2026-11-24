@@ -630,7 +630,8 @@
         "AutomaticPrepackagedPlugins": null,
         "RequirePluginSignature": null,
         "MarketplaceURL": null,
-        "SignaturePublicKeyFiles": null
+        "SignaturePublicKeyFiles": null,
+        "RestrictUnauthenticatedWebappPlugins": null
     },
     "DisplaySettings": {
         "CustomURLSchemes": null,
@@ -651,7 +652,8 @@
         "CWSURL": null,
         "CWSAPIURL": null,
         "Disable": null,
-        "PreviewModalBucketURL": null
+        "PreviewModalBucketURL": null,
+        "PreviewLandingPath": null
     },
     "ImportSettings": {
         "Directory": null,
@@ -734,11 +736,13 @@
         "PermissionPolicies": false,
         "ChannelPermissionPolicies": false,
         "PolicySimulation": false,
+        "ChannelPermissionActions": false,
         "ContentFlagging": false,
         "EnableMattermostEntry": false,
         "MobileSSOCodeExchange": false,
         "EnableShiftEscapeToMarkAllRead": false,
         "AutoTranslation": false,
+        "Entities": false,
         "ClassificationMarkings": false,
         "BurnOnRead": false,
         "EnableAIPluginBridge": false,
