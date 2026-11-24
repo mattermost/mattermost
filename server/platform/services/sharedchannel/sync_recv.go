@@ -514,6 +514,18 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
+		// Post attribute values don't sync between servers yet: a remote's values name its own
+		// fields, and who may set them across servers isn't defined. Drop them so the post is
+		// created as if none were sent, until property sync covers post attributes.
+		if values := post.Metadata.GetPropertyValues(); len(values) > 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Dropping property values from sync post",
+				mlog.String("post_id", post.Id),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Int("value_count", len(values)),
+			)
+			post.Metadata.PropertyValues = nil
+		}
+
 		// The post is federated (RemoteId set) and its author is verified above
 		// to belong to the remote, which already enforced mm_blocks_actions
 		// authority. Preserve the prop through the create-time strip, mirroring
@@ -568,6 +580,12 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		// The sender re-sends each post on every sync, so only a content change
 		// updates the post; an update bumps UpdateAt and echoes the post back.
 		if contentChanged {
+			// Post attribute values don't sync between servers yet, as on create: UpdatePost
+			// takes the incoming metadata as is, so the remote's values would otherwise go out
+			// in `post_edited` without being saved.
+			if post.Metadata != nil {
+				post.Metadata.PropertyValues = nil
+			}
 			// The post is federated and remote-owned (verified above); the origin
 			// cluster already enforced both mm_blocks_actions and integration-prop
 			// authority, so allow the synced values through the UpdatePost freeze —

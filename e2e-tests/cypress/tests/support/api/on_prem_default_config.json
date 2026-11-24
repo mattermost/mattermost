@@ -166,7 +166,7 @@
         "FileLevel": "DEBUG",
         "FileJson": true,
         "FileLocation": "",
-        "EnableWebhookDebugging": true,
+        "EnableWebhookDebugging": false,
         "EnableDiagnostics": false,
         "EnableSentry": false,
         "AdvancedLoggingJSON": {},

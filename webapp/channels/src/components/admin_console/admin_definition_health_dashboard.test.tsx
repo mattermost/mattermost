@@ -13,7 +13,9 @@ import type {Check, ConsoleAccess} from './types';
 const enterpriseLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Enterprise} as ClientLicense;
 const enterpriseAdvancedLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.EnterpriseAdvanced} as ClientLicense;
 const professionalLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Professional} as ClientLicense;
+const entryLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Entry} as ClientLicense;
 const cloudEnterpriseLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Enterprise, Cloud: 'true'} as ClientLicense;
+const starterLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Starter} as ClientLicense;
 const noLicense = {IsLicensed: 'false'} as ClientLicense;
 const reportingAccess = {
     read: {[RESOURCE_KEYS.REPORTING.SITE_STATISTICS]: true},
@@ -36,17 +38,19 @@ describe('AdminDefinition - Site health', () => {
         expect(reporting.site_health.url).toBe('reporting/site_health');
     });
 
-    test('is shown to a system admin with the feature flag on and an Enterprise license', () => {
+    test('is shown to a system admin with the feature flag on and a Professional or higher license', () => {
+        expect(isHidden('site_health', professionalLicense)).toBe(false);
         expect(isHidden('site_health', enterpriseLicense)).toBe(false);
         expect(isHidden('site_health', enterpriseAdvancedLicense)).toBe(false);
+        expect(isHidden('site_health', entryLicense)).toBe(false);
     });
 
     test('is hidden when the feature flag is off', () => {
         expect(isHidden('site_health', enterpriseLicense, true, false)).toBe(true);
     });
 
-    test('is hidden below an Enterprise license', () => {
-        expect(isHidden('site_health', professionalLicense)).toBe(true);
+    test('is hidden below a Professional license', () => {
+        expect(isHidden('site_health', starterLicense)).toBe(true);
         expect(isHidden('site_health', noLicense)).toBe(true);
     });
 
@@ -56,9 +60,11 @@ describe('AdminDefinition - Site health', () => {
 });
 
 describe('AdminDefinition - Site health or Workspace Optimization, never both', () => {
-    test('flag on with an Enterprise license shows Site health and hides Workspace Optimization', () => {
-        expect(isHidden('site_health', enterpriseLicense)).toBe(false);
-        expect(isHidden('workspace_optimization', enterpriseLicense)).toBe(true);
+    test('flag on with a Professional or higher license shows Site health and hides Workspace Optimization', () => {
+        for (const license of [professionalLicense, enterpriseLicense]) {
+            expect(isHidden('site_health', license)).toBe(false);
+            expect(isHidden('workspace_optimization', license)).toBe(true);
+        }
     });
 
     test('flag off shows Workspace Optimization and hides Site health', () => {
@@ -66,8 +72,8 @@ describe('AdminDefinition - Site health or Workspace Optimization, never both', 
         expect(isHidden('site_health', enterpriseLicense, true, false)).toBe(true);
     });
 
-    test('flag on below Enterprise shows only Workspace Optimization', () => {
-        for (const license of [professionalLicense, noLicense]) {
+    test('flag on below Professional shows only Workspace Optimization', () => {
+        for (const license of [starterLicense, noLicense]) {
             expect(isHidden('workspace_optimization', license)).toBe(false);
             expect(isHidden('site_health', license)).toBe(true);
         }
@@ -84,7 +90,7 @@ describe('AdminDefinition - Site health or Workspace Optimization, never both', 
     });
 
     test('never shows both dashboards', () => {
-        const licenses = [enterpriseLicense, enterpriseAdvancedLicense, professionalLicense, cloudEnterpriseLicense, noLicense];
+        const licenses = [enterpriseLicense, enterpriseAdvancedLicense, professionalLicense, entryLicense, starterLicense, cloudEnterpriseLicense, noLicense];
         for (const license of licenses) {
             for (const flag of [true, false]) {
                 for (const isSystemAdmin of [true, false]) {

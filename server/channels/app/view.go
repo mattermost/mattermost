@@ -43,13 +43,10 @@ func (a *App) CreateView(rctx request.CTX, view *model.View, connectionID string
 func (a *App) GetView(rctx request.CTX, viewID string) (*model.View, *model.AppError) {
 	view, err := a.Srv().Store().View().Get(viewID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetView", "app.view.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetView", "app.view.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetView", "app.view.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return view, nil
@@ -87,16 +84,13 @@ func (a *App) UpdateView(rctx request.CTX, view *model.View, patch *model.ViewPa
 	view.Patch(patch)
 	updated, err := a.Srv().Store().View().Update(view)
 	if err != nil {
-		var appErr *model.AppError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateView", "app.view.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateView", "app.view.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("UpdateView", "app.view.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("UpdateView", "app.view.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.publishViewEvent(rctx, model.WebsocketEventViewUpdated, updated, connectionID)
@@ -128,16 +122,13 @@ func (a *App) DeleteView(rctx request.CTX, view *model.View, connectionID string
 func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, newIndex int64, connectionID string) ([]*model.View, *model.AppError) {
 	views, err := a.Srv().Store().View().UpdateSortOrder(viewID, channelID, newIndex)
 	if err != nil {
-		var iiErr *store.ErrInvalidInput
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &iiErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	viewsJSON, jsonErr := json.Marshal(views)

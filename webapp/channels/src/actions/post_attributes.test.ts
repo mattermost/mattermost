@@ -15,6 +15,7 @@ describe('actions/post_attributes', () => {
             entities: {
                 general: {
                     config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'},
+                    license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
                 },
                 properties: {
                     fields: {byId: {}, byObjectType: {}},
@@ -59,6 +60,6 @@ describe('actions/post_attributes', () => {
         const result = await store.dispatch(loadPostAttributeFields(channelId));
 
         expect(result).toEqual({data: true});
-        expect(getPropertyFields).toHaveBeenCalledWith('post_attributes', 'post', {channelId});
+        expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', {channelId});
     });
 });

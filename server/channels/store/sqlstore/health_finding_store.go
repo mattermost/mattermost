@@ -61,8 +61,11 @@ func (s *SqlHealthFindingStore) GetByFingerprints(fingerprints []string) ([]*mod
 	query := s.baseSelectBuilder().
 		Where(sq.Eq{"fingerprint": uniqueFingerprints})
 
+	// Read from master: the reconciler starts each run from these findings, and a run can start
+	// right after the previous one. A lagging replica would miss a finding that run just created,
+	// and the reconciler would then drop its resolved evaluation, leaving it firing.
 	var rows []healthFindingRow
-	if err := s.GetReplica().SelectBuilder(&rows, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&rows, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get health findings by fingerprints")
 	}
 
@@ -101,8 +104,10 @@ func (s *SqlHealthFindingStore) List(filter model.HealthFindingFilter) ([]*model
 		query = query.Where(sq.Eq{"mutedat": 0})
 	}
 
+	// Read from master: clients reload the findings as soon as a health_check run reports success,
+	// and a lagging replica would show them the previous run's results.
 	var rows []healthFindingRow
-	if err := s.GetReplica().SelectBuilder(&rows, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&rows, query); err != nil {
 		return nil, errors.Wrap(err, "failed to list health findings")
 	}
 

@@ -44,7 +44,7 @@ func (s *Server) TemplatesContainer() *templates.Container {
 	return s.htmlTemplates
 }
 
-func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
+func (s *Server) getFirstServerRunTimestamp() (int64, error) {
 	systemData, err := s.Store().System().GetByName(model.SystemFirstServerRunTimestampKey)
 	if err != nil {
 		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

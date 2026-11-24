@@ -65,6 +65,24 @@ This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a clien
 > Earlier versions of this documentation recommended `RSA_SHA1`. Use `RSA_SHA256` instead. [NIST SP 800-131A](https://csrc.nist.gov/pubs/sp/800/131/a/r2/final) set December 31, 2013 as the deadline after which SHA-1 is disallowed for digital signature generation. Revision 2 of that publication, published in March 2019, allows SHA-1 signature generation only where NIST protocol-specific guidance specifically permits it. A Keycloak server running in FIPS mode returns a `500` error when it tries to sign the assertion with `RSA_SHA1`. Mattermost validates `RSA_SHA256`-signed assertions, and Keycloak derives the signature digest method from the signature algorithm you select here.
 >
 > </div>
+>
+> <div class="warning">
+>
+> <div class="title">
+>
+> Warning
+>
+> </div>
+>
+> **Mattermost FIPS builds from v12.2 reject SHA-1**, so the `RSA_OAEP_MGF1P` and `SHA1` settings above fail at login. If you run a FIPS build, use these values instead:
+>
+> - **Key Transport Algorithm**: `RSA_OAEP_11`
+> - **Digest method for RSA-OAEP**: `SHA256`
+> - **Mask generation function**: `MGF1_SHA256`
+>
+> Changing only the digest to `SHA256` isn't enough. Keep `RSA_OAEP_MGF1P` and decryption fails, because that algorithm always uses MGF1-SHA1. See [SAML encryption methods](/administration-guide/configure/authentication-configuration-settings#key-transport-and-sha-1-in-fips-builds) for the algorithm URIs. Non-FIPS builds aren't affected.
+>
+> </div>
 
 7.  Navigate to the **Keys** tab.
 

@@ -1,6 +1,7 @@
 /webapp/channels/src/packages/mattermost-redux/src/store/configureStore.ts @hmhealey
 /server/channels/app/authentication.go @mattermost/product-security
 /server/channels/app/authorization.go @mattermost/product-security
+/server/platform/shared/healthcheck/ @hanzei
 
 # Release-owned documentation. A review from either @mattermost/release-eng or
 # @mattermost/release-managers is required for changes to these pages.

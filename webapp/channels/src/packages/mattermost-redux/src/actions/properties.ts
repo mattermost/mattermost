@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {batchActions} from 'redux-batched-actions';
+
 import type {PropertyField, PropertyFieldsScope, PropertyValue} from '@mattermost/types/properties';
 
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
@@ -177,10 +179,18 @@ export function fetchPropertyValues<T = unknown>(
     return async (dispatch) => {
         const values = await Client4.getPropertyValues<T>(groupName, objectType, targetId);
 
-        dispatch({
-            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
-        });
+        // The marker is dispatched even for an empty list: that is the only way
+        // the store can say "loaded, no values".
+        dispatch(batchActions([
+            {
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values},
+            },
+            {
+                type: PropertyTypes.PROPERTY_VALUES_LOADED_FOR_TARGET,
+                data: {targetId},
+            },
+        ]));
 
         return {data: values};
     };
@@ -192,7 +202,10 @@ export function fetchPropertyValues<T = unknown>(
  *
  * The response is authoritative and complete for the fields it names, so there
  * is no refetch: `RECEIVED_PROPERTY_VALUES` merges each returned record over the
- * one already held.
+ * one already held. A null-valued item is a clear: the server upserts a
+ * null-valued row rather than emitting a delete, so this dispatches
+ * PROPERTY_VALUE_DELETED itself for each cleared field rather than storing the
+ * null value verbatim.
  */
 export function patchPropertyValues<T = unknown>(
     groupName: string,
@@ -212,10 +225,22 @@ export function patchPropertyValues<T = unknown>(
             return {error};
         }
 
-        dispatch({
-            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
-        });
+        const clearedFieldIds = new Set(items.filter((item) => item.value === null).map((item) => item.field_id));
+
+        for (const fieldId of clearedFieldIds) {
+            dispatch({
+                type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                data: {targetId, fieldId},
+            });
+        }
+
+        const kept = values.filter((value) => !clearedFieldIds.has(value.field_id));
+        if (kept.length > 0) {
+            dispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values: kept},
+            });
+        }
 
         return {data: values};
     };
