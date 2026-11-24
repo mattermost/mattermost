@@ -186,7 +186,8 @@ func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Sess
 		return model.NewAppError(where, "app.passkey.get_ticket.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	token, err := a.Srv().Store().Token().GetByToken(ticket)
+	// Primary read: the ticket was written by the previous request, which a lagging replica may not show yet.
+	token, err := a.Srv().Store().Token().GetByTokenFromMaster(ticket)
 	if err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, invalid()

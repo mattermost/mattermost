@@ -1045,9 +1045,16 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 
 	t.Run("a failure to read the ticket is a server error", func(t *testing.T) {
 		_, _, ticket := fresh(t)
-		withTicketStore(t, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, errors.New("db down") }})
+		withTicketStore(t, &ticketTokenStore{getByTokenFromMaster: func() (*model.Token, error) { return nil, errors.New("db down") }})
 
 		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+	})
+
+	t.Run("a ticket a lagging replica does not have yet is still found", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		withTicketStore(t, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, store.NewErrNotFound("Token", "x") }})
+
+		require.NotNil(t, begin(t, ticket))
 	})
 
 	t.Run("a failure to read the issuing session is a server error", func(t *testing.T) {
@@ -1608,10 +1615,17 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 		opts := begin(t, ticket)
 		resp := assert(t, auth, opts)
-		useTicketStore(t, th, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, errors.New("db down") }})
+		useTicketStore(t, th, &ticketTokenStore{getByTokenFromMaster: func() (*model.Token, error) { return nil, errors.New("db down") }})
 
 		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
 		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+	})
+
+	t.Run("a ticket a lagging replica does not have yet is still found at begin and at finish", func(t *testing.T) {
+		_, auth, _, ticket := registered(t)
+		useTicketStore(t, th, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, store.NewErrNotFound("Token", "x") }})
+
+		require.Nil(t, verify(t, ticket, auth))
 	})
 
 	t.Run("a failure to read the passkeys is a server error at begin and at finish", func(t *testing.T) {
@@ -2111,8 +2125,9 @@ func (failingSaveTokenStore) Save(*model.Token) error { return errors.New("db do
 // enrollment ticket. Nil hooks, and every other call, pass through to the real store.
 type ticketTokenStore struct {
 	store.TokenStore
-	getByToken    func() (*model.Token, error)
-	consumeTicket func(next func() (*model.Token, error)) (*model.Token, error)
+	getByToken           func() (*model.Token, error)
+	getByTokenFromMaster func() (*model.Token, error)
+	consumeTicket        func(next func() (*model.Token, error)) (*model.Token, error)
 }
 
 func (s *ticketTokenStore) GetByToken(token string) (*model.Token, error) {
@@ -2120,6 +2135,13 @@ func (s *ticketTokenStore) GetByToken(token string) (*model.Token, error) {
 		return s.getByToken()
 	}
 	return s.TokenStore.GetByToken(token)
+}
+
+func (s *ticketTokenStore) GetByTokenFromMaster(token string) (*model.Token, error) {
+	if s.getByTokenFromMaster != nil {
+		return s.getByTokenFromMaster()
+	}
+	return s.TokenStore.GetByTokenFromMaster(token)
 }
 
 func (s *ticketTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, error) {
