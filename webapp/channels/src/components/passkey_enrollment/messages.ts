@@ -36,3 +36,9 @@ export const sharedMessages = defineMessages({
         description: 'Error shown when the passkey the user chose is not one of their account\'s passkeys.',
     },
 });
+
+// The add path returns invalid_credential for an attestation it cannot verify, so this wording is only true for verify.
+export const verifyErrors: Record<string, typeof sharedMessages.noneRegistered> = {
+    'app.passkey.none_registered.app_error': sharedMessages.noneRegistered,
+    'app.passkey.invalid_credential.app_error': sharedMessages.invalidCredential,
+};

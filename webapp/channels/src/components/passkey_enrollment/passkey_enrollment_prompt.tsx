@@ -17,7 +17,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 import {createPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
 
-import {sharedMessages} from './messages';
+import {sharedMessages, verifyErrors} from './messages';
 
 import './passkey_enrollment_prompt.scss';
 
@@ -31,11 +31,6 @@ const messages = defineMessages({
 
 // The server's recent-login window for adding a passkey.
 const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
-
-const verifyErrors: Record<string, typeof sharedMessages.noneRegistered> = {
-    'app.passkey.none_registered.app_error': sharedMessages.noneRegistered,
-    'app.passkey.invalid_credential.app_error': sharedMessages.invalidCredential,
-};
 
 export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();

@@ -17,7 +17,7 @@ import ColumnLayout from 'components/header_footer_route/content_layouts/column'
 
 import {createPasskey, verifyPasskey} from 'utils/passkeys';
 
-import {sharedMessages} from './messages';
+import {sharedMessages, verifyErrors} from './messages';
 
 import './passkey_enrollment_page.scss';
 
@@ -86,12 +86,6 @@ const terminalErrors: Record<string, typeof messages.expired> = {
 
 const retryableErrors: Record<string, typeof messages.expired> = {
     'app.passkey.ceremony_invalid.app_error': messages.tooLong,
-};
-
-// The add path returns invalid_credential for an attestation it cannot verify, so this wording is only true for verify.
-const verifyErrors: Record<string, typeof messages.expired> = {
-    'app.passkey.none_registered.app_error': sharedMessages.noneRegistered,
-    'app.passkey.invalid_credential.app_error': sharedMessages.invalidCredential,
 };
 
 export default function PasskeyEnrollmentPage() {
