@@ -14,7 +14,7 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {creationOptionsFromJSON, registrationToJSON} from 'utils/passkeys';
+import {creationOptionsFromJSON, registrationToJSON, signalUnknownPasskey} from 'utils/passkeys';
 
 const SECTION_PASSKEYS = 'passkeys';
 const MAX_PASSKEYS = 10;
@@ -129,17 +129,27 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const addPasskey = async () => {
         setAdding(true);
         setServerError(null);
+        let created: {rpId: string; credentialId: string} | undefined;
         try {
             const {ceremony_id: ceremonyId, options} = await Client4.beginPasskeyRegistration('me');
             const credential = await navigator.credentials.create({publicKey: creationOptionsFromJSON(options.publicKey)});
             if (!credential) {
                 return;
             }
+
+            // An omitted rp.id means the page's own host to WebAuthn.
+            created = {rpId: options.publicKey.rp.id ?? window.location.hostname, credentialId: credential.id};
             await Client4.finishPasskeyRegistration('me', ceremonyId, name.trim(), registrationToJSON(credential as PublicKeyCredential));
             setName('');
             await load();
         } catch (e) {
-            const err = e as Error & {server_error_id?: string};
+            const err = e as Error & {server_error_id?: string; status_code?: number};
+
+            // Only a definite refusal: after a network error or 5xx the server may have stored the passkey, and already_registered means the device's passkey is a working one.
+            if (created && err.server_error_id && err.status_code && err.status_code >= 400 && err.status_code < 500 &&
+                err.server_error_id !== 'app.passkey.already_registered.app_error') {
+                signalUnknownPasskey(created.rpId, created.credentialId);
+            }
             if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
                 // The user dismissed the browser prompt; the unused ceremony expires on the server.
                 return;

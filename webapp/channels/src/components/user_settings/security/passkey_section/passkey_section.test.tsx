@@ -278,6 +278,7 @@ describe('PasskeySection', () => {
         let beginRegistration: jest.SpyInstance;
         let finishRegistration: jest.SpyInstance;
         let create: jest.Mock;
+        let signalUnknownCredential: jest.Mock;
 
         const renderExpanded = async () => {
             renderWithContext(
@@ -300,7 +301,8 @@ describe('PasskeySection', () => {
             Object.defineProperty(navigator, 'credentials', {value: {create}, configurable: true});
 
             // jsdom has no WebAuthn; the add control is hidden without it.
-            Object.defineProperty(window, 'PublicKeyCredential', {value: function PublicKeyCredential() {}, configurable: true});
+            signalUnknownCredential = jest.fn().mockResolvedValue(undefined);
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential}), configurable: true});
         });
 
         afterEach(() => {
@@ -462,6 +464,64 @@ describe('PasskeySection', () => {
             expect(screen.getByLabelText('Passkey name')).toHaveValue('Keep me');
             expect(screen.queryByText(/passkey for your account/)).not.toBeInTheDocument();
             expect(document.querySelector('.has-error')).not.toBeInTheDocument();
+        });
+
+        test.each([
+            ['403 recent login required', 403, 'app.passkey.recent_login_required.app_error', 'For your security, sign out and sign back in, then add your passkey within 10 minutes.'],
+            ['400 limit reached', 400, 'app.passkey.limit_reached.app_error', 'limit text'],
+        ])('tells the browser to forget the new passkey when finish is refused: %s', async (_name, status, id, text) => {
+            finishRegistration.mockRejectedValue({server_error_id: id, status_code: status, message: 'limit text'});
+            await renderExpanded();
+
+            await clickAdd();
+
+            expect(await screen.findByText(text)).toBeInTheDocument();
+            expect(signalUnknownCredential).toHaveBeenCalledTimes(1);
+            expect(signalUnknownCredential).toHaveBeenCalledWith({rpId: 'example.com', credentialId: 'cred1'});
+        });
+
+        test.each([
+            ['the credential is already registered', {server_error_id: 'app.passkey.already_registered.app_error', status_code: 400, message: 'already there'}, 'already there'],
+            ['the server fails with a 5xx', {server_error_id: 'app.passkey.save.app_error', status_code: 500, message: 'server broke'}, 'server broke'],
+            ['the error has no server_error_id', {message: 'network down'}, 'network down'],
+        ])('does not forget the passkey when %s', async (_name, error, text) => {
+            finishRegistration.mockRejectedValue(error);
+            await renderExpanded();
+
+            await clickAdd();
+
+            expect(await screen.findByText(text)).toBeInTheDocument();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+        });
+
+        test('does not forget anything when begin is refused', async () => {
+            beginRegistration.mockRejectedValue({server_error_id: 'app.passkey.limit_reached.app_error', status_code: 400, message: 'limit hit'});
+            await renderExpanded();
+
+            await clickAdd();
+
+            expect(await screen.findByText('limit hit')).toBeInTheDocument();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+        });
+
+        test('does not forget anything when the browser prompt is dismissed', async () => {
+            create.mockRejectedValue(domError('NotAllowedError'));
+            await renderExpanded();
+
+            await clickAdd();
+
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Add passkey'})).toBeEnabled());
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+        });
+
+        test('does not forget the passkey after a successful add', async () => {
+            await renderExpanded();
+            await userEvent.type(screen.getByLabelText('Passkey name'), 'Work');
+
+            await clickAdd();
+
+            await waitFor(() => expect(screen.getByLabelText('Passkey name')).toHaveValue(''));
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
         });
 
         test('InvalidStateError says the device already has a passkey', async () => {
