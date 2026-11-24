@@ -652,17 +652,30 @@ func TestAccessDecisionCacheRankAndHierarchyChanges(t *testing.T) {
 		require.Nil(t, appErr)
 	}
 
+	// notifications counts how often the PDP was told about fieldID's options changing.
+	notifications := func(h *accessDecisionCacheHarness, fieldID string) int {
+		n := 0
+		for _, call := range h.acs.Calls {
+			if call.Method == "OnPropertyFieldOptionsChanged" && call.Arguments.Get(1) == fieldID {
+				n++
+			}
+		}
+		return n
+	}
+
 	// requireReEvaluated caches a decision, runs change, and checks the PDP is asked again and
-	// told about the field the policy reads.
+	// told about the field the policy reads. Setup can notify for that field too, so only a
+	// notification from change counts.
 	requireReEvaluated := func(t *testing.T, h *accessDecisionCacheHarness, policyFieldID string, change func()) {
 		t.Helper()
 		require.True(t, h.check(t))
 		require.True(t, h.check(t))
 		require.Equal(t, 1, h.evaluations(), "cached before the change")
+		before := notifications(h, policyFieldID)
 
 		change()
 
-		h.acs.AssertCalled(t, "OnPropertyFieldOptionsChanged", mock.Anything, policyFieldID)
+		require.Greater(t, notifications(h, policyFieldID), before, "the change notifies the field the policy reads")
 		require.True(t, h.check(t))
 		require.Equal(t, 2, h.evaluations(), "asked again after the change")
 	}
