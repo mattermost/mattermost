@@ -69,7 +69,7 @@ const serverError = (id: string, status: number, message = 'server text') => ({s
 const EXPIRED = 'This link has expired or was already used. Return to the app, sign in again and retry.';
 const UNAVAILABLE = 'Passkeys aren\'t available on this server.';
 const TOO_LONG = 'That took too long. Try again.';
-const ON_DEVICE = 'This device already has a passkey for your account. Choose "I already have a passkey".';
+const ON_DEVICE = 'This device already has a passkey for your account. Choose "Use existing passkey".';
 const NONE_REGISTERED = 'You don\'t have a passkey for this account yet. Add one instead.';
 const INVALID_CREDENTIAL = 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.';
 const CONFIRMED = 'Passkey confirmed. You can close this page and return to the app.';
@@ -93,8 +93,8 @@ describe('PasskeyEnrollmentPage', () => {
     };
     const isEnrolled = () => !LocalStorageStore.isPasskeyPromptDue('any-login');
     const addButton = () => screen.queryByRole('button', {name: 'Add passkey'});
-    const existingButton = () => screen.queryByRole('button', {name: 'I already have a passkey'});
-    const clickExisting = async () => userEvent.click(await screen.findByRole('button', {name: 'I already have a passkey'}));
+    const existingButton = () => screen.queryByRole('button', {name: 'Use existing passkey'});
+    const clickExisting = async () => userEvent.click(await screen.findByRole('button', {name: 'Use existing passkey'}));
 
     beforeEach(() => {
         localStorage.clear();
@@ -120,7 +120,7 @@ describe('PasskeyEnrollmentPage', () => {
 
         expect(await screen.findByRole('heading', {name: 'Add a passkey'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Add passkey'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Use existing passkey'})).toBeInTheDocument();
         expect(beginRegistration).not.toHaveBeenCalled();
         expect(beginVerification).not.toHaveBeenCalled();
     });
@@ -135,6 +135,19 @@ describe('PasskeyEnrollmentPage', () => {
         expect(beginVerification).not.toHaveBeenCalled();
         expect(beginRegistration).toHaveBeenCalledWith('t1');
         expect(finishRegistration).toHaveBeenCalledWith('cer1', '', expect.objectContaining({id: 'cred1'}));
+    });
+
+    test('the error and both buttons share one container, and the error is a danger banner', async () => {
+        finishRegistration.mockRejectedValue(serverError('app.passkey.ceremony_invalid.app_error', 400));
+        renderPage();
+        await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
+
+        const alert = await screen.findByRole('alert');
+        const actions = alert.closest('.PasskeyEnrollmentPage__actions');
+        expect(actions).not.toBeNull();
+        expect(actions).toContainElement(screen.getByRole('button', {name: 'Add passkey'}));
+        expect(actions).toContainElement(screen.getByRole('button', {name: 'Use existing passkey'}));
+        expect(alert.querySelector('.AlertBanner.danger')).not.toBeNull();
     });
 
     test('a signed-out visitor stays on the page', async () => {
@@ -257,7 +270,7 @@ describe('PasskeyEnrollmentPage', () => {
         expect(beginRegistration).toHaveBeenLastCalledWith('t1');
     });
 
-    describe('I already have a passkey', () => {
+    describe('Use existing passkey', () => {
         test('verifies the ticket user\'s passkey, records the enrollment and shows the confirmed text with no buttons', async () => {
             renderPage();
             await clickExisting();

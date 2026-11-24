@@ -28772,11 +28772,11 @@
     "description": "Button that starts adding a passkey, on the page opened from the Mattermost app."
   },
   "passkey_enrollment_page.alreadyHave": {
-    "defaultMessage": "I already have a passkey",
+    "defaultMessage": "Use existing passkey",
     "description": "Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
   },
   "passkey_enrollment_page.alreadyOnDevice": {
-    "defaultMessage": "This device already has a passkey for your account. Choose \"I already have a passkey\".",
+    "defaultMessage": "This device already has a passkey for your account. Choose \"Use existing passkey\".",
     "description": "Error shown when the device refuses to create a passkey because it already holds one for the account."
   },
   "passkey_enrollment_page.body": {

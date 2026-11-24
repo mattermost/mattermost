@@ -12,9 +12,12 @@ import {Client4} from 'mattermost-redux/client';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
+import AlertBanner from 'components/alert_banner';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 
 import {createPasskey, verifyPasskey} from 'utils/passkeys';
+
+import './passkey_enrollment_page.scss';
 
 const messages = defineMessages({
     title: {
@@ -34,7 +37,7 @@ const messages = defineMessages({
     },
     alreadyHave: {
         id: 'passkey_enrollment_page.alreadyHave',
-        defaultMessage: 'I already have a passkey',
+        defaultMessage: 'Use existing passkey',
         description: 'Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.',
     },
     confirmed: {
@@ -89,7 +92,7 @@ const messages = defineMessages({
     },
     alreadyOnDevice: {
         id: 'passkey_enrollment_page.alreadyOnDevice',
-        defaultMessage: 'This device already has a passkey for your account. Choose "I already have a passkey".',
+        defaultMessage: 'This device already has a passkey for your account. Choose "Use existing passkey".',
         description: 'Error shown when the device refuses to create a passkey because it already holds one for the account.',
     },
 });
@@ -114,7 +117,7 @@ export default function PasskeyEnrollmentPage() {
 
     // The fragment is never sent to the server, so the ticket stays out of access logs.
     const ticket = new URLSearchParams(useLocation().hash.slice(1)).get('ticket');
-    const [busy, setBusy] = useState(false);
+    const [busy, setBusy] = useState<'add' | 'verify' | null>(null);
     const [done, setDone] = useState<'added' | 'confirmed' | null>(null);
 
     // A refusal that retrying cannot fix removes the button; any other error leaves it for another try.
@@ -135,8 +138,8 @@ export default function PasskeyEnrollmentPage() {
         canAct = !error?.final;
     }
 
-    const run = async (action: () => Promise<boolean>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
-        setBusy(true);
+    const run = async (kind: 'add' | 'verify', action: () => Promise<boolean>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
+        setBusy(kind);
         setError(null);
         try {
             if (await action()) {
@@ -158,15 +161,15 @@ export default function PasskeyEnrollmentPage() {
                 setError({text: err.message, final: false});
             }
         }
-        setBusy(false);
+        setBusy(null);
     };
 
-    const add = () => run(async () => Boolean(await createPasskey(
+    const add = () => run('add', async () => Boolean(await createPasskey(
         () => Client4.beginPasskeyEnrollmentRegistration(ticket!),
         (ceremonyId, credential) => Client4.finishPasskeyEnrollmentRegistration(ceremonyId, '', credential),
     )), 'added');
 
-    const verifyExisting = () => run(() => verifyPasskey(
+    const verifyExisting = () => run('verify', () => verifyPasskey(
         () => Client4.beginPasskeyEnrollmentVerification(ticket!),
         (ceremonyId, credential) => Client4.finishPasskeyEnrollmentVerification(ceremonyId, credential),
     ), 'confirmed', verifyErrors);
@@ -176,26 +179,38 @@ export default function PasskeyEnrollmentPage() {
             title={formatMessage(messages.title)}
             message={message}
             extraContent={(
-                <>
-                    {error && <div role='alert'>{error.text}</div>}
+                <div className='PasskeyEnrollmentPage__actions'>
+                    {error && (
+                        <div role='alert'>
+                            <AlertBanner
+                                mode='danger'
+                                title={error.text}
+                            />
+                        </div>
+                    )}
                     {canAct && (
                         <>
                             <Button
-                                disabled={busy}
+                                emphasis='primary'
+                                size='large'
+                                loading={busy === 'add'}
+                                disabled={busy !== null}
                                 onClick={add}
                             >
                                 {formatMessage(messages.add)}
                             </Button>
                             <Button
                                 emphasis='tertiary'
-                                disabled={busy}
+                                size='large'
+                                loading={busy === 'verify'}
+                                disabled={busy !== null}
                                 onClick={verifyExisting}
                             >
                                 {formatMessage(messages.alreadyHave)}
                             </Button>
                         </>
                     )}
-                </>
+                </div>
             )}
         />
     );
