@@ -33,13 +33,20 @@ const (
 	targetAccessBotManager     targetAccessPath = "bot_manager"
 )
 
+// propertyRoutesEnabled reports whether any feature stored through the generic
+// Properties API is on. The session and local routers both gate on it, so the
+// local routes are never served when the session ones are not.
+func propertyRoutesEnabled(flags *model.FeatureFlags) bool {
+	return flags.IntegratedBoards ||
+		flags.ManagedChannelCategories ||
+		flags.ClassificationMarkings ||
+		flags.SessionAttributes ||
+		flags.PostAttributes ||
+		flags.ChannelAttributes
+}
+
 func (api *API) InitProperties() {
-	if api.srv.Config().FeatureFlags.IntegratedBoards ||
-		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
-		api.srv.Config().FeatureFlags.ClassificationMarkings ||
-		api.srv.Config().FeatureFlags.SessionAttributes ||
-		api.srv.Config().FeatureFlags.PostAttributes ||
-		api.srv.Config().FeatureFlags.ChannelAttributes {
+	if propertyRoutesEnabled(api.srv.Config().FeatureFlags) {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyFieldsSearch.Handle("", api.APISessionRequired(searchPropertyFields)).Methods(http.MethodPost)
 		api.BaseRoutes.GlobalAttributesSearch.Handle("", api.APISessionRequired(searchGlobalAttributeListing)).Methods(http.MethodPost)
@@ -1138,6 +1145,8 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 		}
 	}
 
+	// A local session has no user, so CreatedBy and UpdatedBy stay empty there;
+	// hooks identify the caller through rctx instead.
 	userID := c.AppContext.Session().UserId
 	values := make([]*model.PropertyValue, len(items))
 	for i, item := range items {
@@ -1261,6 +1270,7 @@ func userTargetAccess(c *Context, groupName, targetID string, write bool) (targe
 	if targetID == session.UserId {
 		return targetAccessSelf, true
 	}
+	// A local session has no user to check against and acts as a system admin.
 	if session.IsUnrestricted() {
 		return targetAccessLocal, true
 	}
@@ -1352,8 +1362,9 @@ func sessionCallerID(c *Context) string {
 // service may redefine is set up through the plugin API, which does not come
 // through here; a field that does end up at none is recovered through the
 // plugin API too. The local-mode exemption is defensive only, matching the
-// field.write decision itself: these routes are registered for session
-// callers alone, so local mode never reaches this check.
+// field.write decision itself: the field create and patch routes, its only
+// callers, are registered for session callers alone, so local mode never
+// reaches this check.
 func permissionsLockOutSystemAdmins(session model.Session, permissions *model.Permissions) bool {
 	if session.IsUnrestricted() || permissions == nil {
 		return false
