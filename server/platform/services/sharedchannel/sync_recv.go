@@ -491,31 +491,33 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 // matches their home server. User().Update does not change roles, and promote/demote also
 // update the scheme flags on existing team and channel memberships.
 func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, isGuest bool) (*model.User, error) {
-	if user.IsGuest() == isGuest {
-		return user, nil
+	if user.IsGuest() != isGuest {
+		var appErr *model.AppError
+		if isGuest {
+			appErr = scs.app.DemoteUserToGuest(rctx, user)
+		} else {
+			appErr = scs.app.PromoteGuestToUser(rctx, user, "")
+		}
+		if appErr != nil {
+			return nil, fmt.Errorf("error updating guest role for sync user %s: %w", user.Id, appErr)
+		}
+
+		updated, err := scs.server.GetStore().User().Get(rctx, user.Id)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching sync user %s after guest role update: %w", user.Id, err)
+		}
+		user = updated
 	}
 
-	var appErr *model.AppError
-	if isGuest {
-		appErr = scs.app.DemoteUserToGuest(rctx, user)
-	} else {
-		appErr = scs.app.PromoteGuestToUser(rctx, user, "")
-	}
-	if appErr != nil {
-		return nil, fmt.Errorf("error updating guest role for sync user %s: %w", user.Id, appErr)
-	}
-
-	updated, err := scs.server.GetStore().User().Get(rctx, user.Id)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching sync user %s after guest role update: %w", user.Id, err)
-	}
-
-	if isGuest && updated.DeleteAt == 0 && !scs.guestAccountsEnabled() {
-		if updated, appErr = scs.app.UpdateActive(rctx, updated, false); appErr != nil {
+	// Outside the role-change branch so a retry finishes a deactivation that failed after the demote.
+	if isGuest && user.DeleteAt == 0 && !scs.guestAccountsEnabled() {
+		deactivated, appErr := scs.app.UpdateActive(rctx, user, false)
+		if appErr != nil {
 			return nil, fmt.Errorf("error deactivating sync guest %s: %w", user.Id, appErr)
 		}
+		user = deactivated
 	}
-	return updated, nil
+	return user, nil
 }
 
 func (scs *Service) guestAccountsEnabled() bool {

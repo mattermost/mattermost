@@ -280,8 +280,10 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 			remoteUserNotSynced := !allSyncedUserIDs[remoteUser.Id]
 			inactiveUserNotSynced := !allSyncedUserIDs[inactiveUser.Id]
 
+			rolesCaptured := sentRoles[guest.Id] != "" && sentRoles[systemAdmin.Id] != ""
+
 			return guestSynced && botSynced && systemAdminSynced && userWithOldTimestampSynced &&
-				remoteUserNotSynced && inactiveUserNotSynced
+				remoteUserNotSynced && inactiveUserNotSynced && rolesCaptured
 		}, 10*time.Second, 500*time.Millisecond, "Should sync expected users")
 
 		// Verify results
