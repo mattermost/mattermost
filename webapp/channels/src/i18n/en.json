@@ -10632,8 +10632,8 @@
     "description": "Setting label (toggle) on the Notices admin page controlling announcement notices shown to all users; ends with a colon and trailing space."
   },
   "admin.notices.enableSecurityFixAlertDescription": {
-    "defaultMessage": "When enabled, the server checks securityupdatecheck.mattermost.com daily for security bulletins, sending its server ID, version, build, operating system, database type, and user and team counts. System Admins are emailed relevant bulletins when SMTP is configured. The server also requests the latest Mattermost release from GitHub to report whether it is out of date. When disabled, the server makes neither request.",
-    "description": "Help text for the Check for Security and Release Updates setting on the System Console Notices page; securityupdatecheck.mattermost.com and GitHub are names and stay untranslated."
+    "defaultMessage": "When enabled, the server checks Mattermost daily for security bulletins and requests the latest Mattermost release from GitHub to report whether it is out of date. System Admins are emailed relevant bulletins when SMTP is configured. When disabled, the server makes neither request.",
+    "description": "Help text for the Check for Security and Release Updates setting on the System Console Notices page; Mattermost and GitHub are names and stay untranslated."
   },
   "admin.notices.enableSecurityFixAlertTitle": {
     "defaultMessage": "Check for Security and Release Updates: ",

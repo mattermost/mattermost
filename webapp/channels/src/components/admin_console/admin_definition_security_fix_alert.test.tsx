@@ -49,7 +49,7 @@ describe('AdminDefinition - Check for Security and Release Updates setting', () 
     test('describes the security bulletins and the latest release check', () => {
         expect(getSetting()?.label).toMatchObject({defaultMessage: 'Check for Security and Release Updates: '});
         expect(getSetting()?.help_text).toMatchObject({
-            defaultMessage: expect.stringMatching(/securityupdatecheck\.mattermost\.com[\s\S]*latest Mattermost release/),
+            defaultMessage: expect.stringMatching(/security bulletins[\s\S]*latest Mattermost release/),
         });
     });
 

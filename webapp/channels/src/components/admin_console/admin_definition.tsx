@@ -4459,7 +4459,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.EnableSecurityFixAlert',
                             label: defineMessage({id: 'admin.notices.enableSecurityFixAlertTitle', defaultMessage: 'Check for Security and Release Updates: '}),
-                            help_text: defineMessage({id: 'admin.notices.enableSecurityFixAlertDescription', defaultMessage: 'When enabled, the server checks securityupdatecheck.mattermost.com daily for security bulletins, sending its server ID, version, build, operating system, database type, and user and team counts. System Admins are emailed relevant bulletins when SMTP is configured. The server also requests the latest Mattermost release from GitHub to report whether it is out of date. When disabled, the server makes neither request.'}),
+                            help_text: defineMessage({id: 'admin.notices.enableSecurityFixAlertDescription', defaultMessage: 'When enabled, the server checks Mattermost daily for security bulletins and requests the latest Mattermost release from GitHub to report whether it is out of date. System Admins are emailed relevant bulletins when SMTP is configured. When disabled, the server makes neither request.'}),
                             isHidden: it.licensedForFeature('Cloud'),
                             isDisabled: it.any(
                                 it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),

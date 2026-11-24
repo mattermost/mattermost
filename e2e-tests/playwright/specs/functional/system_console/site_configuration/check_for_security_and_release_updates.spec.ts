@@ -35,7 +35,7 @@ test(
         // * Verify the setting is shown with the test baseline (off) and its help text covers both checks
         await setting.toBeVisible();
         await setting.toBeFalse();
-        await expect(setting.helpText!).toContainText('securityupdatecheck.mattermost.com');
+        await expect(setting.helpText!).toContainText('security bulletins');
         await expect(setting.helpText!).toContainText('latest Mattermost release');
 
         // # Turn the setting on and save
