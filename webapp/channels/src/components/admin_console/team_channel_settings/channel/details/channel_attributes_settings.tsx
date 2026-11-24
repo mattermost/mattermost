@@ -274,8 +274,6 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                                 buttonDataTestId={inputId}
                                 placeholder={formatMessage({id: 'admin.channel_settings.channel_detail.attributes.not_set', defaultMessage: 'Not set'})}
                                 ariaLabel={label}
-                                invalid={showRequiredError}
-                                ariaDescribedBy={describedBy}
                                 buttonClassName={showRequiredError ? 'ChannelAttributesSettings__graph--error' : undefined}
                                 disabled={disabled}
                             />
