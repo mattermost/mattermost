@@ -81,24 +81,26 @@ func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
 			// The findings API serves product findings only; a packet is evaluated for support engineers too.
 			offline = slices.DeleteFunc(offline, func(f *model.HealthFinding) bool { return f.Surface != string(healthcheck.SurfaceProduct) })
 
-			s.Require().NotEmpty(live)
-			s.Equal(comparableHealthFindings(live), comparableHealthFindings(offline))
+			comparableLive := comparableHealthFindings(live)
+			s.Require().NotEmpty(comparableLive)
+			s.Equal(comparableLive, comparableHealthFindings(offline))
 		})
 	}
 }
 
 // comparableHealthFindings drops what depends on when and how often a finding was evaluated, and
-// the values each collection samples for itself, and sorts by fingerprint.
+// the findings of sampled rules, which can fire in one collection and not the other, and sorts by
+// fingerprint.
 func comparableHealthFindings(findings []*model.HealthFinding) []model.HealthFinding {
 	result := make([]model.HealthFinding, 0, len(findings))
 	for _, finding := range findings {
+		if slices.Contains(healthchecktest.SampledCodes, finding.Code) {
+			continue
+		}
 		f := *finding
 		f.FirstSeenAt, f.LastSeenAt, f.StateSince = 0, 0, 0
 		if len(f.Details) == 0 {
 			f.Details = nil
-		}
-		if slices.Contains(healthchecktest.SampledCodes, f.Code) {
-			f.Details, f.Message = nil, ""
 		}
 		result = append(result, f)
 	}
