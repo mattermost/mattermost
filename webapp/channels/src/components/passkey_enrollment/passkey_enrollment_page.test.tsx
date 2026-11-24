@@ -220,6 +220,19 @@ describe('PasskeyEnrollmentPage', () => {
         expect(addButton()).toBeInTheDocument();
     });
 
+    test.each([
+        'app.passkey.invalid_credential.app_error',
+        'app.passkey.none_registered.app_error',
+    ])('an add refused with %s shows the server message, not the verify wording', async (id) => {
+        finishRegistration.mockRejectedValue(serverError(id, 400, 'bad attestation'));
+        renderPage();
+        await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('bad attestation');
+        expect(addButton()).toBeEnabled();
+        expect(existingButton()).toBeEnabled();
+    });
+
     test('dismissing the browser prompt shows no error, keeps the button and allows another try', async () => {
         create.mockRejectedValueOnce(new DOMException('x', 'NotAllowedError'));
         renderPage();

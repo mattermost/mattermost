@@ -101,6 +101,10 @@ const terminalErrors: Record<string, typeof messages.expired> = {
 
 const retryableErrors: Record<string, typeof messages.expired> = {
     'app.passkey.ceremony_invalid.app_error': messages.tooLong,
+};
+
+// The add path returns invalid_credential for an attestation it cannot verify, so this wording is only true for verify.
+const verifyErrors: Record<string, typeof messages.expired> = {
     'app.passkey.none_registered.app_error': messages.noneRegistered,
     'app.passkey.invalid_credential.app_error': messages.invalidCredential,
 };
@@ -129,7 +133,7 @@ export default function PasskeyEnrollmentPage() {
         canAct = !error?.final;
     }
 
-    const run = async (action: () => Promise<boolean>, result: 'added' | 'confirmed') => {
+    const run = async (action: () => Promise<boolean>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
         setBusy(true);
         setError(null);
         try {
@@ -144,8 +148,8 @@ export default function PasskeyEnrollmentPage() {
                 setError({text: formatMessage(terminalErrors[id]), final: true});
             } else if (err.status_code === 501) {
                 setError({text: formatMessage(messages.unavailable), final: true});
-            } else if (retryableErrors[id]) {
-                setError({text: formatMessage(retryableErrors[id]), final: false});
+            } else if (retryableErrors[id] ?? extraErrors[id]) {
+                setError({text: formatMessage(retryableErrors[id] ?? extraErrors[id]), final: false});
             } else if (err.name === 'InvalidStateError') {
                 setError({text: formatMessage(messages.alreadyOnDevice), final: false});
             } else {
@@ -163,7 +167,7 @@ export default function PasskeyEnrollmentPage() {
     const verifyExisting = () => run(() => verifyPasskey(
         () => Client4.beginPasskeyEnrollmentVerification(ticket!),
         (ceremonyId, credential) => Client4.finishPasskeyEnrollmentVerification(ceremonyId, credential),
-    ), 'confirmed');
+    ), 'confirmed', verifyErrors);
 
     return (
         <ColumnLayout
