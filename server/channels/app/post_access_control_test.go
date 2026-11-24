@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -423,6 +424,148 @@ func TestFilterPostsByAccessControlResource(t *testing.T) {
 		require.Len(t, kept, 1)
 		assert.Equal(t, plain.Id, kept[0].PostId)
 	})
+}
+
+// followedThreadForUser saves a root post in the basic channel, replies to it as
+// BasicUser, and makes viewer follow it with one unread mention. The marker is
+// written through the store so the test does not depend on the create path.
+func followedThreadForUser(t *testing.T, th *TestHelper, viewerID, marker string) *model.Post {
+	t.Helper()
+	root := &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: "root"}
+	if marker != "" {
+		root.AddProp(model.PostPropsAccessControlResource, marker)
+	}
+	root, err := th.App.Srv().Store().Post().Save(th.Context, root)
+	require.NoError(t, err)
+	_, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+		UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "reply",
+	})
+	require.NoError(t, err)
+	_, err = th.App.Srv().Store().Thread().MaintainMembership(viewerID, root.Id, store.ThreadMembershipOpts{
+		Following:         true,
+		IncrementMentions: true,
+		UpdateFollowing:   true,
+	})
+	require.NoError(t, err)
+	return root
+}
+
+func TestGetThreadsForUserAccessControlResourceTotals(t *testing.T) {
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
+	viewer := th.BasicUser2
+
+	resourceID := model.NewId()
+	plantPostPolicy(t, th, resourceID)
+	plain := followedThreadForUser(t, th, viewer.Id, "")
+	marked := followedThreadForUser(t, th, viewer.Id, testPostResource(resourceID))
+
+	threadIDs := func(threads *model.Threads) []string {
+		ids := []string{}
+		for _, thread := range threads.Threads {
+			ids = append(ids, thread.PostId)
+		}
+		return ids
+	}
+
+	t.Run("an allowed user counts every thread", func(t *testing.T) {
+		mockPostPolicyDecisions(t, th, viewer.Id)
+
+		threads, appErr := th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+		assert.Equal(t, int64(2), threads.Total)
+		assert.Equal(t, int64(2), threads.TotalUnreadThreads)
+		assert.Equal(t, int64(2), threads.TotalUnreadMentions)
+		assert.ElementsMatch(t, []string{plain.Id, marked.Id}, threadIDs(threads))
+	})
+
+	t.Run("a denied thread is left out of the page and every total", func(t *testing.T) {
+		mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+
+		threads, appErr := th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+		assert.Equal(t, int64(1), threads.Total)
+		assert.Equal(t, int64(1), threads.TotalUnreadThreads)
+		assert.Equal(t, int64(1), threads.TotalUnreadMentions)
+		assert.Equal(t, []string{plain.Id}, threadIDs(threads))
+
+		threads, appErr = th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Unread: true})
+		require.Nil(t, appErr)
+		assert.Equal(t, int64(1), threads.Total)
+
+		threads, appErr = th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{TotalsOnly: true})
+		require.Nil(t, appErr)
+		assert.Equal(t, int64(1), threads.Total)
+		assert.Empty(t, threads.Threads)
+
+		threads, appErr = th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{ThreadsOnly: true})
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{plain.Id}, threadIDs(threads))
+	})
+
+	t.Run("a denied thread is left out of the team unread counts", func(t *testing.T) {
+		teamUnread := func(t *testing.T) *model.TeamUnread {
+			t.Helper()
+			unreads, appErr := th.App.GetTeamsUnreadForUser(th.Context, "", viewer.Id, true)
+			require.Nil(t, appErr)
+			for _, unread := range unreads {
+				if unread.TeamId == th.BasicTeam.Id {
+					return unread
+				}
+			}
+			require.Fail(t, "team unread not found")
+			return nil
+		}
+
+		mockPostPolicyDecisions(t, th, viewer.Id)
+		unread := teamUnread(t)
+		assert.Equal(t, int64(2), unread.ThreadCount)
+		assert.Equal(t, int64(2), unread.ThreadMentionCount)
+
+		mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+		unread = teamUnread(t)
+		assert.Equal(t, int64(1), unread.ThreadCount)
+		assert.Equal(t, int64(1), unread.ThreadMentionCount)
+	})
+
+	t.Run("an evaluation failure denies the thread", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "boom", nil, "", http.StatusInternalServerError))
+
+		threads, appErr := th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+		assert.Equal(t, int64(1), threads.Total)
+		assert.Equal(t, int64(1), threads.TotalUnreadMentions)
+	})
+}
+
+func TestGetThreadsForUserAccessControlResourceFlagOff(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	require.False(t, th.App.Config().FeatureFlags.PostAccessControlResource)
+	viewer := th.BasicUser2
+
+	resourceID := model.NewId()
+	plantPostPolicy(t, th, resourceID)
+	mockACS := mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+	followedThreadForUser(t, th, viewer.Id, "")
+	followedThreadForUser(t, th, viewer.Id, testPostResource(resourceID))
+
+	threads, appErr := th.App.GetThreadsForUser(th.Context, viewer.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
+	assert.Equal(t, int64(2), threads.Total)
+	assert.Equal(t, int64(2), threads.TotalUnreadThreads)
+	assert.Equal(t, int64(2), threads.TotalUnreadMentions)
+	assert.Len(t, threads.Threads, 2)
+
+	unreads, appErr := th.App.GetTeamsUnreadForUser(th.Context, "", viewer.Id, true)
+	require.Nil(t, appErr)
+	require.Len(t, unreads, 1)
+	assert.Equal(t, int64(2), unreads[0].ThreadCount)
+	assert.Equal(t, int64(2), unreads[0].ThreadMentionCount)
+	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 }
 
 func TestMoveThreadRefusesAccessControlResource(t *testing.T) {

@@ -17540,11 +17540,32 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userID string, teamID stri
 
 }
 
-func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
+func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string, excludeAccessControlResources []string) (map[string]*model.TeamUnread, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
+		result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadAccessControlResources(userID string, teamID string, opts model.GetUserThreadsOpts) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadAccessControlResources(userID, teamID, opts)
 		if err == nil {
 			return result, nil
 		}

@@ -186,6 +186,31 @@ func (a *App) filterThreadsByAccessControlResource(rctx request.CTX, userID stri
 	return kept
 }
 
+// deniedThreadAccessControlResources returns the access_control_resource values
+// on the root posts of the threads userID follows that deny userID. Thread
+// totals and pages leave those threads out, so the counts match what the user
+// can open.
+func (a *App) deniedThreadAccessControlResources(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) ([]string, error) {
+	if userID == "" || !a.postAccessControlResourceEnabled() {
+		return nil, nil
+	}
+	values, err := a.Srv().Store().Thread().GetThreadAccessControlResources(userID, teamID, options)
+	if err != nil {
+		return nil, err
+	}
+	if len(values) == 0 {
+		return nil, nil
+	}
+	decisions := a.accessControlResourceDecisionsFor(rctx, userID, values)
+	var denied []string
+	for _, value := range values {
+		if !decisions[value] {
+			denied = append(denied, value)
+		}
+	}
+	return denied, nil
+}
+
 // accessControlResourceDeniedError is the 403 returned when a user acts on a
 // post whose access_control_resource denies them.
 func accessControlResourceDeniedError(where string) *model.AppError {

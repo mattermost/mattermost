@@ -24,6 +24,7 @@ func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, rctx, ss, s)
 	})
 	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, rctx, ss) })
+	t.Run("AccessControlResources", func(t *testing.T) { testThreadAccessControlResources(t, rctx, ss) })
 	t.Run("GetVarious", func(t *testing.T) { testVarious(t, rctx, ss) })
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
 	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
@@ -754,7 +755,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, rctx, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
 	createThreadMembership(userID, post.Id)
 
-	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true, nil)
+	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true, nil, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team1.Id].ThreadCount)
@@ -768,7 +769,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, rctx, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
 	createThreadMembership(userID, post.Id)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true, nil)
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true, nil, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
@@ -810,7 +811,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, rctx, ss, channel2.Id, post2.Id, post2.UserId, model.GetMillis())
 	createThreadMembership(userID, post2.Id)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true, nil)
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true, nil, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 2)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
@@ -823,7 +824,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Thread().MaintainMembership(userID, post2.Id, opts)
 	require.NoError(t, err)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id}, true, nil)
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id}, true, nil, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
@@ -831,7 +832,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadUrgentMentionCount)
 
 	t.Run("excluded channels are not counted", func(t *testing.T) {
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true, []string{channel2.Id})
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true, []string{channel2.Id}, nil)
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
 		assert.Nil(t, teamsUnread[team2.Id], "team2's only channel is excluded")
@@ -857,6 +858,150 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		urgent, err = ss.Thread().GetTotalUnreadUrgentMentions(userID, "", model.GetUserThreadsOpts{})
 		require.NoError(t, err)
 		assert.Equal(t, int64(1), urgent)
+	})
+}
+
+func testThreadAccessControlResources(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID := model.NewId()
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	const resourceA, resourceB = "plugin:page:a:view", "plugin:page:b:view"
+	createThread := func(resource string, urgent bool) *model.Post {
+		t.Helper()
+		root := &model.Post{ChannelId: channel.Id, UserId: userID, Message: model.NewRandomString(10)}
+		if resource != "" {
+			root.AddProp(model.PostPropsAccessControlResource, resource)
+		}
+		if urgent {
+			root.Metadata = &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck:            new(false),
+					PersistentNotifications: new(false),
+				},
+			}
+		}
+		root, err := ss.Post().Save(rctx, root)
+		require.NoError(t, err)
+		threadStoreCreateReply(t, rctx, ss, channel.Id, root.Id, model.NewId(), model.GetMillis())
+		_, err = ss.Thread().MaintainMembership(userID, root.Id, store.ThreadMembershipOpts{
+			Following:         true,
+			IncrementMentions: true,
+			UpdateFollowing:   true,
+		})
+		require.NoError(t, err)
+		return root
+	}
+
+	plain := createThread("", false)
+	createThread(resourceA, true)
+	createThread(resourceA, false)
+	markedB := createThread(resourceB, false)
+
+	t.Run("lists the distinct markers of followed threads", func(t *testing.T) {
+		values, err := ss.Thread().GetThreadAccessControlResources(userID, "", model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{resourceA, resourceB}, values)
+
+		values, err = ss.Thread().GetThreadAccessControlResources(userID, team.Id, model.GetUserThreadsOpts{ExcludeDirect: true})
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{resourceA, resourceB}, values)
+
+		values, err = ss.Thread().GetThreadAccessControlResources(userID, model.NewId(), model.GetUserThreadsOpts{ExcludeDirect: true})
+		require.NoError(t, err)
+		assert.Empty(t, values)
+
+		values, err = ss.Thread().GetThreadAccessControlResources(model.NewId(), "", model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		assert.Empty(t, values)
+	})
+
+	t.Run("totals and pages leave out the excluded markers", func(t *testing.T) {
+		opts := model.GetUserThreadsOpts{ExcludeAccessControlResources: []string{resourceA}}
+
+		total, err := ss.Thread().GetTotalThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), total)
+		unread, err := ss.Thread().GetTotalUnreadThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), unread)
+		mentions, err := ss.Thread().GetTotalUnreadMentions(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), mentions)
+		urgent, err := ss.Thread().GetTotalUnreadUrgentMentions(userID, "", opts)
+		require.NoError(t, err)
+		assert.Zero(t, urgent)
+
+		page, err := ss.Thread().GetThreadsForUser(rctx, userID, "", opts)
+		require.NoError(t, err)
+		require.Len(t, page, 2)
+		assert.ElementsMatch(t, []string{plain.Id, markedB.Id}, []string{page[0].PostId, page[1].PostId})
+
+		opts.ExcludeAccessControlResources = []string{resourceA, resourceB}
+		total, err = ss.Thread().GetTotalThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), total)
+		page, err = ss.Thread().GetThreadsForUser(rctx, userID, "", opts)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, plain.Id, page[0].PostId)
+	})
+
+	t.Run("team unread counts leave out the excluded markers", func(t *testing.T) {
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team.Id}, true, nil, []string{resourceA})
+		require.NoError(t, err)
+		require.Contains(t, teamsUnread, team.Id)
+		assert.Equal(t, int64(2), teamsUnread[team.Id].ThreadCount)
+		assert.Equal(t, int64(2), teamsUnread[team.Id].ThreadMentionCount)
+		assert.Zero(t, teamsUnread[team.Id].ThreadUrgentMentionCount)
+
+		teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team.Id}, true, nil, nil)
+		require.NoError(t, err)
+		require.Contains(t, teamsUnread, team.Id)
+		assert.Equal(t, int64(4), teamsUnread[team.Id].ThreadCount)
+		assert.Equal(t, int64(4), teamsUnread[team.Id].ThreadMentionCount)
+		assert.Equal(t, int64(1), teamsUnread[team.Id].ThreadUrgentMentionCount)
+	})
+
+	t.Run("nothing is left out without markers", func(t *testing.T) {
+		opts := model.GetUserThreadsOpts{}
+
+		total, err := ss.Thread().GetTotalThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(4), total)
+		mentions, err := ss.Thread().GetTotalUnreadMentions(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(4), mentions)
+		urgent, err := ss.Thread().GetTotalUnreadUrgentMentions(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), urgent)
+		page, err := ss.Thread().GetThreadsForUser(rctx, userID, "", opts)
+		require.NoError(t, err)
+		assert.Len(t, page, 4)
+
+		opts.ExcludeAccessControlResources = []string{"plugin:page:other:view"}
+		total, err = ss.Thread().GetTotalThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(4), total)
 	})
 }
 
@@ -1429,7 +1574,7 @@ func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	assertThreadReplyCount := func(t *testing.T, userID string, count int64) {
 		t.Helper()
 
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, false, nil)
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, false, nil, nil)
 		require.NoError(t, err)
 		require.Len(t, teamsUnread, 1, "unexpected unread teams count")
 		assert.Equal(t, count, teamsUnread[team1.Id].ThreadCount, "unexpected thread count")
@@ -1545,7 +1690,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	assertThreadReplyCount := func(t *testing.T, userID, teamID string, count int64, message string) {
 		t.Helper()
 
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID}, true, nil)
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID}, true, nil, nil)
 		require.NoError(t, err)
 		require.Lenf(t, teamsUnread, 1, "unexpected unread teams count: %s", message)
 		assert.Equalf(t, count, teamsUnread[teamID].ThreadCount, "unexpected thread count: %s", message)

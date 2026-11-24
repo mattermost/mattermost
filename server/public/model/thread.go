@@ -94,6 +94,11 @@ type GetUserThreadsOpts struct {
 	// ExcludeChannelIds leaves out threads in these channels. The server sets it to the
 	// channels the channel_read_access policy denies the user; it is never read from a client.
 	ExcludeChannelIds []string
+
+	// ExcludeAccessControlResources leaves out threads whose root post carries one of these
+	// access_control_resource values. The server sets it to the values the plugin's policy
+	// denies the user; it is never read from a client.
+	ExcludeAccessControlResources []string
 }
 
 func (o *Thread) Etag() string {
