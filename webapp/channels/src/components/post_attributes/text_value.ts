@@ -82,13 +82,22 @@ const URL_PREFIX_PATTERN = /^[a-z][a-z\d+.-]*:\/\//i;
 // refuses, so the zone is dropped before the check.
 const IPV6_ZONE_PATTERN = /^([a-z][a-z\d+.-]*:\/\/[^/?#]*\[[\da-f:.]+)%25[\w.~-]+\]/i;
 
+// Go refuses a `%` that does not start a two-digit escape anywhere before the
+// query, which `new URL` tolerates.
+const MALFORMED_ESCAPE_PATTERN = /%(?![\da-f]{2})/i;
+
 function isValidUrl(text: string): boolean {
     if (!URL_PREFIX_PATTERN.test(text)) {
         return false;
     }
 
+    const withoutZone = text.replace(IPV6_ZONE_PATTERN, '$1]');
+    if (MALFORMED_ESCAPE_PATTERN.test(withoutZone.split('?')[0])) {
+        return false;
+    }
+
     try {
-        return new URL(text.replace(IPV6_ZONE_PATTERN, '$1]')).host !== '';
+        return new URL(withoutZone).host !== '';
     } catch {
         return false;
     }

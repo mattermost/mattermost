@@ -107,6 +107,9 @@ describe('validateTextValue', () => {
         'http://[::1]:8065/',
         'http://[fe80::1%25eth0]/',
         'http://user@[fe80::1%25en0]:8080/path',
+        'http://[fe80::1%25eth0]/100%25',
+        'http://example.com/100%25',
+        'http://example.com/a?q=100%',
     ])('url: accepts %j, as the server does', (value) => {
         expect(validateTextValue(textField('url'), value)).toBeUndefined();
     });
@@ -123,6 +126,10 @@ describe('validateTextValue', () => {
         'http://[fe80::1%25]/',
         'http://[fe80::1%eth0]/',
         'http://[abc]/',
+        'http://[fe80::1%25eth0]/100%',
+        'http://example.com/100%',
+        'http://example.com/%zz',
+        'http://example.com/a#f%',
     ])('url: refuses %j, as the server does', (value) => {
         expect(validateTextValue(textField('url'), value)?.id).toBe('post_attributes.text_value.invalid_url');
     });
