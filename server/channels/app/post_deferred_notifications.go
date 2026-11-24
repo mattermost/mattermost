@@ -28,7 +28,7 @@ import (
 // and leaves the post's deferred state and the channel's message totals untouched. Users
 // who are not active members of the channel, and the post's author, are skipped. This is
 // additive: a later release notifies the channel, including these users, as usual.
-func (a *App) DeliverPostNotifications(rctx request.CTX, postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
+func (a *App) DeliverPostNotifications(rctx request.CTX, postID string, options *model.DeliverPostNotificationsOptions) error {
 	if !model.IsValidId(postID) {
 		return model.NewAppError("DeliverPostNotifications", "api.context.invalid_param.app_error", map[string]any{"Name": "post_id"}, "", http.StatusBadRequest)
 	}

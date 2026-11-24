@@ -364,7 +364,7 @@ func TestCreatePostDeferNotification(t *testing.T) {
 		dt.requirePushes(t, post.Id, th.BasicUser2.Id, 1)
 		assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, channel.Id))
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 		dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, 1)
 		assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, channel.Id))
 	})
@@ -421,7 +421,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		events, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPosted})
 		defer closeWS()
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 
 		event, eventPost := waitForPostEvent(t, events, model.WebsocketEventPosted, post.Id)
 		assert.Equal(t, th.BasicChannel.Id, event.GetBroadcast().ChannelId)
@@ -444,7 +444,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		assert.Equal(t, unreadBefore.MsgCount+1, unreadAfter.MsgCount)
 		assert.Equal(t, unreadBefore.MentionCount+1, unreadAfter.MentionCount)
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 		requireNoPostEvent(t, events, model.WebsocketEventPosted, post.Id)
 		dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, 1)
 		assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, th.BasicChannel.Id))
@@ -460,7 +460,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		totalBefore := dt.totalMsgCount(t, th.BasicChannel.Id)
 
 		var wg sync.WaitGroup
-		errs := make([]*model.AppError, 5)
+		errs := make([]error, 5)
 		for i := range errs {
 			wg.Go(func() {
 				errs[i] = th.App.DeliverPostNotifications(th.Context, post.Id, nil)
@@ -468,7 +468,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		}
 		wg.Wait()
 		for _, appErr := range errs {
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 		}
 
 		dt.requirePushes(t, post.Id, th.BasicUser2.Id, 1)
@@ -561,7 +561,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 				}
 				authorViewedAt := tc.lastViewed(t, dt, post, dt.bot.Id)
 
-				require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+				require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 
 				tc.requireUnread(t, dt, post, th.BasicUser.Id)
 				assert.Equal(t, post.CreateAt-1, tc.lastViewed(t, dt, post, th.BasicUser.Id), "the new messages line must start at the post")
@@ -625,7 +625,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		mentionsAfterRelease := dt.channelUnread(t, th.BasicChannel.Id, th.BasicUser2.Id).MentionCount
 		assert.Equal(t, int64(1), mentionsAfterRelease)
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 		dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, 1)
 		assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, th.BasicChannel.Id))
 		assert.Equal(t, mentionsAfterRelease, dt.channelUnread(t, th.BasicChannel.Id, th.BasicUser2.Id).MentionCount)
@@ -640,7 +640,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.SystemAdminUser.Id))
 		totalBefore := dt.totalMsgCount(t, th.BasicChannel.Id)
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 		dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, 0)
 		assert.Equal(t, totalBefore, dt.totalMsgCount(t, th.BasicChannel.Id))
 		assert.True(t, dt.getPost(t, post.Id).HasDeferredNotification(), "the post stays deferred while its channel is archived")
@@ -650,7 +650,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 		_, appErr = th.App.RestoreChannel(th.Context, channel, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 		totalBefore = dt.totalMsgCount(t, th.BasicChannel.Id)
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 		dt.requirePushes(t, post.Id, th.BasicUser2.Id, 1)
 		assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, th.BasicChannel.Id))
 		assert.False(t, dt.getPost(t, post.Id).HasDeferredNotification())
@@ -689,7 +689,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 
 		// The release must land in a later millisecond than the read for LastReplyAt to pass it.
 		time.Sleep(5 * time.Millisecond)
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, reply.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, reply.Id, nil))
 
 		event, eventPost := waitForPostEvent(t, events, model.WebsocketEventPosted, reply.Id)
 		assert.False(t, eventPost.HasDeferredNotification())
@@ -755,7 +755,7 @@ func TestDeliverPostNotifications(t *testing.T) {
 				totalBefore := dt.totalMsgCount(t, th.BasicChannel.Id)
 				updateAtBefore := dt.getPost(t, post.Id).UpdateAt
 
-				require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+				require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 
 				dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, tc.createPushes)
 				assert.Equal(t, totalBefore, dt.totalMsgCount(t, th.BasicChannel.Id))
@@ -790,9 +790,9 @@ func TestDeliverPostNotifications(t *testing.T) {
 			{name: "options without user ids", postID: deferred.Id, options: &model.DeliverPostNotificationsOptions{}, wantStatus: http.StatusBadRequest},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				appErr := th.App.DeliverPostNotifications(th.Context, tc.postID, tc.options)
-				require.NotNil(t, appErr)
-				assert.Equal(t, tc.wantStatus, appErr.StatusCode)
+				err := th.App.DeliverPostNotifications(th.Context, tc.postID, tc.options)
+				require.Error(t, err)
+				assert.Equal(t, tc.wantStatus, model.AsAppError(err).StatusCode)
 			})
 		}
 
@@ -821,7 +821,7 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 		otherEvents, closeOther := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypes)
 		defer closeOther()
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{
 			UserIDs: []string{th.BasicUser2.Id, th.BasicUser2.Id},
 		}))
 
@@ -851,9 +851,9 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 		assert.True(t, stored.HasSilentNotification())
 
 		// Scoped deliveries can repeat, and the post can still be released afterwards.
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
 		dt.requirePushes(t, post.Id, th.BasicUser2.Id, 2)
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 		assert.False(t, dt.getPost(t, post.Id).HasDeferredNotification())
 		assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, th.BasicChannel.Id))
 	})
@@ -898,14 +898,14 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 				post := dt.createDeferredPost(t, channel, "", "thinking...")
 				dt.finalizePost(t, post, "answer for @"+th.BasicUser2.Username)
 
-				require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
+				require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
 				dt.requirePushes(t, post.Id, th.BasicUser2.Id, 1)
 				unread := dt.channelUnread(t, channel.Id, th.BasicUser2.Id)
 				assert.Zero(t, unread.MsgCount)
 				assert.Equal(t, int64(1), unread.MentionCount)
 				assert.Equal(t, totalBefore, dt.totalMsgCount(t, channel.Id))
 
-				require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
+				require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
 				dt.requirePushes(t, post.Id, th.BasicUser2.Id, 2)
 				unread = dt.channelUnread(t, channel.Id, th.BasicUser2.Id)
 				assert.Equal(t, int64(1), unread.MsgCount)
@@ -948,7 +948,7 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 			{name: "unknown user", userID: model.NewId()},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{tc.userID}}))
+				require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{tc.userID}}))
 				dt.requireNoMorePushes(t, post.Id, tc.userID, 0)
 			})
 		}
@@ -958,7 +958,7 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 		assert.True(t, dt.getPost(t, post.Id).HasDeferredNotification())
 
 		// A skipped user does not stop the others from being notified.
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{nonMember.Id, th.BasicUser2.Id}}))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{nonMember.Id, th.BasicUser2.Id}}))
 		dt.requirePushes(t, post.Id, th.BasicUser2.Id, 1)
 		dt.requireNoMorePushes(t, post.Id, nonMember.Id, 0)
 	})
@@ -971,7 +971,7 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 		post := dt.createDeferredPost(t, th.BasicChannel, "", "hello")
 		require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.SystemAdminUser.Id))
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
 		dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, 0)
 	})
 
@@ -991,7 +991,7 @@ func TestDeliverPostNotificationsToUsers(t *testing.T) {
 		events, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPosted, model.WebsocketEventThreadUpdated})
 		defer closeWS()
 
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, reply.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
+		require.NoError(t, th.App.DeliverPostNotifications(th.Context, reply.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}))
 
 		event, eventPost := waitForPostEvent(t, events, model.WebsocketEventPosted, reply.Id)
 		assert.Equal(t, th.BasicUser2.Id, event.GetBroadcast().UserId)

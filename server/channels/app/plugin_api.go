@@ -1116,7 +1116,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
-	return api.app.DeliverPostNotifications(api.ctx, postID, options)
+	return model.AsAppError(api.app.DeliverPostNotifications(api.ctx, postID, options))
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
