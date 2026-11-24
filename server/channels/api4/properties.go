@@ -94,57 +94,64 @@ func getPropertyAPIGroup(c *Context, callerName string) *model.PropertyGroup {
 	return group
 }
 
-// requireChannelAttributeLicense gates channel-scoped objects in the
-// access_control group. They are the storage behind channel attributes and
-// classification's channel banner, which are Enterprise Advanced. The same
-// group also holds user attributes, which are not, so the tier is checked per
-// object type rather than on the group as a whole.
-func requireChannelAttributeLicense(c *Context, group *model.PropertyGroup, callerName string, objectTypes ...string) bool {
-	if group.Name != model.AccessControlPropertyGroupName {
+// requireResourceAttributeLicense gates channel- and post-scoped objects in the
+// access_control group. Channel objects are the storage behind channel
+// attributes and classification's channel banner, and post objects behind post
+// attributes; all of them are Enterprise Advanced. The same group also holds
+// user attributes, which are not, so the tier is checked per object type rather
+// than on the group as a whole.
+func requireResourceAttributeLicense(c *Context, group *model.PropertyGroup, callerName string, objectTypes ...string) bool {
+	if group.Name != model.AccessControlPropertyGroupName || model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
 		return true
 	}
 
-	if !slices.Contains(objectTypes, model.PropertyFieldObjectTypeChannel) {
-		return true
-	}
-
-	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+	if slices.Contains(objectTypes, model.PropertyFieldObjectTypeChannel) {
 		c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+		return false
+	}
+
+	if slices.Contains(objectTypes, model.PropertyFieldObjectTypePost) {
+		c.Err = model.NewAppError(callerName, "api.property.post_attributes.license.app_error", nil, "", http.StatusNotImplemented)
 		return false
 	}
 
 	return true
 }
 
-// requireChannelAttributeLicenseForTemplate refuses a request against an
-// access_control template that a channel field links to, unless the license is
-// Enterprise Advanced. requireChannelAttributeLicense cannot catch this case:
-// it runs before any field is read and keys on the object type in the URL,
-// which is "template" here. Sets c.Err and returns false on refusal.
+// requireResourceAttributeLicenseForTemplate refuses a request against an
+// access_control template that a channel or post field links to, unless the
+// license is Enterprise Advanced. requireResourceAttributeLicense cannot catch
+// this case: it runs before any field is read and keys on the object type in
+// the URL, which is "template" here. Sets c.Err and returns false on refusal.
 //
-// Best-effort: this catches a template a channel field links to directly.
-// A linked field may not itself be a link target, so a chain cannot hide
-// the template; dependents still come and go, so the answer is only as
+// Best-effort: this catches a template a channel or post field links to
+// directly. A linked field may not itself be a link target, so a chain cannot
+// hide the template; dependents still come and go, so the answer is only as
 // good as this moment.
-func requireChannelAttributeLicenseForTemplate(c *Context, rctx request.CTX, group *model.PropertyGroup, field *model.PropertyField, callerName string) bool {
+func requireResourceAttributeLicenseForTemplate(c *Context, rctx request.CTX, group *model.PropertyGroup, field *model.PropertyField, callerName string) bool {
 	if group.Name != model.AccessControlPropertyGroupName ||
 		field.ObjectType != model.PropertyFieldObjectTypeTemplate ||
 		model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
 		return true
 	}
 
-	dependents, searchErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		ObjectTypes:   []string{model.PropertyFieldObjectTypeChannel},
-		LinkedFieldID: field.ID,
-		PerPage:       1,
-	})
-	if searchErr != nil {
-		c.Err = searchErr
-		return false
-	}
-	if len(dependents) > 0 {
-		c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
-		return false
+	for _, gate := range []struct{ objectType, errorID string }{
+		{model.PropertyFieldObjectTypeChannel, "api.property.channel_attributes.license.app_error"},
+		{model.PropertyFieldObjectTypePost, "api.property.post_attributes.license.app_error"},
+	} {
+		dependents, searchErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+			ObjectTypes:   []string{gate.objectType},
+			LinkedFieldID: field.ID,
+			PerPage:       1,
+		})
+		if searchErr != nil {
+			c.Err = searchErr
+			return false
+		}
+		if len(dependents) > 0 {
+			c.Err = model.NewAppError(callerName, gate.errorID, nil, "", http.StatusNotImplemented)
+			return false
+		}
 	}
 
 	return true
@@ -166,10 +173,9 @@ func resolvePropertyGroupParam(c *Context, r *http.Request) string {
 		return ""
 	}
 
-	// The licence hook refuses every access_control read without an Enterprise
-	// licence, so hydrating would mark every post property_values_unavailable.
-	// Refuse the request once, with a clear status, instead.
-	if group.Name == model.AccessControlPropertyGroupName && !model.MinimumEnterpriseLicense(c.App.License()) {
+	// Post attributes are Enterprise Advanced. Refuse the request once, with a
+	// clear status, rather than serving posts without their values.
+	if group.Name == model.AccessControlPropertyGroupName && !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
 		c.Err = model.NewAppError("resolvePropertyGroupParam", "api.property.post_attributes.license.app_error", nil, "", http.StatusNotImplemented)
 		return ""
 	}
@@ -195,7 +201,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAttributeLicense(c, group, "createPropertyField", c.Params.ObjectType) {
+	if !requireResourceAttributeLicense(c, group, "createPropertyField", c.Params.ObjectType) {
 		return
 	}
 
@@ -524,7 +530,7 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 		opts.TargetType = string(model.PropertyFieldTargetLevelSystem)
 	}
 
-	if !requireChannelAttributeLicense(c, group, callerName, opts.ObjectTypes...) {
+	if !requireResourceAttributeLicense(c, group, callerName, opts.ObjectTypes...) {
 		return
 	}
 
@@ -634,7 +640,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAttributeLicense(c, group, "patchPropertyField", c.Params.ObjectType) {
+	if !requireResourceAttributeLicense(c, group, "patchPropertyField", c.Params.ObjectType) {
 		return
 	}
 
@@ -685,7 +691,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "patchPropertyField") {
+	if !requireResourceAttributeLicenseForTemplate(c, rctx, group, existingField, "patchPropertyField") {
 		return
 	}
 
@@ -859,7 +865,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAttributeLicense(c, group, "deletePropertyField", c.Params.ObjectType) {
+	if !requireResourceAttributeLicense(c, group, "deletePropertyField", c.Params.ObjectType) {
 		return
 	}
 
@@ -880,7 +886,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "deletePropertyField") {
+	if !requireResourceAttributeLicenseForTemplate(c, rctx, group, existingField, "deletePropertyField") {
 		return
 	}
 
@@ -952,7 +958,7 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 		return
 	}
 
-	if !requireChannelAttributeLicense(c, group, "getPropertyValues", objectType) {
+	if !requireResourceAttributeLicense(c, group, "getPropertyValues", objectType) {
 		return
 	}
 
@@ -1067,7 +1073,7 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if !requireChannelAttributeLicense(c, group, "patchPropertyValues", objectType) {
+	if !requireResourceAttributeLicense(c, group, "patchPropertyValues", objectType) {
 		return
 	}
 

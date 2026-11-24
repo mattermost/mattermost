@@ -224,6 +224,9 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		if !a.Config().FeatureFlags.PostAttributes {
 			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 		}
+		if !model.MinimumEnterpriseAdvancedLicense(a.License()) {
+			return nil, false, model.NewAppError("CreatePost", "api.property.post_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+		}
 		// Readers get a post's values from property_values_updated and the property value API,
 		// and neither knows whether a reader has revealed a burn-on-read post.
 		if post.Type == model.PostTypeBurnOnRead {

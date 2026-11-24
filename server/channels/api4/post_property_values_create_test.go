@@ -33,8 +33,7 @@ func setupPostPropertyCreateTest(t *testing.T, flagEnabled bool) *postPropertyCr
 	require.Equal(t, flagEnabled, th.App.Config().FeatureFlags.PostAttributes,
 		"unset MM_FEATUREFLAGS_POSTATTRIBUTES: it overrides the flag this suite configures")
 
-	// Post fields live in access_control, which answers only to an Enterprise licence.
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -607,7 +606,6 @@ func TestCreatePostWithPropertyValuesBurnOnRead(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := setupPostPropertyCreateTest(t, true)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableBurnOnRead = new(true)
 	})
@@ -668,23 +666,40 @@ func TestCreatePostWithPropertyValuesFeatureFlagOff(t *testing.T) {
 	})
 }
 
-func TestCreatePostWithPropertyValuesUnlicensed(t *testing.T) {
+func TestCreatePostWithPropertyValuesBelowEnterpriseAdvanced(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := setupPostPropertyCreateTest(t, true)
-	field := th.createField(t, model.PermissionLevelMember)
+	licenses := []struct {
+		name    string
+		license *model.License
+	}{
+		{"unlicensed", nil},
+		{"professional", model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)},
+		{"enterprise", model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)},
+	}
 
-	// Past api4's own checks, access_control refuses every operation without an Enterprise licence.
-	th.App.Srv().SetLicense(nil)
-	// The field's own cleanup deletes it through the same licence gate.
-	t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)) })
+	for _, tc := range licenses {
+		t.Run(tc.name, func(t *testing.T) {
+			th := setupPostPropertyCreateTest(t, true)
+			field := th.createField(t, model.PermissionLevelMember)
 
-	_, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
-		submittedPropertyValue(field.ID, `"x"`),
-	))
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-	CheckErrorID(t, err, "app.property.license_error")
+			th.App.Srv().SetLicense(tc.license)
+			// The field's own cleanup deletes it through the access_control licence hook.
+			t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)) })
+
+			post := postWithPropertyValues(th.BasicChannel.Id, submittedPropertyValue(field.ID, `"x"`))
+			_, resp, err := th.Client.CreatePost(context.Background(), post)
+			require.Error(t, err)
+			CheckNotImplementedStatus(t, resp)
+			CheckErrorID(t, err, "api.property.post_attributes.license.app_error")
+
+			posts, _, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+			require.NoError(t, err)
+			for _, p := range posts.Posts {
+				assert.NotEqual(t, post.Message, p.Message, "the refused post was saved")
+			}
+		})
+	}
 }
 
 func TestCreatePostWithPropertyValuesAsGuest(t *testing.T) {
@@ -697,9 +712,6 @@ func TestCreatePostWithPropertyValuesAsGuest(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.GuestAccountsSettings.Enable = true
 	})
-	// Guest accounts need their feature on the licence, and access_control needs an Enterprise SKU on it.
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-
 	guest, guestClient := th.CreateGuestAndClient(t)
 
 	// The member level resolves through read_channel, which a guest in the channel has.

@@ -482,9 +482,9 @@
         Rows are sorted by display name (falling back to the field name),
         ignoring case. Resource types this server does not offer (channels
         below Enterprise Advanced or with channel attributes disabled, posts
-        with post attributes disabled) are left out of rows and of
-        `applies_to`, and the Classification Markings template is left out
-        unless Classification Markings is available.
+        below Enterprise Advanced or with post attributes disabled) are left
+        out of rows and of `applies_to`, and the Classification Markings
+        template is left out unless Classification Markings is available.
 
         ##### Permissions
 
@@ -530,7 +530,8 @@
                     of that type. A type this server does not offer (channel
                     attributes need the ChannelAttributes feature flag and an
                     Enterprise Advanced licence, post attributes the
-                    PostAttributes feature flag) lists nothing. Omit for every
+                    PostAttributes feature flag and an Enterprise Advanced
+                    licence) lists nothing. Omit for every
                     resource type.
       responses:
         "200":

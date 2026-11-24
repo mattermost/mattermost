@@ -16,8 +16,8 @@ import (
 // It mirrors the webapp's useAllowedResourceTypes and
 // useClassificationMarkingsReachable: user attributes always, channel attributes
 // with the ChannelAttributes flag on Enterprise Advanced, post attributes with
-// the PostAttributes flag, and the Classification template only with the
-// ClassificationMarkings flag on Enterprise Advanced.
+// the PostAttributes flag on Enterprise Advanced, and the Classification
+// template only with the ClassificationMarkings flag on Enterprise Advanced.
 func (a *App) globalAttributeListingPolicy() properties.GlobalAttributeListingPolicy {
 	flags := a.Config().FeatureFlags
 	enterpriseAdvanced := model.MinimumEnterpriseAdvancedLicense(a.License())
@@ -26,7 +26,7 @@ func (a *App) globalAttributeListingPolicy() properties.GlobalAttributeListingPo
 	if flags.ChannelAttributes && enterpriseAdvanced {
 		allowed = append(allowed, model.PropertyFieldObjectTypeChannel)
 	}
-	if flags.PostAttributes {
+	if flags.PostAttributes && enterpriseAdvanced {
 		allowed = append(allowed, model.PropertyFieldObjectTypePost)
 	}
 

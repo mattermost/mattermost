@@ -50,8 +50,7 @@ func setupPropertyValuesCreateTest(t *testing.T, flagEnabled bool) *propertyValu
 
 func newPropertyValuesTestHelper(t *testing.T, th *TestHelper) *propertyValuesTestHelper {
 	t.Helper()
-	// Post fields live in access_control, which requires an Enterprise licence.
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -296,7 +295,6 @@ func TestHydratePropertyValues(t *testing.T) {
 	t.Run("an unrevealed burn-on-read post", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.EnableBurnOnRead = new(true)
 		})
@@ -1063,6 +1061,35 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		assert.Len(t, after.Order, len(before.Order), "no post may be saved")
 	})
 
+	t.Run("values below Enterprise Advanced are refused before the post is saved", func(t *testing.T) {
+		th := setupPropertyValuesCreateTest(t, true)
+		th.asUser(t, th.BasicUser.Id)
+		field := th.createField(t, "sensitivity")
+		staged := th.staged(field, `"x"`)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		// The field's own cleanup deletes it through the access_control licence hook.
+		t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)) })
+
+		before, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 100)
+		require.Nil(t, appErr)
+
+		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "enterprise attribute",
+			Metadata:  &model.PostMetadata{PropertyValues: []*model.PropertyValue{staged}},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.property.post_attributes.license.app_error", appErr.Id)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		assert.Nil(t, created)
+
+		after, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 100)
+		require.Nil(t, appErr)
+		assert.Len(t, after.Order, len(before.Order), "no post may be saved")
+	})
+
 	// Every existing caller leaves Metadata nil or without PropertyValues, and must
 	// keep behaving exactly as it did.
 	t.Run("no staged values writes nothing", func(t *testing.T) {
@@ -1251,7 +1278,6 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.EnableBurnOnRead = new(true)
 		})
