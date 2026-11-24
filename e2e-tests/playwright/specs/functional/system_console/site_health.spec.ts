@@ -628,23 +628,22 @@ test('never shows internal-only findings', {tag: '@system_console'}, async ({pw}
 });
 
 /**
- * @objective Verify a delegated admin without the manage_system permission can't reach Site health, though
+ * @objective Verify a delegated admin who can't read Site Statistics can't reach Site health, though
  * they can open the System Console.
  */
-test('hides Site health from admins without manage_system', {tag: '@system_console'}, async ({pw}) => {
+test('hides Site health from admins who cannot read Site Statistics', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
 
     const {adminClient, user, userClient} = await pw.initSetup();
-    await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+    await adminClient.updateUserRoles(user.id, 'system_user system_user_manager');
 
     const {systemConsolePage} = await pw.testBrowser.login(user);
 
-    // # Open the System Console as a system manager
+    // # Open the System Console as a user manager
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
-    // * Verify Site health is not listed among the Reporting pages they can open
-    await expect(systemConsolePage.sidebar.reporting.teamStatistics.link).toBeVisible();
+    // * Verify Site health is not listed in the sidebar
     await expect(systemConsolePage.sidebar.reporting.siteHealth.link).not.toBeVisible();
 
     // # Go straight to the Site health URL
