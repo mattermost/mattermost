@@ -8,6 +8,8 @@ import TabItem from '@theme/TabItem';
 
 In a production environment, Mattermost requires SMTP email enabled for email notifications and password resets when using [email-based authentication](/administration-guide/configure/authentication-configuration-settings#enable-sign-in-with-email).
 
+Mattermost doesn't come with an SMTP server configured. Until you set one, password resets, invitations and email notifications report that email isn't configured.
+
 ## Set up an SMTP email service
 
 Any SMTP email service can be used. You need a copy of the following information: `Server Name`, `Port`, `SMTP Username`, and `SMTP Password`.

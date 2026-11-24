@@ -2452,7 +2452,7 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td>The location of the SMTP email server used for email notifications.</td>
+<td><p>The location of the SMTP email server used for email notifications.</p><p>String input. No default: password resets, invitations and email notifications don't work until it's set.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>SMTPServer</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_SMTPSERVER</code></li></ul></td>
 </tr>
 </tbody>
@@ -2467,7 +2467,7 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td><p>The port of SMTP email server.</p><p>String input. Must be a port number between 1 and 65535.</p></td>
+<td><p>The port of SMTP email server.</p><p>String input. A port number between 1 and 65535. No default: if left empty, email isn't configured.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>"SMTPPort"</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_SMTPPORT</code></li></ul></td>
 </tr>
 </tbody>
