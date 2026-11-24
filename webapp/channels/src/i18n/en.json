@@ -28771,13 +28771,21 @@
     "defaultMessage": "Add passkey",
     "description": "Button that starts adding a passkey, on the page opened from the Mattermost app."
   },
+  "passkey_enrollment_page.alreadyHave": {
+    "defaultMessage": "I already have a passkey",
+    "description": "Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
+  },
   "passkey_enrollment_page.alreadyOnDevice": {
-    "defaultMessage": "This device already has a passkey for your account.",
+    "defaultMessage": "This device already has a passkey for your account. Choose \"I already have a passkey\".",
     "description": "Error shown when the device refuses to create a passkey because it already holds one for the account."
   },
   "passkey_enrollment_page.body": {
     "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
     "description": "Explanation shown above the button that adds a passkey, on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.confirmed": {
+    "defaultMessage": "Passkey confirmed. You can close this page and return to the app.",
+    "description": "Shown after the user's existing passkey was checked on the page opened from the Mattermost app."
   },
   "passkey_enrollment_page.desktop": {
     "defaultMessage": "Open this page in your web browser.",
@@ -28794,6 +28802,14 @@
   "passkey_enrollment_page.incomplete": {
     "defaultMessage": "This link is incomplete. Return to the app and try again.",
     "description": "Shown when the page opened from the Mattermost app has no enrollment ticket in its link."
+  },
+  "passkey_enrollment_page.invalidCredential": {
+    "defaultMessage": "That passkey doesn't belong to your account on this server. Choose another, or add a new one.",
+    "description": "Error shown when the passkey the user chose is not one of their account's passkeys."
+  },
+  "passkey_enrollment_page.noneRegistered": {
+    "defaultMessage": "You don't have a passkey for this account yet. Add one instead.",
+    "description": "Error shown when the user says they already have a passkey but their account has none."
   },
   "passkey_enrollment_page.title": {
     "defaultMessage": "Add a passkey",

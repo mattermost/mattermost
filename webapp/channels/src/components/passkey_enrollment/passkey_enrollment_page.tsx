@@ -14,7 +14,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 
-import {createPasskey} from 'utils/passkeys';
+import {createPasskey, verifyPasskey} from 'utils/passkeys';
 
 const messages = defineMessages({
     title: {
@@ -31,6 +31,26 @@ const messages = defineMessages({
         id: 'passkey_enrollment_page.add',
         defaultMessage: 'Add passkey',
         description: 'Button that starts adding a passkey, on the page opened from the Mattermost app.',
+    },
+    alreadyHave: {
+        id: 'passkey_enrollment_page.alreadyHave',
+        defaultMessage: 'I already have a passkey',
+        description: 'Button on the page opened from the Mattermost app for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.',
+    },
+    confirmed: {
+        id: 'passkey_enrollment_page.confirmed',
+        defaultMessage: 'Passkey confirmed. You can close this page and return to the app.',
+        description: 'Shown after the user\'s existing passkey was checked on the page opened from the Mattermost app.',
+    },
+    noneRegistered: {
+        id: 'passkey_enrollment_page.noneRegistered',
+        defaultMessage: 'You don\'t have a passkey for this account yet. Add one instead.',
+        description: 'Error shown when the user says they already have a passkey but their account has none.',
+    },
+    invalidCredential: {
+        id: 'passkey_enrollment_page.invalidCredential',
+        defaultMessage: 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.',
+        description: 'Error shown when the passkey the user chose is not one of their account\'s passkeys.',
     },
     done: {
         id: 'passkey_enrollment_page.done',
@@ -69,7 +89,7 @@ const messages = defineMessages({
     },
     alreadyOnDevice: {
         id: 'passkey_enrollment_page.alreadyOnDevice',
-        defaultMessage: 'This device already has a passkey for your account.',
+        defaultMessage: 'This device already has a passkey for your account. Choose "I already have a passkey".',
         description: 'Error shown when the device refuses to create a passkey because it already holds one for the account.',
     },
 });
@@ -79,17 +99,23 @@ const terminalErrors: Record<string, typeof messages.expired> = {
     'app.passkey.recent_login_required.app_error': messages.expired,
 };
 
+const retryableErrors: Record<string, typeof messages.expired> = {
+    'app.passkey.ceremony_invalid.app_error': messages.tooLong,
+    'app.passkey.none_registered.app_error': messages.noneRegistered,
+    'app.passkey.invalid_credential.app_error': messages.invalidCredential,
+};
+
 export default function PasskeyEnrollmentPage() {
     const {formatMessage} = useIntl();
     const ticket = new URLSearchParams(useLocation().search).get('ticket');
     const [busy, setBusy] = useState(false);
-    const [done, setDone] = useState(false);
+    const [done, setDone] = useState<'added' | 'confirmed' | null>(null);
 
     // A refusal that retrying cannot fix removes the button; any other error leaves it for another try.
     const [error, setError] = useState<{text: string; final: boolean} | null>(null);
 
     let message;
-    let canAdd = false;
+    let canAct = false;
     if (isDesktopApp()) {
         message = formatMessage(messages.desktop);
     } else if (typeof window.PublicKeyCredential === 'undefined') {
@@ -97,32 +123,29 @@ export default function PasskeyEnrollmentPage() {
     } else if (!ticket) {
         message = formatMessage(messages.incomplete);
     } else if (done) {
-        message = formatMessage(messages.done);
+        message = formatMessage(done === 'added' ? messages.done : messages.confirmed);
     } else {
         message = formatMessage(messages.body);
-        canAdd = !error?.final;
+        canAct = !error?.final;
     }
 
-    const add = async () => {
+    const run = async (action: () => Promise<boolean>, result: 'added' | 'confirmed') => {
         setBusy(true);
         setError(null);
         try {
-            const passkey = await createPasskey(
-                () => Client4.beginPasskeyEnrollmentRegistration(ticket!),
-                (ceremonyId, credential) => Client4.finishPasskeyEnrollmentRegistration(ceremonyId, '', credential),
-            );
-            if (passkey) {
+            if (await action()) {
                 LocalStorageStore.setPasskeyEnrolled();
-                setDone(true);
+                setDone(result);
             }
         } catch (e) {
             const err = e as Error & {server_error_id?: string; status_code?: number};
-            if (err.server_error_id && terminalErrors[err.server_error_id]) {
-                setError({text: formatMessage(terminalErrors[err.server_error_id]), final: true});
+            const id = err.server_error_id ?? '';
+            if (terminalErrors[id]) {
+                setError({text: formatMessage(terminalErrors[id]), final: true});
             } else if (err.status_code === 501) {
                 setError({text: formatMessage(messages.unavailable), final: true});
-            } else if (err.server_error_id === 'app.passkey.ceremony_invalid.app_error') {
-                setError({text: formatMessage(messages.tooLong), final: false});
+            } else if (retryableErrors[id]) {
+                setError({text: formatMessage(retryableErrors[id]), final: false});
             } else if (err.name === 'InvalidStateError') {
                 setError({text: formatMessage(messages.alreadyOnDevice), final: false});
             } else {
@@ -132,6 +155,16 @@ export default function PasskeyEnrollmentPage() {
         setBusy(false);
     };
 
+    const add = () => run(async () => Boolean(await createPasskey(
+        () => Client4.beginPasskeyEnrollmentRegistration(ticket!),
+        (ceremonyId, credential) => Client4.finishPasskeyEnrollmentRegistration(ceremonyId, '', credential),
+    )), 'added');
+
+    const verifyExisting = () => run(() => verifyPasskey(
+        () => Client4.beginPasskeyEnrollmentVerification(ticket!),
+        (ceremonyId, credential) => Client4.finishPasskeyEnrollmentVerification(ceremonyId, credential),
+    ), 'confirmed');
+
     return (
         <ColumnLayout
             title={formatMessage(messages.title)}
@@ -139,13 +172,22 @@ export default function PasskeyEnrollmentPage() {
             extraContent={(
                 <>
                     {error && <div role='alert'>{error.text}</div>}
-                    {canAdd && (
-                        <Button
-                            disabled={busy}
-                            onClick={add}
-                        >
-                            {formatMessage(messages.add)}
-                        </Button>
+                    {canAct && (
+                        <>
+                            <Button
+                                disabled={busy}
+                                onClick={add}
+                            >
+                                {formatMessage(messages.add)}
+                            </Button>
+                            <Button
+                                emphasis='tertiary'
+                                disabled={busy}
+                                onClick={verifyExisting}
+                            >
+                                {formatMessage(messages.alreadyHave)}
+                            </Button>
+                        </>
                     )}
                 </>
             )}
