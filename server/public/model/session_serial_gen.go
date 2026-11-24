@@ -57,6 +57,12 @@ func (z *LoginOptions) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "IsSaml")
 				return
 			}
+		case "IsPasskey":
+			z.IsPasskey, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "IsPasskey")
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -70,9 +76,9 @@ func (z *LoginOptions) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *LoginOptions) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 6
 	// write "DeviceId"
-	err = en.Append(0x85, 0xa8, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x49, 0x64)
+	err = en.Append(0x86, 0xa8, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x49, 0x64)
 	if err != nil {
 		return
 	}
@@ -121,15 +127,25 @@ func (z *LoginOptions) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "IsSaml")
 		return
 	}
+	// write "IsPasskey"
+	err = en.Append(0xa9, 0x49, 0x73, 0x50, 0x61, 0x73, 0x73, 0x6b, 0x65, 0x79)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.IsPasskey)
+	if err != nil {
+		err = msgp.WrapError(err, "IsPasskey")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *LoginOptions) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 6
 	// string "DeviceId"
-	o = append(o, 0x85, 0xa8, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x49, 0x64)
+	o = append(o, 0x86, 0xa8, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x49, 0x64)
 	o = msgp.AppendString(o, z.DeviceId)
 	// string "VoIPDeviceId"
 	o = append(o, 0xac, 0x56, 0x6f, 0x49, 0x50, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x49, 0x64)
@@ -143,6 +159,9 @@ func (z *LoginOptions) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "IsSaml"
 	o = append(o, 0xa6, 0x49, 0x73, 0x53, 0x61, 0x6d, 0x6c)
 	o = msgp.AppendBool(o, z.IsSaml)
+	// string "IsPasskey"
+	o = append(o, 0xa9, 0x49, 0x73, 0x50, 0x61, 0x73, 0x73, 0x6b, 0x65, 0x79)
+	o = msgp.AppendBool(o, z.IsPasskey)
 	return
 }
 
@@ -194,6 +213,12 @@ func (z *LoginOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "IsSaml")
 				return
 			}
+		case "IsPasskey":
+			z.IsPasskey, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "IsPasskey")
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -208,7 +233,7 @@ func (z *LoginOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *LoginOptions) Msgsize() (s int) {
-	s = 1 + 9 + msgp.StringPrefixSize + len(z.DeviceId) + 13 + msgp.StringPrefixSize + len(z.VoIPDeviceId) + 9 + msgp.BoolSize + 12 + msgp.BoolSize + 7 + msgp.BoolSize
+	s = 1 + 9 + msgp.StringPrefixSize + len(z.DeviceId) + 13 + msgp.StringPrefixSize + len(z.VoIPDeviceId) + 9 + msgp.BoolSize + 12 + msgp.BoolSize + 7 + msgp.BoolSize + 10 + msgp.BoolSize
 	return
 }
 
