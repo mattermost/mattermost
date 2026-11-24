@@ -38,6 +38,7 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl channel archive <mmctl_channel_archive.rst>`_ 	 - Archive channels
+* `mmctl channel attributes <mmctl_channel_attributes.rst>`_ 	 - Management of channel attribute values
 * `mmctl channel create <mmctl_channel_create.rst>`_ 	 - Create a channel
 * `mmctl channel delete <mmctl_channel_delete.rst>`_ 	 - Delete channels
 * `mmctl channel list <mmctl_channel_list.rst>`_ 	 - List all channels on specified teams.
