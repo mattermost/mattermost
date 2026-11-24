@@ -280,4 +280,136 @@ describe('PasskeyEnrollmentPrompt', () => {
 
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
+
+    describe('I already have a passkey', () => {
+        const verifyBegin = {
+            ceremony_id: 'ver1',
+            options: {publicKey: {challenge: 'AQID', rpId: 'example.com', userVerification: 'required' as const}},
+        };
+        const assertionCredential = {
+            id: 'cred2',
+            rawId: new Uint8Array([1, 2]).buffer,
+            type: 'public-key',
+            authenticatorAttachment: 'platform',
+            getClientExtensionResults: () => ({}),
+            response: {
+                clientDataJSON: new Uint8Array([3]).buffer,
+                authenticatorData: new Uint8Array([4]).buffer,
+                signature: new Uint8Array([5]).buffer,
+                userHandle: new Uint8Array([6]).buffer,
+            },
+        };
+        const NONE_REGISTERED_TEXT = 'You don\'t have a passkey for this account yet. Add one instead.';
+        const INVALID_CREDENTIAL_TEXT = 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.';
+
+        let createTicket: jest.SpyInstance;
+        let beginVerification: jest.SpyInstance;
+        let finishVerification: jest.SpyInstance;
+        let get: jest.Mock;
+
+        const openPrompt = async () => {
+            renderPrompt();
+            await screen.findByRole('dialog');
+        };
+        const clickExisting = () => userEvent.click(screen.getByRole('button', {name: 'I already have a passkey'}));
+
+        beforeEach(() => {
+            createTicket = jest.spyOn(Client4, 'createPasskeyEnrollmentTicket').mockResolvedValue({ticket: 'tk1', expire_at: 1});
+            beginVerification = jest.spyOn(Client4, 'beginPasskeyEnrollmentVerification').mockResolvedValue(verifyBegin);
+            finishVerification = jest.spyOn(Client4, 'finishPasskeyEnrollmentVerification').mockResolvedValue({status: 'OK'});
+            get = jest.fn().mockResolvedValue(assertionCredential);
+            Object.defineProperty(navigator, 'credentials', {value: {create, get}, configurable: true});
+        });
+
+        test('verifies an existing passkey with a ticket from this session and records the browser as enrolled', async () => {
+            await openPrompt();
+
+            await clickExisting();
+
+            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+            expect(createTicket).toHaveBeenCalledWith('me');
+            expect(beginVerification).toHaveBeenCalledWith('tk1');
+            expect(finishVerification).toHaveBeenCalledWith('ver1', expect.objectContaining({id: 'cred2'}));
+            expect(beginRegistration).not.toHaveBeenCalled();
+            expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(false);
+        });
+
+        test('stays open without an error when the browser prompt is dismissed, and a new click asks for a new ticket', async () => {
+            get.mockRejectedValueOnce(domError('NotAllowedError'));
+            createTicket.mockResolvedValueOnce({ticket: 'tk1', expire_at: 1}).mockResolvedValueOnce({ticket: 'tk2', expire_at: 1});
+            await openPrompt();
+
+            await clickExisting();
+
+            await waitFor(() => expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeEnabled());
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(finishVerification).not.toHaveBeenCalled();
+            expect(document.querySelector('.genericModalError')).not.toBeInTheDocument();
+            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+
+            await clickExisting();
+
+            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+            expect(beginVerification).toHaveBeenNthCalledWith(1, 'tk1');
+            expect(beginVerification).toHaveBeenNthCalledWith(2, 'tk2');
+        });
+
+        test('says to add a passkey when the account has none', async () => {
+            beginVerification.mockRejectedValue({server_error_id: 'app.passkey.none_registered.app_error', status_code: 400, message: 'server text'});
+            await openPrompt();
+
+            await clickExisting();
+
+            expect(await screen.findByText(NONE_REGISTERED_TEXT)).toBeInTheDocument();
+            expect(screen.queryByText('server text')).not.toBeInTheDocument();
+            expect(get).not.toHaveBeenCalled();
+            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        });
+
+        test('says the passkey is not this account\'s when finish refuses it', async () => {
+            finishVerification.mockRejectedValue({server_error_id: 'app.passkey.invalid_credential.app_error', status_code: 401, message: 'server text'});
+            await openPrompt();
+
+            await clickExisting();
+
+            expect(await screen.findByText(INVALID_CREDENTIAL_TEXT)).toBeInTheDocument();
+            expect(screen.queryByText('server text')).not.toBeInTheDocument();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        });
+
+        test('shows the server message when the ticket is refused', async () => {
+            createTicket.mockRejectedValue({server_error_id: 'app.passkey.not_enabled.app_error', status_code: 501, message: 'passkeys are off'});
+            await openPrompt();
+
+            await clickExisting();
+
+            expect(await screen.findByText('passkeys are off')).toBeInTheDocument();
+            expect(beginVerification).not.toHaveBeenCalled();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+        });
+
+        test('disables both actions while the check runs, but Not now still closes', async () => {
+            get.mockReturnValue(new Promise(() => {}));
+            await openPrompt();
+
+            await clickExisting();
+
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Add passkey'})).toBeDisabled());
+            expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeDisabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Not now'}));
+            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
+        });
+
+        test('disables the check while a passkey is being added', async () => {
+            create.mockReturnValue(new Promise(() => {}));
+            await openPrompt();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Add passkey'}));
+
+            await waitFor(() => expect(screen.getByRole('button', {name: 'I already have a passkey'})).toBeDisabled());
+        });
+    });
 });

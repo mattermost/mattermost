@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
@@ -13,7 +14,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {createPasskey} from 'utils/passkeys';
+import {createPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
 
 const messages = defineMessages({
@@ -22,7 +23,22 @@ const messages = defineMessages({
         defaultMessage: 'For your security, sign out and sign back in, then add your passkey within 10 minutes.',
         description: 'Error shown in the passkey prompt when adding a passkey is refused because the user did not sign in recently enough.',
     },
+    noneRegistered: {
+        id: 'passkey_enrollment_prompt.noneRegistered',
+        defaultMessage: 'You don\'t have a passkey for this account yet. Add one instead.',
+        description: 'Error shown in the passkey prompt when the user says they already have a passkey but their account has none.',
+    },
+    invalidCredential: {
+        id: 'passkey_enrollment_prompt.invalidCredential',
+        defaultMessage: 'That passkey doesn\'t belong to your account on this server. Choose another, or add a new one.',
+        description: 'Error shown in the passkey prompt when the passkey the user chose is not one of their account\'s passkeys.',
+    },
 });
+
+const verifyErrors: Record<string, typeof messages.noneRegistered> = {
+    'app.passkey.none_registered.app_error': messages.noneRegistered,
+    'app.passkey.invalid_credential.app_error': messages.invalidCredential,
+};
 
 export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();
@@ -38,7 +54,7 @@ export default function PasskeyEnrollmentPrompt() {
         !isPasskeySession() &&
         LocalStorageStore.isPasskeyPromptDue(loginKey)
     ));
-    const [adding, setAdding] = useState(false);
+    const [busy, setBusy] = useState<'add' | 'verify' | null>(null);
     const [error, setError] = useState('');
 
     if (!open) {
@@ -51,7 +67,7 @@ export default function PasskeyEnrollmentPrompt() {
     };
 
     const add = async () => {
-        setAdding(true);
+        setBusy('add');
         setError('');
         try {
             const passkey = await createPasskey(
@@ -74,7 +90,30 @@ export default function PasskeyEnrollmentPrompt() {
             }
             setError(err.server_error_id === 'app.passkey.recent_login_required.app_error' ? formatMessage(messages.recentLogin) : err.message);
         }
-        setAdding(false);
+        setBusy(null);
+    };
+
+    const verifyExisting = async () => {
+        setBusy('verify');
+        setError('');
+        try {
+            // One ticket per attempt: a successful check spends it.
+            const {ticket} = await Client4.createPasskeyEnrollmentTicket('me');
+            const verified = await verifyPasskey(
+                () => Client4.beginPasskeyEnrollmentVerification(ticket),
+                (ceremonyId, credential) => Client4.finishPasskeyEnrollmentVerification(ceremonyId, credential),
+            );
+            if (verified) {
+                LocalStorageStore.setPasskeyEnrolled();
+                setOpen(false);
+                return;
+            }
+        } catch (e) {
+            const err = e as Error & {server_error_id?: string};
+            const known = err.server_error_id && verifyErrors[err.server_error_id];
+            setError(known ? formatMessage(known) : err.message);
+        }
+        setBusy(null);
     };
 
     return (
@@ -106,7 +145,8 @@ export default function PasskeyEnrollmentPrompt() {
             autoCloseOnConfirmButton={false}
             autoCloseOnCancelButton={false}
             onHide={skip}
-            isConfirmLoading={adding}
+            isConfirmLoading={busy === 'add'}
+            isConfirmDisabled={busy !== null}
             errorText={error}
         >
             <FormattedMessage
@@ -114,6 +154,19 @@ export default function PasskeyEnrollmentPrompt() {
                 defaultMessage='Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.'
                 description='Body of the prompt shown after sign-in that offers to add a passkey.'
             />
+            <div>
+                <Button
+                    emphasis='tertiary'
+                    disabled={busy !== null}
+                    onClick={verifyExisting}
+                >
+                    <FormattedMessage
+                        id='passkey_enrollment_prompt.alreadyHave'
+                        defaultMessage='I already have a passkey'
+                        description='Button in the post-sign-in passkey prompt for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate.'
+                    />
+                </Button>
+            </div>
         </GenericModal>
     );
 }

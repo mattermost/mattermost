@@ -108,7 +108,7 @@ import type {
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
 import type {MfaSecret} from '@mattermost/types/mfa';
-import type {Passkey, PasskeyAssertionCredential, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
+import type {Passkey, PasskeyAssertionCredential, PasskeyEnrollmentTicket, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 import type {
     ClientPluginManifest,
     PluginManifest,
@@ -1360,6 +1360,27 @@ export default class Client4 {
         return this.doFetch<Passkey>(
             `${this.getUserRoute(userId)}/passkeys/registration/finish`,
             {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, name, credential})},
+        );
+    };
+
+    createPasskeyEnrollmentTicket = (userId: string) => {
+        return this.doFetch<PasskeyEnrollmentTicket>(
+            `${this.getUserRoute(userId)}/passkeys/enrollment/ticket`,
+            {method: 'post'},
+        );
+    };
+
+    beginPasskeyEnrollmentVerification = (ticket: string) => {
+        return this.doFetch<PasskeyLoginOptions>(
+            `${this.getUsersRoute()}/passkeys/enrollment/verification/begin`,
+            {method: 'post', body: JSON.stringify({ticket})},
+        );
+    };
+
+    finishPasskeyEnrollmentVerification = (ceremonyId: string, credential: PasskeyAssertionCredential) => {
+        return this.doFetch<StatusOK>(
+            `${this.getUsersRoute()}/passkeys/enrollment/verification/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, credential})},
         );
     };
 

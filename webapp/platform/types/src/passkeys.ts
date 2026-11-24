@@ -35,6 +35,11 @@ export type PasskeyLoginOptions = {
     options: {publicKey: PublicKeyCredentialRequestOptionsJSON};
 };
 
+export type PasskeyEnrollmentTicket = {
+    ticket: string;
+    expire_at: number;
+};
+
 // Sign-in result in the WebAuthn JSON form the server parses. Binary fields are base64url.
 export type PasskeyAssertionCredential = {
     id: string;
