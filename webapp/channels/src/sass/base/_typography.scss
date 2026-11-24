@@ -6,11 +6,6 @@ strong {
     font-weight: 630;
 }
 
-// Bootstrap sets labels to 700, which now renders as real bold with the variable font.
-label {
-    font-weight: 600;
-}
-
 a {
     color: variables.$primary-color;
     cursor: pointer;
@@ -54,6 +49,9 @@ h1 {
 }
 
 label {
+    // Bootstrap sets labels to 700, which now renders as real bold with the variable font.
+    font-weight: 600;
+
     &.has-error {
         color: var(--error-text);
         font-weight: normal;
