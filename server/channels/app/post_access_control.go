@@ -28,6 +28,13 @@ import (
 // no-policy contract), so plugins can mark every post from day one. Any
 // evaluation failure denies.
 
+// postAccessControlResourceEnabled reports whether the PostAccessControlResource
+// feature flag is on. With it off, the marker is treated like any reserved
+// prop and nothing below enforces it.
+func (a *App) postAccessControlResourceEnabled() bool {
+	return a.Config().FeatureFlags.PostAccessControlResource
+}
+
 // accessControlResourceDecisions memoizes allow decisions for one request,
 // keyed by prop value, so a page of posts from the same thread costs one
 // evaluation.
@@ -37,6 +44,9 @@ type accessControlResourceDecisions map[string]bool
 // carries props.access_control_resource = value. A malformed value, an
 // evaluation error, or a policy that exists but cannot be evaluated all deny.
 func (a *App) AccessControlResourceAllowed(rctx request.CTX, userID, value string) bool {
+	if !a.postAccessControlResourceEnabled() {
+		return true
+	}
 	return a.accessControlResourceDecisionsFor(rctx, userID, []string{value})[value]
 }
 
@@ -115,7 +125,7 @@ func (a *App) accessControlResourceDecisionsFor(rctx request.CTX, userID string,
 // are the thread participants of removed threads. An empty userID (a server
 // or plugin caller with no acting user) leaves the list untouched.
 func (a *App) filterPostsByAccessControlResource(rctx request.CTX, userID string, postList *model.PostList) {
-	if postList == nil || len(postList.Posts) == 0 || userID == "" {
+	if postList == nil || len(postList.Posts) == 0 || userID == "" || !a.postAccessControlResourceEnabled() {
 		return
 	}
 
@@ -154,7 +164,7 @@ func (a *App) filterPostsByAccessControlResource(rctx request.CTX, userID string
 
 // filterThreadsByAccessControlResource drops threads whose root denies userID.
 func (a *App) filterThreadsByAccessControlResource(rctx request.CTX, userID string, threads []*model.ThreadResponse) []*model.ThreadResponse {
-	if len(threads) == 0 || userID == "" {
+	if len(threads) == 0 || userID == "" || !a.postAccessControlResourceEnabled() {
 		return threads
 	}
 	var values []string

@@ -255,7 +255,7 @@ func (a *App) fillAccessControlRecipients(rctx request.CTX, value string) access
 // recipient set the predicate is a map lookup; without one (negative entry)
 // it evaluates per user through the read lane, which denies on error.
 func (a *App) accessControlRecipientFilter(rctx request.CTX, value string) func(userID string) bool {
-	if value == "" {
+	if value == "" || !a.postAccessControlResourceEnabled() {
 		return nil
 	}
 	entry := a.accessControlRecipientEntryFor(rctx, value)

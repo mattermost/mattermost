@@ -100,7 +100,7 @@ func TestAccessControlRecipientCache(t *testing.T) {
 }
 
 func TestAccessControlRecipientFill(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 
 	t.Run("a governed resource is filled by paging QueryUsersForResource", func(t *testing.T) {
 		enablePluginAccessControl(t, th)
@@ -303,6 +303,7 @@ func TestAccessControlRecipientFill(t *testing.T) {
 func TestPluginPolicyWritesInvalidateRecipients(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.AttributeValueMasking = false
+		enablePostAccessControlResource(cfg)
 	}).InitBasic(t)
 	enablePluginAccessControl(t, th)
 	mockACS := &mocks.AccessControlServiceInterface{}
@@ -378,7 +379,7 @@ func TestPruneNotificationRecipients(t *testing.T) {
 }
 
 func TestSendNotificationsAccessControlResource(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
@@ -460,7 +461,7 @@ func TestAccessControlResourceBroadcastHook_Process(t *testing.T) {
 	})
 
 	t.Run("only marked posts register the hook", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
+		th := SetupConfigWithStoreMock(t, enablePostAccessControlResource)
 		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
 		th.App.setupBroadcastHookForAccessControlResource(&model.Post{}, message)
 		assert.Empty(t, message.GetBroadcast().BroadcastHooks)

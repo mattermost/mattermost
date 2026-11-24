@@ -24,6 +24,10 @@ const (
 	testPostAction       = "view"
 )
 
+func enablePostAccessControlResource(cfg *model.Config) {
+	cfg.FeatureFlags.PostAccessControlResource = true
+}
+
 func testPostResource(resourceID string) string {
 	return model.NewPostAccessControlResource(testPostPluginID, testPostResourceType, resourceID, testPostAction)
 }
@@ -65,7 +69,7 @@ func mockPostPolicyDecisions(t *testing.T, th *TestHelper, allowed ...string) *m
 }
 
 func TestPluginAPICreatePostAccessControlResource(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
 
 	t.Run("a marker naming the plugin is kept", func(t *testing.T) {
@@ -112,7 +116,7 @@ func TestPluginAPICreatePostAccessControlResource(t *testing.T) {
 }
 
 func TestCreatePostAccessControlResourceReply(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
 
 	createMarkedRoot := func(t *testing.T) (*model.Post, string) {
@@ -192,7 +196,7 @@ func TestCreatePostAccessControlResourceReply(t *testing.T) {
 }
 
 func TestUpdatePostAccessControlResource(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
 
 	createMarked := func(t *testing.T) (*model.Post, string) {
@@ -288,7 +292,7 @@ func TestUpdatePostAccessControlResource(t *testing.T) {
 }
 
 func TestFilterPostsByAccessControlResource(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
 
 	resourceID := model.NewId()
@@ -422,7 +426,7 @@ func TestFilterPostsByAccessControlResource(t *testing.T) {
 }
 
 func TestMoveThreadRefusesAccessControlResource(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = true
@@ -451,4 +455,71 @@ func TestMoveThreadRefusesAccessControlResource(t *testing.T) {
 	appErr = th.App.MoveThread(th.Context, reply.Id, th.BasicChannel.Id, target.Id, th.BasicUser)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "api.post.move_thread.access_control_resource.app_error", appErr.Id)
+}
+
+// TestPostAccessControlResourceFlagOff pins that with the feature flag off a
+// post's access_control_resource is neither granted to plugins nor enforced.
+func TestPostAccessControlResourceFlagOff(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	require.False(t, th.App.Config().FeatureFlags.PostAccessControlResource)
+	api := th.SetupPluginAPI()
+
+	resourceID := model.NewId()
+	value := testPostResource(resourceID)
+	plantPostPolicy(t, th, resourceID)
+	mockPostPolicyDecisions(t, th, th.BasicUser.Id)
+
+	t.Run("a plugin marker is stripped", func(t *testing.T) {
+		post := &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: "marked"}
+		post.AddProp(model.PostPropsAccessControlResource, value)
+
+		created, appErr := api.CreatePost(post)
+		require.Nil(t, appErr)
+		assert.Empty(t, created.GetAccessControlResource())
+
+		update := created.Clone()
+		update.AddProp(model.PostPropsAccessControlResource, value)
+		updated, appErr := api.UpdatePost(update)
+		require.Nil(t, appErr)
+		assert.Empty(t, updated.GetAccessControlResource())
+	})
+
+	marked := &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: "marked in the store"}
+	marked.AddProp(model.PostPropsAccessControlResource, value)
+	marked, err := th.App.Srv().Store().Post().Save(th.Context, marked)
+	require.NoError(t, err)
+
+	deniedCtx := request.TestContext(t).WithSession(&model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId})
+
+	t.Run("a marked post is readable by a user the policy denies", func(t *testing.T) {
+		list, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: th.BasicChannel.Id, Page: 0, PerPage: 60, UserId: th.BasicUser2.Id})
+		require.Nil(t, appErr)
+		assert.Contains(t, list.Posts, marked.Id)
+
+		_, appErr = th.App.GetPostThread(th.Context, marked.Id, model.GetPostsOptions{}, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr, _ = th.App.GetPostIfAuthorized(deniedCtx, marked.Id, deniedCtx.Session(), false)
+		require.Nil(t, appErr)
+
+		hasPermission, _ := th.App.SessionHasPermissionToReadPost(deniedCtx, *deniedCtx.Session(), marked.Id)
+		assert.True(t, hasPermission)
+
+		assert.True(t, th.App.HasAccessToAccessControlResource(th.Context, th.BasicUser2.Id, value))
+		assert.Nil(t, th.App.accessControlRecipientFilter(th.Context, value))
+		assert.Zero(t, th.App.ch.accessControlRecipients.len())
+	})
+
+	t.Run("a reply does not inherit the marker", func(t *testing.T) {
+		reply := &model.Post{UserId: th.BasicUser2.Id, ChannelId: th.BasicChannel.Id, RootId: marked.Id, Message: "reply"}
+		created, _, appErr := th.App.CreatePost(deniedCtx, reply, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		assert.Empty(t, created.GetAccessControlResource())
+	})
+
+	t.Run("the websocket hook is not registered", func(t *testing.T) {
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		th.App.setupBroadcastHookForAccessControlResource(marked, message)
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
 }

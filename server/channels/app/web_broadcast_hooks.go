@@ -61,7 +61,7 @@ type accessControlResourceBroadcastHook struct{}
 // carrying access_control_resource. Only the prop value travels with the
 // event; each receiving node resolves recipients from its own cache.
 func (a *App) setupBroadcastHookForAccessControlResource(post *model.Post, message *model.WebSocketEvent) {
-	if post == nil {
+	if post == nil || !a.postAccessControlResourceEnabled() {
 		return
 	}
 	if value := post.GetAccessControlResource(); value != "" {

@@ -422,7 +422,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		// cannot reply. Plugins are trusted to post into their own threads
 		// (bot activity replies, migrations), so only non-plugin callers are
 		// evaluated.
-		if rootResource := rootPost.GetAccessControlResource(); rootResource != "" {
+		if rootResource := rootPost.GetAccessControlResource(); rootResource != "" && a.postAccessControlResourceEnabled() {
 			if !flags.FromPlugin && !a.AccessControlResourceAllowed(rctx, post.UserId, rootResource) {
 				return nil, false, accessControlResourceDeniedError("createPost")
 			}
@@ -1123,10 +1123,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		// survives every edit (federated included) unless the owning plugin
 		// replaces it. Another plugin's marker is never replaced.
 		oldResource := oldPost.GetAccessControlResource()
-		if oldResource != "" {
+		if oldResource != "" && a.postAccessControlResourceEnabled() {
 			newPost.AddProp(model.PostPropsAccessControlResource, oldResource)
 		}
-		if receivedAccessControlResource != "" {
+		if receivedAccessControlResource != "" && a.postAccessControlResourceEnabled() {
 			replaceable := oldResource == ""
 			if !replaceable {
 				oldParsed, oldErr := model.ParsePostAccessControlResource(oldResource)
@@ -3951,7 +3951,7 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 	// moving it would detach the thread from the resource that scopes its
 	// readers.
 	for _, threadPost := range postListResponse.Posts {
-		if threadPost.GetAccessControlResource() != "" {
+		if a.postAccessControlResourceEnabled() && threadPost.GetAccessControlResource() != "" {
 			return model.NewAppError("MoveThread", "api.post.move_thread.access_control_resource.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

@@ -128,6 +128,9 @@ type FeatureFlags struct {
 	// Gates the Post Attributes feature (post fields in the access_control property group).
 	PostAttributes bool
 
+	// Gates plugin-owned access control on posts marked with props.access_control_resource.
+	PostAccessControlResource bool
+
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
 	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
 	// non-members find a private channel in Browse Channels and request to join it.
@@ -275,6 +278,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SessionAttributes = true
 
 	f.PostAttributes = false
+
+	f.PostAccessControlResource = false
 
 	f.DiscoverableChannels = false
 

@@ -1162,8 +1162,12 @@ func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.Upd
 
 // ownedAccessControlResource returns the post's access_control_resource when
 // it parses and names the calling plugin, and "" otherwise. A plugin cannot
-// mark a post with another plugin's resource.
+// mark a post with another plugin's resource. It returns "" while the
+// PostAccessControlResource feature flag is off.
 func (api *PluginAPI) ownedAccessControlResource(post *model.Post) string {
+	if !api.app.postAccessControlResourceEnabled() {
+		return ""
+	}
 	value := post.GetAccessControlResource()
 	if value == "" {
 		return ""

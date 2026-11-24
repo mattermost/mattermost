@@ -304,8 +304,8 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 	}
 
 	hasPermission, isMember := a.SessionHasPermissionToReadChannel(rctx, session, channel)
-	if !hasPermission {
-		return false, isMember
+	if !hasPermission || !a.postAccessControlResourceEnabled() {
+		return hasPermission, isMember
 	}
 
 	// Posts marked with access_control_resource are also gated by the
