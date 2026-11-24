@@ -12,9 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// NodeLocalConfigPaths are config settings that cluster nodes may set differently on purpose,
-// so FlattenConfig leaves them out: RunJobs and RunScheduler choose which nodes run jobs, and
-// the addresses and hostname identify the node itself. A path also covers every setting below it.
+// NodeLocalConfigPaths are settings cluster nodes may set differently on purpose. FlattenConfig
+// leaves them out, along with every setting below them.
 var NodeLocalConfigPaths = []string{
 	"JobSettings.RunJobs",
 	"JobSettings.RunScheduler",
@@ -26,21 +25,16 @@ var NodeLocalConfigPaths = []string{
 	"MetricsSettings.ListenAddress",
 }
 
-// FlattenConfig maps each setting of a node's sanitized config, such as "TeamSettings.SiteName",
-// to its JSON value, leaving out the NodeLocalConfigPaths. Plugin settings become paths below
-// "PluginSettings.Plugins.<plugin id>". It returns nil when there is no config.
-//
-// The health check compares the result across nodes to detect config drift. Live, each node sends
-// its config with its diagnostics; offline, the packet reader reads each node's
-// sanitized_config.json. Both arrive as JSON, so both are flattened the same way. The config is
-// sanitized, so secret values never count as drift; whether a secret is set does.
+// FlattenConfig maps each setting of a sanitized config, such as "TeamSettings.SiteName", to its
+// JSON value, leaving out the NodeLocalConfigPaths. Secrets are masked, so only whether one is set
+// can differ. It returns nil when there is no config.
 func FlattenConfig(cfg *model.SupportPacketConfig) map[string]string {
 	if cfg == nil || cfg.Config == nil {
 		return nil
 	}
 
-	// Going through JSON makes a config decoded from JSON and one built in memory flatten alike,
-	// and takes FeatureFlags from SupportPacketConfig's own field, which hides the embedded one.
+	// Going through JSON takes FeatureFlags from SupportPacketConfig's own field, which hides the
+	// embedded one.
 	data, err := json.Marshal(cfg)
 	if err != nil {
 		return nil
@@ -60,8 +54,7 @@ func FlattenConfig(cfg *model.SupportPacketConfig) map[string]string {
 	return settings
 }
 
-// flattenSetting records every leaf below value. Lists are leaves. An object without keys records
-// nothing, so a plugin with no settings matches one that has no entry.
+// flattenSetting records every leaf below value. Lists are leaves; empty objects record nothing.
 func flattenSetting(into map[string]string, path string, value any) {
 	if object, ok := value.(map[string]any); ok {
 		for key, child := range object {

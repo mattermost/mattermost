@@ -172,7 +172,6 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 		node.Diagnostics = &model.NodeDiagnostics{Diagnostics: &diag, Errors: errs}
 		newestSeen = max(newestSeen, diag.Version)
 
-		// The node's own config, as a live node sends it with its diagnostics.
 		var cfg model.SupportPacketConfig
 		found, err := z.readMember(path.Join(dir, model.SupportPacketConfigFileName), &cfg, json.Unmarshal)
 		switch {

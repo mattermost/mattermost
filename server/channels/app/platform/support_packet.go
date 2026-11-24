@@ -388,8 +388,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	collectProbes()
 
-	// The same sanitized config the packet's sanitized_config.json holds, so the live health check
-	// compares what the packet reader compares.
 	spConfig, _ := ps.GetSupportPacketConfig(rctx)
 
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors, Config: spConfig}, rErr.ErrorOrNil()

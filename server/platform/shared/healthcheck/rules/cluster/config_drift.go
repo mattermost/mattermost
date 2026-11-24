@@ -21,13 +21,10 @@ var (
 	reasonNoMajority  = healthcheck.TranslationId("health.rule.cluster_config_drift.message.no_majority")
 )
 
-// maxListedSettings caps how many differing settings a finding names; its count gives the total.
+// maxListedSettings caps how many differing settings a finding names.
 const maxListedSettings = 10
 
-// configDrift compares each node's sanitized config setting by setting. Live health checks
-// collect the configs from every node with its diagnostics, and the packet reader reads each
-// node's sanitized_config.json, so both evaluate the same data. See healthcheck.FlattenConfig
-// for what the comparison leaves out.
+// configDrift compares each node's sanitized config setting by setting.
 var configDrift = healthcheck.Rule{
 	Code:     "CLUSTER_CONFIG_DRIFT",
 	Area:     model.AreaCluster,
@@ -45,8 +42,7 @@ var configDrift = healthcheck.Rule{
 	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalConfigDriftNode)),
 }
 
-// nodeSettings returns the node's flattened config. Nodes that did not reply, nodes on a build
-// that does not send its config, and packet nodes without a readable config have none.
+// nodeSettings returns the node's flattened config, if it has one.
 func nodeSettings(n *healthcheck.NodeSnapshot) (map[string]string, bool) {
 	if n == nil || n.Diagnostics == nil {
 		return nil, false
@@ -78,8 +74,7 @@ func configGroups(nodes []*healthcheck.NodeSnapshot) map[string]*configGroup {
 	return groups
 }
 
-// mixedBuilds reports whether the nodes run different builds. A newer build can add settings
-// or change defaults, so their configs can differ whatever their config files say.
+// mixedBuilds reports whether the nodes run different builds, whose defaults can differ.
 func mixedBuilds(nodes []*healthcheck.NodeSnapshot) bool {
 	builds := map[string]bool{}
 	for _, node := range nodes {
@@ -100,8 +95,7 @@ func splitGroups(groups map[string]*configGroup) string {
 	return strings.Join(split, " | ")
 }
 
-// majorityConfig returns the config most nodes run. ok is false when the top count is tied, so
-// the odd node never flips between cycles.
+// majorityConfig returns the config most nodes run. ok is false on a tie.
 func majorityConfig(groups map[string]*configGroup) (majority *configGroup, ok bool) {
 	tied := false
 	for _, group := range groups {
@@ -116,8 +110,7 @@ func majorityConfig(groups map[string]*configGroup) (majority *configGroup, ok b
 	return majority, majority != nil && !tied
 }
 
-// withSettings names the differing settings, the first maxListedSettings by path, and how many
-// there are in total.
+// withSettings adds the first maxListedSettings differing settings and their total count.
 func withSettings(result healthcheck.Result, paths map[string]bool) healthcheck.Result {
 	sorted := healthcheck.SortedSettings(paths)
 	listed := sorted[:min(len(sorted), maxListedSettings)]
@@ -126,7 +119,7 @@ func withSettings(result healthcheck.Result, paths map[string]bool) healthcheck.
 		WithDetail("count", strconv.Itoa(len(sorted)))
 }
 
-// noMajority explains a tie: the groups, and every setting that is not the same on all nodes.
+// noMajority explains a tie: the groups and every setting that differs between them.
 func noMajority(result healthcheck.Result, groups map[string]*configGroup) healthcheck.Result {
 	paths := map[string]bool{}
 	var first *configGroup

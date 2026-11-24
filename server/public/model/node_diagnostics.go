@@ -18,10 +18,7 @@ type SectionErrors map[NodeSection]error
 type NodeDiagnostics struct {
 	Diagnostics *SupportPacketDiagnostics `json:"diagnostics"`
 	Errors      SectionErrors             `json:"errors"`
-	// Config is the node's sanitized config, the same one a Support Packet holds in the node's
-	// sanitized_config.json. Nodes send it with their diagnostics so the health check can compare
-	// configs across nodes; the packet reader fills it from that file. It is not written to
-	// diagnostics.yaml.
+	// Config is the node's sanitized config, as in its sanitized_config.json.
 	Config *SupportPacketConfig `json:"config,omitempty"`
 }
 
