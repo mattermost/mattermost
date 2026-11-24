@@ -25,6 +25,11 @@ def fetch_reports(version: str, token: str, repo: str = "mattermost/mattermost",
                   run=subprocess.run) -> tuple[list[dict], str | None]:
     """(sections.json of every successful changelog run for ``version``, newest first; a problem).
 
+    A run in update mode lists only the bullets it added, so the reports are complete only when
+    the run that created the entry (any mode but ``update``) is among them. Without it the problem
+    says why: a report that couldn't be downloaded or read, or the ``limit`` newest runs not
+    reaching back that far. The reports found are still returned.
+
     Read with the gh CLI and a token that can read Actions (``actions: read``)."""
     if not token:
         return [], "no token that can read Actions (ACTIONS_TOKEN)"
@@ -37,20 +42,34 @@ def fetch_reports(version: str, token: str, repo: str = "mattermost/mattermost",
                  "--limit", str(limit), "--json", "databaseId")
     if listing.returncode != 0:
         return [], "the changelog workflow's runs could not be listed (it needs actions: read)"
-    reports = []
+    reports, unread = [], 0
+    runs = json.loads(listing.stdout or "[]")
     with tempfile.TemporaryDirectory() as directory:
-        for found in json.loads(listing.stdout or "[]"):
+        for found in runs:
             target = os.path.join(directory, str(found["databaseId"]))
             if gh("run", "download", str(found["databaseId"]), "--repo", repo, "-n", ARTIFACT, "-D", target).returncode:
+                unread += 1
                 continue
             try:
                 with open(os.path.join(target, "sections.json"), encoding="utf-8") as f:
                     report = json.load(f)
             except (OSError, ValueError):
+                unread += 1
                 continue
             if report.get("version") == version:
                 reports.append(report)
-    return reports, None if reports else f"no changelog run for {version} was found"
+    if any(report.get("mode") != "update" for report in reports):
+        return reports, None
+    why = []
+    if unread:
+        why.append("1 changelog run's report could not be read" if unread == 1
+                   else f"{unread} changelog runs' reports could not be read")
+    if len(runs) >= limit:
+        why.append(f"only the newest {limit} changelog runs were checked")
+    reason = f" ({'; '.join(why)})" if why else ""
+    if not reports:
+        return reports, f"no changelog run for {version} was found{reason}"
+    return reports, f"the changelog run that created the {version} entry was not found{reason}, so its bullets may be incomplete"
 
 
 def items(reports: list[dict]) -> list[dict]:

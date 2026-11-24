@@ -387,6 +387,9 @@ def upgrade_from_marker(env: dict, gh, claude, version: Version, target, result:
     items = changelog_run.items(reports)
     if report_problem and not items:
         return upgrade_docs.plan(confirmed, {}, {}, f"the changelog run's bullets could not be read ({report_problem})")
+    if report_problem:
+        # Some bullets were read, but not the run that created the entry: never treated as complete.
+        result.todo(f"{version.tag}: {report_problem}")
     branch = f"release-{version.major}.{version.minor}"
     for item in items:  # a schema bullet written for a migration is the bullet of the PR that added it
         for source in [s for s in item["sources"] if s.startswith("migration:")]:

@@ -140,6 +140,32 @@ class ChangelogRunTest(unittest.TestCase):
         self.assertIn("generate-changelog.yml", calls[0])
         self.assertEqual(changelog_run.fetch_reports("v12.2.0", "")[1], "no token that can read Actions (ACTIONS_TOKEN)")
 
+    def fake_runs(self, reports, failing=()):
+        """A gh CLI whose runs (newest first) uploaded ``reports``; the runs in ``failing`` have no artifact."""
+        def run(args, capture_output, text, env):
+            if args[1:3] == ["run", "list"]:
+                return types.SimpleNamespace(returncode=0, stdout=json.dumps([{"databaseId": i} for i in range(len(reports))]))
+            number = int(args[3])
+            if number in failing:
+                return types.SimpleNamespace(returncode=1, stdout="")
+            target = args[args.index("-D") + 1]
+            os.makedirs(target)
+            with open(os.path.join(target, "sections.json"), "w") as f:
+                json.dump(reports[number], f)
+            return types.SimpleNamespace(returncode=0, stdout="")
+        return run
+
+    def test_update_reports_without_the_creating_run_are_reported_incomplete(self):
+        update = {"version": "v12.2.0", "mode": "update", "sections": []}
+        create = {"version": "v12.2.0", "mode": "create", "sections": []}
+        reports, problem = changelog_run.fetch_reports("v12.2.0", "t", run=self.fake_runs([update, create], failing={1}))
+        self.assertEqual(len(reports), 1)
+        self.assertEqual(problem, "the changelog run that created the v12.2.0 entry was not found (1 changelog run's "
+                                  "report could not be read), so its bullets may be incomplete")
+        _, problem = changelog_run.fetch_reports("v12.2.0", "t", limit=2, run=self.fake_runs([update, update]))
+        self.assertIn("only the newest 2 changelog runs were checked", problem)
+        self.assertEqual(changelog_run.fetch_reports("v12.2.0", "t", run=self.fake_runs([update, create]))[1], None)
+
 
 # ── 3. The upgrade pages ────────────────────────────────────────────────────────────
 

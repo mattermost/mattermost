@@ -60,3 +60,18 @@ class Milestones(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LabelNames(unittest.TestCase):
+    def test_a_label_name_with_a_slash_is_one_path_segment(self):
+        requests = []
+
+        def opener(request, timeout):
+            requests.append(request)
+            return Response({})
+
+        gh = GitHub("t", opener=opener)
+        gh.remove_label("o/r", 5, "Do Not Merge/Awaiting Next Release")
+        gh.label_exists("o/r", "Do Not Merge/Awaiting Next Release")
+        self.assertEqual([r.full_url.split("/labels/")[1] for r in requests],
+                         ["Do%20Not%20Merge%2FAwaiting%20Next%20Release"] * 2)

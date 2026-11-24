@@ -34,7 +34,7 @@ from check_config_changes_ci import _scan_struct_fields
 from . import markers, release_docs_pr, templates, version_archive
 from .breaking_signals import signals as breaking_signals
 from .publish import TRAILER, Target, run_url, skipped_label_note, write
-from .result import Result
+from .result import TODO_MARKER, Result
 from .versions import Version, changelog_page
 
 TASK = "dot-release-docs"
@@ -81,6 +81,11 @@ NON_PRODUCT_SUFFIXES = ("_test.go", ".test.ts", ".test.tsx", ".test.js", ".test.
                         ".golangci.yml", ".eslintrc.json", ".eslintrc.js", ".stylelintrc.json")
 WRITTEN_STARTS = ("Fixed an issue where", "Updated", "Added", "Improved")
 SECURITY_STARTS = WRITTEN_STARTS + ("Fixed an issue with",)
+# Words that describe a vulnerability rather than the area that changed. A security bullet with one
+# is never published: it becomes a TODO for a person, without the text.
+SECURITY_DETAIL = re.compile(r"(?i)\b(vulnerab\w*|exploit\w*|attack\w*|malicious|bypass\w*|escalat\w*|"
+                             r"inject\w*|xss|csrf|ssrf|rce|cve-?\d*|unauthori[sz]ed|leak\w*|expos\w*|"
+                             r"traversal|overflow|denial[- ]of[- ]service|dos)\b")
 
 ROW = re.compile(r"^\| v(\d+)\.(\d+) \[Download\]\(https://releases\.mattermost\.com/(\d+\.\d+\.\d+)/")
 ARCHIVE_HEADER = re.compile(r"^Mattermost (?:Enterprise|Team) Edition v(\d+)\.(\d+)\.(\d+)\b")
@@ -265,9 +270,14 @@ def write_bullet(claude, pr: dict, security: bool) -> tuple[str | None, str | No
         answer = claude.ask_json(SECURITY_SYSTEM if security else WRITE_SYSTEM, prompt, max_tokens=400)
     except Exception as err:  # noqa: BLE001 - any failure leaves a TODO, never a guess
         return None, f"Claude could not write it: {err}"
-    bullet = polish(str((answer or {}).get("bullet", "")))
+    if not isinstance(answer, dict) or not isinstance(answer.get("bullet"), str):
+        return None, "Claude's reply was not an object with a bullet"
+    bullet = polish(answer["bullet"])
     if not bullet.startswith(SECURITY_STARTS if security else WRITTEN_STARTS):
-        return None, f"Claude's bullet does not start the changelog way: {bullet!r}"
+        # Never the reply itself: this reason can end up in a public TODO.
+        return None, "Claude's bullet does not start the changelog way"
+    if security and SECURITY_DETAIL.search(bullet):
+        return None, "Claude's security bullet describes the vulnerability, so a person has to write it"
     return bullet, None
 
 
@@ -283,6 +293,7 @@ class Change:
     security: bool = False
     breaking: bool = False  # a strong signal: an existing breaking-change label, or a removal config-change-checker found
     maybe_breaking: list = field(default_factory=list)  # weak signals (release-note wording), for a person to confirm
+    pending: bool = False  # ``text`` is a TODO: no bullet could be written yet, so a later run tries again
 
 
 @dataclass
@@ -436,7 +447,7 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: R
         if dependency and not bullets:
             release.skipped.append((source, title, "dependency update with no release note"))
             continue
-        written = False
+        written, problem = False, None
         if not bullets:
             bullet, problem = write_bullet(claude, original, security)
             if problem:
@@ -452,7 +463,7 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: R
             kind = "functional"
         for text in bullets:
             release.changes.append(Change(text, kind, source, original.get("html_url", ""), bool(written), security, breaking,
-                                          maybe))
+                                          maybe, pending=bool(problem)))
 
 
 # ── Severity ────────────────────────────────────────────────────────────────────────
@@ -671,7 +682,8 @@ def add_bullet(content: str, version: Version, text: str, result: Result) -> str
     if start is None:
         result.todo(f"{changelog_path(version)} has no {version.plain} entry to add a security fix bullet to")
         return content
-    end = next((i for i in range(start + 1, len(lines)) if not lines[i].startswith(" ")), len(lines))
+    # The same boundary the checks use: blank-separated indented lines are still the entry.
+    end = _bullet_end(lines, start, len(lines))
     closing = (f"  - Mattermost v{version.plain} {CLOSING_NONE}", f"  - Mattermost v{version.plain} contains the following ")
     at = next((i for i in range(start + 1, end) if lines[i].startswith(closing)), end)
     lines[at:at] = [f"  - {text}"]
@@ -845,7 +857,12 @@ def consistency(files: dict, base: dict, releases: list[Release]) -> tuple[list[
         for edition, _, tab in version_archive.EDITIONS:
             before = _archive_block(old_archive.split("\n"), tab, v)
             after = _archive_block(archive.split("\n"), tab, v)
-            if before and after and before[2] < v:
+            if after is None or after[2] != v:
+                # Every edition's tab needs an entry listing this version: a missing one never passes.
+                listed = f"lists {after[2].plain}" if after else f"has no {v.short} entry"
+                problems.append(f"{ARCHIVE}: the {tab} tab {listed}, not {v.plain}")
+                continue
+            if before and before[2] < v:
                 was = "\n".join(old_archive.split("\n")[before[0]:before[1]])
                 now = "\n".join(archive.split("\n")[after[0]:after[1]])
                 if _count(now, before[2]) or _count(now, v) != _count(was, before[2]):
@@ -913,6 +930,9 @@ def release_state(release: Release) -> dict:
         "breaking": [[c.text, c.source, c.url] for c in release.changes if c.breaking],
         "maybe_breaking": [[c.text, c.source, c.url, "; ".join(c.maybe_breaking)] for c in release.changes if c.maybe_breaking],
         "skipped": [list(s) for s in release.skipped],
+        # Bullets left as a TODO (Claude was unavailable, say): [TODO text, source, url, security]. A
+        # later run writes each one and replaces only its TODO; written bullets are never redone.
+        "pending": [[c.text, c.source, c.url, c.security] for c in release.changes if c.pending],
     }
 
 
@@ -1001,8 +1021,7 @@ def _entry_text(changelog: str, version: Version) -> str:
     start = next((i for i, line in enumerate(lines) if line.startswith(f"- **{version.plain}, released ")), None)
     if start is None:
         return ""
-    end = next((i for i in range(start + 1, len(lines)) if not lines[i].startswith(" ")), len(lines))
-    return "\n".join(lines[start:end])
+    return "\n".join(lines[start:_bullet_end(lines, start, len(lines))])
 
 
 def pr_body(state: dict, files: dict, others: list[str], branch: str) -> str:
@@ -1096,13 +1115,22 @@ def mark_security(gh, version: Version, info: dict, marked: frozenset, claude, f
 
 
 def new_target(gh, base: str, first: Version) -> Target:
+    """Where a new dot release docs PR goes. A branch left by a run that failed between creating it
+    and opening the PR (it has never had a PR, and every commit on it is this workflow's) is
+    resumed: files are read from the base again, so nothing is added twice, and the new commit goes
+    on top of the branch head, never a force-push. Any other existing branch blocks the run."""
     branch = BRANCH_PREFIX + first.tag
     target = Target(REPO, branch, base, base, gh.branch_sha(REPO, base))
-    if gh.branch_sha(REPO, branch):
+    head = gh.branch_sha(REPO, branch)
+    if head:
         pulls = gh.pulls_for_branch(REPO, branch)
+        ahead = gh.commits_ahead(REPO, base, branch) if not pulls else []
+        if not pulls and all(f"{TRAILER}:" in c["commit"]["message"] for c in ahead):
+            target.sha, target.ahead, target.branch_exists = head, len(ahead), True
+            return target
         closed = next((p for p in pulls if p.get("state") != "open"), None)
-        target.blocked = (f"{branch} already exists" + (f" (PR #{closed['number']} was closed)" if closed else "") +
-                          "; not reusing it. Delete the branch to start again.")
+        why = f" (PR #{closed['number']} was closed)" if closed else ("" if pulls else " with commits from people")
+        target.blocked = f"{branch} already exists{why}; not reusing it. Delete the branch to start again."
     return target
 
 
@@ -1191,7 +1219,7 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
     for item in todo:
         v = item[1]
         if item[0] == "refresh":
-            _refresh(v, state, severities, files, current, fetch, attempts, interval, sleep, result)
+            _refresh(v, state, severities, files, current, fetch, attempts, interval, sleep, result, gh, claude)
             continue
         changelogs = [current(changelog_path(v))]
         release = Release(v, tabs=item[2], severity=severities.get(v.tag))
@@ -1252,8 +1280,10 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
 
 
 def _refresh(v: Version, state: dict, severities: dict, files: dict, current, fetch, attempts, interval, sleep,
-             result: Result) -> None:
-    """A version already in the PR: fill in a checksum published since, or a severity given now."""
+             result: Result, gh=None, claude=None) -> None:
+    """A version already in the PR: fill in a checksum published since, a severity given now, or a
+    bullet an earlier run left as a TODO."""
+    retried = _retry_pending(v, state["versions"][v.tag], files, current, gh, claude, result)
     tbd = archive_tbd(current(ARCHIVE), v)
     found = {}
     if tbd:
@@ -1275,5 +1305,31 @@ def _refresh(v: Version, state: dict, severities: dict, files: dict, current, fe
     if severity and SEVERITY_MARK.search(_entry_text(current(path) or "", v)):
         files[path] = set_severity(current(path), v, severity)
         state["versions"][v.tag]["severity"] = severity
-    elif not found:
+    elif not found and not retried:
         result.notes.append(f"{v} is already in the open dot release docs PR; nothing new for it.")
+
+
+def _retry_pending(v: Version, info: dict, files: dict, current, gh, claude, result: Result) -> int:
+    """Write each bullet an earlier run left as a TODO, and put it where that TODO is in the
+    changelog. One that still can't be written keeps its TODO (listed again). Returns how many
+    were written."""
+    pending, still, done = info.get("pending") or [], [], 0
+    path = changelog_path(v)
+    for todo_text, source, url, security in pending:
+        text = current(path) or ""
+        if todo_text not in text:  # a person replaced or removed it: theirs to keep
+            continue
+        pr = gh.pull(REPO, int(source[1:])) if gh is not None and source.startswith("#") else None
+        bullet, problem = write_bullet(claude, pr or {}, security) if pr else (None, "the PR could not be read")
+        if problem:
+            result.todo(todo_text.removeprefix(f"{TODO_MARKER}: "))
+            still.append([todo_text, source, url, security])
+            continue
+        files[path] = text.replace(todo_text, bullet, 1)
+        info.setdefault("written", []).append([bullet, source, url])
+        if security:
+            info.setdefault("security", []).append([bullet, source, url])
+        done += 1
+        result.notes.append(f"{v}: wrote the bullet for {source}, which an earlier run left as a TODO.")
+    info["pending"] = still
+    return done

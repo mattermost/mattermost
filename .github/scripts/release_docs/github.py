@@ -165,10 +165,10 @@ class GitHub:
         self.request("POST", f"/repos/{repo}/issues/{number}/labels", {"labels": labels})
 
     def label_exists(self, repo: str, label: str) -> bool:
-        return self.request("GET", f"/repos/{repo}/labels/{urllib.parse.quote(label)}", missing_ok=True) is not None
+        return self.request("GET", f"/repos/{repo}/labels/{urllib.parse.quote(label, safe='')}", missing_ok=True) is not None
 
     def remove_label(self, repo: str, number: int, label: str) -> None:
-        self.request("DELETE", f"/repos/{repo}/issues/{number}/labels/{urllib.parse.quote(label)}", missing_ok=True)
+        self.request("DELETE", f"/repos/{repo}/issues/{number}/labels/{urllib.parse.quote(label, safe='')}", missing_ok=True)
 
     def milestones(self, repo: str) -> list[dict]:
         """Every milestone, open and closed."""

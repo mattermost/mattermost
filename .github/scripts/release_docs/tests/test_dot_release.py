@@ -145,6 +145,40 @@ class NoteBulletsTest(unittest.TestCase):
         self.assertIn("never describe the\n  vulnerability", security.systems[0])
         self.assertEqual(dr.write_bullet(None, {"title": "x"}, False), (None, "ANTHROPIC_API_KEY is not set"))
 
+    def test_a_reply_that_is_not_an_object_with_a_bullet_is_a_todo(self):
+        class Claude:
+            def __init__(self, answer):
+                self.answer = answer
+
+            def ask_json(self, system, prompt, max_tokens=400):
+                return self.answer
+        for answer in (["draft"], {"bullet": 7}, None, {"text": "Updated x."}):
+            self.assertEqual(dr.write_bullet(Claude(answer), {"title": "x"}, False),
+                             (None, "Claude's reply was not an object with a bullet"), answer)
+
+    def test_a_rejected_reply_is_never_quoted(self):
+        class Claude:
+            def ask_json(self, system, prompt, max_tokens=400):
+                return {"bullet": "This PR closes a SECRET hole"}
+        _, problem = dr.write_bullet(Claude(), {"title": "x"}, True)
+        self.assertNotIn("SECRET", problem)
+
+    def test_a_security_bullet_that_describes_the_vulnerability_is_not_published(self):
+        class Claude:
+            def __init__(self, bullet):
+                self.bullet = bullet
+
+            def ask_json(self, system, prompt, max_tokens=400):
+                return {"bullet": self.bullet}
+        for text in ("Fixed an issue with a XSS in the **Channel Header**.", "Fixed an issue where attackers could bypass MFA.",
+                     "Updated session handling to prevent privilege escalation.", "Fixed an issue with CVE-2026-1234."):
+            self.assertEqual(dr.write_bullet(Claude(text), {"title": "x"}, True),
+                             (None, "Claude's security bullet describes the vulnerability, so a person has to write it"), text)
+        self.assertEqual(dr.write_bullet(Claude("Fixed an issue with session handling."), {"title": "x"}, True)[0],
+                         "Fixed an issue with session handling.")
+        # Only security bullets are held to it.
+        self.assertIsNotNone(dr.write_bullet(Claude("Fixed an issue where a malicious-looking warning showed."), {"title": "x"}, False)[0])
+
     def test_plugin_name_is_the_changelogs_usual_one(self):
         link = "https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v1"
         changelogs = [f"- Pre-packaged Microsoft Calendar plugin version [v1]({link})\n"
@@ -372,6 +406,43 @@ class GatherTest(unittest.TestCase):
         self.assertTrue(any(t.startswith(f"{TODO_MARKER}: v12.1.1: no bullet for #8") for t in texts))
         self.assertIn("v12.1.1: no bullet for #8 (Tidy the channel settings modal): Claude could not write it: overloaded", result.todos)
 
+    def test_a_bullet_left_as_a_todo_is_written_on_a_later_run(self):
+        class Down:
+            def ask_json(self, *args, **kwargs):
+                raise RuntimeError("overloaded")
+        release, _ = self.gather(claude=Down())
+        info = dr.release_state(release)
+        self.assertEqual([p[1] for p in info["pending"]], ["#8", "#9"])
+        info["pending"] = info["pending"][:1]
+        todo_text = info["pending"][0][0]
+        path = dr.changelog_path(V("v12.1.1"))
+        files = {path: f"- **12.1.1, released 2026-10-22**\n  - Updated the kept bullet.\n  - {todo_text}\n"}
+
+        class Pulls:
+            def pull(self, repo, number):
+                return {"number": number, "title": "Tidy the channel settings modal", "body": ""}
+
+        result = Result(dr.TASK, "v12.1.1")
+        self.assertEqual(dr._retry_pending(V("v12.1.1"), info, files, files.get, Pulls(), Down(), result), 0)
+        self.assertIn(todo_text, files[path])
+        self.assertEqual(result.todos, [todo_text.removeprefix(f"{TODO_MARKER}: ")])
+        self.assertEqual(len(info["pending"]), 1)
+
+        result = Result(dr.TASK, "v12.1.1")
+        self.assertEqual(dr._retry_pending(V("v12.1.1"), info, files, files.get, Pulls(), WritingClaude(), result), 1)
+        self.assertEqual(files[path], "- **12.1.1, released 2026-10-22**\n  - Updated the kept bullet.\n"
+                                      "  - Updated the **Channel Settings** modal.\n")
+        self.assertEqual((info["pending"], result.todos), ([], []))
+        self.assertIn(["Updated the **Channel Settings** modal.", "#8", info["written"][-1][2]], info["written"])
+
+    def test_a_todo_a_person_replaced_is_left_alone(self):
+        info = {"pending": [[f"{TODO_MARKER}: v12.1.1: no bullet for #8 (x): down", "#8", "", False]]}
+        path = dr.changelog_path(V("v12.1.1"))
+        files = {path: "- **12.1.1, released 2026-10-22**\n  - Written by a person.\n"}
+        self.assertEqual(dr._retry_pending(V("v12.1.1"), info, files, files.get, None, WritingClaude(), Result(dr.TASK, "x")), 0)
+        self.assertEqual(files[path], "- **12.1.1, released 2026-10-22**\n  - Written by a person.\n")
+        self.assertEqual(info["pending"], [])
+
     def test_plugin_release_page_must_exist(self):
         _, result = self.gather(fetch=lambda url, method="GET": (404, "") if "boards" in url else (200, ""))
         self.assertEqual(result.todos, ["v12.1.1: the changelog links mattermost-plugin-boards v9.2.3, but its GitHub release page "
@@ -555,6 +626,23 @@ class FileEditsTest(unittest.TestCase):
         self.docs = before_docs()
         self.result = Result(dr.TASK, "x")
 
+    def test_checks_and_late_edits_see_the_same_entry_after_a_blank_line(self):
+        v = V("v12.1.1")
+        older = "- **12.1.0, released 2026-10-16**\n  - Older.\n"
+        # A blank line a maintainer added after the heading: a late bullet still goes after the
+        # security summary and the fixes, before the closing line.
+        security = "  - Mattermost v12.1.1 contains Medium severity level security fixes."
+        text = (f"- **12.1.1, released 2026-10-22**\n\n{security}\n  - Fixed an issue where a thing broke.\n"
+                f"  - Mattermost v12.1.1 {dr.CLOSING_NONE}\n" + older)
+        lines = dr.add_bullet(text, v, "Updated session handling.", self.result).split("\n")
+        at = lines.index("  - Updated session handling.")
+        self.assertGreater(at, lines.index("  - Fixed an issue where a thing broke."))
+        self.assertEqual(lines[at + 1], f"  - Mattermost v12.1.1 {dr.CLOSING_NONE}")
+        self.assertNotIn("12.1.0", dr._entry_text(text, v))
+        # And one before the severity line: the check still sees it.
+        text = "- **12.1.1, released 2026-10-22**\n\n  - Mattermost v12.1.1 contains <SEVERITY> severity level security fixes.\n" + older
+        self.assertIn("<SEVERITY>", dr._entry_text(text, v))
+
     def test_deploy_pages_latest_tab(self):
         for page in dr.DEPLOY_PAGES:
             before = self.docs[page]
@@ -618,6 +706,14 @@ class ConsistencyTest(unittest.TestCase):
 
     def test_clean(self):
         self.assertEqual(dr.consistency(self.files, self.base, [self.release]), ([], []))
+
+    def test_an_edition_without_the_versions_archive_entry_never_passes(self):
+        lines = self.files[dr.ARCHIVE].split("\n")
+        block = dr._archive_block(lines, "mattermost-team-edition", V("v11.11.3"))
+        del lines[block[0]:block[1]]
+        self.files[dr.ARCHIVE] = "\n".join(lines)
+        problems, _ = dr.consistency(self.files, self.base, [self.release])
+        self.assertIn(f"{dr.ARCHIVE}: the mattermost-team-edition tab has no v11.11 entry, not 11.11.3", problems)
 
     def test_leftovers_and_disagreement(self):
         self.files[dr.SERVER_RELEASES] = self.files[dr.SERVER_RELEASES].replace(
@@ -911,11 +1007,44 @@ class AutomationTest(unittest.TestCase):
 
     def test_closed_pr_branch_is_not_reused(self):
         gh = DotGitHub()
-        gh.create_branch(dr.REPO, "release-agent/dot-release-docs/v12.0.1", gh.branch_sha(dr.REPO, "master"))
+        branch = "release-agent/dot-release-docs/v12.0.1"
+        gh.create_branch(dr.REPO, branch, gh.branch_sha(dr.REPO, "master"))
+        gh.pulls[dr.REPO].append({"number": 90, "head": branch, "base": "master", "title": "x", "body": "",
+                                  "state": "closed", "merged_at": None, "labels": []})
         writes = list(gh.writes)
         result, outcome, _ = self.run_day(gh, ["v12.0.1"])
         self.assertEqual(gh.writes, writes)
-        self.assertTrue(outcome.startswith("Nothing written: release-agent/dot-release-docs/v12.0.1 already exists"), outcome)
+        self.assertTrue(outcome.startswith(f"Nothing written: {branch} already exists (PR #90 was closed)"), outcome)
+
+    def orphan(self, gh, author="release-docs[bot]"):
+        """The branch a run left when opening the PR failed after its commit."""
+        branch = "release-agent/dot-release-docs/v12.0.1"
+        _, _, _ = self.run_day(gh, ["v12.0.1"])
+        gh.pulls[dr.REPO].clear()
+        if author != "release-docs[bot]":
+            gh.push(dr.REPO, branch, {"README.md": "a person's edit"}, author=author)
+        return branch
+
+    def test_an_orphaned_branch_with_only_its_commits_is_resumed(self):
+        gh = DotGitHub()
+        branch = self.orphan(gh)
+        head = gh.branch_sha(dr.REPO, branch)
+        _, outcome, _ = self.run_day(gh, ["v12.0.1"])
+        self.assertTrue(outcome.startswith("Opened draft PR mattermost/mattermost#"), outcome)
+        self.assertEqual(len(gh.pulls[dr.REPO]), 1)
+        commits = gh.repos[dr.REPO]["branches"][branch]
+        self.assertIn(head, [c["sha"] for c in commits], "a commit on top of the old head, never a force-push")
+        path = dr.changelog_path(V("v12.0.1"))
+        self.assertEqual(gh.head_files(dr.REPO, branch)[path].count("- **12.0.1, released "), 1)
+
+    def test_an_orphaned_branch_with_a_persons_commit_is_not_reused(self):
+        gh = DotGitHub()
+        branch = self.orphan(gh, author="A Person")
+        writes = list(gh.writes)
+        _, outcome, _ = self.run_day(gh, ["v12.0.1"])
+        self.assertEqual(gh.writes, writes)
+        self.assertEqual(outcome, f"Nothing written: {branch} already exists with commits from people; not reusing it. "
+                                  "Delete the branch to start again.")
 
 
 class EventsTest(unittest.TestCase):

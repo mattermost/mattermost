@@ -29,6 +29,9 @@ class Target:
     blocked: str = ""  # why nothing may be written
     done: bool = False  # the PR was merged
     ahead: int = 0  # commits on the task branch that the base doesn't have (all the workflow's when not blocked)
+    # The task branch exists although files are read from the base (an orphaned branch being resumed):
+    # write() commits on top of it instead of creating it.
+    branch_exists: bool = False
 
 
 def locate(gh, repo: str, version: str, task: str) -> Target:
@@ -167,7 +170,7 @@ def write(gh, target: Target, files: dict, message: str, title: str, body: str, 
     (RELEASE_DOCS_REVIEWERS) for review; the last value returned says how that went. An updated
     PR keeps the hidden markers its body has just before the update."""
     if files:
-        if target.ref != target.branch:
+        if target.ref != target.branch and not target.branch_exists:
             gh.create_branch(target.repo, target.branch, target.sha)
         gh.commit_files(target.repo, target.branch, target.sha, files, message)
     review = ""
