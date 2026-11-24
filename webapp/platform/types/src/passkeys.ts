@@ -29,3 +29,23 @@ export type PasskeyRegistrationCredential = {
         transports: string[];
     };
 };
+
+export type PasskeyLoginOptions = {
+    ceremony_id: string;
+    options: {publicKey: PublicKeyCredentialRequestOptionsJSON};
+};
+
+// Sign-in result in the WebAuthn JSON form the server parses. Binary fields are base64url.
+export type PasskeyAssertionCredential = {
+    id: string;
+    rawId: string;
+    type: string;
+    authenticatorAttachment: string | null;
+    clientExtensionResults: AuthenticationExtensionsClientOutputs;
+    response: {
+        clientDataJSON: string;
+        authenticatorData: string;
+        signature: string;
+        userHandle: string | null;
+    };
+};

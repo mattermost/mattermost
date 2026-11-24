@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {base64urlDecode, base64urlEncode, creationOptionsFromJSON, registrationToJSON} from './passkeys';
+import {assertionToJSON, base64urlDecode, base64urlEncode, creationOptionsFromJSON, registrationToJSON, requestOptionsFromJSON, signalUnknownPasskey} from './passkeys';
 
 const bytes = (...b: number[]) => new Uint8Array(b).buffer;
 const toArray = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf));
@@ -95,6 +95,109 @@ describe('utils/passkeys', () => {
 
         test('uses empty transports when getTransports is absent', () => {
             expect(registrationToJSON(fake()).response.transports).toEqual([]);
+        });
+    });
+
+    describe('requestOptionsFromJSON', () => {
+        test('decodes the binary fields and leaves the rest untouched', () => {
+            const result = requestOptionsFromJSON({
+                challenge: base64urlEncode(bytes(1, 2, 3)),
+                rpId: 'example.com',
+                timeout: 60000,
+                userVerification: 'required',
+                allowCredentials: [{type: 'public-key', id: base64urlEncode(bytes(0xfb, 0xff)), transports: ['usb']}],
+            });
+
+            expect(toArray(result.challenge as ArrayBuffer)).toEqual([1, 2, 3]);
+            expect(result.allowCredentials).toHaveLength(1);
+            expect(toArray(result.allowCredentials![0].id as ArrayBuffer)).toEqual([0xfb, 0xff]);
+            expect(result.allowCredentials![0].transports).toEqual(['usb']);
+            expect(result.rpId).toBe('example.com');
+            expect(result.timeout).toBe(60000);
+            expect(result.userVerification).toBe('required');
+        });
+
+        test('handles missing allowCredentials', () => {
+            const result = requestOptionsFromJSON({challenge: 'AQ'});
+            expect(toArray(result.challenge as ArrayBuffer)).toEqual([1]);
+            expect(result.allowCredentials).toBeUndefined();
+        });
+    });
+
+    describe('assertionToJSON', () => {
+        const fake = (userHandle: ArrayBuffer | null) => ({
+            id: 'abc',
+            rawId: bytes(0xfb, 0xff),
+            type: 'public-key',
+            authenticatorAttachment: 'platform',
+            getClientExtensionResults: () => ({}),
+            response: {
+                clientDataJSON: bytes(1, 2, 3),
+                authenticatorData: bytes(4, 5),
+                signature: bytes(6),
+                userHandle,
+            },
+        }) as unknown as PublicKeyCredential;
+
+        test('produces the WebAuthn JSON shape', () => {
+            expect(assertionToJSON(fake(bytes(0xfb, 0xff)))).toEqual({
+                id: 'abc',
+                rawId: '-_8',
+                type: 'public-key',
+                authenticatorAttachment: 'platform',
+                clientExtensionResults: {},
+                response: {
+                    clientDataJSON: base64urlEncode(bytes(1, 2, 3)),
+                    authenticatorData: base64urlEncode(bytes(4, 5)),
+                    signature: base64urlEncode(bytes(6)),
+                    userHandle: '-_8',
+                },
+            });
+        });
+
+        test('keeps a missing userHandle null', () => {
+            expect(assertionToJSON(fake(null)).response.userHandle).toBeNull();
+        });
+    });
+
+    describe('signalUnknownPasskey', () => {
+        const original = (window as any).PublicKeyCredential;
+        afterEach(() => {
+            (window as any).PublicKeyCredential = original;
+        });
+
+        test('calls the browser function with the rp and credential id', () => {
+            const signal = jest.fn().mockResolvedValue(undefined);
+            (window as any).PublicKeyCredential = {signalUnknownCredential: signal};
+
+            signalUnknownPasskey('example.com', 'abc');
+
+            expect(signal).toHaveBeenCalledWith({rpId: 'example.com', credentialId: 'abc'});
+        });
+
+        test('does nothing when the browser has no PublicKeyCredential or no such function', () => {
+            (window as any).PublicKeyCredential = undefined;
+            expect(() => signalUnknownPasskey('example.com', 'abc')).not.toThrow();
+
+            (window as any).PublicKeyCredential = {};
+            expect(() => signalUnknownPasskey('example.com', 'abc')).not.toThrow();
+        });
+
+        test('swallows a rejection and a synchronous throw', async () => {
+            const unhandled = jest.fn();
+            process.on('unhandledRejection', unhandled);
+
+            (window as any).PublicKeyCredential = {signalUnknownCredential: jest.fn().mockRejectedValue(new Error('nope'))};
+            expect(() => signalUnknownPasskey('example.com', 'abc')).not.toThrow();
+
+            (window as any).PublicKeyCredential = {signalUnknownCredential: jest.fn(() => {
+                throw new Error('sync');
+            })};
+            expect(() => signalUnknownPasskey('example.com', 'abc')).not.toThrow();
+
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            process.off('unhandledRejection', unhandled);
+            expect(unhandled).not.toHaveBeenCalled();
         });
     });
 });

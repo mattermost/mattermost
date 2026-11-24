@@ -108,7 +108,7 @@ import type {
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
 import type {MfaSecret} from '@mattermost/types/mfa';
-import type {Passkey, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
+import type {Passkey, PasskeyAssertionCredential, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 import type {
     ClientPluginManifest,
     PluginManifest,
@@ -1361,6 +1361,26 @@ export default class Client4 {
             `${this.getUserRoute(userId)}/passkeys/registration/finish`,
             {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, name, credential})},
         );
+    };
+
+    beginPasskeyLogin = () => {
+        return this.doFetch<PasskeyLoginOptions>(
+            `${this.getUsersRoute()}/login/passkey/begin`,
+            {method: 'post'},
+        );
+    };
+
+    finishPasskeyLogin = async (ceremonyId: string, credential: PasskeyAssertionCredential) => {
+        const {data: profile, headers} = await this.doFetchWithResponse<UserProfile>(
+            `${this.getUsersRoute()}/login/passkey/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, credential})},
+        );
+
+        if (headers.has('Token')) {
+            this.setToken(headers.get('Token')!);
+        }
+
+        return profile;
     };
 
     getUserAccessToken = (tokenId: string) => {
