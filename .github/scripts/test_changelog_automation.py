@@ -1077,6 +1077,23 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("if: ${{ !cancelled() && steps.labelToken.outcome == 'success' }}", label_step[:200])
         self.assertIn("GH_TOKEN: ${{ steps.labelToken.outputs.token }}", label_step[:400])
 
+    def test_merge_on_release_holds_no_secret_and_starts_the_merge_on_master(self):
+        job = workflow_jobs(self.text)["merge-on-release"]
+        self.assertNotIn("secrets.", job)
+        self.assertNotIn("environment:", job)
+        self.assertIn("actions: write", job)
+        self.assertIn("gh workflow run generate-changelog.yml --repo \"$GITHUB_REPOSITORY\" --ref master", job)
+        self.assertIn("TAG: ${{ github.event.release.tag_name }}", job, "the tag reaches the script through env only")
+
+    def test_only_the_merge_trigger_runs_on_the_release_event(self):
+        jobs = workflow_jobs(self.text)
+        for name, job in jobs.items():
+            condition = re.search(r"\n    if: ([^\n]+)", job)
+            if name == "merge-on-release":
+                continue
+            self.assertFalse(condition and "github.event_name == 'release'" in condition.group(1)
+                             and "!=" not in condition.group(1), name)
+
     def test_nothing_talks_to_hub(self):
         for name in ("RELEASE_AGENT_MM_TOKEN", "RELEASE_AGENT_MM_URL", "RELEASE_AGENT_RELEASE_CHANNEL_IDS", "digest"):
             self.assertNotIn(name, self.text)
@@ -1086,6 +1103,66 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("37 * * * *", crons)
         self.assertEqual(self.text.count("github.event.schedule == '37 * * * *'"), 2)  # the merge job and run-name
         self.assertEqual(self.text.count("github.event.schedule != '37 * * * *'"), 1)
+
+
+WORKFLOWS_DIR = Path(__file__).resolve().parents[1] / "workflows"
+WRITE_ENVIRONMENT = "release-write"
+
+
+def workflow_jobs(text: str) -> dict:
+    """{job id: the job's text} for a workflow file, split on the two-space job keys under jobs:."""
+    body = text[text.index("\njobs:\n") + len("\njobs:\n"):]
+    parts = re.split(r"(?m)^  ([A-Za-z0-9_-]+):\s*$", body)
+    return {parts[i]: parts[i + 1] for i in range(1, len(parts) - 1, 2)}
+
+
+def uncommented(text: str) -> str:
+    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
+
+
+class WriteEnvironmentTest(unittest.TestCase):
+    """The changelog write app's key is a secret of the `release-write` environment, which only
+    master can use. Every job that mints a write-app token declares that environment and runs only
+    with ref master; no public workflow asks an app for actions or for delivery-platform (only the
+    private mattermost/release-automation starts delivery-platform workflows)."""
+
+    def workflows(self):
+        return {path.name: path.read_text(encoding="utf-8") for path in sorted(WORKFLOWS_DIR.glob("*.y*ml"))}
+
+    def problems(self, files: dict) -> list:
+        found = []
+        for name, text in files.items():
+            code = uncommented(text)
+            if "delivery-platform" in code:
+                found.append(f"{name}: names delivery-platform")
+            if re.search(r"(?m)^\s+permission-actions:", code):
+                found.append(f"{name}: asks an app for actions")
+            if "\njobs:\n" not in code:
+                continue
+            for job_id, job in workflow_jobs(code).items():
+                if "CHANGELOG_WRITE_PRIVATE_KEY" not in job:
+                    continue
+                if not re.search(rf"(?m)^    environment: {WRITE_ENVIRONMENT}\s*$", job):
+                    found.append(f"{name} {job_id}: mints a write-app token outside {WRITE_ENVIRONMENT}")
+                condition = re.search(r"(?m)^    if: (.+)$", job)
+                if not condition or "github.ref == 'refs/heads/master'" not in condition.group(1):
+                    found.append(f"{name} {job_id}: mints a write-app token without requiring ref master")
+        return found
+
+    def test_write_tokens_are_minted_only_in_release_write_on_master(self):
+        self.assertEqual(self.problems(self.workflows()), [])
+
+    def test_the_check_finds_each_problem(self):
+        bad = {
+            "a.yml": "on: pull_request\njobs:\n  pr:\n    if: true\n    steps:\n      - with:\n          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}\n",
+            "b.yml": "on: push\njobs:\n  x:\n    steps:\n      - with:\n          repositories: delivery-platform\n          permission-actions: write\n",
+        }
+        self.assertEqual(self.problems(bad), [
+            "a.yml pr: mints a write-app token outside release-write",
+            "a.yml pr: mints a write-app token without requiring ref master",
+            "b.yml: names delivery-platform",
+            "b.yml: asks an app for actions",
+        ])
 
 
 if __name__ == "__main__":

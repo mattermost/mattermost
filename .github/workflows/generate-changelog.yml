@@ -55,8 +55,9 @@ run-name: ${{ (github.event_name == 'release' || github.event.schedule == '37 * 
 #     Never in dry_run or regenerate. The run summary has counts per repo; a PR the token
 #     can't label is listed in sections.json, which the release automation's status post reads.
 #
-# Release Day is the day the vX.Y.0 GitHub release is published (not as a pre-release). Its
-# `released` event, the hourly merge cron and a dispatch in merge mode run the merge job. It
+# Release Day is the day the vX.Y.0 GitHub release is published (not as a pre-release). The
+# hourly merge cron and a dispatch in merge mode run the merge job; the release's `released`
+# event runs only merge-on-release, which starts that dispatch on master (see below). It
 # never merges: it adds the team's AutoMerge label to the changelog PR, once, when the PR
 # targets master, no "Release day: TBD" is left, the generator's report is clean (benchmarking
 # ready, every note placed, no blocking preflight failure) and the blog link is set; the
@@ -82,7 +83,15 @@ run-name: ${{ (github.event_name == 'release' || github.event.schedule == '37 * 
 # Every write-app token names its permissions: contents: write, pull-requests: write,
 # checks: read and statuses: read, for mattermost/mattermost only. The labelling steps mint
 # their own token for mattermost/mattermost and mattermost/enterprise with Pull requests:
-# write only.
+# write only. No token here ever asks for actions or for any other repo.
+#
+# The write app's key (CHANGELOG_WRITE_PRIVATE_KEY) is a secret of the environment
+# `release-write`, which only the master branch can use, so only reviewed, merged workflows can
+# mint write tokens. Environment rules check the run's ref, so the jobs that mint
+# (generate-changelog and merge) declare that environment and run only with ref master: on the
+# schedule, or a workflow_dispatch on master. The `released` event's ref is the tag, so
+# merge-on-release holds no secret: it checks the tag is a vX.Y.0 feature release and starts
+# this workflow on master in merge mode with GITHUB_TOKEN (actions: write).
 on:
   schedule:
     - cron: '0 6 * * 1-5'
@@ -193,8 +202,10 @@ jobs:
 
   generate-changelog:
     needs: resolve
-    if: needs.resolve.outputs.run == 'true'
+    # The write key is in `release-write`, which only master can use (see the top of this file).
+    if: needs.resolve.outputs.run == 'true' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    environment: release-write
     # Two runs for the same release would both push to its changelog branch.
     concurrency:
       group: generate-changelog-${{ needs.resolve.outputs.version }}
@@ -549,9 +560,30 @@ jobs:
   # dispatch in merge mode. Sets the blog link and adds the AutoMerge label when
   # CHANGELOG_AUTO_MERGE is true and nothing is missing; the AutoMerge automation merges.
   # Otherwise the run summary lists what is missing. It never merges itself.
-  merge:
-    if: github.repository == 'mattermost/mattermost' && (github.event_name == 'release' || github.event.schedule == '37 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
+  # The `released` event's run has the tag as its ref, so it can't use `release-write`: this job
+  # holds no secret and only starts the merge job on master, for a vX.Y.0 feature release.
+  merge-on-release:
+    if: github.repository == 'mattermost/mattermost' && github.event_name == 'release'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write # start this workflow on master
+    steps:
+      - name: Start the Release Day merge on master
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.0$ ]]; then
+            echo "Not a feature release (vX.Y.0), so the changelog PR is left as it is." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh workflow run generate-changelog.yml --repo "$GITHUB_REPOSITORY" --ref master -f version="$TAG" -f mode=merge
+          echo "Started the Release Day merge for $TAG on master." | tee -a "$GITHUB_STEP_SUMMARY"
+
+  merge:
+    if: github.repository == 'mattermost/mattermost' && github.ref == 'refs/heads/master' && (github.event.schedule == '37 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
+    runs-on: ubuntu-latest
+    environment: release-write
     concurrency:
       group: generate-changelog-merge
       cancel-in-progress: false
