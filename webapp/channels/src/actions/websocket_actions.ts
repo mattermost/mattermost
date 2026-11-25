@@ -1348,7 +1348,7 @@ export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam)
     if (currentUser.id === msg.data.user_id) {
         for (const channelId of channels) {
             const channel = getChannel(state, channelId);
-            if (channel) {
+            if (channel && channel.team_id === msg.data.team_id) {
                 actions.push({
                     type: ChannelTypes.LEAVE_CHANNEL,
                     data: channel,

@@ -1668,6 +1668,47 @@ describe('handleLeaveTeam', () => {
             mockState = originalState;
         }
     });
+
+    test('when the current user leaves a team, preserves channels that moved to another team', () => {
+        const originalState = cloneDeep(mockState);
+        const teamChannel = {id: 'channel1', team_id: 'team'};
+        const movedChannel = {id: 'channel2', team_id: 'otherTeam'};
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    channels: {
+                        channels: {
+                            channel1: teamChannel,
+                            channel2: movedChannel,
+                        },
+                    },
+                },
+            },
+        );
+
+        try {
+            const msg = wsMessage<WebSocketMessages.UserRemovedFromTeam>({data: {team_id: 'team', user_id: 'currentUserId'}});
+
+            jest.mocked(store.dispatch).mockClear();
+            handleLeaveTeamEvent(msg);
+
+            const batchAction = jest.mocked(store.dispatch).mock.calls.map(([action]) => action).find((action) => (
+                typeof action === 'object' &&
+                action !== null &&
+                (action as AnyAction).type === 'BATCHING_REDUCER.BATCH'
+            )) as {payload: AnyAction[]} | undefined;
+
+            expect(batchAction?.payload).toEqual(expect.arrayContaining([
+                expect.objectContaining({type: 'LEAVE_CHANNEL', data: teamChannel}),
+            ]));
+            expect(batchAction?.payload).not.toEqual(expect.arrayContaining([
+                expect.objectContaining({type: 'LEAVE_CHANNEL', data: movedChannel}),
+            ]));
+        } finally {
+            mockState = originalState;
+        }
+    });
 });
 
 describe('handleStatusChangedEvent', () => {
