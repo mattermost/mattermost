@@ -150,7 +150,7 @@ export function signalAcceptedPasskeys(rpId: string, passkeys: Passkey[]): void 
     }
 }
 
-// The server's recent-login window for adding a passkey.
+// Mirrors the server's recent-login window for adding a passkey; keep the two equal.
 const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
 
 // Whether the session identified by loginKey (its CSRF token) was started by a standard sign-in recently enough

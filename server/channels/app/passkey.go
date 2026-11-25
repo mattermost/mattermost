@@ -40,7 +40,7 @@ func (a *App) GetPasskeysForUser(userID string) ([]*model.Passkey, *model.AppErr
 //
 // The passkey is deleted first so it cannot start new sessions. If ending a session then fails the
 // passkey stays deleted, the remaining sessions are still attempted and the caller gets a 500.
-// Sessions created before they recorded their passkey are not matched here.
+// Sessions with no recorded passkey id are not matched here.
 func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.AppError {
 	if err := a.Srv().Store().Passkey().Delete(userID, passkeyID); err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
