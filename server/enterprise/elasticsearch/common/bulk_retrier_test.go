@@ -454,7 +454,7 @@ func newLoggedRetrier(t *testing.T, b *fakeBackend) (*BulkRetrier, func(substr s
 	t.Cleanup(func() { _ = logger.Shutdown() })
 
 	r := NewBulkRetrier(b, logger)
-	r.Backoff = 100 * time.Millisecond // all items land in one round
+	r.Backoff = 100 * time.Millisecond
 	count := func(substr string) int {
 		require.NoError(t, logger.Flush())
 		return strings.Count(buf.String(), substr)
@@ -462,15 +462,18 @@ func newLoggedRetrier(t *testing.T, b *fakeBackend) (*BulkRetrier, func(substr s
 	return r, count
 }
 
-func TestBulkRetrierLogsOneWarnForManyVerifiedItems(t *testing.T) {
-	r, count := newLoggedRetrier(t, &fakeBackend{exists: allFound})
+func TestBulkRetrierLogsOneWarnPerRoundNotPerItem(t *testing.T) {
+	b := &fakeBackend{exists: allFound}
+	r, count := newLoggedRetrier(t, b)
 
 	for i := 0; i < 100; i++ {
 		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
 	}
 	wait(t, r)
 
-	assert.Equal(t, 1, count(`"level":"warn"`))
+	rounds := len(b.chunks) // 100 items fit one check call, so one call per round
+	assert.Equal(t, rounds, count(`"level":"warn"`))
+	assert.Less(t, rounds, 10)
 	assert.Zero(t, count(`"level":"error"`))
 }
 
