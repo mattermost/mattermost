@@ -58,7 +58,7 @@ func (a *App) CanSetChannelAttributeOnPendingChannel(rctx request.CTX, field *mo
 // values whose content is invalid: a wrong shape or an option that doesn't
 // exist. It is for callers that can only write after another change and want a
 // bad value refused before it.
-func (a *App) validateChannelAttributeValues(rctx request.CTX, values []*model.PropertyValue) *model.AppError {
+func (a *App) validateChannelAttributeValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
 	}

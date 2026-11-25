@@ -4641,8 +4641,8 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 
 	// The write has to follow the type change, so a value the write would refuse
 	// is refused now, while nothing has been published yet.
-	if appErr = a.validateChannelAttributeValues(rctx, resolution.ValuesToWrite); appErr != nil {
-		return nil, appErr
+	if err := a.validateChannelAttributeValues(rctx, resolution.ValuesToWrite); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	updatedChannel, appErr := a.UpdateChannel(rctx, toUpdate)
