@@ -111,6 +111,49 @@ func TestDeletePasskey(t *testing.T) {
 		require.Equal(t, "app.passkey.not_found.app_error", appErr.Id)
 	})
 
+	mockEmail := func(t *testing.T) *emailmocks.ServiceInterface {
+		t.Helper()
+		mockSvc := &emailmocks.ServiceInterface{}
+		orig := th.App.Srv().EmailService
+		th.App.Srv().EmailService = mockSvc
+		t.Cleanup(func() { th.App.Srv().EmailService = orig })
+		return mockSvc
+	}
+
+	t.Run("sends the passkey removed email once, naming the passkey", func(t *testing.T) {
+		passkey := savePasskey(t, th, th.BasicUser.Id, "My laptop", model.GetMillis())
+		mockSvc := mockEmail(t)
+		mockSvc.On("SendPasskeyRemovedEmail", th.BasicUser.Email, th.BasicUser.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
+
+		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
+		mockSvc.AssertNumberOfCalls(t, "SendPasskeyRemovedEmail", 1)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("an email failure does not fail the delete", func(t *testing.T) {
+		passkey := savePasskey(t, th, th.BasicUser.Id, "flaky mail", model.GetMillis())
+		mockSvc := mockEmail(t)
+		mockSvc.On("SendPasskeyRemovedEmail", th.BasicUser.Email, th.BasicUser.Locale, th.App.GetSiteURL(), "flaky mail").Return(errors.New("smtp down")).Once()
+
+		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
+		mockSvc.AssertExpectations(t)
+
+		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		for _, p := range passkeys {
+			require.NotEqual(t, passkey.Id, p.Id)
+		}
+	})
+
+	t.Run("no email for an unknown or another user's passkey", func(t *testing.T) {
+		theirs := savePasskey(t, th, th.BasicUser2.Id, "theirs", model.GetMillis())
+		mockSvc := mockEmail(t)
+
+		require.NotNil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, model.NewId()))
+		require.NotNil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, theirs.Id))
+		mockSvc.AssertNotCalled(t, "SendPasskeyRemovedEmail")
+	})
+
 	createSession := func(t *testing.T, userID, method, passkeyID string, isOAuth bool) *model.Session {
 		t.Helper()
 		props := model.StringMap{model.SessionPropLoginMethod: method}

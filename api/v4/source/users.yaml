@@ -2774,6 +2774,7 @@
         that was started with it, including the caller's own session if it was
         started with that passkey; the request itself still succeeds. Other
         sessions of the user are unaffected.
+        On success the user is sent a "passkey removed" email naming the passkey.
 
 
         Passkeys are available only when the `Passkeys` feature flag is on and the

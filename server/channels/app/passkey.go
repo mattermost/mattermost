@@ -40,13 +40,38 @@ func (a *App) GetPasskeysForUser(userID string) ([]*model.Passkey, *model.AppErr
 //
 // The passkey is deleted first so it cannot start new sessions. If ending a session then fails the
 // passkey stays deleted, the remaining sessions are still attempted and the caller gets a 500.
-// Sessions with no recorded passkey id are not matched here.
+// Sessions with no recorded passkey id are not matched here. Once the passkey is deleted the user
+// is emailed; a failure to send is logged and does not change the result.
 func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.AppError {
-	if err := a.Srv().Store().Passkey().Delete(userID, passkeyID); err != nil {
+	// The store delete reports no name, and the removal email needs one.
+	passkeys, err := a.Srv().Store().Passkey().GetForUser(userID)
+	if err != nil {
+		return model.NewAppError("DeletePasskey", "app.passkey.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	var name string
+	found := false
+	for _, p := range passkeys {
+		if p.Id == passkeyID {
+			name, found = p.Name, true
+			break
+		}
+	}
+	if !found {
+		return model.NewAppError("DeletePasskey", "app.passkey.not_found.app_error", nil, "", http.StatusNotFound)
+	}
+
+	if err = a.Srv().Store().Passkey().Delete(userID, passkeyID); err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("DeletePasskey", "app.passkey.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return model.NewAppError("DeletePasskey", "app.passkey.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Sent before the sessions are revoked: the passkey is gone whether or not that succeeds.
+	if user, appErr := a.GetUser(rctx, userID); appErr != nil {
+		rctx.Logger().Error("Unable to load user for passkey removed email", mlog.Err(appErr), mlog.String("user_id", userID))
+	} else if mailErr := a.Srv().EmailService.SendPasskeyRemovedEmail(user.Email, user.Locale, a.GetSiteURL(), name); mailErr != nil {
+		rctx.Logger().Error("Unable to send passkey removed email", mlog.Err(mailErr), mlog.String("user_id", userID))
 	}
 
 	sessions, err := a.Srv().Store().Session().GetSessionsByPasskeyId(userID, passkeyID)
