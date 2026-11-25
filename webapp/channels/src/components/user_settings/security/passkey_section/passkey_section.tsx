@@ -342,7 +342,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             );
         } else {
             addControl = (
-                <div>
+                <div className='mt-5'>
                     <div className='row'>
                         <label
                             htmlFor='passkeyName'

@@ -205,6 +205,21 @@ describe('PasskeySection', () => {
             expect(nameBlock).not.toContainElement(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
             expect(laptop.closest('ul')).toHaveClass('m-0');
         });
+
+        test('keeps the add form clear of the description when the list could not be loaded', async () => {
+            getPasskeys.mockRejectedValue({message: 'could not list passkeys'});
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('could not list passkeys');
+
+            expect(document.querySelector('.alert-transparent')).toBeNull();
+            expect(screen.getByLabelText(/name/i).parentElement!.parentElement!.parentElement).toHaveClass('mt-5');
+        });
     });
 
     test('deleting a passkey asks for confirmation, deletes it and refetches', async () => {
