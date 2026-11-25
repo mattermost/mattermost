@@ -1603,6 +1603,71 @@ describe('handleLeaveTeam', () => {
         };
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
+
+    test('when the current user leaves a team, dispatches leave channel actions for team channels', () => {
+        const originalState = cloneDeep(mockState);
+        const channel1 = {id: 'channel1', team_id: 'team'};
+        const channel2 = {id: 'channel2', team_id: 'team'};
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    channels: {
+                        channels: {
+                            channel1,
+                            channel2,
+                        },
+                    },
+                },
+            },
+        );
+
+        try {
+            const msg = wsMessage<WebSocketMessages.UserRemovedFromTeam>({data: {team_id: 'team', user_id: 'currentUserId'}});
+
+            handleLeaveTeamEvent(msg);
+
+            const expectedAction = {
+                meta: {
+                    batch: true,
+                },
+                payload: [
+                    {
+                        data: {id: 'team', user_id: 'currentUserId'},
+                        type: 'RECEIVED_PROFILE_NOT_IN_TEAM',
+                    },
+                    {
+                        data: {team_id: 'team', user_id: 'currentUserId'},
+                        type: 'REMOVE_MEMBER_FROM_TEAM',
+                    },
+                    {
+                        data: {id: 'channel1', user_id: 'currentUserId'},
+                        type: 'REMOVE_MEMBER_FROM_CHANNEL',
+                    },
+                    {
+                        data: {id: 'channel2', user_id: 'currentUserId'},
+                        type: 'REMOVE_MEMBER_FROM_CHANNEL',
+                    },
+                    {
+                        data: channel1,
+                        type: 'LEAVE_CHANNEL',
+                    },
+                    {
+                        data: channel2,
+                        type: 'LEAVE_CHANNEL',
+                    },
+                ],
+                type: 'BATCHING_REDUCER.BATCH',
+            };
+            expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+            expect(store.dispatch).toHaveBeenCalledWith({
+                type: 'LEAVE_TEAM',
+                data: {id: 'team', channelIds: new Set(['channel1', 'channel2'])},
+            });
+        } finally {
+            mockState = originalState;
+        }
+    });
 });
 
 describe('handleStatusChangedEvent', () => {
