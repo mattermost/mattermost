@@ -9,10 +9,12 @@ scans the whole webapp in a few seconds, and it commits no generated report.
 Put a `data-surface` on the element, using the grammar `scope.name[:key][--role]`:
 
 ```tsx
-<div data-surface='channel_settings'>
-  <button data-surface='channel_settings.save--button'>Save</button>
-  <input type='checkbox' data-surface='channel_settings.enabled--checkbox'/>
-  {rows.map((r) => <li key={r.id} data-surface={`channel_settings.row:${r.id}--listitem`}/>)}
+<div data-surface="channel_settings">
+    <button data-surface="channel_settings.save--button">Save</button>
+    <input type="checkbox" data-surface="channel_settings.enabled--checkbox" />
+    {rows.map((r) => (
+        <li key={r.id} data-surface={`channel_settings.row:${r.id}--listitem`} />
+    ))}
 </div>
 ```
 
@@ -34,9 +36,9 @@ Rules the scanner enforces (run `ui-surface explain <rule>` for any of them):
 import {createSurface, expect, test} from '@mattermost/playwright-lib';
 
 test('saves', async ({page}) => {
-  const s = createSurface(page);
-  await s.channel_settings().save.click();
-  await expect(s.channel_settings().container).toBeVisible();
+    const s = createSurface(page);
+    await s.channel_settings().save.click();
+    await expect(s.channel_settings().container).toBeVisible();
 });
 ```
 
@@ -61,16 +63,16 @@ host↔plugin contract is emitted by `ui-surface host-contract` and diffed in CI
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
+| Command                                                    | Purpose                                                                                              |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `ui-surface check [--incremental] [--changed-since <ref>]` | Scan the webapp: grammar, role-fit, key-origin, duplicates, drift, stale references, testid ratchet. |
-| `ui-surface scan` / `generate` | Print scan stats / regenerate the typed SDK (gitignored). |
-| `ui-surface baseline [--update [--allow-growth]]` | Inspect or update the legacy-testid ratchet baseline. |
-| `ui-surface drift [--update]` | Inspect or update the testid↔surface pairings. |
-| `ui-surface migrate-testid [--apply] [--only <path>]` | Codemod retiring legacy testids (dry-run by default). |
-| `ui-surface migrate-spec [--out <file>]` | Dry-run coverage: which spec selectors map to `createSurface()` parts. |
-| `ui-surface host-contract [diff <a> <b>]` | Emit or diff the host↔plugin contract. |
-| `ui-surface explain <rule>` | Explain a rule and its fix. |
+| `ui-surface scan` / `generate`                             | Print scan stats / regenerate the typed SDK (gitignored).                                            |
+| `ui-surface baseline [--update [--allow-growth]]`          | Inspect or update the legacy-testid ratchet baseline.                                                |
+| `ui-surface drift [--update]`                              | Inspect or update the testid↔surface pairings.                                                       |
+| `ui-surface migrate-testid [--apply] [--only <path>]`      | Codemod retiring legacy testids (dry-run by default).                                                |
+| `ui-surface migrate-spec [--out <file>]`                   | Dry-run coverage: which spec selectors map to `createSurface()` parts.                               |
+| `ui-surface host-contract [diff <a> <b>]`                  | Emit or diff the host↔plugin contract.                                                               |
+| `ui-surface explain <rule>`                                | Explain a rule and its fix.                                                                          |
 
 Fixes: ESLint autofixes trivial violations (e.g. `expect.soft` → `expect`); `migrate-testid` and `baseline --update`
 handle the rest. The incremental cache lives in `e2e-tests/playwright/.ui-surface-cache` (gitignored, restorable by

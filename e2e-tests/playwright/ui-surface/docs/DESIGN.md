@@ -61,8 +61,8 @@ which is also what makes the content-hash incremental cache correct.
 
 ## Fails loudly vs silently
 
-| Fails loudly (CI error) | Only warns / editor feedback | Intentionally silent |
-| --- | --- | --- |
+| Fails loudly (CI error)                                                                                                                                                  | Only warns / editor feedback                                                                | Intentionally silent                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Invalid grammar, duplicate id, role-fit, key-origin, drift, stale reference, **new** legacy testid (ratchet), breaking host-contract change, surface type errors (`tsc`) | Spec flake rules on non-strict directories; webapp `data-testid` hygiene (eslint `--quiet`) | Existing legacy testids within the baseline; dynamic `data-testid` paired with a `data-surface`; cross-module key origins (single-file by design) |
 
 ## Maintenance burden
