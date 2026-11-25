@@ -5,8 +5,10 @@ package opensearch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchutil"
 
@@ -19,6 +21,10 @@ type onFailureFunc func(context.Context, opensearchutil.BulkIndexerItem, opensea
 // onBulkFailure gives every failed item to the retrier.
 func onBulkFailure(retrier *common.BulkRetrier) onFailureFunc {
 	return func(_ context.Context, item opensearchutil.BulkIndexerItem, resp opensearchapi.BulkRespItem, err error) {
+		status := resp.Status
+		if status == 0 {
+			status = requestStatus(err)
+		}
 		if err == nil && resp.Error != nil {
 			err = fmt.Errorf("%s: %s", resp.Error.Type, resp.Error.Reason)
 		}
@@ -27,8 +33,22 @@ func onBulkFailure(retrier *common.BulkRetrier) onFailureFunc {
 			Action: item.Action,
 			DocID:  item.DocumentID,
 			Body:   item.Body,
-		}, resp.Status, err)
+		}, status, err)
 	}
+}
+
+// requestStatus returns the HTTP status of a failed whole request.
+// It is 0 for transport failures, which have none.
+func requestStatus(err error) int {
+	var structErr *opensearch.StructError
+	if errors.As(err, &structErr) {
+		return structErr.Status
+	}
+	var stringErr *opensearch.StringError
+	if errors.As(err, &stringErr) {
+		return stringErr.Status
+	}
+	return 0
 }
 
 // closeBulk closes the indexer, waits for the retries, and counts the failed items.

@@ -184,6 +184,22 @@ func TestBulkWiringItemRejectedByServerIsFailedAndNotResent(t *testing.T) {
 	assert.Equal(t, int64(0), f.docs.Load())
 }
 
+func TestBulkWiringWholeRequestRejectedIsFailedAndNotChecked(t *testing.T) {
+	f := &fakeServer{
+		bulk: func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(`{"error":{"type":"security_exception","reason":"no permissions"},"status":403}`))
+		},
+		mget: mgetFound,
+	}
+	bi, retrier := newTestIndexer(t, f, 5*time.Second)
+
+	add(t, bi, retrier, "index", "1")
+
+	assert.Equal(t, int64(1), closeInTime(t, bi, retrier))
+	assert.Equal(t, int64(0), f.mgets.Load())
+}
+
 func TestBulkWiringDeleteOfMissingDocIsNotFailed(t *testing.T) {
 	f := &fakeServer{bulk: func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(`{"took":1,"errors":true,"items":[{"delete":{"_index":"posts","_id":"1","status":404,"result":"not_found"}}]}`))
