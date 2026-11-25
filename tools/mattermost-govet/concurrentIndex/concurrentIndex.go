@@ -59,6 +59,9 @@ func checkStatement(stmt string) string {
 	if dropIndexRegex.MatchString(stmt) && !dropConcurrentlyRegex.MatchString(stmt) {
 		return diagDropIndex
 	}
+	// Concurrent index DDL cannot run in a transaction, so a migration that fails
+	// after it ran is not rolled back and reruns on the next start. IF [NOT] EXISTS
+	// keeps that rerun from failing on the index it already created or dropped.
 	if concurrentlyRegex.MatchString(stmt) && !createIfNotExistsRegex.MatchString(stmt) {
 		return diagCreateIfNotExists
 	}
