@@ -6273,6 +6273,11 @@
     "description": "API error when creating a user would exceed the unlicensed server's safety user limit; 'ERROR_SAFETY_LIMITS_EXCEEDED' is a support error code and must not be translated."
   },
   {
+    "id": "api.user.create_user_access_token.passkey_session.app_error",
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then create the token.",
+    "description": "API error when a session that was started by signing in with a passkey tries to create or re-enable a personal access token for its own account. 'Passkey' is a sign-in credential stored on the user's device or password manager."
+  },
+  {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator.",
     "description": "Error shown to end users when permanent (non-archive) channel deletion is attempted but disabled by configuration."

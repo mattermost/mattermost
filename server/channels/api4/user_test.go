@@ -6813,6 +6813,20 @@ func assertInvalidToken(t *testing.T, th *TestHelper, token *model.UserAccessTok
 	CheckUnauthorizedStatus(t, resp)
 }
 
+// passkeySessionClient returns a client whose session records a passkey sign-in for user.
+func passkeySessionClient(t *testing.T, th *TestHelper, user *model.User) *model.Client4 {
+	t.Helper()
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId: user.Id,
+		Roles:  user.GetRawRoles(),
+		Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+	})
+	require.Nil(t, appErr)
+	client := th.CreateClient()
+	client.SetToken(session.Token)
+	return client
+}
+
 func TestCreateUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -7000,6 +7014,52 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create access token as passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		passkeyClient := passkeySessionClient(t, th, user)
+
+		_, resp, err := passkeyClient.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appError *model.AppError
+		require.ErrorAs(t, err, &appError)
+		assert.Equal(t, "api.user.create_user_access_token.passkey_session.app_error", appError.Id)
+
+		tokens, appErr := th.App.GetUserAccessTokensForUser(user.Id, 0, 100)
+		require.Nil(t, appErr)
+		assert.Empty(t, tokens)
+
+		t.Run("a standard session of the same user still creates one", func(t *testing.T) {
+			rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+			require.NoError(t, err)
+			assertToken(t, th, rtoken, user.Id)
+		})
+	})
+
+	t.Run("create access token for a bot as a passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+		th.LoginSystemAdmin(t)
+		bot := th.CreateBotWithSystemAdminClient(t)
+
+		passkeyClient := passkeySessionClient(t, th, th.SystemAdminUser)
+
+		rtoken, _, err := passkeyClient.CreateUserAccessToken(context.Background(), bot.UserId, "test token", 0)
+		require.NoError(t, err)
+		assert.Equal(t, bot.UserId, rtoken.UserId)
 	})
 
 	t.Run("create access token for bot created by user", func(t *testing.T) {
@@ -8043,6 +8103,34 @@ func TestEnableUserAccessToken(t *testing.T) {
 		require.NoError(t, err)
 
 		assertToken(t, th, token, th.BasicUser.Id)
+	})
+
+	t.Run("enable own token as passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+		require.NoError(t, err)
+		_, err = th.Client.DisableUserAccessToken(context.Background(), token.Id)
+		require.NoError(t, err)
+
+		passkeyClient := passkeySessionClient(t, th, user)
+
+		resp, err := passkeyClient.EnableUserAccessToken(context.Background(), token.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appError *model.AppError
+		require.ErrorAs(t, err, &appError)
+		assert.Equal(t, "api.user.create_user_access_token.passkey_session.app_error", appError.Id)
+		assertInvalidToken(t, th, token)
+
+		_, err = th.Client.EnableUserAccessToken(context.Background(), token.Id)
+		require.NoError(t, err)
+		assertToken(t, th, token, user.Id)
 	})
 
 	t.Run("enable token belonging to another user", func(t *testing.T) {

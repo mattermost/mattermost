@@ -3020,6 +3020,12 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A token outlives the session, so a passkey session must not mint one for its own account.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && c.Params.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("createUserAccessToken", "api.user.create_user_access_token.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	var accessToken model.UserAccessToken
 	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
 		c.SetInvalidParamWithErr("user_access_token", jsonErr)
@@ -3373,6 +3379,12 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), accessToken.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	// Re-enabling restores the same lasting access that creating a token would.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && accessToken.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("enableUserAccessToken", "api.user.create_user_access_token.passkey_session.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

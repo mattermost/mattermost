@@ -2624,6 +2624,11 @@
         Mattermost REST API.
 
 
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403 when the token is for the session's own user. Tokens for bots or other
+        users are not affected, and neither are other sessions of the same user.
+
+
         __Minimum server version__: 4.1
 
 
@@ -3672,6 +3677,11 @@
       summary: Enable personal access token
       description: >
         Re-enable a personal access token that has been disabled.
+
+
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403 when the token belongs to the session's own user. Tokens of bots or
+        other users are not affected, and neither are other sessions of the same user.
 
 
         __Minimum server version__: 4.4
