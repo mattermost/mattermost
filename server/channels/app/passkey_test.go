@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -1188,6 +1189,28 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		require.NotNil(t, begin(t, ticket))
 	})
 
+	withLaggingSession := func(t *testing.T, replica func() (*model.Session, error)) {
+		t.Helper()
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: original.Passkey(), sessions: replicaSessionStore{original.Session(), replica}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+	}
+
+	t.Run("an issuing session a lagging replica does not have yet is still found", func(t *testing.T) {
+		_, _, ticket := fresh(t)
+		withLaggingSession(t, func() (*model.Session, error) { return nil, store.NewErrNotFound("Session", "x") })
+
+		require.NotNil(t, begin(t, ticket))
+	})
+
+	t.Run("an issuing session a lagging replica still shows after it was revoked is refused", func(t *testing.T) {
+		_, session, ticket := fresh(t)
+		require.Nil(t, th.App.RevokeSession(th.Context, session))
+		withLaggingSession(t, func() (*model.Session, error) { return session, nil })
+
+		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
+	})
+
 	t.Run("a failure to read the issuing session is a server error", func(t *testing.T) {
 		_, _, ticket := fresh(t)
 		original := th.App.Srv().Store()
@@ -2316,6 +2339,20 @@ type failingGetSessionStore struct {
 
 func (failingGetSessionStore) Get(request.CTX, string) (*model.Session, error) {
 	return nil, errors.New("db down")
+}
+
+// replicaSessionStore answers Get with replica unless the request asked for the primary database, which
+// is what a lagging read replica looks like. Every other call passes through to the real store.
+type replicaSessionStore struct {
+	store.SessionStore
+	replica func() (*model.Session, error)
+}
+
+func (s replicaSessionStore) Get(rctx request.CTX, id string) (*model.Session, error) {
+	if sqlstore.HasMaster(rctx.Context()) {
+		return s.SessionStore.Get(rctx, id)
+	}
+	return s.replica()
 }
 
 // Every other call passes through to the real store.

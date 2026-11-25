@@ -221,7 +221,9 @@ func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Sess
 		return nil, invalid()
 	}
 
-	session, appErr := a.GetSessionById(rctx, t.SessionID)
+	// Primary read, like the token: a session created a moment ago may not be on a lagging replica yet, and
+	// one just revoked may still be.
+	session, appErr := a.GetSessionById(RequestContextWithMaster(rctx), t.SessionID)
 	if appErr != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](appErr); ok {
 			return nil, invalid()
