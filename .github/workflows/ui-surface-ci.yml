@@ -62,26 +62,32 @@ jobs:
         run: node ui-surface/bin/ui-surface.mjs check --incremental --changed-since "origin/${{ github.base_ref }}"
 
   # Tier B: cached full check, baseline/drift/role-fit over the whole webapp, plus typecheck and the host-contract diff.
+  # Typechecking the Playwright lib/specs needs the webapp platform packages, so this tier sets them up (as the
+  # test-surface scan does); the fast gate above stays webapp-free.
   full:
     name: Full check, typecheck & host-contract diff
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: e2e-tests/playwright
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: "24"
-          cache: "npm"
-          cache-dependency-path: e2e-tests/playwright/package-lock.json
+          persist-credentials: false
 
-      - name: Install workspace dependencies
-        run: npm ci --ignore-scripts
+      - name: ci/webapp-setup
+        # provides node (.nvmrc) and the webapp platform packages (@mattermost/client, @mattermost/types) that the
+        # Playwright lib and specs typecheck against.
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
+      - name: Install Playwright workspace dependencies
+        working-directory: e2e-tests/playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Build and test @mattermost/ui-surface
+        working-directory: e2e-tests/playwright
         # playwright-lib is built first because the runtime unit tests import its compiled drivers.
         run: |
           npm run build --workspace @mattermost/ui-surface
@@ -97,6 +103,7 @@ jobs:
             ui-surface-scan-
 
       - name: Scan webapp, check stale references and testid ratchet (cached)
+        working-directory: e2e-tests/playwright
         run: node ui-surface/bin/ui-surface.mjs check --incremental
 
       - name: Save incremental scan cache
@@ -106,15 +113,14 @@ jobs:
           path: e2e-tests/playwright/.ui-surface-cache
           key: ui-surface-scan-${{ github.sha }}
 
-      - name: Build @mattermost/playwright-lib and typecheck workspaces
+      - name: Typecheck workspaces and Playwright specs/surface types against the regenerated surface
+        working-directory: e2e-tests/playwright
         run: |
-          npm run build --workspace @mattermost/playwright-lib
           npm run tsc --workspaces
-
-      - name: Typecheck Playwright specs and surface types against the regenerated surface
-        run: npx tsc -b
+          npx tsc -b
 
       - name: Host-contract diff against the committed baseline (fails on breaking removals)
+        working-directory: e2e-tests/playwright
         run: |
           node ui-surface/bin/ui-surface.mjs host-contract --out host-contract.head.json
           node ui-surface/bin/ui-surface.mjs host-contract diff ui-surface/host-contract.baseline.json host-contract.head.json
