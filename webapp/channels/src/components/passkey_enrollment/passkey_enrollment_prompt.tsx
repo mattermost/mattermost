@@ -14,7 +14,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {createPasskey, verifyPasskey} from 'utils/passkeys';
+import {createPasskey, currentSessionCanAddPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
 
 import {sharedMessages, verifyErrors} from './messages';
@@ -28,9 +28,6 @@ const messages = defineMessages({
         description: 'Error shown in the passkey prompt when adding a passkey is refused because the user did not sign in recently enough.',
     },
 });
-
-// The server's recent-login window for adding a passkey.
-const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
 
 export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();
@@ -57,13 +54,8 @@ export default function PasskeyEnrollmentPrompt() {
             return undefined;
         }
         let cancelled = false;
-        Client4.getSessions('me').then((sessions) => {
-            const current = sessions.find((s) => s.props?.csrf === loginKey);
-
-            // The list comes from a read replica, so a session created moments ago may be missing from
-            // it. This request is authenticated by that session, so a missing one is treated as recent;
-            // `eligible` has already ruled out passkey sessions.
-            if (current && (current.props.login_method !== 'standard' || Date.now() - current.create_at > RECENT_LOGIN_WINDOW_MS)) {
+        currentSessionCanAddPasskey(loginKey).then((canAdd) => {
+            if (!canAdd) {
                 // It can never become eligible; skip so later mounts in this sign-in do not ask again.
                 LocalStorageStore.setPasskeyPromptSkipped(loginKey);
             } else if (!cancelled) {

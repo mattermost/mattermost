@@ -3,7 +3,9 @@
 
 import type {Passkey} from '@mattermost/types/passkeys';
 
-import {assertionToJSON, base64urlDecode, base64urlEncode, createPasskey, creationOptionsFromJSON, registrationToJSON, requestOptionsFromJSON, signalAcceptedPasskeys, signalUnknownPasskey, verifyPasskey} from './passkeys';
+import {Client4} from 'mattermost-redux/client';
+
+import {assertionToJSON, base64urlDecode, base64urlEncode, createPasskey, creationOptionsFromJSON, currentSessionCanAddPasskey, registrationToJSON, requestOptionsFromJSON, signalAcceptedPasskeys, signalUnknownPasskey, verifyPasskey} from './passkeys';
 
 const bytes = (...b: number[]) => new Uint8Array(b).buffer;
 const toArray = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf));
@@ -409,6 +411,50 @@ describe('utils/passkeys', () => {
                 await expect(verifyPasskey(async () => loginOptions, jest.fn().mockRejectedValue(err))).rejects.toBe(err);
                 expect(signal).not.toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('currentSessionCanAddPasskey', () => {
+        const WINDOW = 10 * 60 * 1000;
+        const now = 1_700_000_000_000;
+        const session = (props: Record<string, string>, age: number) => ({props, create_at: now - age});
+        let dateNow: jest.SpyInstance;
+        let getSessions: jest.SpyInstance;
+
+        beforeEach(() => {
+            dateNow = jest.spyOn(Date, 'now').mockReturnValue(now);
+            getSessions = jest.spyOn(Client4, 'getSessions');
+        });
+
+        afterEach(() => {
+            dateNow.mockRestore();
+            getSessions.mockRestore();
+        });
+
+        test.each([
+            ['a standard session inside the window', session({csrf: 'k', login_method: 'standard'}, 1000), true],
+            ['a standard session exactly at the window edge', session({csrf: 'k', login_method: 'standard'}, WINDOW), true],
+            ['a standard session past the window', session({csrf: 'k', login_method: 'standard'}, WINDOW + 1), false],
+            ['a passkey session', session({csrf: 'k', login_method: 'passkey'}, 1000), false],
+            ['a session with no login method', session({csrf: 'k'}, 1000), false],
+        ])('resolves for %s', async (_name, current, want) => {
+            getSessions.mockResolvedValue([session({csrf: 'other', login_method: 'passkey'}, WINDOW * 5), current] as never);
+
+            await expect(currentSessionCanAddPasskey('k')).resolves.toBe(want);
+            expect(getSessions).toHaveBeenCalledWith('me');
+        });
+
+        test('resolves true when no session matches the login key', async () => {
+            getSessions.mockResolvedValue([session({csrf: 'other', login_method: 'passkey'}, WINDOW * 5)] as never);
+
+            await expect(currentSessionCanAddPasskey('k')).resolves.toBe(true);
+        });
+
+        test('rejects when the session list cannot be read', async () => {
+            const err = new Error('offline');
+            getSessions.mockRejectedValue(err);
+
+            await expect(currentSessionCanAddPasskey('k')).rejects.toBe(err);
         });
     });
 });

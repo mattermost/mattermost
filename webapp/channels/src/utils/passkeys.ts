@@ -3,6 +3,8 @@
 
 import type {Passkey, PasskeyAssertionCredential, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 
+import {Client4} from 'mattermost-redux/client';
+
 // Hand-written rather than PublicKeyCredential.parseCreationOptionsFromJSON / toJSON(), which
 // are missing from older browsers (Safari before 18.4, for one).
 
@@ -147,4 +149,18 @@ export function signalAcceptedPasskeys(rpId: string, passkeys: Passkey[]): void 
             // PublicKeyCredential or the method is missing, or the call threw.
         }
     }
+}
+
+// The server's recent-login window for adding a passkey.
+const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
+
+// Whether the session identified by loginKey (its CSRF token) was started by a standard sign-in recently enough
+// for the server to accept a new passkey. Rejects when the session list cannot be read.
+export async function currentSessionCanAddPasskey(loginKey: string): Promise<boolean> {
+    const sessions = await Client4.getSessions('me');
+    const current = sessions.find((s) => s.props?.csrf === loginKey);
+
+    // The list comes from a read replica, so a session created moments ago may be missing from it. The request
+    // is authenticated by that session, so a missing one is treated as recent.
+    return !current || (current.props.login_method === 'standard' && Date.now() - current.create_at <= RECENT_LOGIN_WINDOW_MS);
 }
