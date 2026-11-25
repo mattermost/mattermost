@@ -1029,6 +1029,26 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
         });
 
+        test('locks the setting while a save is pending so a newer selection is not lost', async () => {
+            let finishSave: () => void = () => {};
+            jest.spyOn(Client4, 'patchConfig').mockImplementation((patch) => new Promise((resolve) => {
+                finishSave = () => resolve({...patch, ExperimentalSettings: {RestrictSystemAdmin: false}} as Awaited<ReturnType<typeof Client4.patchConfig>>);
+            }));
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
+
+            await userEvent.click(falseOption());
+            await userEvent.click(saveButton());
+
+            await waitFor(() => expect(trueOption()).toBeDisabled());
+            expect(falseOption()).toBeDisabled();
+
+            await act(async () => finishSave());
+
+            expect(await screen.findByText(offBanner)).toBeInTheDocument();
+            expect(trueOption()).toBeEnabled();
+            expect(falseOption()).toBeChecked();
+        });
+
         test('the banner also shows above the empty state', async () => {
             await renderDashboard({evaluated_at: 0, findings: []}, withSetting(systemAdmin, false));
 

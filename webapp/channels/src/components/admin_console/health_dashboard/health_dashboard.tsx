@@ -494,7 +494,7 @@ const HealthDashboard = ({
                         <AutomaticChecksSetting
                             value={automaticChecksDraft ?? automaticChecks}
                             setByEnv={automaticChecksSetByEnv}
-                            disabled={!canWriteAutomaticChecks}
+                            disabled={!canWriteAutomaticChecks || savingAutomaticChecks}
                             onChange={changeAutomaticChecks}
                         />
                     )}
