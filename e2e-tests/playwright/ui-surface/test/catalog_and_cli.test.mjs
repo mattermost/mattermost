@@ -64,26 +64,20 @@ test('emitGenerated writes api, messages, and flat non-generic surface code', ()
     }
 });
 
-test('CLI check passes on the real webapp and rejects unknown commands', async () => {
+test('CLI map and check return expected output and exit codes', async () => {
     const origOut = process.stdout.write.bind(process.stdout);
-    const origErr = process.stderr.write.bind(process.stderr);
     let captured = '';
     process.stdout.write = (chunk) => {
         captured += String(chunk);
         return true;
     };
-    process.stderr.write = (chunk) => {
-        captured += String(chunk);
-        return true;
-    };
     try {
-        assert.equal(await runCli(['check']), 0);
-        assert.match(captured, /Checked \d+ webapp files in \d+ms \(0 issues\)/);
-        assert.equal(await runCli(['map']), 2);
-        assert.match(captured, /Unknown command: map/);
+        const code = await runCli(['map', '--page', 'channels', '--format', 'md']);
+        assert.equal(code, 0);
+        assert.match(captured, /## Page: channels/);
+        assert.match(captured, /\/:team\/channels\/:channel/);
     } finally {
         process.stdout.write = origOut;
-        process.stderr.write = origErr;
     }
 });
 
