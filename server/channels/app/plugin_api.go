@@ -2302,17 +2302,14 @@ func (api *PluginAPI) DeletePropertyValuesForFieldWithOptions(groupID, fieldID s
 	return nil
 }
 
-// serverMutexPluginID owns the server's cluster mutexes in the plugin key value store. It is not a
-// valid plugin ID, so no plugin can collide with it.
-const serverMutexPluginID = "mattermost:server"
-
-// serverMutexAPI lets cluster.Mutex keep its lease in the plugin key value store.
+// serverMutexAPI lets cluster.Mutex keep its lease in the plugin key value store, under the
+// core server's reserved plugin ID.
 type serverMutexAPI struct {
 	a *App
 }
 
 func (m serverMutexAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	return m.a.SetPluginKeyWithOptions(serverMutexPluginID, key, value, options)
+	return m.a.SetPluginKeyWithOptions(model.CoreServerPluginID, key, value, options)
 }
 
 func (m serverMutexAPI) LogError(msg string, keyValuePairs ...any) {
