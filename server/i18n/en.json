@@ -5713,6 +5713,21 @@
     "description": "Subject line of the email about a new passkey on the account; {{ .SiteName }} is the site name."
   },
   {
+    "id": "api.templates.passkey_removed_body.info",
+    "translation": "A passkey named \"{{ .PasskeyName }}\" was removed from your account on {{ .SiteURL }}. If you did not remove it, sign in, check your passkeys under Profile > Security, and contact your system administrator.",
+    "description": "Body text of the security email alerting the user that a passkey was removed from their account; {{ .PasskeyName }} is the name the passkey had, {{ .SiteURL }} the server URL. 'Profile > Security' is a menu path; match the translated UI labels."
+  },
+  {
+    "id": "api.templates.passkey_removed_body.title",
+    "translation": "Passkey removed from your account",
+    "description": "Heading of the security email alerting the user that a passkey (a sign-in credential stored on their device or password manager) was removed from their account."
+  },
+  {
+    "id": "api.templates.passkey_removed_subject",
+    "translation": "[{{ .SiteName }}] Passkey removed from your account",
+    "description": "Subject line of the email about a passkey removed from the account; {{ .SiteName }} is the site name."
+  },
+  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.",
     "description": "Body text of the password-change confirmation email; {{.TeamDisplayName}} is the site/team name, {{ .TeamURL }} its URL, and {{.Method}} how it changed (e.g. by you, by an admin)."
