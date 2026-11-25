@@ -428,23 +428,29 @@ def decide_ready(api, version: str, pr: dict, report: dict, today: date, event: 
     return True, f"{today.isoformat()} is on or after RC-1 + 1 working day ({due.isoformat()})"
 
 
-def reviewers_missing(api, pr: dict, event: str, mode: str, repo: str = REPO) -> bool:
-    """Whether a PR marked ready before still has nobody asked to review it: no requested reviewer
-    or team and no review. The request after marking it ready failed, so it is made again, without
-    marking the PR ready again."""
-    if event != "schedule" or mode != "auto" or pr.get("draft"):
-        return False
-    if pr.get("requested_reviewers") or pr.get("requested_teams"):
-        return False
-    if not any(e.get("event") == "ready_for_review" for e in api.paginate(f"/repos/{repo}/issues/{pr['number']}/events")):
-        return False
-    # Bots' reviews (CodeRabbit, Cursor) don't stand in for the people the request asks.
-    return not any(not _is_bot(review.get("user") or {})
-                   for review in api.paginate(f"/repos/{repo}/pulls/{pr['number']}/reviews"))
+def reviewers_missing(api, pr: dict, names: list[str], event: str, mode: str, repo: str = REPO) -> list[str]:
+    """The configured reviewers ``names`` never asked to review a PR marked ready before: a request
+    after marking it ready failed (all of it, or after an earlier section request succeeded), so it
+    is made again for them, without marking the PR ready again. A reviewer counts as asked once the
+    PR has a review_requested event for them, whoever made it: one pending, one that reviewed, and
+    one a person took off are all left alone."""
+    if event != "schedule" or mode != "auto" or pr.get("draft") or not names:
+        return []
+    events = list(api.paginate(f"/repos/{repo}/issues/{pr['number']}/events"))
+    if not any(e.get("event") == "ready_for_review" for e in events):
+        return []
+    asked = set()
+    for e in events:
+        if e.get("event") != "review_requested":
+            continue
+        if (e.get("requested_reviewer") or {}).get("login"):
+            asked.add(e["requested_reviewer"]["login"].lower())
+        if (e.get("requested_team") or {}).get("slug"):
+            asked.add("team:" + e["requested_team"]["slug"].lower())
 
-
-def _is_bot(user: dict) -> bool:
-    return user.get("type") == "Bot" or str(user.get("login", "")).endswith("[bot]")
+    def key(name):
+        return "team:" + name.split("/", 1)[1].lower() if "/" in name else name.lower()
+    return [name for name in names if key(name) not in asked]
 
 
 def entry_sections(content: str | None, version: str) -> list[dict]:
@@ -1159,16 +1165,18 @@ def cmd_ready(env: dict) -> int:
     pr = api.get(f"/repos/{REPO}/pulls/{number}")
     today = date.fromisoformat(env["TODAY"]) if env.get("TODAY") else datetime.now(timezone.utc).date()
     ready, why = decide_ready(api, version, pr, report, today, env.get("EVENT_NAME", ""), env.get("MODE", ""))
-    reviewers = []
-    retry = not ready and reviewers_missing(api, pr, env.get("EVENT_NAME", ""), env.get("MODE", ""))
-    if ready or retry:
+    event, mode = env.get("EVENT_NAME", ""), env.get("MODE", "")
+    reviewers, retry = [], []
+    if ready or (event == "schedule" and mode == "auto" and not pr.get("draft")):
         content = file_text(api, REPO, changelog_release.changelog_path(version), pr["head"]["sha"])
         reviewers = reviewers_to_request(content, version, json.loads(env.get("SECTION_REVIEWERS") or "{}"),
                                          env.get("DEFAULT_REVIEWERS", ""))
-    _outputs({"ready": "true" if ready else "false", "request": "true" if retry and reviewers else "false",
+        if not ready:
+            reviewers = retry = reviewers_missing(api, pr, reviewers, event, mode)
+    _outputs({"ready": "true" if ready else "false", "request": "true" if retry else "false",
               "reviewers": ",".join(reviewers)})
     if retry:
-        why += "; nobody is asked to review it yet, so the reviewers are requested again"
+        why += f"; {len(retry)} configured reviewer(s) were never asked to review it, so they are requested again"
     _summary(f"Changelog PR mattermost#{number}: {'marking ready for review' if ready else 'left as it is'} ({why}).")
     return 0
 

@@ -504,8 +504,8 @@ jobs:
           gh pr ready "$PR_NUMBER" --repo mattermost/mattermost
           python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
 
-      # A PR marked ready on an earlier run whose reviewer request failed: nobody is asked to
-      # review it and nobody has, so the request is made again (the PR is not marked ready again).
+      # A PR marked ready on an earlier run whose reviewer request failed: the configured reviewers
+      # never asked to review it are requested (the PR is not marked ready again).
       - name: Request reviewers again
         if: steps.ready.outputs.request == 'true'
         env:

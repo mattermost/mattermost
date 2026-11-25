@@ -286,19 +286,26 @@ class ReadyTest(unittest.TestCase):
         self.assertFalse(self.decide(self.api(), event="workflow_dispatch")[0])
         self.assertFalse(self.decide(self.api(), mode="dry_run")[0])
 
-    def test_reviewers_are_requested_again_when_nobody_is_asked(self):
+    def test_reviewers_never_asked_are_requested_again(self):
+        names = ["org/docs", "amy"]
+        pull = {"number": 50, "draft": False}
+        events = "/repos/mattermost/mattermost/issues/50/events"
         api = self.api(ready_events=["ready_for_review"])
-        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = []
-        pull = {"number": 50, "draft": False, "requested_reviewers": [], "requested_teams": []}
-        self.assertTrue(ca.reviewers_missing(api, pull, "schedule", "auto"))
-        self.assertFalse(ca.reviewers_missing(api, {**pull, "requested_teams": [{"slug": "docs"}]}, "schedule", "auto"))
-        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = [{"state": "COMMENTED"}]
-        self.assertFalse(ca.reviewers_missing(api, pull, "schedule", "auto"))
-        self.assertFalse(ca.reviewers_missing(self.api(), pull, "schedule", "auto"))  # never marked ready by the run
-        # A bot's review (CodeRabbit, Cursor) isn't one of the people asked: the request is still retried.
-        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = [
-            {"state": "COMMENTED", "user": {"login": "coderabbitai[bot]", "type": "Bot"}}]
-        self.assertTrue(ca.reviewers_missing(api, pull, "schedule", "auto"))
+        self.assertEqual(ca.reviewers_missing(api, pull, names, "schedule", "auto"), names)
+        # The section request at publish time reached the team; the ready-time request failed, so
+        # the default reviewer is still asked, and only them.
+        api.routes[("GET", events)] = [{"event": "review_requested", "requested_team": {"slug": "docs"}},
+                                       {"event": "ready_for_review"}]
+        self.assertEqual(ca.reviewers_missing(api, pull, names, "schedule", "auto"), ["amy"])
+        # An unrelated person's review doesn't stand in for the request.
+        api.routes[("GET", events)] += [{"event": "reviewed", "user": {"login": "someone"}}]
+        self.assertEqual(ca.reviewers_missing(api, pull, names, "schedule", "auto"), ["amy"])
+        # Asked once (pending, reviewed, or taken off by a person): not asked again.
+        api.routes[("GET", events)] += [{"event": "review_requested", "requested_reviewer": {"login": "Amy"}}]
+        self.assertEqual(ca.reviewers_missing(api, pull, names, "schedule", "auto"), [])
+        self.assertEqual(ca.reviewers_missing(self.api(), pull, names, "schedule", "auto"), [])  # never marked ready
+        self.assertEqual(ca.reviewers_missing(self.api(ready_events=["ready_for_review"]), {**pull, "draft": True},
+                                              names, "schedule", "auto"), [])
 
     def test_reviewers_are_the_section_reviewers_plus_the_default(self):
         names = ca.reviewers_to_request(CHANGELOG, VERSION, {"Upgrade Impact/*": ["org/db"], "Improvements": "ui-lead"}, "amy, ui-lead  bob")
