@@ -266,7 +266,7 @@ func TestBulkRetrierWaitReturnsAfterQueueDrains(t *testing.T) {
 
 	select {
 	case <-done:
-		t.Fatal("Wait returned while an item was pending")
+		require.FailNow(t, "Wait returned while an item was pending")
 	case <-time.After(50 * time.Millisecond):
 	}
 
@@ -274,7 +274,7 @@ func TestBulkRetrierWaitReturnsAfterQueueDrains(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
-		t.Fatal("Wait did not return after the queue drained")
+		require.FailNow(t, "Wait did not return after the queue drained")
 	}
 	assert.Equal(t, int64(1), r.Retried())
 }
@@ -314,7 +314,7 @@ func TestBulkRetrierHandleNeverBlocks(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
-		t.Fatal("Handle blocked while Apply was stuck")
+		require.FailNow(t, "Handle blocked while Apply was stuck")
 	}
 	close(release)
 	wait(t, r)
