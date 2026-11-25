@@ -1124,6 +1124,12 @@ class WorkflowTest(unittest.TestCase):
         step = step[:step.index("\n      - name: ")]
         self.assertIn("\n        continue-on-error: true\n", step)
 
+    def test_a_failed_readiness_step_never_fails_the_published_run(self):
+        for name in ("Decide whether to mark the PR ready", "Mark the PR ready for review", "Request reviewers again"):
+            step = self.text[self.text.index(f"- name: {name}"):]
+            step = step[:step.index("\n      - name: ")]
+            self.assertIn("\n        continue-on-error: true\n", step, name)
+
     def test_merge_on_release_holds_no_secret_and_starts_the_merge_on_master(self):
         job = workflow_jobs(self.text)["merge-on-release"]
         self.assertNotIn("secrets.", job)

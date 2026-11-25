@@ -480,9 +480,12 @@ jobs:
       # An auto run only; the scripts are the copies made from this checkout above.
       # Marks the draft PR ready on the first scheduled run on or after RC-1 + 1 working
       # day (T-15), unless the preflight has a blocking failure or the PR was ready once before.
+      # The readiness steps never fail the published run (Release Day reads only successful runs'
+      # reports): a failure is a warning, and the next scheduled run tries again.
       - name: Decide whether to mark the PR ready
         id: ready
         if: ${{ !cancelled() && steps.publish.outcome == 'success' && github.event_name == 'schedule' && needs.resolve.outputs.mode == 'auto' && (steps.publish.outputs.number != '' || steps.pr.outputs.number != '') }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
           VERSION: ${{ needs.resolve.outputs.version }}
@@ -495,24 +498,35 @@ jobs:
         run: python3 "$RUNNER_TEMP/changelog_automation.py" ready
 
       - name: Mark the PR ready for review
+        id: markReady
         if: steps.ready.outputs.ready == 'true'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
           PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
           REVIEWERS: ${{ steps.ready.outputs.reviewers }}
         run: |
-          gh pr ready "$PR_NUMBER" --repo mattermost/mattermost
+          if ! gh pr ready "$PR_NUMBER" --repo mattermost/mattermost; then
+            echo "::warning title=Changelog PR not marked ready::Could not mark #$PR_NUMBER ready for review; the next scheduled run tries again."
+            exit 0
+          fi
           python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
 
       # A PR marked ready on an earlier run whose reviewer request failed: the configured reviewers
       # never asked to review it are requested (the PR is not marked ready again).
       - name: Request reviewers again
+        id: requestAgain
         if: steps.ready.outputs.request == 'true'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
           PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
           REVIEWERS: ${{ steps.ready.outputs.reviewers }}
         run: python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
+
+      - name: Explain a failed readiness step
+        if: ${{ !cancelled() && (steps.ready.outcome == 'failure' || steps.markReady.outcome == 'failure' || steps.requestAgain.outcome == 'failure') }}
+        run: echo "::warning title=Changelog readiness not finished::Deciding whether the changelog PR is ready, or marking it ready, failed; the published report is kept and the next scheduled run tries again."
 
       # A review comment with a suggestion block on each weak bullet, once per bullet.
       # Comments only: the changelog text is never edited. The counts of suggestions
