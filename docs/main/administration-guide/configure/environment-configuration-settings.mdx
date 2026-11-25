@@ -353,7 +353,7 @@ Post identity and display-override props (`from_webhook`, `from_bot`, `override_
 
 <Note>
 
-When using the Mattermost Desktop App, additional configuration is required to open the link within the Desktop App instead of in a browser. See the [desktop managed resources](/deployment-guide/desktop/desktop-app-managed-resources) documentation for details.
+When using the Mattermost Desktop App, additional configuration is required to open the link within the Desktop App instead of in a browser. See the [desktop managed resources](/deployment-guide/desktop/distribute-a-custom-desktop-app#managedresources) documentation for details.
 
 </Note>
 
@@ -461,7 +461,7 @@ This setting only takes effect if you are using the built-in server binary direc
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specified headers that will be checked, one by one, for IP addresses (order is important). All other headers are ignored.</p><p>String array input consisting of header names, such as <code>["X-Forwarded-For", "X-Real-Ip"]</code>.</p></td>
+<td><p>Specified headers that will be checked, one by one, for IP addresses (order is important). All other headers are ignored.</p><p>String array input consisting of header names, such as <code>["X-Real-IP"]</code> behind NGINX.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TrustedProxyIPHeader</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TRUSTEDPROXYIPHEADER</code></li></ul></td>
 </tr>
 </tbody>
@@ -472,8 +472,17 @@ This setting only takes effect if you are using the built-in server binary direc
 - The default value of `[]` means that no header will be trusted.
 - We recommend keeping the default setting when Mattermost is running without a proxy to avoid the client sending the headers and bypassing rate limiting and/or the audit log.
 - For environments that use a reverse proxy, this issue does not exist, provided that the headers are set by the reverse proxy. In those environments, only explicitly whitelist the header set by the reverse proxy and no additional values.
+- Behind NGINX, set this to `["X-Real-IP"]`. NGINX overwrites `X-Real-IP` with the address of the connecting client. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx) for the matching NGINX configuration.
+- Keep Mattermost Server reachable only through the proxy, including for administration, because a client that connects directly can send any value in the trusted header.
+- If another load balancer sits in front of NGINX, use the NGINX `real_ip` module with `set_real_ip_from` limited to that load balancer's addresses. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx).
 
 </Note>
+
+<Warning>
+
+Never add `X-Forwarded-For` to this setting. Mattermost Server uses the first comma-separated value of the header, and the client controls that value when NGINX appends to it with `$proxy_add_x_forwarded_for`. Clients could then choose the IP address that rate limiting and audit logs record.
+
+</Warning>
 
 ### Enable Strict Transport Security (HSTS)
 
@@ -1030,17 +1039,17 @@ For more information on Aurora replication stats, see the [AWS Aurora documentai
 Example
 
 ``` json
-&#123;
-  "SqlSettings": &#123;
+{
+  "SqlSettings": {
       "ReplicaLagSettings": [
-        &#123;
+        {
             "DataSource": "replica-1",
             "QueryAbsoluteLag": "select server_id, highest_lsn_rcvd-durable_lsn as bindiff from aurora_global_db_instance_status() where server_id=<>",
             "QueryTimeLag": "select server_id, visibility_lag_in_msec from aurora_global_db_instance_status() where server_id=<>"
-        &#125;
+        }
       ]
-  &#125;
-&#125;
+  }
+}
 ```
 
 </TabItem>
@@ -1053,17 +1062,17 @@ For more information on group replication stats, see the [MySQL documentation](h
 Example
 
 ``` json
-&#123;
-  "SqlSettings": &#123;
+{
+  "SqlSettings": {
       "ReplicaLagSettings": [
-        &#123;
+        {
             "DataSource": "replica-1",
             "QueryAbsoluteLag": "select member_id, count_transactions_remote_in_applier_queue FROM performance_schema.replication_group_member_stats where member_id=<>",
             "QueryTimeLag": ""
-        &#125;
+        }
       ]
-  &#125;
-&#125;
+  }
+}
 ```
 
 </TabItem>
@@ -1167,6 +1176,16 @@ You can configure Mattermost enterprise search by going to **System Console \> E
 If indexing is disabled and then re-enabled after an index is created, purge and rebuild the index to ensure complete search results.
 
 </Note>
+
+<Warning>
+
+Before permanently deleting a large number of channels, turn off **Enable Elasticsearch indexing**. Each permanent delete reindexes every member of that channel, and that indexing work can exhaust Mattermost memory on a delete of about 100,000 memberships.
+
+Leave the Elasticsearch or OpenSearch cluster running. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/{channel_id}?permanent=true`, then turn indexing back on and run **Index Now** so changes made while indexing was off are included. The System Console clears search queries and autocomplete when indexing is turned off, because the server will not store those while indexing is off. Turn them back on with indexing.
+
+Documents for those channels can remain in the search index, because indexing is off while they are deleted. Post search only queries channels the user currently belongs to, then loads the posts from the database. Channel search also loads its matches from the database, so a permanently deleted channel is left out. A full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
+
+</Warning>
 
 ### Backend type
 
@@ -2508,7 +2527,7 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specify connection security for emails sent using SMTP.</p><ul><li><strong>Not specified</strong>: <strong>(Default)</strong> Send email over an unsecure connection.</li><li><strong>TLS</strong>: Communication between Mattermost and your email server is encrypted.</li><li><strong>STARTTLS</strong>: Attempts to upgrade an existing insecure connection to a secure connection using TLS.</li></ul></td>
+<td><p>Specify connection security for emails sent using SMTP.</p><ul><li><strong>Not specified</strong>: <strong>(Default)</strong> Send email over an unsecure connection.</li><li><strong>TLS</strong>: Communication between Mattermost and your email server is encrypted.</li><li><strong>STARTTLS</strong>: Upgrades an existing insecure connection to TLS. The connection fails if the SMTP server doesn't support STARTTLS.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>ConnectionSecurity</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_CONNECTIONSECURITY</code></li></ul></td>
 </tr>
 </tbody>
@@ -2538,8 +2557,8 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td><p>Enable or disable security alerts.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins are notified by email if a relevant security fix alert is announced. Requires email to be enabled.</li><li><strong>false</strong>: Security alerts are disabled.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableSecurityFixAlert</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLESECURITYFIXALERT</code></li></ul></td>
+<td><p>From Mattermost v12.3, this setting is located in <strong>Site Configuration &gt; Notices</strong> as <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#check-for-security-and-release-updates')}>Check for Security and Release Updates</a>.</p><p>In Mattermost v12.2 and earlier, enable or disable security alerts and the check for the latest Mattermost release here.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins are notified by email if a relevant security fix alert is announced. Requires email to be enabled. The server also fetches the latest Mattermost release from GitHub to report whether it's out of date.</li><li><strong>false</strong>: Security alerts are disabled, and the server doesn't fetch the latest Mattermost release from GitHub.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong> (v12.2 and earlier)</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableSecurityFixAlert</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLESECURITYFIXALERT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2930,15 +2949,15 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>Configure Mattermost to capture the contents of general incoming webhooks to console and/or file logs for debugging.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> The contents of incoming webhooks are printed to log files for debugging.</li><li><strong>false</strong>: The contents of incoming webhooks aren’t printed to log files.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
+<td><p>Log failed incoming webhook requests with their payload, for debugging.</p><ul><li><strong>true</strong>: Failed incoming webhook requests are logged with their payload, if it could be parsed.</li><li><strong>false</strong>: <strong>(Default)</strong> Payloads aren’t logged.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` to include the request body of incoming webhooks in logs.
+Entries are logged at the `DEBUG` level. Payloads can contain message text, so only enable this setting while troubleshooting.
 
 </Note>
 
@@ -3934,6 +3953,12 @@ This setting isn’t available in the System Console and can only be set in `con
 
 </Note>
 
+<Warning>
+
+Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing) and leave the Elasticsearch or OpenSearch cluster running. Each delete reindexes every channel member, and that indexing work can exhaust server memory on a delete of about 100,000 memberships. Restore indexing when the deletes finish, then run **Index Now**. Documents for those channels can remain in the search index. Search omits them through current channel membership and database checks, so a full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
+
+</Warning>
+
 ### Enable desktop app developer mode
 
 From Desktop App v5.10, this setting enables developer debugging options available by going to the **View \> Developer Tools** menu in the Mattermost desktop app.
@@ -4139,7 +4164,7 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 </colgroup>
 <tbody>
 <tr>
-<td><p>Control the performance of websocket broadcasting in channels.</p><p>When enabled, improves websocket broadcasting performance; however, performance may decrease when users join or leave a channel.</p><p>Not recommended unless you have at least 200,000 concurrent users actively using Mattermost.</p><p>Disabled by default.</p></td>
+<td><p>Control the performance of websocket broadcasting in channels.</p><p>When enabled, improves websocket broadcasting performance; however, performance may decrease when users join or leave a channel.</p><p>Not recommended unless you have at least 200,000 concurrent users actively using Mattermost.</p><p>Disabled by default.</p><p>Changes to this setting require a server restart before taking effect.</p></td>
 <td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableWebHubChannelIteration,</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEWEBHUBCHANNELITERATION</code></li></ul></td>
 </tr>
 </tbody>

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/stretchr/testify/assert"
@@ -244,6 +245,7 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 		Suite:    th.App,
 		UserId:   session.UserId,
 	}
+	wc.SetSession(session)
 	hook := &permalinkBroadcastHook{}
 
 	refPost := th.CreatePost(t, th.BasicChannel)
@@ -306,6 +308,105 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	})
 }
 
+// A channel access rule can depend on the session, so the permalink and channel-mention
+// hooks must evaluate the connection's own session. Evaluated without it, a rule that
+// tolerates a missing session attribute would show a denied session the preview.
+func TestBroadcastHooksEvaluateTheConnectionSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
+	require.NoError(t, err)
+
+	// The suite allows only when the context carries this connection's session.
+	carriesSession := mock.MatchedBy(func(rctx request.CTX) bool { return rctx.Session().Id == session.Id })
+	lacksSession := mock.MatchedBy(func(rctx request.CTX) bool { return rctx.Session().Id != session.Id })
+	mockSuite := &platform_mocks.SuiteIFace{}
+	mockSuite.On("HasPermissionToReadChannel", carriesSession, th.BasicUser.Id, mock.Anything).Return(true, true)
+	mockSuite.On("HasPermissionToReadChannel", lacksSession, th.BasicUser.Id, mock.Anything).Return(false, false)
+	mockSuite.On("HasPermissionToResolveChannelMention", carriesSession, th.BasicUser.Id, mock.Anything).Return(true)
+	mockSuite.On("HasPermissionToResolveChannelMention", lacksSession, th.BasicUser.Id, mock.Anything).Return(false)
+	// Every preview the hook attaches is audited.
+	mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+	mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+
+	wc := &platform.WebConn{
+		Platform: th.Server.Platform(),
+		Suite:    mockSuite,
+		UserId:   th.BasicUser.Id,
+	}
+	wc.SetSession(session)
+
+	cleanPost := th.BasicPost.Clone()
+	cleanPost.Metadata = &model.PostMetadata{}
+	cleanJSON, err := cleanPost.ToJSON()
+	require.NoError(t, err)
+
+	newMessage := func() *platform.HookedWebSocketEvent {
+		wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+		wsEvent.Add("post", cleanJSON)
+		return platform.MakeHookedWebSocketEvent(wsEvent)
+	}
+	postFrom := func(t *testing.T, msg *platform.HookedWebSocketEvent) *model.Post {
+		t.Helper()
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		post := &model.Post{}
+		require.NoError(t, json.Unmarshal([]byte(gotJSON), post))
+		return post
+	}
+
+	t.Run("permalink preview", func(t *testing.T) {
+		refPost := th.CreatePost(t, th.BasicChannel)
+		msg := newMessage()
+
+		err := (&permalinkBroadcastHook{}).Process(msg, wc, map[string]any{
+			"preview_channel":          th.BasicChannel,
+			"permalink_previewed_post": model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel),
+			"preview_prop":             refPost.Id,
+		})
+		require.NoError(t, err)
+
+		post := postFrom(t, msg)
+		require.Len(t, post.Metadata.Embeds, 1, "the preview is decided on the connection's session")
+	})
+
+	t.Run("channel mention", func(t *testing.T) {
+		msg := newMessage()
+
+		err := (&channelMentionsBroadcastHook{}).Process(msg, wc, map[string]any{
+			"channel_mentions": map[string]any{
+				th.BasicChannel.Name: map[string]any{"id": th.BasicChannel.Id, "display_name": th.BasicChannel.DisplayName},
+			},
+		})
+		require.NoError(t, err)
+
+		post := postFrom(t, msg)
+		mentions, ok := post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.True(t, ok, "the mention is resolved on the connection's session")
+		require.Contains(t, mentions, th.BasicChannel.Name)
+	})
+
+	t.Run("channel mention without a session", func(t *testing.T) {
+		noSessionWc := &platform.WebConn{
+			Platform: th.Server.Platform(),
+			Suite:    mockSuite,
+			UserId:   th.BasicUser.Id,
+		}
+		msg := newMessage()
+
+		err := (&channelMentionsBroadcastHook{}).Process(msg, noSessionWc, map[string]any{
+			"channel_mentions": map[string]any{
+				th.BasicChannel.Name: map[string]any{"id": th.BasicChannel.Id, "display_name": th.BasicChannel.DisplayName},
+			},
+		})
+		require.NoError(t, err)
+
+		post := postFrom(t, msg)
+		require.Nil(t, post.GetProp(model.PostPropsChannelMentions), "no mention resolves without a session")
+	})
+}
+
 func TestPermalinkBroadcastHook_ChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -320,6 +421,7 @@ func TestPermalinkBroadcastHook_ChannelMentions(t *testing.T) {
 		Suite:    th.App,
 		UserId:   session.UserId,
 	}
+	wc.SetSession(session)
 	hook := &permalinkBroadcastHook{}
 
 	// BasicUser can read the previewed post's channel, but not this private channel.
@@ -394,6 +496,7 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 		Suite:    th.App,
 		UserId:   session.UserId,
 	}
+	wc.SetSession(session)
 	hook := &channelMentionsBroadcastHook{}
 
 	// Create a private channel that BasicUser doesn't have access to
@@ -855,15 +958,13 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "no redaction metadata should be present")
 	})
 
-	t.Run("nil session: fail-secure, files stripped from permalink preview", func(t *testing.T) {
+	t.Run("nil session: fail-secure, no permalink preview", func(t *testing.T) {
 		postJSON := makeOuterPostJSON(t)
 		msg := makeMessage(postJSON)
 
-		// WebConn with no session — cannot evaluate permissions, must strip files.
+		// WebConn with no session: no channel access rule can be evaluated for it, so
+		// the preview is withheld entirely, files and all.
 		mockSuite := &platform_mocks.SuiteIFace{}
-		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
-		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
-		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},
@@ -884,12 +985,9 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		gotPost := extractPost(t, msg)
-		require.Len(t, gotPost.Metadata.Embeds, 1)
-
 		gotJSON, _ := msg.Get("post").(string)
-		assert.NotContains(t, gotJSON, fileID, "file ID should be stripped when session is nil")
-		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "redacted count should be set when session is nil")
+		assert.Equal(t, postJSON, gotJSON, "the sanitized post goes out unchanged")
+		mockSuite.AssertNotCalled(t, "HasPermissionToReadChannel", mock.Anything, mock.Anything, mock.Anything)
 	})
 }
 
@@ -1228,6 +1326,116 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 		// The file-count logic is verified via TestAbacFilesBroadcastHook_Process.
 		hooks := message.GetBroadcast().BroadcastHooks
 		assert.Empty(t, hooks, "AccessControl is nil in test env — hook not registered")
+	})
+}
+
+func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &channelReadAccessBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	t.Run("allowed recipient receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+	})
+
+	t.Run("denied recipient has the event dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a connection with no session is dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+}
+
+func TestChannelReadAccessRedactBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &channelReadAccessRedactBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+	channelJSON := `{"id":"` + channelID + `","display_name":"Secret plans"}`
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channelID, "", nil, "")
+		event.Add("channel", channelJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	// The event must still arrive in every case: it is how a denied member's client
+	// learns to drop the channel.
+	t.Run("an allowed recipient gets the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, channelJSON, msg.Get("channel"))
+	})
+
+	t.Run("a denied recipient gets the event without the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("a connection with no session gets the event without the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("a malformed arg leaves the channel out", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+		assert.Equal(t, "", msg.Get("channel"))
 	})
 }
 

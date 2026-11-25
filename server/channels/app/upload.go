@@ -173,15 +173,12 @@ func (a *App) CreateUploadSession(rctx request.CTX, us *model.UploadSession) (*m
 func (a *App) GetUploadSession(rctx request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
 	us, err := a.Srv().Store().UploadSession().Get(rctx, uploadId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
 				nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return us, nil
 }

@@ -11,18 +11,21 @@ import SystemConsoleHeader from '@/ui/components/system_console/header';
 import EditionAndLicense from '@/ui/components/system_console/sections/about/edition_and_license';
 import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
 import ServerLogs from '@/ui/components/system_console/sections/reporting/server_logs';
+import SiteHealth from '@/ui/components/system_console/sections/reporting/site_health';
 import Users from '@/ui/components/system_console/sections/user_management/users';
 import ChannelDetail from '@/ui/components/system_console/sections/user_management/channel_detail';
 import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
 import PermissionsSystemScheme from '@/ui/components/system_console/sections/user_management/permissions_system_scheme';
 import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
 import Localization from '@/ui/components/system_console/sections/site_configuration/localization';
+import Notices from '@/ui/components/system_console/sections/site_configuration/notices';
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import BoardAttributes from '@/ui/components/system_console/sections/system_attributes/board_attributes';
 import GlobalAttributes from '@/ui/components/system_console/sections/system_attributes/global_attributes';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
+import MembershipPolicies from '@/ui/components/system_console/sections/system_attributes/membership_policies';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
 import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
@@ -43,6 +46,7 @@ export default class SystemConsolePage {
     readonly editionAndLicense: EditionAndLicense;
 
     // Reporting
+    readonly siteHealth: SiteHealth;
     readonly teamStatistics: TeamStatistics;
     readonly serverLogs: ServerLogs;
 
@@ -57,6 +61,7 @@ export default class SystemConsolePage {
 
     // Site Configuration
     readonly localization: Localization;
+    readonly notices: Notices;
     readonly notifications: Notifications;
     readonly usersAndTeams: UsersAndTeams;
 
@@ -64,6 +69,7 @@ export default class SystemConsolePage {
     readonly globalAttributes: GlobalAttributes;
     readonly systemProperties: SystemProperties;
     readonly sessionAttributes: SessionAttributes;
+    readonly membershipPolicies: MembershipPolicies;
     readonly boardAttributes: BoardAttributes;
 
     // Feature Discovery (license-gated features)
@@ -96,6 +102,7 @@ export default class SystemConsolePage {
         this.editionAndLicense = new EditionAndLicense(adminConsoleWrapper);
 
         // Reporting
+        this.siteHealth = new SiteHealth(adminConsoleWrapper);
         this.teamStatistics = new TeamStatistics(adminConsoleWrapper);
         this.serverLogs = new ServerLogs(adminConsoleWrapper);
 
@@ -110,6 +117,7 @@ export default class SystemConsolePage {
 
         // Site Configuration
         this.localization = new Localization(adminConsoleWrapper);
+        this.notices = new Notices(adminConsoleWrapper);
         this.notifications = new Notifications(adminConsoleWrapper);
         this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
@@ -117,6 +125,7 @@ export default class SystemConsolePage {
         this.globalAttributes = new GlobalAttributes(adminConsoleWrapper);
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
         this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
+        this.membershipPolicies = new MembershipPolicies(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
 
         // Feature Discovery
@@ -160,8 +169,16 @@ export default class SystemConsolePage {
         await this.editionAndLicense.toBeVisible();
     }
 
-    async gotoServerLogs() {
-        await this.page.goto('/admin_console/reporting/server_logs');
+    async gotoSiteHealth() {
+        await this.page.goto('/admin_console/reporting/site_health');
+        await this.siteHealth.toBeVisible();
+    }
+
+    /**
+     * @param query - Filters to open the page with, e.g. '?search=timeout&range=60'
+     */
+    async gotoServerLogs(query = '') {
+        await this.page.goto(`/admin_console/reporting/server_logs${query}`);
         await this.page.waitForLoadState('networkidle');
     }
 
@@ -193,6 +210,11 @@ export default class SystemConsolePage {
     async gotoMfaSettings() {
         await this.page.goto('/admin_console/authentication/mfa');
         await this.mfaSettings.toBeVisible();
+    }
+
+    async gotoNotices() {
+        await this.page.goto('/admin_console/site_config/notices');
+        await this.notices.toBeVisible();
     }
 
     async gotoPublicLinks() {

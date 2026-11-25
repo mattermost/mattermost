@@ -141,3 +141,112 @@ func TestHasPluginImplementing(t *testing.T) {
 		require.False(t, env.HasPluginImplementing(MessageHasBeenPostedID))
 	})
 }
+
+func TestReservedPluginActivation(t *testing.T) {
+	for _, component := range []string{"server", "webapp"} {
+		t.Run(component, func(t *testing.T) {
+			pluginDir, webappDir := t.TempDir(), t.TempDir()
+			id := model.CoreServerPluginID
+			bundleDir := filepath.Join(pluginDir, id)
+			require.NoError(t, os.Mkdir(bundleDir, 0700))
+			manifest := &model.Manifest{Id: id, Version: "1.0.0"}
+			if component == "server" {
+				manifest.Server = &model.ManifestServer{Executable: "backend"}
+			} else {
+				manifest.Webapp = &model.ManifestWebapp{BundlePath: "main.js"}
+				require.NoError(t, os.WriteFile(filepath.Join(bundleDir, "main.js"), []byte("// fixture"), 0600))
+			}
+			data, err := json.Marshal(manifest)
+			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(filepath.Join(bundleDir, "plugin.json"), data, 0600))
+			env, err := NewEnvironment(func(*model.Manifest) API {
+				t.Fatal("reserved plugin must not construct an API")
+				return nil
+			}, nil, pluginDir, webappDir, mlog.CreateConsoleTestLogger(t), nil)
+			require.NoError(t, err)
+			loaded, activated, err := env.Activate(id)
+			require.ErrorContains(t, err, "reserved for the core server")
+			require.Nil(t, loaded)
+			require.False(t, activated)
+			_, registered := env.registeredPlugins.Load(id)
+			require.False(t, registered)
+			entries, err := os.ReadDir(webappDir)
+			require.NoError(t, err)
+			require.Empty(t, entries, "reserved webapp must not be unpacked")
+
+			// A stale running entry must not turn rejection into a successful no-op.
+			rp := newRegisteredPlugin(&model.BundleInfo{Manifest: manifest})
+			rp.State = model.PluginStateRunning
+			env.registeredPlugins.Store(id, rp)
+			_, _, err = env.Activate(id)
+			require.ErrorContains(t, err, "reserved for the core server")
+		})
+	}
+}
+
+func TestReservedPluginReattach(t *testing.T) {
+	manifest := &model.Manifest{Id: model.CoreServerPluginID, Server: &model.ManifestServer{Executable: "backend"}}
+	env := &Environment{newAPIImpl: func(*model.Manifest) API {
+		t.Fatal("reserved plugin must not construct an API")
+		return nil
+	}}
+	require.ErrorContains(t, env.Reattach(manifest, nil), "reserved for the core server")
+	_, registered := env.registeredPlugins.Load(manifest.Id)
+	require.False(t, registered)
+
+	rp := newRegisteredPlugin(&model.BundleInfo{Manifest: manifest})
+	rp.State = model.PluginStateRunning
+	env.registeredPlugins.Store(manifest.Id, rp)
+	require.ErrorContains(t, env.Reattach(manifest, nil), "reserved for the core server")
+	actual, _ := env.registeredPlugins.Load(manifest.Id)
+	require.Equal(t, rp, actual, "reattach must not replace an existing registration")
+}
+
+// Deactivate reports whether it stopped an active plugin; callers use that to
+// tell the webapp to unload the plugin, including webapp-only plugins.
+func TestDeactivateWebappOnlyPlugin(t *testing.T) {
+	pluginDir := t.TempDir()
+	webappPluginDir := t.TempDir()
+
+	pluginID := "test-webapp-only-plugin"
+	require.NoError(t, os.MkdirAll(filepath.Join(pluginDir, pluginID, "webapp"), 0700))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(pluginDir, pluginID, "plugin.json"),
+		[]byte(`{"id":"`+pluginID+`","webapp":{"bundle_path":"webapp/bundle.js"}}`),
+		0600,
+	))
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, pluginID, "webapp", "bundle.js"), []byte("console.log('webapp');"), 0600))
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	apiImpl := func(*model.Manifest) API { return nil }
+	env, err := NewEnvironment(apiImpl, nil, pluginDir, webappPluginDir, logger, nil)
+	require.NoError(t, err)
+	t.Cleanup(env.Shutdown)
+
+	_, activated, err := env.Activate(pluginID)
+	require.NoError(t, err)
+	require.True(t, activated)
+	require.True(t, env.IsActive(pluginID))
+
+	require.True(t, env.Deactivate(pluginID))
+	require.False(t, env.IsActive(pluginID))
+	require.False(t, env.Deactivate(pluginID), "an inactive plugin is not deactivated again")
+}
+
+func TestReattachReportsStartFailure(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	apiImpl := func(*model.Manifest) API { return nil }
+	env, err := NewEnvironment(apiImpl, nil, t.TempDir(), t.TempDir(), logger, nil)
+	require.NoError(t, err)
+	t.Cleanup(env.Shutdown)
+
+	manifest := &model.Manifest{
+		Id:               "test-reattach-failure",
+		MinServerVersion: "99.0.0",
+		Server:           &model.ManifestServer{Executable: "backend.exe"},
+	}
+
+	require.Error(t, env.Reattach(manifest, &model.PluginReattachConfig{}))
+	require.False(t, env.IsActive(manifest.Id))
+	require.Equal(t, model.PluginStateFailedToStart, env.GetPluginState(manifest.Id))
+}

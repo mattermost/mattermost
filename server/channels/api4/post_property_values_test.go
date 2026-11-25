@@ -24,7 +24,10 @@ func setupPostPropertyTest(t *testing.T) *postPropertyTestHelper {
 		cfg.FeatureFlags.PostAttributes = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+	// access_control answers only to an Enterprise licence, in the API and in its hooks.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
 
 	return &postPropertyTestHelper{TestHelper: th, groupID: group.ID}
@@ -37,8 +40,7 @@ func (th *postPropertyTestHelper) createField(t *testing.T, groupID, name string
 		Name:       name,
 		Type:       model.PropertyFieldTypeText,
 		ObjectType: model.PropertyFieldObjectTypePost,
-		TargetType: string(model.PropertyFieldTargetLevelChannel),
-		TargetID:   th.BasicChannel.Id,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	}, false, "")
 	require.Nil(t, appErr)
 	return field
@@ -67,17 +69,46 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"confidential"`)
 
 		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-			model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName})
+			model.GetPostOptions{PropertyGroup: model.AccessControlPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, post.Metadata)
 		require.Len(t, post.Metadata.PropertyValues, 1)
 		assert.Equal(t, field.ID, post.Metadata.PropertyValues[0].FieldID)
+		// A hydrated response always carries the flag, false on success, so a client can clear
+		// a true it stored from an earlier failed lookup.
+		require.NotNil(t, post.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *post.Metadata.PropertyValuesUnavailable)
 	})
 
-	t.Run("etags are served whether or not values are requested", func(t *testing.T) {
+	// The server omits the flag when hydration was not requested, which decodes as nil. A client
+	// reads that as "no information" and keeps what it stored.
+	t.Run("an unhydrated response omits the unavailable flag", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
-		groupName := model.PostAttributesPropertyGroupName
+		field := th.createField(t, th.groupID, "sensitivity")
+		searchable := th.CreateMessagePost(t, "flagless"+model.NewId()[:8])
+		th.setValue(t, th.groupID, searchable.Id, field.ID, `"confidential"`)
+
+		post, resp, err := th.Client.GetPost(context.Background(), searchable.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, post.Metadata)
+		assert.Empty(t, post.Metadata.PropertyValues)
+		assert.Nil(t, post.Metadata.PropertyValuesUnavailable)
+
+		list, resp, err := th.Client.SearchPosts(context.Background(), th.BasicTeam.Id, searchable.Message, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		found, ok := list.Posts[searchable.Id]
+		require.True(t, ok, "the post should be found by search")
+		require.NotNil(t, found.Metadata)
+		assert.Empty(t, found.Metadata.PropertyValues)
+		assert.Nil(t, found.Metadata.PropertyValuesUnavailable)
+	})
+
+	t.Run("an etag is served only when values are not requested", func(t *testing.T) {
+		th := setupPostPropertyTest(t)
+		groupName := model.AccessControlPropertyGroupName
 		field := th.createField(t, th.groupID, "sensitivity")
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"confidential"`)
 
@@ -88,13 +119,14 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		_, groupResp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
 			model.GetPostOptions{PropertyGroup: groupName})
 		require.NoError(t, err)
-		assert.NotEmpty(t, groupResp.Etag)
-		assert.Equal(t, plainResp.Etag, groupResp.Etag)
+		assert.Empty(t, groupResp.Etag)
 
-		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, groupResp.Etag,
+		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, plainResp.Etag,
 			model.GetPostOptions{PropertyGroup: groupName})
 		require.NoError(t, err)
-		CheckEtag(t, post, resp)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, post)
+		assert.Len(t, post.Metadata.PropertyValues, 1)
 	})
 
 	t.Run("parameter validation", func(t *testing.T) {
@@ -102,7 +134,14 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 
 		t.Run("a comma-separated value is treated as a single, invalid group name", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-				model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
+				model.GetPostOptions{PropertyGroup: model.AccessControlPropertyGroupName + "," + model.BoardsPropertyGroupName})
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
+		})
+
+		t.Run("the removed post_attributes group is a 404", func(t *testing.T) {
+			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
+				model.GetPostOptions{PropertyGroup: "post_attributes"})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -126,7 +165,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		th := setupPostPropertyTest(t)
 		opts := model.GetPostOptions{
 			IncludeDeleted: true,
-			PropertyGroup:  model.PostAttributesPropertyGroupName,
+			PropertyGroup:  model.AccessControlPropertyGroupName,
 		}
 
 		field := th.createField(t, th.groupID, "sensitivity")
@@ -146,7 +185,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		require.Equal(t, th.BasicPost.Id, post.Id)
 		// A deleted post is never hydrated, and that is not an unavailability either.
 		assert.Empty(t, post.Metadata.PropertyValues)
-		assert.False(t, post.Metadata.PropertyValuesUnavailable)
+		assert.Nil(t, post.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("accepts any PSAv2 group", func(t *testing.T) {
@@ -191,7 +230,7 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"high"`)
 
 		list, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-			model.GetPostsOptions{Page: 0, PerPage: 60, PropertyGroup: model.PostAttributesPropertyGroupName})
+			model.GetPostsOptions{Page: 0, PerPage: 60, PropertyGroup: model.AccessControlPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -209,7 +248,7 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"urgent"`)
 
 		list, resp, err := th.Client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "",
-			model.GetPostsOptions{PropertyGroup: model.PostAttributesPropertyGroupName})
+			model.GetPostsOptions{PropertyGroup: model.AccessControlPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -226,7 +265,7 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 
 		t.Run("a comma-separated value is treated as a single, invalid group name", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
+				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: model.AccessControlPropertyGroupName + "," + model.BoardsPropertyGroupName})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})

@@ -3,4 +3,6 @@
 
 import LDAPWizard from './ldap_wizard';
 
+export {searchableStrings} from './ldap_wizard';
+
 export default LDAPWizard;

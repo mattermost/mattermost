@@ -4,8 +4,11 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -13,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
 func TestCWSLogin(t *testing.T) {
@@ -31,7 +36,11 @@ func TestCWSLogin(t *testing.T) {
 		}()
 
 		th.App.Srv().SetCWSTokenOverride(token.Token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
+		th.App.Srv().SetCWSLoginIDOverride(th.BasicUser.Username)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 		user, appErr := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -45,7 +54,11 @@ func TestCWSLogin(t *testing.T) {
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		th.App.Srv().SetCWSTokenOverride(token.Token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
+		th.App.Srv().SetCWSLoginIDOverride(th.BasicUser.Username)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)
@@ -57,14 +70,122 @@ func TestCWSLogin(t *testing.T) {
 		require.Nil(t, user)
 	})
 
+	setCWSLicense := func(t *testing.T, cloud bool) {
+		license := model.NewTestLicense()
+		license.Features.Cloud = new(cloud)
+		th.App.Srv().SetLicense(license)
+		t.Cleanup(func() {
+			cloudLicense := model.NewTestLicense()
+			cloudLicense.Features.Cloud = new(true)
+			th.App.Srv().SetLicense(cloudLicense)
+		})
+	}
+
+	t.Run("Should bind the CWS token to the CWS login ID", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			cloud    bool
+			email    func(user *model.User) string
+			bindTo   func(user, otherUser *model.User) string
+			loginID  func(user, otherUser *model.User) string
+			expectOK bool
+		}{
+			{
+				name:     "self-hosted license with a matching login ID",
+				bindTo:   func(user, _ *model.User) string { return user.Username },
+				loginID:  func(user, _ *model.User) string { return user.Username },
+				expectOK: true,
+			},
+			{
+				name:     "self-hosted license with a login ID differing only in case",
+				bindTo:   func(user, _ *model.User) string { return user.Username },
+				loginID:  func(user, _ *model.User) string { return strings.ToUpper(user.Username) },
+				expectOK: true,
+			},
+			{
+				name:    "self-hosted license without the CWS login ID",
+				bindTo:  func(_, _ *model.User) string { return "" },
+				loginID: func(user, _ *model.User) string { return user.Username },
+			},
+			{
+				name:    "self-hosted license with a mismatched login ID",
+				bindTo:  func(_, otherUser *model.User) string { return otherUser.Username },
+				loginID: func(user, _ *model.User) string { return user.Username },
+			},
+			{
+				name:    "self-hosted license with the email of the bound username",
+				bindTo:  func(user, _ *model.User) string { return user.Username },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
+				name:    "self-hosted license with a login ID matching only under Unicode case folding",
+				email:   func(user *model.User) string { return "σοσ" + user.Id + "@example.com" },
+				bindTo:  func(user, _ *model.User) string { return strings.Replace(user.Email, "σοσ", "σος", 1) },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
+				name:    "Cloud license without the CWS login ID",
+				cloud:   true,
+				bindTo:  func(_, _ *model.User) string { return "" },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
+				name:     "Cloud license with a matching login ID",
+				cloud:    true,
+				bindTo:   func(user, _ *model.User) string { return user.Email },
+				loginID:  func(user, _ *model.User) string { return user.Email },
+				expectOK: true,
+			},
+			{
+				name:    "Cloud license with a mismatched login ID",
+				cloud:   true,
+				bindTo:  func(_, otherUser *model.User) string { return otherUser.Username },
+				loginID: func(user, _ *model.User) string { return user.Username },
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				setCWSLicense(t, tc.cloud)
+				token := model.NewToken(model.TokenTypeCWSAccess, "")
+				th.App.Srv().SetCWSTokenOverride(token.Token)
+				user := th.CreateUser(t)
+				otherUser := th.CreateUser(t)
+				if tc.email != nil {
+					user.Email = tc.email(user)
+					_, err := th.App.Srv().Store().User().Update(th.Context, user, false)
+					require.NoError(t, err)
+				}
+				th.App.Srv().SetCWSLoginIDOverride(tc.bindTo(user, otherUser))
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+					_ = th.App.Srv().Store().Token().Delete(token.Token)
+				})
+
+				authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", tc.loginID(user, otherUser), "", "", token.Token, false)
+				_, tokenErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+				if !tc.expectOK {
+					require.NotNil(t, appErr, "expected the CWS login to be rejected")
+					require.Nil(t, authenticatedUser)
+					require.Error(t, tokenErr, "a rejected login must not consume the token")
+					return
+				}
+				require.Nil(t, appErr)
+				require.Equal(t, user.Id, authenticatedUser.Id)
+				require.NoError(t, tokenErr)
+			})
+		}
+	})
+
 	t.Run("Should not authenticate the user with the CWS token", func(t *testing.T) {
 		testCases := []struct {
 			name  string
-			setup func(t *testing.T, token *model.Token) *model.User
+			setup func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User
 		}{
 			{
 				name: "when the token was used before the token cleanup window",
-				setup: func(t *testing.T, token *model.Token) *model.User {
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
 					token.CreateAt = model.GetMillis() - model.MaxTokenExipryTime - time.Hour.Milliseconds()
 					require.NoError(t, th.App.Srv().Store().Token().Save(token))
 					doTokenCleanup(th.App.Srv())
@@ -73,7 +194,7 @@ func TestCWSLogin(t *testing.T) {
 			},
 			{
 				name: "when the user is deactivated",
-				setup: func(t *testing.T, token *model.Token) *model.User {
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
 					user, appErr := th.App.UpdateActive(th.Context, th.CreateUser(t), false)
 					require.Nil(t, appErr)
 					return user
@@ -81,7 +202,7 @@ func TestCWSLogin(t *testing.T) {
 			},
 			{
 				name: "when the user has logged in before",
-				setup: func(t *testing.T, token *model.Token) *model.User {
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
 					user := th.CreateUser(t)
 					require.NoError(t, th.App.Srv().Store().User().UpdateLastLogin(user.Id, model.GetMillis()))
 					return user
@@ -89,8 +210,9 @@ func TestCWSLogin(t *testing.T) {
 			},
 			{
 				name: "when the user has logged in with the CWS token before",
-				setup: func(t *testing.T, token *model.Token) *model.User {
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
 					user := th.CreateUser(t)
+					bind(user)
 					authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
 					require.Nil(t, appErr)
 					_, appErr = th.App.DoLogin(th.Context, httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/", nil), authenticatedUser, model.LoginOptions{})
@@ -103,21 +225,37 @@ func TestCWSLogin(t *testing.T) {
 			},
 		}
 
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				token := model.NewToken(model.TokenTypeCWSAccess, "")
-				th.App.Srv().SetCWSTokenOverride(token.Token)
-				t.Cleanup(func() {
-					th.App.Srv().SetCWSTokenOverride("")
-					_ = th.App.Srv().Store().Token().Delete(token.Token)
+		variants := []struct {
+			name  string
+			cloud bool
+		}{
+			{name: "on a Cloud license", cloud: true},
+			{name: "on a self-hosted license"},
+		}
+
+		for _, variant := range variants {
+			for _, tc := range testCases {
+				t.Run(variant.name+" "+tc.name, func(t *testing.T) {
+					setCWSLicense(t, variant.cloud)
+					token := model.NewToken(model.TokenTypeCWSAccess, "")
+					th.App.Srv().SetCWSTokenOverride(token.Token)
+					t.Cleanup(func() {
+						th.App.Srv().SetCWSTokenOverride("")
+						th.App.Srv().SetCWSLoginIDOverride("")
+						_ = th.App.Srv().Store().Token().Delete(token.Token)
+					})
+					bind := func(user *model.User) {
+						th.App.Srv().SetCWSLoginIDOverride(user.Username)
+					}
+
+					user := tc.setup(t, token, bind)
+					bind(user)
+
+					authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
+					require.NotNil(t, appErr, "expected the CWS login to be rejected")
+					require.Nil(t, authenticatedUser)
 				})
-
-				user := tc.setup(t, token)
-
-				authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
-				require.NotNil(t, appErr, "expected the CWS login to be rejected")
-				require.Nil(t, authenticatedUser)
-			})
+			}
 		}
 	})
 }
@@ -379,4 +517,305 @@ func TestDoLoginVoIPDeviceId(t *testing.T) {
 		_, getErr = th.App.GetSessionById(th.Context, priorVoIP.Id)
 		require.NotNil(t, getErr, "prior session matched by VoIPDeviceId must be revoked")
 	})
+}
+
+func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserWillLogIn(c *plugin.Context, user *model.User) string {
+			_ = p.API.KVSet(user.Id, []byte("called"))
+			return ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	r := &http.Request{}
+
+	for _, tc := range []struct {
+		name       string
+		kind       string
+		deactivate bool
+		wantErrID  string
+		wantStatus int
+	}{
+		{name: "DeleteAt zero", kind: "user"},
+		{
+			name:       "DeleteAt set",
+			kind:       "user",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{name: "guest DeleteAt zero", kind: "guest"},
+		{
+			name:       "guest DeleteAt set",
+			kind:       "guest",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "system admin DeleteAt set",
+			kind:       "admin",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "bot DeleteAt zero",
+			kind:       "bot",
+			wantErrID:  "api.user.login.bot_login_forbidden.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "bot DeleteAt set",
+			kind:       "bot",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			var user *model.User
+			switch tc.kind {
+			case "guest":
+				user = th.CreateGuest(t)
+			case "admin":
+				user = th.CreateUser(t)
+				_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+				require.Nil(t, appErr)
+				var getErr *model.AppError
+				user, getErr = th.App.GetUser(th.Context, user.Id)
+				require.Nil(t, getErr)
+			case "bot":
+				bot := th.CreateBot(t)
+				var getErr *model.AppError
+				user, getErr = th.App.GetUser(th.Context, bot.UserId)
+				require.Nil(t, getErr)
+			default:
+				user = th.CreateUser(t)
+			}
+			if tc.deactivate {
+				var appErr *model.AppError
+				user, appErr = th.App.UpdateActive(th.Context, user, false)
+				require.Nil(t, appErr)
+			}
+
+			sessionsBefore, getErr := th.App.GetSessions(th.Context, user.Id)
+			require.Nil(t, getErr)
+
+			// Checks that DoLogin consults user DeleteAt and IsBot before creating a session.
+			session, err := th.App.DoLogin(th.Context, w, r, user, model.LoginOptions{})
+			hookValue, kvErr := th.App.GetPluginKey(pluginID, user.Id)
+			require.Nil(t, kvErr)
+			if tc.wantErrID == "" {
+				require.Nil(t, err)
+				require.NotNil(t, session)
+				assert.Equal(t, user.Id, session.UserId)
+				assert.Equal(t, "called", string(hookValue))
+				return
+			}
+
+			require.NotNil(t, err)
+			require.Nil(t, session)
+			assert.Equal(t, tc.wantStatus, err.StatusCode)
+			assert.Equal(t, tc.wantErrID, err.Id)
+			assert.Nil(t, hookValue, "UserWillLogIn must not run for a rejected user")
+
+			sessionsAfter, getErr := th.App.GetSessions(th.Context, user.Id)
+			require.Nil(t, getErr)
+			assert.Equal(t, len(sessionsBefore), len(sessionsAfter))
+		})
+	}
+}
+
+// countingCompareHasher counts CompareHashAndPassword calls for one password
+// that actually ran the inner hasher's key derivation, so that parallel tests
+// sharing the global test hasher do not affect the count.
+type countingCompareHasher struct {
+	inner    hashers.PasswordHasher
+	password string
+	compares atomic.Int64
+}
+
+func (h *countingCompareHasher) Hash(password string) (string, error) {
+	return h.inner.Hash(password)
+}
+
+func (h *countingCompareHasher) IsPHCValid(phc phcparser.PHC) bool {
+	return h.inner.IsPHCValid(phc)
+}
+
+func (h *countingCompareHasher) CompareHashAndPassword(phc phcparser.PHC, password string) error {
+	err := h.inner.CompareHashAndPassword(phc, password)
+	if password == h.password && (err == nil || errors.Is(err, hashers.ErrMismatchedHashAndPassword)) {
+		h.compares.Add(1)
+	}
+	return err
+}
+
+func installCountingCompareHasher(t *testing.T, password string) *countingCompareHasher {
+	t.Helper()
+	previous := hashers.GetLatestHasher()
+	h := &countingCompareHasher{inner: hashers.FastTestHasher(), password: password}
+	hashers.SetTestHasher(h)
+	t.Cleanup(func() { hashers.SetTestHasher(previous) })
+	return h
+}
+
+func TestAuthenticateUserForLoginUnknownAccountHashes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	counter := installCountingCompareHasher(t, wrongPassword)
+
+	user := th.CreateUser(t)
+
+	testCases := []struct {
+		name           string
+		id             string
+		loginID        string
+		wantErrID      string
+		wantStatusCode int
+		wantCompare    bool
+	}{
+		{
+			name:           "unknown username",
+			loginID:        "unknown" + model.NewUsername(),
+			wantErrID:      "store.sql_user.get_for_login.app_error",
+			wantStatusCode: http.StatusBadRequest,
+			wantCompare:    true,
+		},
+		{
+			name:           "unknown email",
+			loginID:        "unknown-" + model.NewId() + "@example.com",
+			wantErrID:      "store.sql_user.get_for_login.app_error",
+			wantStatusCode: http.StatusBadRequest,
+			wantCompare:    true,
+		},
+		{
+			name:           "unknown user id",
+			id:             model.NewId(),
+			wantErrID:      MissingAccountError,
+			wantStatusCode: http.StatusBadRequest,
+			wantCompare:    true,
+		},
+		{
+			// checkUserPassword resolves the hasher from the stored PHC string and never
+			// returns the installed test hasher, so the counter cannot observe this path.
+			name:           "existing user with wrong password",
+			loginID:        user.Username,
+			wantErrID:      "api.user.check_user_password.invalid.app_error",
+			wantStatusCode: http.StatusUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			before := counter.compares.Load()
+
+			authUser, appErr := th.App.AuthenticateUserForLogin(th.Context, tc.id, tc.loginID, wrongPassword, "", "", false)
+			require.NotNil(t, appErr)
+			require.Nil(t, authUser)
+			assert.Equal(t, tc.wantErrID, appErr.Id)
+			assert.Equal(t, tc.wantStatusCode, appErr.StatusCode)
+
+			if tc.wantCompare {
+				assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an unknown account")
+			}
+		})
+	}
+}
+
+func TestAuthenticateUserForLoginNonPasswordAccountHashes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		*cfg.LdapSettings.Enable = false
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	counter := installCountingCompareHasher(t, wrongPassword)
+
+	testCases := []struct {
+		name        string
+		authService string
+		wantErrID   string
+	}{
+		{
+			name:        "gitlab account",
+			authService: model.UserAuthServiceGitlab,
+			wantErrID:   "api.user.login.use_auth_service.app_error",
+		},
+		{
+			name:        "saml account",
+			authService: model.UserAuthServiceSaml,
+			wantErrID:   "api.user.login.use_auth_service.app_error",
+		},
+		{
+			name:        "openid account",
+			authService: model.ServiceOpenid,
+			wantErrID:   "api.user.login.use_auth_service.app_error",
+		},
+		{
+			name:        "ldap account with ldap unavailable",
+			authService: model.UserAuthServiceLdap,
+			wantErrID:   "api.user.login_ldap.not_available.app_error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			authData := model.NewId()
+			user, appErr := th.App.CreateUser(th.Context, &model.User{
+				Email:         "success+" + model.NewId() + "@simulator.amazonses.com",
+				Username:      "un_" + model.NewId(),
+				EmailVerified: true,
+				AuthService:   tc.authService,
+				AuthData:      &authData,
+			})
+			require.Nil(t, appErr)
+
+			for _, login := range []struct{ id, loginID string }{{loginID: user.Username}, {loginID: user.Email}, {id: user.Id}} {
+				before := counter.compares.Load()
+
+				authUser, appErr := th.App.AuthenticateUserForLogin(th.Context, login.id, login.loginID, wrongPassword, "", "", false)
+				require.NotNil(t, appErr)
+				require.Nil(t, authUser)
+				assert.Equal(t, tc.wantErrID, appErr.Id)
+
+				assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an account that cannot sign in with a password")
+			}
+		})
+	}
 }

@@ -15,6 +15,7 @@ import {
     BookOutlineIcon,
     DownloadOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
 import {getFile} from 'mattermost-redux/selectors/entities/files';
@@ -36,10 +37,14 @@ import BookmarkDeleteModal from './bookmark_delete_modal';
 import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
 import {bookmarkHasLinkUrl, copyBookmarkLink, shouldOpenBookmarkInNewTab, useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
 
+const BookmarkBarDotMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'x-small', padding: 'compact'});
+const BookmarkOverflowDotMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact'});
+
 type Props = {
     bookmark: ChannelBookmark;
     open: () => void;
     buttonClassName?: string;
+    isInOverflowMenu?: boolean;
     onBeforeAction?: () => void;
     onMenuKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>, closeMenu?: () => void) => void;
 };
@@ -47,6 +52,7 @@ const BookmarkItemDotMenu = ({
     bookmark,
     open,
     buttonClassName,
+    isInOverflowMenu = false,
     onBeforeAction,
     onMenuKeyDown,
 }: Props) => {
@@ -74,6 +80,7 @@ const BookmarkItemDotMenu = ({
     const copyFileLabel = formatMessage({id: 'channel_bookmarks.copyFilePublicLink', defaultMessage: 'Get a public link'});
     const downloadLabel = formatMessage({id: 'channel_bookmarks.download', defaultMessage: 'Download'});
     const deleteLabel = formatMessage({id: 'channel_bookmarks.delete', defaultMessage: 'Delete'});
+    const menuLabel = formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'});
 
     const handleEdit = useCallback(() => {
         onBeforeAction?.();
@@ -132,9 +139,13 @@ const BookmarkItemDotMenu = ({
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: `channelBookmarksDotMenuButton-${bookmark.id}`,
+                as: isInOverflowMenu ? BookmarkOverflowDotMenuTrigger : BookmarkBarDotMenuTrigger,
                 class: `channelBookmarksDotMenuButton ${buttonClassName ?? ''}`,
-                children: <DotsHorizontalIcon size={18}/>,
-                'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
+                children: <Icon glyph={<DotsHorizontalIcon/>}/>,
+                'aria-label': menuLabel,
+            }}
+            menuButtonTooltip={{
+                text: menuLabel,
             }}
             menu={{
                 id: 'channelBookmarksDotMenuDropdown',

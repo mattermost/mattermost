@@ -1059,4 +1059,20 @@ func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
 		s.Len(printer.GetLines(), 2)
 		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[1])
 	})
+
+	s.Run("delete command rejects names containing a path without calling the server", func() {
+		for _, name := range []string{
+			"data/import/import.zip",
+			"./import.zip",
+			"../import.zip",
+			"/data/import/import.zip",
+			`data\import\import.zip`,
+		} {
+			printer.Clean()
+
+			err := importDeleteCmdF(s.client, &cobra.Command{}, []string{name})
+			s.Require().EqualError(err, fmt.Sprintf("invalid import name %q: provide only the file name as shown by \"import list available\", not a path", name))
+			s.Empty(printer.GetLines())
+		}
+	})
 }

@@ -28,6 +28,12 @@ export const fakeDate = (expected: Date): () => void => {
     };
 };
 
+// Fakes only the clock, so the promises and timers a test waits on keep running.
+// Undo with jest.useRealTimers().
+export function fakeNow(now: string) {
+    jest.useFakeTimers({now: new Date(now), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+}
+
 export const unixTimestampFromNow = (daysFromNow: number) => {
     const now = new Date();
     return Math.ceil(new Date(now.getTime() + (daysFromNow * 24 * 60 * 60 * 1000)).getTime());

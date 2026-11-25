@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"sync"
 
@@ -369,6 +370,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		fields = append(fields, mlog.String("user_name", *data.Username))
 	}
 	rctx.Logger().Info("Validating user", fields...)
+
+	if data != nil && data.Username != nil && imports.IsRemoteUsername(*data.Username) {
+		rctx.Logger().Warn("Skipping Shared Channels remote user; their content is imported only if the user already exists on the destination", fields...)
+		return nil
+	}
 
 	if err := imports.ValidateUserImportData(data); err != nil {
 		return err
@@ -1292,6 +1298,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 		isGuestByTeamID          = map[string]bool{}
 		isUserByTeamId           = map[string]bool{}
 		isAdminByTeamID          = map[string]bool{}
+		joinedTeamIDs            = []string{}
 	)
 
 	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(rctx, user.Id, "", true)
@@ -1386,10 +1393,14 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 
 		teamsByID[team.Id] = team
 		teamMemberByTeamID[team.Id] = member
-		if _, ok := existingMembershipsByTeamId[team.Id]; !ok {
+		if existing, ok := existingMembershipsByTeamId[team.Id]; !ok {
 			newTeamMembers = append(newTeamMembers, member)
+			joinedTeamIDs = append(joinedTeamIDs, team.Id)
 		} else {
 			oldTeamMembers = append(oldTeamMembers, member)
+			if existing.DeleteAt > 0 {
+				joinedTeamIDs = append(joinedTeamIDs, team.Id)
+			}
 		}
 	}
 
@@ -1406,22 +1417,23 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 	newMembers := []*model.TeamMember{}
 	if len(newTeamMembers) > 0 {
 		var nErr error
-		newMembers, nErr = a.Srv().Store().Team().SaveMultipleMembers(newTeamMembers, *a.Config().TeamSettings.MaxUsersPerTeam)
+		// MaxUsersPerTeam is not enforced here: concurrent import workers can't
+		// enforce it consistently, and hitting it would abort the import partway.
+		// checkTeamMemberLimits reports an oversized import before anything is written.
+		newMembers, nErr = a.Srv().Store().Team().SaveMultipleMembers(newTeamMembers, 0)
 		if nErr != nil {
 			var conflictErr *store.ErrConflict
-			var limitExceededErr *store.ErrLimitExceeded
 			switch {
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return appErr
 			case errors.As(nErr, &conflictErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.conflict.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-			case errors.As(nErr, &limitExceededErr):
-				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.max_accounts.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			default: // last fallback in case it doesn't map to an existing app error.
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 	}
+	a.warnIfTeamsOverMemberLimit(rctx, joinedTeamIDs, teamsByID)
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
@@ -1450,6 +1462,26 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 	}
 
 	return nil
+}
+
+func (a *App) warnIfTeamsOverMemberLimit(rctx request.CTX, joinedTeamIDs []string, teamsByID map[string]*model.Team) {
+	maxUsersPerTeam := *a.Config().TeamSettings.MaxUsersPerTeam
+	if maxUsersPerTeam <= 0 {
+		return
+	}
+	for _, teamID := range joinedTeamIDs {
+		count, err := a.Srv().Store().Team().GetActiveMemberCount(teamID, nil)
+		if err != nil {
+			rctx.Logger().Warn("Failed to count team members after importing a team membership", mlog.String("team_id", teamID), mlog.Err(err))
+			continue
+		}
+		if count > int64(maxUsersPerTeam) {
+			rctx.Logger().Warn("Imported team membership takes the team past TeamSettings.MaxUsersPerTeam",
+				mlog.String("team", teamsByID[teamID].Name),
+				mlog.Int("max_users_per_team", maxUsersPerTeam),
+				mlog.Int("member_count", count))
+		}
+	}
 }
 
 func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsername string, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
@@ -1638,7 +1670,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
 			// Bulk import uses internal function to support two-phase role updates.
-			if _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
+			if _, _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
 				return err
 			}
 		}
@@ -1683,7 +1715,7 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 		}
 	}
 	if nErr != nil {
-		if deactivateMissingUsers {
+		if deactivateMissingUsers || imports.IsRemoteUsername(*data.User) {
 			rctx.Logger().Warn("Skipping reaction from user not found on destination during scoped import", mlog.String("username", *data.User))
 			return nil
 		}
@@ -1709,7 +1741,7 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 	return nil
 }
 
-func (a *App) importPostPriority(post *model.Post, priority *model.PostPriority, acknowledgements *[]imports.PostAcknowledgementImportData, users map[string]*model.User) *model.AppError {
+func (a *App) importPostPriority(post *model.Post, priority *model.PostPriority, acknowledgements *[]imports.PostAcknowledgementImportData, users map[string]*model.User) error {
 	if priority == nil {
 		return nil
 	}
@@ -2152,8 +2184,13 @@ func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers boo
 	// Check completeness after remap resolution so that SSO users whose username changed
 	// on the dest (recorded via report.Remap during user processing) are not falsely
 	// reported as missing when the post-processing pass resolves them via remap.
+	// Remote users can't be imported, so a missing one is tolerated and callers skip what references them.
 	if len(users) != len(uniqueUsernames) && !deactivateMissingUsers {
-		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
+		for _, username := range uniqueUsernames {
+			if _, found := users[strings.ToLower(username)]; !found && !imports.IsRemoteUsername(username) {
+				return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return users, nil
@@ -2420,7 +2457,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		if line.Post.ThreadFollowers != nil {
 			threadMemberships, lineNumber, err := a.extractThreadMembers(rctx, &line, users, post, deactivateMissingUsers, report)
 			if err != nil {
-				return lineNumber, err
+				return lineNumber, model.AsAppError(err)
 			}
 
 			if post.Id == "" {
@@ -2562,7 +2599,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 
 		if err := a.importPostPriority(postWithData.post, postWithData.postData.Priority, postWithData.postData.Acknowledgements, users); err != nil {
-			return postWithData.lineNumber, err
+			return postWithData.lineNumber, model.AsAppError(err)
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
@@ -2640,6 +2677,10 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	}
 	for _, user := range members {
 		member, ok := userMap[strings.ToLower(user)]
+		if !ok && imports.IsRemoteUsername(user) {
+			rctx.Logger().Warn("Skipping direct channel with a remote member not found on destination", mlog.String("username", user))
+			return nil
+		}
 		if !ok {
 			// Intentionally not added to report.UnmatchedUsers: the unmatched-users
 			// report is scoped to team/channel membership outcomes. DMs are not
@@ -2985,6 +3026,14 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	)
 
 	for _, line := range lines {
+		hasMissingRemoteMember := slices.ContainsFunc(*line.DirectPost.ChannelMembers, func(username string) bool {
+			return users[strings.ToLower(username)] == nil && imports.IsRemoteUsername(username)
+		})
+		if hasMissingRemoteMember {
+			rctx.Logger().Warn("Skipping direct post in a channel with a remote member not found on destination", mlog.Int("line_number", line.LineNumber))
+			continue
+		}
+
 		var userIDs []string
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
@@ -3060,7 +3109,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		if line.DirectPost.ThreadFollowers != nil {
 			threadMemberships, lineNumber, err := a.extractThreadMembers(rctx, &line, users, post, deactivateMissingUsers, report)
 			if err != nil {
-				return lineNumber, err
+				return lineNumber, model.AsAppError(err)
 			}
 
 			if post.Id == "" {
@@ -3190,7 +3239,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 
 		if err := a.importPostPriority(postWithData.post, postWithData.directPostData.Priority, postWithData.directPostData.Acknowledgements, users); err != nil {
-			return postWithData.lineNumber, err
+			return postWithData.lineNumber, model.AsAppError(err)
 		}
 
 		if postWithData.directPostData.Replies != nil {
@@ -3274,7 +3323,7 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 	return nil
 }
 
-func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post, deactivateMissingUsers bool, report *imports.ImportReport) ([]*model.ThreadMembership, int, *model.AppError) {
+func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post, deactivateMissingUsers bool, report *imports.ImportReport) ([]*model.ThreadMembership, int, error) {
 	threadMemberships := []*model.ThreadMembership{}
 
 	var importedFollowers []imports.ThreadFollowerImportData
@@ -3302,7 +3351,7 @@ func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWor
 				if _, ok := errors.AsType[*store.ErrNotFound](uErr); !ok {
 					return nil, line.LineNumber, model.NewAppError("extractThreadMembers", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
 				}
-				if deactivateMissingUsers {
+				if deactivateMissingUsers || imports.IsRemoteUsername(*member.User) {
 					rctx.Logger().Warn("Skipping thread follower not found on destination during scoped import", mlog.String("username", *member.User))
 					continue
 				}

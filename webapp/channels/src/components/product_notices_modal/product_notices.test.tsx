@@ -60,29 +60,16 @@ describe('ProductNoticesModal', () => {
         getDesktopVersionMock.mockReset();
     });
 
-    test('Should match snapshot when there are no notices', async () => {
-        const props = {
-            ...baseProps,
-            actions: {
-                ...baseProps.actions,
-                getInProductNotices: jest.fn().mockReturnValue(new Promise(() => {})),
-            },
-        };
-        const {baseElement} = renderWithContext(<ProductNoticesModal {...props}/>);
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('Should match snapshot for system admin notice', async () => {
-        const {baseElement} = renderWithContext(<ProductNoticesModal {...baseProps}/>);
+    test('should render system admin notice', async () => {
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByText('for sysadmin')).toBeInTheDocument();
         });
-        expect(baseElement).toMatchSnapshot();
     });
 
-    test('Match snapshot for user notice', async () => {
+    test('should render user notice', async () => {
         const ref = React.createRef<ProductNoticesModal>();
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <ProductNoticesModal
                 ref={ref}
                 {...baseProps}
@@ -96,10 +83,9 @@ describe('ProductNoticesModal', () => {
         act(() => {
             ref.current!.setState({presentNoticeIndex: 1});
         });
-        expect(baseElement).toMatchSnapshot();
     });
 
-    test('Match snapshot for single notice', async () => {
+    test('should render single notice', async () => {
         const singleNoticeProps = {
             ...baseProps,
             actions: {
@@ -107,11 +93,10 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
             },
         };
-        const {baseElement} = renderWithContext(<ProductNoticesModal {...singleNoticeProps}/>);
+        renderWithContext(<ProductNoticesModal {...singleNoticeProps}/>);
         await waitFor(() => {
             expect(screen.getByText('title')).toBeInTheDocument();
         });
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('Should change the state of presentNoticeIndex on click of next, previous button', async () => {

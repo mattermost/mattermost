@@ -12,7 +12,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -27,11 +27,14 @@ import {getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import PostAttributesButton from 'components/advanced_text_editor/post_attributes_button';
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
+import {useChannelWriteAccess} from 'components/common/hooks/useChannelWriteAccess';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import DeletePostModal from 'components/delete_post_modal';
@@ -40,6 +43,9 @@ import {
     DropOverlayIdCreatePost,
     DropOverlayIdEditPost, FileUploadOverlay,
 } from 'components/file_upload_overlay/file_upload_overlay';
+import PostAttributesComposer from 'components/post_attributes/post_attributes_composer';
+import {useComposerAttributes} from 'components/post_attributes/use_composer_attributes';
+import {useStagedPostAttributes} from 'components/post_attributes/use_staged_post_attributes';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -48,6 +54,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -57,6 +64,7 @@ import Constants, {
     ModalIdentifiers,
     AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
+import {replaceTextboxValue} from 'utils/exec_commands';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
@@ -213,6 +221,13 @@ const AdvancedTextEditor = ({
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
+
+    const writeAllowedByPolicy = useChannelWriteAccess(channelId);
+
+    // Fetched here, alongside the write decision, only so it is cached: the management
+    // controls around the channel (members, bookmarks, header menu, Channel Settings)
+    // read it through haveIChannelPermission rather than fetching their own.
+    useChannelManagementAccess(channelId);
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS) : false;
@@ -240,8 +255,9 @@ const AdvancedTextEditor = ({
     const wysiwygRef = useRef<WysiwygEditorHandle>(null);
     const formattingBarRef = useRef<FormattingBarHandle>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
-    const saveDraftFrame = useRef<NodeJS.Timeout>(undefined);
+    const pendingDraftSave = useRef<{key: string; save: () => void; timeout: NodeJS.Timeout}>(undefined);
     const draftRef = useRef(draftFromStore);
+    const locationRef = useLatest({channelId, rootId});
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -253,11 +269,18 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const stagedAttributes = useStagedPostAttributes();
+    const clearStagedAttributes = stagedAttributes.clear;
 
-    const readOnlyChannel = !canPost;
+    // Worked out once: the chips, the `+` in the action row and the add control
+    // after the chips all read the same fields and the same permission answer.
+    const composerAttributes = useComposerAttributes(channelId, stagedAttributes.values, stagedAttributes.added);
+
+    const readOnlyChannel = !canPost || !writeAllowedByPolicy;
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const postAttributesEnabled = useSelector(isPostAttributesEnabled);
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
@@ -276,9 +299,30 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
+        let prefix = StoragePrefixes.DRAFT;
+        let suffix = draftToChange.channelId;
+        if (draftToChange.rootId) {
+            prefix = StoragePrefixes.COMMENT_DRAFT;
+            suffix = draftToChange.rootId;
         }
+        const key = storageKey || `${prefix}${suffix}`;
+
+        const pendingSave = pendingDraftSave.current;
+        if (pendingSave) {
+            clearTimeout(pendingSave.timeout);
+            pendingDraftSave.current = undefined;
+
+            // A save still pending for another channel or thread is the only copy of that draft.
+            if (pendingSave.key !== key) {
+                pendingSave.save();
+            }
+        }
+
+        // A draft for a channel or thread the user has left is saved right away, as leaving it does.
+        const location = locationRef.current;
+        const leftLocation = draftToChange.channelId !== location.channelId || draftToChange.rootId !== location.rootId;
+        const instant = options.instant || leftLocation;
+        const show = options.show || leftLocation;
 
         // A late async callback (slow submit, finished file upload) may call handleDraftChange
         // with the channelId/rootId captured when it started. If the user has since moved to
@@ -293,14 +337,6 @@ const AdvancedTextEditor = ({
         });
 
         const saveDraft = () => {
-            let prefix = StoragePrefixes.DRAFT;
-            let suffix = draftToChange.channelId;
-            if (draftToChange.rootId) {
-                prefix = StoragePrefixes.COMMENT_DRAFT;
-                suffix = draftToChange.rootId;
-            }
-            const key = storageKey || `${prefix}${suffix}`;
-
             if (isPostDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
                 return;
@@ -314,7 +350,7 @@ const AdvancedTextEditor = ({
                 return;
             }
 
-            if (options.show) {
+            if (show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
@@ -322,16 +358,18 @@ const AdvancedTextEditor = ({
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
         };
 
-        if (options.instant) {
+        if (instant) {
             saveDraft();
         } else {
-            saveDraftFrame.current = setTimeout(() => {
+            const timeout = setTimeout(() => {
+                pendingDraftSave.current = undefined;
                 saveDraft();
             }, Constants.SAVE_DRAFT_TIMEOUT);
+            pendingDraftSave.current = {key, save: saveDraft, timeout};
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch, isInEditMode, storageKey]);
+    }, [dispatch, isInEditMode, locationRef, storageKey]);
 
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
@@ -362,10 +400,12 @@ const AdvancedTextEditor = ({
             message: input.value ?? '',
         });
 
-        handleDraftChange({
-            ...draftRef.current,
-            message: res.message,
-        });
+        if (!replaceTextboxValue(input, res.message)) {
+            handleDraftChange({
+                ...draftRef.current,
+                message: res.message,
+            });
+        }
 
         setTimeout(() => {
             const textbox = textboxRef.current?.getInputBox();
@@ -431,11 +471,27 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+
+    // The server refuses a burn-on-read post with attributes, every time, so
+    // the composer doesn't let the two meet: a staged chip disables
+    // burn-on-read, and burn-on-read disables adding attributes. Any chip, not
+    // only one with a value, since an empty text chip can still be filled in.
+    const burnOnReadBlockedReason = postAttributesEnabled && composerAttributes.chips.length > 0 ? formatMessage({
+        id: 'post_attributes.composer.cannot_burn_on_read',
+        defaultMessage: 'Messages with attributes can’t be burn-on-read',
+        description: 'Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written.',
+    }) : undefined;
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
         isBurnOnReadSendable: burnOnReadSendable,
-    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
+        hasBurnOnReadSet,
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false, burnOnReadBlockedReason);
+    const addAttributesBlockedReason = hasBurnOnReadSet ? formatMessage({
+        id: 'post_attributes.composer.cannot_add_burn_on_read',
+        defaultMessage: 'Burn-on-read messages can’t have attributes',
+        description: 'Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read.',
+    }) : undefined;
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -448,24 +504,43 @@ const AdvancedTextEditor = ({
         setShowPreview,
         handleDraftChange,
         prioritySubmitCheck,
-        undefined,
+        clearStagedAttributes,
         afterSubmit,
         undefined,
         isInEditMode,
         postId,
+        composerAttributes.values,
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        handleSubmit(submittingDraft, schedulingInfo, options);
-        if (!errorClass) {
+        const announceMessageSent = () => {
             const messageStatusElement = messageStatusRef.current;
-            const messageStatusInnerText = messageStatusElement?.textContent;
-            if (messageStatusInnerText === 'Message Sent') {
-                messageStatusElement!.textContent = 'Message Sent &nbsp;';
-            } else {
-                messageStatusElement!.textContent = 'Message Sent';
+            if (!messageStatusElement) {
+                return;
             }
+            if (messageStatusElement.textContent === 'Message Sent') {
+                messageStatusElement.textContent = 'Message Sent &nbsp;';
+            } else {
+                messageStatusElement.textContent = 'Message Sent';
+            }
+        };
+
+        const result = handleSubmit(submittingDraft, schedulingInfo, options);
+        if (errorClass) {
+            return result;
         }
+
+        if (!schedulingInfo) {
+            announceMessageSent();
+            return result;
+        }
+
+        return result.then((response) => {
+            if (!response?.error && !response?.skipped) {
+                announceMessageSent();
+            }
+            return response;
+        });
     }, [errorClass, handleSubmit]);
 
     const handleCancel = useCallback(() => {
@@ -500,6 +575,10 @@ const AdvancedTextEditor = ({
     const isDraftSendable = isValidPersistentNotifications && burnOnReadSendable;
 
     const handleSubmitWrapper = useCallback(() => {
+        if (readOnlyChannel) {
+            return;
+        }
+
         const isEmptyPost = isPostDraftEmpty(draft);
 
         if (isInEditMode && isEmptyPost) {
@@ -525,7 +604,7 @@ const AdvancedTextEditor = ({
         }
 
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, isDraftSendable]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, readOnlyChannel, isDraftSendable]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -549,8 +628,11 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
+        if (readOnlyChannel) {
+            return;
+        }
         handleSubmitWithErrorHandling();
-    }, [handleSubmitWithErrorHandling]);
+    }, [handleSubmitWithErrorHandling, readOnlyChannel]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -673,6 +755,12 @@ const AdvancedTextEditor = ({
         setServerError(null);
     }, [channelId, rootId]);
 
+    // Attribute values are composer state, not part of the draft, so
+    // switching channel or thread has to discard them explicitly.
+    useEffect(() => {
+        clearStagedAttributes();
+    }, [channelId, rootId, clearStagedAttributes]);
+
     // Register listener to store the draft when the page unloads
     useEffect(() => {
         const callback = () => handleDraftChange(draft, {instant: true, show: true});
@@ -688,7 +776,7 @@ const AdvancedTextEditor = ({
     }, [draft]);
 
     const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
-        handleSubmitWithErrorHandling(undefined, schedulingInfo);
+        return handleSubmitWithErrorHandling(undefined, schedulingInfo);
     }, [handleSubmitWithErrorHandling]);
 
     // Store the previous draft when changing post or channels
@@ -704,12 +792,18 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
+    const schedulingBlockedReason = composerAttributes.values.length > 0 ? formatMessage({
+        id: 'post_attributes.composer.cannot_schedule',
+        defaultMessage: 'Messages with attributes can’t be scheduled',
+        description: 'Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written.',
+    }) : undefined;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
+            schedulingBlockedReason={schedulingBlockedReason}
         />
     );
 
@@ -730,6 +824,13 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'Write to {channelDisplayName}',
             },
             {channelDisplayName},
+        );
+    } else if (!writeAllowedByPolicy) {
+        createMessage = formatMessage(
+            {
+                id: 'create_post.write_access_denied',
+                defaultMessage: 'You do not have permission to post in this channel.',
+            },
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(
@@ -866,6 +967,18 @@ const AdvancedTextEditor = ({
                     hideRemoteUserHour={showOooWarning}
                 />
             )}
+            {postAttributesEnabled && !isInEditMode && composerAttributes.chips.length > 0 && (
+                <div className='AdvancedTextEditor__attributes'>
+                    <PostAttributesComposer
+                        chips={composerAttributes.chips}
+                        addable={composerAttributes.addable}
+                        justAdded={stagedAttributes.justAdded}
+                        onAdd={stagedAttributes.add}
+                        onChange={stagedAttributes.change}
+                        onRemove={stagedAttributes.remove}
+                    />
+                </div>
+            )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
@@ -971,6 +1084,13 @@ const AdvancedTextEditor = ({
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
+                                {postAttributesEnabled && !isInEditMode && (
+                                    <PostAttributesButton
+                                        fields={composerAttributes.addable}
+                                        onSelect={stagedAttributes.add}
+                                        disabledReason={addAttributesBlockedReason}
+                                    />
+                                )}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}
@@ -1008,6 +1128,7 @@ const AdvancedTextEditor = ({
                 <EditPostFooter
                     onSave={handleSubmitWrapper}
                     onCancel={handleCancel}
+                    disabled={readOnlyChannel}
                 />
             )}
             <div

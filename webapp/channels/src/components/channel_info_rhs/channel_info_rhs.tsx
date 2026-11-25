@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
@@ -17,6 +17,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
 import Scrollbars from 'components/common/scrollbars';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -25,6 +26,8 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 import RenameChannelModal from 'components/rename_channel_modal';
 import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -93,6 +96,17 @@ export interface Props {
     };
 }
 
+const archivedTitleMessages: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_info_rhs.archived.title',
+        defaultMessage: 'This channel is archived.',
+    }),
+    board: defineMessage({
+        id: 'channel_info_rhs.archived.title.board',
+        defaultMessage: 'This board is archived.',
+    }),
+};
+
 const ChannelInfoRhs = ({
     channel,
     channelStats,
@@ -109,6 +123,7 @@ const ChannelInfoRhs = ({
     canManageProperties,
     actions,
 }: Props) => {
+    const channelKind = useChannelKind(channel);
     const currentUserId = currentUser.id;
     const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
 
@@ -180,6 +195,11 @@ const ChannelInfoRhs = ({
 
     const canEditChannelProperties = !isArchived && canManageProperties;
 
+    // Unarchiving is authorised on manage_team, which the management decision does not
+    // reach through the permission selectors, and an archived channel mounts no composer
+    // to prefetch it.
+    const managementAllowedByPolicy = useChannelManagementAccess(isArchived ? channel.id : '');
+
     return (
         <div
             id='rhsContainer'
@@ -201,11 +221,8 @@ const ChannelInfoRhs = ({
                                 icon={<Icon glyph={<ArchiveOutlineIcon/>}/>}
                                 title={
                                     <>
-                                        <FormattedMessage
-                                            id='channel_info_rhs.archived.title'
-                                            defaultMessage='This channel is archived.'
-                                        />
-                                        {channel.name !== Constants.DEFAULT_CHANNEL && (
+                                        <FormattedMessage {...archivedTitleMessages[channelKind]}/>
+                                        {channel.name !== Constants.DEFAULT_CHANNEL && managementAllowedByPolicy && (
                                             <ChannelPermissionGate
                                                 channelId={channel.id}
                                                 teamId={channel.team_id}
@@ -228,6 +245,7 @@ const ChannelInfoRhs = ({
                         </ArchivedNoticeContainer>
                     )}
                     <TopButtons
+                        channelKind={channelKind}
                         channelType={channel.type}
                         channelURL={channelURL}
                         isFavorite={isFavorite}

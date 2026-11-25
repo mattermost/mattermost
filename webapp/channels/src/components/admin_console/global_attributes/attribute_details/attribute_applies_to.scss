@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.AttributeAppliesTo {
-    margin-top: 20px;
-}
+// Spacing between Definition and Applies to comes from
+// .admin-console__content { gap: var(--spacing-xl) }.
 
 .AttributeAppliesTo__trigger {
     align-items: center;

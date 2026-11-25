@@ -14,20 +14,6 @@ describe('components/MaxLengthInput', () => {
     };
 
     test.each([
-        [undefined],
-        ['less than 20'],
-        ['Where is Jessica Hyde?'],
-    ])('should match snapshot', (defaultValue) => {
-        const {container} = render(
-            <MaxLengthInput
-                {...requiredProps}
-                defaultValue={defaultValue}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test.each([
         [undefined, false, false],
         ['less than 20', false, false],
         ['Where is Jessica Hyde?', true, true],

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -11,15 +12,31 @@ import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/ent
 
 import * as Menu from 'components/menu';
 
+import ChannelsMissingValuesBanner from './channels_missing_values_banner';
+import type {NotifyStatus} from './channels_missing_values_banner';
+import {useChannelsWithoutValueModal} from './channels_without_value_modal';
+import {useNotifyChannelAdmins} from './notify_channel_admins_modal';
 import {changePolicyLabelFor, displayLocationLabel} from './summary';
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
 import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, CHANNEL_DISPLAY_LOCATION_OPTIONS, isOrderedChangePolicy} from './types';
+import useChannelMissingValues from './use_channel_missing_values';
+
+import {notifyChannelAdminsOfMissingValue} from '../../utils';
 
 import './channels_resource_settings.scss';
 
 // A constant, not generated per instance: an attribute applies to Channels at
 // most once, so only one of these can exist on a page.
 const LOCATIONS_LABEL_ID = 'channelsResourceLocationsLabel';
+const MISSING_VALUES_BANNER_BODY_ID = 'channelsResourceMissingValuesBannerBody';
+
+type NotifyState = {
+    fieldId?: string;
+    status: NotifyStatus;
+    queuedAdminCount?: number;
+    truncated: boolean;
+    failureMessage?: string;
+};
 
 type Props = {
     value: ChannelResourceConfig;
@@ -30,16 +47,30 @@ type Props = {
     ordered?: boolean;
 
     disabled?: boolean;
+
+    // The persisted linked channel field's ID. Undefined in create mode --
+    // the attribute has no ID yet, so "Notify all channel admins" has nothing
+    // to point recipients at and is hidden.
+    channelFieldId?: string;
+
+    // For banner/modal copy. Falls back to a generic phrase when unset.
+    attributeDisplayName?: string;
+
+    // See useChannelMissingValues' revision.
+    channelFieldUpdateAt?: number;
 };
 
 /**
  * The settings an attribute carries on channels: whether a value is required,
  * where it displays, and how it may change once set.
  *
- * Never dispatches and never saves. Two hosts render it — the Applies-to card's
- * Channels row and the Classification page — and each owns its own Save.
+ * Never dispatches and never saves, with one exception: the Required toggle's
+ * banner offers "Notify all channel admins", which does perform its own POST
+ * (see handleNotify) since there is nowhere else for that action to live.
+ * Two hosts render this component — the Applies-to card's Channels row and
+ * the Classification page — and each still owns its own Save.
  */
-const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) => {
+const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFieldId, attributeDisplayName, channelFieldUpdateAt}: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
@@ -49,9 +80,159 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
     // does nothing until the flag is enabled.
     const requiredEnforcementEnabled = useSelector(isChannelAttributesRequiredEnabled);
 
+    // This component only mounts while its host's Channels row is expanded,
+    // so the fetch is already deferred until the admin actually looks at this
+    // section -- do not lift this hook to an always-mounted ancestor without
+    // preserving that property. Also tied to requiredEnforcementEnabled: while
+    // the kill switch is off the Required field (and its banner) don't render
+    // at all, so there is nothing for this fetch to feed.
+    const missingValues = useChannelMissingValues({fieldId: channelFieldId, enabled: requiredEnforcementEnabled, revision: channelFieldUpdateAt});
+    const openChannelsWithoutValueModal = useChannelsWithoutValueModal();
+    const promptNotifyChannelAdmins = useNotifyChannelAdmins();
+
+    // Tagged with the field it belongs to: this instance can be re-pointed at
+    // a different attribute via props, and the previous field's status or
+    // queued counts must not show on the new field's banner.
+    const [notifyState, setNotifyState] = useState<NotifyState>({fieldId: undefined, status: 'idle', truncated: false});
+    const currentNotifyState: NotifyState = notifyState.fieldId === channelFieldId ? notifyState : {fieldId: channelFieldId, status: 'idle', truncated: false};
+    const notifyStatus = currentNotifyState.status;
+    const queuedAdminCount = currentNotifyState.queuedAdminCount;
+    const queuedTruncated = currentNotifyState.truncated;
+    const notifyFailureMessage = currentNotifyState.failureMessage;
+    const [attentionKey, setAttentionKey] = useState(0);
+    const [attemptedEnable, setAttemptedEnable] = useState(false);
+    const bannerRef = useRef<HTMLDivElement>(null);
+
+    // Guards handleNotify's post-await setState: the component can unmount
+    // (host collapses this row) or channelFieldId can change to a different
+    // attribute (same instance, new props) while the notify request is still
+    // in flight. Without this, a slow notify for field A can land after the
+    // admin has switched to field B and stamp B's banner with A's result.
+    const mountedRef = useRef(true);
+    useEffect(() => () => {
+        mountedRef.current = false;
+    }, []);
+    const channelFieldIdRef = useRef(channelFieldId);
+    channelFieldIdRef.current = channelFieldId;
+
+    // The derived currentNotifyState above already hides a stale result for
+    // the render in which the field changes; this drops it so switching back
+    // to the earlier field does not resurrect it.
+    useEffect(() => {
+        setNotifyState((prev) => (prev.fieldId === channelFieldId ? prev : {fieldId: channelFieldId, status: 'idle', truncated: false}));
+    }, [channelFieldId]);
+
+    const missingCount = missingValues.summary?.totalCount ?? 0;
+    const sharedCount = missingValues.summary?.sharedCount ?? 0;
+    const savedRequired = missingValues.summary?.required ?? false;
+
+    // Blocked only when the saved field is not required, matching the
+    // server, which refuses only a saved false -> true. Turning Required OFF
+    // must always work: that is the escape hatch for a field that is already
+    // required while channels are non-compliant (e.g. after an unarchive),
+    // and turning it back on before saving is no change at all.
+    const blockedByMissingValues = !value.required && !savedRequired && missingCount > 0;
+
+    // Until the counts arrive, "nothing missing" is only a fallback, so
+    // Required can't be turned on yet. A failed fetch leaves it to the
+    // server, which refuses the save with its own message.
+    const requiredStatusPending = !value.required && !missingValues.summary && !missingValues.failed;
+
     const handleRequiredToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        if (blockedByMissingValues) {
+            setAttentionKey((n) => n + 1);
+            setAttemptedEnable(true);
+            bannerRef.current?.scrollIntoView({block: 'nearest'});
+            return;
+        }
         onChange({...value, required: event.target.checked});
-    }, [onChange, value]);
+    }, [blockedByMissingValues, onChange, value]);
+
+    const handleViewList = useCallback(() => {
+        if (!channelFieldId) {
+            return;
+        }
+        openChannelsWithoutValueModal({
+            fieldId: channelFieldId,
+            attributeDisplayName,
+            totalCount: missingCount + sharedCount,
+            sharedCount,
+        });
+    }, [openChannelsWithoutValueModal, channelFieldId, attributeDisplayName, missingCount, sharedCount]);
+
+    const handleNotify = useCallback(async () => {
+        if (!channelFieldId || !missingValues.summary) {
+            return;
+        }
+        const notifyFieldId = channelFieldId;
+
+        // Still targeting the field the admin actually confirmed for below
+        // (the POST always goes out for notifyFieldId); this guard only
+        // decides whether this component instance is still the right place
+        // to reflect that result. Defined before the confirm await (not
+        // just the POST await after it): the admin can switch fields or
+        // this row can collapse/unmount while the confirmation modal itself
+        // is still open, and the first thing that runs on the other side of
+        // that await -- setNotifyState({status: 'notifying'}) -- must not skip the
+        // same check the rest of this function already applies.
+        const stillCurrent = () => mountedRef.current && channelFieldIdRef.current === notifyFieldId;
+
+        // Channel admins were notified recently, so the server would refuse
+        // this one: say so now rather than after the admin confirms. The
+        // server releases the cooldown when a run reaches nobody, possibly
+        // after this summary was read, so it is refetched for the next click.
+        const waitMillis = missingValues.summary.notifyAvailableAt - Date.now();
+        if (waitMillis > 0) {
+            setNotifyState({
+                fieldId: notifyFieldId,
+                status: 'notify_failed',
+                truncated: false,
+                failureMessage: formatMessage(messages.notifyCoolingDown, {count: Math.ceil(waitMillis / 60000)}),
+            });
+            missingValues.reload();
+            return;
+        }
+
+        const confirmed = await promptNotifyChannelAdmins({
+            totalCount: missingValues.summary.totalCount,
+            sharedCount: missingValues.summary.sharedCount,
+            uniqueAdminCount: missingValues.summary.uniqueAdminCount,
+            noAdminCount: missingValues.summary.noAdminCount,
+            messagePreview: missingValues.summary.messagePreview,
+            attributeDisplayName,
+        });
+        if (!confirmed || !stillCurrent()) {
+            return;
+        }
+
+        setNotifyState({fieldId: notifyFieldId, status: 'notifying', truncated: false});
+        try {
+            const result = await notifyChannelAdminsOfMissingValue(notifyFieldId);
+            if (stillCurrent()) {
+                setNotifyState({
+                    fieldId: notifyFieldId,
+                    status: 'queued',
+                    queuedAdminCount: result.queued_admin_count,
+                    truncated: result.truncated,
+                });
+            }
+        } catch (error) {
+            if (stillCurrent()) {
+                // A throttled run says how long until the next one is
+                // accepted; anything else gets the banner's generic copy.
+                const {status_code: statusCode, message} = (error ?? {}) as {status_code?: number; message?: string};
+                setNotifyState({
+                    fieldId: notifyFieldId,
+                    status: 'notify_failed',
+                    truncated: false,
+                    failureMessage: statusCode === 429 ? message : undefined,
+                });
+            }
+        }
+        if (stillCurrent()) {
+            missingValues.reload();
+        }
+    }, [channelFieldId, missingValues, promptNotifyChannelAdmins, attributeDisplayName, formatMessage]);
 
     const handleChangePolicySelect = useCallback((changePolicy: ChannelChangePolicy) => {
         onChange({...value, changePolicy});
@@ -105,7 +286,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
                                     role='switch'
                                     className='ChannelsResourceSettings__switchInput'
                                     checked={value.required}
-                                    disabled={disabled}
+                                    disabled={disabled || requiredStatusPending}
                                     onChange={handleRequiredToggle}
                                     aria-label={formatMessage(messages.requiredLabel)}
                                     data-testid='channelsResourceRequired-button'
@@ -119,6 +300,35 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
                         <p className='ChannelsResourceSettings__help'>
                             <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
                         </p>
+                        {/* Permanently mounted with content swapped, so a live region
+                            inserted at the same instant as its text is reliably
+                            announced. role='status' (not 'alert'): this is
+                            informational and present on load, not an interruption. */}
+                        <div
+                            ref={bannerRef}
+                            role='status'
+                            aria-live='polite'
+                            className={classNames('ChannelsResourceSettings__missingBanner', {'ChannelsResourceSettings__missingBanner--attention': attentionKey > 0})}
+                            onAnimationEnd={() => setAttentionKey(0)}
+                        >
+                            {missingCount > 0 && (
+                                <ChannelsMissingValuesBanner
+                                    count={missingCount}
+                                    attributeDisplayName={attributeDisplayName}
+                                    canNotify={Boolean(channelFieldId)}
+                                    alreadyRequired={savedRequired}
+                                    blocked={blockedByMissingValues}
+                                    attemptedEnable={attemptedEnable}
+                                    status={notifyStatus}
+                                    queuedAdminCount={queuedAdminCount}
+                                    queuedTruncated={queuedTruncated}
+                                    notifyFailureMessage={notifyFailureMessage}
+                                    bodyId={MISSING_VALUES_BANNER_BODY_ID}
+                                    onNotify={handleNotify}
+                                    onViewList={handleViewList}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -205,6 +415,10 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
 };
 
 const messages = defineMessages({
+    notifyCoolingDown: {
+        id: 'admin.global_attributes.applies_to.channels.missing_values.notify_cooling_down',
+        defaultMessage: 'Channel admins were recently notified about this. You can send another notification in {count, plural, one {# minute} other {# minutes}}.',
+    },
     on: {id: 'admin.global_attributes.applies_to.channels.toggle.on', defaultMessage: 'On'},
     off: {id: 'admin.global_attributes.applies_to.channels.toggle.off', defaultMessage: 'Off'},
     requiredLabel: {id: 'admin.global_attributes.applies_to.channels.required.label', defaultMessage: 'Required'},

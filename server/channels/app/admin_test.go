@@ -4,12 +4,15 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"maps"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -102,6 +105,183 @@ func TestGetLatestVersion(t *testing.T) {
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
 	})
+
+	var requests atomic.Int32
+	countingServer := func(t *testing.T, status int) *httptest.Server {
+		requests.Store(0)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(status)
+			_, err := w.Write(validJSON)
+			assert.NoError(t, err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+
+	t.Run("a failure is cached", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+
+		for range 2 {
+			_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+			require.NotNil(t, appErr)
+			assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		}
+		assert.Equal(t, int32(1), requests.Load())
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "the cached failure is returned until it expires")
+		assert.Nil(t, release)
+	})
+
+	t.Run("toggling security alerts clears a cached failure", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+		_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+		require.NotNil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://other.example.com") })
+		_, appErr = th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "an unrelated config change keeps the cached failure")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+	})
+
+	t.Run("a cancelled request is not cached", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		ok := countingServer(t, http.StatusOK)
+
+		ctx, cancel := context.WithCancel(th.Context.Context())
+		cancel()
+		_, appErr := th.App.GetLatestVersion(th.Context.WithContext(ctx), ok.URL)
+		require.NotNil(t, appErr)
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+		assert.Equal(t, int32(1), requests.Load())
+	})
+
+	t.Run("no request while security alerts are off", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		ok := countingServer(t, http.StatusOK)
+		_, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+		require.Nil(t, appErr)
+		require.Equal(t, int32(1), requests.Load())
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+		})
+
+		assertDisabled := func(t *testing.T) {
+			t.Helper()
+			release, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+			require.NotNil(t, appErr)
+			assert.Nil(t, release)
+			assert.Equal(t, "app.admin.get_latest_version.disabled.app_error", appErr.Id)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		}
+		assertDisabled(t)
+		require.NoError(t, th.App.clearLatestVersionCache())
+		assertDisabled(t)
+		assert.Equal(t, int32(1), requests.Load())
+	})
+}
+
+// Not parallel: overrides the package-level testSiteURLTimeout.
+func TestTestSiteURL(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("valid site URL", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/api/v4/system/ping", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("non-200 response fails", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("not found"))
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "status_code=404", appErr.DetailedError)
+	})
+
+	t.Run("non-200 response with a stalled body fails without waiting for the body", func(t *testing.T) {
+		release := make(chan struct{})
+		connClosed := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Length", "100")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("partial"))
+			w.(http.Flusher).Flush()
+			select {
+			case <-r.Context().Done():
+				close(connClosed)
+			case <-release:
+			}
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, "status_code=503", appErr.DetailedError)
+		assert.Less(t, elapsed, testSiteURLTimeout/2)
+
+		select {
+		case <-connClosed:
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "response body was not closed")
+		}
+	})
+
+	t.Run("server that never responds times out", func(t *testing.T) {
+		originalTimeout := testSiteURLTimeout
+		testSiteURLTimeout = 200 * time.Millisecond
+		defer func() { testSiteURLTimeout = originalTimeout }()
+
+		release := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			<-release
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		var netErr net.Error
+		require.ErrorAs(t, appErr.Unwrap(), &netErr)
+		assert.True(t, netErr.Timeout())
+		assert.GreaterOrEqual(t, elapsed, testSiteURLTimeout)
+		assert.Less(t, elapsed, 5*time.Second)
+	})
 }
 
 type queryLogsCluster struct {
@@ -184,6 +364,7 @@ func TestQueryLogs(t *testing.T) {
 				LogLevels:   []string{"error"},
 				DateFrom:    "2026-01-01 00:00:00.000 +00:00",
 				DateTo:      "2026-01-02 00:00:00.000 +00:00",
+				Search:      "websocket",
 			}
 			_, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
 			require.Nil(t, appErr)
