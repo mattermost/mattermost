@@ -66,11 +66,23 @@ jobs:
           echo "EOF" >> ${GITHUB_ENV}
 
       - name: release/semver-bump
-        uses: mattermost/action-bump-semver@51a0e77acb7b1769f17ce3e0ee89f0a3b0978d51
         id: bump-semver
-        with:
-          current_version: ${{ env.LATEST_MODULE_TAG }}
-          level: ${{ inputs.semver_bump }}
+        env:
+          SEMVER_BUMP: ${{ inputs.semver_bump }}
+        run: |
+          # This is rejecting leading zeros: semver forbids them and bash arithmetic would read them as octal.
+          if [[ ! "$LATEST_MODULE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Error: Latest module tag '$LATEST_MODULE_TAG' is not vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+          major=${BASH_REMATCH[1]} minor=${BASH_REMATCH[2]} patch=${BASH_REMATCH[3]}
+          case "$SEMVER_BUMP" in
+            major) major=$((major + 1)) minor=0 patch=0 ;;
+            minor) minor=$((minor + 1)) patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+            *) echo "Error: Unsupported semver bump '$SEMVER_BUMP'."; exit 1 ;;
+          esac
+          echo "new_version=v${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
 
       - name: release/create-annotated-tag
         uses: mattermost/actions/delivery/create-tag@d5174b860704729f4c14ef8489ae075742bfa08a
