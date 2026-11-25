@@ -1650,7 +1650,7 @@ The server must be connected to the internet to generate previews. This connecti
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: The server generates a preview of the first website, image, or YouTube video linked in a message. Users can disable website previews, but not image or YouTube previews, under <strong>Settings &gt; Display &gt; Website Link Previews</strong>.</li><li><strong>false</strong>: <strong>(Default)</strong> All previews are disabled and the server does not request metadata for any links contained in messages.</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> The server generates a preview of the first website, image, or YouTube video linked in a message. Users can disable website previews, but not image or YouTube previews, under <strong>Settings &gt; Display &gt; Website Link Previews</strong>.</li><li><strong>false</strong>: Previews of the first website, image, or YouTube link in a message are disabled, and the server does not request metadata for that link. Permalink previews are controlled separately by <strong>Enable message link previews</strong>. Images in messages are not affected, whether they use Markdown image syntax or come from message attachments posted by integrations: clients still load them, through the image proxy when it is enabled, and the server still fetches their metadata.</li></ul></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLinkPreviews</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLELINKPREVIEWS</code></li></ul></td>
 </tr>
 </tbody>
