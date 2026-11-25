@@ -4,6 +4,7 @@
 import React, {useEffect, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
@@ -32,12 +33,15 @@ const messages = defineMessages({
 export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();
     const enrollmentEnabled = useSelector(getConfig).PasskeyEnrollmentEnabled === 'true';
+    const location = useLocation();
 
     // Fixed at mount: a skip is recorded against the login that was current when the prompt opened, and
-    // nothing that changes afterwards reopens it.
+    // nothing that changes afterwards reopens it. The action param is stripped from the URL right after the
+    // first render, so it is read here, not later.
     const [loginKey] = useState(() => Client4.getCSRFFromCookie());
     const [eligible] = useState(() => (
         enrollmentEnabled &&
+        new URLSearchParams(location.search).get('action') !== 'open_security_settings' &&
         !isDesktopApp() &&
         typeof window.PublicKeyCredential !== 'undefined' &&
         !isPasskeySession() &&

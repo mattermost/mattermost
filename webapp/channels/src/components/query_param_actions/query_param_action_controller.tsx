@@ -8,6 +8,7 @@ import {useHistory, useLocation} from 'react-router-dom';
 import {openModal} from 'actions/views/modals';
 
 import InvitationModal from 'components/invitation_modal';
+import UserSettingsModal from 'components/user_settings/modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -26,6 +27,14 @@ function QueryParamActionController() {
         open_invitation_modal: {
             modalId: ModalIdentifiers.INVITATION,
             dialogType: InvitationModal,
+        },
+        open_security_settings: {
+            modalId: ModalIdentifiers.USER_SETTINGS,
+            dialogType: UserSettingsModal,
+            dialogProps: {
+                isContentProductSettings: false,
+                activeTab: 'security',
+            },
         },
     };
 

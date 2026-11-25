@@ -66,6 +66,26 @@ describe('QueryParamActionController', () => {
         );
     });
 
+    it('should open the account settings modal on the Security tab for open_security_settings', () => {
+        renderWithContext(
+            <MemoryRouter initialEntries={['/?action=open_security_settings']}>
+                <Route
+                    path='/'
+                    component={QueryParamActionController}
+                />
+            </MemoryRouter>,
+        );
+
+        expect(mockDispatch).toHaveBeenCalledWith(
+            openModal<any>({
+                modalId: 'user_settings',
+                dialogType: expect.any(Function),
+                dialogProps: {isContentProductSettings: false, activeTab: 'security'},
+            }),
+        );
+        expect(mockHistory.replace).toHaveBeenCalledWith({search: ''});
+    });
+
     it('should not dispatch any action when action query parameter is not present', () => {
         renderWithContext(
             <MemoryRouter initialEntries={['/']}>

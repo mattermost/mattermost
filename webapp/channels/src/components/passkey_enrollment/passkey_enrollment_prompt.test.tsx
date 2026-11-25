@@ -89,6 +89,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         Reflect.deleteProperty(window, 'PublicKeyCredential');
         expireCookie('MMCSRF');
         expireCookie('MMLOGINMETHOD');
+        window.history.replaceState({}, '', '/');
     });
 
     test('is shown when every condition holds', async () => {
@@ -121,6 +122,9 @@ describe('PasskeyEnrollmentPrompt', () => {
         ['there is no CSRF cookie', () => {
             expireCookie('MMCSRF');
         }],
+        ['the page was opened to add a passkey in Profile', () => {
+            window.history.pushState({}, '', '/?action=open_security_settings');
+        }],
     ])('renders nothing when %s', async (_name, arrange) => {
         const enabled = arrange() ?? 'true';
         const {container} = renderPrompt(enabled);
@@ -130,6 +134,15 @@ describe('PasskeyEnrollmentPrompt', () => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(container).toBeEmptyDOMElement();
         expect(getSessions).not.toHaveBeenCalled();
+    });
+
+    test('leaves the prompt due when the page was opened to add a passkey in Profile', async () => {
+        window.history.pushState({}, '', '/?action=open_security_settings');
+        renderPrompt();
+
+        await new Promise((r) => setTimeout(r, 50));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
     });
 
     describe('the current session', () => {
