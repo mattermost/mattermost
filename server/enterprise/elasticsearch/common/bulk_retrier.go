@@ -44,7 +44,8 @@ type retryItem struct {
 type BulkRetrier struct {
 	backend BulkBackend
 	logger  mlog.LoggerIFace
-	backoff time.Duration
+	// Backoff is the wait before the first round. It doubles each round.
+	Backoff time.Duration
 
 	mut     sync.Mutex
 	pending []retryItem
@@ -58,7 +59,7 @@ type BulkRetrier struct {
 }
 
 func NewBulkRetrier(backend BulkBackend, logger mlog.LoggerIFace) *BulkRetrier {
-	return &BulkRetrier{backend: backend, logger: logger, backoff: bulkRetryBackoff}
+	return &BulkRetrier{backend: backend, logger: logger, Backoff: bulkRetryBackoff}
 }
 
 // Handle never blocks. It is called from the bulk indexer worker.
@@ -123,7 +124,7 @@ func (r *BulkRetrier) run() {
 		}
 		r.mut.Unlock()
 
-		time.Sleep(r.backoff << round)
+		time.Sleep(r.Backoff << round)
 		r.logger.Warn("Bulk items unconfirmed, checking documents", mlog.Int("num_items", len(items)))
 		for len(items) > 0 {
 			n := min(len(items), bulkRetryChunkSize)

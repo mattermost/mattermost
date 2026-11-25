@@ -51,7 +51,7 @@ func (f *fakeBackend) Apply(_ context.Context, item BulkItem) (int, error) {
 
 func newTestRetrier(t *testing.T, b *fakeBackend) *BulkRetrier {
 	r := NewBulkRetrier(b, mlog.CreateConsoleTestLogger(t))
-	r.backoff = 0
+	r.Backoff = 0
 	return r
 }
 
