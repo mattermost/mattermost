@@ -641,6 +641,32 @@ export const rules = {
             };
         },
     },
+    'no-url-assertions': {
+        meta: {type: 'problem', schema: []},
+        create(context) {
+            return {
+                CallExpression(node) {
+                    if (methodName(node) !== 'toHaveURL') {
+                        return;
+                    }
+                    // Playwright resolves toHaveURL('/path') against baseURL, which silently drops the server subpath
+                    // in subpath mode; a relative-URL assertion then passes against the wrong page.
+                    const arg = node.arguments[0];
+                    if (arg?.regex || arg?.type === 'NewExpression') {
+                        return;
+                    }
+                    const text = staticString(arg);
+                    if (text !== undefined && (text.startsWith('/') || !/^[a-z]+:\/\//i.test(text))) {
+                        context.report({
+                            node,
+                            message:
+                                'toHaveURL() with a path drops the server subpath; assert with toHavePath(pages.<page>.pathFor(...)) and the page ready part.',
+                        });
+                    }
+                },
+            };
+        },
+    },
     'disable-reason': {
         meta: {type: 'problem', schema: []},
         create(context) {

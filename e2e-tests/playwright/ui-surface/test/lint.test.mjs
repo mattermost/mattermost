@@ -118,6 +118,16 @@ test('no-floating-actions flags un-awaited actions and retrying assertions, not 
     assert.equal(lint('no-floating-actions', wrap('return btn.click();')).length, 0);
 });
 
+test('no-url-assertions flags path/relative toHaveURL, allows regex and absolute URLs', () => {
+    const wrap = (body) => `async function t() { ${body} }`;
+    assert.equal(lint('no-url-assertions', wrap('await expect(page).toHaveURL("/admin_console");')).length, 1);
+    // eslint-disable-next-line no-template-curly-in-string
+    assert.equal(lint('no-url-assertions', wrap('await expect(page).toHaveURL(`/team/${name}`);')).length, 1);
+    assert.equal(lint('no-url-assertions', wrap('await expect(page).toHaveURL(/\\/admin_console/);')).length, 0);
+    assert.equal(lint('no-url-assertions', wrap('await expect(page).toHaveURL("https://x.test/a");')).length, 0);
+    assert.equal(lint('no-url-assertions', wrap('await expect(x).toHaveText("/a");')).length, 0);
+});
+
 test('no-soft-assertions, no-conditional-logic, no-locator-action and disable-reason', () => {
     const wrap = (body) => `async function t() { ${body} }`;
     assert.equal(lint('no-soft-assertions', wrap('await expect.soft(x).toBeVisible();')).length, 1);
