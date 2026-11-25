@@ -392,6 +392,51 @@ describe('PasskeySection', () => {
         });
     });
 
+    describe('the delete dialog text', () => {
+        const forgetSentence = "If it's saved on this device, we'll ask your browser to remove it too.";
+
+        const openDialog = async () => {
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+            await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+            return screen.findByRole('dialog');
+        };
+
+        afterEach(() => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+        });
+
+        test('says the browser will be asked to remove the passkey when it can be', async () => {
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential: jest.fn()}), configurable: true});
+
+            const dialog = await openDialog();
+
+            expect(within(dialog).getByText(forgetSentence)).toBeInTheDocument();
+        });
+
+        test('promises nothing when the browser has no Signal API', async () => {
+            const dialog = await openDialog();
+
+            expect(within(dialog).getByText(/You will no longer be able to sign in with "Laptop"/)).toBeInTheDocument();
+            expect(within(dialog).queryByText(forgetSentence)).not.toBeInTheDocument();
+        });
+
+        test('keeps the passkey name in the text while the dialog fades out', async () => {
+            const dialog = await openDialog();
+
+            await userEvent.click(within(dialog).getByRole('button', {name: 'Delete'}));
+
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(within(screen.getByRole('dialog')).getByText(/sign in with "Laptop"/)).toBeInTheDocument();
+        });
+    });
+
     describe('adding a passkey', () => {
         let beginRegistration: jest.SpyInstance;
         let finishRegistration: jest.SpyInstance;

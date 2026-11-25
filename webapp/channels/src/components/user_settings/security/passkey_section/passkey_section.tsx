@@ -84,6 +84,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const [loadFailed, setLoadFailed] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const [toDelete, setToDelete] = useState<Passkey | null>(null);
+
+    // Separate from toDelete so the dialog keeps the passkey's name while it fades out.
+    const [showDelete, setShowDelete] = useState(false);
     const [name, setName] = useState('');
     const [adding, setAdding] = useState(false);
 
@@ -121,7 +124,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
 
     const confirmDelete = async () => {
         const passkey = toDelete;
-        setToDelete(null);
+        setShowDelete(false);
         if (!passkey) {
             return;
         }
@@ -234,7 +237,10 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                     <Button
                         emphasis='tertiary'
                         aria-label={formatMessage(messages.deleteLabel, {name: passkey.name})}
-                        onClick={() => setToDelete(passkey)}
+                        onClick={() => {
+                            setToDelete(passkey);
+                            setShowDelete(true);
+                        }}
                     >
                         <FormattedMessage
                             id='user.settings.passkeys.delete'
@@ -320,7 +326,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             <GenericModal
                 id='deletePasskeyModal'
                 compassDesign={true}
-                show={toDelete !== null}
+                show={showDelete}
                 modalHeaderText={
                     <FormattedMessage
                         id='user.settings.passkeys.deleteTitle'
@@ -338,8 +344,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                 destructive={true}
                 autoCloseOnConfirmButton={false}
                 handleConfirm={confirmDelete}
-                handleCancel={() => setToDelete(null)}
-                onHide={() => setToDelete(null)}
+                handleCancel={() => setShowDelete(false)}
+                onHide={() => setShowDelete(false)}
+                onExited={() => setToDelete(null)}
             >
                 <p>
                     <FormattedMessage
@@ -349,6 +356,15 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                         values={{name: toDelete?.name}}
                     />
                 </p>
+                {typeof window.PublicKeyCredential?.signalUnknownCredential === 'function' && (
+                    <p>
+                        <FormattedMessage
+                            id='user.settings.passkeys.deleteForgetOnDevice'
+                            defaultMessage={'If it\'s saved on this device, we\'ll ask your browser to remove it too.'}
+                            description='Second sentence of the passkey delete dialog, shown only in browsers that can be asked to remove a passkey; the browser may ignore the request.'
+                        />
+                    </p>
+                )}
             </GenericModal>
         </>
     );

@@ -35519,6 +35519,10 @@
     "defaultMessage": "Delete",
     "description": "Confirm button of the dialog for deleting a passkey."
   },
+  "user.settings.passkeys.deleteForgetOnDevice": {
+    "defaultMessage": "If it's saved on this device, we'll ask your browser to remove it too.",
+    "description": "Second sentence of the passkey delete dialog, shown only in browsers that can be asked to remove a passkey; the browser may ignore the request."
+  },
   "user.settings.passkeys.deleteLabel": {
     "defaultMessage": "Delete passkey {name}",
     "description": "Accessible name of the Delete button on one row of the passkey list; {name} is the passkey name the user gave it."
