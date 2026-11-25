@@ -207,6 +207,19 @@ def release_days(gh, result: Result) -> dict:
     return days
 
 
+def server_release_day(gh, version: Version, result: Result) -> date | None:
+    """The release's Release Day from its ``vX.Y.0`` milestone; a TODO when there is none."""
+    try:
+        day = milestones.release_days(gh, SERVER_REPO).get(version.line)
+    except GitHubError as err:
+        result.todo(f"the milestones of {SERVER_REPO} could not be read (GitHub API {err.status}), so no Release Day "
+                    "comes from them")
+        return None
+    if day is None:
+        result.todo(milestones.missing(version))
+    return day
+
+
 def changelog_entry(gh, version: Version) -> tuple[str | None, str]:
     """(the entry, where it came from): master, else the open changelog PR's branch."""
     path = changelog_path(version.tag)
@@ -305,11 +318,12 @@ def run_task(task: str, raw_version: str, env: dict, gh, claude, fetch=None, sle
             else:
                 result = Result(task, version.tag)
                 highlights, _ = highlights_for(gh, version, claude, result)
-                day = date.fromisoformat(env["RELEASE_DATE"]) if env.get("RELEASE_DATE") else datetime.now(timezone.utc).date()
-                built = notice.build(version, read(notice.PATH) or "", day, highlights)
-                built.todos = result.todos + built.todos
-                built.notes = result.notes + built.notes
-                result = built
+                day = date.fromisoformat(env["RELEASE_DATE"]) if env.get("RELEASE_DATE") else server_release_day(gh, version, result)
+                if day:
+                    built = notice.build(version, read(notice.PATH) or "", day, highlights)
+                    built.todos = result.todos + built.todos
+                    built.notes = result.notes + built.notes
+                    result = built
         else:
             result = build_release_docs(version, env, gh, claude, target, read)
         if result.skipped:

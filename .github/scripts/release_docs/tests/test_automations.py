@@ -9,8 +9,9 @@ from contextlib import redirect_stdout
 from unittest import mock
 
 from release_docs import __main__ as cli
-from release_docs import docker_env, notice, publish, release_docs_pr, upgrade_docs, version_archive
+from release_docs import docker_env, milestones, notice, publish, release_docs_pr, upgrade_docs, version_archive
 from release_docs.result import LABEL, TODO_MARKER, Result
+from release_docs.versions import Version
 
 from .fakes import FakeClaude, FakeGitHub, fixture, release_server
 from .test_replay import published_fetch
@@ -257,6 +258,21 @@ class ReleaseEventTest(unittest.TestCase):
     def run_task(self, task, version, gh, live, claude=None):
         env = {"EVENT_NAME": "release", "MODE": "live" if live else "dry_run", "ESR_VERSIONS": ESR}
         return cli.run_task(task, version, env, gh, claude or FakeClaude(HIGHLIGHT_ANSWER))
+
+    def test_upgrade_notice_shows_from_the_milestone_release_day(self):
+        gh = self.github()
+        gh.milestone_list[SERVER] = [{"title": "v12.0.0", "due_on": "2026-10-16T00:00:00Z"}]
+        run = self.run_task("upgrade-notice", "v12.0.0", gh, live=False)
+        self.assertEqual(run.result.todos, [])
+        self.assertIn("from 2026-10-16", run.result.body)
+
+    def test_upgrade_notice_without_a_milestone_due_date_is_a_todo(self):
+        gh = self.github()
+        gh.milestone_list[SERVER] = [{"title": "v12.0.0", "due_on": None}]
+        run = self.run_task("upgrade-notice", "v12.0.0", gh, live=True)
+        self.assertEqual(run.result.todos, [milestones.missing(Version.parse("v12.0.0"))])
+        self.assertEqual(run.result.files, {})
+        self.assertEqual(gh.writes, [])
 
     def test_github_release_text_dry_run_shows_only(self):
         gh = self.github()

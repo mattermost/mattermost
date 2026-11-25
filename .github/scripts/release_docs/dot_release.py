@@ -380,13 +380,12 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: R
         detail = gh.commit(REPO, item["sha"])
         commits.append({**detail, "title": detail["message"].splitlines()[0].strip()})
     reverted = revert_pairs(commits)
-    seen = set()
+    # Every commit's PR and the one it was cherry-picked from are read first, so a security fix is
+    # dropped before any check could list it (revert pairs, version bumps, tooling...), and so a
+    # Security label on any backport of a change drops every backport of it, whatever their order.
+    resolved = []
     for commit in commits:
         number = pr_number(commit)
-        source = f"#{number}" if number else commit["sha"][:10]
-        title = _core_title(commit["title"])
-        # The PR and the one it was cherry-picked from are read first, so a security fix is dropped
-        # before any check could list it (revert pairs, version bumps, tooling...).
         pr = gh.pull(REPO, number) if number else None
         if pr is None:
             pulls = gh.commit_pulls(REPO, commit["sha"])
@@ -394,7 +393,13 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: R
         cherry = _changelog_module().cherry_picked_from(pr.get("title", "")) if pr else None
         original = (gh.pull(REPO, cherry) if cherry and cherry != pr["number"] else None) or pr
         labels = {l["name"] for l in (pr or {}).get("labels", [])} | {l["name"] for l in (original or {}).get("labels", [])}
-        if _security(labels):
+        resolved.append((commit, number, pr, original, labels))
+    security = {original["number"] for _, _, _, original, labels in resolved if original and _security(labels)}
+    seen = set()
+    for commit, number, pr, original, labels in resolved:
+        source = f"#{number}" if number else commit["sha"][:10]
+        title = _core_title(commit["title"])
+        if _security(labels) or (original and original["number"] in security):
             # Never identified before the release (this PR is public): no bullet, and left out without
             # a reason, so it is in no list. The entry's severity line covers it.
             seen.add(original["number"])
@@ -804,6 +809,30 @@ def mdx_issues(text: str, table: bool = False) -> Counter:
     return issues
 
 
+def _check_shared(v: Version, server: str, old_server: str, archive: str, old_archive: str, problems: list) -> None:
+    """The server releases row and version archive entries for ``v``, the newest patch of its minor here."""
+    row_before = next((r for r in table_rows(old_server) if r["line"] == v.line), None)
+    row_after = next((r for r in table_rows(server) if r["line"] == v.line), None)
+    if row_before and row_after and row_before["listed"] < v:
+        old = row_before["listed"]
+        if _count(row_after["text"], old) or _count(row_after["text"], v) != _count(row_before["text"], old):
+            problems.append(f"{SERVER_RELEASES}: the {v.short} row still has {old.plain} or not every link moved to {v.plain}")
+    for edition, _, tab in version_archive.EDITIONS:
+        before = _archive_block(old_archive.split("\n"), tab, v)
+        after = _archive_block(archive.split("\n"), tab, v)
+        if after is None or after[2] != v:
+            # Every edition's tab needs an entry listing this version: a missing one never passes.
+            listed = f"lists {after[2].plain}" if after else f"has no {v.short} entry"
+            problems.append(f"{ARCHIVE}: the {tab} tab {listed}, not {v.plain}")
+            continue
+        if before and before[2] < v:
+            was = "\n".join(old_archive.split("\n")[before[0]:before[1]])
+            now = "\n".join(archive.split("\n")[after[0]:after[1]])
+            if _count(now, before[2]) or _count(now, v) != _count(was, before[2]):
+                problems.append(f"{ARCHIVE}: the {tab} {v.short} entry still has {before[2].plain} "
+                                f"or {v.plain} appears an unexpected number of times")
+
+
 def consistency(files: dict, base: dict, releases: list[Release]) -> tuple[list[str], list[str]]:
     """(problems with the versions in this PR, other minors already out of date). ``files`` and
     ``base`` map each path to its text after and before this run's edits."""
@@ -815,28 +844,14 @@ def consistency(files: dict, base: dict, releases: list[Release]) -> tuple[list[
     server, archive = files.get(SERVER_RELEASES) or "", files.get(ARCHIVE) or ""
     old_server, old_archive = base.get(SERVER_RELEASES) or "", base.get(ARCHIVE) or ""
     ours = {r.version.line: r for r in releases}
+    # Patches of one minor share its server releases row and archive entries, which list the newest.
+    newest = {}
+    for r in releases:
+        newest[r.version.line] = max(newest.get(r.version.line, r.version), r.version)
     for release in releases:
-        v, old = release.version, None
-        row_before = next((r for r in table_rows(old_server) if r["line"] == v.line), None)
-        row_after = next((r for r in table_rows(server) if r["line"] == v.line), None)
-        if row_before and row_after and row_before["listed"] < v:
-            old = row_before["listed"]
-            if _count(row_after["text"], old) or _count(row_after["text"], v) != _count(row_before["text"], old):
-                problems.append(f"{SERVER_RELEASES}: the {v.short} row still has {old.plain} or not every link moved to {v.plain}")
-        for edition, _, tab in version_archive.EDITIONS:
-            before = _archive_block(old_archive.split("\n"), tab, v)
-            after = _archive_block(archive.split("\n"), tab, v)
-            if after is None or after[2] != v:
-                # Every edition's tab needs an entry listing this version: a missing one never passes.
-                listed = f"lists {after[2].plain}" if after else f"has no {v.short} entry"
-                problems.append(f"{ARCHIVE}: the {tab} tab {listed}, not {v.plain}")
-                continue
-            if before and before[2] < v:
-                was = "\n".join(old_archive.split("\n")[before[0]:before[1]])
-                now = "\n".join(archive.split("\n")[after[0]:after[1]])
-                if _count(now, before[2]) or _count(now, v) != _count(was, before[2]):
-                    problems.append(f"{ARCHIVE}: the {tab} {v.short} entry still has {before[2].plain} "
-                                    f"or {v.plain} appears an unexpected number of times")
+        v = release.version
+        if v == newest[v.line]:
+            _check_shared(v, server, old_server, archive, old_archive, problems)
         path = changelog_path(v)
         bullets = [line for line in (files.get(path) or "").split("\n") if line.startswith(f"- **{v.plain}, released ")]
         if len(bullets) != 1:
@@ -1122,6 +1137,8 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
     for item in todo:
         v = item[1]
         if item[0] == "refresh":
+            if not _entry_text(current(changelog_path(v)) or "", v):
+                _insert_missing_entry(v, state, severities, files, current, gh, claude, fetch, result)
             _refresh(v, state, severities, files, current, fetch, attempts, interval, sleep, result, gh, claude)
             continue
         changelogs = [current(changelog_path(v))]
@@ -1175,6 +1192,25 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
     pr = target.pr or {"number": number, "labels": []}
     return result, (f"{action} PR {REPO}#{number}, changing {paths}.{skipped_label_note(skipped, REPO)}{review} "
                     f"{sync_awaiting(gh, pr, state['order'])}"), base_files
+
+
+def _insert_missing_entry(v: Version, state: dict, severities: dict, files: dict, current, gh, claude, fetch,
+                          result: Result) -> None:
+    """A version already in the PR whose changelog entry an earlier run could not insert (its
+    section was missing, say): gather it again and insert only the entry. The other files were
+    edited then; an entry a person added since is theirs and is not replaced."""
+    info = state["versions"][v.tag]
+    path = changelog_path(v)
+    release = Release(v, tabs=info["tabs"], date=info["date"], date_source=info["date_source"],
+                      severity=severities.get(v.tag) or info.get("severity"))
+    gather(gh, release, [current(path)], claude, fetch, result)
+    updated = update_changelog(current(path) or "", release, result)
+    if updated == (current(path) or ""):
+        return
+    files[path] = updated
+    release.checksums = info["checksums"]
+    state["versions"][v.tag] = release_state(release)
+    result.notes.append(f"{v}: inserted the changelog entry an earlier run could not.")
 
 
 def _refresh(v: Version, state: dict, severities: dict, files: dict, current, fetch, attempts, interval, sleep,

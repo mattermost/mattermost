@@ -362,6 +362,24 @@ class GatherTest(unittest.TestCase):
             self.assertNotIn(word, public)
         self.assertIn("contains Medium severity level security fixes", "\n".join(dr.entry_lines(release)))
 
+    def test_a_security_label_on_a_later_backport_drops_every_backport_of_that_change(self):
+        """#21 and #22 are both backports of #61; only the second carries the Security label."""
+        scene = release_scene()
+        scene.commits += [
+            {"sha": "c21", "message": "Automated cherry pick of #61 (#21)", "files": ["server/channels/app/auth.go"]},
+            {"sha": "c22", "message": "Automated cherry pick of #61 (#22)", "files": ["server/channels/app/auth.go"]},
+        ]
+        scene.pulls[21] = pull(21, "Automated cherry pick of #61", note("NONE"))
+        scene.pulls[22] = pull(22, "Automated cherry pick of #61", note("NONE"), labels=["Security"])
+        scene.pulls[61] = pull(61, "Check the auth token", note("Fixed a flaw in the auth token check."))
+        release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="Medium")
+        claude, result = WritingClaude(), Result(dr.TASK, "v12.1.1")
+        dr.gather(scene, release, [], claude, lambda url, method="GET": (200, ""), result)
+        hidden = {"#21", "#22", "#61"}
+        self.assertFalse(hidden & {c.source for c in release.changes})
+        self.assertFalse(hidden & {s for s, _, _ in release.skipped})
+        self.assertFalse(any("flaw" in c.text for c in release.changes))
+
     def test_written_and_breaking_are_marked(self):
         release, _ = self.gather()
         by_source = {c.source: c for c in release.changes}
@@ -687,6 +705,18 @@ class ConsistencyTest(unittest.TestCase):
     def test_clean(self):
         self.assertEqual(dr.consistency(self.files, self.base, [self.release]), ([], []))
 
+    def test_two_patches_of_one_minor_check_the_shared_row_and_archive_against_the_newest(self):
+        result, newer = Result(dr.TASK, "x"), dr.Release(V("v11.11.4"), tabs=[], date="2026-10-29")
+        self.files[dr.SERVER_RELEASES] = dr.update_server_row(self.files[dr.SERVER_RELEASES], V("v11.11.4"), result)
+        self.files[dr.ARCHIVE] = dr.update_archive(self.files[dr.ARCHIVE], V("v11.11.4"), {"enterprise": "c" * 64, "team": "d" * 64}, result)
+        path = dr.changelog_path(V("v11.11.4"))
+        self.files[path] = dr.update_changelog(self.files[path], newer, result)
+        self.assertEqual(result.todos, [])
+        self.assertEqual(dr.consistency(self.files, self.base, [self.release, newer]), ([], []))
+        self.files[dr.ARCHIVE] = self.base[dr.ARCHIVE]
+        problems, _ = dr.consistency(self.files, self.base, [self.release, newer])
+        self.assertIn(f"{dr.ARCHIVE}: the mattermost-team-edition tab lists 11.11.2, not 11.11.4", problems)
+
     def test_an_edition_without_the_versions_archive_entry_never_passes(self):
         lines = self.files[dr.ARCHIVE].split("\n")
         block = dr._archive_block(lines, "mattermost-team-edition", V("v11.11.3"))
@@ -901,6 +931,23 @@ class AutomationTest(unittest.TestCase):
         self.assertNotIn(dr.SEVERITY_PLACEHOLDER, head)
         self.assertIn("Mattermost v11.11.3 contains Medium severity level security fixes.", head)
         self.assertEqual(result.todos, [])
+
+    def test_an_entry_an_earlier_run_could_not_insert_is_inserted_once_its_section_is_back(self):
+        gh = DotGitHub()
+        branch = "release-agent/dot-release-docs/v11.11.3"
+        path = dr.changelog_path(V("v11.11.3"))
+        restored = gh.head_files(dr.REPO, "master")[path]
+        gh.push(dr.REPO, "master", {path: restored.replace("## Release v11.11 - [", "## Release v11.11 (moved) - [", 1)})
+        result, _, _ = self.run_day(gh, ["v11.11.3"], severity="Medium")
+        self.assertIn(f"{path} has no '## Release v11.11 - [...]' section", result.todos)
+        self.assertNotIn("- **11.11.3, released ", gh.head_files(dr.REPO, branch)[path])
+        gh.push(dr.REPO, branch, {path: restored})
+        result, _, _ = self.run_day(gh, ["v11.11.3"], severity="Medium")
+        self.assertEqual(result.todos, [])
+        self.assertIn("v11.11.3: inserted the changelog entry an earlier run could not.", result.notes)
+        self.assertEqual(gh.head_files(dr.REPO, branch)[path].count("- **11.11.3, released "), 1)
+        self.run_day(gh, ["v11.11.3"], severity="Medium")
+        self.assertEqual(gh.head_files(dr.REPO, branch)[path].count("- **11.11.3, released "), 1)
 
     def test_already_published_and_untagged_versions(self):
         result, outcome, _ = replay_run(versions=[V("v11.11.2")], gh=dot_replay.ReplayGitHub({"tag_sha v11.11.2": "x"}, before_docs()))
