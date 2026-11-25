@@ -1147,7 +1147,7 @@ func signInWithPasskey(t *testing.T, client *model.Client4, auth *testlib.SoftAu
 func TestPasskeyLogin(t *testing.T) {
 	t.Run("signs in on a fresh client and marks the session", func(t *testing.T) {
 		th := setupPasskeyLogin(t)
-		auth, _ := registerAndAuthenticator(t, th)
+		auth, pk := registerAndAuthenticator(t, th)
 
 		client := th.CreateClient()
 		user, resp, err := signInWithPasskey(t, client, auth)
@@ -1164,6 +1164,7 @@ func TestPasskeyLogin(t *testing.T) {
 		session, appErr := th.App.GetSession(client.AuthToken)
 		require.Nil(t, appErr)
 		assert.Equal(t, model.SessionLoginMethodPasskey, session.Props[model.SessionPropLoginMethod])
+		assert.Equal(t, pk.Id, session.Props[model.SessionPropPasskeyId])
 	})
 
 	t.Run("sets session cookies with X-Requested-With", func(t *testing.T) {

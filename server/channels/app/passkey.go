@@ -552,10 +552,11 @@ func (a *App) consumePasskeyTicket(where, failedID, ticket string) *model.AppErr
 }
 
 // FinishPasskeyLogin verifies the authenticator's response to a ceremony begun by BeginPasskeyLogin
-// and returns the passkey's user after the account checks password sign-in applies. It creates no
-// session, checks no MFA code and leaves the user's failed-attempt count alone: a failed assertion is
-// not a failed password attempt, and a passkey sign-in is not a reason to forgive earlier ones.
-func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential []byte) (*model.User, *model.AppError) {
+// and returns the passkey's user and the passkey that signed in (nil on every error) after the account
+// checks password sign-in applies. It creates no session, checks no MFA code and leaves the user's
+// failed-attempt count alone: a failed assertion is not a failed password attempt, and a passkey
+// sign-in is not a reason to forgive earlier ones.
+func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential []byte) (*model.User, *model.Passkey, *model.AppError) {
 	const where = "FinishPasskeyLogin"
 
 	invalidCeremony := func() *model.AppError {
@@ -564,13 +565,13 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyLogin, ceremonyID)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			return nil, invalidCeremony()
+			return nil, nil, invalidCeremony()
 		}
-		return nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return nil, nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	var ceremony passkeyCeremony
 	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil || ceremony.SessionData == nil {
-		return nil, invalidCeremony()
+		return nil, nil, invalidCeremony()
 	}
 
 	invalidCredential := func(err error) *model.AppError {
@@ -578,12 +579,12 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 	}
 	parsed, err := protocol.ParseCredentialRequestResponseBytes(credential)
 	if err != nil {
-		return nil, model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, nil, model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	rp, appErr := a.passkeyRelyingParty()
 	if appErr != nil {
-		return nil, appErr
+		return nil, nil, appErr
 	}
 
 	// The library wraps whatever the handler returns, so the reason is carried out in these.
@@ -613,16 +614,16 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 	if err != nil {
 		switch {
 		case handlerAppErr != nil:
-			return nil, handlerAppErr
+			return nil, nil, handlerAppErr
 		case unknownCredential:
-			return nil, model.NewAppError(where, "app.passkey.unknown_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+			return nil, nil, model.NewAppError(where, "app.passkey.unknown_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 		}
-		return nil, invalidCredential(err)
+		return nil, nil, invalidCredential(err)
 	}
 	user := wu.(*passkeyUser).user
 
 	if appErr := checkPasskeyCounter(where, parsed, cred, passkey); appErr != nil {
-		return nil, appErr
+		return nil, nil, appErr
 	}
 
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
@@ -639,15 +640,15 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 			continue
 		}
 		if appErr, ok := errors.AsType[*model.AppError](err); ok {
-			return nil, appErr
+			return nil, nil, appErr
 		}
-		return nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.recordPasskeyUse(where, passkey, cred); appErr != nil {
-		return nil, appErr
+		return nil, nil, appErr
 	}
-	return user, nil
+	return user, passkey, nil
 }
 
 // checkPasskeyCounter refuses an assertion whose counter did not increase: the authenticator may have

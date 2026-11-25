@@ -1758,7 +1758,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, login.CeremonyId, assert(t, auth, login)), http.StatusBadRequest, ceremonyInvalid)
 
 		opts := begin(t, ticket)
-		got, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, assert(t, auth, opts))
+		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, assert(t, auth, opts))
 		require.Nil(t, got)
 		requireFails(t, appErr, http.StatusBadRequest, ceremonyInvalid)
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
@@ -1806,7 +1806,8 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		opts := begin(t)
 		resp, err := auth.GetAssertion(opts.Options, origin, authOpts...)
 		require.NoError(t, err)
-		return th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		user, _, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		return user, appErr
 	}
 	requireFails := func(t *testing.T, user *model.User, appErr *model.AppError, status int, id string) {
 		t.Helper()
@@ -1847,6 +1848,25 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		got, appErr := finish(t, auth, origin)
 		requireSucceeds(t, user, got, appErr)
 		require.Positive(t, storedPasskey(t, user.Id).LastUsedAt)
+	})
+
+	t.Run("returns the passkey that signed in, and none on failure", func(t *testing.T) {
+		user, auth := registered(t)
+
+		opts := begin(t)
+		resp, err := auth.GetAssertion(opts.Options, origin)
+		require.NoError(t, err)
+		got, passkey, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		requireSucceeds(t, user, got, appErr)
+		require.NotNil(t, passkey)
+		require.Equal(t, storedPasskey(t, user.Id).Id, passkey.Id)
+
+		opts = begin(t)
+		resp, err = auth.GetAssertion(opts.Options, "http://evil.example")
+		require.NoError(t, err)
+		got, passkey, appErr = th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.invalid_credential.app_error")
+		require.Nil(t, passkey)
 	})
 
 	t.Run("the counter must increase", func(t *testing.T) {
@@ -1937,7 +1957,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 	})
 
 	t.Run("garbage credential is refused", func(t *testing.T) {
-		got, appErr := th.App.FinishPasskeyLogin(th.Context, begin(t).CeremonyId, []byte(`{"id":`))
+		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, begin(t).CeremonyId, []byte(`{"id":`))
 		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.invalid_credential.app_error")
 	})
 
@@ -1947,10 +1967,10 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		resp, err := auth.GetAssertion(opts.Options, origin)
 		require.NoError(t, err)
 
-		got, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
 		requireSucceeds(t, user, got, appErr)
 
-		got, appErr = th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		got, _, appErr = th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
 		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
 	})
 
@@ -1959,7 +1979,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		resp, err := auth.GetAssertion(begin(t).Options, origin)
 		require.NoError(t, err)
 
-		got, appErr := th.App.FinishPasskeyLogin(th.Context, model.NewId(), resp)
+		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, model.NewId(), resp)
 		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
 	})
 
@@ -1971,7 +1991,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		_, err = th.SQLStore.GetMaster().Exec(`UPDATE Tokens SET CreateAt = ? WHERE Token = ?`, model.GetMillis()-6*60*1000, opts.CeremonyId)
 		require.NoError(t, err)
 
-		got, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
+		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
 		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
 	})
 
@@ -1982,7 +2002,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		resp, err := auth.GetAssertion(begin(t).Options, origin)
 		require.NoError(t, err)
 
-		got, appErr := th.App.FinishPasskeyLogin(th.Context, reg.CeremonyId, resp)
+		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, reg.CeremonyId, resp)
 		requireFails(t, got, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
 	})
 

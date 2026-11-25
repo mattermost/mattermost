@@ -153,7 +153,7 @@ func finishPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.FinishPasskeyLogin(c.AppContext, finish.CeremonyId, finish.Credential)
+	user, passkey, appErr := c.App.FinishPasskeyLogin(c.AppContext, finish.CeremonyId, finish.Credential)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -170,6 +170,7 @@ func finishPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 		IsOAuthUser: user.IsOAuthUser(),
 		IsSaml:      user.IsSAMLUser(),
 		IsPasskey:   true,
+		PasskeyId:   passkey.Id,
 	})
 	if appErr != nil {
 		c.Err = appErr
