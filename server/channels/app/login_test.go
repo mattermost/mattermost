@@ -373,6 +373,35 @@ func TestDoLoginMethodProp(t *testing.T) {
 		assert.Equal(t, model.SessionLoginMethodPasskey, stored.Props[model.SessionPropLoginMethod])
 	})
 
+	t.Run("passkey sign-in records the passkey id", func(t *testing.T) {
+		id := model.NewId()
+		session, err := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, th.BasicUser, model.LoginOptions{IsPasskey: true, PasskeyId: id})
+		require.Nil(t, err)
+
+		stored, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, id, stored.Props[model.SessionPropPasskeyId])
+	})
+
+	t.Run("passkey sign-in without an id adds no passkey id", func(t *testing.T) {
+		session, err := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, th.BasicUser, model.LoginOptions{IsPasskey: true})
+		require.Nil(t, err)
+
+		stored, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, model.SessionLoginMethodPasskey, stored.Props[model.SessionPropLoginMethod])
+		assert.NotContains(t, stored.Props, model.SessionPropPasskeyId)
+	})
+
+	t.Run("standard sign-in ignores a passkey id", func(t *testing.T) {
+		session, err := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, th.BasicUser, model.LoginOptions{PasskeyId: model.NewId()})
+		require.Nil(t, err)
+
+		stored, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.NotContains(t, stored.Props, model.SessionPropPasskeyId)
+	})
+
 	t.Run("personal access token session is not marked", func(t *testing.T) {
 		token := createPersonalAccessToken(t, th, th.BasicUser.Id)
 		session, err := th.App.createSessionForUserAccessToken(th.Context, token.Token)

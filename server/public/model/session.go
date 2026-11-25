@@ -49,6 +49,9 @@ const (
 	// other than a passkey: password, LDAP, SAML, OAuth/OpenID, magic link, SSO hand-offs.
 	SessionLoginMethodStandard = "standard"
 	SessionLoginMethodPasskey  = "passkey"
+	// SessionPropPasskeyId records which passkey started a passkey session, so
+	// deleting that passkey can end the session.
+	SessionPropPasskeyId = "passkey_id"
 )
 
 //msgp:tuple StringMap
@@ -71,6 +74,7 @@ type LoginOptions struct {
 	IsOAuthUser  bool
 	IsSaml       bool
 	IsPasskey    bool
+	PasskeyId    string
 }
 
 // Session contains the user session details.

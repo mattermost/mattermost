@@ -232,6 +232,9 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		loginMethod = model.SessionLoginMethodPasskey
 	}
 	session.AddProp(model.SessionPropLoginMethod, loginMethod)
+	if opts.IsPasskey && opts.PasskeyId != "" {
+		session.AddProp(model.SessionPropPasskeyId, opts.PasskeyId)
+	}
 	session.AddProp(model.SessionPropPlatform, plat)
 	session.AddProp(model.SessionPropOs, os)
 	session.AddProp(model.SessionPropBrowser, fmt.Sprintf("%v/%v", bname, bversion))
