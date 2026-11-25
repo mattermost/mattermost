@@ -849,6 +849,9 @@ def broken_links(lines: list[tuple[str, int, str]], site: DocsSite) -> list[dict
 
 # ── Reviewers ───────────────────────────────────────────────────────────────────────
 
+SUBSECTION_ALIASES = {"Important Upgrade Notes": ("Compatibility",), "Compatibility": ("Important Upgrade Notes",)}
+
+
 def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
     """Reviewers for the sections a run added bullets to.
 
@@ -863,7 +866,12 @@ def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
         section = group.get("section") or ""
         touched.add(section)
         if group.get("subsection"):
-            touched.add(f"{section}/{group['subsection']}")
+            subsection = group["subsection"]
+            touched.add(f"{section}/{subsection}")
+            # "Compatibility" became "Important Upgrade Notes" in v12.2: a pattern or a report
+            # with either name matches the other.
+            for name in SUBSECTION_ALIASES.get(subsection, ()):
+                touched.add(f"{section}/{name}")
     reviewers = []
     if not touched:
         return reviewers
@@ -886,6 +894,133 @@ def _write_outputs(outputs: dict) -> None:
         with open(path, "a", encoding="utf-8") as f:
             for key, value in outputs.items():
                 f.write(f"{key}={value}\n")
+
+
+# ── The plan each new config.json setting belongs to ─────────────────────────────────
+#
+# The changelog groups new settings by plan. The plan is read from the code and the docs in
+# this repo, never from the model: a System Console gate that names a plan, else the
+# PlanAvailability badge of the setting's own section in the configuration docs. Settings with
+# neither, or with only a license-feature gate (which names a feature, not a plan), go under
+# All Plans as "plan not confirmed" for a person to check.
+
+PLAN_ORDER = ("Enterprise Advanced", "Enterprise", "Professional", "All")
+PLAN_HEADINGS = {
+    "Enterprise Advanced": "**Changes to Enterprise Advanced Plans:**",
+    "Enterprise": "**Changes to Enterprise Plans:**",
+    # Earlier entries never use a Professional-only heading: a Professional feature is on every
+    # plan from Professional up, which is how they word it.
+    "Professional": "**Changes to Professional, Enterprise, and Enterprise Advanced Plans:**",
+    "All": "**Changes to All Plans:**",
+}
+# docs/site/src/components/PlanAvailability: the lowest plan each badge includes.
+BADGE_PLANS = {
+    "ent-adv": "Enterprise Advanced", "ent-plus": "Enterprise", "ent-cloud-dedicated": "Enterprise",
+    "pro-plus": "Professional", "all-commercial": "All",
+    # Also on Entry, which has no heading of its own: the plan is right, the wording needs a person.
+    "entry-adv": "Enterprise Advanced", "entry-ent": "Enterprise",
+}
+_SKU_PLANS = {"EnterpriseAdvanced": "Enterprise Advanced", "Enterprise": "Enterprise", "Professional": "Professional"}
+ADMIN_DEFINITION = "webapp/channels/src/components/admin_console/admin_definition.tsx"
+CONFIGURE_DOCS = "docs/main/administration-guide/configure"
+# Gates that require a plan: hidden unless the license is at least that tier.
+_PLAN_GATE_RES = (
+    re.compile(r"it\.not\(\s*it\.minLicenseTier\(\s*LicenseSkus\.(\w+)\s*\)\s*\)"),
+    re.compile(r"it\.not\(\s*it\.licensedForSku\(\s*LicenseSkus\.(\w+)\s*\)\s*\)"),
+    re.compile(r"getRestrictedIndicator\(\s*true\s*,\s*LicenseSkus\.(\w+)\s*\)"),
+)
+_FEATURE_GATE_RE = re.compile(r"it\.not\(\s*it\.licensedForFeature\(\s*'(\w+)'\s*\)\s*\)")
+_BADGE_RE = re.compile(r'<PlanAvailability slug="([^"]+)"')
+
+
+class PlanResolver:
+    """``plan(section, name)`` -> ``{"plan", "basis", "confirmed"}`` for a ``config.json`` setting.
+
+    ``read(path)`` reads a repo file (None when missing) and ``docs`` lists the configuration
+    docs pages; both default to the working tree, which the workflow checks out.
+    """
+
+    def __init__(self, read=None, docs: list[str] | None = None, root: str = "."):
+        self.read = read or (lambda path: _read_file(os.path.join(root, path)))
+        if docs is None:
+            folder = os.path.join(root, CONFIGURE_DOCS)
+            docs = sorted(os.path.join(CONFIGURE_DOCS, f) for f in os.listdir(folder) if f.endswith(".mdx")) \
+                if os.path.isdir(folder) else []
+        self.docs = docs
+        self._admin = None
+
+    def _admin_lines(self) -> list[str]:
+        if self._admin is None:
+            self._admin = (self.read(ADMIN_DEFINITION) or "").split("\n")
+        return self._admin
+
+    def console_gates(self, section: str, name: str) -> tuple[list[str], list[str]]:
+        """(plans, license features) the System Console requires for the setting: its own
+        definition and its page's."""
+        lines = self._admin_lines()
+        keys = [i for i, line in enumerate(lines) if re.search(rf"key:\s*'{re.escape(section)}\.{re.escape(name)}'", line)]
+        if not keys:  # the bullet may name the settings type (SSOSettings) rather than its key's section
+            keys = [i for i, line in enumerate(lines) if re.search(rf"key:\s*'\w+\.{re.escape(name)}'", line)]
+            keys = keys if len(keys) == 1 else []
+        if not keys:
+            return [], []
+        start = keys[0]
+        end = next((i for i in range(start + 1, len(lines)) if re.search(r"\bkey:\s*'", lines[i])), len(lines))
+        page = next((i for i in range(start, -1, -1) if re.search(r"\burl:\s*'", lines[i])), None)
+        header_end = next((i for i in range(page, start) if "schema:" in lines[i]), start) if page is not None else start
+        text = "\n".join(lines[start:end] + (lines[page:header_end] if page is not None else []))
+        plans = [_SKU_PLANS[m] for pattern in _PLAN_GATE_RES for m in pattern.findall(text) if m in _SKU_PLANS]
+        return plans, _FEATURE_GATE_RE.findall(text)
+
+    def docs_badge(self, section: str, name: str) -> tuple[str | None, bool, str]:
+        """(badge slug, whether it is the setting's own section's rather than the page's, page)."""
+        found = None
+        for path in self.docs:
+            lines = (self.read(path) or "").split("\n")
+            hits = [i for i, line in enumerate(lines) if f"<code>{name}</code>" in line]
+            best = next((i for i in hits if f"<code>{section}</code>" in lines[i]), hits[0] if hits else None)
+            if best is None:
+                continue
+            heads, page_badge = [], None
+            for i, line in enumerate(lines[:best]):
+                heading = re.match(r"^(#{1,6}) ", line)
+                badge = _BADGE_RE.search(line)
+                if heading:
+                    heads.append([len(heading.group(1)), None])
+                elif badge:
+                    if heads:
+                        heads[-1][1] = heads[-1][1] or badge.group(1)
+                    else:
+                        page_badge = badge.group(1)
+            level = 99
+            for head_level, slug in reversed(heads):
+                if head_level < level:
+                    if slug:
+                        return slug, True, path
+                    level = head_level
+            found = found or (page_badge, False, path)
+        return found or (None, False, "")
+
+    def plan(self, section: str, name: str) -> dict:
+        key = f"{section}.{name}" if section else name
+        plans, features = self.console_gates(section, name)
+        if plans:
+            plan = min(plans, key=PLAN_ORDER.index)
+            return {"setting": key, "plan": plan, "confirmed": True, "basis": "the System Console's license check"}
+        slug, own, path = self.docs_badge(section, name)
+        if slug in BADGE_PLANS and (own or (slug == "all-commercial" and not features)):
+            plan = BADGE_PLANS[slug]
+            entry = slug.startswith("entry-")
+            return {"setting": key, "plan": plan, "confirmed": not entry,
+                    "basis": f"the {slug} badge in {os.path.basename(path)}"
+                             + (" (also on Entry, which has no heading of its own)" if entry else "")}
+        if features:
+            why = f"the System Console needs the {', '.join(sorted(set(features)))} license feature, which names no plan"
+        elif path:
+            why = f"no plan badge on its section of {os.path.basename(path)}"
+        else:
+            why = "no configuration docs entry or System Console license check found"
+        return {"setting": key, "plan": "All", "confirmed": False, "basis": why}
 
 
 def _read_file(path: str) -> str | None:

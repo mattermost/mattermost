@@ -121,8 +121,8 @@ Here are your instructions:
              - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
            - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database.
 
-          Adapt the plan name (e.g. "Changes to All plans:", "Changes to Enterprise plans:", "Changes to Enterprise Advanced plan:") and nest each setting change beneath the appropriate plan bullet. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
-        - `#### Compatibility` — minimum version requirement changes for browsers, OS, or clients. Example: "Updated minimum Edge and Chrome versions to 146+."
+          Write every new setting under a single " - **Changes to All Plans:**" bullet, in the "Under ``Section`` in ``config.json``, added ``Setting`` configuration setting ..." form: the plan groupings are worked out afterwards from the code, so never guess a plan. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
+        - `#### Important Upgrade Notes` — changes an administrator must act on or know about when upgrading: minimum version requirement changes for browsers, OS, or clients, defaults that change, settings or inputs that are now rejected. Example: "Updated minimum Edge and Chrome versions to 146+."
     - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. The line immediately after the `### Improvements` heading — with NO blank line between them — must be `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK`; it is replaced automatically with a Markdown link). Then a blank line, then the first `####` subsection heading. It must look exactly like this:
 
       ### Improvements
@@ -195,11 +195,11 @@ Here are your instructions:
 
 13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code: pre-packaged plugin version changes, added or removed WebSocket events, and database schema migrations (given as SQL). The benchmarking result is added automatically; never write a benchmarking bullet. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, and migrations under `#### Database Schema Changes`. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing. A developer's note about a schema change listed under `#### Database Schema Changes` (its PR added that migration, or the note names it) goes into that migration's bullet, carrying both IDs: never write a second bullet for it in another section. Never write a migration number (such as ``000238``) or migration file name anywhere outside `#### Database Schema Changes`.
 
-14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. Link that note's bullet to that URL, exactly as given, wherever the bullet goes (under `### Improvements`, `#### config.json`, `#### Compatibility` or any other section), by linking the feature's name the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link each page once. Never add a docs.mattermost.com link that was not given in a note.
+14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. Link that note's bullet to that URL, exactly as given, wherever the bullet goes (under `### Improvements`, `#### config.json`, `#### Important Upgrade Notes` or any other section), by linking the feature's name the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link each page once. Never add a docs.mattermost.com link that was not given in a note.
 
 15.  **Verbs:** Start a bullet with "Added" only when the note is about something new being added. A note that is already a sentence with its own verb (such as "``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` now includes deleted replies") is kept as that sentence, or rewritten with a fitting verb ("Updated ... so that ..."); never put "Added" in front of it.
 
-16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Compatibility` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Compatibility` describes the same change, write one bullet that combines them and carries both IDs. Notes that name the same ticket (their `Ticket:` lines match), or the same library, describe one change: never write two Compatibility bullets for them."""
+16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Important Upgrade Notes` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Important Upgrade Notes` describes the same change, write one bullet that combines them and carries both IDs. Notes that name the same ticket (their `Ticket:` lines match), or the same library, describe one change: never write two Important Upgrade Notes bullets for them."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -1319,8 +1319,13 @@ H3_ORDER = [
     "WebSocket Event Changes", "Audit Log Event Changes", "Go Version",
     "Open Source Components", "Security",
 ]
+UPGRADE_NOTES = "Important Upgrade Notes"
+# The subsection was "Compatibility" until v12.2: an open PR or a report written before then
+# still has that name, and is read as this one.
+UPGRADE_NOTES_NAMES = (UPGRADE_NOTES, "Compatibility")
+H4_ALIASES = {UPGRADE_NOTES: ("Compatibility",)}
 H4_ORDER = {
-    "Upgrade Impact": ["Database Schema Changes", "config.json", "Compatibility"],
+    "Upgrade Impact": ["Database Schema Changes", "config.json", "Important Upgrade Notes"],
     "Improvements": ["User Interface", "Plugins/Integrations", "Administration", "mmctl", "Performance"],
 }
 
@@ -1796,7 +1801,8 @@ def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
         for sub in section["subsections"]:
             h3_end = _region_end(lines, h3_line, r"^#{2,3} ")
             h4_line = next(
-                (i for i in range(h3_line, h3_end) if re.match(r"^#### +" + re.escape(sub["title"]) + r"\s*$", lines[i])),
+                (i for title in (sub["title"], *H4_ALIASES.get(sub["title"], ())) for i in range(h3_line, h3_end)
+                 if re.match(r"^#### +" + re.escape(title) + r"\s*$", lines[i])),
                 None,
             )
             if h4_line is None:
@@ -2016,6 +2022,17 @@ def render_status(readiness: dict) -> list[str]:
         lines.append("- ✅ None missing.")
     lines += [f"- {notes['intentional']} PR(s) intentionally have no note.", ""]
 
+    plans = readiness.get("config_plans") or []
+    unconfirmed = [p for p in plans if not p["confirmed"]]
+    if plans:
+        lines += ["### config.json settings by plan", ""]
+        lines.append(f"- {len(plans) - len(unconfirmed)} of {len(plans)} new setting(s) grouped by a plan read from the "
+                     "System Console or the configuration docs.")
+        for item in unconfirmed:
+            lines.append(_status_item("needs_review", f"`{item['setting']}`",
+                                      f"plan not confirmed: {item['basis']}. Listed under {item['plan']} Plans; "
+                                      "move it if it belongs to another plan"))
+        lines.append("")
     lines += ["### Sections no developer note fills", ""]
     for gap in readiness["gaps"]:
         blocks = " (blocks publish)" if gap.get("blocks_publish") else ""
@@ -2537,14 +2554,14 @@ def move_mmctl_bullets(text: str) -> str:
 
 
 def merge_related_compatibility(text: str, notes: list[dict]) -> str:
-    """Write one ``#### Compatibility`` bullet for bullets whose PRs share a Jira ticket: two PRs
+    """Write one ``#### Important Upgrade Notes`` bullet for bullets whose PRs share a Jira ticket: two PRs
     for one dependency change (replacing the openpgp library, then rejecting SHA-1 signatures
     with it) are one change for an administrator. The first bullet keeps its place; the others'
     sentences are appended to it, with all their source markers."""
     tickets = {note["id"]: set(note.get("tickets") or ()) for note in notes if note.get("id")}
     lines = text.split("\n")
     blocks = [block for block in _bullet_blocks(lines)
-              if block["subsection"] == "Compatibility" and block["end"] - block["start"] == 1]
+              if block["subsection"] in UPGRADE_NOTES_NAMES and block["end"] - block["start"] == 1]
     groups = []  # [first block, [blocks merged into it], its tickets]
     for block in blocks:
         keys = set().union(*(tickets.get(note_id, set()) for note_id in block["ids"])) if block["ids"] else set()
@@ -2569,14 +2586,158 @@ def merge_related_compatibility(text: str, notes: list[dict]) -> str:
     return "\n".join(line for number, line in enumerate(lines) if number not in drop)
 
 
+# ── config.json settings grouped by plan ─────────────────────────────────────────────
+
+_PLAN_LABEL_RE = re.compile(r"^ *- \*\*Changes to [^*]*:\*\*\s*$")
+_SETTING_RE = re.compile(r"Under ``(\w+)`` in ``config\.json``, added ``(\w+)``|added ``(\w+)\.(\w+)``")
+# What each setting's plan was worked out from, for the readiness report; reset each run.
+CONFIG_PLANS: list[dict] = []
+_RESOLVER = None
+
+
+def plan_resolver():
+    """The resolver for this run: the System Console and docs as they are at DOCS_REF (the commit
+    the run checked out first), not the changelog PR's older branch; the working tree without it."""
+    global _RESOLVER
+    if _RESOLVER is None:
+        ref = os.environ.get("DOCS_REF", "").strip()
+        if ref:
+            folder = changelog_release.CONFIGURE_DOCS + "/"
+            try:
+                docs = [path for path in changelog_release.git_ls(ref, folder) if path.endswith(".mdx")]
+                _RESOLVER = changelog_release.PlanResolver(read=lambda path: changelog_release.git_show(ref, path), docs=docs)
+            except RuntimeError as err:
+                print(f"::warning title=Plans read from the working tree::{err}")
+        _RESOLVER = _RESOLVER or changelog_release.PlanResolver()
+    return _RESOLVER
+
+
+def group_config_plans(text: str, resolver=None, report: list | None = None) -> str:
+    """Regroup the settings under ``#### config.json`` by plan, from the code and docs
+    (``changelog_release.PlanResolver``), never from the model: Enterprise Advanced,
+    Enterprise, Professional (and up), then All Plans, each heading only when it has
+    settings. A setting whose plan can't be worked out goes under All Plans and into
+    ``report`` (``CONFIG_PLANS``) as "plan not confirmed". The description paragraph comes
+    first and top-level bullets that aren't plan labels (removed settings) last, as they were.
+    """
+    resolver = resolver or plan_resolver()
+    report = CONFIG_PLANS if report is None else report
+    lines = text.split("\n")
+    start = next((i for i, line in enumerate(lines) if re.match(r"^#### config\.json\s*$", line)), None)
+    if start is None:
+        return text
+    end = next((i for i in range(start + 1, len(lines)) if re.match(r"^#{2,4} ", lines[i])), len(lines))
+    while end > start + 1 and not lines[end - 1].strip():
+        end -= 1
+    intro, settings, others = [], [], []  # others: top-level bullets that aren't plan labels
+    current = None  # the block the next continuation line belongs to
+    for line in lines[start + 1:end]:
+        indent = _bullet_indent(line)
+        if not line.strip():
+            current = None
+        elif indent is None:
+            if current is not None:
+                current.append(line)  # a continuation of the bullet above
+            elif not settings and not others:
+                intro.append(line)  # the description paragraph
+            else:
+                others.append([line])
+        elif indent <= 1:
+            current = None if _PLAN_LABEL_RE.match(line) else [line]
+            if current is not None:
+                others.append(current)
+        elif current is not None and settings and current is settings[-1] and indent > _bullet_indent(current[0]):
+            current.append(line)  # a bullet nested under a setting
+        else:
+            current = [line]
+            settings.append(current)
+    if not settings:
+        return text
+    groups = {plan: [] for plan in changelog_release.PLAN_ORDER}
+    for block in settings:
+        found = _SETTING_RE.search(_SOURCE_MARKER_RE.sub("", block[0]))
+        if found:
+            section, name = (found.group(1), found.group(2)) if found.group(1) else (found.group(3), found.group(4))
+            result = resolver.plan(section, name)
+        else:
+            result = {"setting": _SOURCE_MARKER_RE.sub("", block[0]).strip(" -")[:80], "plan": "All", "confirmed": False,
+                      "basis": "the bullet doesn't name a setting the way the changelog does (Under ``Section`` ... added ``Setting``)"}
+        report.append(result)
+        groups[result["plan"]].append([("   " + line.lstrip()) if i == 0 else line for i, line in enumerate(block)])
+    rebuilt = list(intro)
+    for plan in changelog_release.PLAN_ORDER:
+        if groups[plan]:
+            rebuilt.append(" - " + changelog_release.PLAN_HEADINGS[plan])
+            rebuilt += [line for block in groups[plan] for line in block]
+    rebuilt += [line for other in others for line in other]
+    lines[start + 1:end] = rebuilt
+    return "\n".join(lines)
+
+
+def rename_upgrade_notes(text: str) -> str:
+    """Generated text uses the subsection's current name, even when the model wrote the old one."""
+    return re.sub(r"(?m)^#### Compatibility[ \t]*$", f"#### {UPGRADE_NOTES}", text)
+
+
+# ── The Important block at the end of Upgrade Impact ────────────────────────────────
+
+UPGRADE_IMPORTANT_OPEN = "If you upgrade from a release earlier than"
+UPGRADE_IMPORTANT = (
+    "If you upgrade from a release earlier than {previous}, please read the other [Important Upgrade Notes]"
+    "(https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade "
+    "failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/"
+    "downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/"
+    "backup-disaster-recovery.html) for rollback steps and interim mitigation strategy."
+)
+
+
+def previous_feature_release(version: str, base_ref: str = "") -> str | None:
+    """The release before ``version``, as vX.Y: the diff base (v12.1 for v12.2, v11.11 for
+    v12.0), else the previous minor of the same major. None when neither tells."""
+    match = re.search(r"(\d+)\.(\d+)", (base_ref or "").split("/")[-1])
+    if match:
+        return f"v{match.group(1)}.{match.group(2)}"
+    major, minor, _ = changelog_release.parse_version(version)
+    return f"v{major}.{minor - 1}" if minor > 0 else None
+
+
+def apply_upgrade_important(content: str, version_short: str, previous: str | None) -> tuple[str, str]:
+    """Add the <Important> upgrade block at the end of the entry's ``### Upgrade Impact``
+    (created when the entry has none), after its last bullet and before the next section, with
+    a blank line before and after each tag: (content, "added" | "kept" | "" when there's no
+    entry or no previous release). Once added it is never edited or added again."""
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None or not previous:
+        return content, ""
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## Release ")), len(lines))
+    for i in range(start, end):
+        if lines[i].strip() == "<Important>" and any(
+                UPGRADE_IMPORTANT_OPEN in lines[j] for j in range(i + 1, min(i + 4, end))):
+            return content, "kept"
+    block = ["<Important>", "", UPGRADE_IMPORTANT.format(previous=previous), "", "</Important>"]
+    impact = next((i for i in range(start, end) if re.match(r"^### Upgrade Impact\s*$", lines[i])), None)
+    if impact is None:
+        first = next((i for i in range(start + 1, end) if lines[i].startswith("### ")), end)
+        lines[first:first] = ["### Upgrade Impact", ""] + block + [""]
+        return "\n".join(lines), "added"
+    section_end = next((i for i in range(impact + 1, end) if re.match(r"^#{2,3} ", lines[i])), end)
+    last = section_end
+    while last > impact + 1 and not lines[last - 1].strip():
+        last -= 1
+    lines[last:section_end] = [""] + block + [""]
+    return "\n".join(lines), "added"
+
+
 def tidy_generated(text: str, notes: list[dict], already: str = "") -> str:
     """The deterministic fixes applied to the model's text while it still carries its markers."""
     docs = {note["id"]: (note["docs_url"], note.get("docs_title")) for note in notes if note.get("docs_url")}
     sources_by_id = {note["id"]: note["source"] for note in notes if note.get("id")}
     text = fill_version(text, changelog_release.short_version(VERSION))
     text = unformat_plain_words(drop_added_before_verb(strip_migration_numbers(text)))
-    text = merge_related_compatibility(text, notes)
+    text = merge_related_compatibility(rename_upgrade_notes(text), notes)
     text = move_mmctl_bullets(text)
+    text = group_config_plans(text)
     return link_docs_pages(text, docs, already, sources_by_id)
 
 
@@ -2690,6 +2851,7 @@ def blog_post_link() -> str:
 
 
 def main():
+    CONFIG_PLANS.clear()
     """Generate or update the entry, then write the readiness report and outputs."""
     mode = os.environ.get("MODE", "create").strip().lower() or "create"
     if mode not in ("create", "update"):
@@ -2976,6 +3138,14 @@ def main():
                                 "text": benchmark["notes"][0]["text"] if benchmark["notes"] else BENCHMARK_PENDING,
                                 "sources": [n["source"] for n in benchmark["notes"]]})
 
+    previous_release = previous_feature_release(VERSION, base_ref)
+    if content is not None:
+        content, important_action = apply_upgrade_important(content, version_short, previous_release)
+        if important_action == "added":
+            print(f"➕ Added the Upgrade Impact <Important> block (upgrades from before {previous_release})")
+            extra_items.append({"section": "Upgrade Impact", "subsection": None,
+                                "text": UPGRADE_IMPORTANT.format(previous=previous_release), "sources": []})
+
     previous_go = None
     if mode == "create":
         previous_go = extract_previous_go_version(changelog_path) or extract_previous_go_version(
@@ -2999,6 +3169,8 @@ def main():
         "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go, entry_go,
                            benchmark["gap"]),
         "reconciled": reconciled,
+        # Filled while the text is tidied, later in this run: the same list object.
+        "config_plans": CONFIG_PLANS,
     }
     for gap in readiness["gaps"]:
         if gap["section"] == "Benchmarking" and gap["status"] != "ready":
@@ -3149,6 +3321,7 @@ def main():
 
         entry, benchmark_action = apply_benchmark(
             entry, version_short, benchmark, f"See {blog_post_link()} on the highlights in our latest release.")
+        entry, _ = apply_upgrade_important(entry, version_short, previous_feature_release(VERSION, base_ref))
         items.append({"section": "Improvements", "subsection": "Performance",
                       "text": benchmark["notes"][0]["text"] if benchmark["notes"] else BENCHMARK_PENDING,
                       "sources": [n["source"] for n in benchmark["notes"]]})
@@ -3196,13 +3369,17 @@ def main():
             pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [], included,
                                         set(sources_by_id.values()))
 
-    urls = changelog_release.docs_urls(entry)
+    # The <Important> upgrade block is fixed text whose pages a test checks; only what this run
+    # generated is checked here (changelog-link-check.yml still checks every line of the PR).
+    checked_lines = [(number, line) for number, line in enumerate(entry.split("\n"), start=1)
+                     if not line.startswith(UPGRADE_IMPORTANT_OPEN)]
+    urls = changelog_release.docs_urls("\n".join(line for _, line in checked_lines))
     readiness["links_checked"] = len(urls)
     readiness["broken_links"] = []
     if urls:
         try:
             readiness["broken_links"] = changelog_release.broken_links(
-                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)], site())
+                [("entry.mdx", number, line) for number, line in checked_lines], site())
         except RuntimeError as err:
             readiness["broken_links"] = None
             print(f"::warning title=Docs links not checked::{err}")

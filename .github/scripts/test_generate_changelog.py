@@ -2,6 +2,7 @@
 """Regression tests for changelog merge, attribution, and bullet normalization."""
 
 import os
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -69,7 +70,7 @@ FRAGMENT = """### Upgrade Impact
    - Under ``ServiceSettings`` in ``config.json``, added ``AnotherSetting``.
  - Removed ``TeamSettings.OldSetting`` configuration setting from the database.
 
-#### Compatibility
+#### Important Upgrade Notes
  - Updated minimum Firefox version to 140.
 
 ### Bug Fixes
@@ -89,12 +90,19 @@ class MergePlacementTest(unittest.TestCase):
         self.assertLess(config.find("BrandNewSetting"), config.find("<Important>"))
         self.assertLess(config.find("AnotherSetting"), config.find("<Important>"))
         self.assertLess(config.find("TeamSettings.OldSetting"), config.find("<Important>"))
-        self.assertLess(config.find("#### Compatibility"), config.find("<Important>"))
+        self.assertLess(config.find("#### Important Upgrade Notes"), config.find("<Important>"))
         self.assertLess(merged.find("</Important>"), merged.find("### Improvements"))
         self.assertEqual(config.count("**Changes to Enterprise Advanced plan:**"), 1)
         self.assertIn("ExistingSetting", config)
         self.assertIn("sidebar failed to refresh", merged)
         self.assertIn("sidebar kept its old state", merged)
+
+    def test_upgrade_notes_merge_into_an_older_entry_s_compatibility_section(self):
+        entry = V11_STYLE.replace("\n<Important>", "#### Compatibility\n - Existing note.\n\n<Important>", 1)
+        merged = gc.merge_into_entry(entry, "v11.11", FRAGMENT)
+        self.assertNotIn("#### Important Upgrade Notes", merged)
+        self.assertIn("#### Compatibility\n - Existing note.\n - Updated minimum Firefox version to 140.", merged)
+        self.assertLess(merged.find("Firefox"), merged.find("<Important>"))
 
     def test_two_space_plan_label_is_reused(self):
         fragment = """### Upgrade Impact
@@ -398,6 +406,14 @@ class SeedTest(unittest.TestCase):
 ENTRY_V12_1 = """## Release v12.1 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \\{#release-v12-1-feature-release}
 
 **Release day: 2026-11-13**
+
+### Upgrade Impact
+
+<Important>
+
+If you upgrade from a release earlier than v12.0, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/backup-disaster-recovery.html) for rollback steps and interim mitigation strategy.
+
+</Important>
 
 ### Improvements
 See [this blog post](https://example.com) on the highlights in our latest release.
@@ -872,6 +888,15 @@ class MainTest(unittest.TestCase):
         gap = next(g for g in payload["readiness"]["gaps"] if g["section"] == "Benchmarking")
         self.assertIn("the entry says “Benchmarking test results: TBD”", gap["detail"])
         self.assertIn("#### Release Note\n```release-note\nNONE\n```", (self.out / "pr_body.md").read_text())
+
+    def test_create_ends_upgrade_impact_with_the_important_block(self):
+        gc.main()
+        content = self.changelog.read_text()
+        entry = content[content.index("## Release v12.1"):]
+        self.assertEqual(entry.count("<Important>"), 1)
+        self.assertIn("### Upgrade Impact\n\n<Important>\n\nIf you upgrade from a release earlier than v12.0, please read the "
+                      "other [Important Upgrade Notes]", entry)
+        self.assertLess(entry.index("</Important>"), entry.index("### Improvements"))
 
     def test_create_reports_the_go_bullet_in_sections(self):
         gc.main()
@@ -1359,7 +1384,7 @@ class TidyGeneratedTest(unittest.TestCase):
         redis = "https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls"
         preauth = "https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth"
         text = ("#### config.json\n - **Changes to All plans:**\n   - Added ``CacheSettings.RedisTLS``. [[N1]]\n"
-                "#### Compatibility\n - Unauthenticated users now get only pre-auth plugin manifests. [[N2]]\n"
+                "#### Important Upgrade Notes\n - Unauthenticated users now get only pre-auth plugin manifests. [[N2]]\n"
                 "### Improvements\n#### Administration\n - Added TLS for [Redis]("
                 + redis + ") on the cluster. [[N3]]\n - Added Redis TLS again. [[N1]]\n")
         docs = {"N1": (redis, "Redis"), "N2": (preauth, "Webapp components"), "N3": (redis, "Redis")}
@@ -1399,7 +1424,7 @@ class TidyGeneratedTest(unittest.TestCase):
         # Model-level rules: the v12.2 dry run put the go-crypto swap outside Compatibility and
         # wrote "Added ``GET .../thread`` ... now includes".
         self.assertIn("A note that replaces or upgrades a library and also says what now behaves differently", gc.SYSTEM_PROMPT)
-        self.assertIn("goes under `#### Compatibility`", gc.SYSTEM_PROMPT)
+        self.assertIn("goes under `#### Important Upgrade Notes`", gc.SYSTEM_PROMPT)
         self.assertIn('never put "Added" in front of it', gc.SYSTEM_PROMPT)
         self.assertIn("Never write a migration number", gc.SYSTEM_PROMPT)
 
@@ -1584,9 +1609,9 @@ class V122FixesTest(unittest.TestCase):
         self.assertTrue(moved.startswith("## Release v12.2 - Feature Release\n\n**Release day: TBD**\n\n### Improvements"))
         self.assertIn("#### mmctl\n - Added ``mmctl plugin keys`` commands.", moved)
 
-    # 5. One Compatibility bullet per dependency change
+    # 5. One Important Upgrade Notes bullet per dependency change
     def test_compatibility_bullets_for_one_ticket_are_merged(self):
-        text = ("#### Compatibility\n"
+        text = ("#### Important Upgrade Notes\n"
                 " - Plugin signatures that use the SHA-1 hash algorithm are now rejected. [[N1]]\n"
                 " - Replaced ``golang.org/x/crypto/openpgp`` with ``github.com/ProtonMail/go-crypto`` for plugin signature verification. [[N2]]\n"
                 " - Reserved the plugin ID ``com.mattermost.server``. [[N3]]\n")
@@ -1594,7 +1619,7 @@ class V122FixesTest(unittest.TestCase):
                  {"id": "N2", "source": "mattermost/mattermost#39738", "tickets": ["MM-70987"]},
                  {"id": "N3", "source": "mattermost/mattermost#39000", "tickets": ["MM-1"]}]
         self.assertEqual(gc.merge_related_compatibility(text, notes), (
-            "#### Compatibility\n"
+            "#### Important Upgrade Notes\n"
             " - Plugin signatures that use the SHA-1 hash algorithm are now rejected. Replaced ``golang.org/x/crypto/openpgp`` "
             "with ``github.com/ProtonMail/go-crypto`` for plugin signature verification. [[N1,N2]]\n"
             " - Reserved the plugin ID ``com.mattermost.server``. [[N3]]\n"))
@@ -1624,6 +1649,128 @@ class V122FixesTest(unittest.TestCase):
             with open(path) as f:
                 text = f.read()
         self.assertIn("</Note>\n\n## Release v12.2 - Feature Release\n\n - New.\n\n## Release v12.1", text)
+
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "changelog"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+# The v12.2 entry as the first auto run wrote it plus the earlier review edits (5d6de28), and
+# after Amy's review (494e7ad): settings by plan, Important Upgrade Notes, the <Important> block.
+V122_BEFORE = (FIXTURES / "v12.2-entry-5d6de28299.mdx").read_text()
+V122_REVIEWED = (FIXTURES / "v12.2-entry-494e7ad854.mdx").read_text()
+
+
+def _upgrade_impact(entry: str) -> str:
+    return entry[entry.index("### Upgrade Impact"):entry.index("### Improvements")]
+
+
+class V122ReviewTest(unittest.TestCase):
+    """Amy's review of the v12.2 changelog (mattermost/mattermost#40345, commit 494e7ad)."""
+
+    def setUp(self):
+        self.resolver = gc.changelog_release.PlanResolver(root=str(REPO_ROOT))
+
+    def test_the_reviewed_entry_is_what_the_generator_now_writes(self):
+        report = []
+        out = gc.group_config_plans(gc.rename_upgrade_notes(V122_BEFORE), self.resolver, report)
+        out, action = gc.apply_upgrade_important(out, "v12.2", gc.previous_feature_release("v12.2.0", "v12.1.0"))
+        self.assertEqual(action, "added")
+        self.assertEqual(out, V122_REVIEWED)
+
+    # 1. config.json by plan
+    def test_v12_2_settings_by_plan(self):
+        report = []
+        out = gc.group_config_plans(V122_BEFORE, self.resolver, report)
+        self.assertEqual(_upgrade_impact(out).split("#### Compatibility")[0],
+                         _upgrade_impact(V122_REVIEWED).split("#### Important Upgrade Notes")[0])
+        plans = {item["setting"].split(".")[-1]: item["plan"] for item in report}
+        self.assertEqual(plans, {
+            "RedisEnableTLS": "Enterprise Advanced", "RedisTLSCA": "Enterprise Advanced",
+            "RedisTLSClientCert": "Enterprise Advanced", "RedisTLSClientKey": "Enterprise Advanced",
+            "RedisTLSSkipVerify": "Enterprise Advanced", "EnableFileIndexing": "Enterprise",
+            "AdditionalScopes": "All", "RestrictUnauthenticatedWebappPlugins": "All", "PreviewLandingPath": "All"})
+        self.assertEqual(sorted(item["setting"] for item in report if not item["confirmed"]),
+                         ["CloudSettings.PreviewLandingPath", "SSOSettings.AdditionalScopes"])
+
+    def test_headings_only_when_non_empty_and_removed_settings_last(self):
+        text = ("#### config.json\nNew setting options were added.\n - **Changes to All plans:**\n"
+                "   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting. [[N1]]\n"
+                " - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database. [[N2]]\n")
+        out = gc.group_config_plans(text, self.resolver, [])
+        self.assertEqual(out, "#### config.json\nNew setting options were added.\n - **Changes to Enterprise Advanced Plans:**\n"
+                              "   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting. [[N1]]\n"
+                              " - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database. [[N2]]\n")
+
+    def test_a_console_plan_gate_wins_and_an_unknown_setting_is_not_confirmed(self):
+        admin = ("  page: {\n    url: 'site/x',\n    isHidden: it.not(it.minLicenseTier(LicenseSkus.Professional)),\n"
+                 "    schema: {\n      settings: [\n        {\n          key: 'XSettings.Gated',\n        },\n      ],\n    },\n  },\n")
+        files = {gc.changelog_release.ADMIN_DEFINITION: admin}
+        resolver = gc.changelog_release.PlanResolver(read=files.get, docs=[])
+        self.assertEqual(resolver.plan("XSettings", "Gated")["plan"], "Professional")
+        unknown = resolver.plan("XSettings", "Nowhere")
+        self.assertEqual((unknown["plan"], unknown["confirmed"]), ("All", False))
+        text = "#### config.json\n - **Changes to All plans:**\n   - Under ``XSettings`` in ``config.json``, added ``Gated``. [[N1]]\n"
+        self.assertIn(" - **Changes to Professional, Enterprise, and Enterprise Advanced Plans:**\n", gc.group_config_plans(text, resolver, []))
+
+    def test_the_report_lists_settings_whose_plan_isn_t_confirmed(self):
+        status = "\n".join(gc.render_status({"preflight": [], "notes": {"prs_merged": 0, "with_notes": 0, "intentional": 0, "missing": 0},
+                                              "missing_by_owner": [], "note_quality": [], "doc_links": [], "doc_links_unclear": [],
+                                              "repos_unaudited": [], "not_placed": [], "restated": [], "links_checked": 0,
+                                              "broken_links": [], "gaps": [], "config_plans": [
+                                                  {"setting": "CloudSettings.PreviewLandingPath", "plan": "All", "confirmed": False,
+                                                   "basis": "no configuration docs entry or System Console license check found"},
+                                                  {"setting": "CacheSettings.RedisEnableTLS", "plan": "Enterprise Advanced",
+                                                   "confirmed": True, "basis": "the ent-adv badge"}]}))
+        self.assertIn("1 of 2 new setting(s) grouped by a plan", status)
+        self.assertIn("`CloudSettings.PreviewLandingPath`", status)
+        self.assertIn("plan not confirmed: no configuration docs entry or System Console license check found. "
+                      "Listed under All Plans", status)
+
+    # 2. Important Upgrade Notes
+    def test_generated_text_uses_the_new_name(self):
+        self.assertEqual(gc.rename_upgrade_notes("### Upgrade Impact\n#### Compatibility\n - x.\n"),
+                         "### Upgrade Impact\n#### Important Upgrade Notes\n - x.\n")
+        self.assertIn("`#### Important Upgrade Notes`", gc.SYSTEM_PROMPT)
+        self.assertNotIn("`#### Compatibility`", gc.SYSTEM_PROMPT)
+        self.assertIn("Important Upgrade Notes", gc.H4_ORDER["Upgrade Impact"])
+
+    def test_the_reviewer_routing_reads_either_name(self):
+        sections = [{"section": "Upgrade Impact", "subsection": "Compatibility", "items": [{"text": "x"}]}]
+        self.assertEqual(gc.changelog_release.reviewers_for(sections, {"Upgrade Impact/Important Upgrade Notes": ["amy"]}), ["amy"])
+        sections[0]["subsection"] = "Important Upgrade Notes"
+        self.assertEqual(gc.changelog_release.reviewers_for(sections, {"Upgrade Impact/Compatibility": ["amy"]}), ["amy"])
+
+    # 3. The <Important> block
+    def test_the_previous_release_is_the_diff_base(self):
+        self.assertEqual(gc.previous_feature_release("v12.2.0", "v12.1.0"), "v12.1")
+        self.assertEqual(gc.previous_feature_release("v12.0.0", "v11.11.0"), "v11.11")
+        self.assertEqual(gc.previous_feature_release("v12.2.0", "origin/release-12.1"), "v12.1")
+        self.assertEqual(gc.previous_feature_release("v12.3.0", ""), "v12.2")
+        self.assertIsNone(gc.previous_feature_release("v13.0.0", ""))
+
+    def test_the_block_is_added_once_and_never_edited(self):
+        self.assertEqual(gc.apply_upgrade_important(V122_REVIEWED, "v12.2", "v12.1"), (V122_REVIEWED, "kept"))
+        edited = V122_REVIEWED.replace("for rollback steps", "for the rollback steps")
+        self.assertEqual(gc.apply_upgrade_important(edited, "v12.2", "v11.11"), (edited, "kept"))
+
+    def test_the_block_is_there_even_with_no_upgrade_notes(self):
+        entry = ("## Release v12.3 - Feature Release\n\n**Release day: TBD**\n\n### Improvements\nSee x.\n\n"
+                 "#### User Interface\n - Added a page.\n")
+        out, action = gc.apply_upgrade_important(entry, "v12.3", "v12.2")
+        self.assertEqual(action, "added")
+        self.assertIn("**Release day: TBD**\n\n### Upgrade Impact\n\n<Important>\n\nIf you upgrade from a release earlier than "
+                      "v12.2, please read", out)
+        self.assertIn("mitigation strategy.\n\n</Important>\n\n### Improvements", out)
+
+    def test_new_upgrade_notes_merge_above_the_block(self):
+        fragment = "### Upgrade Impact\n#### Important Upgrade Notes\n - A new upgrade note.\n"
+        merged = gc.merge_into_entry(V122_REVIEWED, "v12.2", fragment)
+        self.assertLess(merged.index("A new upgrade note."), merged.index("<Important>"))
+        self.assertEqual(merged.count("<Important>"), 1)
+
+    def test_the_block_s_pages_are_in_the_docs(self):
+        for url in re.findall(r"\]\((https://docs\.mattermost\.com/[^)]+)\)", gc.UPGRADE_IMPORTANT):
+            path = url.removeprefix("https://docs.mattermost.com/").removesuffix(".html")
+            self.assertTrue((REPO_ROOT / "docs" / "main" / f"{path}.mdx").exists(), url)
 
 
 if __name__ == "__main__":
