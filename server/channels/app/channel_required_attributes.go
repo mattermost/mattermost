@@ -30,8 +30,8 @@ type requiredChannelAttributeResolution struct {
 // CanSetChannelAttributeOnPendingChannel reports whether the caller of rctx may
 // set this attribute on a channel that is about to exist. The channel does not
 // exist yet, so the channel-scoped tiers are answered from what creation itself
-// guarantees: the creator is saved as a channel admin, which satisfies both
-// "admin" and "member". A tier the caller cannot satisfy is skipped rather than
+// guarantees: the creator is saved as a channel admin, which satisfies
+// "admin", "member" and "creator", and "everyone" needs nothing. A tier the caller cannot satisfy is skipped rather than
 // enforced — one sysadmin-only required attribute must not make channel creation
 // impossible for everyone else.
 //
@@ -45,13 +45,30 @@ func (a *App) CanSetChannelAttributeOnPendingChannel(rctx request.CTX, field *mo
 	}
 
 	switch *field.PermissionValues {
-	case model.PermissionLevelMember, model.PermissionLevelAdmin:
+	case model.PermissionLevelEveryone, model.PermissionLevelCreator, model.PermissionLevelMember, model.PermissionLevelAdmin:
 		return true
 	case model.PermissionLevelSysadmin:
 		return a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
 	default:
 		return false
 	}
+}
+
+// validateChannelAttributeValues refuses, with the error a write would give,
+// values whose content is invalid: a wrong shape or an option that doesn't
+// exist. It is for callers that can only write after another change and want a
+// bad value refused before it.
+func (a *App) validateChannelAttributeValues(rctx request.CTX, values []*model.PropertyValue) *model.AppError {
+	if len(values) == 0 {
+		return nil
+	}
+	if err := a.Srv().propertyService.ValidatePropertyValueContents(rctx, values); err != nil {
+		if appErr := mapPropertyServiceError("ValidateChannelAttributeValues", err); appErr != nil {
+			return appErr
+		}
+		return model.NewAppError("ValidateChannelAttributeValues", "app.property_value.upsert_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
 }
 
 // ChannelAttributeValuesFromItems turns submitted attribute values into
