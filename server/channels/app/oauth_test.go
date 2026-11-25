@@ -244,6 +244,59 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	})
 }
 
+func TestAllowOAuthAppAccessToUserPasskeySession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Name:         "fakeoauthapp" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://nowhere.com"},
+		IsTrusted:    true,
+	})
+	require.Nil(t, appErr)
+
+	request := func(responseType string) *model.AuthorizeRequest {
+		return &model.AuthorizeRequest{
+			ResponseType: responseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  oapp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "123",
+		}
+	}
+	passkeyCtx := th.Context.WithSession(&model.Session{
+		UserId: th.BasicUser.Id,
+		Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+	})
+
+	for _, responseType := range []string{model.AuthCodeResponseType, model.ImplicitResponseType} {
+		t.Run("passkey session is refused, "+responseType, func(t *testing.T) {
+			redirect, appErr := th.App.AllowOAuthAppAccessToUser(passkeyCtx, th.BasicUser.Id, request(responseType))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.oauth.allow_oauth.passkey_session.app_error", appErr.Id)
+			assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+			assert.Empty(t, redirect)
+
+			_, err := th.App.Srv().Store().Preference().Get(th.BasicUser.Id, model.PreferenceCategoryAuthorizedOAuthApp, oapp.Id)
+			assert.Error(t, err)
+
+			accessData, err := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(th.BasicUser.Id, oapp.Id)
+			require.NoError(t, err)
+			assert.Empty(t, accessData)
+		})
+	}
+
+	t.Run("standard session is allowed", func(t *testing.T) {
+		redirect, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, request(model.AuthCodeResponseType))
+		require.Nil(t, appErr)
+		assert.Contains(t, redirect, "code=")
+	})
+}
+
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

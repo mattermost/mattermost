@@ -3594,6 +3594,11 @@
     "description": "API error when an endpoint requires a paid license; 'E10' and 'E20' are legacy Mattermost license tier names."
   },
   {
+    "id": "api.oauth.allow_oauth.passkey_session.app_error",
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then authorize the app.",
+    "description": "Error shown when a session that was started by signing in with a passkey tries to authorize an OAuth app to access the account. 'Passkey' is a sign-in credential stored on the user's device or password manager."
+  },
+  {
     "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
     "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow.",
     "description": "OAuth authorization error shown to developers/users when a public OAuth client omits PKCE; keep 'PKCE' and the parenthetical expansion technical."
