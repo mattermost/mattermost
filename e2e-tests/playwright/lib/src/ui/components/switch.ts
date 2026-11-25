@@ -11,22 +11,35 @@ import type {Locator} from '@playwright/test';
  * forced click on a switch inside an opening modal can land where the switch used to be.
  * `check()` and `uncheck()` on the label still read and verify the input's checked state.
  */
+import type {ElementDriver} from '../../surface/drivers';
+
 export default class Switch {
     readonly input: Locator;
     readonly label: Locator;
 
     /**
      * @param container - the element the switch is in
-     * @param testId - the input's `data-testid`; omit when `container` holds a single switch
+     * @param target - the input's `data-testid`, or its surface part (`createSurface(page).scope(root).part`);
+     *   omit when `container` holds a single switch
      */
-    constructor(container: Locator, testId?: string) {
+    constructor(container: Locator, target?: string | ElementDriver) {
         const page = container.page();
-        this.input = testId ? container.getByTestId(testId) : container.getByRole('switch');
+        let input: Locator;
+        let inLabel: Locator;
+        if (typeof target === 'string') {
+            input = container.getByTestId(target);
+            inLabel = page.getByTestId(target);
+        } else if (target) {
+            input = target.locator;
+            inLabel = page.locator(target.selector);
+        } else {
+            input = container.getByRole('switch');
+            inLabel = page.getByRole('switch');
+        }
+        this.input = input;
 
         // `has` is matched inside each label, so it takes a page-rooted locator.
-        this.label = container
-            .locator('label')
-            .filter({has: testId ? page.getByTestId(testId) : page.getByRole('switch')});
+        this.label = container.locator('label').filter({has: inLabel});
     }
 
     isChecked() {

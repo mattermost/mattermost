@@ -196,6 +196,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 autoFocus={props.autoFocus !== false}
                 required={true}
                 name={props.name}
+                data-surface='channel_name_field.name--textbox'
                 containerClassName={`${props.name}-container`}
                 inputClassName={`${props.name}-input channel-name-input-field`}
                 label={props.label ?? formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}

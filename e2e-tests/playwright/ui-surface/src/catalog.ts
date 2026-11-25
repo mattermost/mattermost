@@ -214,6 +214,11 @@ export function emitGenerated(options: {
         const seenProp = new Map<string, SurfaceEntry>();
         for (const part of parts) {
             const prop = toCamelCase(part.name);
+            if (prop === 'container' && containerFiles.length > 0) {
+                collisions.push(
+                    `${scope}.container: "${part.id}" (${part.file}:${part.line}) collides with the scope's generated container`,
+                );
+            }
             const prev = seenProp.get(prop);
             if (prev) {
                 if (prev.id !== part.id || prev.role !== part.role || prev.keyed !== part.keyed) {
@@ -242,6 +247,14 @@ export function emitGenerated(options: {
         // overlay that reuses the same ids elsewhere on the page cannot trip strict mode.
         const defaultRoot =
             containerFiles.length > 0 ? `page.locator(${JSON.stringify(`[data-surface="${scope}"]`)})` : 'page';
+
+        // The container element itself, found under the caller's root (or the page), never under the default root.
+        if (containerFiles.length > 0) {
+            usedHelpers.add('elementDriver');
+            propLines.unshift(
+                `        container: elementDriver(root ?? page, ${JSON.stringify(scope)}, 'container', 'data-surface'),`,
+            );
+        }
         scopeBlocks.push(
             `    ${toSafeIdent(scope)}: (root?: Locator) => {\n        const scope = root ?? ${defaultRoot};\n        return {\n${propLines.join('\n')}\n        };\n    },`,
         );

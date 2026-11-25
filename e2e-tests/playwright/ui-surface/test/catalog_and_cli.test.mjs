@@ -113,6 +113,18 @@ test('emitGenerated roots contained scopes in their container and fails on prope
         });
         const surfaceTs = readFileSync(join(outDir, 'surface.generated.ts'), 'utf8');
         assert.match(surfaceTs, /const scope = root \?\? page\.locator\("\[data-surface=\\"save_panel\\"\]"\);/);
+        assert.match(
+            surfaceTs,
+            /container: elementDriver\(root \?\? page, "save_panel", 'container', 'data-surface'\)/,
+        );
+        assert.throws(
+            () =>
+                gen({
+                    'p.tsx':
+                        'export const P = () => <div data-surface="panel"><i data-surface="panel.container--region" /></div>;',
+                }),
+            /collides with the scope's generated container/,
+        );
 
         assert.throws(
             () =>

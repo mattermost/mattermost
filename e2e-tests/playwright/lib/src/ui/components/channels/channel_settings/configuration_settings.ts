@@ -4,6 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
 import Switch from '../../switch';
 
 export default class ConfigurationSettings {
@@ -17,12 +18,13 @@ export default class ConfigurationSettings {
 
     constructor(container: Locator) {
         this.container = container;
+        const settings = createSurface(container.page()).channel_settings(container);
 
-        this.classificationSwitch = new Switch(container, 'channelClassificationToggle-button');
-        this.channelBannerSwitch = new Switch(container, 'channelBannerToggle-button');
-        this.autotranslationSwitch = new Switch(container, 'channelTranslationToggle-button');
-        this.joinLeaveMessagesSwitch = new Switch(container, 'channelJoinLeaveMessagesToggle-button');
-        this.shareWithWorkspacesSwitch = new Switch(container, 'shareChannelWithWorkspacesToggle-button');
+        this.classificationSwitch = new Switch(container, settings.classification);
+        this.channelBannerSwitch = new Switch(container, settings.banner);
+        this.autotranslationSwitch = new Switch(container, settings.translation);
+        this.joinLeaveMessagesSwitch = new Switch(container, settings.joinLeave);
+        this.shareWithWorkspacesSwitch = new Switch(container, settings.shareWithWorkspaces);
     }
 
     async toBeVisible() {
@@ -30,7 +32,7 @@ export default class ConfigurationSettings {
     }
 
     async save() {
-        const saveButton = this.container.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = createSurface(this.container.page()).save_panel(this.container).save.locator;
 
         // Wait up to 5s for the save panel to appear. Some toggle-only changes
         // (e.g. disable sharing after a reload) may not trigger the save panel

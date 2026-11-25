@@ -47,6 +47,9 @@ export class ElementDriver {
     readonly testId: string;
     readonly role: string;
 
+    /** CSS selector for this element, for APIs that need a page-rooted locator such as `filter({has})`. */
+    readonly selector: string;
+
     constructor(
         scope: Page | Locator,
         testId: string,
@@ -55,8 +58,8 @@ export class ElementDriver {
     ) {
         this.testId = testId;
         this.role = role;
-        this.locator =
-            attr === 'data-surface' ? scope.locator(`[data-surface="${testId}"]`) : scope.getByTestId(testId);
+        this.selector = `[${attr}="${testId}"]`;
+        this.locator = attr === 'data-surface' ? scope.locator(this.selector) : scope.getByTestId(testId);
     }
 
     async click(options?: {timeout?: number}): Promise<void> {

@@ -92,6 +92,7 @@ function UrlInput({
         <span
             className='url-input-label'
             data-testid='urlInputLabel'
+            data-surface='channel_name_field.url--text'
         >
             {formatMessage({id: 'url_input.label.url', defaultMessage: 'URL: '})}
             {isShortenedURL ? getShortenedURL(fullURL, shortenLength) : fullURL}
@@ -114,6 +115,7 @@ function UrlInput({
                 {isEditing && (
                     <Input
                         data-testid='channelURLInput'
+                        data-surface='channel_name_field.url_input--textbox'
                         name='url-input'
                         type='text'
                         containerClassName='url-input-editable-container'
@@ -133,6 +135,7 @@ function UrlInput({
                 {!readOnly && (
                     <Button
                         className={classNames('url-input-button', {disabled: hasError})}
+                        data-surface='channel_name_field.url_edit--button'
                         disabled={hasError}
                         emphasis='quaternary'
                         size='x-small'

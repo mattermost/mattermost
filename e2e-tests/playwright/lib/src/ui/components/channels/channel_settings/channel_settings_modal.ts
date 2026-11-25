@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
+
 import InfoSettings from './info_settings';
 import ConfigurationSettings from './configuration_settings';
 
@@ -22,16 +24,17 @@ export default class ChannelSettingsModal {
     constructor(container: Locator) {
         this.container = container;
 
+        const surface = createSurface(container.page());
+        const settings = surface.channel_settings(container);
+
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
+        this.saveButton = surface.save_panel(container).save.locator;
 
         this.infoTab = container.getByRole('tab', {name: 'info'});
         this.configurationTab = container.getByRole('tab', {name: 'configuration'});
 
-        this.infoSettings = new InfoSettings(container.getByTestId('channel-settings-info-tab'));
-        this.configurationSettings = new ConfigurationSettings(
-            container.getByTestId('channel-settings-configuration-tab'),
-        );
+        this.infoSettings = new InfoSettings(settings.info.locator);
+        this.configurationSettings = new ConfigurationSettings(settings.configuration.locator);
     }
 
     async toBeVisible() {

@@ -4,6 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
 import {ChannelInfoAttributes} from '../channel_attributes';
 
 export default class InfoSettings {
@@ -21,15 +22,19 @@ export default class InfoSettings {
 
     constructor(container: Locator) {
         this.container = container;
-        this.nameInput = container.locator('#input_channel-settings-name');
+        const surface = createSurface(container.page());
+        const nameField = surface.channel_name_field(container);
+        const savePanel = surface.save_panel(container);
+
+        this.nameInput = nameField.name.locator;
         this.purposeInput = container.getByPlaceholder('Enter a purpose for this channel (optional)');
         this.headerInput = container.getByPlaceholder('Enter a header for this channel');
-        this.urlLabel = container.getByTestId('urlInputLabel');
-        this.urlEditButton = container.getByRole('button', {name: 'Edit'});
-        this.urlInput = container.getByTestId('channelURLInput');
-        this.saveChangesPanel = container.locator('.SaveChangesPanel');
-        this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
-        this.resetButton = container.getByTestId('SaveChangesPanel__cancel-btn');
+        this.urlLabel = nameField.url.locator;
+        this.urlEditButton = nameField.urlEdit.locator;
+        this.urlInput = nameField.urlInput.locator;
+        this.saveChangesPanel = savePanel.container.locator;
+        this.saveButton = savePanel.save.locator;
+        this.resetButton = savePanel.cancel.locator;
 
         // Same component as the Channel Info RHS, but staged here: edits only
         // reach the server on this tab's own Save (see saveChangesPanel).
