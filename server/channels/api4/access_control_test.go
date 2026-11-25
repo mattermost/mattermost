@@ -1224,6 +1224,7 @@ func TestDeleteAccessControlPolicyChannelImports(t *testing.T) {
 			default:
 				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(policy, nil)
 			}
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentID).Return(&model.AccessControlPolicy{ID: parentID, Type: model.AccessControlPolicyTypeParent}, nil).Maybe()
 			mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil).Maybe()
 
 			var client *model.Client4
@@ -1278,6 +1279,88 @@ func TestDeleteAccessControlPolicyChannelImports(t *testing.T) {
 			default:
 				CheckForbiddenStatus(t, resp)
 			}
+		})
+	}
+}
+
+// TestDeleteAccessControlPolicyDanglingImports covers a team admin deleting their team
+// policy when some imported parents no longer exist.
+func TestDeleteAccessControlPolicyDanglingImports(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+	teamAdmin := th.CreateUser(t)
+	makeTeamAdminAndLogin(t, th, teamAdmin, th.BasicTeam)
+	defer th.LoginBasic(t)
+
+	deletedID := model.NewId()
+	liveID := model.NewId()
+	erroredID := model.NewId()
+
+	cases := []struct {
+		name         string
+		imports      []string
+		expectStatus int
+	}{
+		{
+			name:         "only import deleted",
+			imports:      []string{deletedID},
+			expectStatus: http.StatusOK,
+		},
+		{
+			name:         "deleted and live imports",
+			imports:      []string{deletedID, liveID},
+			expectStatus: http.StatusForbidden,
+		},
+		{
+			name:         "import lookup error",
+			imports:      []string{erroredID},
+			expectStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockACS
+
+			teamPolicy := &model.AccessControlPolicy{
+				ID:       th.BasicTeam.Id,
+				Type:     model.AccessControlPolicyTypeTeam,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Revision: 1,
+				Imports:  tc.imports,
+			}
+			notFound := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)
+			lookupErr := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusInternalServerError)
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(teamPolicy, nil)
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), deletedID).Return(nil, notFound).Maybe()
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), liveID).Return(&model.AccessControlPolicy{ID: liveID, Type: model.AccessControlPolicyTypeParent}, nil).Maybe()
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), erroredID).Return(nil, lookupErr).Maybe()
+			mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(nil).Maybe()
+
+			resp, err := th.Client.DoAPIDelete(context.Background(),
+				"/access_control_policies/"+th.BasicTeam.Id+"?team_id="+th.BasicTeam.Id)
+			if resp != nil {
+				defer resp.Body.Close()
+			}
+
+			if tc.expectStatus == http.StatusOK {
+				require.NoError(t, err)
+				require.Equal(t, http.StatusOK, resp.StatusCode)
+				mockACS.AssertCalled(t, "DeletePolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id)
+				return
+			}
+
+			mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+			require.Error(t, err)
+			require.Equal(t, tc.expectStatus, resp.StatusCode)
 		})
 	}
 }

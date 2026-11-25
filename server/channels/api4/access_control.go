@@ -44,6 +44,22 @@ func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) 
 	return nil
 }
 
+// hasExistingImport reports whether any of the policy's imports still resolves.
+// Deleting a parent can leave its ID in a team policy's Imports, so a not-found
+// import is skipped; any other lookup error is returned.
+func hasExistingImport(c *Context, policy *model.AccessControlPolicy) (bool, *model.AppError) {
+	for _, importID := range policy.Imports {
+		_, appErr := c.App.GetAccessControlPolicy(c.AppContext, importID)
+		if appErr == nil {
+			return true, nil
+		}
+		if appErr.StatusCode != http.StatusNotFound {
+			return false, appErr
+		}
+	}
+	return false, nil
+}
+
 func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
@@ -368,16 +384,23 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	// Parent imports are set through the assign/unassign endpoints, so a channel or
-	// team admin deleting here can't remove a policy that still has them. A missing
-	// policy is returned as-is.
+	// team admin deleting here can't remove a policy that still has one whose parent
+	// exists. A missing policy is returned as-is.
 	stored, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-	if !hasSystemPermission && len(stored.Imports) > 0 {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
+	if !hasSystemPermission {
+		hasImport, importErr := hasExistingImport(c, stored)
+		if importErr != nil {
+			c.Err = importErr
+			return
+		}
+		if hasImport {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
 	}
 
 	appErr = c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
