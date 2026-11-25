@@ -332,13 +332,37 @@ func resizeEmojiGif(gifImg *gif.GIF) {
 	b := image.Rect(0, 0, firstFrame.Dx(), firstFrame.Dy())
 	img := image.NewRGBA(b)
 
+	if len(gifImg.Disposal) != len(gifImg.Image) {
+		gifImg.Disposal = make([]byte, len(gifImg.Image))
+	}
+
 	resizedImage := image.Image(nil)
 	// Resize each frame.
 	for index, frame := range gifImg.Image {
 		bounds := frame.Bounds()
+		disposal := gifImg.Disposal[index]
+
+		var previous *image.RGBA
+		if disposal == gif.DisposalPrevious {
+			previous = image.NewRGBA(b)
+			copy(previous.Pix, img.Pix)
+		}
+
 		draw.Draw(img, bounds, frame, bounds.Min, draw.Over)
 		resizedImage = resizeEmoji(img, firstFrame.Dx(), firstFrame.Dy())
 		gifImg.Image[index] = imageToPaletted(resizedImage)
+
+		// Apply the frame's disposal method, so the next frame is drawn on the
+		// right background instead of on top of every previous frame.
+		switch disposal {
+		case gif.DisposalBackground:
+			draw.Draw(img, bounds, image.Transparent, image.Point{}, draw.Src)
+		case gif.DisposalPrevious:
+			img = previous
+		}
+		// Each output frame is a full composite: clear it before the next one
+		// so its transparent pixels do not show the previous frame.
+		gifImg.Disposal[index] = gif.DisposalBackground
 	}
 	// Set new gif width and height
 	gifImg.Config.Width = resizedImage.Bounds().Dx()
@@ -359,10 +383,6 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight)
 }
 
-// emojiGIFPalette is the Plan9 palette with its first entry (opaque black)
-// replaced by a fully transparent color. Plan9 has no transparent color, so
-// without this, transparent pixels of resized GIF emojis became black.
-// GIF palettes are limited to 256 colors, hence the replacement.
 var emojiGIFPalette = func() color.Palette {
 	p := make(color.Palette, len(palette.Plan9))
 	copy(p, palette.Plan9)

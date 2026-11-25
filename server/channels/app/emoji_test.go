@@ -301,3 +301,67 @@ func TestResizeEmojiGifKeepsTransparency(t *testing.T) {
 	assert.Equal(t, uint32(0xffff), a, "opaque black should not become transparent")
 	assert.Less(t, max(r, g, b), uint32(0x3000), "opaque black should stay dark")
 }
+
+func TestResizeEmojiGifAppliesFrameDisposal(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	red := color.RGBA{R: 220, G: 30, B: 30, A: 255}
+	pal := color.Palette{color.Transparent, red}
+	// square returns a transparent 256x256 frame with an opaque red square.
+	square := func(x0, y0 int) *image.Paletted {
+		frame := image.NewPaletted(image.Rect(0, 0, 256, 256), pal)
+		for y := y0; y < y0+64; y++ {
+			for x := x0; x < x0+64; x++ {
+				frame.SetColorIndex(x, y, 1)
+			}
+		}
+		return frame
+	}
+	alphaAt := func(img image.Image, x, y int) uint32 {
+		_, _, _, a := img.At(x, y).RGBA()
+		return a
+	}
+
+	// Resized coordinates are halved (256 -> 128): a square drawn at (x0, y0)
+	// covers (x0/2, y0/2) to (x0/2+32, y0/2+32), so its center is (x0/2+16, y0/2+16).
+	t.Run("background disposal clears the frame", func(t *testing.T) {
+		gifImg := &gif.GIF{
+			Image:    []*image.Paletted{square(0, 0), square(128, 128)},
+			Delay:    []int{10, 10},
+			Disposal: []byte{gif.DisposalBackground, gif.DisposalBackground},
+		}
+
+		resizeEmojiGif(gifImg)
+
+		assert.Equal(t, uint32(0xffff), alphaAt(gifImg.Image[0], 16, 16))
+		assert.Zero(t, alphaAt(gifImg.Image[1], 16, 16), "first square should not remain in the second frame")
+		assert.Equal(t, uint32(0xffff), alphaAt(gifImg.Image[1], 80, 80))
+	})
+
+	t.Run("previous disposal restores the canvas", func(t *testing.T) {
+		gifImg := &gif.GIF{
+			Image:    []*image.Paletted{square(0, 0), square(128, 0), square(0, 128)},
+			Delay:    []int{10, 10, 10},
+			Disposal: []byte{gif.DisposalNone, gif.DisposalPrevious, gif.DisposalNone},
+		}
+
+		resizeEmojiGif(gifImg)
+
+		assert.Equal(t, uint32(0xffff), alphaAt(gifImg.Image[1], 16, 16), "first square should be kept")
+		assert.Equal(t, uint32(0xffff), alphaAt(gifImg.Image[1], 80, 16))
+		assert.Equal(t, uint32(0xffff), alphaAt(gifImg.Image[2], 16, 16), "first square should still be kept")
+		assert.Zero(t, alphaAt(gifImg.Image[2], 80, 16), "second square should be removed")
+		assert.Equal(t, uint32(0xffff), alphaAt(gifImg.Image[2], 16, 80))
+	})
+
+	t.Run("output frames are full composites", func(t *testing.T) {
+		gifImg := &gif.GIF{
+			Image: []*image.Paletted{square(0, 0), square(128, 128)},
+			Delay: []int{10, 10},
+		}
+
+		resizeEmojiGif(gifImg)
+
+		assert.Equal(t, []byte{gif.DisposalBackground, gif.DisposalBackground}, gifImg.Disposal)
+	})
+}
