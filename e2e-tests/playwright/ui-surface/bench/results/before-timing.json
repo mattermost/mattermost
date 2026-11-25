@@ -1,0 +1,31 @@
+{
+  "lean": {
+    "incremental": true,
+    "coldSec": 2.9,
+    "warmSec": 2.93,
+    "oneFileSec": 2.92,
+    "maxRssMb": 314,
+    "samples": {
+      "cold": [
+        2.97,
+        2.88,
+        2.9
+      ],
+      "warm": [
+        2.93,
+        2.92,
+        3.05
+      ],
+      "oneFile": [
+        2.98,
+        2.9,
+        2.92
+      ],
+      "rss": [
+        323060,
+        321808,
+        321520
+      ]
+    }
+  }
+}
