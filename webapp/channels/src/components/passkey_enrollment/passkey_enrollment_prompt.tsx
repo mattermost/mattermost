@@ -3,8 +3,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
-import {useLocation} from 'react-router-dom';
+import {useSelector, useStore} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
@@ -13,10 +12,14 @@ import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import {isModalOpen} from 'selectors/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import {ModalIdentifiers} from 'utils/constants';
 import {createPasskey, currentSessionCanAddPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
+
+import type {GlobalState} from 'types/store';
 
 import {sharedMessages, verifyErrors} from './messages';
 
@@ -33,15 +36,13 @@ const messages = defineMessages({
 export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();
     const enrollmentEnabled = useSelector(getConfig).PasskeyEnrollmentEnabled === 'true';
-    const location = useLocation();
+    const store = useStore<GlobalState>();
 
     // Fixed at mount: a skip is recorded against the login that was current when the prompt opened, and
-    // nothing that changes afterwards reopens it. The action param is stripped from the URL right after the
-    // first render, so it is read here, not later.
+    // nothing that changes afterwards reopens it.
     const [loginKey] = useState(() => Client4.getCSRFFromCookie());
     const [eligible] = useState(() => (
         enrollmentEnabled &&
-        new URLSearchParams(location.search).get('action') !== 'open_security_settings' &&
         !isDesktopApp() &&
         typeof window.PublicKeyCredential !== 'undefined' &&
         !isPasskeySession() &&
@@ -62,7 +63,10 @@ export default function PasskeyEnrollmentPrompt() {
             if (!canAdd) {
                 // It can never become eligible; skip so later mounts in this sign-in do not ask again.
                 LocalStorageStore.setPasskeyPromptSkipped(loginKey);
-            } else if (!cancelled) {
+            } else if (!cancelled && !isModalOpen(store.getState(), ModalIdentifiers.USER_SETTINGS)) {
+                // Account settings is already open, e.g. from ?action=open_security_settings; a second dialog would
+                // compete with it. The URL cannot say so: the param is stripped before this lazy component renders.
+                // Nothing is recorded as skipped, so the prompt returns at the next sign-in.
                 setOpen(true);
             }
         }, () => {
@@ -71,7 +75,7 @@ export default function PasskeyEnrollmentPrompt() {
         return () => {
             cancelled = true;
         };
-    }, [eligible, loginKey]);
+    }, [eligible, loginKey, store]);
 
     if (!open) {
         return null;
