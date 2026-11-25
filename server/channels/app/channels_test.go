@@ -62,14 +62,27 @@ func TestClusterTask(t *testing.T) {
 		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
 
+	var leader atomic.Bool
+	leader.Store(true)
+	isLeader := leader.Load
+
 	var ct clusterTask
-	require.NoError(t, ct.start(fakeMutexAPI{}, "test", fn, schedule))
+	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
 	first := ct.task
 	require.NotNil(t, first)
 
-	require.NoError(t, ct.start(fakeMutexAPI{}, "test", fn, schedule))
+	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
 	assert.Same(t, first, ct.task)
 	require.Eventually(t, func() bool { return calls.Load() >= 2 }, 5*time.Second, 10*time.Millisecond)
+
+	leader.Store(false)
+	time.Sleep(20 * time.Millisecond)
+	notLeaderAt := calls.Load()
+	time.Sleep(50 * time.Millisecond)
+	assert.Equal(t, notLeaderAt, calls.Load(), "a node that is not the leader should skip runs")
+
+	leader.Store(true)
+	require.Eventually(t, func() bool { return calls.Load() > notLeaderAt }, 5*time.Second, 10*time.Millisecond)
 
 	ct.stop()
 	assert.Nil(t, ct.task)
@@ -79,10 +92,10 @@ func TestClusterTask(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	assert.Equal(t, stoppedAt, calls.Load())
 
-	require.NoError(t, ct.start(fakeMutexAPI{}, "test", fn, schedule))
+	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
 	assert.Nil(t, ct.task)
 
-	assert.Error(t, ct.start(fakeMutexAPI{}, "", fn, schedule))
+	assert.Error(t, ct.start(fakeMutexAPI{}, isLeader, "", fn, schedule))
 }
 
 func TestChannelsStopCancelsTasks(t *testing.T) {
@@ -95,8 +108,9 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	schedule := func(run func()) *model.ScheduledTask {
 		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
+	isLeader := func() bool { return true }
 	for _, task := range []*clusterTask{&ch.dndTask, &ch.postReminderTask, &ch.scheduledPostTask} {
-		require.NoError(t, task.start(fakeMutexAPI{}, "test", fn, schedule))
+		require.NoError(t, task.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
 	}
 
 	require.NoError(t, ch.Stop())

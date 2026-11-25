@@ -2048,14 +2048,19 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 
 // clusterTask is a recurring task scheduled on every node, where each run takes a cluster-wide
 // mutex so that no two nodes run it at the same time.
+//
+// Nodes running a release from before the mutex run these tasks on the leader without taking it,
+// so each run also requires leadership while a rolling upgrade or rollback can mix them with this
+// release. Remove the leader check in v13 or later.
 type clusterTask struct {
 	mut     sync.Mutex
 	task    *model.ScheduledTask
 	stopped bool
 }
 
-// start schedules fn, guarded by the mutex named key, unless the task has been stopped or started.
-func (t *clusterTask) start(api cluster.MutexPluginAPI, key string, fn func(), schedule func(run func()) *model.ScheduledTask) error {
+// start schedules fn, guarded by isLeader and the mutex named key, unless the task has been
+// stopped or started.
+func (t *clusterTask) start(api cluster.MutexPluginAPI, isLeader func() bool, key string, fn func(), schedule func(run func()) *model.ScheduledTask) error {
 	mutex, err := cluster.NewMutex(api, key)
 	if err != nil {
 		return err
@@ -2066,7 +2071,11 @@ func (t *clusterTask) start(api cluster.MutexPluginAPI, key string, fn func(), s
 	if t.stopped || t.task != nil {
 		return nil
 	}
-	t.task = schedule(func() { runLocked(api, mutex, fn) })
+	t.task = schedule(func() {
+		if isLeader() {
+			runLocked(api, mutex, fn)
+		}
+	})
 	return nil
 }
 
@@ -2101,7 +2110,7 @@ func runClusterTasks(a *App) {
 	api := serverMutexAPI{a: a}
 
 	startTask := func(t *clusterTask, key string, fn func(), schedule func(run func()) *model.ScheduledTask) {
-		if err := t.start(api, key, fn, schedule); err != nil {
+		if err := t.start(api, a.IsLeader, key, fn, schedule); err != nil {
 			a.Log().Error("Failed to start cluster task", mlog.String("key", key), mlog.Err(err))
 		}
 	}
