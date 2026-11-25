@@ -957,14 +957,14 @@ describe('components/login/Login', () => {
             await waitFor(() => expect(screen.getByRole('link', {name: 'Passkey'})).not.toHaveAttribute('aria-disabled', 'true'));
         });
 
-        it('says so, and tells the browser to forget the passkey, when the server does not know it', async () => {
+        it('says so, and leaves the passkey alone in the browser, when the server does not know it', async () => {
             finishLogin.mockRejectedValue({server_error_id: 'app.passkey.unknown_credential.app_error', message: 'unknown'});
             renderLogin(passkeyState);
 
             await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
 
             expect(await screen.findByText('This passkey isn’t registered on this server. Choose another passkey or log in another way.')).toBeVisible();
-            expect(signalUnknownCredential).toHaveBeenCalledWith({rpId: 'mm.example.com', credentialId: 'credential1'});
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
             expect(screen.getByLabelText('Email')).toBeEnabled();
         });
 

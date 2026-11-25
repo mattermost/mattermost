@@ -53,7 +53,7 @@ import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {assertionToJSON, canRunPasskeyCeremony, requestOptionsFromJSON, signalUnknownPasskey} from 'utils/passkeys';
+import {assertionToJSON, canRunPasskeyCeremony, requestOptionsFromJSON} from 'utils/passkeys';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -770,15 +770,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     // Shared by the button and autofill; returns whether the user is signed in.
-    const finishPasskeySignIn = async (ceremonyId: string, options: PasskeyLoginOptions['options'], credential: PublicKeyCredential) => {
+    const finishPasskeySignIn = async (ceremonyId: string, credential: PublicKeyCredential) => {
         setIsWaiting(true);
         dismissAlert();
 
         const {data: userId, error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
         if (error) {
             if (error.server_error_id === 'app.passkey.unknown_credential.app_error') {
-                // An omitted rpId means the page's own host to WebAuthn.
-                signalUnknownPasskey(options.publicKey.rpId ?? window.location.hostname, credential.id);
+                // Don't signal the browser to forget it: the relying-party ID is only the Site URL host, so servers
+                // on the same host (other subpath or port) share it and the passkey may be valid on another of them.
                 showPasskeyError(formatMessage({
                     id: 'login.passkeyUnknown',
                     defaultMessage: 'This passkey isn’t registered on this server. Choose another passkey or log in another way.',
@@ -819,7 +819,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        if (credential && !await finishPasskeySignIn(ceremonyId, options, credential)) {
+        if (credential && !await finishPasskeySignIn(ceremonyId, credential)) {
             setAutofillRound((round) => round + 1);
         }
     };
@@ -835,7 +835,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             const {ceremony_id: ceremonyId, options} = await Client4.beginPasskeyLogin();
             const credential = await navigator.credentials.get({publicKey: requestOptionsFromJSON(options.publicKey)}) as PublicKeyCredential | null;
             if (credential) {
-                signedIn = await finishPasskeySignIn(ceremonyId, options, credential);
+                signedIn = await finishPasskeySignIn(ceremonyId, credential);
             } else {
                 setIsWaiting(false);
             }
