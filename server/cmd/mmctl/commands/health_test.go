@@ -553,7 +553,7 @@ notifications:
   email:
     status: OK
 `,
-		model.SupportPacketStatsFileName:   "registered_users: 100\nactive_users: 100\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketStatsFileName:   "registered_users: 100\nactive_users: 100\nsingle_channel_guests: 0\nposts: 1000\nposts_estimated: 1000\nsite_statistics_refreshed_at: 2026-09-25T09:00:00Z\n",
 		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
