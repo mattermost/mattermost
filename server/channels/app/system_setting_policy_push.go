@@ -33,6 +33,22 @@ func (a *App) systemSettingPoliciesForPush(rctx request.CTX) []cachedSystemSetti
 	return policies
 }
 
+// attachSystemSettingPolicyHook runs before every Publish. It applies each
+// connection's overrides to config_changed, so a config save doesn't clear them.
+func (a *App) attachSystemSettingPolicyHook(message *model.WebSocketEvent) {
+	if message.EventType() != model.WebsocketEventConfigChanged {
+		return
+	}
+	hooks := message.GetBroadcast().BroadcastHooks
+	if slices.Contains(hooks, broadcastSystemSetting) || slices.Contains(hooks, broadcastSystemSettingByID) {
+		return
+	}
+	if len(a.systemSettingPoliciesForPush(request.EmptyContext(a.Log()))) == 0 {
+		return
+	}
+	useSystemSettingPolicyHook(message, nil, nil)
+}
+
 // force also pushes to sessions whose role chain no policy targets, so a role
 // change that moves a user out of a targeted role clears its overrides.
 func (a *App) pushClientConfigOverrides(rctx request.CTX, userID, sessionID string, force bool) {
@@ -152,7 +168,8 @@ func (a *App) publishClientConfigOverrides(userID string, overridesBySession map
 		return
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", userID, nil, "")
+	message.Add("config", a.Srv().Platform().ClientConfigWithComputed())
 	useSystemSettingOverridesBySessionHook(message, overridesBySession)
 	a.Publish(message)
 }

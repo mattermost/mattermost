@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -923,17 +924,31 @@ func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocket
 		msg.Reject()
 		return nil
 	}
-	if overrides == nil {
-		overrides = map[string]string{}
+
+	return addClientConfigOverrides(msg, overrides)
+}
+
+// The event's config is the base client config every connection shares, so it
+// is copied before the overrides are applied.
+func addClientConfigOverrides(msg *platform.HookedWebSocketEvent, overrides map[string]string) error {
+	if len(overrides) == 0 {
+		return nil
 	}
 
-	msg.Add("overrides", overrides)
+	config, err := getTypedArg[map[string]string](msg.Event().GetData(), "config")
+	if err != nil {
+		msg.Reject()
+		return errors.Wrap(err, "Invalid config value in a system setting policy event")
+	}
+	config = maps.Clone(config)
+	maps.Copy(config, overrides)
+	msg.Add("config", config)
 	return nil
 }
 
-// systemSettingOverridesBySessionBroadcastHook delivers overrides already
-// evaluated on the publishing node. Connections whose session has no entry keep
-// their last known overrides.
+// systemSettingOverridesBySessionBroadcastHook applies overrides already
+// evaluated on the publishing node. Connections whose session has no entry get
+// no event.
 type systemSettingOverridesBySessionBroadcastHook struct{}
 
 func useSystemSettingOverridesBySessionHook(message *model.WebSocketEvent, overridesBySession map[string]map[string]string) {
@@ -960,10 +975,6 @@ func (h *systemSettingOverridesBySessionBroadcastHook) Process(msg *platform.Hoo
 		msg.Reject()
 		return nil
 	}
-	if overrides == nil {
-		overrides = map[string]string{}
-	}
 
-	msg.Add("overrides", overrides)
-	return nil
+	return addClientConfigOverrides(msg, overrides)
 }

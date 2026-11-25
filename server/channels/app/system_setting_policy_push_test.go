@@ -26,7 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-var systemSettingPolicyEventTypes = []model.WebsocketEventType{model.WebsocketEventSystemSettingPolicyUpdated}
+var systemSettingPolicyEventTypes = []model.WebsocketEventType{model.WebsocketEventConfigChanged}
 
 func connectSystemSettingWebSocket(t *testing.T, th *TestHelper, userID string) (chan *model.WebSocketEvent, string) {
 	t.Helper()
@@ -56,13 +56,20 @@ func connectSystemSettingWebSocketWithRoles(t *testing.T, th *TestHelper, userID
 	return nil, ""
 }
 
-func expectSystemSettingOverrides(t *testing.T, messages chan *model.WebSocketEvent, expected map[string]any) {
+// expectSystemSettingOverrides expects a config_changed carrying the base client
+// config with overrides applied.
+func expectSystemSettingOverrides(t *testing.T, th *TestHelper, messages chan *model.WebSocketEvent, overrides map[string]any) {
 	t.Helper()
 	select {
 	case msg := <-messages:
-		assert.Equal(t, expected, msg.GetData()["overrides"])
+		expected := map[string]any{}
+		for key, value := range th.App.Srv().Platform().ClientConfigWithComputed() {
+			expected[key] = value
+		}
+		maps.Copy(expected, overrides)
+		assert.Equal(t, expected, msg.GetData()["config"])
 	case <-time.After(5 * time.Second):
-		require.FailNow(t, "timed out waiting for system_setting_policy_updated")
+		require.FailNow(t, "timed out waiting for config_changed")
 	}
 }
 
@@ -70,7 +77,7 @@ func expectNoSystemSettingEvent(t *testing.T, messages chan *model.WebSocketEven
 	t.Helper()
 	select {
 	case msg := <-messages:
-		assert.Fail(t, "unexpected system_setting_policy_updated", "%v", msg.GetData())
+		assert.Fail(t, "unexpected config_changed", "%v", msg.GetData())
 	case <-time.After(300 * time.Millisecond):
 	}
 }
@@ -159,7 +166,10 @@ func TestClientConfigOverridesPush(t *testing.T) {
 		t.Helper()
 		return connectSystemSettingWebSocket(t, th, userID)
 	}
-	expectOverrides := expectSystemSettingOverrides
+	expectOverrides := func(t *testing.T, messages chan *model.WebSocketEvent, overrides map[string]any) {
+		t.Helper()
+		expectSystemSettingOverrides(t, th, messages, overrides)
+	}
 	expectNothing := expectNoSystemSettingEvent
 	userValue := func(userID, fieldID string) *model.PropertyValue {
 		return &model.PropertyValue{TargetType: model.PropertyFieldObjectTypeUser, TargetID: userID, FieldID: fieldID}
@@ -269,6 +279,43 @@ func TestClientConfigOverridesPush(t *testing.T) {
 		expectNothing(t, messages)
 	})
 
+	t.Run("a config save keeps each session's overrides", func(t *testing.T) {
+		enable(t, model.SystemUserRoleId, readsDeptAndIP)
+		matched, _ := connect(t, th.BasicUser.Id)
+		unmatched, _ := connect(t, th.BasicUser2.Id)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.SiteName = new("Site " + model.NewId()[:8]) })
+
+		expectOverrides(t, matched, biometricsOn)
+		expectOverrides(t, unmatched, map[string]any{})
+	})
+
+	attachedHooks := func(message *model.WebSocketEvent) []string {
+		th.App.attachSystemSettingPolicyHook(message)
+		return message.GetBroadcast().BroadcastHooks
+	}
+	configChanged := func() *model.WebSocketEvent {
+		return model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
+	}
+
+	t.Run("config_changed gets the hook only while the feature is on and a policy exists", func(t *testing.T) {
+		assert.Empty(t, attachedHooks(configChanged()))
+
+		enable(t, model.SystemUserRoleId, readsDeptAndIP)
+		assert.Equal(t, []string{broadcastSystemSetting}, attachedHooks(configChanged()))
+		assert.Empty(t, attachedHooks(model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")))
+
+		bySession := configChanged()
+		useSystemSettingOverridesBySessionHook(bySession, map[string]map[string]string{})
+		assert.Equal(t, []string{broadcastSystemSettingByID}, attachedHooks(bySession))
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SystemSettingPolicies = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SystemSettingPolicies = true })
+		})
+		assert.Empty(t, attachedHooks(configChanged()))
+	})
+
 	t.Run("pushes nothing when no system_setting policy exists", func(t *testing.T) {
 		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -278,6 +325,7 @@ func TestClientConfigOverridesPush(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = &mocks.AccessControlServiceInterface{}
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
 		th.App.invalidateSystemSettingPolicyCache()
+		assert.Empty(t, attachedHooks(configChanged()))
 
 		messages, _ := connect(t, th.BasicUser.Id)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
@@ -383,7 +431,7 @@ func TestClientConfigOverridesPushReadsSessionsFromMaster(t *testing.T) {
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(t, appErr)
 
-	expectSystemSettingOverrides(t, messages, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"})
+	expectSystemSettingOverrides(t, th, messages, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"})
 }
 
 func TestNewSystemSettingPolicyChange(t *testing.T) {
@@ -600,7 +648,7 @@ func publishedSystemSettingPolicyArgs(cluster *testlib.FakeClusterInterface) []m
 	var published []map[string]any
 	for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool { return msg.Event == model.ClusterEventPublish }) {
 		event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
-		if err != nil || event.EventType() != model.WebsocketEventSystemSettingPolicyUpdated {
+		if err != nil || event.EventType() != model.WebsocketEventConfigChanged {
 			continue
 		}
 		if i := slices.Index(event.GetBroadcast().BroadcastHooks, broadcastSystemSetting); i >= 0 {
@@ -711,9 +759,9 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		create(t, expression, "true")
 
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 	})
 
 	t.Run("rename-only save publishes nothing and evaluates nothing", func(t *testing.T) {
@@ -722,9 +770,9 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.match(expression, userA.Id)
 		policy := create(t, expression, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 		evaluations := engine.evaluationsOf(policy.ID)
 
 		renamed := *policy
@@ -743,16 +791,16 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.match(after, userB.Id, userC.Id)
 		policy := create(t, before, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 
 		save(t, withRule(policy, after, "true"))
 
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, map[string]any{})
-		expectSystemSettingOverrides(t, conns.b, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.c, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.a, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.b, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.c, biometrics("true"))
 		expectNothing(t, conns.a, conns.b, conns.c)
 	})
 
@@ -765,8 +813,8 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		create(t, expression, "true")
 
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, first, biometrics("true"))
-		expectSystemSettingOverrides(t, second, map[string]any{})
+		expectSystemSettingOverrides(t, th, first, biometrics("true"))
+		expectSystemSettingOverrides(t, th, second, map[string]any{})
 		assert.Equal(t, 1, engine.evaluationsOfVersion(firstID, expression, "true"))
 		assert.Equal(t, 1, engine.evaluationsOfVersion(secondID, expression, "true"))
 	})
@@ -777,16 +825,16 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.match(expression, userA.Id, userB.Id)
 		policy := create(t, expression, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 
 		save(t, withRule(policy, expression, "false"))
 
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("false"))
-		expectSystemSettingOverrides(t, conns.b, biometrics("false"))
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("false"))
+		expectSystemSettingOverrides(t, th, conns.b, biometrics("false"))
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 	})
 
 	t.Run("role change broadcasts to both roles", func(t *testing.T) {
@@ -796,20 +844,20 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.match(expression, userA.Id, th.SystemAdminUser.Id)
 		policy := create(t, expression, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, admin, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, admin, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 
 		moved := *policy
 		moved.Roles = []string{model.SystemAdminRoleId}
 		save(t, &moved)
 
 		expectBroadcast(t, model.SystemAdminRoleId, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, admin, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.a, map[string]any{})
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, admin, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.a, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 		expectNothing(t, admin, conns.a, conns.b, conns.c)
 	})
 
@@ -835,8 +883,8 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		createWithRole(t, model.SystemAdminRoleId, expression, "true")
 
 		expectBroadcast(t, model.SystemAdminRoleId)
-		expectSystemSettingOverrides(t, promotedFirst, biometrics("true"))
-		expectSystemSettingOverrides(t, promotedSecond, biometrics("true"))
+		expectSystemSettingOverrides(t, th, promotedFirst, biometrics("true"))
+		expectSystemSettingOverrides(t, th, promotedSecond, biometrics("true"))
 		expectNothing(t, demotedSession)
 	})
 
@@ -849,7 +897,7 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		createWithRole(t, model.SystemAdminRoleId, expression, "true")
 
 		expectBroadcast(t, model.SystemAdminRoleId)
-		expectSystemSettingOverrides(t, admin, biometrics("true"))
+		expectSystemSettingOverrides(t, th, admin, biometrics("true"))
 		expectNothing(t, user)
 		assert.Zero(t, engine.evaluationsOfVersion(userSessionID, expression, "true"))
 	})
@@ -860,17 +908,17 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.match(expression, userA.Id)
 		policy := create(t, expression, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 
 		remove(t, policy.ID)
 
 		args := expectBroadcast(t, model.SystemUserRoleId)
 		assert.Equal(t, map[string]any{"policy_id": policy.ID, "revision": float64(0)}, args["policy_change"])
-		expectSystemSettingOverrides(t, conns.a, map[string]any{})
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 		expectNothing(t, conns.a, conns.b, conns.c)
 	})
 
@@ -883,13 +931,13 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.fail(after, failingSessionID)
 		policy := create(t, before, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, failing, biometrics("true"))
-		expectSystemSettingOverrides(t, b, biometrics("true"))
+		expectSystemSettingOverrides(t, th, failing, biometrics("true"))
+		expectSystemSettingOverrides(t, th, b, biometrics("true"))
 
 		save(t, withRule(policy, after, "false"))
 
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, b, biometrics("false"))
+		expectSystemSettingOverrides(t, th, b, biometrics("false"))
 		expectNothing(t, failing)
 	})
 
@@ -900,15 +948,19 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		engine.match(after, userB.Id)
 		policy := create(t, before, "true")
 		expectBroadcast(t, model.SystemUserRoleId)
-		expectSystemSettingOverrides(t, conns.a, biometrics("true"))
-		expectSystemSettingOverrides(t, conns.b, map[string]any{})
-		expectSystemSettingOverrides(t, conns.c, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.a, biometrics("true"))
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 		evaluations := engine.evaluationsOf(policy.ID)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SystemSettingPolicies = false })
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SystemSettingPolicies = true })
 		})
+		// The config save itself sends everyone the base config.
+		expectSystemSettingOverrides(t, th, conns.a, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
+		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
 
 		save(t, withRule(policy, after, "true"))
 		remove(t, policy.ID)
@@ -955,8 +1007,8 @@ func TestSystemSettingPolicyChangePushReadsPoliciesFromMaster(t *testing.T) {
 		_ = originalStore.AccessControlPolicy().Delete(th.Context, saved.ID)
 		th.App.invalidateSystemSettingPolicyCache()
 	})
-	expectSystemSettingOverrides(t, a, biometrics)
-	expectSystemSettingOverrides(t, b, map[string]any{})
+	expectSystemSettingOverrides(t, th, a, biometrics)
+	expectSystemSettingOverrides(t, th, b, map[string]any{})
 
 	session, err := originalStore.Session().Get(th.Context, sessionA)
 	require.NoError(t, err)
@@ -972,8 +1024,8 @@ func TestSystemSettingPolicyChangePushReadsPoliciesFromMaster(t *testing.T) {
 	}}
 	_, appErr = th.App.CreateOrUpdateAccessControlPolicy(adminCtx, &updated)
 	require.Nil(t, appErr)
-	expectSystemSettingOverrides(t, a, map[string]any{})
-	expectSystemSettingOverrides(t, b, biometrics)
+	expectSystemSettingOverrides(t, th, a, map[string]any{})
+	expectSystemSettingOverrides(t, th, b, biometrics)
 }
 
 type countingPolicyLoadStore struct {
@@ -1018,10 +1070,11 @@ func TestSystemSettingPolicyBroadcastReloadsStaleCache(t *testing.T) {
 		webConn := &platform.WebConn{UserId: th.BasicUser.Id, Platform: th.Server.Platform(), Suite: th.App}
 		webConn.SetSession(session)
 
-		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, ""))
+		// With an empty base config the delivered config holds only the overrides.
+		msg := platform.MakeHookedWebSocketEvent(newSystemSettingConfigEvent("", map[string]string{}))
 		require.NoError(t, hook.Process(msg, webConn, args))
 		require.False(t, msg.Event().IsRejected())
-		return msg.Get("overrides").(map[string]string)
+		return msg.Get("config").(map[string]string)
 	}
 	// Returns the published hook args as another node decodes them, leaving
 	// this node's cache as that node's would be before the invalidation arrives.
@@ -1038,14 +1091,14 @@ func TestSystemSettingPolicyBroadcastReloadsStaleCache(t *testing.T) {
 		for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool { return msg.Event == model.ClusterEventPublish }) {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 			require.NoError(t, err)
-			if event.EventType() != model.WebsocketEventSystemSettingPolicyUpdated {
+			if event.EventType() != model.WebsocketEventConfigChanged {
 				continue
 			}
 			i := slices.Index(event.GetBroadcast().BroadcastHooks, broadcastSystemSetting)
 			require.GreaterOrEqual(t, i, 0)
 			return event.GetBroadcast().BroadcastHookArgs[i]
 		}
-		require.FailNow(t, "no system_setting_policy_updated broadcast was published")
+		require.FailNow(t, "no system setting policy broadcast was published")
 		return nil
 	}
 	biometrics := func(value string) map[string]string {
@@ -1180,13 +1233,13 @@ func TestClientConfigOverridesPushCachesTheWrittenAttributes(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 	expectPushedValue(t, "a")
-	expectSystemSettingOverrides(t, messages, map[string]any{})
+	expectSystemSettingOverrides(t, th, messages, map[string]any{})
 	expectAccessCheckValue(t, "a")
 
 	value.Value = jsonString("b")
 	_, appErr = th.App.UpdatePropertyValue(th.Context, group.ID, value)
 	require.Nil(t, appErr)
 	expectPushedValue(t, "b")
-	expectSystemSettingOverrides(t, messages, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"})
+	expectSystemSettingOverrides(t, th, messages, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"})
 	expectAccessCheckValue(t, "b")
 }

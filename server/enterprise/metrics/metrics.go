@@ -150,7 +150,6 @@ type MetricsInterfaceImpl struct {
 	WebsocketBroadcastDraftUpdated                prometheus.Counter
 	WebsocketBroadcastDraftDeleted                prometheus.Counter
 	WebsocketBroadcastPostTranslationUpdated      prometheus.Counter
-	WebsocketBroadcastSystemSettingPolicyUpdated  prometheus.Counter
 
 	WebSocketBroadcastOther                      prometheus.Counter
 	WebSocketBroadcastBufferGauge                *prometheus.GaugeVec
@@ -735,7 +734,6 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.WebsocketBroadcastDraftUpdated = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventDraftUpdated)})
 	m.WebsocketBroadcastDraftDeleted = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventDraftDeleted)})
 	m.WebsocketBroadcastPostTranslationUpdated = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventPostTranslationUpdated)})
-	m.WebsocketBroadcastSystemSettingPolicyUpdated = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventSystemSettingPolicyUpdated)})
 	m.WebSocketBroadcastOther = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": "other"})
 
 	m.WebsocketEventCounters = prometheus.NewCounterVec(
@@ -1910,8 +1908,6 @@ func (mi *MetricsInterfaceImpl) IncrementWebSocketBroadcast(eventType model.Webs
 		mi.WebsocketBroadcastDraftDeleted.Inc()
 	case model.WebsocketEventPostTranslationUpdated:
 		mi.WebsocketBroadcastPostTranslationUpdated.Inc()
-	case model.WebsocketEventSystemSettingPolicyUpdated:
-		mi.WebsocketBroadcastSystemSettingPolicyUpdated.Inc()
 	default:
 		mi.WebSocketBroadcastOther.Inc()
 	}

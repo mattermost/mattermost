@@ -81,13 +81,6 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		return mockACS
 	}
 
-	t.Run("GET /config/client/overrides requires authentication", func(t *testing.T) {
-		unauthClient := th.CreateClient()
-		_, resp, err := unauthClient.GetClientConfigOverrides(context.Background())
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-	})
-
 	t.Run("feature flag gating on create and search", func(t *testing.T) {
 		_ = setupMocks(t)
 		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
@@ -136,7 +129,7 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("CRUD, overrides endpoint with X-MM-Session-Attributes, and WebSocket BroadcastHook", func(t *testing.T) {
+	t.Run("CRUD, effective client config with X-MM-Session-Attributes, and config_changed pushes", func(t *testing.T) {
 		mockACS := setupMocks(t)
 
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
@@ -209,35 +202,44 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		assert.Equal(t, created.ID, found.Policies[0].ID)
 		assert.Equal(t, "true", found.Policies[0].Rules[0].Value)
 
-		waitForSystemSettingEvent := func(ws *model.WebSocketClient) map[string]any {
+		// Config saves earlier in the test also send config_changed, so wait for
+		// the one carrying the expected value.
+		waitForBiometrics := func(ws *model.WebSocketClient, expected string) {
+			t.Helper()
 			deadline := time.After(5 * time.Second)
 			for {
 				select {
 				case ev := <-ws.EventChannel:
 					require.NotEqual(t, model.WebsocketEventPermissionPolicyUpdated, ev.EventType(), "saving system_setting policy must not emit permission_policy_updated")
-					if ev.EventType() == model.WebsocketEventSystemSettingPolicyUpdated {
-						raw, ok := ev.GetData()["overrides"].(map[string]any)
-						require.True(t, ok, "expected overrides map on system_setting_policy_updated event")
-						return raw
+					if ev.EventType() != model.WebsocketEventConfigChanged {
+						continue
+					}
+					config, ok := ev.GetData()["config"].(map[string]any)
+					require.True(t, ok, "expected a config map on config_changed")
+					assert.NotEmpty(t, config["SiteName"], "config_changed must carry the whole client config")
+					if config[model.ClientConfigKeyMobileEnableBiometrics] == expected {
+						return
 					}
 				case <-deadline:
-					t.Fatal("timed out waiting for system_setting_policy_updated websocket event")
+					t.Fatalf("timed out waiting for config_changed with %s=%s", model.ClientConfigKeyMobileEnableBiometrics, expected)
 				}
 			}
 		}
+		biometrics := func(client *model.Client4) string {
+			t.Helper()
+			config, resp, err := client.GetClientConfig(context.Background(), "")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotEmpty(t, config["SiteName"])
+			return config[model.ClientConfigKeyMobileEnableBiometrics]
+		}
 
-		assert.Equal(t, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"}, waitForSystemSettingEvent(wsUser1))
-		assert.Equal(t, map[string]any{}, waitForSystemSettingEvent(wsUser2))
+		waitForBiometrics(wsUser1, "true")
+		waitForBiometrics(wsUser2, "false")
 
-		overrides1, resp, err := th.Client.GetClientConfigOverrides(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, overrides1)
-
-		overrides2, resp, err := client2.GetClientConfigOverrides(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Empty(t, overrides2)
+		assert.Equal(t, "true", biometrics(th.Client))
+		assert.Equal(t, "false", biometrics(client2))
+		assert.Equal(t, "false", biometrics(th.CreateClient()), "the unauthenticated config has no session to evaluate")
 
 		const desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
 		headerBytes, err := json.Marshal(map[string]any{model.SessionAttributesPropertyFieldHardwareID: "mdm-device-1"})
@@ -246,19 +248,13 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 			"User-Agent": desktopUserAgent,
 			model.SessionAttributeHeaderClientAttributes: base64.StdEncoding.EncodeToString(headerBytes),
 		}
-		overrides2WithAttr, resp, err := client2.GetClientConfigOverrides(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, overrides2WithAttr)
+		assert.Equal(t, "true", biometrics(client2))
 
 		resp, err = th.SystemAdminClient.DeleteAccessControlPolicy(context.Background(), created.ID)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.Equal(t, map[string]any{}, waitForSystemSettingEvent(wsUser1))
+		waitForBiometrics(wsUser1, "false")
 
-		overridesAfterDelete, resp, err := th.Client.GetClientConfigOverrides(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Empty(t, overridesAfterDelete)
+		assert.Equal(t, "false", biometrics(th.Client))
 	})
 }
