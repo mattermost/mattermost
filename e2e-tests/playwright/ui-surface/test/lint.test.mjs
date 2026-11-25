@@ -66,7 +66,17 @@ test('observe-actions requires an observation between an action and leaving the 
     );
     assert.equal(body('await pw.waitUntil(async () => { await refresh.click(); return true; });').length, 1);
     assert.equal(body('await btn.click();\nawait test.step("next", async () => {});').length, 1);
-    assert.equal(body('if (x) {\n  await btn.click();\n}\nawait expect(panel).toBeVisible();').length, 1);
+
+    // Dataflow (gap 4): a trailing observation after a branch observes an action pending on any path.
+    assert.equal(body('if (x) {\n  await btn.click();\n}\nawait expect(panel).toBeVisible();').length, 0);
+    // Both branches act, nothing observes before the function ends -> both reported (join keeps both pending).
+    assert.equal(body('if (x) {\n  await a.click();\n} else {\n  await b.click();\n}').length, 2);
+    // An action in a loop, observed after the loop, is fine (loop may run; the expect joins the pending out).
+    assert.equal(body('for (const r of rows) {\n  await r.click();\n}\nawait expect(panel).toBeVisible();').length, 0);
+    // An action in a try, API call in finally -> the pending click turns away into the finally.
+    assert.equal(body('try {\n  await btn.click();\n} finally {\n  await client.getConfig();\n}').length, 1);
+    // Early return with a pending action is reported.
+    assert.equal(body('await btn.click();\nif (x) {\n  return;\n}\nawait expect(panel).toBeVisible();').length, 1);
     assert.equal(body('await btn.click();\nawait modal.notToBeVisible();').length, 0);
     assert.equal(
         body(

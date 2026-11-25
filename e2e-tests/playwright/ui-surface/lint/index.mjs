@@ -209,85 +209,137 @@ function label(context, node) {
     return text.length > 70 ? `${text.slice(0, 67)}...` : text;
 }
 
+const LIST_STMT = (node) => (!node ? [] : node.type === 'BlockStatement' ? node.body : [node]);
+
 /**
- * Straight-line check of one statement list. An action stays pending until an observation; a following action or
- * page-object step chains it (Playwright waits for the next target). An API/infra/navigation call, a return, a nested
- * block or the end of the list with an action pending is reported.
- * shortcut: no path joins or loop fixed points (Peter's e2e-observe-actions); entering an if/loop/try with an action
- * pending is reported, so it over-reports there (an expect fixes it) and never misses straight-line code.
+ * Structured dataflow over one function body. State is the Set of actions still pending observation on the current
+ * path (empty = all observed). Paths join by union (pending on any branch is pending), loops run zero-or-more times
+ * (join of entry and one pass, no fixed point), early returns and the function end report whatever is still pending,
+ * and a catch starts from where its try could have thrown. Straight-line code is exact: an action followed only by
+ * another action or page step chains (Playwright waits for the next target); a non-observing awaited call, a return
+ * or the end with an action pending is reported.
+ * Documented remaining false positives: an observation reached only through a loop that may run zero times; an action
+ * observed by a helper the rule cannot see as observing; and `break`/`continue` are treated as ending their path.
  */
-function checkStatements(context, statements) {
-    let pending;
-    const turnAway = (what) => {
-        if (pending) {
-            context.report({node: pending, messageId: 'unobserved', data: {action: label(context, pending), what}});
-            pending = undefined;
+function analyzeBody(context, statements) {
+    const reported = new Set();
+    const report = (node, what) => {
+        if (!reported.has(node)) {
+            reported.add(node);
+            context.report({node, messageId: 'unobserved', data: {action: label(context, node), what}});
         }
     };
-    const step = (expr) => {
+    const union = (...states) => {
+        const out = new Set();
+        for (const s of states) {
+            if (s) {
+                for (const n of s) {
+                    out.add(n);
+                }
+            }
+        }
+        return out;
+    };
+    const turnAway = (state, what) => {
+        for (const node of state) {
+            report(node, what);
+        }
+    };
+
+    // Apply one awaited expression to the pending set, returning the new set.
+    const step = (expr, state) => {
         const kind = classifyAwaited(expr);
         if (kind === 'observation' || kind === 'page') {
-            pending = undefined;
-        } else if (kind === 'action') {
-            pending = unwrap(expr);
-        } else {
-            turnAway(`\`${label(context, expr)}\``);
+            return new Set();
         }
+        if (kind === 'action') {
+            return new Set([unwrap(expr)]);
+        }
+        turnAway(state, `\`${label(context, expr)}\``);
+        return new Set();
     };
-    for (const stmt of statements) {
-        if (stmt.type === 'ReturnStatement') {
-            awaitsIn(stmt.argument).forEach((aw) => step(aw.argument));
-            if (
-                stmt.argument &&
-                stmt.argument.type !== 'AwaitExpression' &&
-                classifyAwaited(stmt.argument) === 'action'
-            ) {
-                pending = unwrap(stmt.argument);
-            }
-            turnAway('returning');
-            return;
-        }
-        const nested = nestedBlocks(stmt);
-        if (nested) {
-            awaitsIn(nested.head).forEach((aw) => step(aw.argument));
-            turnAway(`entering this ${stmt.type.replace('Statement', '').toLowerCase()} block`);
-            nested.bodies.forEach((body) => checkStatements(context, body));
-            continue;
-        }
-        awaitsIn(stmt).forEach((aw) => step(aw.argument));
-    }
-    turnAway('the end of the block');
-}
 
-/** Head expression and inner statement lists of a compound statement; undefined for a simple one. */
-function nestedBlocks(stmt) {
-    const list = (node) => {
-        if (!node) {
-            return [];
+    // Run the awaits of a non-control node in evaluation order against the state.
+    const flow = (node, state) => {
+        let cur = state;
+        for (const aw of awaitsIn(node)) {
+            cur = step(aw.argument, cur);
         }
-        return [node.type === 'BlockStatement' ? node.body : [node]];
+        return cur;
     };
-    const loop = () => ({head: stmt.test, bodies: list(stmt.body)});
-    const shapes = {
-        BlockStatement: () => ({head: null, bodies: [stmt.body]}),
-        IfStatement: () => ({head: stmt.test, bodies: [...list(stmt.consequent), ...list(stmt.alternate)]}),
-        ForStatement: loop,
-        WhileStatement: loop,
-        DoWhileStatement: loop,
-        ForInStatement: () => ({head: stmt.right, bodies: list(stmt.body)}),
-        ForOfStatement: () => ({head: stmt.right, bodies: list(stmt.body)}),
-        TryStatement: () => ({
-            head: null,
-            bodies: [
-                stmt.block.body,
-                ...(stmt.handler ? [stmt.handler.body.body] : []),
-                ...(stmt.finalizer ? [stmt.finalizer.body] : []),
-            ],
-        }),
-        SwitchStatement: () => ({head: stmt.discriminant, bodies: stmt.cases.map((c) => c.consequent)}),
-        LabeledStatement: () => ({head: null, bodies: list(stmt.body)}),
+
+    // A statement from `state`; returns the state after it, or null when no path continues (return/throw).
+    const stmt = (node, state) => {
+        if (!state) {
+            return null;
+        }
+        switch (node.type) {
+        case 'BlockStatement':
+            return list(node.body, state);
+        case 'ReturnStatement': {
+            const after = flow(node.argument, state);
+            if (node.argument && node.argument.type !== 'AwaitExpression' && classifyAwaited(node.argument) === 'action') {
+                turnAway(new Set([unwrap(node.argument)]), 'returning');
+            }
+            turnAway(after, 'returning');
+            return null;
+        }
+        case 'ThrowStatement':
+            flow(node.argument, state);
+            return null;
+        case 'IfStatement': {
+            const tested = flow(node.test, state);
+            const thenS = stmt(node.consequent, tested);
+            const elseS = node.alternate ? stmt(node.alternate, tested) : tested;
+            return union(thenS, elseS);
+        }
+        case 'ForStatement':
+        case 'WhileStatement':
+        case 'DoWhileStatement':
+        case 'ForInStatement':
+        case 'ForOfStatement': {
+            const head = flow(node.test ?? node.right, state);
+            const once = list(LIST_STMT(node.body), head);
+            // zero-or-more iterations: the loop may be skipped (head) or run (once).
+            return union(head, once);
+        }
+        case 'TryStatement': {
+            const tried = list(node.block.body, state);
+            const caught = node.handler ? list(node.handler.body.body, union(state, tried)) : null;
+            const normal = node.handler ? union(tried, caught) : tried;
+            return node.finalizer ? list(node.finalizer.body, normal ?? new Set()) : normal;
+        }
+        case 'SwitchStatement': {
+            const tested = flow(node.discriminant, state);
+            const hasDefault = node.cases.some((c) => !c.test);
+            const branches = node.cases.map((c) => list(c.consequent, tested));
+            return union(...branches, hasDefault ? null : tested);
+        }
+        case 'LabeledStatement':
+            return stmt(node.body, state);
+        case 'BreakStatement':
+        case 'ContinueStatement':
+            return null;
+        default:
+            return flow(node, state);
+        }
     };
-    return shapes[stmt.type]?.();
+
+    const list = (statements, state) => {
+        let cur = state;
+        for (const node of statements) {
+            cur = stmt(node, cur);
+            if (!cur) {
+                return null;
+            }
+        }
+        return cur;
+    };
+
+    const end = list(statements, new Set());
+    if (end) {
+        turnAway(end, 'the function ends');
+    }
 }
 
 /** Web-first matchers that retry and return a promise; `expect(value).toBe()` and friends are synchronous. */
@@ -485,7 +537,7 @@ export const rules = {
         create(context) {
             const checkFunction = (fn) => {
                 if (fn.body.type === 'BlockStatement') {
-                    checkStatements(context, fn.body.body);
+                    analyzeBody(context, fn.body.body);
                 } else if (
                     classifyAwaited(fn.body.type === 'AwaitExpression' ? fn.body.argument : fn.body) === 'action'
                 ) {
