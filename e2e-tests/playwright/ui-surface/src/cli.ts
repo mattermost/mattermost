@@ -8,7 +8,8 @@ import {fileURLToPath} from 'node:url';
 import {emitGenerated, extractOpenApi, type PageSpec} from './catalog.js';
 import {diffHostContracts, extractHostContract, readHostVersion, type HostContract} from './host_contract.js';
 import {computeBaseline, diffBaseline, serializeBaseline, type Baseline} from './ratchet.js';
-import {checkStaleRefs, extractSurface, indexSourceIds, type SurfaceEntry, type SurfaceReport} from './scan.js';
+import {migrateTestIds} from './migrate.js';
+import {checkStaleRefs, collectTestIdSurfacePairs, extractSurface, indexSourceIds, type SurfaceEntry, type SurfaceReport} from './scan.js';
 
 function defaultPaths(cwd = process.cwd()) {
     const pkgDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -35,6 +36,7 @@ function defaultPaths(cwd = process.cwd()) {
         staleAllowPath: resolve(pkgDir, 'stale-allow.json'),
         roleMapPath: resolve(pkgDir, 'role-map.json'),
         baselinePath: resolve(pkgDir, 'testid-baseline.json'),
+        driftMapPath: resolve(pkgDir, 'testid-surface-map.json'),
         generatedDir: resolve(pwRoot, 'lib/src/surface/generated'),
     };
 }
@@ -125,7 +127,10 @@ export async function runCli(argv: string[]): Promise<number> {
     const roleMap = existsSync(paths.roleMapPath)
         ? (JSON.parse(readFileSync(paths.roleMapPath, 'utf8')) as Record<string, string>)
         : {};
-    const surface = extractSurface({roots, cwd: paths.repoRoot, roleMap});
+    const driftAllow = existsSync(paths.driftMapPath)
+        ? (JSON.parse(readFileSync(paths.driftMapPath, 'utf8')) as Record<string, string>)
+        : {};
+    const surface = extractSurface({roots, cwd: paths.repoRoot, roleMap, driftAllow});
 
     if (cmd === 'scan') {
         const outFile = readFlag(argv, '--out');
@@ -209,6 +214,41 @@ export async function runCli(argv: string[]): Promise<number> {
             err(`grew ${g.file}: ${g.from} -> ${g.to}\n`);
         }
         return diff.grown.length > 0 ? 1 : 0;
+    }
+
+    if (cmd === 'drift') {
+        const pairs = collectTestIdSurfacePairs({roots, cwd: paths.repoRoot});
+        if (sub === '--update') {
+            const doc = {
+                _doc: 'Intentional legacy data-testid -> data-surface pairings for elements that carry both. A dual element whose pair is not listed here (and whose attrs differ) fails the drift check. Retire a legacy id with `ui-surface migrate-testid` and remove its entry.',
+            };
+            writeFileSync(paths.driftMapPath, JSON.stringify({...doc, ...pairs}, null, 4) + '\n');
+            out(`Updated testid-surface drift map: ${Object.keys(pairs).length} dual pairings.\n`);
+            return 0;
+        }
+        out(`${Object.keys(pairs).length} elements carry both data-testid and data-surface with differing values.\n`);
+        return 0;
+    }
+
+    if (cmd === 'migrate-testid') {
+        const apply = argv.includes('--apply');
+        const specRoots = paths.specRoots.filter(existsSync);
+        const driftMap = existsSync(paths.driftMapPath)
+            ? (JSON.parse(readFileSync(paths.driftMapPath, 'utf8')) as Record<string, string>)
+            : {};
+        const result = migrateTestIds({
+            webappRoots: roots,
+            specRoots,
+            cwd: paths.repoRoot,
+            driftMap,
+            apply,
+            only: readFlag(argv, '--only'),
+        });
+        out(JSON.stringify(result.summary, null, 2) + '\n');
+        if (!apply) {
+            out('Dry run (no files changed). Re-run with --apply to write, --only <path-substring> to limit scope.\n');
+        }
+        return 0;
     }
 
     const pages = JSON.parse(readFileSync(paths.pagesPath, 'utf8')) as Record<string, PageSpec>;

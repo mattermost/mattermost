@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 
-import {checkStaleRefs, extractSurface, indexSourceIds, parseTestId} from '../dist/scan.js';
+import {checkStaleRefs, collectTestIdSurfacePairs, extractSurface, indexSourceIds, parseTestId} from '../dist/scan.js';
 
 test('parseTestId validates scope.name[:key][--role] grammar', () => {
     assert.deepEqual(parseTestId('channel_settings.save--button'), {
@@ -89,6 +89,27 @@ test('key-origin resolves local aliases, rejects index and display-text keys, ac
         ).length,
         0,
     );
+});
+
+test('drift flags an element whose data-testid and data-surface disagree unless the pair is allow-listed', () => {
+    const body = 'export const C=()=>(<div data-surface="p"><button data-surface="p.save--button" data-testid="legacy_save"/></div>);';
+    const drift = (driftAllow) =>
+        extractSurface({roots: [], driftAllow, files: {'c.tsx': body}}).diagnostics.filter((d) => d.rule === 'drift');
+    assert.equal(drift({}).length, 1);
+    assert.equal(drift({legacy_save: 'p.save--button'}).length, 0);
+    // An element where both attrs are equal never drifts.
+    assert.equal(
+        extractSurface({roots: [], files: {'c.tsx': 'export const C=()=>(<button data-surface="p.save--button" data-testid="p.save--button"/>);'}}).diagnostics.filter((d) => d.rule === 'drift').length,
+        0,
+    );
+});
+
+test('collectTestIdSurfacePairs returns legacy->surface pairs for dual elements', () => {
+    const pairs = collectTestIdSurfacePairs({
+        roots: [],
+        files: {'c.tsx': 'export const C=()=>(<button data-surface="p.save--button" data-testid="legacy_save"/>);'},
+    });
+    assert.deepEqual(pairs, {legacy_save: 'p.save--button'});
 });
 
 test('role-fit flags a state/input kind on a custom component unless role-map vouches for it', () => {
@@ -188,6 +209,7 @@ test('extractSurface supports dual data-surface coexistence alongside legacy dat
                 ');',
             ].join('\n'),
         },
+        driftAllow: {'SaveChangesPanel__save-btn': 'save_panel.save--button'},
     });
     assert.equal(report.diagnostics.length, 0);
     assert.deepEqual(report.scopes.save_panel.containerFiles, ['save_panel.tsx']);

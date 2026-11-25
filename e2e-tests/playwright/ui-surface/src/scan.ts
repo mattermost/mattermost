@@ -449,8 +449,10 @@ export function extractSurface(options: {
     strictGrammar?: boolean;
     files?: Record<string, string>;
     roleMap?: Record<string, string>;
+    driftAllow?: Record<string, string>;
 }): SurfaceReport {
     const roleMap = options.roleMap ?? {};
+    const driftAllow = options.driftAllow ?? {};
     const started = performance.now();
     const cwd = options.cwd ?? process.cwd();
     const entries: SurfaceEntry[] = [];
@@ -474,7 +476,24 @@ export function extractSurface(options: {
         const visit = (node: ts.Node) => {
             const el = openingOf(node);
             if (el) {
-                const surfaceScope = readAttr(el, 'data-surface');
+                // Drift: an element carrying both attributes must agree. They agree when identical, or when the legacy
+                // testid is mapped to this surface id in testid-surface-map.json (a documented, intentional pairing).
+                const litTestId = readAttr(el, 'data-testid');
+                const litSurface = readAttr(el, 'data-surface');
+                if (
+                    typeof litTestId === 'string' &&
+                    typeof litSurface === 'string' &&
+                    litTestId !== litSurface &&
+                    driftAllow[litTestId] !== litSurface
+                ) {
+                    report(
+                        'drift',
+                        node,
+                        litTestId,
+                        `data-testid "${litTestId}" and data-surface "${litSurface}" disagree on the same element; make them equal, or map the legacy id to the surface id in ui-surface/testid-surface-map.json with a reason`,
+                    );
+                }
+                const surfaceScope = litSurface;
                 if (typeof surfaceScope === 'string' && !surfaceScope.includes('.') && PATH_WORD.test(surfaceScope)) {
                     scopes[surfaceScope] ??= {parts: [], containerFiles: []};
                     if (!scopes[surfaceScope].containerFiles.includes(rel)) {
@@ -584,6 +603,33 @@ export function extractSurface(options: {
         diagnostics,
         stats: {files: filePaths.length, durationMs: Math.round(performance.now() - started)},
     };
+}
+
+/** Every element carrying both a literal data-testid and a literal data-surface that differ, as a testid->surface map. */
+export function collectTestIdSurfacePairs(options: {roots: string[]; cwd?: string; files?: Record<string, string>}): Record<string, string> {
+    const cwd = options.cwd ?? process.cwd();
+    const pairs: Record<string, string> = {};
+    const filePaths = options.files ? Object.keys(options.files).sort() : collectFiles(options.roots, cwd);
+    for (const file of filePaths) {
+        const content = options.files ? options.files[file] : readFileSync(file, 'utf8');
+        if (!content.includes('data-testid') || !content.includes('data-surface')) {
+            continue;
+        }
+        const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
+        const visit = (node: ts.Node) => {
+            const el = openingOf(node);
+            if (el) {
+                const t = readAttr(el, 'data-testid');
+                const s = readAttr(el, 'data-surface');
+                if (typeof t === 'string' && typeof s === 'string' && t !== s) {
+                    pairs[t] = s;
+                }
+            }
+            ts.forEachChild(node, visit);
+        };
+        visit(source);
+    }
+    return pairs;
 }
 
 function lookupIdFromCall(call: ts.CallExpression): string | undefined {

@@ -573,7 +573,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
+            const toggle = screen.getByTestId('channel_settings.share_with_workspaces--switch');
             await userEvent.click(toggle);
 
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
@@ -592,10 +592,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+                expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeDisabled();
             });
 
-            const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
+            const toggle = screen.getByTestId('channel_settings.share_with_workspaces--switch');
             await userEvent.click(toggle);
             expect(toggle).toBeChecked();
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
@@ -610,7 +610,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -628,12 +628,12 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+                expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeDisabled();
             });
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -644,9 +644,9 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeChecked();
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -727,11 +727,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
+                expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).toBeChecked();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
+            expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeChecked();
 
             remotes = [{...remote}];
             getRemotesForChannel.mockImplementation(() => remotes);
@@ -743,7 +743,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeChecked();
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
 
@@ -763,7 +763,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
             await waitFor(() => {
@@ -811,10 +811,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+                expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeDisabled();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -939,10 +939,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
+                expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).toBeChecked();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -960,7 +960,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -993,10 +993,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
+                expect(screen.getByTestId('channel_settings.share_with_workspaces--switch')).toBeChecked();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -1064,7 +1064,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -1099,7 +1099,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
