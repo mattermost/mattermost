@@ -63,8 +63,15 @@ func TestClusterTask(t *testing.T) {
 	}
 
 	var leader atomic.Bool
+	var skipped atomic.Int32
 	leader.Store(true)
-	isLeader := leader.Load
+	isLeader := func() bool {
+		if leader.Load() {
+			return true
+		}
+		skipped.Add(1)
+		return false
+	}
 
 	var ct clusterTask
 	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
@@ -75,10 +82,12 @@ func TestClusterTask(t *testing.T) {
 	assert.Same(t, first, ct.task)
 	require.Eventually(t, func() bool { return calls.Load() >= 2 }, 5*time.Second, 10*time.Millisecond)
 
+	// Ticks run one at a time, so once one has seen that this node is not the leader, any
+	// earlier tick that saw it was has finished running.
 	leader.Store(false)
-	time.Sleep(20 * time.Millisecond)
+	require.Eventually(t, func() bool { return skipped.Load() >= 1 }, 5*time.Second, 10*time.Millisecond)
 	notLeaderAt := calls.Load()
-	time.Sleep(50 * time.Millisecond)
+	require.Eventually(t, func() bool { return skipped.Load() >= 5 }, 5*time.Second, 10*time.Millisecond)
 	assert.Equal(t, notLeaderAt, calls.Load(), "a node that is not the leader should skip runs")
 
 	leader.Store(true)
