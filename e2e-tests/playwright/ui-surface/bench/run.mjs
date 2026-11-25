@@ -66,11 +66,16 @@ async function run() {
             // webapp/scanner: combine Peter's fast webapp lint with his cached full-scan diagnostics.
             const lintHits = peterWebappLint.get(m.id)?.messages ?? [];
             const scanHits = peterScan?.caught?.[m.id] ? [{message: peterScan.caught[m.id]}] : [];
-            if (!peterAvailable && !peterScan) {
+            const note = peterScan?.notes?.[m.id];
+            if (m.id === 'drift-disagree') {
+                peter = {status: 'N/A', excerpt: 'Peter uses data-testid only; no data-surface to disagree with'};
+            } else if (note) {
+                peter = {status: 'N/A', excerpt: note};
+            } else if (!peterAvailable && !peterScan) {
                 peter = {status: 'NOT-RUN', excerpt: ''};
             } else if (lintHits.length || scanHits.length) {
                 peter = verdict(m, [...lintHits, ...scanHits]);
-            } else if (m.level === 'scanner' && !peterScan) {
+            } else if ((m.level === 'scanner' || ['dup-sibling-testid', 'role-native-div'].includes(m.id)) && !peterScan) {
                 peter = {status: 'NOT-RUN', excerpt: 'needs bench:peter-scan (full program scan)'};
             } else {
                 peter = verdict(m, []);

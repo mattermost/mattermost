@@ -20,7 +20,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&': '&amp;', '<': '&lt
 
 function cell(v) {
     const status = v.status;
-    const cls = {CAUGHT: 'ok', MISSED: 'bad', 'FALSE-POSITIVE': 'warn', 'NOT-RUN': 'na'}[status] ?? 'na';
+    const cls = {CAUGHT: 'ok', MISSED: 'bad', 'FALSE-POSITIVE': 'warn', 'NOT-RUN': 'na', 'N/A': 'na'}[status] ?? 'na';
     const label = status === 'CAUGHT' && v.clean ? 'CLEAN' : status;
     return `<td class="${cls}"><span class="tag">${label}</span>${v.excerpt ? `<div class="ex">${esc(v.excerpt).slice(0, 180)}</div>` : ''}</td>`;
 }
