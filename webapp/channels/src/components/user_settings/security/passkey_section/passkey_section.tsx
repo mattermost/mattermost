@@ -11,6 +11,7 @@ import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -91,7 +92,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const [name, setName] = useState('');
     const [adding, setAdding] = useState(false);
 
-    const load = useCallback(async () => {
+    const load = useCallback(async (signOutOnUnauthorized = false) => {
         try {
             const list = await Client4.getPasskeys('me');
             setPasskeys(list);
@@ -99,6 +100,11 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             setServerError(null);
             signalAcceptedPasskeys(rpId(), list);
         } catch (e) {
+            // Deleting the passkey this session started with ends the session server-side, so the reload is refused.
+            if (signOutOnUnauthorized && (e as {status_code?: number}).status_code === 401) {
+                emitUserLoggedOutEvent('/login');
+                return;
+            }
             setLoadFailed(true);
             setServerError((e as Error).message);
         }
@@ -138,7 +144,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
 
         // signalAcceptedPasskeys never signals an empty list, so this is what removes a last or sole-handle passkey.
         signalUnknownPasskey(rpId(), passkey.credential_id);
-        await load();
+        await load(true);
     };
 
     const addPasskey = async () => {
@@ -379,8 +385,8 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                 <p>
                     <FormattedMessage
                         id='user.settings.passkeys.deleteMessage'
-                        defaultMessage={'You will no longer be able to sign in with "{name}". This doesn\'t sign you out anywhere.'}
-                        description='Body of the confirmation dialog for deleting a passkey; {name} is the passkey name.'
+                        defaultMessage={'You will no longer be able to sign in with "{name}". Any session started with it will be signed out, including this one if you signed in with it.'}
+                        description='Body of the confirmation dialog for deleting a passkey; {name} is the passkey name. Every session the passkey started is ended; the dialog does not know whether the current one is among them, so the text covers both cases.'
                         values={{name: toDelete?.name}}
                     />
                 </p>

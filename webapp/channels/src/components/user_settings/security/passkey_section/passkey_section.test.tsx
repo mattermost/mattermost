@@ -8,6 +8,7 @@ import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
+import * as GlobalActions from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
@@ -214,6 +215,55 @@ describe('PasskeySection', () => {
         });
         expect(deletePasskey).toHaveBeenCalledWith('me', 'pk1');
         expect(screen.getByText('Phone')).toBeInTheDocument();
+    });
+
+    describe('when deleting a passkey ends the current session', () => {
+        const deleteLaptop = async (reloadError: object) => {
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+            getPasskeys.mockRejectedValue(reloadError);
+            await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
+        };
+
+        test('the dialog warns that sessions started with the passkey are signed out', async () => {
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+            await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+
+            const dialog = await screen.findByRole('dialog');
+            expect(within(dialog).getByText(/Any session started with it will be signed out, including this one if you signed in with it\./)).toBeInTheDocument();
+        });
+
+        test('signs out to the login page without an error when the reload is unauthorized', async () => {
+            const logout = jest.spyOn(GlobalActions, 'emitUserLoggedOutEvent').mockImplementation(() => {});
+            await deleteLaptop({status_code: 401, message: 'session expired'});
+
+            await waitFor(() => {
+                expect(logout).toHaveBeenCalledWith('/login');
+            });
+            expect(screen.queryByText('session expired')).not.toBeInTheDocument();
+        });
+
+        test('shows the error and stays signed in when the reload fails otherwise', async () => {
+            const logout = jest.spyOn(GlobalActions, 'emitUserLoggedOutEvent').mockImplementation(() => {});
+            await deleteLaptop({status_code: 500, message: 'could not list passkeys'});
+
+            expect(await screen.findByText('could not list passkeys')).toBeInTheDocument();
+            expect(logout).not.toHaveBeenCalled();
+        });
     });
 
     test.each([

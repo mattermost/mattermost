@@ -35528,8 +35528,8 @@
     "description": "Accessible name of the Delete button on one row of the passkey list; {name} is the passkey name the user gave it."
   },
   "user.settings.passkeys.deleteMessage": {
-    "defaultMessage": "You will no longer be able to sign in with \"{name}\". This doesn't sign you out anywhere.",
-    "description": "Body of the confirmation dialog for deleting a passkey; {name} is the passkey name."
+    "defaultMessage": "You will no longer be able to sign in with \"{name}\". Any session started with it will be signed out, including this one if you signed in with it.",
+    "description": "Body of the confirmation dialog for deleting a passkey; {name} is the passkey name. Every session the passkey started is ended; the dialog does not know whether the current one is among them, so the text covers both cases."
   },
   "user.settings.passkeys.deleteTitle": {
     "defaultMessage": "Delete passkey?",
