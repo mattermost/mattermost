@@ -14,6 +14,9 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 
 import PasskeyEnrollmentPage from './passkey_enrollment_page';
 
+// The global setup mocks useHistory; these tests assert on the real history.
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(() => false),
 }));
@@ -153,6 +156,45 @@ describe('PasskeyEnrollmentPage', () => {
         expect(actions).toContainElement(screen.getByRole('button', {name: 'Add passkey'}));
         expect(actions).toContainElement(screen.getByRole('button', {name: 'Use existing passkey'}));
         expect(alert.querySelector('.AlertBanner.danger')).not.toBeNull();
+    });
+
+    test('removes the ticket from the address bar but keeps using it', async () => {
+        const history = renderPage('/login/passkey/enroll?x=1#ticket=abc');
+
+        expect(history.location.hash).toBe('');
+        expect(history.location.pathname).toBe('/login/passkey/enroll');
+        expect(history.location.search).toBe('?x=1');
+        await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
+        expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
+        expect(beginRegistration).toHaveBeenCalledWith('abc');
+    });
+
+    test('an empty ticket is still removed from the address bar', async () => {
+        const history = renderPage('/login/passkey/enroll#ticket=');
+
+        expect(await screen.findByText(INCOMPLETE)).toBeInTheDocument();
+        expect(history.location.hash).toBe('');
+    });
+
+    test('the status element is there before any action and announces an added passkey', async () => {
+        renderPage();
+        const status = await screen.findByRole('status');
+        expect(status).toHaveTextContent('Sign in with your fingerprint');
+        await userEvent.click(screen.getByRole('button', {name: 'Add passkey'}));
+
+        await screen.findByText(RETURN_TO_APP);
+        expect(screen.getByRole('status')).toBe(status);
+        expect(status).toHaveTextContent(`Passkey added. ${RETURN_TO_APP}`);
+    });
+
+    test('the status element announces a confirmed passkey', async () => {
+        renderPage();
+        const status = await screen.findByRole('status');
+        await clickExisting();
+
+        await screen.findByText(RETURN_TO_APP);
+        expect(screen.getByRole('status')).toBe(status);
+        expect(status).toHaveTextContent(`Passkey confirmed. ${RETURN_TO_APP}`);
     });
 
     test('a signed-out visitor stays on the page', async () => {

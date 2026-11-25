@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
-import {useLocation} from 'react-router-dom';
+import {useHistory, useLocation} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
@@ -91,8 +91,17 @@ const retryableErrors: Record<string, typeof messages.expired> = {
 export default function PasskeyEnrollmentPage() {
     const {formatMessage} = useIntl();
 
-    // The fragment is never sent to the server, so the ticket stays out of access logs.
-    const ticket = new URLSearchParams(useLocation().hash.slice(1)).get('ticket');
+    // The fragment is never sent to the server, so the ticket stays out of access logs. It is read once and then
+    // dropped from the address bar, so it doesn't linger in the tab's history or get copied from the URL.
+    const history = useHistory();
+    const location = useLocation();
+    const [ticket] = useState(() => new URLSearchParams(location.hash.slice(1)).get('ticket'));
+    useEffect(() => {
+        // replace, not push, so Back doesn't bring the ticket back
+        if (history.location.hash) {
+            history.replace({...history.location, hash: ''});
+        }
+    }, [history]);
     const [busy, setBusy] = useState<'add' | 'verify' | null>(null);
     const [done, setDone] = useState<'added' | 'confirmed' | null>(null);
 
@@ -113,14 +122,21 @@ export default function PasskeyEnrollmentPage() {
         message = formatMessage(messages.incomplete);
     } else if (done) {
         title = done === 'added' ? messages.addedTitle : messages.confirmedTitle;
-        message = formatMessage(messages.returnToApp);
+
+        // The status element persists from the can-act branch, because a live region inserted with its text is often not announced.
+        message = (
+            <span role='status'>
+                <span className='sr-only'>{formatMessage(title)}{'. '}</span>
+                <span>{formatMessage(messages.returnToApp)}</span>
+            </span>
+        );
     } else if (error?.final) {
         title = messages.cantAdd;
 
         // Final errors get no banner (which carries the alert role), so the subtitle announces the refusal itself.
         message = <span role='alert'>{error.text}</span>;
     } else {
-        message = formatMessage(sharedMessages.body);
+        message = <span role='status'>{formatMessage(sharedMessages.body)}</span>;
         canAct = true;
     }
 
