@@ -432,5 +432,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "ボード",
+    "note": "The ordinary noun for a channel shown as a board (ボードチャンネル, ボード属性). Some older strings ship \"Board\" in English (Board属性, Boardでタスク管理する); do not propagate it. The product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "投稿属性",
+    "note": "No precedent; built from post (投稿) and attribute (属性), like ボード属性. Distinct from the user-profile attribute (属性)."
+  },
+  "holdings": {
+    "target": "保有値",
+    "note": "No precedent. A user's own values in the field a masked field reads; where a sentence reads better, \"自身の値\" (their own values) is acceptable."
+  },
+  "Manage Channel": {
+    "target": "チャンネルの管理",
+    "note": "Permission policy action name, following the catalog's permission names (チャンネルロールの管理, チャンネル設定の管理). Use the same rendering for the sentence-case \"Manage channel\". Not \"チャンネル管理\", which renders the System Console section \"Channel Management\"."
+  },
+  "Channel Read Access": {
+    "target": "チャンネル読み取りアクセス",
+    "note": "Permission policy action name; use the same rendering for sentence case. 読み取り follows the catalog (読み取り専用, 読み取りアクセス)."
+  },
+  "Channel Write Access": {
+    "target": "チャンネル書き込みアクセス",
+    "note": "Permission policy action name; use the same rendering for sentence case. Pairs with チャンネル読み取りアクセス; 書き込み follows the catalog (書き込み権限)."
+  },
+  "Extended Support Release": {
+    "target": "延長サポートリリース",
+    "note": "No precedent. The abbreviation ESR stays in Latin letters, e.g. \"延長サポートリリース (ESR)\"."
+  },
+  "release line": {
+    "target": "リリース系列",
+    "note": "No precedent. A major.minor series such as 10.5 with its patch releases."
   }
 }

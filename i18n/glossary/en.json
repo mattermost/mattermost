@@ -1080,5 +1080,57 @@
     "definition": "Configuration setting that holds the push proxy URL; admin-facing text quotes it verbatim.",
     "partOfSpeech": "noun",
     "doNotTranslate": true
+  },
+  "board": {
+    "definition": "A channel shown as a board (task and card view) under integrated Boards. Users join, leave, mute, archive and share it like a channel, and most channel strings have a .board variant that says board instead of channel. The ordinary noun, translated in every locale, unlike the product name Boards.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "boards"
+    ]
+  },
+  "post attribute": {
+    "definition": "A custom field that admins define for posts. Users set its values when composing, and the values show as chips on the message and in the Post attributes modal. Distinct from attribute, which is a field on user profiles.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "post attributes"
+    ]
+  },
+  "holdings": {
+    "definition": "A user's own values in the property field that a masked field reads. Masking shows a reader only the values that overlap their holdings.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Manage Channel": {
+    "definition": "Name of the permission policy action that controls who can change a channel's settings, bookmarks, members and access rules. Title Case in the System Console, sentence case (Manage channel) in Channel Settings; render both the same way. Not the ordinary verb phrase in strings such as Manage channel settings.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Channel Read Access": {
+    "definition": "Name of the permission policy action that controls who can read a channel and its content. Title Case in the System Console, sentence case in Channel Settings and server errors quote it; render all the same way.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Channel Write Access": {
+    "definition": "Name of the permission policy action that controls who can post in a channel and change its content. Title Case in the System Console, sentence case in Channel Settings; render both the same way.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Extended Support Release": {
+    "definition": "Mattermost's designated release that receives security and critical fixes for an extended period, for organizations that upgrade less often.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "ESR"
+    ]
+  },
+  "release line": {
+    "definition": "A Mattermost major.minor release series (for example 10.5) and its patch releases, which share one end-of-support date.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "release lines"
+    ]
   }
 }

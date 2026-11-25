@@ -482,5 +482,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "tavla",
+    "note": "en tavla, tavlan, tavlor, tavlorna; compounds use tavel- (tavelkanal, tavelbokmärke, tavelattribut), as the webapp and the model errors do. Some server errors keep English board (Board-kanaler, board-kanalen, bokmärken för boards); do not propagate that. Boards, the product name, stays in English."
+  },
+  "post attribute": {
+    "target": "meddelandeattribut",
+    "note": "ett meddelandeattribut, meddelandeattributet, meddelandeattribut (pl.). No precedent; built from post = meddelande and attribute = attribut. Keep it distinct from attribut/användarattribut, the profile fields."
+  },
+  "holdings": {
+    "target": "egna värden",
+    "note": "No precedent. Literal innehav reads as financial holdings; render as the user’s own values (användarens egna värden, dina egna värden), e.g. endast de värden som överlappar läsarens egna värden."
+  },
+  "Manage Channel": {
+    "target": "Hantera kanal",
+    "note": "No precedent as a permission name. Swedish uses sentence case in both the System Console and Channel Settings. Distinct from the verb phrase in Hantera kanalinställningar."
+  },
+  "Channel Read Access": {
+    "target": "Läsbehörighet för kanal",
+    "note": "No precedent as a permission name; follows the catalog’s läsbehörighet for read access. Sentence case everywhere; lowercase läsbehörighet för kanal mid-sentence, quoted where the English quotes it."
+  },
+  "Channel Write Access": {
+    "target": "Skrivbehörighet för kanal",
+    "note": "No precedent as a permission name; follows the catalog’s skrivbehörighet for write access. Sentence case everywhere; lowercase skrivbehörighet för kanal mid-sentence."
+  },
+  "Extended Support Release": {
+    "target": "version med utökad support",
+    "note": "No precedent. The catalog renders release as version and keeps support as support. The acronym ESR stays as is: version med utökad support (ESR), ESR-version."
+  },
+  "release line": {
+    "target": "versionsserie",
+    "note": "en versionsserie, versionsserien, versionsserier. No precedent; release is rendered version in the catalog."
   }
 }

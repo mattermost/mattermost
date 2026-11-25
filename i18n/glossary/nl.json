@@ -481,5 +481,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "bord",
+    "note": "Plural: borden. The ordinary noun, unlike the product name Boards, which stays English. Compounds: bordkanaal, bordbladwijzer, bordattribuut. Existing strings mix in the anglicism board (Board channels, boardkanaal, Board-attributen); do not propagate it."
+  },
+  "post attribute": {
+    "target": "berichtattribuut",
+    "note": "Plural: berichtattributen. No precedent; built from post = bericht and attribute = attribuut. Distinct from gebruikersattribuut, the profile field."
+  },
+  "holdings": {
+    "target": "eigen waarden",
+    "note": "No precedent. Plural noun phrase: 'je eigen waarden', 'de eigen waarden van de lezer'. Avoid bezit or tegoeden, which read as possessions or balances."
+  },
+  "Manage Channel": {
+    "target": "Kanaal beheren",
+    "note": "Follows the permission names Kanaalleden beheren and Kanaalbanner beheren: object first, infinitive last. Same form in the System Console and Channel Settings."
+  },
+  "Channel Read Access": {
+    "target": "Leestoegang tot kanaal",
+    "note": "Built on leestoegang (lees- en/of schrijftoegang in existing strings). When quoted as a name mid-sentence, keep the capital: 'de actie Leestoegang tot kanaal'."
+  },
+  "Channel Write Access": {
+    "target": "Schrijftoegang tot kanaal",
+    "note": "Built on schrijftoegang (lees- en/of schrijftoegang in existing strings); parallel to Leestoegang tot kanaal."
+  },
+  "Extended Support Release": {
+    "target": "release met verlengde ondersteuning",
+    "note": "No precedent; the catalog uses release as a Dutch noun (een toekomstige release). Keep the acronym ESR as is, e.g. 'release met verlengde ondersteuning (ESR)'. Plural: releases met verlengde ondersteuning."
+  },
+  "release line": {
+    "target": "releasereeks",
+    "note": "No precedent. Plural: releasereeksen. Example: de releasereeks 10.5."
   }
 }

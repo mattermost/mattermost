@@ -506,5 +506,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "taulu",
+    "note": "Plural 'taulut'; compounds 'taulukanava', 'taulukirjanmerkki', 'taulun attribuutti'. The product name Boards stays in English ('Boards-kuvake'). One server string leaves 'Board-kanavia' untranslated and the sidebar says 'Boards-attribuutit'; use 'taulukanava' and 'Taulujen attribuutit'."
+  },
+  "post attribute": {
+    "target": "viestiattribuutti",
+    "note": "No precedent. Built from post = viesti and attribute = attribuutti, compounded like 'käyttäjäattribuutti' and 'profiiliattribuutti'. Plural 'viestiattribuutit'. Distinct from profile attributes."
+  },
+  "holdings": {
+    "target": "omat arvot",
+    "note": "No precedent; a user's own values in the field the mask reads. Phrase with the possessor: 'käyttäjän omat arvot', 'omista arvoistaan'. Do not use 'omistukset', which reads as financial holdings."
+  },
+  "Manage Channel": {
+    "target": "Kanavan hallinta",
+    "note": "Policy action name: a noun, as in the existing 'Kanavan hallinta' heading, not the verb phrase 'Hallinnoi kanavan ...' that permission names use. Same form in the System Console and Channel Settings; Finnish capitalizes only the first word. Inflect the head: 'Kanavan hallinnan'."
+  },
+  "Channel Read Access": {
+    "target": "Kanavan lukuoikeus",
+    "note": "From the catalog's 'luku- ja kirjoitusoikeus'. Same form in every context; capitalize only the first word. Inflect the head: 'Kanavan lukuoikeuden'."
+  },
+  "Channel Write Access": {
+    "target": "Kanavan kirjoitusoikeus",
+    "note": "From the catalog's 'luku- ja kirjoitusoikeus'. Same form in every context; capitalize only the first word. Inflect the head: 'Kanavan kirjoitusoikeuden'."
+  },
+  "Extended Support Release": {
+    "target": "pidennetyn tuen julkaisu",
+    "note": "No precedent; release = julkaisu as in 'julkaisutiedot'. Lowercase in running text. The abbreviation ESR stays as is and inflects with a colon ('ESR:ään'). Inflect the head: 'pidennetyn tuen julkaisuun'."
+  },
+  "release line": {
+    "target": "julkaisusarja",
+    "note": "No precedent; release = julkaisu as in 'julkaisutiedot' and 'tulevassa julkaisussa'. With a version number: '10.5-julkaisusarja'. Plural 'julkaisusarjat'."
   }
 }

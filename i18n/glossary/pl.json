@@ -490,5 +490,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "tablica",
+    "note": "Feminine. Plural 'tablice'; genitive 'tablicy'/'tablic' ('atrybut tablicy', 'Atrybuty tablic', 'kanał tablicy'), as the catalog already renders it. The ordinary noun, lowercase; the product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "atrybut posta",
+    "note": "Masculine. Plural 'atrybuty posta' / 'atrybuty postów'. Built from the glossary targets 'atrybut' and 'post'; the catalog uses both genitives 'posta' and 'postu', prefer 'posta'. Not 'atrybut użytkownika', which is the profile field."
+  },
+  "holdings": {
+    "target": "posiadane wartości",
+    "note": "No precedent in the catalog. Plural only, feminine ('posiadanych wartości', 'z posiadanymi wartościami'). Name the user where needed: 'wartości posiadane przez użytkownika'. Avoid 'zasoby' or 'udziały', which read as assets or shares."
+  },
+  "Manage Channel": {
+    "target": "Zarządzanie kanałem",
+    "note": "Verbal noun in sentence case, the same in the System Console and Channel Settings. Existing permission names mix 'Zarządzaj ...' and 'Zarządzanie ...' and often copy English Title Case ('Zarządzaj Członkami Kanału'); do not follow that capitalization. The ordinary verb phrase 'Manage channel settings' stays 'Zarządzaj ustawieniami kanału'."
+  },
+  "Channel Read Access": {
+    "target": "Dostęp do odczytu kanału",
+    "note": "From the catalog's 'dostęp do odczytu'. Sentence case in every context; inflect only the head noun ('dostępu do odczytu kanału')."
+  },
+  "Channel Write Access": {
+    "target": "Dostęp do zapisu w kanale",
+    "note": "From the catalog's 'dostęp do zapisu w ...'. Sentence case in every context; inflect only the head noun ('dostępu do zapisu w kanale')."
+  },
+  "Extended Support Release": {
+    "target": "wydanie z rozszerzonym wsparciem",
+    "note": "No precedent in the catalog; 'wydanie' follows 'informacje o wydaniu' and 'wsparcie' the catalog's support wording. Neuter; inflect only 'wydanie' ('wydania z rozszerzonym wsparciem'). The acronym ESR stays as is: 'wydanie z rozszerzonym wsparciem (ESR)'."
+  },
+  "release line": {
+    "target": "linia wydań",
+    "note": "No precedent in the catalog. Feminine; plural 'linie wydań', genitive 'linii wydań'. Not 'wersja', which is a single version rather than the series."
   }
 }

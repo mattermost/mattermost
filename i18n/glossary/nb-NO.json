@@ -495,5 +495,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "tavle",
+    "note": "Definite 'tavlen', plural 'tavler', 'tavlene', as the catalog already writes it. Compounds join directly: 'tavlekanal', 'tavlebokmerke', 'tavleattributt'. The product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "meldingsattributt",
+    "note": "No precedent. Neuter like attributt: et meldingsattributt, meldingsattributtet, meldingsattributter. Uses 'melding' because the values show on messages users compose; keep it in admin and error strings too rather than switching to 'innleggsattributt'. Distinct from the user-profile 'attributt'."
+  },
+  "holdings": {
+    "target": "egne verdier",
+    "note": "No precedent. Plural noun phrase: 'hver persons egne verdier', 'dine egne verdier'. Do not use 'beholdning' or 'eierandeler', which read as inventory or financial holdings."
+  },
+  "Manage Channel": {
+    "target": "Administrer kanal",
+    "note": "Imperative, matching the other policy action labels ('Last ned filer', 'Last opp filer') and 'Administrer kanalinnstillinger'. Sentence case as Norwegian writes it; quote it in running text with «»: «Administrer kanal»."
+  },
+  "Channel Read Access": {
+    "target": "Lesetilgang til kanal",
+    "note": "Built on the catalog's 'lesetilgang'. Sentence case; quote it in running text with «»: «Lesetilgang til kanal»."
+  },
+  "Channel Write Access": {
+    "target": "Skrivetilgang til kanal",
+    "note": "Built on the catalog's 'skrivetilgang'. Sentence case; quote it in running text with «»: «Skrivetilgang til kanal»."
+  },
+  "Extended Support Release": {
+    "target": "versjon med utvidet støtte",
+    "note": "No precedent. Masculine: versjonen med utvidet støtte, versjoner med utvidet støtte. The abbreviation ESR stays as is. Do not use 'utgave', which the catalog reserves for edition (Enterprise-utgaven)."
+  },
+  "release line": {
+    "target": "versjonsserie",
+    "note": "No precedent. Masculine: en versjonsserie, versjonsserien, versjonsserier. Matches 'versjon' for release in the catalog and in Extended Support Release."
   }
 }

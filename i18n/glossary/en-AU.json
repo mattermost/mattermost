@@ -397,5 +397,29 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "board"
+  },
+  "post attribute": {
+    "target": "post attribute"
+  },
+  "holdings": {
+    "target": "holdings"
+  },
+  "Manage Channel": {
+    "target": "Manage Channel"
+  },
+  "Channel Read Access": {
+    "target": "Channel Read Access"
+  },
+  "Channel Write Access": {
+    "target": "Channel Write Access"
+  },
+  "Extended Support Release": {
+    "target": "Extended Support Release"
+  },
+  "release line": {
+    "target": "release line"
   }
 }

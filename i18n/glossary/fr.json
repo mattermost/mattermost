@@ -480,5 +480,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "tableau",
+    "note": "Masculine; plural \"tableaux\". The catalog already says \"tableau\" for a board (newChannelWithBoard.tutorialTip.*, admin.board_attributes.*). Keep the product name Boards in English: newChannelWithBoard.tutorialTip.description ships \"l’icône des Tableaux\", which should be \"l’icône de Boards\". Do not confuse with \"tableau de bord\" (dashboard) or a Markdown table."
+  },
+  "post attribute": {
+    "target": "attribut de message",
+    "note": "Masculine; plural \"attributs de message\". Built from attribut (attribute) and message (post); server fr.json already says \"attributs des messages\". The Post attributes modal title: \"Attributs du message\"."
+  },
+  "holdings": {
+    "target": "valeurs détenues",
+    "note": "Feminine plural. No precedent; render as the user’s own values in the field: \"ses valeurs détenues\", or rephrase as \"les valeurs qu’il ou elle détient\". Never \"avoirs\" or \"possessions\", which read as financial assets."
+  },
+  "Manage Channel": {
+    "target": "Gérer le canal",
+    "note": "No precedent. Policy action labels are verb phrases in the catalog (\"Téléverser des fichiers\", \"Télécharger des fichiers\"); capitalize only the first word in both the System Console and Channel Settings. In running text, quote it: l’action « Gérer le canal »."
+  },
+  "Channel Read Access": {
+    "target": "Accès en lecture au canal",
+    "note": "Masculine. Built on the catalog’s \"accès en lecture\". Capitalize only the first word in every context; in running text, quote it: l’action « Accès en lecture au canal »."
+  },
+  "Channel Write Access": {
+    "target": "Accès en écriture au canal",
+    "note": "Masculine. Built on the catalog’s \"accès en écriture\". Capitalize only the first word in every context; in running text, quote it: l’action « Accès en écriture au canal »."
+  },
+  "Extended Support Release": {
+    "target": "version ESR",
+    "note": "Feminine. No precedent in the catalogs. Spell it out on first mention as \"version à support étendu (ESR)\" where space allows; keep the acronym ESR as is."
+  },
+  "release line": {
+    "target": "branche de version",
+    "note": "Feminine; plural \"branches de version\". No precedent. A major.minor series such as 10.5: \"la branche 10.5\". Not \"ligne de version\"."
   }
 }

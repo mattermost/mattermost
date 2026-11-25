@@ -499,5 +499,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "board",
+    "note": "Loanword, as the catalog renders it (\"tilknyttede boards\", \"Det board, du lige har oprettet\"). Neuter: boardet, plural boards / boardene. Compounds hyphenate the loanword: board-kanal, board-bogmærker; the catalog also has solid \"Boardkanaler\" — prefer the hyphen. One string (channel_modal.create_board.tooltip_title) has \"tavle\" — do not follow. Lowercase, unlike the product name Boards."
+  },
+  "post attribute": {
+    "target": "beskedattribut",
+    "note": "No precedent. Built from the glossary targets post = besked and attribute = attribut, solid like kanalattribut and brugerattribut. Common gender: beskedattributten, plural beskedattributter."
+  },
+  "holdings": {
+    "target": "egne værdier",
+    "note": "No precedent. Plural phrase for the user's own values in the field (\"dine egne værdier\"). Avoid the literal \"beholdninger\", which reads as stock or inventory."
+  },
+  "Manage Channel": {
+    "target": "Administrer kanal",
+    "note": "Follows the catalog's permission names (Administrer kanalindstillinger, Administrer kanalroller). Danish uses sentence case, so the Title Case and sentence case English render the same."
+  },
+  "Channel Read Access": {
+    "target": "Læseadgang til kanal",
+    "note": "No precedent for the action name; \"læseadgang\" is the catalog's word for read access (\"læse- og/eller skriveadgang\"). Keep parallel with Skriveadgang til kanal."
+  },
+  "Channel Write Access": {
+    "target": "Skriveadgang til kanal",
+    "note": "No precedent for the action name; \"skriveadgang\" is the catalog's word for write access. Keep parallel with Læseadgang til kanal."
+  },
+  "Extended Support Release": {
+    "target": "Udgivelse med udvidet support",
+    "note": "No precedent. \"udgivelse\" follows the catalog's rendering of release (udgivelsesnoterne, en fremtidig udgivelse). Keep the abbreviation ESR untranslated."
+  },
+  "release line": {
+    "target": "udgivelsesserie",
+    "note": "No precedent. Built on \"udgivelse\" as the catalog renders release. Common gender: udgivelsesserien, plural udgivelsesserier."
   }
 }

@@ -465,5 +465,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "tábla",
+    "note": "Majority rendering (\"tábla\", \"tábla-attribútum\", \"tábla típusú csatorna\"). A few server strings and the sidebar entry ship \"board\"/\"Board-\" untranslated; do not follow. The product name Boards stays \"Boards\"."
+  },
+  "post attribute": {
+    "target": "bejegyzés-attribútum",
+    "note": "No precedent; built from \"bejegyzés\" (post) and \"attribútum\", hyphenated like the shipped \"tábla-attribútum\". Suffixes go on the end: \"bejegyzés-attribútumok\", \"bejegyzés-attribútumot\"."
+  },
+  "holdings": {
+    "target": "saját értékek",
+    "note": "No precedent. Describe it as the user's own values in the field (\"a felhasználó saját értékei\"); masked values are \"maszkolt értékek\" in the catalog."
+  },
+  "Manage Channel": {
+    "target": "Csatorna kezelése",
+    "note": "Follows the permission names \"Csatorna ... kezelése\". Same rendering for the Title Case and sentence-case forms; the ordinary verb phrase (Manage channel settings) is translated normally."
+  },
+  "Channel Read Access": {
+    "target": "Csatorna olvasási hozzáférés",
+    "note": "No precedent for the action name; \"olvasási hozzáférés\" is the catalog's rendering of read access. Same rendering in every case form of the English; suffixes go on \"hozzáférés\"."
+  },
+  "Channel Write Access": {
+    "target": "Csatorna írási hozzáférés",
+    "note": "No precedent for the action name; \"írási hozzáférés\" is the catalog's rendering of write access. Same rendering in every case form of the English; suffixes go on \"hozzáférés\"."
+  },
+  "Extended Support Release": {
+    "target": "Kiterjesztett támogatású kiadás",
+    "note": "No precedent; \"kiadás\" follows the catalog's rendering of release (\"kiadási megjegyzések\", \"egy későbbi kiadásban\"). Keep the acronym ESR as is: \"Kiterjesztett támogatású kiadás (ESR)\"."
+  },
+  "release line": {
+    "target": "kiadási sorozat",
+    "note": "No precedent; \"kiadás\" as for release. Example: \"a 10.5-ös kiadási sorozat\"."
   }
 }

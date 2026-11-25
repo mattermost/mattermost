@@ -481,5 +481,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "дошка",
+    "note": "Feminine. Genitive \"дошки\", plural \"дошки\", genitive plural \"дошок\". Grounded in server strings: \"канал дошки\", \"приватна дошка\", \"на всіх дошках\". The ordinary noun; the product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "атрибут допису",
+    "note": "Built from the glossary targets for attribute and post: decline \"атрибут\" only (\"атрибути допису\", \"атрибутів допису\"). Keep \"допис\", not \"повідомлення\", so it is not confused with the existing \"атрибути приватних повідомлень\". No precedent in the catalogs."
+  },
+  "holdings": {
+    "target": "власні значення",
+    "note": "No precedent. The catalogs speak of \"значення атрибутів\"; render holdings as the user's own values, \"власні значення\" (\"ваші власні значення\", \"збігаються з вашими власними значеннями\"), not a financial term such as \"активи\" or \"володіння\"."
+  },
+  "Manage Channel": {
+    "target": "Керування каналом",
+    "note": "Name of a policy action; render Title Case and sentence case the same way, capitalizing only the first word. Follows \"Керування закладками\", \"Керування атрибутами\". Not the verb phrase: \"Manage channel settings\" stays an ordinary \"Керувати налаштуваннями каналу\"."
+  },
+  "Channel Read Access": {
+    "target": "Доступ на читання каналу",
+    "note": "Name of a policy action; capitalize only the first word in every context. Follows \"доступ на читання та/або запис\" in existing strings; keep it parallel with \"Доступ на запис у канал\". Quote it as a name in running text: дія «Доступ на читання каналу»."
+  },
+  "Channel Write Access": {
+    "target": "Доступ на запис у канал",
+    "note": "Name of a policy action; capitalize only the first word in every context. Follows \"доступ на читання та/або запис\" in existing strings; keep it parallel with \"Доступ на читання каналу\". Not \"запис\" in the sense of a record or account (\"обліковий запис\")."
+  },
+  "Extended Support Release": {
+    "target": "випуск із розширеною підтримкою",
+    "note": "No precedent. \"Випуск\" follows existing \"наступному випуску\", \"примітки до випуску\"; \"розширений\" follows \"розширені дозволи\". Decline \"випуск\" only (\"випуску із розширеною підтримкою\"). The acronym ESR stays as is."
+  },
+  "release line": {
+    "target": "лінійка випусків",
+    "note": "No precedent. Feminine: genitive \"лінійки випусків\", e.g. \"підтримку цієї лінійки випусків завершено\". Uses \"випуск\" for release, as in Extended Support Release; the catalogs never use \"реліз\"."
   }
 }

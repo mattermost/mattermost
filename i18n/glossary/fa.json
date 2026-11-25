@@ -471,5 +471,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "برد",
+    "note": "Plural: بردها. The webapp catalog renders board as برد (Board Attributes: ویژگی‌های برد); server strings use بورد (کانال بورد). Prefer برد. Boards, the product name, stays in English."
+  },
+  "post attribute": {
+    "target": "ویژگی پست",
+    "note": "Plural: ویژگی‌های پست. Built from post (پست) and attribute (ویژگی). Keep it distinct from user attributes (ویژگی‌های کاربر)."
+  },
+  "holdings": {
+    "target": "مقادیر کاربر",
+    "note": "No precedent. Render as the user’s own values (مقادیر کاربر, or مقادیر شما when addressing the reader). Never دارایی‌ها, which reads as financial assets."
+  },
+  "Manage Channel": {
+    "target": "مدیریت کانال",
+    "note": "Follows the catalog’s permission names (مدیریت بنر کانال, مدیریت ترجمه خودکار کانال). Use the same noun phrase for Title Case and sentence case; not the imperative تنظیمات کانال را مدیریت کنید used for the ordinary verb phrase."
+  },
+  "Channel Read Access": {
+    "target": "دسترسی خواندن کانال",
+    "note": "From the catalog’s دسترسی خواندن و/یا نوشتن. Use the same phrase wherever the action is named, including server errors."
+  },
+  "Channel Write Access": {
+    "target": "دسترسی نوشتن کانال",
+    "note": "From the catalog’s دسترسی خواندن و/یا نوشتن; parallel to دسترسی خواندن کانال. Server upgrade errors say دسترسی نوشتاری for file permissions; do not use that form for this action."
+  },
+  "Extended Support Release": {
+    "target": "نسخهٔ پشتیبانی گسترده",
+    "note": "No precedent. The catalog renders a release as نسخه. The acronym ESR may follow in parentheses: نسخهٔ پشتیبانی گسترده (ESR)."
+  },
+  "release line": {
+    "target": "سری نسخه",
+    "note": "No precedent. Plural: سری‌های نسخه. Example: سری نسخه 10.5."
   }
 }

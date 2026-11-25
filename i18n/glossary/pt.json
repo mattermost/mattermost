@@ -501,5 +501,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "quadro",
+    "note": "Masculine: o quadro, plural quadros; board channel = canal de quadro. The ordinary noun, always translated; the product name Boards stays English (A funcionalidade de Boards Integrados). admin.sidebar.board_attributes ships Atributos de Boards, wrongly; the page title is Atributos de Quadro."
+  },
+  "post attribute": {
+    "target": "atributo de mensagem",
+    "note": "Masculine: o atributo de mensagem, plural atributos de mensagem. Post is mensagem, as elsewhere. Keep distinct from the user profile atributo; never atributo de publicação."
+  },
+  "holdings": {
+    "target": "valores próprios",
+    "note": "No precedent. Masculine plural: os valores próprios de cada pessoa. Means the values a user holds in the source field; never detenções or participações."
+  },
+  "Manage Channel": {
+    "target": "Gerir Canal",
+    "note": "Permission action name, worded like the other permission names (Gerir Definições do Canal). Use the same words for the sentence-case Manage channel in Channel Settings; never Administrar or Gerenciar (pt-BR). The plain verb phrase (Manage channel settings) is not this term."
+  },
+  "Channel Read Access": {
+    "target": "Acesso de Leitura ao Canal",
+    "note": "Permission action name. The catalog renders read access as acesso de leitura. Masculine: o Acesso de Leitura ao Canal. Use the same words where the source is sentence case."
+  },
+  "Channel Write Access": {
+    "target": "Acesso de Escrita ao Canal",
+    "note": "Permission action name. The catalog renders write access as acesso de escrita. Masculine: o Acesso de Escrita ao Canal. Use the same words where the source is sentence case."
+  },
+  "Extended Support Release": {
+    "target": "Versão de Suporte Alargado",
+    "note": "No precedent; release is versão in the catalog (numa versão futura). Feminine: a Versão de Suporte Alargado, plural Versões de Suporte Alargado. The abbreviation ESR stays as is. Alargado, not estendido (pt-BR)."
+  },
+  "release line": {
+    "target": "linha de versões",
+    "note": "No precedent; release is versão in the catalog. Feminine: a linha de versões, plural linhas de versões."
   }
 }
