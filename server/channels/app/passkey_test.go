@@ -83,7 +83,7 @@ func TestDeletePasskey(t *testing.T) {
 	t.Run("deletes the user's own passkey", func(t *testing.T) {
 		passkey := savePasskey(t, th, th.BasicUser.Id, "mine", model.GetMillis())
 
-		require.Nil(t, th.App.DeletePasskey(th.BasicUser.Id, passkey.Id))
+		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
 
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -93,7 +93,7 @@ func TestDeletePasskey(t *testing.T) {
 	t.Run("another user's passkey is a 404 and survives", func(t *testing.T) {
 		passkey := savePasskey(t, th, th.BasicUser2.Id, "theirs", model.GetMillis())
 
-		appErr := th.App.DeletePasskey(th.BasicUser.Id, passkey.Id)
+		appErr := th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 		require.Equal(t, "app.passkey.not_found.app_error", appErr.Id)
@@ -104,10 +104,77 @@ func TestDeletePasskey(t *testing.T) {
 	})
 
 	t.Run("unknown id is a 404", func(t *testing.T) {
-		appErr := th.App.DeletePasskey(th.BasicUser.Id, model.NewId())
+		appErr := th.App.DeletePasskey(th.Context, th.BasicUser.Id, model.NewId())
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 		require.Equal(t, "app.passkey.not_found.app_error", appErr.Id)
+	})
+
+	createSession := func(t *testing.T, userID, method, passkeyID string, isOAuth bool) *model.Session {
+		t.Helper()
+		props := model.StringMap{model.SessionPropLoginMethod: method}
+		if passkeyID != "" {
+			props[model.SessionPropPasskeyId] = passkeyID
+		}
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: userID, Props: props, IsOAuth: isOAuth})
+		require.Nil(t, appErr)
+		// Warm the session cache so the test proves revocation clears it, not only the row.
+		_, appErr = th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		return session
+	}
+	sessionEnded := func(t *testing.T, s *model.Session) bool {
+		t.Helper()
+		_, appErr := th.App.GetSession(s.Token)
+		return appErr != nil
+	}
+
+	t.Run("ends only the sessions that passkey started", func(t *testing.T) {
+		a := savePasskey(t, th, th.BasicUser.Id, "a", model.GetMillis())
+		b := savePasskey(t, th, th.BasicUser.Id, "b", model.GetMillis())
+
+		a1 := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, a.Id, false)
+		a2 := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, a.Id, false)
+		fromB := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, b.Id, false)
+		standard := createSession(t, th.BasicUser.Id, model.SessionLoginMethodStandard, "", false)
+		noPasskeyID := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, "", false)
+		othersWithAId := createSession(t, th.BasicUser2.Id, model.SessionLoginMethodPasskey, a.Id, false)
+
+		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, a.Id))
+
+		require.True(t, sessionEnded(t, a1))
+		require.True(t, sessionEnded(t, a2))
+		require.False(t, sessionEnded(t, fromB))
+		require.False(t, sessionEnded(t, standard))
+		require.False(t, sessionEnded(t, noPasskeyID))
+		require.False(t, sessionEnded(t, othersWithAId))
+	})
+
+	t.Run("a session that fails to end is a 500, the passkey stays deleted and the rest still end", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser.Id, "failing", model.GetMillis())
+		// An OAuth session with no access data behind it cannot be revoked.
+		createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, pk.Id, true)
+		ordinary := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, pk.Id, false)
+
+		appErr := th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		require.Equal(t, "app.passkey.revoke_sessions.app_error", appErr.Id)
+
+		passkeys, getErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
+		require.Nil(t, getErr)
+		for _, p := range passkeys {
+			require.NotEqual(t, pk.Id, p.Id)
+		}
+		require.True(t, sessionEnded(t, ordinary))
+	})
+
+	t.Run("another user's passkey revokes nothing", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser2.Id, "theirs", model.GetMillis())
+		theirs := createSession(t, th.BasicUser2.Id, model.SessionLoginMethodPasskey, pk.Id, false)
+
+		require.NotNil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id))
+		require.False(t, sessionEnded(t, theirs))
 	})
 }
 
@@ -1470,7 +1537,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		opts := begin(t, ticket)
 		for _, p := range stored(t, user.Id) {
 			if string(p.CredentialId) == string(auth.CredentialID) {
-				require.Nil(t, th.App.DeletePasskey(user.Id, p.Id))
+				require.Nil(t, th.App.DeletePasskey(th.Context, user.Id, p.Id))
 			}
 		}
 
@@ -1926,7 +1993,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 
 	t.Run("a deleted passkey is refused as unknown", func(t *testing.T) {
 		user, auth := registered(t)
-		require.Nil(t, th.App.DeletePasskey(user.Id, storedPasskey(t, user.Id).Id))
+		require.Nil(t, th.App.DeletePasskey(th.Context, user.Id, storedPasskey(t, user.Id).Id))
 
 		got, appErr := finish(t, auth, origin)
 		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.unknown_credential.app_error")

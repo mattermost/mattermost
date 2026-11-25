@@ -10882,6 +10882,11 @@
     "description": "API error when starting or finishing passkey registration from a session that was not started by an interactive non-passkey sign-in within the last 10 minutes."
   },
   {
+    "id": "app.passkey.revoke_sessions.app_error",
+    "translation": "The passkey was deleted, but some sessions it started could not be signed out. Check your active sessions under Profile > Security.",
+    "description": "API error when a passkey was deleted but finding or ending the sessions it started failed, so some of them may still be active. Profile > Security is a menu path, match the translated UI labels."
+  },
+  {
     "id": "app.passkey.save.app_error",
     "translation": "Unable to save the passkey.",
     "description": "API error when storing a newly registered passkey in the database fails."

@@ -411,7 +411,7 @@ func deletePasskey(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.DeletePasskey(c.Params.UserId, passkeyID); appErr != nil {
+	if appErr := c.App.DeletePasskey(c.AppContext, c.Params.UserId, passkeyID); appErr != nil {
 		c.Err = appErr
 		return
 	}

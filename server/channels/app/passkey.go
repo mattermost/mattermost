@@ -34,16 +34,38 @@ func (a *App) GetPasskeysForUser(userID string) ([]*model.Passkey, *model.AppErr
 	return passkeys, nil
 }
 
-// DeletePasskey removes one of the user's passkeys. A passkey that does not exist and one that
-// belongs to someone else give the same 404, so callers learn nothing about other users' passkeys.
-func (a *App) DeletePasskey(userID, passkeyID string) *model.AppError {
+// DeletePasskey removes one of the user's passkeys and ends every session it started, on any
+// client. A passkey that does not exist and one that belongs to someone else give the same 404, so
+// callers learn nothing about other users' passkeys.
+//
+// The passkey is deleted first so it cannot start new sessions. If ending a session then fails the
+// passkey stays deleted, the remaining sessions are still attempted and the caller gets a 500.
+// Sessions created before they recorded their passkey are not matched here.
+func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.AppError {
 	if err := a.Srv().Store().Passkey().Delete(userID, passkeyID); err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("DeletePasskey", "app.passkey.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return model.NewAppError("DeletePasskey", "app.passkey.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return nil
+
+	// Loads every passkey session on the server; a store query by user and passkey_id if that
+	// ever gets large. It reads the primary, so a session created a moment ago is not missed.
+	sessions, err := a.Srv().Store().Session().GetSessionsByLoginMethod(model.SessionLoginMethodPasskey)
+	if err != nil {
+		return model.NewAppError("DeletePasskey", "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	var revokeErr *model.AppError
+	for _, session := range sessions {
+		if session.UserId != userID || session.Props[model.SessionPropPasskeyId] != passkeyID {
+			continue
+		}
+		if appErr := a.RevokeSession(rctx, session); appErr != nil {
+			revokeErr = model.NewAppError("DeletePasskey", "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+	}
+	return revokeErr
 }
 
 // passkeyRelyingParty builds the WebAuthn relying party from the current config. It is rebuilt on

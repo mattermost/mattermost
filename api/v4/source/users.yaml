@@ -2768,8 +2768,10 @@
         - users
       summary: Delete a passkey
       description: >
-        Delete one of the user's passkeys. Deleting a passkey does not end any
-        session, including sessions that were started with it.
+        Delete one of the user's passkeys. Deleting a passkey ends every session
+        that was started with it, including the caller's own session if it was
+        started with that passkey; the request itself still succeeds. Other
+        sessions of the user are unaffected.
 
 
         Passkeys are available only when the `Passkeys` feature flag is on and the

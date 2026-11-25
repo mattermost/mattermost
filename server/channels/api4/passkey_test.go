@@ -1281,7 +1281,7 @@ func TestPasskeyLogin(t *testing.T) {
 		CheckErrorID(t, err, "app.passkey.recent_login_required.app_error")
 	})
 
-	t.Run("deleting the passkey just used keeps the session", func(t *testing.T) {
+	t.Run("deleting the passkey just used ends the session", func(t *testing.T) {
 		th := setupPasskeyLogin(t)
 		auth, pk := registerAndAuthenticator(t, th)
 
@@ -1292,8 +1292,9 @@ func TestPasskeyLogin(t *testing.T) {
 		resp, err := client.DeletePasskey(context.Background(), model.Me, pk.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		_, _, err = client.GetMe(context.Background(), "")
-		require.NoError(t, err)
+		_, resp, err = client.GetMe(context.Background(), "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
 	})
 
 	t.Run("refused when the server cannot offer sign-in", func(t *testing.T) {
