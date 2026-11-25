@@ -21,6 +21,7 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {isEmbedded} from 'utils/embed';
 import {createPasskey, currentSessionCanAddPasskey, signalAcceptedPasskeys, signalUnknownPasskey} from 'utils/passkeys';
+import {isPasskeySession} from 'utils/route';
 
 const SECTION_PASSKEYS = 'passkeys';
 const MAX_PASSKEYS = 10;
@@ -40,6 +41,11 @@ const messages = defineMessages({
         id: 'user.settings.passkeys.signInAgainHint',
         defaultMessage: 'To add a passkey, sign in again first.',
         description: 'Shown in place of the add-passkey controls when the current session is too old, or the server refused an add for that reason, to say the user must sign in again before adding a passkey.',
+    },
+    passkeySessionHint: {
+        id: 'user.settings.passkeys.passkeySessionHint',
+        defaultMessage: 'You signed in with a passkey. To add a passkey, sign out and sign in with your password or single sign-on.',
+        description: 'Shown in place of the add-passkey controls when the current session started with a passkey, which cannot be used to add another one.',
     },
     alreadyOnDevice: {
         id: 'user.settings.passkeys.alreadyOnDevice',
@@ -96,6 +102,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const [adding, setAdding] = useState(false);
     const [loginKey] = useState(() => Client4.getCSRFFromCookie());
 
+    // A passkey session cannot add a passkey, and "Sign in again" would only lead back to a passkey sign-in.
+    const passkeySession = isPasskeySession();
+
     // The server refuses an add from a session that did not sign in recently; true once known, from the lookup or a refusal.
     const [signInAgainNeeded, setSignInAgainNeeded] = useState(false);
 
@@ -124,7 +133,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     }, [visible, load]);
 
     useEffect(() => {
-        if (!visible || !canAddPasskey) {
+        if (!visible || !canAddPasskey || passkeySession) {
             return undefined;
         }
         let cancelled = false;
@@ -138,7 +147,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
         return () => {
             cancelled = true;
         };
-    }, [visible, canAddPasskey, loginKey]);
+    }, [visible, canAddPasskey, loginKey, passkeySession]);
 
     useEffect(() => {
         if (!active) {
@@ -319,6 +328,12 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                         description='Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum.'
                         values={{max: MAX_PASSKEYS}}
                     />
+                </div>
+            );
+        } else if (passkeySession) {
+            addControl = (
+                <div className='setting-list__hint pb-3'>
+                    {formatMessage(messages.passkeySessionHint)}
                 </div>
             );
         } else if (signInAgainNeeded) {

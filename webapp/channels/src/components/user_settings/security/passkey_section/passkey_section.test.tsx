@@ -733,6 +733,37 @@ describe('PasskeySection', () => {
             });
         });
 
+        describe('when the session started with a passkey', () => {
+            const hint = 'You signed in with a passkey. To add a passkey, sign out and sign in with your password or single sign-on.';
+
+            beforeEach(() => {
+                document.cookie = 'MMLOGINMETHOD=passkey';
+            });
+
+            afterEach(() => {
+                document.cookie = 'MMLOGINMETHOD=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            });
+
+            test('shows the list and the hint, with no add control and no Sign in again', async () => {
+                await renderExpanded();
+
+                expect(screen.getByText(hint)).toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Add passkey'})).not.toBeInTheDocument();
+                expect(screen.queryByLabelText('Passkey name')).not.toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Sign in again'})).not.toBeInTheDocument();
+                expect(screen.getByRole('button', {name: 'Delete passkey Laptop'})).toBeInTheDocument();
+                expect(canAddPasskey).not.toHaveBeenCalled();
+            });
+
+            test('shows only the limit hint at the limit', async () => {
+                getPasskeys.mockResolvedValue(manyPasskeys);
+                await renderExpanded();
+
+                expect(screen.getByText(/You have reached the limit of 10 passkeys/)).toBeInTheDocument();
+                expect(screen.queryByText(hint)).not.toBeInTheDocument();
+            });
+        });
+
         test('is hidden without WebAuthn support but the list still shows', async () => {
             Reflect.deleteProperty(window, 'PublicKeyCredential');
             await renderExpanded();
