@@ -578,25 +578,7 @@ export function extractSurface(options: {
         visit(source);
     }
 
-    // The same id declared in two files can render twice at once; one file's ternary branches cannot.
-    const filesById = new Map<string, SurfaceEntry[]>();
-    for (const entry of entries) {
-        const list = filesById.get(entry.id) ?? [];
-        list.push(entry);
-        filesById.set(entry.id, list);
-    }
-    for (const [id, list] of filesById) {
-        const files = [...new Set(list.map((entry) => entry.file))];
-        if (files.length > 1 && !list[0].keyed) {
-            diagnostics.push({
-                rule: 'duplicates',
-                file: list[0].file,
-                line: list[0].line,
-                id,
-                message: `"${id}" is also declared in ${files.slice(1).join(', ')}; scope one of them`,
-            });
-        }
-    }
+    diagnostics.push(...crossFileDuplicates(entries));
 
     diagnostics.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.rule.localeCompare(b.rule));
     return {
@@ -632,6 +614,30 @@ export function collectTestIdSurfacePairs(options: {roots: string[]; cwd?: strin
         visit(source);
     }
     return pairs;
+}
+
+/** The same id declared in two files can render twice at once; one file's ternary branches cannot. Cross-file only. */
+export function crossFileDuplicates(entries: SurfaceEntry[]): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    const filesById = new Map<string, SurfaceEntry[]>();
+    for (const entry of entries) {
+        const list = filesById.get(entry.id) ?? [];
+        list.push(entry);
+        filesById.set(entry.id, list);
+    }
+    for (const [id, list] of filesById) {
+        const files = [...new Set(list.map((entry) => entry.file))];
+        if (files.length > 1 && !list[0].keyed) {
+            out.push({
+                rule: 'duplicates',
+                file: list[0].file,
+                line: list[0].line,
+                id,
+                message: `"${id}" is also declared in ${files.slice(1).join(', ')}; scope one of them`,
+            });
+        }
+    }
+    return out;
 }
 
 function lookupIdFromCall(call: ts.CallExpression): string | undefined {

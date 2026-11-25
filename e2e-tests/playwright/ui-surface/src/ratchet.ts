@@ -86,6 +86,17 @@ function hashIds(ids: string[]): string {
     return createHash('sha256').update(ids.join('\n')).digest('hex').slice(0, 12);
 }
 
+/** Build a baseline from an already-computed per-file legacy-id map (used by the incremental cache). */
+export function baselineFromLegacy(legacy: Record<string, string[]>): Baseline {
+    const baseline: Baseline = {};
+    for (const [file, ids] of Object.entries(legacy)) {
+        if (ids.length > 0) {
+            baseline[file] = {count: ids.length, hash: hashIds([...ids].sort())};
+        }
+    }
+    return baseline;
+}
+
 function collectFiles(roots: string[], cwd: string): string[] {
     const out = new Set<string>();
     for (const root of roots) {

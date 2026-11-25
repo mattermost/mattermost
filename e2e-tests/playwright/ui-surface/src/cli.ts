@@ -7,7 +7,8 @@ import {fileURLToPath} from 'node:url';
 
 import {emitGenerated, extractOpenApi, type PageSpec} from './catalog.js';
 import {diffHostContracts, extractHostContract, readHostVersion, type HostContract} from './host_contract.js';
-import {computeBaseline, diffBaseline, serializeBaseline, type Baseline} from './ratchet.js';
+import {incrementalScan} from './cache.js';
+import {baselineFromLegacy, computeBaseline, diffBaseline, serializeBaseline, type Baseline} from './ratchet.js';
 import {migrateTestIds} from './migrate.js';
 import {checkStaleRefs, collectTestIdSurfacePairs, extractSurface, indexSourceIds, type SurfaceEntry, type SurfaceReport} from './scan.js';
 
@@ -130,7 +131,14 @@ export async function runCli(argv: string[]): Promise<number> {
     const driftAllow = existsSync(paths.driftMapPath)
         ? (JSON.parse(readFileSync(paths.driftMapPath, 'utf8')) as Record<string, string>)
         : {};
-    const surface = extractSurface({roots, cwd: paths.repoRoot, roleMap, driftAllow});
+    const incremental = argv.includes('--incremental');
+    const changedSince = readFlag(argv, '--changed-since');
+    const cacheDir = resolve(readFlag(argv, '--cache-dir') ?? resolve(paths.pwRoot, '.ui-surface-cache'));
+    const inc =
+        incremental && (cmd === 'check' || cmd === 'scan')
+            ? incrementalScan({roots, cwd: paths.repoRoot, cacheDir, roleMap, driftAllow, changedSince})
+            : undefined;
+    const surface = inc ?? extractSurface({roots, cwd: paths.repoRoot, roleMap, driftAllow});
 
     if (cmd === 'scan') {
         const outFile = readFlag(argv, '--out');
@@ -150,7 +158,7 @@ export async function runCli(argv: string[]): Promise<number> {
             ? [resolve(readFlag(argv, '--specs')!)]
             : paths.specRoots.filter(existsSync);
         const knownIds = new Set(surface.entries.map((e) => e.id));
-        const sourceIds = indexSourceIds({roots, cwd: paths.repoRoot});
+        const sourceIds = inc ? inc.sourceIds : indexSourceIds({roots, cwd: paths.repoRoot});
         const allowed: Record<string, string> = existsSync(paths.staleAllowPath)
             ? JSON.parse(readFileSync(paths.staleAllowPath, 'utf8'))
             : {};
@@ -169,7 +177,7 @@ export async function runCli(argv: string[]): Promise<number> {
         const committed: Baseline = existsSync(paths.baselinePath)
             ? (JSON.parse(readFileSync(paths.baselinePath, 'utf8')) as Baseline)
             : {};
-        const current = computeBaseline({roots, cwd: paths.repoRoot});
+        const current = inc ? baselineFromLegacy(inc.legacy) : computeBaseline({roots, cwd: paths.repoRoot});
         const ratchet = diffBaseline(committed, current);
         for (const g of ratchet.grown) {
             err(
