@@ -5259,14 +5259,6 @@
     "defaultMessage": "Test Connection",
     "description": "Button label on the System Console SMTP page that sends a test email to verify the connection."
   },
-  "admin.environment.smtp.enableSecurityFixAlert.description": {
-    "defaultMessage": "When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.",
-    "description": "Help text for the Enable Security Alerts setting on the System Console SMTP page."
-  },
-  "admin.environment.smtp.enableSecurityFixAlert.title": {
-    "defaultMessage": "Enable Security Alerts:",
-    "description": "Setting label (ends with a colon) for the Enable Security Alerts toggle on the System Console SMTP page."
-  },
   "admin.environment.smtp.skipServerCertificateVerification.description": {
     "defaultMessage": "When true, Mattermost will not verify the email server certificate.",
     "description": "Help text for the Skip Server Certificate Verification setting on the System Console SMTP page."
@@ -7636,7 +7628,7 @@
     "description": "Title of the empty Info tab on the System Console Site health page, shown when no info finding is firing."
   },
   "admin.health_dashboard.empty_tab.muted_body": {
-    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.",
+    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review them.",
     "description": "Body of an empty tab on the System Console Site health page when the tab is empty only because its findings are muted; Muted is the toolbar button that lists them."
   },
   "admin.health_dashboard.empty_tab.muted_title": {
@@ -7668,7 +7660,7 @@
     "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
   },
   "admin.health_dashboard.empty.body": {
-    "defaultMessage": "The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.",
+    "defaultMessage": "The first health check runs within an hour of enabling the feature. A system admin can run it sooner with Re-run checks.",
     "description": "Body of the System Console Site health page empty state shown before the first health check has run; Re-run checks is the label of the button above it."
   },
   "admin.health_dashboard.empty.title": {
@@ -7682,6 +7674,34 @@
   "admin.health_dashboard.error.title": {
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.export.button": {
+    "defaultMessage": "Export",
+    "description": "Secondary menu button in the summary header of the System Console Site health page, next to Re-run checks, that opens the menu of ways to export the health findings."
+  },
+  "admin.health_dashboard.export.error": {
+    "defaultMessage": "The health findings could not be exported. Try again.",
+    "description": "Error banner on the System Console Site health page shown when downloading or printing the health findings export fails."
+  },
+  "admin.health_dashboard.export.exporting": {
+    "defaultMessage": "Exporting…",
+    "description": "Label of the Export menu button on the System Console Site health page while the export is being fetched from the server."
+  },
+  "admin.health_dashboard.export.html": {
+    "defaultMessage": "Download HTML",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a self-contained HTML report file."
+  },
+  "admin.health_dashboard.export.markdown": {
+    "defaultMessage": "Download Markdown",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a Markdown file."
+  },
+  "admin.health_dashboard.export.menu_label": {
+    "defaultMessage": "Export health findings",
+    "description": "Accessible label of the Export menu on the System Console Site health page."
+  },
+  "admin.health_dashboard.export.print": {
+    "defaultMessage": "Print / Save as PDF",
+    "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
   },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
@@ -7744,7 +7764,7 @@
     "description": "Title of the empty state of the muted findings list on the System Console Site health page."
   },
   "admin.health_dashboard.muted.note": {
-    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.",
+    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmuting a finding returns it to the open list.",
     "description": "Explanation above the list of muted findings on the System Console Site health page."
   },
   "admin.health_dashboard.muted.toggle": {
@@ -7762,6 +7782,10 @@
   "admin.health_dashboard.run.failed_no_reason": {
     "defaultMessage": "The health check did not finish.",
     "description": "Error banner on the System Console Site health page when a health check run failed without a reason from the server, was canceled, or stopped responding."
+  },
+  "admin.health_dashboard.run.not_allowed": {
+    "defaultMessage": "Only system admins can run checks.",
+    "description": ""
   },
   "admin.health_dashboard.run.reload_error": {
     "defaultMessage": "The health check results could not be loaded. Reload the page to see them.",
@@ -10610,6 +10634,14 @@
   "admin.notices.enableEndUserNoticesTitle": {
     "defaultMessage": "Enable End User Notices: ",
     "description": "Setting label (toggle) on the Notices admin page controlling announcement notices shown to all users; ends with a colon and trailing space."
+  },
+  "admin.notices.enableSecurityFixAlertDescription": {
+    "defaultMessage": "When enabled, the server checks Mattermost daily for security bulletins and requests the latest Mattermost release from GitHub to report whether it is out of date. System Admins are emailed relevant bulletins when SMTP is configured. When disabled, the server makes neither request.",
+    "description": "Help text for the Check for Security and Release Updates setting on the System Console Notices page; Mattermost and GitHub are names and stay untranslated."
+  },
+  "admin.notices.enableSecurityFixAlertTitle": {
+    "defaultMessage": "Check for Security and Release Updates: ",
+    "description": "Setting label (toggle) on the Notices admin page controlling whether the server checks Mattermost for security bulletins and the latest release; ends with a colon and trailing space."
   },
   "admin.oauth.dcrDescription": {
     "defaultMessage": "When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.",
@@ -19787,6 +19819,10 @@
     "defaultMessage": "Edit {label}",
     "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."
   },
+  "channel_attributes.info.enter_a_value": {
+    "defaultMessage": "Enter a value",
+    "description": "Placeholder in a Channel Info row for a required text attribute that has no value yet. Selecting it opens the text editor."
+  },
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
@@ -19823,13 +19859,33 @@
     "defaultMessage": "Couldn't save {label}. Try again.",
     "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
   },
+  "channel_attributes.info.save_failed_required": {
+    "defaultMessage": "{label} is required. Choose a value instead of clearing it.",
+    "description": "Inline error under a channel attribute in the channel info right-hand panel when the server refuses to clear a required attribute. {label} is the attribute's display name. Retrying can't help, so it asks for a different value instead."
+  },
+  "channel_attributes.info.select_a_value": {
+    "defaultMessage": "Select a value",
+    "description": "Placeholder in a Channel Info row for a required attribute that has no value yet. Selecting it opens the list of values to choose from."
+  },
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
   },
+  "channel_attributes.labels.set_value": {
+    "defaultMessage": "Set {label}",
+    "description": "Text of a dashed chip in the channel header that prompts a channel admin to set a required channel attribute that has no value yet. {label} is the attribute's name. Opens Channel Info with that attribute in edit mode."
+  },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
+  },
+  "channel_attributes.missing_notice.add_values": {
+    "defaultMessage": "Add values",
+    "description": "Button inside the red notice under the channel header. Opens Channel Info with the first missing required channel attribute in edit mode."
+  },
+  "channel_attributes.missing_notice.text": {
+    "defaultMessage": "Channel attribute values are missing",
+    "description": "Text of the red notice shown under the channel header to channel admins when a required channel attribute has no value on the channel."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -20178,6 +20234,10 @@
   "channel_header.openChannelInfo": {
     "defaultMessage": "View Info",
     "description": "Tooltip of the info button in the channel header; opens the channel info sidebar."
+  },
+  "channel_header.openChannelInfo.missing_values": {
+    "defaultMessage": "{label}, channel attribute values are missing",
+    "description": "Accessible label of the channel info button in the channel header when the channel lacks required attribute values. {label} is the button's usual label, for example View Info."
   },
   "channel_header.otherchannel": {
     "defaultMessage": "{displayName} Channel Menu",
@@ -28515,6 +28575,54 @@
     "defaultMessage": "What tools do you use?",
     "description": "Title question on the plugin selection step of the workspace setup wizard."
   },
+  "onboarding_wizard.site_url.description": {
+    "defaultMessage": "This is the URL that users will use to access Mattermost. <a>See documentation</a> for more.",
+    "description": "Description under the title of the Site URL step of the workspace setup wizard. <a> links to the Site URL documentation."
+  },
+  "onboarding_wizard.site_url.help": {
+    "defaultMessage": "Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required",
+    "description": "Help text under the URL field on the Site URL step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.hint_ip": {
+    "defaultMessage": "An IP address works, but a domain name is easier to share and is needed for most HTTPS certificates.",
+    "description": "Hint under the URL field on the Site URL step of the workspace setup wizard, shown while the entered host is an IP address."
+  },
+  "onboarding_wizard.site_url.hint_loopback": {
+    "defaultMessage": "This address only works on this computer. Other people won’t be able to reach Mattermost at it.",
+    "description": "Hint under the URL field on the Site URL step of the workspace setup wizard, shown while the entered host is localhost or another loopback address."
+  },
+  "onboarding_wizard.site_url.invalid": {
+    "defaultMessage": "Enter only http:// or https://, a host name, and an optional port, such as https://chat.example.com.",
+    "description": "Error on the Site URL step of the workspace setup wizard when the entered URL has a path, query, or other parts besides the protocol, host, and port. Keep http://, https:// and the example URL as they are."
+  },
+  "onboarding_wizard.site_url.placeholder": {
+    "defaultMessage": "https://chat.example.com",
+    "description": "Placeholder example URL in the URL field on the Site URL step of the workspace setup wizard. Keep as is."
+  },
+  "onboarding_wizard.site_url.skip": {
+    "defaultMessage": "I’ll do this later",
+    "description": "Button on the Site URL step of the workspace setup wizard that advances without setting the Site URL."
+  },
+  "onboarding_wizard.site_url.test_successful": {
+    "defaultMessage": "Test successful. This is a valid URL.",
+    "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server reached the entered URL."
+  },
+  "onboarding_wizard.site_url.test_unsuccessful": {
+    "defaultMessage": "Test unsuccessful. Mattermost couldn’t reach this URL.",
+    "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server could not reach the entered URL."
+  },
+  "onboarding_wizard.site_url.testing": {
+    "defaultMessage": "Testing URL",
+    "description": "Status next to a spinner under the URL field on the Site URL step of the workspace setup wizard while the server tests the entered URL."
+  },
+  "onboarding_wizard.site_url.title": {
+    "defaultMessage": "Confirm your server’s URL",
+    "description": "Title on the Site URL step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.use_anyway": {
+    "defaultMessage": "Use anyway",
+    "description": "Button on the Site URL step of the workspace setup wizard, shown after a failed URL test, that keeps the entered URL and advances."
+  },
   "onboarding_wizard.skip-button": {
     "defaultMessage": "Skip",
     "description": "Button on the plugin selection step of the setup wizard that advances without installing any tools."
@@ -29557,7 +29665,7 @@
   },
   "product_rail.ariaLabel": {
     "defaultMessage": "Product navigation",
-    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels and products such as Boards and Playbooks."
   },
   "product_rail.boards": {
     "defaultMessage": "Boards",
@@ -29567,21 +29675,57 @@
     "defaultMessage": "Channels",
     "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
   },
+  "product_rail.itemMenu.label": {
+    "defaultMessage": "Product options",
+    "description": "Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail."
+  },
+  "product_rail.itemMenu.pin": {
+    "defaultMessage": "Pin",
+    "description": "Item in the right-click menu of an unpinned product, shown in the product navigation rail only while it is open. It pins the product back on the rail, out of the More menu."
+  },
+  "product_rail.itemMenu.unpin": {
+    "defaultMessage": "Unpin",
+    "description": "Item in the right-click menu of a product, such as Boards or Playbooks, in the product navigation rail. It takes the product off the rail and into the More menu at the end of it."
+  },
+  "product_rail.more": {
+    "defaultMessage": "More",
+    "description": "Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.label": {
+    "defaultMessage": "More products",
+    "description": "Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.labelWithMentions": {
+    "defaultMessage": "More products, {count, plural, one {# mention} other {# mentions}}",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have mentions. {count} is their total, shown in a badge on it."
+  },
+  "product_rail.moreMenu.labelWithUnreads": {
+    "defaultMessage": "More products, unread activity",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have unread activity but no mentions, shown as a dot on it."
+  },
+  "product_rail.moreMenu.pin": {
+    "defaultMessage": "Pin {name}",
+    "description": "Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail."
+  },
+  "product_rail.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the product navigation rail, shown while the team sidebar is hidden. It brings the team sidebar back."
+  },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
   },
+  "product_rail.teamMenu.buttonLabelWithMentions": {
+    "defaultMessage": "Switch teams, {count, plural, one {# mention} other {# mentions}} in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have mentions. {count} is their total, shown in a badge on the button."
+  },
+  "product_rail.teamMenu.buttonLabelWithUnreads": {
+    "defaultMessage": "Switch teams, unread messages in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have unread messages but no mentions, shown as a dot on the button."
+  },
   "product_rail.teamMenu.menuLabel": {
     "defaultMessage": "Teams",
     "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
-  },
-  "product_rail.teamMenu.showTeamSidebar": {
-    "defaultMessage": "Show team sidebar",
-    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
-  },
-  "product_rail.threads": {
-    "defaultMessage": "Threads",
-    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
   },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",

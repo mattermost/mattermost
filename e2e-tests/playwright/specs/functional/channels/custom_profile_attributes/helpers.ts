@@ -395,15 +395,21 @@ export async function setupCustomProfileAttributeFields(
 
     // Create fields sequentially, reusing any that already exist by name AND type.
     // If a same-name field exists with a different type, delete it first then recreate.
+    // Same for an admin-managed field when this spec wants an unmanaged one: managed:'admin'
+    // pins value writes to sysadmins, and patching `managed` away does not lift that pin. That
+    // replacement is left in place afterwards (not owned), as the suite expects e.g. Department.
     for (const field of attributeFields) {
         const existing = field.name ? existingByName[field.name] : undefined;
+        const unwantedAdminManaged =
+            (existing?.attrs as {managed?: string} | undefined)?.managed === 'admin' &&
+            (field.attrs as {managed?: string} | undefined)?.managed !== 'admin';
 
-        if (existing && existing.type === field.type) {
+        if (existing && existing.type === field.type && !unwantedAdminManaged) {
             // Name and type both match — safe to reuse without touching ownedIds.
             fieldsMap[existing.id] = existing;
-        } else if (existing && existing.type !== field.type) {
+        } else if (existing) {
             // Same name but wrong type (e.g. a previous spec created 'Location' as 'text'
-            // while this spec needs it as 'select'). Delete the stale field and recreate.
+            // while this spec needs it as 'select') or admin-managed. Delete the stale field and recreate.
             try {
                 await adminClient.deleteCustomProfileAttributeField(existing.id);
             } catch {
@@ -412,7 +418,9 @@ export async function setupCustomProfileAttributeFields(
             try {
                 const createdField = await adminClient.createCustomProfileAttributeField(field);
                 fieldsMap[createdField.id] = createdField;
-                ownedIds.add(createdField.id);
+                if (existing.type !== field.type) {
+                    ownedIds.add(createdField.id);
+                }
             } catch {
                 // Race: another worker recreated it first — borrow it (not owned).
                 try {

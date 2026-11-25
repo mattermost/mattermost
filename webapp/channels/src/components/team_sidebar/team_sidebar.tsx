@@ -363,8 +363,12 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                         {joinableTeams}
                     </div>
                 </Scrollbars>
-                {plugins}
-                {hideButton}
+
+                {/* Plugins' icons and the hide button stay together at the bottom. */}
+                <div className='team-sidebar__bottom'>
+                    {plugins}
+                    {hideButton}
+                </div>
             </div>
         );
     }

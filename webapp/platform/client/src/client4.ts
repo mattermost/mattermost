@@ -117,7 +117,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, EntityCard} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {ChannelAttributeComplianceSummary, ChannelAttributeNotifyResult, ChannelsMissingAttributeValueList, NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
+import type {ChannelAttributeComplianceSummary, ChannelAttributeNotifyResult, ChannelsMissingAttributeValueList, NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyPermissionsPatch, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -2617,7 +2617,14 @@ export default class Client4 {
         );
     };
 
-    patchPropertyField = async (groupName: string, objectType: string, fieldId: string, patch: Partial<PropertyField> & Record<string, unknown>) => {
+    // `permissions` is patched key by key on the server, so it takes the patch
+    // shape rather than the full object a field is read back with.
+    patchPropertyField = async (
+        groupName: string,
+        objectType: string,
+        fieldId: string,
+        patch: Partial<Omit<PropertyField, 'permissions'>> & {permissions?: PropertyPermissionsPatch} & Record<string, unknown>,
+    ) => {
         return this.doFetch<PropertyField>(
             `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
             {method: 'PATCH', body: JSON.stringify(patch)},
@@ -5585,6 +5592,18 @@ export default class Client4 {
             `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
             {method: 'delete'},
         );
+    };
+
+    exportHealthFindings = async (format: 'html' | 'md'): Promise<{content: string; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<string>(
+            `${this.getHealthFindingsRoute()}/export${buildQueryString({format})}`,
+            {method: 'get'},
+        );
+
+        return {
+            content: data,
+            filename: extractFilenameFromContentDisposition(headers.get('Content-Disposition'), `site-health.${format}`),
+        };
     };
 
     getFlaggedPostReportUrl = (postId: string) => {

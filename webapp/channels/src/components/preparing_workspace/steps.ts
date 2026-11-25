@@ -5,6 +5,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 export const WizardSteps = {
     Organization: 'Organization',
+    SiteUrl: 'SiteUrl',
     Plugins: 'Plugins',
     InviteMembers: 'InviteMembers',
     LaunchingWorkspace: 'LaunchingWorkspace',
@@ -52,6 +53,8 @@ export const PLUGIN_NAME_TO_ID_MAP: PluginNameMap = {
 export type Form = {
     organization?: string;
     url?: string;
+
+    // set if user clicks "I'll do this later" on the Site URL step
     urlSkipped: boolean;
     inferredProtocol: 'http' | 'https' | null;
     useCase: {

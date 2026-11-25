@@ -26,7 +26,7 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheck
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.HealthDashboard = flagEnabled
-	})
+	}, LatestVersionURL(latestVersionServer(t).URL))
 
 	svc := newTestHealthCheckService(th,
 		healthcheck.Rule{
@@ -59,8 +59,6 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheck
 	t.Cleanup(func() {
 		assert.NoError(t, th.App.clearLatestVersionCache())
 	})
-	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
-	require.Nil(t, appErr)
 
 	return th, svc
 }
