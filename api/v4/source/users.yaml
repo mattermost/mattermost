@@ -2233,9 +2233,8 @@
         compromise.
 
 
-        Requires the `Passkeys` feature flag and a Professional or higher license;
-        otherwise the endpoint responds with 501. It works whether or not "Enable
-        passkey login" is currently on.
+        It works whether or not the `Passkeys` feature flag, a Professional or
+        higher license and "Enable passkey login" are currently on.
 
 
         __Minimum server version__: 12.2
@@ -2256,8 +2255,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/users/sessions/device:
     put:
       tags:

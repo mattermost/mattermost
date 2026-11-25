@@ -422,16 +422,12 @@ func deletePasskey(c *Context, w http.ResponseWriter, r *http.Request) {
 	web.ReturnStatusOK(w)
 }
 
-// revokePasskeySessions checks the permission before the flag and license so a non-admin learns
-// nothing about them. It ignores the login and enrollment settings: the moment an admin needs it is
-// right after turning passkey sign-in off, when sessions started while it was on still exist.
+// revokePasskeySessions ignores the flag, license and the login and enrollment settings: the moment
+// an admin needs it is right after turning passkey sign-in off, or after the license lapses, when
+// sessions started while it was on still exist.
 func revokePasskeySessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	if !requirePasskeyFlagAndLicense(c) {
 		return
 	}
 

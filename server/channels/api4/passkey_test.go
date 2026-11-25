@@ -1541,29 +1541,41 @@ func TestRevokePasskeySessions(t *testing.T) {
 		assert.True(t, works(t, passkey))
 	})
 
-	t.Run("flag off", func(t *testing.T) {
+	t.Run("works with the flag off", func(t *testing.T) {
 		th := setupPasskeyLogin(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.Passkeys = false
 		})
 		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
 
 		resp, err := revoke(th.SystemAdminClient)
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		assert.True(t, works(t, passkey))
+		assert.False(t, works(t, passkey))
 	})
 
-	t.Run("no license", func(t *testing.T) {
+	t.Run("works with no license", func(t *testing.T) {
 		th := setupPasskeyLogin(t)
 		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
 		th.App.Srv().SetLicense(nil)
 
 		resp, err := revoke(th.SystemAdminClient)
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		assert.True(t, works(t, passkey))
+		assert.False(t, works(t, passkey))
+	})
+
+	t.Run("works with a license below Professional", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		passkey := sessionClient(t, th, th.BasicUser, model.SessionLoginMethodPasskey)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
+
+		resp, err := revoke(th.SystemAdminClient)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.False(t, works(t, passkey))
 	})
 
 	t.Run("local mode", func(t *testing.T) {
