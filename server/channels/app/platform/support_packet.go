@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -467,6 +468,15 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
 	})
 
+	// Probe with the same transports as the real requests: OAuth and OpenID logins refuse internal
+	// addresses unless allowed, while the push client trusts the admin-configured push server.
+	insecure := model.SafeDereference(cfg.ServiceSettings.EnableInsecureOutgoingConnections)
+	oauthClient := &http.Client{Transport: httpservice.NewTransportForInternalConnections(
+		insecure,
+		model.SafeDereference(cfg.ServiceSettings.AllowedUntrustedInternalConnections),
+	)}
+	pushClient := &http.Client{Transport: httpservice.NewTransport(insecure, nil, nil)}
+
 	for _, provider := range []struct {
 		name   string
 		sso    *model.SSOSettings
@@ -479,14 +489,14 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	} {
 		add(model.SafeDereference(provider.sso.Enable), networkProbe{
 			name: provider.name, section: model.SectionOAuthProbes, status: &provider.status.Status, errMsg: &provider.status.Error,
-			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, provider.sso) },
+			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, oauthClient, provider.sso) },
 		})
 	}
 
 	pushServerURL := model.SafeDereference(cfg.EmailSettings.PushNotificationServer)
 	add(model.SafeDereference(cfg.EmailSettings.SendPushNotifications), networkProbe{
 		name: "push", section: model.SectionPushProbe, status: &d.Notifications.Push.Status, errMsg: &d.Notifications.Push.Error,
-		run: func(ctx context.Context) error { return ps.testPushProxyConnection(ctx, pushServerURL) },
+		run: func(ctx context.Context) error { return ps.testPushProxyConnection(ctx, pushClient, pushServerURL) },
 	})
 
 	return probes
@@ -629,25 +639,25 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 // Otherwise it probes the TokenEndpoint host: any HTTP response (including
 // 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
 // Callers only probe enabled providers.
-func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) error {
+func probeOAuthProvider(ctx context.Context, client *http.Client, sso *model.SSOSettings) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
-		return probeOIDCDiscovery(ctx, discoveryEndpoint)
+		return probeOIDCDiscovery(ctx, client, discoveryEndpoint)
 	}
 	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
-		return probeOAuthTokenEndpoint(ctx, tokenEndpoint)
+		return probeOAuthTokenEndpoint(ctx, client, tokenEndpoint)
 	}
 	return errors.New("no discovery or token endpoint configured")
 }
 
-func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
+func probeOIDCDiscovery(ctx context.Context, client *http.Client, discoveryURL string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -672,12 +682,12 @@ func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
 	return nil
 }
 
-func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
+func probeOAuthTokenEndpoint(ctx context.Context, client *http.Client, tokenURL string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -695,7 +705,7 @@ func drainAndCloseBody(body io.ReadCloser) {
 }
 
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
-func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
+func (ps *PlatformService) testPushProxyConnection(ctx context.Context, client *http.Client, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	versionURL, err := url.JoinPath(serverURL, "version")
@@ -706,7 +716,7 @@ func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverUR
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
