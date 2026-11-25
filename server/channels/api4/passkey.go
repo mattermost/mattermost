@@ -178,6 +178,13 @@ func finishPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.AppContext = c.AppContext.WithSession(session)
 
+	// DoLogin has already put the token on the response; take it back if the passkey is gone.
+	if appErr = c.App.ConfirmPasskeySession(c.AppContext, session, passkey); appErr != nil {
+		w.Header().Del(model.HeaderToken)
+		c.Err = appErr
+		return
+	}
+
 	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}

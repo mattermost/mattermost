@@ -638,7 +638,7 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 		case handlerAppErr != nil:
 			return nil, nil, handlerAppErr
 		case unknownCredential:
-			return nil, nil, model.NewAppError(where, "app.passkey.unknown_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+			return nil, nil, passkeyUnknownCredential(where, err)
 		}
 		return nil, nil, invalidCredential(err)
 	}
@@ -673,6 +673,35 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 	return user, passkey, nil
 }
 
+// ConfirmPasskeySession re-reads the passkey after sign-in created its session and ends the session if
+// the passkey is gone. DeletePasskey deletes the row and then lists the passkey's sessions from the
+// primary; sign-in writes the session to the primary and then re-reads the row from the primary. If
+// this finds the row, the delete has not committed, so its later session scan sees this session; if
+// the row is gone, this ends the session itself. Either way no usable session outlives its passkey.
+func (a *App) ConfirmPasskeySession(rctx request.CTX, session *model.Session, passkey *model.Passkey) *model.AppError {
+	const where = "ConfirmPasskeySession"
+
+	current, err := a.Srv().Store().Passkey().GetByCredentialId(passkey.CredentialId)
+	if err == nil && current.Id == passkey.Id {
+		return nil
+	}
+
+	revokeErr := a.RevokeSession(rctx, session)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			// A failed revoke here is only logged: the read failure is the error to report.
+			if revokeErr != nil {
+				rctx.Logger().Warn("Failed to revoke passkey session after a failed passkey re-check", mlog.Err(revokeErr))
+			}
+			return model.NewAppError(where, "app.passkey.finish_login.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	if revokeErr != nil {
+		return model.NewAppError(where, "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(revokeErr)
+	}
+	return passkeyUnknownCredential(where, err)
+}
+
 // checkPasskeyCounter refuses an assertion whose counter did not increase: the authenticator may have
 // been cloned. The library flags it; the explicit comparison is kept because UpdateUsage only compares
 // the previous value, so a flag the library stopped raising would let a replayed counter through. A
@@ -686,15 +715,31 @@ func checkPasskeyCounter(where string, parsed *protocol.ParsedCredentialAssertio
 }
 
 // The update is compare-and-set on the counter, so a concurrent use that got there first makes
-// this one counter_regressed.
+// this one counter_regressed. A miss can also mean the passkey was deleted since it was looked up,
+// which is unknown_credential: the row is re-read to tell the two apart.
 func (a *App) recordPasskeyUse(where string, passkey *model.Passkey, cred *webauthn.Credential) *model.AppError {
-	if err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis()); err != nil {
-		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
-			return passkeyCounterRegressed(where, err)
-		}
+	err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis())
+	if err == nil {
+		return nil
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return model.NewAppError(where, "app.passkey.update_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return nil
+	current, getErr := a.Srv().Store().Passkey().GetByCredentialId(passkey.CredentialId)
+	switch {
+	case getErr == nil && current.Id == passkey.Id:
+		return passkeyCounterRegressed(where, err)
+	case getErr == nil:
+		return passkeyUnknownCredential(where, err)
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](getErr); ok {
+		return passkeyUnknownCredential(where, err)
+	}
+	return model.NewAppError(where, "app.passkey.update_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+}
+
+func passkeyUnknownCredential(where string, err error) *model.AppError {
+	return model.NewAppError(where, "app.passkey.unknown_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 }
 
 func passkeyCounterRegressed(where string, err error) *model.AppError {

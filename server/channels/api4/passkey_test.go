@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -1298,6 +1299,35 @@ func TestPasskeyLogin(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
+	t.Run("a passkey deleted just after the session was made leaves no session", func(t *testing.T) {
+		th := setupPasskeyLogin(t)
+		auth, pk := registerAndAuthenticator(t, th)
+		original := th.App.Srv().Store()
+		// UpdateUsage is the last passkey write before the session is made, so deleting there
+		// makes the re-check after the session exists find the row gone.
+		passkeys := &deleteAfterUpdateUsagePasskeyStore{PasskeyStore: original.Passkey(), onUpdateUsage: func() {
+			require.NoError(t, original.Passkey().Delete(th.BasicUser.Id, pk.Id))
+		}}
+		th.App.Srv().SetStore(&deleteAfterUpdateUsageStore{Store: original, passkeys: passkeys})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		client := th.CreateClient()
+		client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
+		_, resp, err := signInWithPasskey(t, client, auth)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+		CheckErrorID(t, err, "app.passkey.unknown_credential.app_error")
+		assert.Empty(t, resp.Header.Get(model.HeaderToken))
+		assert.Empty(t, resp.Header.Get("Set-Cookie"))
+		assert.Empty(t, client.AuthToken)
+
+		sessions, err := th.App.Srv().Store().Session().GetSessionsByLoginMethod(model.SessionLoginMethodPasskey)
+		require.NoError(t, err)
+		for _, s := range sessions {
+			assert.NotEqual(t, th.BasicUser.Id, s.UserId)
+		}
+	})
+
 	t.Run("refused when the server cannot offer sign-in", func(t *testing.T) {
 		for name, tc := range map[string]struct {
 			mutate func(th *TestHelper)
@@ -1589,3 +1619,25 @@ func TestRevokePasskeySessions(t *testing.T) {
 		assert.False(t, works(t, passkey))
 	})
 }
+
+// deleteAfterUpdateUsagePasskeyStore runs onUpdateUsage after the real UpdateUsage succeeds. Every
+// other call passes through to the real store.
+type deleteAfterUpdateUsagePasskeyStore struct {
+	store.PasskeyStore
+	onUpdateUsage func()
+}
+
+func (s *deleteAfterUpdateUsagePasskeyStore) UpdateUsage(id string, prevSignCount, signCount, lastUsedAt int64) error {
+	if err := s.PasskeyStore.UpdateUsage(id, prevSignCount, signCount, lastUsedAt); err != nil {
+		return err
+	}
+	s.onUpdateUsage()
+	return nil
+}
+
+type deleteAfterUpdateUsageStore struct {
+	store.Store
+	passkeys store.PasskeyStore
+}
+
+func (s *deleteAfterUpdateUsageStore) Passkey() store.PasskeyStore { return s.passkeys }

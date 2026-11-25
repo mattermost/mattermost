@@ -178,6 +178,70 @@ func TestDeletePasskey(t *testing.T) {
 	})
 }
 
+func TestConfirmPasskeySession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	sessionFor := func(t *testing.T, pk *model.Passkey) *model.Session {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: pk.UserId,
+			Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey, model.SessionPropPasskeyId: pk.Id},
+		})
+		require.Nil(t, appErr)
+		return session
+	}
+	sessionEnded := func(t *testing.T, s *model.Session) bool {
+		t.Helper()
+		_, appErr := th.App.GetSession(s.Token)
+		return appErr != nil
+	}
+
+	t.Run("a passkey that is still there keeps the session", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser.Id, "here", model.GetMillis())
+		session := sessionFor(t, pk)
+
+		require.Nil(t, th.App.ConfirmPasskeySession(th.Context, session, pk))
+		require.False(t, sessionEnded(t, session))
+	})
+
+	t.Run("a passkey deleted since the sign-in looked it up ends the session", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser.Id, "gone", model.GetMillis())
+		session := sessionFor(t, pk)
+		require.NoError(t, th.App.Srv().Store().Passkey().Delete(pk.UserId, pk.Id))
+
+		appErr := th.App.ConfirmPasskeySession(th.Context, session, pk)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusUnauthorized, appErr.StatusCode)
+		require.Equal(t, "app.passkey.unknown_credential.app_error", appErr.Id)
+		require.True(t, sessionEnded(t, session))
+	})
+
+	t.Run("deleting another passkey of the user changes nothing", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser.Id, "kept", model.GetMillis())
+		other := savePasskey(t, th, th.BasicUser.Id, "other", model.GetMillis())
+		session := sessionFor(t, pk)
+		require.NoError(t, th.App.Srv().Store().Passkey().Delete(other.UserId, other.Id))
+
+		require.Nil(t, th.App.ConfirmPasskeySession(th.Context, session, pk))
+		require.False(t, sessionEnded(t, session))
+	})
+
+	t.Run("a failed re-read is a server error and still ends the session", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser.Id, "unreadable", model.GetMillis())
+		session := sessionFor(t, pk)
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: failingGetByCredentialIdPasskeyStore{original.Passkey()}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		appErr := th.App.ConfirmPasskeySession(th.Context, session, pk)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		require.Equal(t, "app.passkey.finish_login.app_error", appErr.Id)
+		require.True(t, sessionEnded(t, session))
+	})
+}
+
 func TestPasskeyRelyingParty(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -2190,6 +2254,22 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.counter_regressed.app_error")
 	})
 
+	t.Run("a passkey deleted before its use is recorded is unknown, not a cloned authenticator", func(t *testing.T) {
+		user, auth := registered(t)
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&passkeyStoreWrapper{Store: original, passkeys: &racingPasskeyStore{
+			PasskeyStore: original.Passkey(),
+			updateUsage: func(next func() error, id string, _, _, _ int64) error {
+				require.NoError(t, original.Passkey().Delete(user.Id, id))
+				return next()
+			},
+		}})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		got, appErr := finish(t, auth, origin)
+		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.unknown_credential.app_error")
+	})
+
 	t.Run("a failure to record the use is a server error", func(t *testing.T) {
 		_, auth := registered(t)
 		original := th.App.Srv().Store()
@@ -2304,5 +2384,14 @@ type failingGetForUserPasskeyStore struct {
 }
 
 func (failingGetForUserPasskeyStore) GetForUser(string) ([]*model.Passkey, error) {
+	return nil, errors.New("db down")
+}
+
+// Every other call passes through to the real store.
+type failingGetByCredentialIdPasskeyStore struct {
+	store.PasskeyStore
+}
+
+func (failingGetByCredentialIdPasskeyStore) GetByCredentialId([]byte) (*model.Passkey, error) {
 	return nil, errors.New("db down")
 }
