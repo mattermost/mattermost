@@ -510,6 +510,26 @@ describe('PasskeySection', () => {
             expect(await screen.findByText('could not delete passkey')).toBeInTheDocument();
             expect(signalUnknownCredential).not.toHaveBeenCalled();
         });
+
+        test('treats a delete whose session sign-out failed as deleted and still shows the error', async () => {
+            deletePasskey.mockRejectedValue({server_error_id: 'app.passkey.revoke_sessions.app_error', status_code: 500, message: 'sessions remain'});
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+
+            getPasskeys.mockResolvedValue([passkeys[1]]);
+            await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
+
+            expect(await screen.findByText('sessions remain')).toBeInTheDocument();
+            expect(screen.queryByText('Laptop')).not.toBeInTheDocument();
+            expect(signalUnknownCredential).toHaveBeenCalledWith({rpId: window.location.hostname, credentialId: 'Y3JlZC1wazE'});
+        });
     });
 
     describe('the delete dialog text', () => {

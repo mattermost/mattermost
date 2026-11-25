@@ -158,16 +158,28 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
         if (!passkey) {
             return;
         }
+        let sessionsRemainError: string | null = null;
         try {
             await Client4.deletePasskey('me', passkey.id);
         } catch (e) {
-            setServerError((e as Error).message);
-            return;
+            const err = e as Error & {server_error_id?: string};
+
+            // The server deletes the passkey before ending its sessions, so this refusal still means it is gone.
+            if (err.server_error_id !== 'app.passkey.revoke_sessions.app_error') {
+                setServerError(err.message);
+                return;
+            }
+            sessionsRemainError = err.message;
         }
 
         // signalAcceptedPasskeys never signals an empty list, so this is what removes a last or sole-handle passkey.
         signalUnknownPasskey(rpId(), passkey.credential_id);
         await load(true);
+
+        // load clears serverError on success, so the refusal is shown after it.
+        if (sessionsRemainError) {
+            setServerError(sessionsRemainError);
+        }
     };
 
     const addPasskey = async () => {
