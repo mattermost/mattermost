@@ -1,52 +1,76 @@
 {
+    "_doc": "Host<->plugin UI slot contract. Each slot is a keyed data-surface template the host renders for registered plugin components, plus the registry method(s) that fill it. `host` is the component that renders the slot. A slot is `verified` when the host actually renders its template id as data-surface (checked by the scanner); an unverified slot carries a `reason` and must be instrumented at its host or stay explicitly unverified. Owned via CODEOWNERS. The UI Surface CI job diffs this contract to block breaking removals.",
     "admin_sidebar_plugin_category": {
-        "template": "admin.sidebar.category.plugin:{key}--listitem"
+        "template": "admin.sidebar.category.plugin:{key}--listitem",
+        "host": "webapp/channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx",
+        "reason": "Admin sidebar renders plugin categories from the admin console registry; its item render point is not yet instrumented with data-surface."
     },
     "app_bar_button": {
         "template": "app_bar.plugin:{key}--button",
-        "registry": ["registerAppBarComponent", "registerChannelHeaderButtonAction"]
+        "registry": ["registerAppBarComponent", "registerChannelHeaderButtonAction"],
+        "host": "webapp/channels/src/components/app_bar/app_bar_plugin_component.tsx"
     },
     "channel_header_bookmarks_menu_item": {
         "template": "channel_header.menu.bookmarks.plugin:{key}--menuitem",
-        "registry": ["registerChannelBookmarksMenuAction"]
+        "registry": ["registerChannelBookmarksMenuAction"],
+        "host": "webapp/channels/src/components/channel_bookmarks/channel_bookmarks_menu.tsx",
+        "reason": "Bookmarks menu renders plugin actions from the store; item render point not yet instrumented."
     },
     "channel_header_dropdown_item": {
         "template": "channel_header.plugin_actions.menu.action:{key}--link",
-        "registry": ["registerChannelHeaderButtonAction"]
+        "registry": ["registerChannelHeaderButtonAction"],
+        "host": "webapp/channels/src/components/channel_header_menu/menu_items/mobile_channel_header_plugins.tsx",
+        "reason": "Channel header plugin actions render from the store; item render point not yet instrumented."
     },
     "channel_header_menu_item": {
         "template": "channel_header.menu.plugin:{key}--menuitem",
-        "registry": ["registerChannelHeaderMenuAction"]
+        "registry": ["registerChannelHeaderMenuAction"],
+        "host": "webapp/channels/src/components/channel_header_menu/channel_header_menu_items/channel_header_mobile_menu.tsx",
+        "reason": "Channel header menu renders plugin menu items from the store; item render point not yet instrumented."
     },
     "file_menu_item": {
         "template": "*.file_card.menu.plugin:{key}--menuitem",
-        "registry": ["registerFileDropdownMenuAction"]
+        "registry": ["registerFileDropdownMenuAction"],
+        "host": "webapp/channels/src/components/file_attachment/file_attachment_menu.tsx",
+        "reason": "File card menu renders plugin actions from the store; item render point not yet instrumented."
     },
     "file_upload_method": {
         "template": "*.attach_menu.plugin:{key}--menuitem",
-        "registry": ["registerFileUploadMethod"]
+        "registry": ["registerFileUploadMethod"],
+        "host": "webapp/channels/src/components/advanced_text_editor/attachment_menu.tsx",
+        "reason": "Attach menu renders plugin upload methods from the store; item render point not yet instrumented."
     },
     "lhs_browse_or_add_menu_item": {
         "template": "lhs.browse_or_add_menu.plugin:{key}--menuitem",
-        "registry": ["registerSidebarBrowseOrAddChannelMenuAction"]
+        "registry": ["registerSidebarBrowseOrAddChannelMenuAction"],
+        "host": "webapp/channels/src/components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu.tsx",
+        "reason": "Browse-or-add menu renders plugin items from the store; item render point not yet instrumented."
     },
     "lhs_team_menu_item": {
         "template": "lhs.team_menu.plugin:{key}--menuitem",
-        "registry": ["registerMainMenuAction"]
+        "registry": ["registerMainMenuAction"],
+        "host": "webapp/channels/src/components/sidebar/sidebar_header/sidebar_team_menu.tsx",
+        "reason": "Team menu renders plugin main-menu items from the store; item render point not yet instrumented."
     },
     "marketplace_plugin_item": {
-        "template": "marketplace_modal.plugin:{key}--region"
+        "template": "marketplace_modal.plugin:{key}--region",
+        "host": "webapp/channels/src/components/plugin_marketplace/marketplace_item/marketplace_item_plugin.tsx"
     },
     "post_menu_item": {
         "template": "*.actions_menu.plugin:{key}--menuitem",
-        "registry": ["registerPostDropdownMenuAction"]
+        "registry": ["registerPostDropdownMenuAction"],
+        "host": "webapp/channels/src/components/actions_menu/actions_menu.tsx",
+        "reason": "Post actions menu renders plugin items from the store; item render point not yet instrumented."
     },
     "rhs_panel": {
         "template": "rhs.plugin:{key}--region",
-        "registry": ["registerRightHandSidebarComponent"]
+        "registry": ["registerRightHandSidebarComponent"],
+        "host": "webapp/channels/src/plugins/rhs_plugin/rhs_plugin.tsx"
     },
     "search_file_menu_item": {
         "template": "search.results.file.menu.plugin:{key}--menuitem",
-        "registry": ["registerFileDropdownMenuAction"]
+        "registry": ["registerFileDropdownMenuAction"],
+        "host": "webapp/channels/src/components/search_results/files_filter_menu.tsx",
+        "reason": "Search file result menu renders plugin actions from the store; item render point not yet instrumented."
     }
 }

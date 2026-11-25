@@ -51,6 +51,7 @@ const RhsPlugin = ({showPluggable, pluggableId, title, pluginId, showPopout = tr
         <div
             id='rhsContainer'
             className='sidebar-right__body'
+            data-surface={`rhs.plugin:${pluginId}--region`}
         >
             <SearchResultsHeader newWindowHandler={showPopout ? newWindowHandler : undefined}>
                 {title}
