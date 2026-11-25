@@ -1,11 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {assertionToJSON, base64urlDecode, base64urlEncode, createPasskey, creationOptionsFromJSON, currentSessionCanAddPasskey, registrationToJSON, requestOptionsFromJSON, signalAcceptedPasskeys, signalUnknownPasskey, verifyPasskey} from './passkeys';
+import {isEmbedded} from 'utils/embed';
+
+import {assertionToJSON, base64urlDecode, base64urlEncode, canRunPasskeyCeremony, createPasskey, creationOptionsFromJSON, currentSessionCanAddPasskey, registrationToJSON, requestOptionsFromJSON, signalAcceptedPasskeys, signalUnknownPasskey, verifyPasskey} from './passkeys';
+
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+}));
+
+jest.mock('utils/embed', () => ({
+    isEmbedded: jest.fn(() => false),
+}));
 
 const bytes = (...b: number[]) => new Uint8Array(b).buffer;
 const toArray = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf));
@@ -455,6 +466,39 @@ describe('utils/passkeys', () => {
             getSessions.mockRejectedValue(err);
 
             await expect(currentSessionCanAddPasskey('k')).rejects.toBe(err);
+        });
+    });
+
+    describe('canRunPasskeyCeremony', () => {
+        const original = (window as any).PublicKeyCredential;
+
+        beforeEach(() => {
+            (isDesktopApp as jest.Mock).mockReturnValue(false);
+            (isEmbedded as jest.Mock).mockReturnValue(false);
+            (window as any).PublicKeyCredential = function PublicKeyCredential() {};
+        });
+
+        afterEach(() => {
+            (window as any).PublicKeyCredential = original;
+        });
+
+        test('is true in a top-level browser with WebAuthn', () => {
+            expect(canRunPasskeyCeremony()).toBe(true);
+        });
+
+        test('is false when the web app is embedded', () => {
+            (isEmbedded as jest.Mock).mockReturnValue(true);
+            expect(canRunPasskeyCeremony()).toBe(false);
+        });
+
+        test('is false in the desktop app', () => {
+            (isDesktopApp as jest.Mock).mockReturnValue(true);
+            expect(canRunPasskeyCeremony()).toBe(false);
+        });
+
+        test('is false without PublicKeyCredential', () => {
+            (window as any).PublicKeyCredential = undefined;
+            expect(canRunPasskeyCeremony()).toBe(false);
         });
     });
 });

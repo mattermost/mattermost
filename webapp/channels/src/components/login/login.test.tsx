@@ -22,6 +22,7 @@ import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {isEmbedded} from 'utils/embed';
 import {showNotification} from 'utils/notifications';
 
 import type {GlobalState} from 'types/store';
@@ -40,6 +41,10 @@ jest.mock('utils/desktop_api', () => ({
 
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
+}));
+
+jest.mock('utils/embed', () => ({
+    isEmbedded: jest.fn(() => false),
 }));
 
 describe('components/login/Login', () => {
@@ -816,6 +821,7 @@ describe('components/login/Login', () => {
 
         beforeEach(() => {
             (isDesktopApp as jest.Mock).mockReturnValue(false);
+            (isEmbedded as jest.Mock).mockReturnValue(false);
             beginLogin = jest.spyOn(Client4, 'beginPasskeyLogin').mockResolvedValue(beginResult);
             finishLogin = jest.spyOn(Client4, 'finishPasskeyLogin').mockResolvedValue({id: 'user1', roles: ''} as UserProfile);
             jest.spyOn(userActions, 'loadMe').mockReturnValue(async () => ({data: true}));
@@ -849,6 +855,14 @@ describe('components/login/Login', () => {
 
         it('shows no passkey option in the desktop app', () => {
             (isDesktopApp as jest.Mock).mockReturnValue(true);
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+        });
+
+        it('shows no passkey option when embedded', () => {
+            (isEmbedded as jest.Mock).mockReturnValue(true);
             renderLogin(passkeyState);
 
             expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();

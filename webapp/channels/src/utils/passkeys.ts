@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Passkey, PasskeyAssertionCredential, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
+
+import {isEmbedded} from 'utils/embed';
 
 // Hand-written rather than PublicKeyCredential.parseCreationOptionsFromJSON / toJSON(), which
 // are missing from older browsers (Safari before 18.4, for one).
@@ -162,4 +165,11 @@ export async function currentSessionCanAddPasskey(loginKey: string): Promise<boo
     // The list comes from a read replica, so a session created moments ago may be missing from it. The request
     // is authenticated by that session, so a missing one is treated as recent.
     return !current || (current.props.login_method === 'standard' && Date.now() - current.create_at <= RECENT_LOGIN_WINDOW_MS);
+}
+
+// No passkey ceremony runs inside the desktop app; browsers without WebAuthn lack
+// PublicKeyCredential; and a frame without the publickey-credentials-* permissions is refused with
+// NotAllowedError, which looks like a dismissed prompt.
+export function canRunPasskeyCeremony(): boolean {
+    return !isDesktopApp() && !isEmbedded() && typeof window.PublicKeyCredential !== 'undefined';
 }

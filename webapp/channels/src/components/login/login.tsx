@@ -53,7 +53,7 @@ import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {assertionToJSON, requestOptionsFromJSON, signalUnknownPasskey} from 'utils/passkeys';
+import {assertionToJSON, canRunPasskeyCeremony, requestOptionsFromJSON, signalUnknownPasskey} from 'utils/passkeys';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -159,8 +159,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
 
-    // The desktop app runs no passkey ceremony.
-    const showPasskey = PasskeyLoginEnabled === 'true' && !isDesktopApp() && typeof window.PublicKeyCredential !== 'undefined';
+    const showPasskey = PasskeyLoginEnabled === 'true' && canRunPasskeyCeremony();
     const hasExternalOptions = enableExternalSignup || showPasskey;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
     const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
