@@ -1010,6 +1010,97 @@ func TestEnableSecurityFixAlertFollowsSiteNoticesPermissions(t *testing.T) {
 	})
 }
 
+func TestSiteHealthAutomaticChecksPermissions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	grant := func(t *testing.T, permissionIDs ...string) {
+		t.Helper()
+		for _, permissionID := range permissionIDs {
+			th.AddPermissionToRole(t, permissionID, model.SystemUserRoleId)
+			t.Cleanup(func() { th.RemovePermissionFromRole(t, permissionID, model.SystemUserRoleId) })
+		}
+	}
+
+	restoreDefaults := func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SiteHealthSettings.EnableAutomaticChecks = true
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+	}
+
+	reset := func(t *testing.T) {
+		restoreDefaults()
+		t.Cleanup(restoreDefaults)
+	}
+
+	turnOff := func(t *testing.T, client *model.Client4) {
+		t.Helper()
+		_, resp, err := client.PatchConfig(context.Background(), &model.Config{
+			SiteHealthSettings: model.SiteHealthSettings{EnableAutomaticChecks: new(false)},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	}
+
+	t.Run("other System Console permissions neither read nor write it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadEnvironmentSMTP.Id, model.PermissionSysconsoleWriteEnvironmentSMTP.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Nil(t, cfg.SiteHealthSettings.EnableAutomaticChecks)
+
+		turnOff(t, th.Client)
+		assert.True(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("Site Statistics read permission reads it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, cfg.SiteHealthSettings.EnableAutomaticChecks)
+		assert.True(t, *cfg.SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("Site Statistics write permission doesn't write it without manage_system", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id, model.PermissionSysconsoleWriteReportingSiteStatistics.Id)
+
+		turnOff(t, th.Client)
+		assert.True(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("system admin writes it", func(t *testing.T) {
+		reset(t)
+
+		turnOff(t, th.SystemAdminClient)
+		assert.False(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("RestrictSystemAdmin keeps system admins from writing it, but not local mode", func(t *testing.T) {
+		reset(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		turnOff(t, th.SystemAdminClient)
+		assert.True(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+
+		turnOff(t, th.LocalClient)
+		assert.False(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("hidden on Cloud", func(t *testing.T) {
+		reset(t)
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		t.Cleanup(func() { require.Nil(t, th.App.Srv().RemoveLicense()) })
+
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Nil(t, cfg.SiteHealthSettings.EnableAutomaticChecks)
+	})
+}
+
 func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)

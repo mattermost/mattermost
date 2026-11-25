@@ -14935,7 +14935,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "The first health check runs within an hour of enabling the feature.",
+    "translation": "No health check has run yet.",
     "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never completed and there are no findings."
   },
   {

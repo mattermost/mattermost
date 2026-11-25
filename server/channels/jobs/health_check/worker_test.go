@@ -31,6 +31,8 @@ func TestWorkers(t *testing.T) {
 	cfg.SetDefaults()
 	cfg.FeatureFlags.HealthDashboard = true
 	*cfg.JobSettings.RunJobs = false
+	// Automatic checks gate only the scheduler, so on-demand runs still execute.
+	*cfg.SiteHealthSettings.EnableAutomaticChecks = false
 	configService := &testutils.StaticConfigService{Cfg: cfg}
 
 	pending := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusPending}

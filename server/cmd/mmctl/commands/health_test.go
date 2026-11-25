@@ -471,7 +471,7 @@ No open findings.`, s.printedHealthFindings())
 
 		s.Require().NoError(printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, opts))
 
-		s.Equal("Last evaluated: Not evaluated yet\n\nThe first health check runs within an hour of enabling the feature.", s.printedHealthFindings())
+		s.Equal("Last evaluated: Not evaluated yet\n\nNo health check has run yet.", s.printedHealthFindings())
 	})
 
 	s.Run("evaluation time comes from the server, not the shown findings", func() {
