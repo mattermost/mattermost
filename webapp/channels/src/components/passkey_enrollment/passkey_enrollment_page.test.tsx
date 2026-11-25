@@ -69,6 +69,7 @@ const assertionCredential = {
 
 const serverError = (id: string, status: number, message = 'server text') => ({server_error_id: id, status_code: status, message});
 
+const SIGN_IN_AGAIN = 'To add a passkey, return to the app and sign in again. You can still use a passkey you already have.';
 const EXPIRED = 'This link has expired or was already used. Return to the app, sign in again and retry.';
 const UNAVAILABLE = 'Passkeys aren\'t available on this server.';
 const TOO_LONG = 'That took too long. Try again.';
@@ -283,7 +284,6 @@ describe('PasskeyEnrollmentPage', () => {
 
     test.each([
         ['ticket_invalid', 400, 'app.passkey.ticket_invalid.app_error', EXPIRED],
-        ['recent_login_required', 403, 'app.passkey.recent_login_required.app_error', EXPIRED],
         ['a disabled feature', 501, 'app.passkey.not_enabled.app_error', UNAVAILABLE],
     ])('begin refused at load with %s ends the page with an alert and no button, without a click', async (_name, status, id, text) => {
         beginRegistration.mockRejectedValue(serverError(id, status));
@@ -295,6 +295,35 @@ describe('PasskeyEnrollmentPage', () => {
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
         expect(isEnrolled()).toBe(false);
+    });
+
+    test('a session too old to add at load keeps "Use existing passkey", with no Add button and no account line', async () => {
+        beginRegistration.mockRejectedValueOnce(serverError('app.passkey.recent_login_required.app_error', 403));
+        renderPage();
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(SIGN_IN_AGAIN);
+        expect(document.querySelector('.AlertBanner.danger')).not.toBeNull();
+        expect(addButton()).not.toBeInTheDocument();
+        expect(screen.getByRole('status')).not.toHaveTextContent('This adds a passkey');
+        expect(existingButton()).toBeEnabled();
+
+        await userEvent.click(existingButton()!);
+        expect(await screen.findByRole('heading', {name: 'Passkey confirmed'})).toBeInTheDocument();
+        expect(beginVerification).toHaveBeenCalledWith('t1');
+        expect(isEnrolled()).toBe(true);
+    });
+
+    test('a session that ages between load and the Add click ends the page with the expired text and no buttons', async () => {
+        beginRegistration.
+            mockResolvedValueOnce(beginResult).
+            mockRejectedValueOnce(serverError('app.passkey.recent_login_required.app_error', 403));
+        renderPage();
+        await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(EXPIRED);
+        expect(await cantAddHeading()).toBeInTheDocument();
+        expect(addButton()).not.toBeInTheDocument();
+        expect(existingButton()).not.toBeInTheDocument();
     });
 
     test('an expired ceremony says so and keeps the button', async () => {

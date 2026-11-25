@@ -62,6 +62,11 @@ const messages = defineMessages({
         defaultMessage: 'This link has expired or was already used. Return to the app, sign in again and retry.',
         description: 'Error shown when the enrollment ticket in the page\'s link was already used, expired, or was issued to a session that did not sign in recently.',
     },
+    signInAgainToAdd: {
+        id: 'passkey_enrollment_page.signInAgainToAdd',
+        defaultMessage: 'To add a passkey, return to the app and sign in again. You can still use a passkey you already have.',
+        description: 'Error shown when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have.',
+    },
     unavailable: {
         id: 'passkey_enrollment_page.unavailable',
         defaultMessage: 'Passkeys aren\'t available on this server.',
@@ -113,6 +118,9 @@ export default function PasskeyEnrollmentPage() {
     // The account the ticket belongs to, learned from the server; the buttons wait until that has settled.
     const [username, setUsername] = useState<string | null>(null);
     const [loaded, setLoaded] = useState(false);
+
+    // Only Add needs a recent sign-in; confirming an existing passkey doesn't, so it stays available.
+    const [addBlocked, setAddBlocked] = useState(false);
 
     // A refusal that retrying cannot fix removes the button; any other error leaves it for another try.
     const [error, setError] = useState<{text: string; final: boolean} | null>(null);
@@ -181,7 +189,17 @@ export default function PasskeyEnrollmentPage() {
         let cancelled = false;
         Client4.beginPasskeyEnrollmentRegistration(ticket!).then(
             (begin) => !cancelled && setUsername(begin.options.publicKey.user.name),
-            (e) => !cancelled && showError(e),
+            (e) => {
+                if (cancelled) {
+                    return;
+                }
+                if ((e as {server_error_id?: string}).server_error_id === 'app.passkey.recent_login_required.app_error') {
+                    setAddBlocked(true);
+                    setError({text: formatMessage(messages.signInAgainToAdd), final: false});
+                } else {
+                    showError(e);
+                }
+            },
         ).finally(() => !cancelled && setLoaded(true));
         return () => {
             cancelled = true;
@@ -232,15 +250,17 @@ export default function PasskeyEnrollmentPage() {
                     )}
                     {canAct && (
                         <>
-                            <Button
-                                emphasis='primary'
-                                size='large'
-                                loading={busy === 'add'}
-                                disabled={busy !== null}
-                                onClick={add}
-                            >
-                                {formatMessage(sharedMessages.add)}
-                            </Button>
+                            {!addBlocked && (
+                                <Button
+                                    emphasis='primary'
+                                    size='large'
+                                    loading={busy === 'add'}
+                                    disabled={busy !== null}
+                                    onClick={add}
+                                >
+                                    {formatMessage(sharedMessages.add)}
+                                </Button>
+                            )}
                             <Button
                                 emphasis='tertiary'
                                 size='large'

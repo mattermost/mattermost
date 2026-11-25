@@ -28855,6 +28855,10 @@
     "defaultMessage": "You can close this page and return to the app.",
     "description": "Shown after a passkey was added or confirmed on the page opened from the Mattermost app."
   },
+  "passkey_enrollment_page.signInAgainToAdd": {
+    "defaultMessage": "To add a passkey, return to the app and sign in again. You can still use a passkey you already have.",
+    "description": "Error shown when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have."
+  },
   "passkey_enrollment_page.tooLong": {
     "defaultMessage": "That took too long. Try again.",
     "description": "Error shown when the passkey setup started on the page timed out on the server."
