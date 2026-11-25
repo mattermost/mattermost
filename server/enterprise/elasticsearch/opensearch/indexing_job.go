@@ -24,12 +24,12 @@ import (
 // createIndexerClient bounds each request attempt, since the bulk indexer
 // flushes with an uncancellable context and a stalled connection would
 // otherwise block its worker forever.
-func createIndexerClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend) (*opensearchapi.Client, *model.AppError) {
+func createIndexerClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend, timeout time.Duration) (*opensearchapi.Client, *model.AppError) {
 	osCfg, appErr := createClientConfig(logger, cfg, fileBackend, true)
 	if appErr != nil {
 		return nil, appErr
 	}
-	osCfg.Client.RequestTimeout = time.Duration(*cfg.ElasticsearchSettings.RequestTimeoutSeconds) * time.Second
+	osCfg.Client.RequestTimeout = timeout
 
 	client, err := opensearchapi.NewClient(*osCfg)
 	if err != nil {
@@ -51,7 +51,8 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 	logger := esi.Server.Jobs.Logger().With(mlog.String("worker_name", workerName))
 
 	// Creating the client
-	client, appErr := createIndexerClient(logger, esi.Server.Jobs.Config(), esi.Server.Platform().FileBackend())
+	client, appErr := createIndexerClient(logger, esi.Server.Jobs.Config(), esi.Server.Platform().FileBackend(),
+		common.BulkRequestTimeout(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds))
 	if appErr != nil {
 		logger.Error("Worker: Failed to Create Client", mlog.Err(appErr))
 		return nil
@@ -71,7 +72,7 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				OnError: func(_ context.Context, err error) {
 					logger.Error("Error from opensearch bulk indexer", mlog.Err(err))
 				},
-				Timeout:    time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds) * time.Second,
+				Timeout:    common.BulkRequestTimeout(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds),
 				NumWorkers: common.NumIndexWorkers(),
 			}
 			if *esi.Server.Jobs.Config().ElasticsearchSettings.Trace == "all" {

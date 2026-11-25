@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"sync/atomic"
-	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 
@@ -50,7 +49,7 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				OnError: func(_ context.Context, err error) {
 					logger.Error("Error from elasticsearch bulk indexer", mlog.Err(err))
 				},
-				Timeout:    time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds) * time.Second,
+				Timeout:    common.BulkRequestTimeout(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds),
 				NumWorkers: common.NumIndexWorkers(),
 			}
 			if *esi.Server.Jobs.Config().ElasticsearchSettings.Trace == "all" {
