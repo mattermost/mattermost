@@ -408,7 +408,9 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         test.each([
             ['a single session attribute', 'user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
-            ['several session attributes, falling back to the name when the field is not enabled', 'user.session.network_name == "office" && user.session.ip_address.inCIDR("10.0.0.0/8")', `network_name and ip_address are session attributes reported by the device and aren't verified by the server. ${ADVICE}`],
+            ['several session attributes, falling back to the name when the field is not enabled', 'user.session.network_name == "office" && user.session.os_platform == "macos"', `network_name and os_platform are session attributes reported by the device and aren't verified by the server. ${ADVICE}`],
+            ['a client-reported session attribute OR-ed with the server-measured IP address', 'user.session.ip_address.inCIDR("10.0.0.0/8") || user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['user agent attributes, which the client sets', 'user.session.user_agent_browser_name == "Desktop App"', `user_agent_browser_name is a session attribute reported by the device and isn't verified by the server. ${ADVICE}`],
             ['session and channel attributes', 'user.session.network_name == resource.attributes.network', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
             ['a user-managed attribute', 'user.attributes.nickname == "boss"', `${NICKNAME_SENTENCE} ${ADVICE}`],
             ['several user-managed attributes', 'user.attributes.nickname == "boss" && user.attributes["color"] == "red"', `Nickname and Favorite color are user-managed attributes that users can change themselves. ${ADVICE}`],
@@ -431,6 +433,9 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             ['a session and a built-in attribute', 'user.session.network_name == "office" && user.email.endsWith("@acme.com")'],
             ['a user-managed and an admin-managed attribute', 'user.attributes.nickname == "boss" && user.attributes.department == "sales"'],
             ['an attribute that is not in the field list', 'user.session.network_name == "office" && user.attributes.unknown == "x"'],
+            ['only the server-measured IP address', 'user.session.ip_address.inCIDR("10.0.0.0/8")'],
+            ['a client-reported session attribute AND-ed with the server-measured IP address', 'user.session.network_name == "office" && user.session.ip_address.inCIDR("10.0.0.0/8")'],
+            ['a user-managed attribute AND-ed with the server-measured IP address', 'user.attributes.nickname == "boss" && user.session.ip_address == "10.0.0.1"'],
             ['an OR of unverified attributes AND-ed with a trusted one', '(user.session.network_name == "office" || user.attributes.nickname == "boss") && user.attributes.department == "sales"'],
             ['a session attribute AND-ed with an OR of trusted attributes', 'user.session.network_name == "office" && (user.attributes.department == "sales" || user.attributes.teams == "eng")'],
             ['a ternary where both branches need a trusted attribute', 'user.session.network_name == "office" ? user.attributes.teams == "eng" : user.attributes.department == "sales"'],

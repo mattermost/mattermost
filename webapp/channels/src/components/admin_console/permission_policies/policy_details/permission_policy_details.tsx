@@ -116,6 +116,9 @@ const hiddenNativeBotMessages = defineMessages({
     },
 });
 
+// Measured by the server from the connection itself rather than reported by the client.
+const SERVER_VERIFIED_SESSION_ATTRIBUTES = ['ip_address'];
+
 const unverifiedAttributeMessages = defineMessages({
     session: {
         id: 'admin.permission_policies.edit.notice.unverified.session',
@@ -308,6 +311,7 @@ function PermissionPolicyDetails({
     const unverifiedNotice = useMemo(() => {
         const findCustomField = (name: string) => userFields.find((f) => f.name === name && !isNativeField(f));
         const isTrustedCondition = (condition: string) => referencedNativeUserAttributeNames(condition).length > 0 ||
+            referencedSessionAttributeNames(condition).some((name) => SERVER_VERIFIED_SESSION_ATTRIBUTES.includes(name)) ||
             referencedUserAttributeNames(condition).some((name) => {
                 const field = findCustomField(name);
                 return !field || hasControlledAttributeValues(field);
@@ -316,9 +320,12 @@ function PermissionPolicyDetails({
             return undefined;
         }
 
-        const sessionLabels = referencedSessionAttributeNames(expression).map((name) => {
+        const sessionLabels = referencedSessionAttributeNames(expression).flatMap((name) => {
+            if (SERVER_VERIFIED_SESSION_ATTRIBUTES.includes(name)) {
+                return [];
+            }
             const field = sessionFields.find((f) => f.name === name);
-            return field ? getUserPropertyFieldLabel(field) : name;
+            return [field ? getUserPropertyFieldLabel(field) : name];
         });
         const userManagedLabels = referencedUserAttributeNames(expression).flatMap((name) => {
             const field = findCustomField(name);
