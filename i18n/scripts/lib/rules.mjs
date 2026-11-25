@@ -23,7 +23,13 @@ import {flatten} from './catalogs.mjs';
 import {droppedNames} from './glossary.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const icu = await import(pathToFileURL(path.join(here, '../../../webapp/channels/scripts/icu_rules.mjs')).href);
+const icu = await import(pathToFileURL(path.join(here, '../../../webapp/channels/scripts/icu_rules.mjs')).href).catch((e) => {
+    if (e.code !== 'ERR_MODULE_NOT_FOUND') {
+        throw e;
+    }
+    console.error(`${e.message}\nthe webapp's ICU rules need webapp/node_modules: run npm ci in webapp/`);
+    process.exit(2);
+});
 const SERVER_PLURALS = JSON.parse(fs.readFileSync(path.join(here, 'server_plurals.json'), 'utf8'));
 
 const {analyzeSource, checkMessage, HORIZONTAL_GLYPH} = icu;
