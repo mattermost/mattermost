@@ -18,6 +18,7 @@ type mockPluginAPI struct {
 	failing           bool
 	failingWithPrefix string
 	refreshAttempts   int
+	errorLogs         int
 }
 
 func newMockPluginAPI(t *testing.T) *mockPluginAPI {
@@ -142,7 +143,19 @@ func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, optio
 	return true, nil
 }
 
+// errorLogCount returns how many errors have been logged.
+func (pluginAPI *mockPluginAPI) errorLogCount() int {
+	pluginAPI.lock.Lock()
+	defer pluginAPI.lock.Unlock()
+
+	return pluginAPI.errorLogs
+}
+
 func (pluginAPI *mockPluginAPI) LogError(msg string, keyValuePairs ...any) {
+	pluginAPI.lock.Lock()
+	pluginAPI.errorLogs++
+	pluginAPI.lock.Unlock()
+
 	if pluginAPI.t == nil {
 		return
 	}

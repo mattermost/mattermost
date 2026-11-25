@@ -35,7 +35,7 @@ func TestRunLocked(t *testing.T) {
 	fn := func() { calls++ }
 
 	t.Run("runs when the lock is free", func(t *testing.T) {
-		assert.True(t, runLocked(fakeMutexAPI{}, mutex, fn))
+		assert.True(t, runLocked(fakeMutexAPI{}, key, mutex, fn))
 		assert.Equal(t, 1, calls)
 	})
 
@@ -44,11 +44,11 @@ func TestRunLocked(t *testing.T) {
 		require.NoError(t, err)
 		other.Lock()
 
-		assert.False(t, runLocked(fakeMutexAPI{}, mutex, fn))
+		assert.False(t, runLocked(fakeMutexAPI{}, key, mutex, fn))
 		assert.Equal(t, 1, calls)
 
 		other.Unlock()
-		assert.True(t, runLocked(fakeMutexAPI{}, mutex, fn))
+		assert.True(t, runLocked(fakeMutexAPI{}, key, mutex, fn))
 		assert.Equal(t, 2, calls)
 	})
 }

@@ -270,6 +270,33 @@ func TestMutex(t *testing.T) {
 		unlock(t, m1, false)
 	})
 
+	t.Run("try lock returns errors without logging them", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+		m := mustNewMutex(mockPluginAPI, makeKey())
+
+		mockPluginAPI.setFailing(true)
+		locked, err := m.TryLock()
+		assert.Error(t, err)
+		assert.False(t, locked)
+		assert.Zero(t, mockPluginAPI.errorLogCount())
+	})
+
+	t.Run("blocking lock logs failed attempts", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+		m := mustNewMutex(mockPluginAPI, makeKey())
+
+		mockPluginAPI.setFailing(true)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		go func() { _ = m.LockWithContext(ctx) }()
+
+		assert.Eventually(t, func() bool { return mockPluginAPI.errorLogCount() >= 1 }, 2*time.Second, 10*time.Millisecond)
+	})
+
 	t.Run("try lock", func(t *testing.T) {
 		t.Parallel()
 

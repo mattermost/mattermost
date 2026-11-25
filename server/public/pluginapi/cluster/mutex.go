@@ -81,8 +81,7 @@ func makeLockKey(key string) (string, error) {
 // If the mutex is already locked by any plugin instance, including the current one, TryLock
 // returns false and a nil error.
 //
-// A non-nil error means the attempt could not be made, and the mutex was not locked. The error
-// is also logged.
+// A non-nil error means the attempt could not be made, and the mutex was not locked.
 //
 // The mutex is locked only if true and a nil error are returned.
 func (m *Mutex) TryLock() (bool, error) {
@@ -92,7 +91,6 @@ func (m *Mutex) TryLock() (bool, error) {
 		ExpireInSeconds: int64(ttl / time.Second),
 	})
 	if err != nil {
-		m.pluginAPI.LogError("failed to lock mutex", "err", err, "lock_key", m.key)
 		return false, errors.Wrap(err, "failed to set mutex kv")
 	} else if !ok {
 		return false, nil
@@ -169,7 +167,11 @@ func (m *Mutex) LockWithContext(ctx context.Context) error {
 		}
 
 		locked, err := m.TryLock()
-		if err != nil || !locked {
+		if err != nil {
+			m.pluginAPI.LogError("failed to lock mutex", "err", err, "lock_key", m.key)
+			waitInterval = nextWaitInterval(waitInterval, err)
+			continue
+		} else if !locked {
 			waitInterval = nextWaitInterval(waitInterval, err)
 			continue
 		}

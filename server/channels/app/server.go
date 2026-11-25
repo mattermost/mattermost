@@ -2117,7 +2117,7 @@ func (t *clusterTask) start(api cluster.MutexPluginAPI, isLeader func() bool, ke
 	}
 	t.task = schedule(func() {
 		if isLeader() {
-			runLocked(api, mutex, fn)
+			runLocked(api, key, mutex, fn)
 		}
 	})
 	return nil
@@ -2134,11 +2134,11 @@ func (t *clusterTask) stop() {
 	}
 }
 
-// runLocked runs fn if it can take mutex, reporting whether it did.
-func runLocked(api cluster.MutexPluginAPI, mutex *cluster.Mutex, fn func()) bool {
+// runLocked runs fn if it can take mutex, named key, reporting whether it did.
+func runLocked(api cluster.MutexPluginAPI, key string, mutex *cluster.Mutex, fn func()) bool {
 	locked, err := mutex.TryLock()
 	if err != nil {
-		api.LogError("Failed to lock cluster task mutex", "err", err)
+		api.LogError("Failed to lock cluster task mutex", "key", key, "err", err)
 		return false
 	} else if !locked {
 		return false
