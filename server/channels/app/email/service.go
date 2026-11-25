@@ -6,8 +6,11 @@ package email
 import (
 	"io"
 	"net/url"
+	"os"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled/v2"
@@ -35,7 +38,21 @@ const (
 	TokenTypeCWSAccess                = "cws_access_token"
 	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
 	TokenTypeGuestMagicLink           = "guest_magic_link"
+
+	// InviteTokenRemindAtKey is the team invitation token extra holding when its reminder email is due.
+	InviteTokenRemindAtKey = "remindAt"
+	// InviteReminderInterval is passed through the reminder link for the webapp, as before.
+	InviteReminderInterval = "48"
 )
+
+// inviteReminderDelay is due an hour before the 48h invite expiry, so the hourly token cleanup
+// cannot delete the token before the reminder sweep sees it. Tests can shorten it.
+func inviteReminderDelay() int64 {
+	if delay, err := strconv.ParseInt(os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION"), 10, 64); err == nil {
+		return delay
+	}
+	return model.InvitationExpiryTime - time.Hour.Milliseconds()
+}
 
 func condenseSiteURL(siteURL string) string {
 	parsedSiteURL, _ := url.Parse(siteURL)
@@ -148,6 +165,7 @@ type InviteEmailData struct {
 	Profiles           map[string]*model.MemberInviteProfile
 	SiteURL            string
 	ReminderData       *model.TeamInviteReminderData
+	ScheduleReminder   bool
 	Message            string
 	ErrorWhenNotSent   bool
 	IsSystemAdmin      bool

@@ -1514,7 +1514,9 @@ func (a *App) isPreSetUsernameAvailable(username string) bool {
 	return a.isUniqueToGroupNames(username) == nil
 }
 
-func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
+// InviteNewUsersToTeamGracefully emails team invites and reports per-address failures. A first send
+// schedules a reminder on each invite token; a reminder send (isReminder) does not.
+func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, isReminder bool) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1547,6 +1549,12 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 		ErrorWhenNotSent:   true,
 		IsSystemAdmin:      user.IsSystemAdmin(),
 		IsFirstAdmin:       a.UserIsFirstAdmin(rctx, user),
+		ScheduleReminder:   !isReminder,
+	}
+
+	reminderInterval := ""
+	if isReminder {
+		reminderInterval = email.InviteReminderInterval
 	}
 
 	return a.sendInviteNewUsersToTeamGracefully(rctx, memberInvite, inviteData, a.ch.srv.teamService.GetAllowedDomains(user, team), reminderInterval)

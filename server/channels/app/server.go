@@ -2192,6 +2192,10 @@ func runClusterTasks(a *App) {
 		}
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", run, jobInterval)
 	})
+
+	startTask(&a.ch.inviteReminderTask, "cluster_task_invite_reminders", func(ctx context.Context) { a.SendDueInviteReminders(rctx.WithContext(ctx)) }, func(run func()) *model.ScheduledTask {
+		return model.CreateRecurringTaskFromNextIntervalTime("Send Invite Reminders", run, inviteReminderCheckInterval)
+	})
 }
 
 func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {

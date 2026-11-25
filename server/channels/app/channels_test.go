@@ -119,7 +119,7 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
 	isLeader := func() bool { return true }
-	for _, task := range []*clusterTask{&ch.dndTask, &ch.postReminderTask, &ch.scheduledPostTask} {
+	for _, task := range []*clusterTask{&ch.dndTask, &ch.postReminderTask, &ch.scheduledPostTask, &ch.inviteReminderTask} {
 		require.NoError(t, task.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
 	}
 
@@ -127,6 +127,7 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	assert.Nil(t, ch.dndTask.task)
 	assert.Nil(t, ch.postReminderTask.task)
 	assert.Nil(t, ch.scheduledPostTask.task)
+	assert.Nil(t, ch.inviteReminderTask.task)
 
 	stoppedAt := calls.Load()
 	time.Sleep(50 * time.Millisecond)
