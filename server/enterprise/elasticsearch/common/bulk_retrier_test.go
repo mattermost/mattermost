@@ -304,3 +304,18 @@ func TestBulkRetrierHandleNeverBlocks(t *testing.T) {
 	close(release)
 	wait(t, r)
 }
+
+func TestBulkRetrierBackoffGrowsWithItemAttempts(t *testing.T) {
+	r := NewBulkRetrier(&fakeBackend{}, mlog.CreateConsoleTestLogger(t))
+	r.Backoff = time.Second
+
+	assert.Equal(t, 1*time.Second, r.backoff([]retryItem{{attempts: 0}}))
+	assert.Equal(t, 4*time.Second, r.backoff([]retryItem{{attempts: 2}}))
+}
+
+func TestBulkRetrierBackoffIgnoresOlderItemsWhenNewOnesArrive(t *testing.T) {
+	r := NewBulkRetrier(&fakeBackend{}, mlog.CreateConsoleTestLogger(t))
+	r.Backoff = time.Second
+
+	assert.Equal(t, time.Second, r.backoff([]retryItem{{attempts: 3}, {attempts: 0}}))
+}

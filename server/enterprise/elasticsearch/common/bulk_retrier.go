@@ -44,7 +44,7 @@ type retryItem struct {
 type BulkRetrier struct {
 	backend BulkBackend
 	logger  mlog.LoggerIFace
-	// Backoff is the wait before the first round. It doubles each round.
+	// Backoff is the wait before an item's first check. It doubles per attempt.
 	Backoff time.Duration
 
 	mut     sync.Mutex
@@ -113,7 +113,7 @@ func (r *BulkRetrier) enqueue(item BulkItem) {
 }
 
 func (r *BulkRetrier) run() {
-	for round := 0; ; round++ {
+	for {
 		r.mut.Lock()
 		items := r.pending
 		r.pending = nil
@@ -124,7 +124,7 @@ func (r *BulkRetrier) run() {
 		}
 		r.mut.Unlock()
 
-		time.Sleep(r.Backoff << round)
+		time.Sleep(r.backoff(items))
 		r.logger.Warn("Bulk items unconfirmed, checking documents", mlog.Int("num_items", len(items)))
 		for len(items) > 0 {
 			n := min(len(items), bulkRetryChunkSize)
@@ -132,6 +132,16 @@ func (r *BulkRetrier) run() {
 			items = items[n:]
 		}
 	}
+}
+
+// backoff follows the newest item, so a busy queue does not slow new items.
+// Attempts stay below the max, so it never grows past Backoff * 8.
+func (r *BulkRetrier) backoff(items []retryItem) time.Duration {
+	attempts := bulkRetryMaxAttempts
+	for _, item := range items {
+		attempts = min(attempts, item.attempts)
+	}
+	return r.Backoff << attempts
 }
 
 func (r *BulkRetrier) processChunk(items []retryItem) {
