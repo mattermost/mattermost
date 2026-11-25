@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1794,6 +1795,35 @@ func TestIsMembershipSystemPost(t *testing.T) {
 	for _, postType := range MembershipSystemPostTypes() {
 		t.Run("returns true for "+postType, func(t *testing.T) {
 			require.True(t, IsMembershipSystemPost(&Post{Type: postType}))
+		})
+	}
+}
+
+func TestFastPostCountCount(t *testing.T) {
+	now := time.Date(2026, 11, 25, 12, 0, 0, 0, time.UTC)
+
+	testCases := []struct {
+		name        string
+		refreshedAt time.Time
+		estimated   *int64
+		wantCount   int64
+		wantSource  PostCountSource
+	}{
+		{"fresh Site Statistics", now.Add(-time.Hour), NewPointer(int64(900)), 1_000, PostCountSourceSiteStatistics},
+		{"refreshed exactly at the limit", now.Add(-SiteStatisticsStaleAfter), NewPointer(int64(900)), 1_000, PostCountSourceSiteStatistics},
+		{"stale Site Statistics", now.Add(-SiteStatisticsStaleAfter - time.Second), NewPointer(int64(900)), 900, PostCountSourceEstimate},
+		{"never refreshed", time.Time{}, NewPointer(int64(900)), 900, PostCountSourceEstimate},
+		{"stale without an estimate", now.Add(-SiteStatisticsStaleAfter - time.Second), nil, 0, PostCountSourceUnknown},
+		{"never refreshed without an estimate", time.Time{}, nil, 0, PostCountSourceUnknown},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &FastPostCount{SiteStatistics: 1_000, RefreshedAt: tc.refreshedAt, Estimated: tc.estimated}
+
+			count, source := c.Count(now)
+			assert.Equal(t, tc.wantSource, source)
+			assert.Equal(t, tc.wantCount, count)
 		})
 	}
 }

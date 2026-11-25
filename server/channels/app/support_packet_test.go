@@ -142,7 +142,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 		// Mock the post store to trigger an error
 		ps := &smocks.PostStore{}
-		ps.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(0), errors.New("all broken"))
+		ps.On("AnalyticsPostCountFast").Return(nil, errors.New("all broken"))
 		ps.On("ClearCaches")
 		mockStore.On("Post").Return(ps)
 
@@ -534,13 +534,50 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assertStatValue(t, sp.Posts, 10)
 	})
 
+	t.Run("post count comes from Site Statistics with the estimate and the refresh time", func(t *testing.T) {
+		basicTh := Setup(t).InitBasic(t)
+
+		sp := generateStats(t, basicTh.Context, basicTh.App)
+		require.NotNil(t, sp.SiteStatisticsRefreshedAt)
+		assert.True(t, sp.SiteStatisticsRefreshedAt.IsZero(), "no refresh job has succeeded yet")
+		neverRefreshed, err := supportPacketStatsFile(sp, nil)
+		require.NoError(t, err)
+		assert.Contains(t, string(neverRefreshed.Body), "site_statistics_refreshed_at: 0001-01-01T00:00:00Z", "packet readers tell a server that never refreshed from one that predates the field")
+
+		startAt := time.Now().Add(-time.Hour).Truncate(time.Millisecond)
+		_, err = basicTh.App.Srv().Store().Job().Save(&model.Job{
+			Id:       model.NewId(),
+			Type:     model.JobTypeRefreshMaterializedViews,
+			Status:   model.JobStatusSuccess,
+			CreateAt: startAt.UnixMilli(),
+			StartAt:  startAt.UnixMilli(),
+		})
+		require.NoError(t, err)
+		_, err = basicTh.App.Srv().Store().GetInternalMasterDB().Exec("UPDATE pg_class SET reltuples = 42, relpages = 0 WHERE oid = 'posts'::regclass")
+		require.NoError(t, err)
+
+		// InitBasic(t) already creates 5 posts
+		sp = generateStats(t, basicTh.Context, basicTh.App)
+		assertStatValue(t, sp.Posts, 5)
+		assertStatValue(t, sp.PostsEstimated, 42)
+		require.NotNil(t, sp.SiteStatisticsRefreshedAt)
+		assert.True(t, startAt.Equal(*sp.SiteStatisticsRefreshedAt))
+
+		statsFile, err := supportPacketStatsFile(sp, nil)
+		require.NoError(t, err)
+		body := string(statsFile.Body)
+		assert.Contains(t, body, "posts: 5 # Site Statistics total as of site_statistics_refreshed_at")
+		assert.Contains(t, body, "posts_estimated: 42 # database row estimate")
+		assert.Contains(t, body, "site_statistics_refreshed_at: "+startAt.UTC().Format(time.RFC3339Nano)+" # start of the last successful refresh_materialized_views job")
+	})
+
 	t.Run("channel count is omitted when a channel query fails and errors include every failed stat", func(t *testing.T) {
 		mockStore := smocks.Store{}
 		channelStore := &smocks.ChannelStore{}
 		postStore := &smocks.PostStore{}
 
 		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(0), errors.New("open query failed"))
-		postStore.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(0), errors.New("post query failed"))
+		postStore.On("AnalyticsPostCountFast").Return(nil, errors.New("post query failed"))
 		postStore.On("RefreshPostStats").Return(nil)
 		postStore.On("ClearCaches")
 
@@ -566,6 +603,8 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.ErrorContains(t, err, "failed to get channel count")
 		assert.Nil(t, packet.Channels)
 		assert.Nil(t, packet.Posts)
+		assert.Nil(t, packet.PostsEstimated)
+		assert.Nil(t, packet.SiteStatisticsRefreshedAt, "a failed query must not read as a server that never refreshed")
 	})
 
 	t.Run("channel count is omitted when only the private channel query fails", func(t *testing.T) {
@@ -949,9 +988,13 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "stats",
 			filename: "stats.yaml",
 			marshal: func() (*model.FileData, error) {
+				refreshedAt := time.Date(2026, 11, 24, 0, 0, 0, 0, time.UTC)
 				return supportPacketStatsFile(&model.SupportPacketStats{
-					RegisteredUsers:  &statsCount,
-					DailyActiveUsers: &dailyActive,
+					RegisteredUsers:           &statsCount,
+					DailyActiveUsers:          &dailyActive,
+					Posts:                     new(int64(1000)),
+					PostsEstimated:            new(int64(1100)),
+					SiteStatisticsRefreshedAt: &refreshedAt,
 				}, nil)
 			},
 		},

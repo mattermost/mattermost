@@ -12,8 +12,10 @@ import (
 )
 
 func init() {
-	healthcheck.Register(jobStuck, jobWedgedAtZero, jobFailed)
+	healthcheck.Register(jobStuck, jobWedgedAtZero, jobFailed, siteStatisticsStale)
 }
+
+const siteStatisticsConsolePath = "/admin_console/reporting/system_analytics"
 
 const (
 	stuckAfter = 24 * time.Hour
@@ -80,6 +82,20 @@ var jobFailed = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Eval:       evalJobFailed,
+}
+
+var siteStatisticsStale = healthcheck.Rule{
+	Code:     "SITE_STATISTICS_STALE",
+	Area:     model.AreaJobs,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.site_statistics_stale.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.site_statistics_stale.remediation"),
+		ConsolePath:   siteStatisticsConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Eval:       healthcheck.Single(evalSiteStatisticsStale),
 }
 
 // licensed reports whether the license carries the feature jobType's scheduler and worker require.
@@ -263,6 +279,31 @@ func retentionLeftover(s *healthcheck.Snapshot, job *model.Job) bool {
 
 	idle, ok := s.Since(time.UnixMilli(job.LastActivityAt))
 	return ok && idle > retentionStaleAfter
+}
+
+var reasonSiteStatisticsNeverRefreshed = healthcheck.TranslationId("health.reason.site_statistics_never_refreshed")
+
+// evalSiteStatisticsStale fires on the condition that makes post counts fall back to the database's estimate.
+// A server that has never refreshed is unknown rather than firing: a new one has not reached its first nightly run.
+func evalSiteStatisticsStale(s *healthcheck.Snapshot) healthcheck.Result {
+	refreshedAt, ok := s.SiteStatisticsRefreshedAt()
+	if !ok {
+		return healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)
+	}
+	if refreshedAt.IsZero() {
+		return healthcheck.Unknown(reasonSiteStatisticsNeverRefreshed)
+	}
+
+	age, ok := s.Since(refreshedAt)
+	if !ok {
+		return healthcheck.Unknown(healthcheck.ReasonCollectedAtUnknown)
+	}
+	if model.SiteStatisticsFresh(refreshedAt, s.CollectedAt) {
+		return healthcheck.Resolved()
+	}
+
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.site_statistics_stale.message")).
+		WithDetail("days", strconv.Itoa(int(age/(24*time.Hour))))
 }
 
 func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {

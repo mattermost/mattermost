@@ -7378,6 +7378,38 @@ func (s *TimerLayerPostStore) AnalyticsPostCountByTeam(teamID string) (int64, er
 	return result, err
 }
 
+func (s *TimerLayerPostStore) AnalyticsPostCountFast() (*model.FastPostCount, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.AnalyticsPostCountFast()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.AnalyticsPostCountFast", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) AnalyticsPostCountUpTo(limit int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.AnalyticsPostCountUpTo(limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.AnalyticsPostCountUpTo", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	start := time.Now()
 

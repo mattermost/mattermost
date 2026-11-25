@@ -7,6 +7,8 @@ guests: 6
 single_channel_guests: 1
 bot_accounts: 4
 posts: 184201
+posts_estimated: 191000
+site_statistics_refreshed_at: 2026-09-20T00:00:00Z
 channels: 412
 teams: 3
 slash_commands: 2

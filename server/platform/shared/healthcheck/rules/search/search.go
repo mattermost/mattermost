@@ -325,8 +325,9 @@ func evalSearchUnavailable(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-// evalScale fires when fires(posts) holds while search runs against the database.
-func evalScale(s *healthcheck.Snapshot, messageID string, fires func(posts int64) bool) healthcheck.Result {
+// evalScale fires when fires(posts) holds while search runs against the database. estimatedMessageID
+// replaces messageID when the post count is the database's estimate.
+func evalScale(s *healthcheck.Snapshot, messageID, estimatedMessageID string, fires func(posts int64) bool) healthcheck.Result {
 	searching, ok := searchingEnabled(s)
 	if !ok {
 		return unknownConfig()
@@ -344,12 +345,15 @@ func evalScale(s *healthcheck.Snapshot, messageID string, fires func(posts int64
 		return healthcheck.Resolved()
 	}
 
-	posts, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.Posts })
-	if !ok {
+	posts, source := s.PostCount()
+	if source == model.PostCountSourceUnknown {
 		return healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)
 	}
 
 	if fires(posts) {
+		if source == model.PostCountSourceEstimate {
+			messageID = estimatedMessageID
+		}
 		return healthcheck.Firing(messageID).WithDetail("posts", strconv.FormatInt(posts, 10)).WithValue(float64(posts))
 	}
 
@@ -357,15 +361,17 @@ func evalScale(s *healthcheck.Snapshot, messageID string, fires func(posts int64
 }
 
 func evalScaleESRequired(s *healthcheck.Snapshot) healthcheck.Result {
-	return evalScale(s, healthcheck.TranslationId("health.rule.scale_es_required.message"), func(posts int64) bool {
-		return posts > scaleRequiredPosts
-	})
+	return evalScale(s,
+		healthcheck.TranslationId("health.rule.scale_es_required.message"),
+		healthcheck.TranslationId("health.rule.scale_es_required.message.estimated"),
+		func(posts int64) bool { return posts > scaleRequiredPosts })
 }
 
 func evalScaleESRecommended(s *healthcheck.Snapshot) healthcheck.Result {
-	return evalScale(s, healthcheck.TranslationId("health.rule.scale_es_recommended.message"), func(posts int64) bool {
-		return posts > scaleRecommendedPosts && posts <= scaleRequiredPosts
-	})
+	return evalScale(s,
+		healthcheck.TranslationId("health.rule.scale_es_recommended.message"),
+		healthcheck.TranslationId("health.rule.scale_es_recommended.message.estimated"),
+		func(posts int64) bool { return posts > scaleRecommendedPosts && posts <= scaleRequiredPosts })
 }
 
 func liveBatchSize(s *healthcheck.Snapshot) (int, bool) {

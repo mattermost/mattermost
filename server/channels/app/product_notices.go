@@ -323,11 +323,15 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Config().AnnouncementSettings.NoticesURL
 	skip := *a.Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
-	var err error
-	a.ch.cachedPostCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+	// An unknown post count stays 0, which makes noticeMatchesConditions skip post-count conditions.
+	var postCount int64
+	fastPostCount, err := a.Srv().Store().Post().AnalyticsPostCountFast()
 	if err != nil {
 		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
+	} else {
+		postCount, _ = fastPostCount.Count(time.Now())
 	}
+	a.ch.cachedPostCount = postCount
 
 	a.ch.cachedUserCount, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {

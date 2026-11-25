@@ -9149,6 +9149,48 @@ func (s *RetryLayerPostStore) AnalyticsPostCountByTeam(teamID string) (int64, er
 
 }
 
+func (s *RetryLayerPostStore) AnalyticsPostCountFast() (*model.FastPostCount, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.AnalyticsPostCountFast()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) AnalyticsPostCountUpTo(limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.AnalyticsPostCountUpTo(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 
 	tries := 0

@@ -6,6 +6,7 @@ package database
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
@@ -15,6 +16,17 @@ const replicaDSN = "postgres://****:****@replica.example.com:5432/mattermost"
 
 func withStats(users, posts int64) *model.SupportPacketStats {
 	return &model.SupportPacketStats{RegisteredUsers: new(users), Posts: new(posts)}
+}
+
+var collectedAt = time.Date(2026, 11, 25, 12, 0, 0, 0, time.UTC)
+
+// siteStatisticsSnapshot builds a snapshot whose post count comes from Site Statistics last refreshed
+// refreshAge before collection, with the given row estimate (nil when Postgres has none).
+func siteStatisticsSnapshot(cfg *model.Config, total int64, refreshAge time.Duration, estimated *int64, diag *model.SupportPacketDiagnostics) *healthcheck.Snapshot {
+	refreshedAt := collectedAt.Add(-refreshAge)
+	s := newSnapshot(cfg, &model.SupportPacketStats{Posts: new(total), PostsEstimated: estimated, SiteStatisticsRefreshedAt: &refreshedAt}, diag)
+	s.CollectedAt = collectedAt
+	return s
 }
 
 // professional is a license without Elasticsearch; any license makes the store use replicas.
@@ -96,6 +108,8 @@ func TestDBNoSearchReplica(t *testing.T) {
 
 	const message = "health.rule.db_no_search_replica.message"
 	const esMessage = "health.rule.db_no_search_replica.message.elasticsearch"
+	const fresh = time.Hour
+	const stale = 3 * 24 * time.Hour
 
 	testCases := []struct {
 		name     string
@@ -116,6 +130,11 @@ func TestDBNoSearchReplica(t *testing.T) {
 		{"stats absent while searching", newSnapshot(searching, nil, enterprise()), resolvedWant},
 		{"unlicensed at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), unlicensed()), resolvedWant},
 		{"license unavailable at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), nil), unknownLicenseWant},
+		{"fresh Site Statistics at 2M posts", siteStatisticsSnapshot(defaultConfig(), 2_000_000, fresh, new(int64(1_000_000)), professional()), firingWant(message).withValue(2_000_000)},
+		{"stale Site Statistics use the 2M estimate", siteStatisticsSnapshot(defaultConfig(), 1_000_000, stale, new(int64(2_000_000)), professional()), firingWant(message + ".estimated").withValue(2_000_000)},
+		{"stale Site Statistics with the estimate below 2M", siteStatisticsSnapshot(defaultConfig(), 3_000_000, stale, new(int64(1_999_999)), professional()), resolvedWant.withValue(1_999_999)},
+		{"elasticsearch licensed with the 2M estimate", siteStatisticsSnapshot(indexingOnly, 1_000_000, stale, new(int64(2_000_000)), enterprise()), firingWant(esMessage + ".estimated").withValue(2_000_000)},
+		{"stale Site Statistics without an estimate", siteStatisticsSnapshot(defaultConfig(), 3_000_000, stale, nil, professional()), unknownStatsWant},
 	}
 
 	for _, tc := range testCases {

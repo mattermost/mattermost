@@ -164,17 +164,25 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	posts, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.Posts })
-	if !ok {
+	posts, source := s.PostCount()
+	if source == model.PostCountSourceUnknown {
 		return unknownStats()
 	}
 	if posts < searchReplicaPosts {
 		return healthcheck.Resolved().WithValue(float64(posts))
 	}
 
-	messageID := healthcheck.TranslationId("health.rule.db_no_search_replica.message")
-	if esLicensed {
+	estimated := source == model.PostCountSourceEstimate
+	var messageID string
+	switch {
+	case esLicensed && estimated:
+		messageID = healthcheck.TranslationId("health.rule.db_no_search_replica.message.elasticsearch.estimated")
+	case esLicensed:
 		messageID = healthcheck.TranslationId("health.rule.db_no_search_replica.message.elasticsearch")
+	case estimated:
+		messageID = healthcheck.TranslationId("health.rule.db_no_search_replica.message.estimated")
+	default:
+		messageID = healthcheck.TranslationId("health.rule.db_no_search_replica.message")
 	}
 
 	return healthcheck.Firing(messageID).

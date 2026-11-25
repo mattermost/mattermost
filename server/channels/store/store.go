@@ -466,7 +466,14 @@ type PostStore interface {
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
+	// AnalyticsPostCount with empty options reads every row of Posts; routine callers that need the
+	// total use AnalyticsPostCountFast or AnalyticsPostCountUpTo instead.
 	AnalyticsPostCount(options *model.PostCountOptions) (int64, error)
+	// AnalyticsPostCountFast returns the post counts available without reading Posts: the Site
+	// Statistics total and the database's row estimate.
+	AnalyticsPostCountFast() (*model.FastPostCount, error)
+	// AnalyticsPostCountUpTo counts posts, stopping at limit.
+	AnalyticsPostCountUpTo(limit int64) (int64, error)
 	AnalyticsPostCountByTeam(teamID string) (int64, error)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelID string)

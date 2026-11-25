@@ -751,3 +751,73 @@ func TestJobFailedAfterRetentionTurnedOff(t *testing.T) {
 		})
 	}
 }
+
+func TestSiteStatisticsStale(t *testing.T) {
+	t.Parallel()
+
+	refreshed := func(at time.Time) *healthcheck.Snapshot {
+		return &healthcheck.Snapshot{
+			CollectedAt: collectedAt,
+			Stats:       &model.SupportPacketStats{Posts: new(int64(1_000)), PostsEstimated: new(int64(1_100)), SiteStatisticsRefreshedAt: &at},
+		}
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     jobWant
+	}{
+		{
+			name:     "refreshed a day ago",
+			snapshot: refreshed(collectedAt.Add(-24 * time.Hour)),
+			want:     jobWant{state: healthcheck.StateResolved},
+		},
+		{
+			name:     "refreshed exactly at the limit",
+			snapshot: refreshed(collectedAt.Add(-model.SiteStatisticsStaleAfter)),
+			want:     jobWant{state: healthcheck.StateResolved},
+		},
+		{
+			name:     "refreshed just past the limit",
+			snapshot: refreshed(collectedAt.Add(-model.SiteStatisticsStaleAfter - time.Minute)),
+			want:     jobWant{state: healthcheck.StateFiring, messageID: "health.rule.site_statistics_stale.message", details: map[string]string{"days": "2"}},
+		},
+		{
+			name:     "refreshed nine days ago",
+			snapshot: refreshed(collectedAt.Add(-9*24*time.Hour - time.Hour)),
+			want:     jobWant{state: healthcheck.StateFiring, messageID: "health.rule.site_statistics_stale.message", details: map[string]string{"days": "9"}},
+		},
+		{
+			name:     "never refreshed",
+			snapshot: refreshed(time.Time{}),
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.reason.site_statistics_never_refreshed"},
+		},
+		{
+			name:     "collection time unknown",
+			snapshot: withoutCollectedAt(refreshed(collectedAt.Add(-24 * time.Hour))),
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonCollectedAtUnknown},
+		},
+		{
+			name:     "packet predating the refresh time",
+			snapshot: &healthcheck.Snapshot{CollectedAt: collectedAt, Stats: &model.SupportPacketStats{Posts: new(int64(1_000))}},
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
+		},
+		{
+			name:     "stats not collected",
+			snapshot: &healthcheck.Snapshot{CollectedAt: collectedAt},
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			results := siteStatisticsStale.Eval(tc.snapshot)
+			require.Len(t, results, 1)
+			assert.Equal(t, tc.want.state, results[0].State)
+			assert.Equal(t, tc.want.messageID, results[0].MessageID)
+			assert.Equal(t, tc.want.details, results[0].Details)
+		})
+	}
+}

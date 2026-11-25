@@ -14748,6 +14748,11 @@
     "description": "Health dashboard reason shown when a health check crashed while running, so its status is unknown."
   },
   {
+    "id": "health.reason.site_statistics_never_refreshed",
+    "translation": "Site Statistics have not been refreshed yet. The first refresh runs on the server's nightly schedule.",
+    "description": "Health dashboard reason shown when the Site Statistics staleness check cannot judge yet, because the nightly job that refreshes Site Statistics has never succeeded. 'Site Statistics' is the name of a System Console page."
+  },
+  {
     "id": "health.reason.stats_unavailable",
     "translation": "Usage statistics unavailable.",
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
@@ -15203,6 +15208,16 @@
     "id": "health.rule.db_no_search_replica.message.elasticsearch",
     "translation": "With {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale. Your license includes Elasticsearch, which takes search off the database entirely.",
     "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment whose license includes Elasticsearch; {{.posts}} is the number of posts. 'Elasticsearch' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch.estimated",
+    "translation": "With about {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale. Your license includes Elasticsearch, which takes search off the database entirely. The post count is the database's estimate, because Site Statistics have not been refreshed in over two days.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment whose license includes Elasticsearch, and the post count is an estimate because Site Statistics are out of date; {{.posts}} is the estimated number of posts. 'Elasticsearch' is a product name and should not be translated. 'Site Statistics' is the name of a System Console page."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.estimated",
+    "translation": "With about {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale. The post count is the database's estimate, because Site Statistics have not been refreshed in over two days.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment, and the post count is an estimate because Site Statistics are out of date; {{.posts}} is the estimated number of posts. 'Site Statistics' is the name of a System Console page."
   },
   {
     "id": "health.rule.db_no_search_replica.remediation",
@@ -16365,6 +16380,11 @@
     "description": "Health dashboard finding detail when database search is used at more than 2,500,000 and at most 5,000,000 posts; {{.posts}} is the post count."
   },
   {
+    "id": "health.rule.scale_es_recommended.message.estimated",
+    "translation": "The workspace has about {{.posts}} posts and search runs against the database. Elasticsearch is recommended above 2,500,000 posts and required above 5,000,000. The post count is the database's estimate, because Site Statistics have not been refreshed in over two days.",
+    "description": "Health dashboard finding detail when database search is used at more than 2,500,000 and at most 5,000,000 posts, and the post count is an estimate because Site Statistics are out of date; {{.posts}} is the estimated post count. 'Site Statistics' is the name of a System Console page."
+  },
+  {
     "id": "health.rule.scale_es_recommended.remediation",
     "translation": "Plan an Elasticsearch deployment before the next major growth period, or before reaching 5,000,000 posts.",
     "description": "Health dashboard fix-it step for a growing workspace without Elasticsearch search."
@@ -16378,6 +16398,11 @@
     "id": "health.rule.scale_es_required.message",
     "translation": "The workspace has {{.posts}} posts and search runs against the database. At this scale, expect slow searches, timeouts, and database CPU spikes.",
     "description": "Health dashboard finding detail when database search is used at more than 5,000,000 posts; {{.posts}} is the post count."
+  },
+  {
+    "id": "health.rule.scale_es_required.message.estimated",
+    "translation": "The workspace has about {{.posts}} posts and search runs against the database. At this scale, expect slow searches, timeouts, and database CPU spikes. The post count is the database's estimate, because Site Statistics have not been refreshed in over two days.",
+    "description": "Health dashboard finding detail when database search is used at more than 5,000,000 posts, and the post count is an estimate because Site Statistics are out of date; {{.posts}} is the estimated post count. 'Site Statistics' is the name of a System Console page."
   },
   {
     "id": "health.rule.scale_es_required.remediation",
@@ -16468,6 +16493,21 @@
     "id": "health.rule.session_extend_off.title",
     "translation": "ExtendSessionLengthWithActivity is disabled",
     "description": "Health dashboard finding title when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.site_statistics_stale.message",
+    "translation": "Site Statistics were last refreshed {{.days}} days ago. Post and user totals in Site Statistics and user reports are out of date, and health checks use the database's estimate of the post count instead.",
+    "description": "Health dashboard finding detail when Site Statistics have not been refreshed for more than two days; {{.days}} is the number of whole days since the last successful refresh. 'Site Statistics' is the name of a System Console page."
+  },
+  {
+    "id": "health.rule.site_statistics_stale.remediation",
+    "translation": "Check the server logs for errors from the refresh_materialized_views job, which runs nightly. Common causes are statement timeouts on large databases and the job server being disabled on every node. Fix the cause, then confirm the next nightly run succeeds.",
+    "description": "Health dashboard fix-it step when Site Statistics are out of date; 'refresh_materialized_views' is a job type identifier and should not be translated."
+  },
+  {
+    "id": "health.rule.site_statistics_stale.title",
+    "translation": "Site Statistics are out of date",
+    "description": "Health dashboard finding title when the nightly job that refreshes Site Statistics has not succeeded for more than two days. 'Site Statistics' is the name of a System Console page."
   },
   {
     "id": "health.rule.site_url_empty.message",

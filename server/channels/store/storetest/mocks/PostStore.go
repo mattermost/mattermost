@@ -73,6 +73,64 @@ func (_m *PostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
 	return r0, r1
 }
 
+// AnalyticsPostCountFast provides a mock function with no fields
+func (_m *PostStore) AnalyticsPostCountFast() (*model.FastPostCount, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AnalyticsPostCountFast")
+	}
+
+	var r0 *model.FastPostCount
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (*model.FastPostCount, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() *model.FastPostCount); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FastPostCount)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AnalyticsPostCountUpTo provides a mock function with given fields: limit
+func (_m *PostStore) AnalyticsPostCountUpTo(limit int64) (int64, error) {
+	ret := _m.Called(limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AnalyticsPostCountUpTo")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64) (int64, error)); ok {
+		return rf(limit)
+	}
+	if rf, ok := ret.Get(0).(func(int64) int64); ok {
+		r0 = rf(limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AnalyticsPostCountsByDay provides a mock function with given fields: options
 func (_m *PostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	ret := _m.Called(options)

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -849,11 +850,26 @@ func entityCountFallback(job *model.Job, dataKey string, estimate, doneCount int
 	return fallback
 }
 
+func fastPostCount(jobServer *jobs.JobServer) (int64, error) {
+	postCount, err := jobServer.Store.Post().AnalyticsPostCountFast()
+	if err != nil {
+		return 0, err
+	}
+
+	count, source := postCount.Count(time.Now())
+	if source == model.PostCountSourceUnknown {
+		return 0, errors.New("neither Site Statistics nor a database estimate of the post count is available")
+	}
+
+	return count, nil
+}
+
 func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) IndexingProgress {
 	if job.Data["index_posts"] == "true" {
-		// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
-		// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
-		if count, err := jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
+		// The count only drives progress reporting, so an approximate one avoids reading every row of Posts. When none
+		// is available, carry on with a fallback; the only issue is that the progress % reporting will be inaccurate.
+		count, err := fastPostCount(jobServer)
+		if err != nil {
 			fallback := entityCountFallback(job, "total_posts_count", estimatedPostCount, progress.DonePostsCount)
 			logger.Warn("Worker: Failed to fetch total post count for job. A fallback value will be used for progress reporting.", mlog.Int("fallback_post_count", fallback), mlog.Err(err))
 			progress.TotalPostsCount = fallback

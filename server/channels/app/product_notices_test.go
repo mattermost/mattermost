@@ -592,6 +592,9 @@ func TestNoticeFetch(t *testing.T) {
 		*cfg.AnnouncementSettings.UserNoticesEnabled = true
 		*cfg.AnnouncementSettings.NoticesURL = fmt.Sprintf("http://%s/notices.json", server1.Listener.Addr().String())
 	})
+	// Without Site Statistics or planner statistics the post count is unknown, which skips post-count conditions.
+	_, err = th.App.Srv().Store().GetInternalMasterDB().Exec("ANALYZE Posts")
+	require.NoError(t, err)
 
 	// fetch fake notices
 	appErr := th.App.UpdateProductNotices()
@@ -634,4 +637,53 @@ func TestNoticeFetch(t *testing.T) {
 	views, err = th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 0)
+}
+
+func TestUpdateProductNoticesPostCount(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	noticesServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte("[]"))
+		require.NoError(t, err)
+	}))
+	defer noticesServer.Close()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.NoticesURL = noticesServer.URL
+	})
+
+	t.Run("unknown before Posts is analyzed or Site Statistics are refreshed", func(t *testing.T) {
+		_, err := th.App.Srv().Store().GetInternalMasterDB().Exec("UPDATE pg_class SET reltuples = -1 WHERE oid = 'posts'::regclass")
+		require.NoError(t, err)
+
+		require.Nil(t, th.App.UpdateProductNotices())
+		require.Equal(t, int64(0), th.App.ch.cachedPostCount)
+	})
+
+	// InitBasic(t) creates 5 posts.
+	_, err := th.App.Srv().Store().GetInternalMasterDB().Exec("ANALYZE Posts")
+	require.NoError(t, err)
+
+	t.Run("estimate while Site Statistics have never been refreshed", func(t *testing.T) {
+		require.Nil(t, th.App.UpdateProductNotices())
+		require.Equal(t, int64(5), th.App.ch.cachedPostCount)
+	})
+
+	t.Run("Site Statistics total once refreshed", func(t *testing.T) {
+		for range 3 {
+			th.CreatePost(t, th.BasicChannel)
+		}
+		require.NoError(t, th.App.Srv().Store().Post().RefreshPostStats())
+		_, err := th.App.Srv().Store().Job().Save(&model.Job{
+			Id:       model.NewId(),
+			Type:     model.JobTypeRefreshMaterializedViews,
+			Status:   model.JobStatusSuccess,
+			CreateAt: model.GetMillis(),
+			StartAt:  model.GetMillis(),
+		})
+		require.NoError(t, err)
+
+		require.Nil(t, th.App.UpdateProductNotices())
+		require.Equal(t, int64(8), th.App.ch.cachedPostCount)
+	})
 }

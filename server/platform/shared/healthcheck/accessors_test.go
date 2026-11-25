@@ -386,6 +386,83 @@ func TestStat(t *testing.T) {
 	})
 }
 
+func TestPostCount(t *testing.T) {
+	t.Parallel()
+
+	collectedAt := time.Date(2026, 11, 25, 12, 0, 0, 0, time.UTC)
+	freshRefresh := collectedAt.Add(-model.SiteStatisticsStaleAfter)
+	staleRefresh := freshRefresh.Add(-time.Minute)
+
+	tests := []struct {
+		name               string
+		stats              *model.SupportPacketStats
+		unknownCollectedAt bool
+		wantCount          int64
+		wantSource         model.PostCountSource
+	}{
+		{
+			name:       "stats not collected",
+			wantSource: model.PostCountSourceUnknown,
+		},
+		{
+			name:       "packet predating the Site Statistics total returns its exact count",
+			stats:      &model.SupportPacketStats{Posts: new(int64(1_234))},
+			wantCount:  1_234,
+			wantSource: model.PostCountSourceSiteStatistics,
+		},
+		{
+			name:       "packet predating the Site Statistics total without a post count",
+			stats:      &model.SupportPacketStats{},
+			wantSource: model.PostCountSourceUnknown,
+		},
+		{
+			name:       "Site Statistics refreshed within the limit",
+			stats:      &model.SupportPacketStats{Posts: new(int64(1_000)), PostsEstimated: new(int64(1_100)), SiteStatisticsRefreshedAt: &freshRefresh},
+			wantCount:  1_000,
+			wantSource: model.PostCountSourceSiteStatistics,
+		},
+		{
+			name:       "stale Site Statistics fall back to the estimate",
+			stats:      &model.SupportPacketStats{Posts: new(int64(1_000)), PostsEstimated: new(int64(1_100)), SiteStatisticsRefreshedAt: &staleRefresh},
+			wantCount:  1_100,
+			wantSource: model.PostCountSourceEstimate,
+		},
+		{
+			name:       "never refreshed falls back to the estimate",
+			stats:      &model.SupportPacketStats{Posts: new(int64(0)), PostsEstimated: new(int64(1_100)), SiteStatisticsRefreshedAt: &time.Time{}},
+			wantCount:  1_100,
+			wantSource: model.PostCountSourceEstimate,
+		},
+		{
+			name:       "stale Site Statistics without an estimate",
+			stats:      &model.SupportPacketStats{Posts: new(int64(1_000)), SiteStatisticsRefreshedAt: &staleRefresh},
+			wantSource: model.PostCountSourceUnknown,
+		},
+		{
+			name:               "unknown collection time cannot vouch for Site Statistics",
+			stats:              &model.SupportPacketStats{Posts: new(int64(1_000)), PostsEstimated: new(int64(1_100)), SiteStatisticsRefreshedAt: &freshRefresh},
+			unknownCollectedAt: true,
+			wantCount:          1_100,
+			wantSource:         model.PostCountSourceEstimate,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &Snapshot{CollectedAt: collectedAt, Stats: tc.stats}
+			if tc.unknownCollectedAt {
+				s.CollectedAt = time.Time{}
+			}
+
+			count, source := s.PostCount()
+			assert.Equal(t, tc.wantSource, source)
+			assert.Equal(t, tc.wantCount, count)
+		})
+	}
+}
+
 func TestConfigRoot(t *testing.T) {
 	t.Parallel()
 

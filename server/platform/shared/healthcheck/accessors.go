@@ -81,6 +81,41 @@ func (s *Snapshot) Stat(get func(*model.SupportPacketStats) *int64) (int64, bool
 	return *value, true
 }
 
+// SiteStatisticsRefreshedAt returns when the last successful Site Statistics refresh started, or the zero
+// time when none has succeeded. ok is false when the packet predates the field or stats were not collected.
+func (s *Snapshot) SiteStatisticsRefreshedAt() (time.Time, bool) {
+	if s == nil || s.Stats == nil || s.Stats.SiteStatisticsRefreshedAt == nil {
+		return time.Time{}, false
+	}
+
+	return *s.Stats.SiteStatisticsRefreshedAt, true
+}
+
+// PostCount returns the post count rules judge scale by: the Site Statistics total while its last
+// refresh is fresh at CollectedAt, else the database's estimate. Packets that predate the Site
+// Statistics total carry an exact count in Stats.Posts, returned as is.
+func (s *Snapshot) PostCount() (int64, model.PostCountSource) {
+	if s == nil || s.Stats == nil {
+		return 0, model.PostCountSourceUnknown
+	}
+
+	refreshedAt, ok := s.SiteStatisticsRefreshedAt()
+	if !ok {
+		if s.Stats.Posts == nil {
+			return 0, model.PostCountSourceUnknown
+		}
+		return *s.Stats.Posts, model.PostCountSourceSiteStatistics
+	}
+
+	count := model.FastPostCount{Estimated: s.Stats.PostsEstimated}
+	if s.Stats.Posts != nil && !s.CollectedAt.IsZero() {
+		count.SiteStatistics = *s.Stats.Posts
+		count.RefreshedAt = refreshedAt
+	}
+
+	return count.Count(s.CollectedAt)
+}
+
 func (s *Snapshot) ClusterEnabled() (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
 }

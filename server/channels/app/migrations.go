@@ -539,7 +539,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 	}
 
 	// if there are teams, then if this isn't a new installation, there should be posts
-	postCount, err := s.Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+	postCount, err := s.Store().Post().AnalyticsPostCountUpTo(existingInstallationPostsThreshold)
 	if err != nil {
 		return fmt.Errorf("could not get posts count from the database: %w", err)
 	} else if postCount < existingInstallationPostsThreshold {

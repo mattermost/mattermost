@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
@@ -526,6 +527,48 @@ type PostCountOptions struct {
 	SincePostID   string
 	SinceUpdateAt int64
 	UntilUpdateAt int64
+}
+
+// PostCountSource names where a post count that avoids reading every row of Posts came from.
+type PostCountSource string
+
+const (
+	PostCountSourceSiteStatistics PostCountSource = "site_statistics"
+	PostCountSourceEstimate       PostCountSource = "estimate"
+	PostCountSourceUnknown        PostCountSource = "unknown"
+)
+
+// SiteStatisticsStaleAfter is how old the last successful Site Statistics refresh may be before
+// post counts fall back to the database's row estimate.
+const SiteStatisticsStaleAfter = 48 * time.Hour
+
+// FastPostCount holds the post counts that are available without reading every row of Posts.
+type FastPostCount struct {
+	// SiteStatistics is the total of the Site Statistics view, exact as of RefreshedAt.
+	SiteStatistics int64
+	// RefreshedAt is when the last successful Site Statistics refresh started, or zero if none has succeeded.
+	RefreshedAt time.Time
+	// Estimated is the database's row estimate, or nil when Posts has never been vacuumed or analyzed.
+	Estimated *int64
+}
+
+// Count returns the Site Statistics total while it is fresh at now, else the estimate, else
+// PostCountSourceUnknown.
+func (c *FastPostCount) Count(now time.Time) (int64, PostCountSource) {
+	switch {
+	case SiteStatisticsFresh(c.RefreshedAt, now):
+		return c.SiteStatistics, PostCountSourceSiteStatistics
+	case c.Estimated != nil:
+		return *c.Estimated, PostCountSourceEstimate
+	default:
+		return 0, PostCountSourceUnknown
+	}
+}
+
+// SiteStatisticsFresh reports whether a Site Statistics refresh that started at refreshedAt is
+// recent enough at now; a zero refreshedAt, meaning no refresh has succeeded, is never fresh.
+func SiteStatisticsFresh(refreshedAt, now time.Time) bool {
+	return !refreshedAt.IsZero() && now.Sub(refreshedAt) <= SiteStatisticsStaleAfter
 }
 
 func (o *Post) Etag() string {

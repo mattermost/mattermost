@@ -9,6 +9,7 @@ import (
 	"maps"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -231,7 +232,7 @@ func TestSetEntityCount(t *testing.T) {
 
 	t.Run("stores counts on success", func(t *testing.T) {
 		m := setupEntityCountMocks()
-		m.post.On("AnalyticsPostCount", mock.Anything).Return(int64(500), nil)
+		m.post.On("AnalyticsPostCountFast").Return(&model.FastPostCount{SiteStatistics: 500, RefreshedAt: time.Now().Add(-time.Hour), Estimated: new(int64(480))}, nil)
 		m.channel.On("AnalyticsTypeCount", "", model.ChannelType("")).Return(int64(200), nil)
 		m.user.On("Count", mock.Anything).Return(int64(50), nil)
 		m.fileInfo.On("CountAll").Return(int64(300), nil)
@@ -252,7 +253,7 @@ func TestSetEntityCount(t *testing.T) {
 
 	t.Run("falls back to job data on query failure", func(t *testing.T) {
 		m := setupEntityCountMocks()
-		m.post.On("AnalyticsPostCount", mock.Anything).Return(int64(0), fmt.Errorf("timeout"))
+		m.post.On("AnalyticsPostCountFast").Return(nil, fmt.Errorf("timeout"))
 		m.channel.On("AnalyticsTypeCount", "", model.ChannelType("")).Return(int64(0), fmt.Errorf("timeout"))
 		m.user.On("Count", mock.Anything).Return(int64(0), fmt.Errorf("timeout"))
 		m.fileInfo.On("CountAll").Return(int64(0), fmt.Errorf("timeout"))
@@ -272,9 +273,41 @@ func TestSetEntityCount(t *testing.T) {
 		assert.Equal(t, int64(75000), progress.TotalFilesCount)
 	})
 
+	postsOnly := model.StringMap{
+		"index_posts":    "true",
+		"index_channels": "false",
+		"index_users":    "false",
+		"index_files":    "false",
+	}
+
+	t.Run("uses the estimate when Site Statistics are stale", func(t *testing.T) {
+		m := setupEntityCountMocks()
+		m.post.On("AnalyticsPostCountFast").Return(&model.FastPostCount{SiteStatistics: 500, RefreshedAt: time.Now().Add(-72 * time.Hour), Estimated: new(int64(900))}, nil)
+
+		job := &model.Job{Data: maps.Clone(postsOnly)}
+		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store}, IndexingProgress{}, job)
+
+		assert.Equal(t, int64(900), progress.TotalPostsCount)
+		assert.Equal(t, "900", job.Data["total_posts_count"])
+	})
+
+	t.Run("falls back to job data when the post count is unknown", func(t *testing.T) {
+		m := setupEntityCountMocks()
+		m.post.On("AnalyticsPostCountFast").Return(&model.FastPostCount{SiteStatistics: 500}, nil)
+
+		jobData := maps.Clone(postsOnly)
+		jobData["total_posts_count"] = "8000"
+		job := &model.Job{Data: jobData}
+		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store}, IndexingProgress{DonePostsCount: 2000}, job)
+
+		assert.Equal(t, int64(8000), progress.TotalPostsCount)
+		assert.Equal(t, "8000", job.Data["total_posts_count"])
+		assert.Equal(t, int64(25), progress.CurrentProgress())
+	})
+
 	t.Run("uses max of fallback and done count", func(t *testing.T) {
 		m := setupEntityCountMocks()
-		m.post.On("AnalyticsPostCount", mock.Anything).Return(int64(0), fmt.Errorf("timeout"))
+		m.post.On("AnalyticsPostCountFast").Return(nil, fmt.Errorf("timeout"))
 
 		job := &model.Job{
 			Data: model.StringMap{

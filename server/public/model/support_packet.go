@@ -201,7 +201,7 @@ type OAuthProviders struct {
 	OpenID    OAuthProviderStatus `yaml:"openid,omitempty"`
 }
 
-// SupportPacketStats reports workspace-scale analytics. Every field is a pointer: a nil value means the underlying query failed, which is not the same as zero.
+// SupportPacketStats reports workspace-scale analytics. Every count is a pointer: a nil value means the underlying query failed, which is not the same as zero.
 type SupportPacketStats struct {
 	RegisteredUsers     *int64 `yaml:"registered_users,omitempty"`
 	ActiveUsers         *int64 `yaml:"active_users,omitempty"`
@@ -211,12 +211,19 @@ type SupportPacketStats struct {
 	Guests              *int64 `yaml:"guests,omitempty"`
 	SingleChannelGuests *int64 `yaml:"single_channel_guests,omitempty"`
 	BotAccounts         *int64 `yaml:"bot_accounts,omitempty"`
-	Posts               *int64 `yaml:"posts,omitempty"`
-	Channels            *int64 `yaml:"channels,omitempty"`
-	Teams               *int64 `yaml:"teams,omitempty"`
-	SlashCommands       *int64 `yaml:"slash_commands,omitempty"`
-	IncomingWebhooks    *int64 `yaml:"incoming_webhooks,omitempty"`
-	OutgoingWebhooks    *int64 `yaml:"outgoing_webhooks,omitempty"`
+	// Posts is the Site Statistics total as of SiteStatisticsRefreshedAt. Packets that predate
+	// SiteStatisticsRefreshedAt and PostsEstimated carry an exact count here instead.
+	Posts *int64 `yaml:"posts,omitempty"`
+	// PostsEstimated is the database's row estimate for Posts; nil when Posts has never been vacuumed or analyzed.
+	PostsEstimated *int64 `yaml:"posts_estimated,omitempty"`
+	// SiteStatisticsRefreshedAt is when the last successful Site Statistics refresh started, or the zero
+	// time when none has succeeded. It is nil when not collected.
+	SiteStatisticsRefreshedAt *time.Time `yaml:"site_statistics_refreshed_at"`
+	Channels                  *int64     `yaml:"channels,omitempty"`
+	Teams                     *int64     `yaml:"teams,omitempty"`
+	SlashCommands             *int64     `yaml:"slash_commands,omitempty"`
+	IncomingWebhooks          *int64     `yaml:"incoming_webhooks,omitempty"`
+	OutgoingWebhooks          *int64     `yaml:"outgoing_webhooks,omitempty"`
 }
 
 // SupportPacketJobList contains the list of latest run enterprise job runs.

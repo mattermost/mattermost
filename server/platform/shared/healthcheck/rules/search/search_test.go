@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
@@ -407,9 +408,29 @@ func TestScaleES(t *testing.T) {
 			value:     new(float64(posts)),
 		}
 	}
+	firingEstimated := func(code string, posts int64) searchWant {
+		want := firing(code, posts)
+		want.messageID += ".estimated"
+		return want
+	}
 	resolvedAt := func(posts int64) searchWant {
 		return searchWant{state: healthcheck.StateResolved, value: new(float64(posts))}
 	}
+	collectedAt := time.Date(2026, 11, 25, 12, 0, 0, 0, time.UTC)
+	// withSiteStatistics replaces the post count with a Site Statistics total refreshed refreshAge before collection.
+	withSiteStatistics := func(s *healthcheck.Snapshot, total int64, refreshAge time.Duration, estimated *int64) *healthcheck.Snapshot {
+		refreshedAt := collectedAt.Add(-refreshAge)
+		s.CollectedAt = collectedAt
+		s.Stats = &model.SupportPacketStats{Posts: new(total), PostsEstimated: estimated, SiteStatisticsRefreshedAt: &refreshedAt}
+		s.Sections[model.SectionStats] = nil
+		return s
+	}
+	neverRefreshed := func(s *healthcheck.Snapshot) *healthcheck.Snapshot {
+		s.Stats.SiteStatisticsRefreshedAt = &time.Time{}
+		return s
+	}
+	const fresh = time.Hour
+	const stale = 3 * 24 * time.Hour
 
 	testCases := []struct {
 		name        string
@@ -503,6 +524,30 @@ func TestScaleES(t *testing.T) {
 			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(3_000_000))), model.SupportPacketLicense{}),
 			required:    resolvedAt(3_000_000),
 			recommended: resolvedWant,
+		},
+		{
+			name:        "fresh Site Statistics at 6M",
+			snapshot:    withSiteStatistics(searchSnapshot(searchingOff, nil, nil), 6_000_000, fresh, new(int64(1_000_000))),
+			required:    firing("scale_es_required", 6_000_000),
+			recommended: resolvedAt(6_000_000),
+		},
+		{
+			name:        "stale Site Statistics use the 6M estimate",
+			snapshot:    withSiteStatistics(searchSnapshot(searchingOff, nil, nil), 1_000_000, stale, new(int64(6_000_000))),
+			required:    firingEstimated("scale_es_required", 6_000_000),
+			recommended: resolvedAt(6_000_000),
+		},
+		{
+			name:        "never refreshed Site Statistics use the 3M estimate",
+			snapshot:    neverRefreshed(withSiteStatistics(searchSnapshot(searchingOff, nil, nil), 0, 0, new(int64(3_000_000)))),
+			required:    resolvedAt(3_000_000),
+			recommended: firingEstimated("scale_es_recommended", 3_000_000),
+		},
+		{
+			name:        "stale Site Statistics without an estimate",
+			snapshot:    withSiteStatistics(searchSnapshot(searchingOff, nil, nil), 6_000_000, stale, nil),
+			required:    searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
+			recommended: searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
 		},
 	}
 

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -42,6 +43,8 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, rctx, ss) })
 	t.Run("PostCountsByDuration", func(t *testing.T) { testPostCountsByDay(t, rctx, ss) })
 	t.Run("PostCounts", func(t *testing.T) { testPostCounts(t, rctx, ss) })
+	t.Run("AnalyticsPostCountFast", func(t *testing.T) { testPostStoreAnalyticsPostCountFast(t, rctx, ss, s) })
+	t.Run("AnalyticsPostCountUpTo", func(t *testing.T) { testPostStoreAnalyticsPostCountUpTo(t, rctx, ss) })
 	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, rctx, ss, s) })
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, rctx, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, rctx, ss) })
@@ -3414,6 +3417,148 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true, UsersPostsOnly: true})
 	require.NoError(t, err)
 	assert.Equal(t, int64(3), c)
+}
+
+func saveTestPosts(t *testing.T, rctx request.CTX, ss store.Store, channelID string, n int) {
+	t.Helper()
+
+	posts := make([]*model.Post, n)
+	for i := range posts {
+		posts[i] = &model.Post{ChannelId: channelID, UserId: model.NewId(), Message: NewTestID()}
+	}
+	_, _, err := ss.Post().SaveMultiple(rctx, posts)
+	require.NoError(t, err)
+}
+
+func testPostStoreAnalyticsPostCountFast(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	team, err := ss.Team().Save(&model.Team{DisplayName: "DisplayName", Name: NewTestID(), Email: MakeEmail(), Type: model.TeamOpen})
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(rctx, &model.Channel{TeamId: team.Id, DisplayName: "Channel", Name: NewTestID(), Type: model.ChannelTypeOpen}, -1)
+	require.NoError(t, err)
+
+	// pg_class is shared by every test, so reset the planner statistics for Posts afterwards.
+	analyzePosts := func(t *testing.T) {
+		_, err := s.GetMaster().ExecRaw("ANALYZE Posts")
+		require.NoError(t, err)
+	}
+	t.Cleanup(func() { analyzePosts(t) })
+
+	t.Run("Site Statistics total changes only on refresh", func(t *testing.T) {
+		saveTestPosts(t, rctx, ss, channel.Id, 2)
+		require.NoError(t, ss.Post().RefreshPostStats())
+		before, err := ss.Post().AnalyticsPostCountFast()
+		require.NoError(t, err)
+
+		saveTestPosts(t, rctx, ss, channel.Id, 3)
+		unrefreshed, err := ss.Post().AnalyticsPostCountFast()
+		require.NoError(t, err)
+		assert.Equal(t, before.SiteStatistics, unrefreshed.SiteStatistics)
+
+		require.NoError(t, ss.Post().RefreshPostStats())
+		refreshed, err := ss.Post().AnalyticsPostCountFast()
+		require.NoError(t, err)
+		assert.Equal(t, before.SiteStatistics+3, refreshed.SiteStatistics)
+	})
+
+	t.Run("refresh time comes from the last successful refresh job", func(t *testing.T) {
+		deleteRefreshJobs := func() {
+			_, err := s.GetMaster().Exec("DELETE FROM Jobs WHERE Type = ?", model.JobTypeRefreshMaterializedViews)
+			require.NoError(t, err)
+		}
+		deleteRefreshJobs()
+		t.Cleanup(deleteRefreshJobs)
+
+		saveJob := func(status string, createAt, startAt int64) {
+			_, err := ss.Job().Save(&model.Job{Id: model.NewId(), Type: model.JobTypeRefreshMaterializedViews, Status: status, CreateAt: createAt, StartAt: startAt})
+			require.NoError(t, err)
+		}
+		refreshedAt := func() time.Time {
+			count, err := ss.Post().AnalyticsPostCountFast()
+			require.NoError(t, err)
+			return count.RefreshedAt
+		}
+
+		base := time.Now().Add(-10 * 24 * time.Hour).Truncate(time.Millisecond)
+		at := func(hours int) time.Time { return base.Add(time.Duration(hours) * time.Hour) }
+
+		assert.True(t, refreshedAt().IsZero(), "no refresh job has run")
+
+		saveJob(model.JobStatusError, at(1).UnixMilli(), at(1).UnixMilli())
+		saveJob(model.JobStatusPending, at(2).UnixMilli(), 0)
+		assert.True(t, refreshedAt().IsZero(), "no refresh job has succeeded")
+
+		saveJob(model.JobStatusSuccess, at(3).UnixMilli(), at(4).UnixMilli())
+		assert.True(t, at(4).Equal(refreshedAt()), "uses the start of the successful run")
+
+		saveJob(model.JobStatusError, at(5).UnixMilli(), at(5).UnixMilli())
+		assert.True(t, at(4).Equal(refreshedAt()), "a newer failed run does not count")
+
+		saveJob(model.JobStatusWarning, at(6).UnixMilli(), at(7).UnixMilli())
+		assert.True(t, at(7).Equal(refreshedAt()), "a run that ended in a warning still refreshed the views")
+
+		saveJob(model.JobStatusSuccess, at(8).UnixMilli(), 0)
+		assert.True(t, at(8).Equal(refreshedAt()), "falls back to the creation time of a run without a start time")
+	})
+
+	t.Run("no estimate before Posts is first vacuumed or analyzed", func(t *testing.T) {
+		_, err := s.GetMaster().ExecRaw("UPDATE pg_class SET reltuples = -1 WHERE oid = 'posts'::regclass")
+		require.NoError(t, err)
+		t.Cleanup(func() { analyzePosts(t) })
+
+		count, err := ss.Post().AnalyticsPostCountFast()
+		require.NoError(t, err)
+		assert.Nil(t, count.Estimated)
+	})
+
+	t.Run("estimate is unscaled when no pages were recorded", func(t *testing.T) {
+		_, err := s.GetMaster().ExecRaw("UPDATE pg_class SET reltuples = 42, relpages = 0 WHERE oid = 'posts'::regclass")
+		require.NoError(t, err)
+		t.Cleanup(func() { analyzePosts(t) })
+
+		count, err := ss.Post().AnalyticsPostCountFast()
+		require.NoError(t, err)
+		require.NotNil(t, count.Estimated)
+		assert.Equal(t, int64(42), *count.Estimated)
+	})
+
+	t.Run("estimate scales the recorded density to the table's current size", func(t *testing.T) {
+		saveTestPosts(t, rctx, ss, channel.Id, 200)
+		var currentPages int64
+		require.NoError(t, s.GetMaster().Get(&currentPages, "SELECT pg_relation_size('posts'::regclass) / current_setting('block_size')::bigint"))
+		require.GreaterOrEqual(t, currentPages, int64(2))
+
+		recordedPages := currentPages / 2
+		_, err := s.GetMaster().Exec("UPDATE pg_class SET reltuples = 1000, relpages = ? WHERE oid = 'posts'::regclass", recordedPages)
+		require.NoError(t, err)
+		t.Cleanup(func() { analyzePosts(t) })
+
+		count, err := ss.Post().AnalyticsPostCountFast()
+		require.NoError(t, err)
+		require.NotNil(t, count.Estimated)
+		assert.Equal(t, int64(math.Round(1000/float64(recordedPages)*float64(currentPages))), *count.Estimated)
+	})
+}
+
+func testPostStoreAnalyticsPostCountUpTo(t *testing.T, rctx request.CTX, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{DisplayName: "DisplayName", Name: NewTestID(), Email: MakeEmail(), Type: model.TeamOpen})
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(rctx, &model.Channel{TeamId: team.Id, DisplayName: "Channel", Name: NewTestID(), Type: model.ChannelTypeOpen}, -1)
+	require.NoError(t, err)
+	saveTestPosts(t, rctx, ss, channel.Id, 12)
+
+	count, err := ss.Post().AnalyticsPostCountUpTo(10)
+	require.NoError(t, err)
+	assert.Equal(t, int64(10), count)
+
+	count, err = ss.Post().AnalyticsPostCountUpTo(0)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+
+	exact, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	require.NoError(t, err)
+	count, err = ss.Post().AnalyticsPostCountUpTo(exact + 100)
+	require.NoError(t, err)
+	assert.Equal(t, exact, count)
 }
 
 func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {

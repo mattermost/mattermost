@@ -7,6 +7,7 @@ import (
 	"cmp"
 	"database/sql"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"slices"
@@ -2632,6 +2633,97 @@ func (s *SqlPostStore) countByTeam(teamID string) (int64, error) {
 
 func (s *SqlPostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
 	return s.countByTeam(teamID)
+}
+
+func (s *SqlPostStore) AnalyticsPostCountFast() (*model.FastPostCount, error) {
+	siteStatistics, err := s.countByTeam("")
+	if err != nil {
+		return nil, err
+	}
+
+	refreshedAt, err := s.siteStatisticsRefreshedAt()
+	if err != nil {
+		return nil, err
+	}
+
+	estimated, err := s.estimatedPostCount()
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.FastPostCount{
+		SiteStatistics: siteStatistics,
+		RefreshedAt:    refreshedAt,
+		Estimated:      estimated,
+	}, nil
+}
+
+// siteStatisticsRefreshedAt returns when the last successful refresh_materialized_views job started,
+// or zero when none has succeeded.
+func (s *SqlPostStore) siteStatisticsRefreshedAt() (time.Time, error) {
+	query := s.getQueryBuilder().
+		Select("COALESCE(MAX(CASE WHEN StartAt > 0 THEN StartAt ELSE CreateAt END), 0)").
+		From("Jobs").
+		Where(sq.Eq{
+			"Type":   model.JobTypeRefreshMaterializedViews,
+			"Status": []string{model.JobStatusSuccess, model.JobStatusWarning},
+		})
+
+	var startedAt int64
+	if err := s.GetReplica().GetBuilder(&startedAt, query); err != nil {
+		return time.Time{}, errors.Wrap(err, "failed to get the last Site Statistics refresh")
+	}
+	if startedAt == 0 {
+		return time.Time{}, nil
+	}
+
+	return time.UnixMilli(startedAt).UTC(), nil
+}
+
+// estimatedPostCount scales the planner's row estimate for Posts to the table's current size, as the
+// planner does. It returns nil when Posts has never been vacuumed or analyzed.
+func (s *SqlPostStore) estimatedPostCount() (*int64, error) {
+	var row struct {
+		RelTuples    float64 `db:"reltuples"`
+		RelPages     int64   `db:"relpages"`
+		CurrentPages int64   `db:"current_pages"`
+	}
+	const query = `
+SELECT
+    reltuples::float8 AS reltuples,
+    relpages::bigint AS relpages,
+    pg_relation_size(oid) / current_setting('block_size')::bigint AS current_pages
+FROM pg_class
+WHERE oid = 'posts'::regclass`
+	if err := s.GetReplica().Get(&row, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get the estimated post count")
+	}
+
+	if row.RelTuples < 0 {
+		return nil, nil
+	}
+
+	estimate := row.RelTuples
+	if row.RelPages > 0 {
+		estimate = row.RelTuples / float64(row.RelPages) * float64(row.CurrentPages)
+	}
+
+	count := int64(math.Round(estimate))
+	return &count, nil
+}
+
+func (s *SqlPostStore) AnalyticsPostCountUpTo(limit int64) (int64, error) {
+	// The derived table needs its alias: Postgres makes it optional only from version 16.
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		FromSelect(s.getQueryBuilder().Select("1").From("Posts").Limit(uint64(max(limit, 0))), "p")
+
+	var count int64
+	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
+		return 0, errors.Wrap(err, "failed to count Posts up to a limit")
+	}
+
+	return count, nil
 }
 
 func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {

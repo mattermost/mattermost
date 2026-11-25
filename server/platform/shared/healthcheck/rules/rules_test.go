@@ -78,6 +78,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"JOB_STUCK",
 		"JOB_WEDGED_AT_ZERO",
 		"JOB_FAILED",
+		"SITE_STATISTICS_STALE",
 
 		// license
 		"LICENSE_EXPIRED",

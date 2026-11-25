@@ -1665,3 +1665,47 @@ func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
 	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
 	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
 }
+
+func TestDoFirstAdminSetupCompleteMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	_, teamErr := th.App.Srv().Store().Team().Save(&model.Team{DisplayName: "Team", Name: NewTestId(), Email: "team@example.com", Type: model.TeamOpen})
+	require.NoError(t, teamErr)
+
+	addPosts := func(t *testing.T, n int) {
+		t.Helper()
+		posts := make([]*model.Post, n)
+		for i := range posts {
+			posts[i] = &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: "message"}
+		}
+		_, _, err := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
+		require.NoError(t, err)
+	}
+
+	migrate := func(t *testing.T) (marked bool) {
+		t.Helper()
+		_, err := th.App.Srv().Store().System().PermanentDeleteByName(FirstAdminSetupCompleteKey)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doFirstAdminSetupCompleteMigration())
+
+		_, err = th.App.Srv().Store().System().GetByName(FirstAdminSetupCompleteKey)
+		return err == nil
+	}
+
+	existing, err := th.App.Srv().Store().Post().AnalyticsPostCountUpTo(1)
+	require.NoError(t, err)
+	require.Zero(t, existing, "the test starts from an empty Posts table")
+
+	assert.False(t, migrate(t), "no posts")
+
+	addPosts(t, 9)
+	assert.False(t, migrate(t), "fewer posts than an existing installation has")
+
+	addPosts(t, 1)
+	assert.True(t, migrate(t), "exactly as many posts as an existing installation has")
+
+	addPosts(t, 500)
+	assert.True(t, migrate(t), "many posts")
+}

@@ -1,2 +1,5 @@
 registered_users: 42
 daily_active_users: 15
+posts: 1000 # Site Statistics total as of site_statistics_refreshed_at, not a live count
+posts_estimated: 1100 # database row estimate; far from posts when the nightly Site Statistics refresh is failing
+site_statistics_refreshed_at: 2026-11-24T00:00:00Z # start of the last successful refresh_materialized_views job; 0001-01-01T00:00:00Z if none succeeded, null if not collected

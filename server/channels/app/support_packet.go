@@ -150,8 +150,14 @@ func supportPacketMetadataFile(m *model.PacketMetadata, err error) (*model.FileD
 	return platform.YAMLFile(model.PacketMetadataFileName, m, err)
 }
 
+var statsYAMLComments = yaml.CommentMap{
+	"$.posts":                        {yaml.LineComment(" Site Statistics total as of site_statistics_refreshed_at, not a live count")},
+	"$.posts_estimated":              {yaml.LineComment(" database row estimate; far from posts when the nightly Site Statistics refresh is failing")},
+	"$.site_statistics_refreshed_at": {yaml.LineComment(" start of the last successful refresh_materialized_views job; 0001-01-01T00:00:00Z if none succeeded, null if not collected")},
+}
+
 func supportPacketStatsFile(s *model.SupportPacketStats, err error) (*model.FileData, error) {
-	return platform.YAMLFile(model.SupportPacketStatsFileName, s, err)
+	return platform.YAMLFile(model.SupportPacketStatsFileName, s, err, yaml.WithComment(statsYAMLComments))
 }
 
 func supportPacketJobsFile(j *model.SupportPacketJobList, err error) (*model.FileData, error) {
@@ -206,9 +212,13 @@ func (a *App) getSupportPacketStats(rctx request.CTX) (*model.SupportPacketStats
 	stats.BotAccounts = collect("bot account count", func() (int64, error) {
 		return a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
 	})
-	stats.Posts = collect("post count", func() (int64, error) {
-		return a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
-	})
+	if postCount, err := a.Srv().Store().Post().AnalyticsPostCountFast(); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "failed to get post count"))
+	} else {
+		stats.Posts = &postCount.SiteStatistics
+		stats.PostsEstimated = postCount.Estimated
+		stats.SiteStatisticsRefreshedAt = &postCount.RefreshedAt
+	}
 	stats.Channels = collect("channel count", func() (int64, error) {
 		openChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 		if err != nil {
