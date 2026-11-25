@@ -6,6 +6,7 @@ package app
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"io"
@@ -144,13 +145,22 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 	}
 
 	withheld := make(map[string]bool)
+	page := rctx.WithContext(context.WithValue(rctx.Context(), entityPageKey{}, true))
 	for id, originalPost := range originalList.Posts {
-		post, blanked := a.preparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
+		post, blanked := a.preparePostForClientWithEmbedsAndImages(page, originalPost, &model.PreparePostForClientOpts{})
 		list.Posts[id] = post
 		if blanked {
 			withheld[id] = true
 		}
 	}
+
+	visible := make([]*model.Post, 0, len(list.Posts))
+	for id, post := range list.Posts {
+		if post != nil && !withheld[id] {
+			visible = append(visible, post)
+		}
+	}
+	a.hydratePostList(page, visible)
 
 	if a.IsPostPriorityEnabled() {
 		priority, _ := a.GetPriorityForPostList(list)
@@ -367,6 +377,12 @@ func (a *App) preparePostForClient(rctx request.CTX, originalPost *model.Post, o
 
 	if opts.PropertyGroupID != "" && !metadataWithheld {
 		a.hydratePropertyValues(rctx, []*model.Post{post}, opts.PropertyGroupID)
+	}
+
+	if !metadataWithheld {
+		if page, _ := rctx.Context().Value(entityPageKey{}).(bool); !page {
+			a.hydratePostEntities(rctx, post)
+		}
 	}
 
 	return post, metadataWithheld

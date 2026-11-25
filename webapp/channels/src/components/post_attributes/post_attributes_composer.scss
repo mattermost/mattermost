@@ -1,0 +1,97 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// The values are `PostAttributeChip`s, the same Compass chips a sent post
+// shows. The row carries `.PostAttributesChips` too, for its flex layout; only
+// its spacing differs: it spans the composer and sits above the
+// message box rather than under a post. Both classes in the selector so these
+// win regardless of which sheet loads first.
+.PostAttributesChips.PostAttributesComposer {
+    width: auto;
+    padding-bottom: var(--spacing-xs);
+    gap: var(--spacing-xs);
+    margin-block: 0;
+}
+
+.PostAttributesComposerChip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xxxs);
+
+    // An option chip that has no value yet: its field's name, measured like a
+    // small Compass `Chip` (see `PostAttributeChip`) so it sits in the row at
+    // the same size as a value, and has a size to click. Muted, so it doesn't
+    // read as a value.
+    &__pending {
+        display: inline-flex;
+        align-items: center;
+        padding: var(--spacing-xxxs) var(--spacing-xs);
+        border: 1px solid transparent;
+        border-radius: var(--radius-s);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: var(--font-size-25);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: 0.2px;
+        line-height: 12px;
+        white-space: nowrap;
+    }
+
+    // The option trigger, and a text or user chip at rest, hold the chip
+    // itself, so the button stays invisible until hover or focus rather than
+    // drawing a chip around a chip.
+    .PostAttributesModalRow__trigger,
+    &__rest {
+        display: inline-flex;
+        width: auto;
+        height: auto;
+        align-items: center;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-s);
+        background: transparent;
+        gap: var(--spacing-xxxs);
+
+        &:hover:not(:disabled),
+        &:focus-visible {
+            box-shadow: 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12);
+            outline: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    &__editor {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    // While editing, a text value is an input the size of the chip it
+    // replaces, so the row doesn't move.
+    .PostAttributesModalRow__input {
+        width: auto;
+        min-width: 48px;
+        height: 22px;
+        padding: 0 var(--spacing-xs);
+        border: none;
+        border-radius: var(--radius-s);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        font-size: var(--font-size-25);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: 0.2px;
+        line-height: 12px;
+
+        &:focus {
+            box-shadow: 0 0 0 1px var(--button-bg);
+            outline: none;
+        }
+    }
+
+    .PostAttributesModalRow__users {
+        width: auto;
+        min-width: 160px;
+    }
+}

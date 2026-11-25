@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:build !linux
+//go:build !linux && !darwin
 
 package platform
+
+// cgroupV2Info has no fields here: cgroups are only read on Linux.
+type cgroupV2Info struct{}
 
 func getCgroupV2Info() (cgroupV2Info, error) {
 	return cgroupV2Info{}, nil

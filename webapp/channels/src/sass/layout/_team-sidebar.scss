@@ -43,6 +43,12 @@
         }
     }
 
+    .team-sidebar__bottom {
+        display: flex;
+        flex: 0 0 auto;
+        flex-direction: column;
+    }
+
     .team-sidebar-bottom-plugin {
         width: 100%;
         flex: 0 0 auto;

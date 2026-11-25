@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -25,6 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
@@ -80,6 +83,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
@@ -125,6 +129,8 @@ type Server struct {
 	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
+	entityCardCache         cache.Cache
+	entityPatternCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
@@ -139,6 +145,8 @@ type Server struct {
 	propertyService  *properties.PropertyService
 	// propertyAccessControlHook is kept so tests can observe it.
 	propertyAccessControlHook *properties.AccessControlHook
+
+	sessionAttributeSchema atomic.Pointer[sessionAttributeSchema]
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -169,6 +177,14 @@ type Server struct {
 
 	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
 	notifyAdminCoolOffDaysOverride string
+
+	// latestVersionURLOverride overrides releases.LatestURL.
+	latestVersionURLOverride string
+}
+
+// LatestVersionURL is where the server looks up the latest release.
+func (s *Server) LatestVersionURL() string {
+	return cmp.Or(s.latestVersionURLOverride, releases.LatestURL)
 }
 
 // SetCWSTokenOverride sets the CWS token override for CWS login authentication.
@@ -301,7 +317,6 @@ func NewServer(options ...Option) (*Server, error) {
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
-		{Name: model.PostAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.PostAttributesPropertyGroupSchemaVersion},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
@@ -329,6 +344,7 @@ func NewServer(options ...Option) (*Server, error) {
 	app := New(ServerConnector(channels))
 
 	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+	s.platform.SetPrePublishHook(app.attachChannelReadAccessHook)
 
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
@@ -414,27 +430,17 @@ func NewServer(options ...Option) (*Server, error) {
 	s.propertyService.AddHook(valueAuditHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.
-	// Only "user" has a per-type cap today; when channel/team/post CPA fields
-	// are added, set their per-type caps here. Until then
-	// AccessControlGroupFieldLimit is the only ceiling for non-user
-	// object types within this group.
+	// "user" fields are capped at 20 and "post" fields at
+	// PostAttributesMaxFields, each counted across the whole group.
+	// Post fields still count toward AccessControlGroupFieldLimit, which is the
+	// only ceiling for the other object types within this group.
 	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
 	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
 		PerObjectType: map[string]int64{
 			model.PropertyFieldObjectTypeUser: 20,
+			model.PropertyFieldObjectTypePost: model.PostAttributesMaxFields,
 		},
 		GlobalLimit: model.AccessControlGroupFieldLimit,
-	})
-
-	// Post attributes are capped per target (the system, one team, or one channel) rather
-	// than group-wide, so one busy channel cannot exhaust every other channel's allowance.
-	// This cap is also what bounds the post hydration value lookup, so the two cannot drift.
-	postAttrGroup, err := s.propertyService.Group(model.PostAttributesPropertyGroupName)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to look up post attributes property group")
-	}
-	fieldLimitHook.AddGroupLimit(postAttrGroup.ID, &properties.FieldLimitConfig{
-		PerTarget: model.PostAttributesMaxFieldsPerTarget,
 	})
 
 	s.propertyService.AddHook(fieldLimitHook)
@@ -515,6 +521,20 @@ func NewServer(options ...Option) (*Server, error) {
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
+	}
+	if s.entityCardCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_card",
+		Size:          openGraphMetadataCacheSize,
+		DefaultExpiry: 30 * time.Minute,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity card cache")
+	}
+	if s.entityPatternCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_pattern",
+		Size:          entityPatternCacheSize,
+		DefaultExpiry: entityPatternTTL,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity pattern cache")
 	}
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
@@ -1049,6 +1069,33 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
+func (s *Server) newLetsEncryptManager() *autocert.Manager {
+	return &autocert.Manager{
+		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: s.letsEncryptHostPolicy,
+	}
+}
+
+// letsEncryptHostPolicy only allows certificates for the Site URL hostname, so clients
+// presenting arbitrary hostnames (e.g. internet scanners) cannot trigger issuance.
+func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
+	siteURL, err := url.Parse(*s.platform.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse Site URL")
+	}
+	if siteURL.Hostname() == "" {
+		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
+	}
+	// HostWhitelist normalizes its entries but not the requested host, which the
+	// HTTP-01 handler passes through exactly as the client sent it.
+	normalizedHost, err := idna.Lookup.ToASCII(host)
+	if err != nil {
+		return errors.Wrapf(err, "invalid hostname %q", host)
+	}
+	return autocert.HostWhitelist(siteURL.Hostname())(ctx, normalizedHost)
+}
+
 func (s *Server) Start() error {
 	// Start inter-cluster services first so shared channels APIs are
 	// available when plugins activate during channels startup.
@@ -1210,10 +1257,7 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
-	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
-		Prompt: autocert.AcceptTOS,
-	}
+	m := s.newLetsEncryptManager()
 
 	if *s.platform.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {

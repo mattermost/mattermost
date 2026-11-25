@@ -296,10 +296,13 @@ const adminDefinitionMessages = defineMessages({
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
     it.not(it.minLicenseTier(LicenseSkus.Professional)),
-    it.not(it.isSystemAdmin),
+    it.not(it.any(
+        it.isSystemAdmin,
+        it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS),
+    )),
 );
 
-// Site health replaces Workspace Optimization only for admins who can see it; delegated admins keep the old page.
+// Site health replaces Workspace Optimization for every admin who can see it, so each admin sees one dashboard.
 const workspaceOptimizationHidden = it.any(
     it.not(siteHealthHidden),
     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
@@ -1122,8 +1125,8 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.UseLetsEncrypt',
                             label: defineMessage({id: 'admin.service.useLetsEncrypt', defaultMessage: 'Use Let\'s Encrypt:'}),
-                            help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. A certificate will only be retrieved for the hostname of the Site URL.'}),
+                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -1868,13 +1871,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                             ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSecurityFixAlert',
-                            label: defineMessage({id: 'admin.environment.smtp.enableSecurityFixAlert.title', defaultMessage: 'Enable Security Alerts:'}),
-                            help_text: defineMessage({id: 'admin.environment.smtp.enableSecurityFixAlert.description', defaultMessage: 'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
                     ],
                 },
@@ -4461,6 +4457,17 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableSecurityFixAlert',
+                            label: defineMessage({id: 'admin.notices.enableSecurityFixAlertTitle', defaultMessage: 'Check for Security and Release Updates: '}),
+                            help_text: defineMessage({id: 'admin.notices.enableSecurityFixAlertDescription', defaultMessage: 'When enabled, the server checks Mattermost daily for security bulletins and requests the latest Mattermost release from GitHub to report whether it is out of date. System Admins are emailed relevant bulletins when SMTP is configured. When disabled, the server makes neither request.'}),
+                            isHidden: it.licensedForFeature('Cloud'),
+                            isDisabled: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
+                            ),
                         },
                     ],
                 },

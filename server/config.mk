@@ -6,7 +6,12 @@
 #
 # Possible options: postgres, minio, azurite, inbucket, openldap, dejavu,
 # keycloak, elasticsearch, opensearch, redis, prometheus,
-# grafana, loki and otel-collector.
+# grafana, loki, otel-collector and ingress-sharedsecret.
+#
+# ingress-sharedsecret is an nginx on :8090 in front of the server on :8065 that rejects
+# requests lacking the X-Mattermost-Preauth-Secret header (default 123456,
+# override with MM_INGRESS_PREAUTH_SECRET). Use it to test the mobile
+# shared secret feature.
 #
 # Must be space separated names.
 #

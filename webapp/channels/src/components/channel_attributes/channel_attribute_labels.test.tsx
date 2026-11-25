@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
@@ -657,5 +657,136 @@ describe('ChannelAttributeLabels', () => {
 
         await userEvent.click(await screen.findByTestId('channelAttributeLabelsViewAll-header'));
         expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
+    });
+
+    describe('missing value placeholders', () => {
+        function requiredField(id: string, actions: string[] = ['display_label_header']): PropertyField {
+            const base = field(id);
+            return {...base, permission_values: 'admin', attrs: {...base.attrs, actions, required: true}};
+        }
+
+        // The channel holds no value for any of the fields, and the viewer is a system admin.
+        function missingState(fields: PropertyField[]): DeepPartial<GlobalState> {
+            const state = makeState(fields) as {entities: Record<string, Record<string, unknown>>};
+            state.entities.general.config = {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'};
+            state.entities.properties.values = {byTargetId: {}, byFieldId: {}};
+            state.entities.properties.loadedValueTargets = {[CHANNEL_ID]: true};
+            state.entities.channels = {channels: {[CHANNEL_ID]: {id: CHANNEL_ID, team_id: 'team1', type: 'O', delete_at: 0}}};
+            state.entities.users = {currentUserId: 'user1', profiles: {user1: {id: 'user1', roles: 'system_admin'}}};
+            return state as DeepPartial<GlobalState>;
+        }
+
+        test('shows a Set chip for a missing header field when asked to', async () => {
+            stubWidths(1000);
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                    showMissingPlaceholders={true}
+                />,
+                missingState([requiredField('program')]),
+            );
+
+            const chip = await screen.findByTestId('channelHeaderMissingAttributeChip-program');
+            expect(chip.tagName).toBe('BUTTON');
+            expect(chip).toHaveTextContent('Set PROGRAM');
+        });
+
+        test('a Set chip keeps its field\'s place in sort_order instead of jumping ahead', async () => {
+            stubWidths(1000);
+            const classification = field('classification', {sortOrder: 0});
+            const base = requiredField('program');
+            const program = {...base, attrs: {...base.attrs, sort_order: 1}};
+            const state = missingState([classification, program]) as {entities: {properties: {values: {byTargetId: Record<string, unknown>}}}};
+            state.entities.properties.values.byTargetId = {[CHANNEL_ID]: {classification: value('classification')}};
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                    showMissingPlaceholders={true}
+                />,
+                state as DeepPartial<GlobalState>,
+            );
+
+            await screen.findByTestId('channelHeaderMissingAttributeChip-program');
+            const texts = screen.getAllByTestId('attributeChip').map((chip) => chip.textContent ?? '');
+            expect(texts).toHaveLength(2);
+            expect(texts[0]).toContain('CLASSIFICATION');
+            expect(texts[1]).toContain('Set PROGRAM');
+        });
+
+        test('shows no placeholder without the prop', () => {
+            stubWidths(1000);
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                />,
+                missingState([requiredField('program')]),
+            );
+
+            expect(screen.queryByTestId('channelHeaderMissingAttributeChip-program')).not.toBeInTheDocument();
+        });
+
+        test('shows no placeholder for a field that is not designated for the header', () => {
+            stubWidths(1000);
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface={['info', 'header']}
+                    showMissingPlaceholders={true}
+                />,
+                missingState([requiredField('program', ['display_label_info'])]),
+            );
+
+            expect(screen.queryByTestId('channelHeaderMissingAttributeChip-program')).not.toBeInTheDocument();
+        });
+
+        test('clicking the chip opens the editor for that field', async () => {
+            stubWidths(1000);
+            const openEditor = jest.spyOn(rhsActions, 'openChannelAttributeEditor').mockReturnValue(() => ({data: true}));
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                    showMissingPlaceholders={true}
+                />,
+                missingState([requiredField('program')]),
+            );
+
+            await userEvent.click(await screen.findByTestId('channelHeaderMissingAttributeChip-program'));
+
+            expect(openEditor).toHaveBeenCalledWith(CHANNEL_ID, 'program');
+        });
+
+        test('clicking an overflowed Set chip opens the editor and closes the popover', async () => {
+            stubWidths(110);
+            const openEditor = jest.spyOn(rhsActions, 'openChannelAttributeEditor').mockReturnValue(() => ({data: true}));
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                    showMissingPlaceholders={true}
+                />,
+                missingState([requiredField('a'), requiredField('b'), requiredField('c')]),
+            );
+
+            const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+            await act(async () => {
+                overflow.click();
+            });
+
+            const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
+            await userEvent.click(within(popover).getByTestId('channelHeaderMissingAttributeChip-c'));
+
+            expect(openEditor).toHaveBeenCalledWith(CHANNEL_ID, 'c');
+            await waitFor(() => expect(screen.queryByTestId('channelAttributeLabelsPopover-header')).not.toBeInTheDocument());
+        });
     });
 });

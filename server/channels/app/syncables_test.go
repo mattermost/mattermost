@@ -658,6 +658,14 @@ func TestSyncSyncableRoles(t *testing.T) {
 	_, err = th.App.UpdateGroupSyncable(channelSyncable)
 	require.Nil(t, err)
 
+	// Read each user's ABAC channel role first, so a promotion that left the cached role in
+	// place would show up below.
+	for _, user := range []*model.User{user1, user2} {
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, user.Id, channel.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelUserRoleId, role)
+	}
+
 	err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, err)
 
@@ -672,6 +680,10 @@ func TestSyncSyncableRoles(t *testing.T) {
 		cm, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, cm.SchemeAdmin)
+
+		role, err := th.App.GetSubjectChannelRole(th.Context, user.Id, channel.Id)
+		require.Nil(t, err)
+		require.Equal(t, model.ChannelAdminRoleId, role)
 	}
 }
 

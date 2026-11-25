@@ -11,6 +11,16 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+func filterCategoryChannelsByReadAccess(c *Context, category *model.SidebarCategoryWithChannels) {
+	if category == nil {
+		return
+	}
+
+	// Evaluated for the session, not the queried user, like getChannelsForUser: a
+	// requester acting for someone else must not learn of a channel their own policy denies.
+	category.Channels = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, category.Channels)
+}
+
 func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
@@ -31,6 +41,10 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	for _, category := range categories.Categories {
+		filterCategoryChannelsByReadAccess(c, category)
 	}
 
 	categoriesJSON, err := json.Marshal(categories)
@@ -188,6 +202,8 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		c.Err = appErr
 		return
 	}
+
+	filterCategoryChannelsByReadAccess(c, categories)
 
 	categoriesJSON, err := json.Marshal(categories)
 	if err != nil {

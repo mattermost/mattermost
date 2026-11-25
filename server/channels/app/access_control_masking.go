@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
 // GetMaskedVisualAST converts the given CEL expression to a VisualExpression and
@@ -210,6 +212,19 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 	}
 	if holdingsField == nil {
 		return &maskingHoldings{field: field, accessMode: accessMode}, nil
+	}
+
+	// Ranks and graph edges are comparable only within one option list, and
+	// names and IDs repeat across lists, so holdings on another list prove
+	// nothing: hide them, which masks every literal.
+	if field.Type == model.PropertyFieldTypeRank || field.Type == model.PropertyFieldTypeGraph {
+		listOwnerID := field.ID
+		if field.LinkSourceID() != "" {
+			listOwnerID = field.LinkSourceID()
+		}
+		if !properties.ReadsOptionList(holdingsField, listOwnerID) {
+			holdingsField = fieldWithEmptyOptions(holdingsField)
+		}
 	}
 
 	if accessMode == model.PropertyAccessModeSharedOnly &&
