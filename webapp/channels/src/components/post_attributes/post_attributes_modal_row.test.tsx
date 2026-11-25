@@ -287,6 +287,52 @@ describe('PostAttributesModalRow', () => {
         expect(onChange).toHaveBeenCalledWith('field_text', 'ok@example.com');
     });
 
+    test.each([
+        ['email', 'Foo@bar.com'],
+        ['email', 'not-an-email'],
+        ['url', 'example.com'],
+    ])('a text field leaves an untouched stored %s value its value type rejects alone on blur and Enter (%s)', async (valueType, stored) => {
+        const field = makeField({id: 'field_text', name: 'contact', type: 'text', attrs: {display_name: 'Contact', value_type: valueType}});
+        const onChange = renderRow({
+            field,
+            value: makeValue({field_id: 'field_text', value: stored}),
+        });
+
+        const input = screen.getByTestId('post-attribute-input-contact');
+
+        await userEvent.click(input);
+        await userEvent.tab();
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(input).not.toHaveAttribute('aria-invalid');
+
+        await userEvent.click(input);
+        await userEvent.keyboard('{Enter}');
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(input).not.toHaveFocus();
+
+        expect(onChange).not.toHaveBeenCalled();
+    });
+
+    test('a text field clears its error when an invalid edit is put back to the stored value', async () => {
+        const field = makeField({id: 'field_text', name: 'contact', type: 'text', attrs: {display_name: 'Contact', value_type: 'email'}});
+        const onChange = renderRow({
+            field,
+            value: makeValue({field_id: 'field_text', value: 'Foo@bar.com'}),
+        });
+
+        const input = screen.getByTestId('post-attribute-input-contact');
+
+        await userEvent.type(input, 'x');
+        await userEvent.tab();
+        expect(screen.getByRole('alert')).toHaveTextContent('Use lowercase letters only');
+
+        await userEvent.click(input);
+        await userEvent.keyboard('{End}{Backspace}');
+        await userEvent.tab();
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(onChange).not.toHaveBeenCalled();
+    });
+
     test('a text field is a bare input, with none of the form widget chrome around it', () => {
         const field = makeField({id: 'field_text', name: 'reason', type: 'text', attrs: {display_name: 'Reason'}});
         renderRow({

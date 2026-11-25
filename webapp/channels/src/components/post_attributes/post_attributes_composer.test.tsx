@@ -564,6 +564,21 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Contact: foo@bar.com');
     });
 
+    test('a text chip whose untouched staged value its value type rejects returns to rest on blur, with no error', async () => {
+        const field = makeField({type: 'text', attrs: {display_name: 'Contact', value_type: 'email'}});
+
+        renderComposer([field], [{field_id: 'field_1', value: 'Foo@bar.com'}]);
+
+        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
+        await waitFor(() => expect(screen.getByTestId('post-attribute-input-classification')).toHaveFocus());
+
+        await userEvent.keyboard('{Enter}');
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Contact: Foo@bar.com');
+        expect(stagedValues()).toEqual([{field_id: 'field_1', value: 'Foo@bar.com'}]);
+    });
+
     test('pressing the × on a text chip being edited keeps focus in its input, so one click removes the chip', async () => {
         renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 

@@ -319,7 +319,14 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
         }
     }, [autoOpen]);
 
+    // An untouched value is never validated: a stored value can predate the
+    // field's `value_type`, and leaving it as it is commits nothing.
     const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
+        if (draft === stored) {
+            setShowError(false);
+            return;
+        }
+
         if (validateTextValue(field, draft)) {
             setShowError(true);
 
@@ -329,9 +336,7 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
             return;
         }
 
-        if (draft !== stored) {
-            onChange(field.id, draft);
-        }
+        onChange(field.id, draft);
     }, [draft, stored, field, onChange]);
 
     const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -340,12 +345,12 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
         }
 
         event.preventDefault();
-        if (validateTextValue(field, draft)) {
+        if (draft !== stored && validateTextValue(field, draft)) {
             setShowError(true);
             return;
         }
         event.currentTarget.blur();
-    }, [field, draft]);
+    }, [field, draft, stored]);
 
     return (
         <span className='PostAttributesModalRow__textField'>
