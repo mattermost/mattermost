@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/color/palette"
 	"image/draw"
 	"image/gif"
@@ -358,9 +359,20 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight)
 }
 
+// emojiGIFPalette is the Plan9 palette with its first entry (opaque black)
+// replaced by a fully transparent color. Plan9 has no transparent color, so
+// without this, transparent pixels of resized GIF emojis became black.
+// GIF palettes are limited to 256 colors, hence the replacement.
+var emojiGIFPalette = func() color.Palette {
+	p := make(color.Palette, len(palette.Plan9))
+	copy(p, palette.Plan9)
+	p[0] = color.Transparent
+	return p
+}()
+
 func imageToPaletted(img image.Image) *image.Paletted {
 	b := img.Bounds()
-	pm := image.NewPaletted(b, palette.Plan9)
+	pm := image.NewPaletted(b, emojiGIFPalette)
 	draw.FloydSteinberg.Draw(pm, b, img, image.Point{})
 	return pm
 }

@@ -7,6 +7,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/gif"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -257,4 +260,44 @@ func TestEmojiStoreErrorClassification(t *testing.T) {
 		assert.Equal(t, tc.id, appErr.Id)
 		assert.Equal(t, tc.status, appErr.StatusCode)
 	}
+}
+
+func TestResizeEmojiGifKeepsTransparency(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	red := color.RGBA{R: 220, G: 30, B: 30, A: 255}
+	frame := image.NewPaletted(image.Rect(0, 0, 256, 256), color.Palette{color.Transparent, red, color.Black})
+	// Transparent background, red square in the center, opaque black square
+	// in the top-right corner.
+	for y := 64; y < 192; y++ {
+		for x := 64; x < 192; x++ {
+			frame.SetColorIndex(x, y, 1)
+		}
+	}
+	for y := range 32 {
+		for x := 224; x < 256; x++ {
+			frame.SetColorIndex(x, y, 2)
+		}
+	}
+	gifImg := &gif.GIF{Image: []*image.Paletted{frame}, Delay: []int{0}}
+
+	resizeEmojiGif(gifImg)
+
+	// Round-trip through the GIF encoder, as uploadEmojiImage does.
+	var buf bytes.Buffer
+	require.NoError(t, gif.EncodeAll(&buf, gifImg))
+	decoded, err := gif.DecodeAll(&buf)
+	require.NoError(t, err)
+	resized := decoded.Image[0]
+	require.Equal(t, image.Rect(0, 0, MaxEmojiWidth, MaxEmojiHeight), resized.Bounds())
+
+	_, _, _, a := resized.At(0, 0).RGBA()
+	assert.Zero(t, a, "transparent background should stay transparent")
+
+	_, _, _, a = resized.At(64, 64).RGBA()
+	assert.Equal(t, uint32(0xffff), a, "opaque content should stay opaque")
+
+	r, g, b, a := resized.At(120, 8).RGBA()
+	assert.Equal(t, uint32(0xffff), a, "opaque black should not become transparent")
+	assert.Less(t, max(r, g, b), uint32(0x3000), "opaque black should stay dark")
 }
