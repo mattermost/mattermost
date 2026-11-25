@@ -37,6 +37,7 @@
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
     }
 
+    &__automaticChecksOff,
     &__runError,
     &__exportError {
         margin-bottom: 16px;

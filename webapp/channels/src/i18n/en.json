@@ -7563,6 +7563,22 @@
     "defaultMessage": "Updates",
     "description": "Section heading on the System Console Site health page grouping health findings in the \"server version and updates\" area; noun, compact space."
   },
+  "admin.health_dashboard.automatic_checks.help": {
+    "defaultMessage": "When true, the server checks site health every hour.",
+    "description": "Help text under the \"Run checks automatically\" True/False setting at the top of the System Console Site health page; \"When true\" refers to selecting the True option."
+  },
+  "admin.health_dashboard.automatic_checks.label": {
+    "defaultMessage": "Run checks automatically",
+    "description": "Label of the True/False setting at the top of the System Console Site health page that turns the hourly health check on or off."
+  },
+  "admin.health_dashboard.automatic_checks.off": {
+    "defaultMessage": "Automatic checks are off. Findings show the last run and may be out of date.",
+    "description": "Informational banner on the System Console Site health page shown while the \"Run checks automatically\" setting is off; findings then come from the most recent run, which may be old."
+  },
+  "admin.health_dashboard.automatic_checks.turn_on": {
+    "defaultMessage": "Turn on",
+    "description": "Button in the \"Automatic checks are off\" banner on the System Console Site health page that turns automatic hourly health checks back on; only shown to system admins."
+  },
   "admin.health_dashboard.detail.details": {
     "defaultMessage": "Details",
     "description": "Heading of the key/value details list in an expanded finding on the System Console Site health page."
@@ -7660,7 +7676,7 @@
     "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
   },
   "admin.health_dashboard.empty.body": {
-    "defaultMessage": "The first health check runs within an hour of enabling the feature. A system admin can run it sooner with Re-run checks.",
+    "defaultMessage": "No health check has run yet. To run one now, select Re-run checks.",
     "description": "Body of the System Console Site health page empty state shown before the first health check has run; Re-run checks is the label of the button above it."
   },
   "admin.health_dashboard.empty.title": {

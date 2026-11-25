@@ -10,8 +10,10 @@ import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/compone
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {AdminConfig} from '@mattermost/types/config';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
@@ -20,12 +22,14 @@ import {
 } from 'mattermost-redux/utils/health_utils';
 import type {HealthFindingTab} from 'mattermost-redux/utils/health_utils';
 
+import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useWebSocketClient} from 'utils/use_websocket/hooks';
 
+import {AutomaticChecksOffBanner, AutomaticChecksSetting} from './automatic_checks';
 import {EmptyState, TabEmptyState} from './empty_state';
 import ExportMenu from './export_menu';
 import FindingGroups from './finding_groups';
@@ -46,6 +50,12 @@ export type Props = {
     // Delegated admins who can only read Site Statistics see the page read-only.
     canManage: boolean;
 
+    // SiteHealthSettings.EnableAutomaticChecks as saved, or undefined where the viewer can't read
+    // it, as on Cloud, which hides the setting.
+    automaticChecks?: boolean;
+    automaticChecksSetByEnv: boolean;
+    canWriteAutomaticChecks: boolean;
+
     // Jobs in the store by ID. job_updated WebSocket events keep them up to date.
     jobs: Record<string, Job>;
     actions: {
@@ -54,6 +64,8 @@ export type Props = {
         unmuteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
         createJob: (job: JobTypeBase) => Promise<ActionResult<Job>>;
         getJobsByType: (type: JobType, page?: number, perPage?: number) => Promise<ActionResult<Job[]>>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
+        setNavigationBlocked: (blocked: boolean) => void;
     };
 };
 
@@ -128,7 +140,17 @@ const exportErrorMessage = defineMessage({
     defaultMessage: 'The health findings could not be exported. Try again.',
 });
 
-const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, jobs, actions}: Props) => {
+const HealthDashboard = ({
+    findings,
+    mutedFindings,
+    lastEvaluatedAt,
+    canManage,
+    automaticChecks,
+    automaticChecksSetByEnv,
+    canWriteAutomaticChecks,
+    jobs,
+    actions,
+}: Props) => {
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
     const [now, setNow] = useState(Date.now);
@@ -142,6 +164,9 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
     const [exportFailed, setExportFailed] = useState(false);
     const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
     const [, setStaleCheck] = useState(0);
+    const [automaticChecksDraft, setAutomaticChecksDraft] = useState<boolean>();
+    const [savingAutomaticChecks, setSavingAutomaticChecks] = useState(false);
+    const [automaticChecksError, setAutomaticChecksError] = useState<string>();
     const wsClient = useWebSocketClient();
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
@@ -197,6 +222,24 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
         const timer = setTimeout(() => setStaleCheck(staleAt), Math.max(staleAt - Date.now(), 0) + 1);
         return () => clearTimeout(timer);
     }, [staleAt]);
+
+    const automaticChecksDirty = automaticChecksDraft !== undefined && automaticChecksDraft !== automaticChecks;
+    useEffect(() => {
+        actions.setNavigationBlocked(automaticChecksDirty);
+    }, [automaticChecksDirty, actions]);
+    useEffect(() => () => actions.setNavigationBlocked(false), [actions]);
+
+    const changeAutomaticChecks = useCallback((_: string, value: boolean) => setAutomaticChecksDraft(value), []);
+
+    const saveAutomaticChecks = useCallback(async (value: boolean) => {
+        setSavingAutomaticChecks(true);
+        const {error} = await actions.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: value}});
+        setSavingAutomaticChecks(false);
+        setAutomaticChecksError(error?.message);
+        if (!error) {
+            setAutomaticChecksDraft(undefined);
+        }
+    }, [actions]);
 
     const startRun = useCallback(async () => {
         setStarting(true);
@@ -330,7 +373,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                     body={
                         <FormattedMessage
                             id='admin.health_dashboard.empty.body'
-                            defaultMessage='The first health check runs within an hour of enabling the feature. A system admin can run it sooner with Re-run checks.'
+                            defaultMessage='No health check has run yet. To run one now, select Re-run checks.'
                         />
                     }
                 />
@@ -435,6 +478,8 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
         );
     }
 
+    const showAutomaticChecks = automaticChecks !== undefined;
+
     return (
         <div className='wrapper--fixed HealthDashboard'>
             <AdminHeader>
@@ -445,9 +490,32 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
+                    {showAutomaticChecks && (
+                        <AutomaticChecksSetting
+                            value={automaticChecksDraft ?? automaticChecks}
+                            setByEnv={automaticChecksSetByEnv}
+                            disabled={!canWriteAutomaticChecks}
+                            onChange={changeAutomaticChecks}
+                        />
+                    )}
+                    {automaticChecks === false && (
+                        <AutomaticChecksOffBanner
+                            onTurnOn={canWriteAutomaticChecks && !automaticChecksSetByEnv ? () => saveAutomaticChecks(true) : undefined}
+                            turningOn={savingAutomaticChecks}
+                        />
+                    )}
                     {content}
                 </div>
             </div>
+            {showAutomaticChecks && (
+                <SaveChangesPanel
+                    saving={savingAutomaticChecks}
+                    saveNeeded={automaticChecksDirty}
+                    onClick={() => saveAutomaticChecks(automaticChecksDraft!)}
+                    serverError={automaticChecksError}
+                    isDisabled={!canWriteAutomaticChecks}
+                />
+            )}
         </div>
     );
 };
