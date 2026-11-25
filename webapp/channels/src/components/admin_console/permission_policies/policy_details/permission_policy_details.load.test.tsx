@@ -413,6 +413,10 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             ['a user-managed attribute', 'user.attributes.nickname == "boss"', `${NICKNAME_SENTENCE} ${ADVICE}`],
             ['several user-managed attributes', 'user.attributes.nickname == "boss" && user.attributes["color"] == "red"', `Nickname and Favorite color are user-managed attributes that users can change themselves. ${ADVICE}`],
             ['session and user-managed attributes', 'user.attributes.nickname == "boss" && user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${NICKNAME_SENTENCE} ${ADVICE}`],
+            ['a session attribute OR-ed with an admin-managed attribute', 'user.session.network_name == "office" || user.attributes.department == "sales"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a user-managed attribute OR-ed with a synced attribute', 'user.attributes.nickname == "boss" || user.attributes.teams == "eng"', `${NICKNAME_SENTENCE} ${ADVICE}`],
+            ['a negated AND with a trusted side', '!(user.attributes.department == "sales" && user.session.network_name == "office")', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a ternary on a session attribute with a user-managed branch', 'user.session.network_name == "office" ? user.attributes.teams == "eng" : user.attributes.nickname == "boss"', `${NETWORK_NAME_SENTENCE} ${NICKNAME_SENTENCE} ${ADVICE}`],
         ])('shows when the rules only use %s', async (_label, expression, warning) => {
             renderWithExpression(expression);
             await screen.findByTestId(/editor/);
@@ -427,6 +431,9 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             ['a session and a built-in attribute', 'user.session.network_name == "office" && user.email.endsWith("@acme.com")'],
             ['a user-managed and an admin-managed attribute', 'user.attributes.nickname == "boss" && user.attributes.department == "sales"'],
             ['an attribute that is not in the field list', 'user.session.network_name == "office" && user.attributes.unknown == "x"'],
+            ['an OR of unverified attributes AND-ed with a trusted one', '(user.session.network_name == "office" || user.attributes.nickname == "boss") && user.attributes.department == "sales"'],
+            ['a session attribute AND-ed with an OR of trusted attributes', 'user.session.network_name == "office" && (user.attributes.department == "sales" || user.attributes.teams == "eng")'],
+            ['a ternary where both branches need a trusted attribute', 'user.session.network_name == "office" ? user.attributes.teams == "eng" : user.attributes.department == "sales"'],
         ])('hides when the rules use %s', async (_label, expression) => {
             renderWithExpression(expression);
             await screen.findByTestId(/editor/);

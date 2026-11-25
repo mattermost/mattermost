@@ -47,7 +47,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 import RuleEditorCard, {type EditorMode, type PolicyScope, type SimulateBlockedReason} from './rule_editor_card';
 
 import {SYSTEM_BOT_ROLE, getHiddenNativeReferences, getSyncedAttributeReferences} from '../../access_control/bot_scope';
-import {referencedNativeUserAttributeNames, referencedSessionAttributeNames, referencedUserAttributeNames} from '../../access_control/cel_lexer';
+import {everyPathRequires, referencedNativeUserAttributeNames, referencedSessionAttributeNames, referencedUserAttributeNames} from '../../access_control/cel_lexer';
 import {hasControlledAttributeValues, hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
@@ -303,13 +303,16 @@ function PermissionPolicyDetails({
         });
     }, [isBotScope, expression, userFields]);
 
-    // Warn when every user condition rests on values the user or their device
-    // controls. Unknown custom attributes count as trusted to avoid false alarms.
+    // Warn when the rules can pass without any condition on a value the user or
+    // their device can't control. Unknown custom attributes count as trusted to avoid false alarms.
     const unverifiedNotice = useMemo(() => {
-        const customFields = referencedUserAttributeNames(expression).map((name) => userFields.find((f) => f.name === name && !isNativeField(f)));
-        const hasTrustedReference = referencedNativeUserAttributeNames(expression).length > 0 ||
-            customFields.some((f) => !f || hasControlledAttributeValues(f));
-        if (hasTrustedReference) {
+        const findCustomField = (name: string) => userFields.find((f) => f.name === name && !isNativeField(f));
+        const isTrustedCondition = (condition: string) => referencedNativeUserAttributeNames(condition).length > 0 ||
+            referencedUserAttributeNames(condition).some((name) => {
+                const field = findCustomField(name);
+                return !field || hasControlledAttributeValues(field);
+            });
+        if (everyPathRequires(expression, isTrustedCondition)) {
             return undefined;
         }
 
@@ -317,7 +320,10 @@ function PermissionPolicyDetails({
             const field = sessionFields.find((f) => f.name === name);
             return field ? getUserPropertyFieldLabel(field) : name;
         });
-        const userManagedLabels = customFields.map((f) => getUserPropertyFieldLabel(f!));
+        const userManagedLabels = referencedUserAttributeNames(expression).flatMap((name) => {
+            const field = findCustomField(name);
+            return field && !hasControlledAttributeValues(field) ? [getUserPropertyFieldLabel(field)] : [];
+        });
 
         const sentences: string[] = [];
         if (sessionLabels.length > 0) {
