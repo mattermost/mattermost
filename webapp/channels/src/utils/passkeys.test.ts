@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {assertionToJSON, base64urlDecode, base64urlEncode, createPasskey, creationOptionsFromJSON, registrationToJSON, requestOptionsFromJSON, signalUnknownPasskey, verifyPasskey} from './passkeys';
+import type {Passkey} from '@mattermost/types/passkeys';
+
+import {assertionToJSON, base64urlDecode, base64urlEncode, createPasskey, creationOptionsFromJSON, registrationToJSON, requestOptionsFromJSON, signalAcceptedPasskeys, signalUnknownPasskey, verifyPasskey} from './passkeys';
 
 const bytes = (...b: number[]) => new Uint8Array(b).buffer;
 const toArray = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf));
@@ -194,6 +196,74 @@ describe('utils/passkeys', () => {
                 throw new Error('sync');
             })};
             expect(() => signalUnknownPasskey('example.com', 'abc')).not.toThrow();
+
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            process.off('unhandledRejection', unhandled);
+            expect(unhandled).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('signalAcceptedPasskeys', () => {
+        const original = (window as any).PublicKeyCredential;
+        afterEach(() => {
+            (window as any).PublicKeyCredential = original;
+        });
+
+        const pk = (credentialId: string, userHandle: string) => ({credential_id: credentialId, user_handle: userHandle}) as Passkey;
+
+        test('sends one call for a handle shared by several passkeys, listing every id', () => {
+            const signal = jest.fn().mockResolvedValue(undefined);
+            (window as any).PublicKeyCredential = {signalAllAcceptedCredentials: signal};
+
+            signalAcceptedPasskeys('example.com', [pk('c1', 'h1'), pk('c2', 'h1')]);
+
+            expect(signal).toHaveBeenCalledTimes(1);
+            expect(signal).toHaveBeenCalledWith({rpId: 'example.com', userId: 'h1', allAcceptedCredentialIds: ['c1', 'c2']});
+        });
+
+        test('sends one call per distinct handle, each listing every id', () => {
+            const signal = jest.fn().mockResolvedValue(undefined);
+            (window as any).PublicKeyCredential = {signalAllAcceptedCredentials: signal};
+
+            signalAcceptedPasskeys('example.com', [pk('c1', 'h1'), pk('c2', 'h2'), pk('c3', 'h1')]);
+
+            expect(signal).toHaveBeenCalledTimes(2);
+            expect(signal).toHaveBeenCalledWith({rpId: 'example.com', userId: 'h1', allAcceptedCredentialIds: ['c1', 'c2', 'c3']});
+            expect(signal).toHaveBeenCalledWith({rpId: 'example.com', userId: 'h2', allAcceptedCredentialIds: ['c1', 'c2', 'c3']});
+        });
+
+        test('sends nothing without passkeys', () => {
+            const signal = jest.fn().mockResolvedValue(undefined);
+            (window as any).PublicKeyCredential = {signalAllAcceptedCredentials: signal};
+
+            signalAcceptedPasskeys('example.com', []);
+
+            expect(signal).not.toHaveBeenCalled();
+        });
+
+        test('does nothing when the browser has no PublicKeyCredential or no such function', () => {
+            (window as any).PublicKeyCredential = undefined;
+            expect(() => signalAcceptedPasskeys('example.com', [pk('c1', 'h1')])).not.toThrow();
+
+            (window as any).PublicKeyCredential = {};
+            expect(() => signalAcceptedPasskeys('example.com', [pk('c1', 'h1')])).not.toThrow();
+        });
+
+        test('swallows a rejection and a synchronous throw, and still signals the other handles', async () => {
+            const unhandled = jest.fn();
+            process.on('unhandledRejection', unhandled);
+
+            (window as any).PublicKeyCredential = {signalAllAcceptedCredentials: jest.fn().mockRejectedValue(new Error('nope'))};
+            expect(() => signalAcceptedPasskeys('example.com', [pk('c1', 'h1')])).not.toThrow();
+
+            const signal = jest.fn().
+                mockImplementationOnce(() => {
+                    throw new Error('sync');
+                }).
+                mockResolvedValue(undefined);
+            (window as any).PublicKeyCredential = {signalAllAcceptedCredentials: signal};
+            expect(() => signalAcceptedPasskeys('example.com', [pk('c1', 'h1'), pk('c2', 'h2')])).not.toThrow();
+            expect(signal).toHaveBeenCalledTimes(2);
 
             await new Promise((resolve) => setTimeout(resolve, 0));
             process.off('unhandledRejection', unhandled);

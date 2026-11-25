@@ -134,3 +134,17 @@ export function signalUnknownPasskey(rpId: string, credentialId: string): void {
         // PublicKeyCredential or the method is missing.
     }
 }
+
+// Best effort, like signalUnknownPasskey. Every call lists all credential ids: the browser only compares them
+// with the credential it holds under that handle, and a manager that compares against everything it holds for
+// the site would otherwise hide the passkeys registered under another handle.
+export function signalAcceptedPasskeys(rpId: string, passkeys: Passkey[]): void {
+    const allAcceptedCredentialIds = passkeys.map((p) => p.credential_id);
+    for (const userId of new Set(passkeys.map((p) => p.user_handle))) {
+        try {
+            PublicKeyCredential.signalAllAcceptedCredentials({rpId, userId, allAcceptedCredentialIds}).catch(() => {});
+        } catch {
+            // PublicKeyCredential or the method is missing, or the call threw.
+        }
+    }
+}

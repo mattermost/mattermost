@@ -21,8 +21,8 @@ jest.mock('@mattermost/shared/utils/user_agent', () => ({
 const isDesktopAppMock = jest.mocked(isDesktopApp);
 
 const passkeys: Passkey[] = [
-    {id: 'pk1', user_id: 'me', name: 'Laptop', create_at: Date.UTC(2025, 0, 15, 12), last_used_at: 0},
-    {id: 'pk2', user_id: 'me', name: 'Phone', create_at: Date.UTC(2025, 1, 20, 12), last_used_at: Date.UTC(2025, 2, 5, 12)},
+    {id: 'pk1', user_id: 'me', name: 'Laptop', create_at: Date.UTC(2025, 0, 15, 12), last_used_at: 0, credential_id: 'Y3JlZC1wazE', user_handle: 'aGFuZGxl'},
+    {id: 'pk2', user_id: 'me', name: 'Phone', create_at: Date.UTC(2025, 1, 20, 12), last_used_at: Date.UTC(2025, 2, 5, 12), credential_id: 'Y3JlZC1wazI', user_handle: 'aGFuZGxl'},
 ];
 
 const enabledState = {
@@ -35,7 +35,7 @@ const enabledState = {
 };
 
 const manyPasskeys: Passkey[] = Array.from({length: 10}, (_, i) => ({
-    id: `pk${i}`, user_id: 'me', name: `Key ${i}`, create_at: Date.UTC(2025, 0, 1), last_used_at: 0,
+    id: `pk${i}`, user_id: 'me', name: `Key ${i}`, create_at: Date.UTC(2025, 0, 1), last_used_at: 0, credential_id: `Y3JlZC1way${i}`, user_handle: 'aGFuZGxl',
 }));
 
 const beginResult = {

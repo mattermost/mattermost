@@ -9,6 +9,10 @@ export type Passkey = {
 
     // 0 means the passkey has never been used to sign in.
     last_used_at: number;
+
+    // base64url, as the browser's credential manager knows them.
+    credential_id: string;
+    user_handle: string;
 };
 
 export type PasskeyRegistrationOptions = {
