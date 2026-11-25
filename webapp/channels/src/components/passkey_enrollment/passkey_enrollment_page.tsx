@@ -179,8 +179,9 @@ export default function PasskeyEnrollmentPage() {
         }
     };
 
-    // Begin does not spend the ticket. It runs here only to learn the username; Add begins its own ceremony, because
-    // the browser's timer starts at create() while the server's starts at begin, so a reused one could expire mid-biometric.
+    // Begin does not spend the ticket. It runs here to learn the username and to find out early that the session is too old to add.
+    // Add begins its own ceremony, because the browser's timer starts at create() while the server's starts at begin,
+    // so a reused one could expire mid-biometric.
     const canStart = Boolean(ticket) && !isDesktopApp() && typeof window.PublicKeyCredential !== 'undefined';
     useEffect(() => {
         if (!canStart) {
