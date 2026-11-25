@@ -14,7 +14,6 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
-
 ## Release v12.2 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-2-feature-release}
 
 **Release day: 2026-12-16**
@@ -36,14 +35,14 @@ Platform and OS scope reflects reported and tested environments and may not repr
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
  - **Changes to All plans:**
-   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting to specify the TLS CA certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientCert`` configuration setting to specify the TLS client certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientKey`` configuration setting to specify the TLS client key for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSSkipVerify`` configuration setting to skip TLS verification for Redis connections.
    - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting.
    - Under ``SSOSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting.
-   - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade.
+   - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
 #### Compatibility
@@ -52,8 +51,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
  - ``LogSettings.EnableWebhookDebugging`` now defaults to false. When enabled, it logs failed incoming webhook requests with their payload, and System Console > Reporting > Site health shows a warning while it is on and debug logging is active. See the [Important upgrade notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes) documentation for details.
  - Sending email and testing the SMTP connection now return an error when SMTP Connection Security is set to STARTTLS and the SMTP server does not accept STARTTLS.
  - Starting with this release, FIPS builds reject SAML responses that use SHA-1, including RSA-OAEP key encryption with SHA-1 and SHA-1 signatures and digests, and the login fails. If your identity provider encrypts SAML assertions, configure it with RSA-OAEP-11 (``http://www.w3.org/2009/xmlenc11#rsa-oaep``), digest method SHA-256 (``http://www.w3.org/2001/04/xmlenc#sha256``), and MGF1-SHA256 (``http://www.w3.org/2009/xmlenc11#mgf1sha256``) set explicitly. See the [SAML Keycloak documentation](https://docs.mattermost.com/administration-guide/onboard/sso-saml-keycloak) for details. Non-FIPS builds are not affected.
- - Plugin signatures and Team Edition to Enterprise upgrade signatures that use the SHA-1 hash algorithm, or that are made with a DSA key or an RSA key shorter than 2048 bits, are now rejected. Plugins signed with an admin-configured key using SHA-1 must be re-signed with SHA-256 or stronger; plugins signed with a DSA or short RSA key must be re-signed with a new key.
- - Replaced the deprecated ``golang.org/x/crypto/openpgp`` library with ``github.com/ProtonMail/go-crypto`` for plugin signature verification and Team Edition to Enterprise upgrades. Plugin signatures are now rejected if the signing key is expired, its self-signature lacks a signing key flag, or if the signature uses the MD5 or RIPEMD-160 hash algorithms.
+ - Replaced the deprecated ``golang.org/x/crypto/openpgp`` library with ``github.com/ProtonMail/go-crypto`` for plugin signature verification and Team Edition to Enterprise upgrades. Plugin signatures and Team Edition to Enterprise upgrade signatures that use the SHA-1 hash algorithm, or that are made with a DSA key or an RSA key shorter than 2048 bits, are now rejected. Plugin signatures are also rejected if the signing key is expired, its self-signature lacks a signing key flag, or the signature uses the MD5 or RIPEMD-160 hash algorithms. Plugins signed with an admin-configured key using SHA-1 must be re-signed with SHA-256 or stronger; plugins signed with a DSA or short RSA key must be re-signed with a new key.
  - In High Availability deployments using Redis, cluster messages are now sent on a channel namespaced by ``CacheSettings.RedisCachePrefix``. Deployments that already set a prefix will not exchange cluster messages between old and new versions during a rolling upgrade.
  - Reserved the plugin ID ``com.mattermost.server``, including case variants, for the core server. Existing plugins with this ID will no longer load, and new installations and development reattachment are rejected.
  - Raised the minimum session attribute time-to-live and grace period to 1 minute. Existing session attributes configured with a TTL or grace period under 1 minute are migrated to 1 minute, and the 30-second option has been removed from the System Console.
@@ -107,11 +105,9 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Shared Channels: when a plugin's ``OnSharedChannelsSyncMsg`` hook returns an error, the channel's sync cursor is no longer advanced and the batch is sent again. Plugins should return an error only for failures that a resend can fix.
  - Updated how the shared markdown parser handles reference-style links (``[text][label]``). Plugin and integration developers who call ``markdown.Parse``, ``ParseInlines`` or ``RenderBlockHTML`` from the ``server/public`` module need to update their code: ``markdown.Parse`` now returns ``*markdown.ReferenceDefinitions`` instead of ``[]*markdown.ReferenceDefinition``, and the other functions now accept that type.
  - Widened the optional TypeScript peer dependency of the webapp platform packages to include TypeScript 6 and 7. The @mattermost/shared declaration files are now generated per module by the TypeScript compiler, which fixes type errors for plugins that do not use ``skipLibCheck`` and stops exporting 11 types that were exported unintentionally.
- - Updated ``AI``-generated recap citations and message history processing.
+ - Updated AI-generated recap citations and message history processing.
 
 #### Administration
- - Added [``mmctl logs``](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool) flags ``--follow``, ``--interval``, ``--level``, ``--node``, ``--search`` (``-s``) and ``--since``. ``mmctl logs`` now reads logs through ``POST /api/v4/logs/query``, which requires JSON file logging (``LogSettings.FileJson``) for filtering and following; with plain-text log files it prints the logs unfiltered as before. ``--follow``, ``--level``, ``--node``, ``--search`` and ``--since`` require a v12.2 or later server. ``mmctl logs`` now always uses the logrus format, colored on a terminal (set ``NO_COLOR`` to turn colors off), and shows when the server logged each entry. The ``--logrus`` flag is deprecated.
- - Added the ``--plugin`` flag to [``mmctl logs``](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool), which shows only the log entries of the given plugin IDs. Added shell completion of plugin IDs to ``mmctl logs --plugin`` and ``mmctl plugin enable``, ``disable`` and ``delete``.
  - Added a "Re-run checks" button to the System Console Site health page and an ``mmctl health run`` command, to run the Health Dashboard check on demand. System admins can also start a run by creating a ``health_check`` job with ``POST /api/v4/jobs``. See the [Site Health Dashboard documentation](https://docs.mattermost.com/administration-guide/manage/site-health-dashboard) for details.
  - Added per-node memory diagnostics and Health Dashboard warnings for memory pressure, out-of-memory kills, low host memory, and incompatible Go memory limits.
  - Added CPU pressure diagnostics and per-node Site Health Dashboard findings for CPU throttling, ``GOMAXPROCS`` configuration, and sustained host load.
@@ -147,13 +143,15 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - The data retention job now updates its last activity time as it deletes data, so a long-running job is no longer reported as stuck.
  - Improved file name handling in ``mmctl support packet`` and compliance export downloads.
  - The Support Packet's SAML diagnostic now checks the IdP certificate and, when encryption is enabled, the service provider key pair, instead of fetching the optional IdP metadata URL. It no longer reports a SAML failure when no metadata URL is configured.
- - Added ``mmctl plugin keys``, ``mmctl plugin keys add``, and ``mmctl plugin keys delete`` commands (local mode only) to manage plugin signature public keys, along with local-mode API endpoints under ``/api/v4/plugins/public_keys``.
  - Server Logs live tail in the System Console now fetches only new log entries, briefly highlights them, and holds them behind a "new entries" button while the admin is reading elsewhere in the list.
  - Added documentation on [turning off Elasticsearch indexing before a large bulk permanent channel delete](https://docs.mattermost.com/deployment-guide/scale/enterprise-search#should-i-turn-off-indexing-before-a-large-bulk-permanent-channel-delete), and that leftover search documents do not require a full index purge.
  - Updated advanced logging configuration.
 
 #### mmctl
  - ``mmctl system`` commands now propagate context, so Ctrl+C and SIGTERM cancel in-flight API calls cleanly.
+ - Added [``mmctl logs``](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool) flags ``--follow``, ``--interval``, ``--level``, ``--node``, ``--search`` (``-s``) and ``--since``. ``mmctl logs`` now reads logs through ``POST /api/v4/logs/query``, which requires JSON file logging (``LogSettings.FileJson``) for filtering and following; with plain-text log files it prints the logs unfiltered as before. ``--follow``, ``--level``, ``--node``, ``--search`` and ``--since`` require a v12.2 or later server. ``mmctl logs`` now always uses the logrus format, colored on a terminal (set ``NO_COLOR`` to turn colors off), and shows when the server logged each entry. The ``--logrus`` flag is deprecated.
+ - Added the ``--plugin`` flag to [``mmctl logs``](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool), which shows only the log entries of the given plugin IDs. Added shell completion of plugin IDs to ``mmctl logs --plugin`` and ``mmctl plugin enable``, ``disable`` and ``delete``.
+ - Added ``mmctl plugin keys``, ``mmctl plugin keys add``, and ``mmctl plugin keys delete`` commands (local mode only) to manage plugin signature public keys, along with local-mode API endpoints under ``/api/v4/plugins/public_keys``.
 
 #### Performance
  - Improved the performance of loading and filtering server logs in the System Console, and streamed log downloads instead of loading the whole log file into memory.
@@ -256,7 +254,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Added ``@mattermost/compass-ui`` to https://github.com/mattermost/mattermost/.
  - Added ``@typescript/typescript6`` to https://github.com/mattermost/mattermost/.
  - Added ``google/renameio`` to https://github.com/mattermost/mattermost/.
-
 
 ## Release v12.1 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-1-feature-release}
 
