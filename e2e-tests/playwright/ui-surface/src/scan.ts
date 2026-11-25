@@ -83,7 +83,7 @@ export type SurfaceEntry = {
 };
 
 export type Diagnostic = {
-    rule: 'grammar' | 'duplicates' | 'role-fit' | 'stale-reference' | 'dynamic' | 'key-origin';
+    rule: 'grammar' | 'duplicates' | 'role-fit' | 'stale-reference' | 'dynamic' | 'key-origin' | 'legacy-testid' | 'drift';
     file: string;
     line: number;
     id: string;

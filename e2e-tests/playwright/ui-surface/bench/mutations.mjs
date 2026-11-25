@@ -27,7 +27,7 @@ export const mutations = [
         'Two sibling elements share one data-testid',
         [
             'export const C = () => (',
-            '    <div data-testid="panel">',
+            '    <div data-surface="panel">',
             '        <button data-testid="panel.save--button">A</button>',
             '        <button data-testid="panel.save--button">B</button>',
             '    </div>',
@@ -40,7 +40,7 @@ export const mutations = [
         'Non-literal grammar data-testid value',
         [
             'export const C = ({name}: {name: string}) => (',
-            '    <div data-testid="panel">',
+            '    <div data-surface="panel">',
             '        <button data-testid={`panel.${name}--button`}>Save</button>',
             '    </div>',
             ');',
@@ -64,7 +64,7 @@ export const mutations = [
         'Ungrammatical id (scope.name but unknown role)',
         [
             'export const C = () => (',
-            '    <div data-testid="panel">',
+            '    <div data-surface="panel">',
             '        <button data-testid="panel.save--frobnicate">Save</button>',
             '    </div>',
             ');',
@@ -76,7 +76,7 @@ export const mutations = [
         'checkbox role on a plain <div>',
         [
             'export const C = () => (',
-            '    <div data-testid="panel">',
+            '    <div data-surface="panel">',
             '        <div data-testid="panel.enabled--checkbox">x</div>',
             '    </div>',
             ');',
@@ -109,10 +109,10 @@ export const mutations = [
     webapp(
         'clean-testid',
         'baseline',
-        'A correct grammar data-testid element (must not be flagged)',
+        'A correct grammar id (data-surface container, grammar data-testid; must not be flagged)',
         [
             'export const C = () => (',
-            '    <div data-testid="panel">',
+            '    <div data-surface="panel">',
             '        <button data-testid="panel.save--button">Save</button>',
             '    </div>',
             ');',
@@ -127,7 +127,7 @@ export const mutations = [
         'List key is the array map index',
         [
             'export const C = ({items}: {items: string[]}) => (',
-            '    <ul data-testid="list">',
+            '    <ul data-surface="list">',
             '        {items.map((item, index) => (',
             '            <li key={index} data-testid={`list.row:${index}--listitem`}>{item}</li>',
             '        ))}',
@@ -141,7 +141,7 @@ export const mutations = [
         'List key is display_name (locale/data dependent)',
         [
             'export const C = ({teams}: {teams: Array<{display_name: string}>}) => (',
-            '    <ul data-testid="list">',
+            '    <ul data-surface="list">',
             '        {teams.map((t) => (',
             '            <li data-testid={`list.row:${t.display_name}--listitem`}>{t.display_name}</li>',
             '        ))}',
@@ -155,7 +155,7 @@ export const mutations = [
         'List key aliased: const id = t.display_name',
         [
             'export const C = ({teams}: {teams: Array<{display_name: string}>}) => (',
-            '    <ul data-testid="list">',
+            '    <ul data-surface="list">',
             '        {teams.map((t) => {',
             '            const id = t.display_name;',
             '            return <li data-testid={`list.row:${id}--listitem`}>{t.display_name}</li>;',
@@ -170,7 +170,7 @@ export const mutations = [
         'List key is a composite string (team + channel)',
         [
             'export const C = ({rows}: {rows: Array<{teamId: string; channelId: string}>}) => (',
-            '    <ul data-testid="list">',
+            '    <ul data-surface="list">',
             '        {rows.map((r) => (',
             '            <li data-testid={`list.row:${r.teamId + "_" + r.channelId}--listitem`}>x</li>',
             '        ))}',
@@ -184,7 +184,7 @@ export const mutations = [
         'List key is an entity id via alias (must not be flagged)',
         [
             'export const C = ({teams}: {teams: Array<{id: string; display_name: string}>}) => (',
-            '    <ul data-testid="list">',
+            '    <ul data-surface="list">',
             '        {teams.map((t) => {',
             '            const id = t.id;',
             '            return <li data-testid={`list.row:${id}--listitem`}>{t.display_name}</li>;',
@@ -201,7 +201,7 @@ export const mutations = [
         [
             "import {Toggle} from 'components/toggle';",
             'export const C = () => (',
-            '    <div data-testid="panel">',
+            '    <div data-surface="panel">',
             '        <Toggle data-testid="panel.enabled--checkbox" />',
             '    </div>',
             ');',

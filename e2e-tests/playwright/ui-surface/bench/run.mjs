@@ -40,7 +40,8 @@ async function run() {
     console.log('Running lean webapp/scanner checks...');
     const leanWebapp = new Map();
     for (const m of webappMutations) {
-        leanWebapp.set(m.id, {messages: leanCheck(m).map((d) => ({ruleId: d.rule, message: d.message}))});
+        const diags = await leanCheck(m);
+        leanWebapp.set(m.id, {messages: diags.map((d) => ({ruleId: d.rule, message: d.message}))});
     }
 
     // ---- peter: spec + webapp lint via his real config (fast); scanner from cache ----

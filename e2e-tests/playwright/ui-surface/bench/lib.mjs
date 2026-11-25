@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {execFileSync, spawnSync} from 'node:child_process';
-import {mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {rmSync, writeFileSync, mkdirSync, readFileSync, existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
-import {tmpdir} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
@@ -98,32 +97,36 @@ export async function lintWebapp(webappChannelsDir, pluginPrefix, samples) {
     return byId;
 }
 
-/**
- * Run the lean `check` over a temp dir holding one sample. This exercises the full webapp-side battery (scanner
- * diagnostics plus the testid ratchet) exactly as CI would, using the committed baseline and role map. Returns parsed
- * diagnostics [{rule, message}].
- */
-export function leanCheck(sample) {
-    const ext = sample.level === 'spec' ? 'spec.ts' : 'tsx';
-    const dir = mkdtempSync(join(tmpdir(), 'leanscan-'));
-    try {
-        writeFileSync(join(dir, `${sample.id}.${ext}`), sample.code + '\n');
-        const res = spawnSync(
-            'node',
-            [join(LEAN_ROOT, 'bin/ui-surface.mjs'), 'check', '--root', dir, '--specs', dir],
-            {cwd: PW_ROOT, encoding: 'utf8'},
-        );
-        const diags = [];
-        for (const line of (res.stderr ?? '').split('\n')) {
-            const m = /\[([a-z-]+)\]\s+(.*)$/.exec(line);
-            if (m) {
-                diags.push({rule: m[1], message: m[2]});
-            }
-        }
-        return diags;
-    } finally {
-        rmSync(dir, {recursive: true, force: true});
+let leanApi;
+async function lean() {
+    if (!leanApi) {
+        const scan = await import(resolve(LEAN_ROOT, 'dist/scan.js'));
+        const ratchet = await import(resolve(LEAN_ROOT, 'dist/ratchet.js'));
+        const roleMap = JSON.parse(readFileSync(resolve(LEAN_ROOT, 'role-map.json'), 'utf8'));
+        const baseline = loadJson(resolve(LEAN_ROOT, 'testid-baseline.json')) ?? {};
+        leanApi = {...scan, ...ratchet, roleMap, baseline};
     }
+    return leanApi;
+}
+
+/**
+ * Judge a sample with the lean mechanism that targets its mutation: the in-memory scanner for grammar/duplicate/
+ * role/key/dynamic/drift, and the committed testid ratchet for ratchet-category samples. This mirrors how the tool
+ * runs in CI (scanner diagnostics + `ui-surface baseline`), without the temp-dir container ids counting as "new
+ * legacy" noise against every sample. Returns parsed diagnostics [{rule, message}].
+ */
+export async function leanCheck(sample) {
+    const api = await lean();
+    const file = `${sample.id}.tsx`;
+    const report = api.extractSurface({roots: [], roleMap: api.roleMap, files: {[file]: sample.code}});
+    const diags = report.diagnostics.map((d) => ({rule: d.rule, message: d.message}));
+    // A new file's legacy ids are absent from the committed baseline, so the ratchet flags any growth. Sample
+    // containers use data-surface, so only a genuinely legacy child contributes.
+    const ids = api.legacyIds(sample.code, file);
+    if (ids.length > 0 && !api.baseline[file]) {
+        diags.push({rule: 'legacy-testid', message: `${ids.length} new legacy data-testid(s): ${ids.join(', ')}`});
+    }
+    return diags;
 }
 
 export function loadJson(path) {

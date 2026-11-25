@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 
 import {emitGenerated, extractOpenApi, type PageSpec} from './catalog.js';
 import {diffHostContracts, extractHostContract, readHostVersion, type HostContract} from './host_contract.js';
+import {computeBaseline, diffBaseline, serializeBaseline, type Baseline} from './ratchet.js';
 import {checkStaleRefs, extractSurface, indexSourceIds, type SurfaceEntry, type SurfaceReport} from './scan.js';
 
 function defaultPaths(cwd = process.cwd()) {
@@ -33,6 +34,7 @@ function defaultPaths(cwd = process.cwd()) {
         pagesPath: resolve(pkgDir, 'pages.json'),
         staleAllowPath: resolve(pkgDir, 'stale-allow.json'),
         roleMapPath: resolve(pkgDir, 'role-map.json'),
+        baselinePath: resolve(pkgDir, 'testid-baseline.json'),
         generatedDir: resolve(pwRoot, 'lib/src/surface/generated'),
     };
 }
@@ -100,7 +102,7 @@ export async function runCli(argv: string[]): Promise<number> {
     const err = (text: string) => process.stderr.write(text);
 
     if (!cmd || cmd === '--help' || cmd === '-h') {
-        out('Usage: ui-surface <scan|check|generate|map|find|host-contract> [options]\n');
+        out('Usage: ui-surface <scan|check|baseline|generate|map|find|host-contract|explain|migrate-testid|migrate-spec> [options]\n');
         return 0;
     }
 
@@ -158,14 +160,55 @@ export async function runCli(argv: string[]): Promise<number> {
         for (const id of unusedAllow) {
             err(`ui-surface/stale-allow.json: "${id}" is no longer a stale reference; remove the entry\n`);
         }
+        // Ratchet: a new legacy data-testid (non-grammar, not paired with data-surface) that grows a file's count fails.
+        const committed: Baseline = existsSync(paths.baselinePath)
+            ? (JSON.parse(readFileSync(paths.baselinePath, 'utf8')) as Baseline)
+            : {};
+        const current = computeBaseline({roots, cwd: paths.repoRoot});
+        const ratchet = diffBaseline(committed, current);
+        for (const g of ratchet.grown) {
+            err(
+                `${g.file}:1 [legacy-testid] — ${g.to - g.from} new legacy data-testid(s) (was ${g.from}, now ${g.to}); make new ids grammar (scope.name--role) or pair each with data-surface, or run \`ui-surface baseline --update\` to retire the gain only if intentional\n`,
+            );
+        }
+
         const allDiags = [...surface.diagnostics, ...stale];
         for (const d of allDiags) {
             err(`${d.file}:${d.line} [${d.rule}] ${d.id} — ${d.message}\n`);
         }
+        const issues = allDiags.length + ratchet.grown.length;
         out(
-            `Checked ${surface.stats.files} webapp files in ${surface.stats.durationMs}ms (${allDiags.length} issues)\n`,
+            `Checked ${surface.stats.files} webapp files in ${surface.stats.durationMs}ms (${issues} issues)\n`,
         );
-        return allDiags.length > 0 || unusedAllow.length > 0 ? 1 : 0;
+        return issues > 0 || unusedAllow.length > 0 ? 1 : 0;
+    }
+
+    if (cmd === 'baseline') {
+        const committed: Baseline = existsSync(paths.baselinePath)
+            ? (JSON.parse(readFileSync(paths.baselinePath, 'utf8')) as Baseline)
+            : {};
+        const current = computeBaseline({roots, cwd: paths.repoRoot});
+        const diff = diffBaseline(committed, current);
+        if (sub === '--update') {
+            if (diff.grown.length > 0 && !argv.includes('--allow-growth')) {
+                for (const g of diff.grown) {
+                    err(`${g.file}: legacy data-testid count would grow ${g.from} -> ${g.to}\n`);
+                }
+                err('Refusing to grow the testid baseline. Fix the new ids, or pass --allow-growth to record them deliberately.\n');
+                return 1;
+            }
+            writeFileSync(paths.baselinePath, serializeBaseline(current));
+            const total = Object.values(current).reduce((n, f) => n + f.count, 0);
+            out(`Updated testid baseline: ${Object.keys(current).length} files, ${total} legacy ids.\n`);
+            return 0;
+        }
+        out(
+            `Baseline diff: ${diff.grown.length} grown, ${diff.shrunk.length} shrunk, ${diff.changed.length} changed (same count).\n`,
+        );
+        for (const g of diff.grown) {
+            err(`grew ${g.file}: ${g.from} -> ${g.to}\n`);
+        }
+        return diff.grown.length > 0 ? 1 : 0;
     }
 
     const pages = JSON.parse(readFileSync(paths.pagesPath, 'utf8')) as Record<string, PageSpec>;
