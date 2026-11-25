@@ -82,11 +82,11 @@ class MarkerTest(unittest.TestCase):
 REPORTS = [
     {"version": "v12.2.0", "sections": [{"section": "API Changes", "subsection": None, "items": [
         {"text": "Removed ``GET /api/v4/usage/posts`` (``getPostsUsage``) API endpoint.", "sources": [f"{SERVER}#202"]}]}]},
-    {"version": "v12.2.0", "sections": [{"section": "Upgrade Impact", "subsection": "Compatibility", "items": [
+    {"version": "v12.2.0", "sections": [{"section": "Upgrade Impact", "subsection": "Important Upgrade Notes", "items": [
         {"text": "Plugin signatures using SHA-1 are now rejected.", "sources": [f"{SERVER}#201"]},
         {"text": "Removed  ``GET /api/v4/usage/posts`` (``getPostsUsage``) API endpoint.", "sources": [f"{SERVER}#202"]}]}]},
 ]
-ENTRY = ("## Release v12.2 - Feature Release\n\n### Upgrade Impact\n\n#### Compatibility\n"
+ENTRY = ("## Release v12.2 - Feature Release\n\n### Upgrade Impact\n\n#### Important Upgrade Notes\n"
          " - Plugin signatures that use SHA-1 are now rejected; re-sign them with SHA-256.\n\n### API Changes\n"
          " - Added ``GET /api/v4/things`` API endpoint.\n")
 
@@ -100,7 +100,7 @@ class ChangelogRunTest(unittest.TestCase):
     def test_a_bullet_takes_the_entrys_current_wording_and_a_deleted_one_is_left_out(self):
         found = changelog_run.items(REPORTS)
         self.assertEqual(changelog_run.bullets_for(f"{SERVER}#201", found, ENTRY), [{
-            "section": "Upgrade Impact", "subsection": "Compatibility", "sources": [f"{SERVER}#201"],
+            "section": "Upgrade Impact", "subsection": "Important Upgrade Notes", "sources": [f"{SERVER}#201"],
             "text": "Plugin signatures that use SHA-1 are now rejected; re-sign them with SHA-256."}])
         self.assertEqual(changelog_run.bullets_for(f"{SERVER}#202", found, ENTRY), [])  # a reviewer deleted it
 
@@ -170,7 +170,7 @@ class ChangelogRunTest(unittest.TestCase):
 # ── 3. The upgrade pages ────────────────────────────────────────────────────────────
 
 BULLETS = {
-    f"{SERVER}#201": [{"section": "Upgrade Impact", "subsection": "Compatibility",
+    f"{SERVER}#201": [{"section": "Upgrade Impact", "subsection": "Important Upgrade Notes",
                        "text": "Plugin signatures using SHA-1 are now rejected. See [the guide](https://docs.mattermost.com/x)."}],
     f"{SERVER}#202": [{"section": "API Changes", "subsection": None,
                        "text": "Removed ``GET /api/v4/usage/{kind}`` (``getUsage``) API endpoint."}],
@@ -181,6 +181,15 @@ BULLETS = {
 
 
 class UpgradeDocsTest(unittest.TestCase):
+    def test_upgrade_notes_under_either_name_are_wording(self):
+        for name in ("Important Upgrade Notes", "Compatibility"):  # Compatibility: entries and reports before v12.2
+            bullets = [{"section": "Upgrade Impact", "subsection": name, "text": "Plugin signatures using SHA-1 are now rejected."}]
+            self.assertTrue(upgrade_docs.has_wording(bullets), name)
+        old_entry = ENTRY.replace("#### Important Upgrade Notes", "#### Compatibility")
+        found = changelog_run.bullets_for(f"{SERVER}#201", changelog_run.items(REPORTS), old_entry)
+        self.assertEqual([b["subsection"] for b in found], ["Compatibility"])
+        self.assertTrue(upgrade_docs.has_wording(found))
+
     def test_confirmed_items_take_their_changelog_wording(self):
         docs = upgrade_docs.plan([f"{SERVER}#201", f"{SERVER}#202", f"{ENT}#7"], BULLETS, {})
         self.assertTrue(docs.complete)

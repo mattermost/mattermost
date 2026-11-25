@@ -4,8 +4,8 @@ Which mattermost/mattermost PRs are confirmed breaking changes is decided elsewh
 (mattermost/release-automation) and written into the release docs PR's description as a hidden
 marker: ``<!-- release-automation:confirmed-breaking: 39012,39088 -->`` (an empty list, or
 ``none``, confirms that there are none). Only those PRs are written. The wording is the PR's
-changelog bullet as the entry has it now, from Upgrade Impact (Compatibility, Database Schema
-Changes, config.json removals) and API Changes. A confirmed PR with no such bullet gets
+changelog bullet as the entry has it now, from Upgrade Impact (Important Upgrade Notes, called
+Compatibility before v12.2, Database Schema Changes, config.json removals) and API Changes. A confirmed PR with no such bullet gets
 Claude's notice, drafted from the PR's title and release note and listed for review in the PR
 body. Without the marker, or while a confirmed PR has no wording, the pages keep their
 placeholders and the PR check fails from T-2.
@@ -22,7 +22,9 @@ from .result import Result
 
 PUBLIC_REPO = markers.PUBLIC_REPO
 MARKER_NAME = "release-automation:confirmed-breaking"
-WORDING_PLACES = {("Upgrade Impact", "Compatibility"), ("Upgrade Impact", "Database Schema Changes"),
+# "Important Upgrade Notes" was "Compatibility" until v12.2; older entries and reports still have it.
+WORDING_PLACES = {("Upgrade Impact", "Important Upgrade Notes"), ("Upgrade Impact", "Compatibility"),
+                  ("Upgrade Impact", "Database Schema Changes"),
                   ("Upgrade Impact", "config.json"), ("API Changes", None)}
 REMOVAL = re.compile(r"(?i)^(?:removed|deprecated)\b|\b(?:is|are|was|were|has been|have been) (?:removed|deprecated)\b"
                      r"|\bno longer (?:supported|available)\b")
