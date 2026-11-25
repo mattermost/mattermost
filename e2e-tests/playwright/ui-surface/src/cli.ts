@@ -9,7 +9,7 @@ import {emitGenerated, extractOpenApi, type PageSpec} from './catalog.js';
 import {diffHostContracts, extractHostContract, readHostVersion, type HostContract} from './host_contract.js';
 import {incrementalScan} from './cache.js';
 import {baselineFromLegacy, computeBaseline, diffBaseline, serializeBaseline, type Baseline} from './ratchet.js';
-import {migrateTestIds} from './migrate.js';
+import {analyzeSpecMigration, migrateTestIds, surfaceIdMap} from './migrate.js';
 import {checkStaleRefs, collectTestIdSurfacePairs, extractSurface, indexSourceIds, type SurfaceEntry, type SurfaceReport} from './scan.js';
 
 function defaultPaths(cwd = process.cwd()) {
@@ -256,6 +256,23 @@ export async function runCli(argv: string[]): Promise<number> {
         if (!apply) {
             out('Dry run (no files changed). Re-run with --apply to write, --only <path-substring> to limit scope.\n');
         }
+        return 0;
+    }
+
+    if (cmd === 'migrate-spec') {
+        const specRoots = paths.specRoots.filter(existsSync);
+        const result = analyzeSpecMigration({
+            specRoots,
+            cwd: paths.repoRoot,
+            surfaceIds: surfaceIdMap(surface.entries),
+            legacyToSurface: driftAllow,
+        });
+        const outFile = readFlag(argv, '--out');
+        if (outFile) {
+            writeFileSync(resolve(outFile), JSON.stringify(result, null, 2) + '\n');
+        }
+        out(JSON.stringify(result.summary, null, 2) + '\n');
+        out('Dry run: coverage analysis only. Migrate a spec only when its migration type-checks and lints clean.\n');
         return 0;
     }
 
