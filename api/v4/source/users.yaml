@@ -2784,7 +2784,9 @@
         that was started with it, including the caller's own session if it was
         started with that passkey; the request itself still succeeds. Other
         sessions of the user are unaffected.
-        On success the user is sent a "passkey removed" email naming the passkey.
+        Once the passkey is deleted the user is sent a "passkey removed" email
+        naming it, even if ending one of its sessions then fails (the request
+        answers 500 in that case but the passkey is gone).
 
 
         Passkeys are available only when the `Passkeys` feature flag is on and the

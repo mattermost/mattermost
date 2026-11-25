@@ -67,12 +67,9 @@ func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.A
 		return model.NewAppError("DeletePasskey", "app.passkey.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Sent before the sessions are revoked: the passkey is gone whether or not that succeeds.
-	if user, appErr := a.GetUser(rctx, userID); appErr != nil {
-		rctx.Logger().Error("Unable to load user for passkey removed email", mlog.Err(appErr), mlog.String("user_id", userID))
-	} else if mailErr := a.Srv().EmailService.SendPasskeyRemovedEmail(user.Email, user.Locale, a.GetSiteURL(), name); mailErr != nil {
-		rctx.Logger().Error("Unable to send passkey removed email", mlog.Err(mailErr), mlog.String("user_id", userID))
-	}
+	// Deferred so it runs on every return below, after the sessions are revoked: a slow mail server
+	// must not keep them alive.
+	defer a.sendPasskeyRemovedEmail(rctx, userID, name)
 
 	sessions, err := a.Srv().Store().Session().GetSessionsByPasskeyId(userID, passkeyID)
 	if err != nil {
@@ -86,6 +83,17 @@ func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.A
 		}
 	}
 	return revokeErr
+}
+
+func (a *App) sendPasskeyRemovedEmail(rctx request.CTX, userID, name string) {
+	user, appErr := a.GetUser(rctx, userID)
+	if appErr != nil {
+		rctx.Logger().Error("Unable to load user for passkey removed email", mlog.Err(appErr), mlog.String("user_id", userID))
+		return
+	}
+	if err := a.Srv().EmailService.SendPasskeyRemovedEmail(user.Email, user.Locale, a.GetSiteURL(), name); err != nil {
+		rctx.Logger().Error("Unable to send passkey removed email", mlog.Err(err), mlog.String("user_id", userID))
+	}
 }
 
 // passkeyRelyingParty builds the WebAuthn relying party from the current config. It is rebuilt on

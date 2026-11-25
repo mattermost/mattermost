@@ -15,6 +15,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -192,6 +193,20 @@ func TestDeletePasskey(t *testing.T) {
 		require.False(t, sessionEnded(t, standard))
 		require.False(t, sessionEnded(t, noPasskeyID))
 		require.False(t, sessionEnded(t, othersWithAId))
+	})
+
+	t.Run("the email is sent after the passkey's sessions have ended", func(t *testing.T) {
+		pk := savePasskey(t, th, th.BasicUser.Id, "ordered", model.GetMillis())
+		session := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, pk.Id, false)
+		mockSvc := mockEmail(t)
+		mockSvc.On("SendPasskeyRemovedEmail", th.BasicUser.Email, th.BasicUser.Locale, th.App.GetSiteURL(), "ordered").
+			Run(func(mock.Arguments) {
+				require.True(t, sessionEnded(t, session), "email sent while the session was still alive")
+			}).
+			Return(nil).Once()
+
+		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id))
+		mockSvc.AssertExpectations(t)
 	})
 
 	t.Run("a session that fails to end is a 500, the passkey stays deleted and the rest still end", func(t *testing.T) {
