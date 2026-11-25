@@ -128,9 +128,19 @@
                     description: Identifies this sign-in; pass it to the finish request
                     type: string
                   options:
-                    description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
-                      form, with binary fields base64url-encoded
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseRequestOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.get()`.
                     type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
         "429":
           description: Too many requests. The body is plain text, not an error object.
         "501":
@@ -2882,9 +2892,19 @@
                     description: Identifies this registration; pass it to the finish request
                     type: string
                   options:
-                    description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
-                      form, with binary fields base64url-encoded
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseCreationOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.create()`.
                     type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
         "400":
           description: The user already has the maximum of 10 passkeys.
           content:
@@ -3126,9 +3146,19 @@
                     description: Identifies this registration; pass it to the finish request
                     type: string
                   options:
-                    description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
-                      form, with binary fields base64url-encoded
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseCreationOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.create()`.
                     type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
         "400":
           description: >
             The request body is invalid or `ticket` is missing. Also returned when
@@ -3315,9 +3345,19 @@
                     description: Identifies this verification; pass it to the finish request
                     type: string
                   options:
-                    description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
-                      form, with binary fields base64url-encoded
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseRequestOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.get()`.
                     type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
         "400":
           description: >
             The request body is invalid or `ticket` is missing. Also returned when
