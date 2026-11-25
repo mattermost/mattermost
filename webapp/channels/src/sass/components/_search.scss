@@ -107,7 +107,7 @@
         background: rgba(var(--sidebar-text-rgb), 0.08);
         color: var(--sidebar-text);
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 600;
 
         .icon-close {
             padding: 2px;
@@ -377,7 +377,7 @@
     padding: 22px 24px;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     margin: 0;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .search-hint__suggestions-list {

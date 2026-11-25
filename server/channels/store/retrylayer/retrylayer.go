@@ -11913,6 +11913,27 @@ func (s *RetryLayerPropertyFieldStore) GetOptionParentEdges(fieldID string, chil
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionRanks(field, optionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
 
 	tries := 0

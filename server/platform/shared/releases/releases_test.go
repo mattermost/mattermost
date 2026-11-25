@@ -55,3 +55,8 @@ func TestFetchLatest(t *testing.T) {
 		require.ErrorIs(t, err, context.Canceled)
 	})
 }
+
+func TestVersion(t *testing.T) {
+	assert.Equal(t, "12.1.0", Version(&model.GithubReleaseInfo{TagName: "v12.1.0"}))
+	assert.Equal(t, "12.1.0", Version(&model.GithubReleaseInfo{TagName: "12.1.0"}))
+}

@@ -574,10 +574,12 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 //
 // A caller option.read refuses is served nothing on any page. So is a caller
 // of a masked field whose holdings are empty, since masking shows only what
-// overlaps them. A caller with holdings gets them as CoveredBy, which the
-// store applies as the same rule visibleOptionIDs does: coverage for a graph
-// field, and exact membership for every other type, whose options have no
-// edges to cover through.
+// overlaps them, or whose holdings field reads a different option list, since
+// held IDs mean nothing against this one. A caller with holdings gets them as
+// CoveredBy, which the store applies as the same rule visibleOptionIDs does:
+// ancestry for a graph field, rank order for a rank field, and exact
+// membership for every other type, whose options have no edges to cover
+// through.
 func (h *AccessControlHook) PreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error) {
 	if field == nil {
 		return filter, nil
@@ -607,6 +609,9 @@ func (h *AccessControlHook) PreGetPropertyFieldOptions(rctx request.CTX, field *
 	}
 	if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
 		return filter, nil
+	}
+	if fm.holdingsListDiffers {
+		return &model.PropertyFieldOptionPageFilter{ShowNothing: true}, nil
 	}
 
 	held, err := c.callerOptionIDsForHoldings(rctx, h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)

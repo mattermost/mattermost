@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 
 import type {Client4} from '@mattermost/client';
 
-import {duration, expect, licenseTier, test} from '@mattermost/playwright-lib';
+import {duration, expect, hasCustomPermissionsSchemesLicense, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 const PROFESSIONAL_TIER = 10;
@@ -628,23 +628,22 @@ test('never shows internal-only findings', {tag: '@system_console'}, async ({pw}
 });
 
 /**
- * @objective Verify a delegated admin without the manage_system permission can't reach Site health, though
+ * @objective Verify a delegated admin who can't read Site Statistics can't reach Site health, though
  * they can open the System Console.
  */
-test('hides Site health from admins without manage_system', {tag: '@system_console'}, async ({pw}) => {
+test('hides Site health from admins who cannot read Site Statistics', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
 
     const {adminClient, user, userClient} = await pw.initSetup();
-    await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+    await adminClient.updateUserRoles(user.id, 'system_user system_user_manager');
 
     const {systemConsolePage} = await pw.testBrowser.login(user);
 
-    // # Open the System Console as a system manager
+    // # Open the System Console as a user manager
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
-    // * Verify Site health is not listed among the Reporting pages they can open
-    await expect(systemConsolePage.sidebar.reporting.teamStatistics.link).toBeVisible();
+    // * Verify Site health is not listed in the sidebar
     await expect(systemConsolePage.sidebar.reporting.siteHealth.link).not.toBeVisible();
 
     // # Go straight to the Site health URL
@@ -692,3 +691,42 @@ test('downloads the Site health findings as HTML', {tag: '@system_console'}, asy
     const html = await readFile(await download.path(), 'utf8');
     expect(html).toContain(LOG_WEBHOOK_PAYLOADS.title);
 });
+
+/**
+ * @objective Verify a System Manager, who can read Site Statistics, gets Site health in place of Workspace Optimization,
+ * with the HealthDashboard feature flag at its default (on).
+ */
+test(
+    'shows the Site health page to a system manager instead of Workspace Optimization',
+    {tag: '@system_console'},
+    async ({pw}) => {
+        await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
+
+        const {adminClient, user} = await pw.initSetup();
+
+        // Assigning system_manager needs the Custom Permission Schemes license feature.
+        test.skip(
+            !hasCustomPermissionsSchemesLicense(await adminClient.getClientLicenseOld()),
+            'Skipping test - server does not have Custom Permission Schemes',
+        );
+
+        await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+        const {systemConsolePage} = await pw.testBrowser.login(user);
+
+        // # Open the System Console
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+
+        // * Verify Site health replaces Workspace Optimization in Reporting
+        await expect(systemConsolePage.sidebar.reporting.siteHealth.link).toBeVisible();
+        await expect(systemConsolePage.sidebar.reporting.workspaceOptimization.link).not.toBeVisible();
+
+        // # Open Reporting > Site health
+        await systemConsolePage.sidebar.reporting.siteHealth.click();
+
+        // * Verify the page loaded from the findings API without an error
+        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site health');
+        await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last evaluated)/)).toBeVisible();
+        await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
+    },
+);

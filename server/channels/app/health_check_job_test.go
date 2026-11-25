@@ -242,14 +242,12 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.HealthDashboard = true
 		cfg.ServiceSettings.SiteURL = model.NewPointer("")
-	})
+	}, LatestVersionURL(latestVersionServer(t).URL))
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
 
 	require.NoError(t, th.App.clearLatestVersionCache())
 	t.Cleanup(func() { assert.NoError(t, th.App.clearLatestVersionCache()) })
-	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
-	require.Nil(t, appErr)
 
 	job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
 	require.Nil(t, appErr)

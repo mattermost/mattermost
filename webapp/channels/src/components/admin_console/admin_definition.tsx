@@ -305,10 +305,13 @@ function siteURLHostChanged(saved?: string, edited?: string) {
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
     it.not(it.minLicenseTier(LicenseSkus.Professional)),
-    it.not(it.isSystemAdmin),
+    it.not(it.any(
+        it.isSystemAdmin,
+        it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS),
+    )),
 );
 
-// Site health replaces Workspace Optimization only for admins who can see it; delegated admins keep the old page.
+// Site health replaces Workspace Optimization for every admin who can see it, so each admin sees one dashboard.
 const workspaceOptimizationHidden = it.any(
     it.not(siteHealthHidden),
     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
@@ -1887,13 +1890,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                             ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSecurityFixAlert',
-                            label: defineMessage({id: 'admin.environment.smtp.enableSecurityFixAlert.title', defaultMessage: 'Enable Security Alerts:'}),
-                            help_text: defineMessage({id: 'admin.environment.smtp.enableSecurityFixAlert.description', defaultMessage: 'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
                     ],
                 },
@@ -4480,6 +4476,17 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableSecurityFixAlert',
+                            label: defineMessage({id: 'admin.notices.enableSecurityFixAlertTitle', defaultMessage: 'Check for Security and Release Updates: '}),
+                            help_text: defineMessage({id: 'admin.notices.enableSecurityFixAlertDescription', defaultMessage: 'When enabled, the server checks Mattermost daily for security bulletins and requests the latest Mattermost release from GitHub to report whether it is out of date. System Admins are emailed relevant bulletins when SMTP is configured. When disabled, the server makes neither request.'}),
+                            isHidden: it.licensedForFeature('Cloud'),
+                            isDisabled: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
+                            ),
                         },
                     ],
                 },

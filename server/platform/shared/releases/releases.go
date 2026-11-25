@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -46,4 +47,9 @@ func FetchLatest(ctx context.Context, latestURL string) (*model.GithubReleaseInf
 	}
 
 	return &release, nil
+}
+
+// Version returns release's version, without the tag's v prefix.
+func Version(release *model.GithubReleaseInfo) string {
+	return strings.TrimPrefix(release.TagName, "v")
 }
