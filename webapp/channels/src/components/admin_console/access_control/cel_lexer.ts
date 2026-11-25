@@ -156,7 +156,9 @@ function everyPathRequiresNode(node: BooleanNode, outcome: boolean, isRequired: 
 // True when the expression can only evaluate to true through at least one condition
 // matching `isRequired`. `a || b` needs both sides to match; `a && b` needs either.
 export function everyPathRequires(expr: string, isRequired: (condition: string) => boolean): boolean {
-    return everyPathRequiresNode(parseBooleanStructure(expr), true, isRequired);
+    // Comments would otherwise keep `(a || b) // note` from being unwrapped.
+    const withoutComments = expr.replace(LITERALS_AND_COMMENTS, (token) => (token.startsWith('//') ? ' '.repeat(token.length) : token));
+    return everyPathRequiresNode(parseBooleanStructure(withoutComments), true, isRequired);
 }
 
 function referencedNames(expr: string, pattern: RegExp): Set<string> {

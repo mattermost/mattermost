@@ -118,6 +118,10 @@ describe('everyPathRequires', () => {
         ['u in [T || u]', true],
         ['T == "x || y"', true],
         ['T == "x" // || u', true],
+        ['(T || u) // note', false],
+        ['// note\n(T || u)', false],
+        ['(T && u) // note', true],
+        ['u // T', false],
     ])('%j -> %s', (input, expected) => {
         expect(everyPathRequires(input, isTrusted)).toBe(expected);
     });
