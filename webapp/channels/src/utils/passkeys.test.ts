@@ -467,7 +467,8 @@ describe('utils/passkeys', () => {
             await expect(currentSessionCanAddPasskey('k')).resolves.toBe(true);
         });
 
-        test('resolves false for a session past the window by the server clock', async () => {
+        test('resolves false for a session past the window when the device clock is slow', async () => {
+            dateNow.mockReturnValue(now - (15 * 60 * 1000));
             getSessions.mockResolvedValue(reply([session({csrf: 'k', login_method: 'standard'}, 11 * 60 * 1000)], now) as never);
 
             await expect(currentSessionCanAddPasskey('k')).resolves.toBe(false);
