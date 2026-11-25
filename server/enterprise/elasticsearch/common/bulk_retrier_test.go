@@ -299,7 +299,7 @@ func TestBulkRetrierHandleNeverBlocks(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		for i := 0; i < 10000; i++ {
+		for range 10000 {
 			r.Handle(indexItem("a"), 0, errTransport)
 		}
 		close(done)
@@ -383,7 +383,7 @@ func TestBulkRetrierChecksAtMost1000ItemsPerCall(t *testing.T) {
 	b := &fakeBackend{exists: allFound}
 	r := newTestRetrier(t, b)
 
-	for i := 0; i < 2500; i++ {
+	for i := range 2500 {
 		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
 	}
 	wait(t, r)
@@ -402,14 +402,12 @@ func TestBulkRetrierHandlesManyCallersAtOnce(t *testing.T) {
 	r := newTestRetrier(t, b)
 
 	var wg sync.WaitGroup
-	for g := 0; g < 8; g++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for i := 0; i < 100; i++ {
+	for range 8 {
+		wg.Go(func() {
+			for i := range 100 {
 				r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
 			}
-		}()
+		})
 	}
 	wg.Wait()
 	wait(t, r)
@@ -471,7 +469,7 @@ func TestBulkRetrierLogsOneWarnPerRoundNotPerItem(t *testing.T) {
 
 	r.Handle(indexItem("first"), 0, errTransport)
 	<-started // round 1 is running with one item
-	for i := 0; i < 99; i++ {
+	for i := range 99 {
 		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport) // all wait for round 2
 	}
 	close(release)

@@ -40,12 +40,10 @@ func onBulkFailure(retrier *common.BulkRetrier) onFailureFunc {
 // requestStatus returns the HTTP status of a failed whole request.
 // It is 0 for transport failures, which have none.
 func requestStatus(err error) int {
-	var structErr *opensearch.StructError
-	if errors.As(err, &structErr) {
+	if structErr, ok := errors.AsType[*opensearch.StructError](err); ok {
 		return structErr.Status
 	}
-	var stringErr *opensearch.StringError
-	if errors.As(err, &stringErr) {
+	if stringErr, ok := errors.AsType[*opensearch.StringError](err); ok {
 		return stringErr.Status
 	}
 	return 0
@@ -57,8 +55,8 @@ func closeBulk(bi opensearchutil.BulkIndexer, retrier *common.BulkRetrier, logge
 	err := bi.Close(context.Background())
 	waitCtx, cancel := context.WithTimeout(context.Background(), common.BulkRetryWaitLimit)
 	defer cancel()
-	if err := retrier.Wait(waitCtx); err != nil {
-		logger.Warn("Bulk retries stopped, the rest count as failed", mlog.Err(err))
+	if waitErr := retrier.Wait(waitCtx); waitErr != nil {
+		logger.Warn("Bulk retries stopped, the rest count as failed", mlog.Err(waitErr))
 	}
 
 	stats := bi.Stats()

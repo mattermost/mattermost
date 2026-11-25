@@ -36,8 +36,8 @@ func closeBulk(bi esutil.BulkIndexer, retrier *common.BulkRetrier, logger mlog.L
 	err := bi.Close(context.Background())
 	waitCtx, cancel := context.WithTimeout(context.Background(), common.BulkRetryWaitLimit)
 	defer cancel()
-	if err := retrier.Wait(waitCtx); err != nil {
-		logger.Warn("Bulk retries stopped, the rest count as failed", mlog.Err(err))
+	if waitErr := retrier.Wait(waitCtx); waitErr != nil {
+		logger.Warn("Bulk retries stopped, the rest count as failed", mlog.Err(waitErr))
 	}
 
 	stats := bi.Stats()
