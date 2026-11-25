@@ -85,7 +85,7 @@ func (w *httpResponseWriterRPCClient) Header() http.Header {
 	if w.header == nil {
 		// The host closes the stream when the request is canceled. Handlers must still get a
 		// writable map, as net/http guarantees, so they don't panic on Set.
-		if err := w.client.Call("Plugin.Header", struct{}{}, &w.header); err != nil || w.header == nil {
+		if err := w.client.Call("Plugin.Header", struct{}{}, &w.header); err != nil {
 			w.header = make(http.Header)
 		}
 	}
