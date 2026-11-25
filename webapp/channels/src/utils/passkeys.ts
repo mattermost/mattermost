@@ -107,22 +107,21 @@ export async function createPasskey(
     }
 }
 
-// Resolves false when the user backs out of the browser prompt; the unused ceremony expires on the server.
-export async function verifyPasskey(
+// Resolves null when the user backs out of the browser prompt; the unused ceremony expires on the server.
+export async function verifyPasskey<T>(
     begin: () => Promise<PasskeyLoginOptions>,
-    finish: (ceremonyId: string, credential: PasskeyAssertionCredential) => Promise<unknown>,
-): Promise<boolean> {
+    finish: (ceremonyId: string, credential: PasskeyAssertionCredential) => Promise<T>,
+): Promise<T | null> {
     try {
         const {ceremony_id: ceremonyId, options} = await begin();
         const credential = await navigator.credentials.get({publicKey: requestOptionsFromJSON(options.publicKey)}) as PublicKeyCredential | null;
         if (!credential) {
-            return false;
+            return null;
         }
-        await finish(ceremonyId, assertionToJSON(credential));
-        return true;
+        return await finish(ceremonyId, assertionToJSON(credential));
     } catch (e) {
         if (isDismissed(e)) {
-            return false;
+            return null;
         }
         throw e;
     }

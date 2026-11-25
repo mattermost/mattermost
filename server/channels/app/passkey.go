@@ -705,8 +705,9 @@ func passkeyCounterRegressed(where string, err error) *model.AppError {
 // BeginPasskeyVerificationWithTicket against the passkeys the ticket's user has now, and records the
 // use. It creates no session and leaves the failed-attempt count and MFA alone. The ticket is spent
 // after the assertion and counter checks pass, before the use is recorded: a refused assertion leaves
-// the ticket usable, and two finishes on one ticket cannot both succeed.
-func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID string, credential []byte) *model.AppError {
+// the ticket usable, and two finishes on one ticket cannot both succeed. It returns the ticket's
+// user id: the caller has no session, so this is how it learns whose passkey it just confirmed.
+func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID string, credential []byte) (string, *model.AppError) {
 	const where = "FinishPasskeyVerificationWithTicket"
 
 	invalidCeremony := func() *model.AppError {
@@ -715,37 +716,37 @@ func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID s
 	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyVerification, ceremonyID)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			return invalidCeremony()
+			return "", invalidCeremony()
 		}
-		return model.NewAppError(where, "app.passkey.finish_verification.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return "", model.NewAppError(where, "app.passkey.finish_verification.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	var ceremony passkeyCeremony
 	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil || ceremony.SessionData == nil || ceremony.Ticket == "" {
-		return invalidCeremony()
+		return "", invalidCeremony()
 	}
 	session, appErr := a.passkeyTicketSession(rctx, ceremony.Ticket)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 	if ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
-		return invalidCeremony()
+		return "", invalidCeremony()
 	}
 
 	parsed, err := protocol.ParseCredentialRequestResponseBytes(credential)
 	if err != nil {
-		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 	passkeys, appErr := a.GetPasskeysForUser(user.Id)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 	rp, appErr := a.passkeyRelyingParty()
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 	// Passkeys registered while the user had none each carry their own user handle, and the library
 	// refuses an assertion whose handle is not the one it is told, so validate against the presented
@@ -758,20 +759,23 @@ func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID s
 		}
 	}
 	if passkey == nil {
-		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized)
+		return "", model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized)
 	}
 	sessionData := *ceremony.SessionData
 	sessionData.UserID = passkey.UserHandle
 	cred, err := rp.ValidateLogin(&passkeyUser{user: user, handle: passkey.UserHandle, passkeys: []*model.Passkey{passkey}}, sessionData, parsed)
 	if err != nil {
-		return model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+		return "", model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 
 	if appErr := checkPasskeyCounter(where, parsed, cred, passkey); appErr != nil {
-		return appErr
+		return "", appErr
 	}
 	if appErr := a.consumePasskeyTicket(where, "app.passkey.finish_verification.app_error", ceremony.Ticket); appErr != nil {
-		return appErr
+		return "", appErr
 	}
-	return a.recordPasskeyUse(where, passkey, cred)
+	if appErr := a.recordPasskeyUse(where, passkey, cred); appErr != nil {
+		return "", appErr
+	}
+	return user.Id, nil
 }

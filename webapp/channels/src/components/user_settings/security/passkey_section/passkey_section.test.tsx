@@ -861,19 +861,20 @@ describe('PasskeySection', () => {
             expect(signalUnknownCredential).not.toHaveBeenCalled();
         });
 
-        test('records this browser as enrolled after a successful add', async () => {
+        test('records the user as enrolled in this browser after a successful add', async () => {
             localStorage.clear();
             await renderExpanded();
-            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('me', 'login')).toBe(true);
             await userEvent.type(screen.getByLabelText('Passkey name'), 'Work');
 
             await clickAdd();
 
             await waitFor(() => expect(screen.getByLabelText('Passkey name')).toHaveValue(''));
-            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('me', 'login')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('other', 'login')).toBe(true);
         });
 
-        test('does not record this browser as enrolled when the browser prompt is dismissed', async () => {
+        test('does not record the user as enrolled when the browser prompt is dismissed', async () => {
             localStorage.clear();
             create.mockRejectedValue(domError('NotAllowedError'));
             await renderExpanded();
@@ -881,7 +882,7 @@ describe('PasskeySection', () => {
             await clickAdd();
 
             await waitFor(() => expect(screen.getByRole('button', {name: 'Add passkey'})).toBeEnabled());
-            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('me', 'login')).toBe(true);
         });
 
         test('still adds the passkey when storage cannot record it', async () => {

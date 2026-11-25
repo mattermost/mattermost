@@ -660,7 +660,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		return opts
 	}
 
-	finish := func(t *testing.T, client *model.Client4, auth *testlib.SoftAuthenticator, opts *model.PasskeyLoginOptions) (*model.Response, error) {
+	finish := func(t *testing.T, client *model.Client4, auth *testlib.SoftAuthenticator, opts *model.PasskeyLoginOptions) (*model.PasskeyVerification, *model.Response, error) {
 		t.Helper()
 		credential, err := auth.GetAssertion(opts.Options, "http://localhost:8065")
 		require.NoError(t, err)
@@ -683,9 +683,10 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		browser := th.CreateClient()
 
 		opts := begin(t, browser, issue(t, th.Client))
-		resp, err := finish(t, browser, auth, opts)
+		verified, resp, err := finish(t, browser, auth, opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+		assert.Equal(t, th.BasicUser.Id, verified.UserId)
 
 		list, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -701,7 +702,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		browser.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 		before := sessionCount(t, th)
 
-		resp, err := finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
+		_, resp, err := finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
 		require.NoError(t, err)
 		assert.Empty(t, resp.Header.Get(model.HeaderToken))
 		assert.Empty(t, resp.Header.Values("Set-Cookie"))
@@ -716,7 +717,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		auth, _ := registerAndAuthenticator(t, th)
 		browser := th.CreateClient()
 
-		resp, err := finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
+		_, resp, err := finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -736,7 +737,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		browser := th.CreateClient()
 		opts := begin(t, browser, issue(t, th.Client))
 
-		resp, err := browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
+		_, resp, err := browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
 			CeremonyId: opts.CeremonyId,
 			Credential: json.RawMessage(`{"id":1}`),
 		})
@@ -762,7 +763,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.NoError(t, err)
 
 		browser := th.CreateClient()
-		resp, err := finish(t, browser, otherAuth, begin(t, browser, issue(t, th.Client)))
+		_, resp, err := finish(t, browser, otherAuth, begin(t, browser, issue(t, th.Client)))
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		CheckErrorID(t, err, "app.passkey.invalid_credential.app_error")
@@ -773,11 +774,11 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		auth, _ := registerAndAuthenticator(t, th)
 		browser := th.CreateClient()
 		auth.SignCount = 5
-		resp, err := finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
+		_, resp, err := finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		resp, err = finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
+		_, resp, err = finish(t, browser, auth, begin(t, browser, issue(t, th.Client)))
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		CheckErrorID(t, err, "app.passkey.counter_regressed.app_error")
@@ -789,7 +790,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		browser := th.CreateClient()
 		ticket := issue(t, th.Client)
 
-		_, err := finish(t, browser, auth, begin(t, browser, ticket))
+		_, _, err := finish(t, browser, auth, begin(t, browser, ticket))
 		require.NoError(t, err)
 
 		_, resp, err := browser.BeginPasskeyVerificationWithTicket(context.Background(), ticket)
@@ -805,7 +806,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		ticket := issue(t, th.Client)
 		ageSession(t, th, th.Client)
 
-		resp, err := finish(t, browser, auth, begin(t, browser, ticket))
+		_, resp, err := finish(t, browser, auth, begin(t, browser, ticket))
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -839,7 +840,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, id)
 
-		resp, err = browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
+		_, resp, err = browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
 			CeremonyId: model.NewId(), Credential: json.RawMessage(`{}`),
 		})
 		require.Error(t, err)
@@ -886,13 +887,13 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		resp, err = browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
+		_, resp, err = browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
 			Credential: json.RawMessage(`{}`),
 		})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		resp, err = browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
+		_, resp, err = browser.FinishPasskeyVerificationWithTicket(context.Background(), &model.PasskeyLoginFinish{
 			CeremonyId: model.NewId(),
 		})
 		require.Error(t, err)

@@ -889,18 +889,19 @@ describe('components/login/Login', () => {
             expect(finishLogin.mock.calls[0][1]).toMatchObject({id: 'credential1', response: {userHandle: 'Bw'}});
         });
 
-        it('records this browser as enrolled after a successful passkey sign-in', async () => {
+        it('records the user as enrolled in this browser after a successful passkey sign-in', async () => {
             localStorage.clear();
             const history = renderLogin(passkeyState);
-            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'login')).toBe(true);
 
             await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
 
             await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
-            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'login')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('user2', 'login')).toBe(true);
         });
 
-        it('does not record this browser as enrolled when the server refuses the passkey sign-in', async () => {
+        it('does not record the user as enrolled when the server refuses the passkey sign-in', async () => {
             localStorage.clear();
             finishLogin.mockRejectedValue({server_error_id: 'api.user.login.not_verified.app_error', message: 'Email not verified'});
             renderLogin(passkeyState);
@@ -908,7 +909,7 @@ describe('components/login/Login', () => {
             await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
 
             expect(await screen.findByText('Email not verified')).toBeVisible();
-            expect(LocalStorageStore.isPasskeyPromptDue('login')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'login')).toBe(true);
         });
 
         it.each(['NotAllowedError', 'AbortError'])('stays silent and usable when the browser prompt ends with %s', async (name) => {

@@ -775,7 +775,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         setIsWaiting(true);
         dismissAlert();
 
-        const {error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
+        const {data: userId, error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
         if (error) {
             if (error.server_error_id === 'app.passkey.unknown_credential.app_error') {
                 // An omitted rpId means the page's own host to WebAuthn.
@@ -797,7 +797,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return false;
         }
 
-        LocalStorageStore.setPasskeyEnrolled();
+        LocalStorageStore.setPasskeyEnrolled(userId!);
         await postSubmit();
         return true;
     };

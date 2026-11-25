@@ -124,12 +124,13 @@ export default function PasskeyEnrollmentPage() {
         canAct = true;
     }
 
-    const run = async (kind: 'add' | 'verify', action: () => Promise<boolean>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
+    const run = async (kind: 'add' | 'verify', action: () => Promise<string | null>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
         setBusy(kind);
         setError(null);
         try {
-            if (await action()) {
-                LocalStorageStore.setPasskeyEnrolled();
+            const userId = await action();
+            if (userId !== null) {
+                LocalStorageStore.setPasskeyEnrolled(userId);
                 setDone(result);
             }
         } catch (e) {
@@ -150,15 +151,15 @@ export default function PasskeyEnrollmentPage() {
         setBusy(null);
     };
 
-    const add = () => run('add', async () => Boolean(await createPasskey(
+    const add = () => run('add', async () => (await createPasskey(
         () => Client4.beginPasskeyEnrollmentRegistration(ticket!),
         (ceremonyId, credential) => Client4.finishPasskeyEnrollmentRegistration(ceremonyId, '', credential),
-    )), 'added');
+    ))?.user_id ?? null, 'added');
 
-    const verifyExisting = () => run('verify', () => verifyPasskey(
+    const verifyExisting = () => run('verify', async () => (await verifyPasskey(
         () => Client4.beginPasskeyEnrollmentVerification(ticket!),
         (ceremonyId, credential) => Client4.finishPasskeyEnrollmentVerification(ceremonyId, credential),
-    ), 'confirmed', verifyErrors);
+    ))?.user_id ?? null, 'confirmed', verifyErrors);
 
     return (
         <ColumnLayout

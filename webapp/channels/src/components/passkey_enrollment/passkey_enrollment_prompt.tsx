@@ -11,6 +11,7 @@ import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {isModalOpen} from 'selectors/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -37,16 +38,18 @@ export default function PasskeyEnrollmentPrompt() {
     const {formatMessage} = useIntl();
     const enrollmentEnabled = useSelector(getConfig).PasskeyEnrollmentEnabled === 'true';
     const store = useStore<GlobalState>();
+    const currentUserId = useSelector(getCurrentUserId);
 
     // Fixed at mount: a skip is recorded against the login that was current when the prompt opened, and
     // nothing that changes afterwards reopens it.
     const [loginKey] = useState(() => Client4.getCSRFFromCookie());
+    const [userId] = useState(currentUserId);
     const [eligible] = useState(() => (
         enrollmentEnabled &&
         !isDesktopApp() &&
         typeof window.PublicKeyCredential !== 'undefined' &&
         !isPasskeySession() &&
-        LocalStorageStore.isPasskeyPromptDue(loginKey)
+        LocalStorageStore.isPasskeyPromptDue(userId, loginKey)
     ));
     const [open, setOpen] = useState(false);
     const [busy, setBusy] = useState<'add' | 'verify' | null>(null);
@@ -95,7 +98,7 @@ export default function PasskeyEnrollmentPrompt() {
                 (ceremonyId, credential) => Client4.finishPasskeyRegistration('me', ceremonyId, '', credential),
             );
             if (passkey) {
-                LocalStorageStore.setPasskeyEnrolled();
+                LocalStorageStore.setPasskeyEnrolled(userId);
                 setOpen(false);
                 return;
             }
@@ -104,7 +107,7 @@ export default function PasskeyEnrollmentPrompt() {
 
             // The authenticator already holds one of this account's passkeys, e.g. after the local record was cleared.
             if (err.name === 'InvalidStateError') {
-                LocalStorageStore.setPasskeyEnrolled();
+                LocalStorageStore.setPasskeyEnrolled(userId);
                 setOpen(false);
                 return;
             }
@@ -123,8 +126,8 @@ export default function PasskeyEnrollmentPrompt() {
                 () => Client4.beginPasskeyEnrollmentVerification(ticket),
                 (ceremonyId, credential) => Client4.finishPasskeyEnrollmentVerification(ceremonyId, credential),
             );
-            if (verified) {
-                LocalStorageStore.setPasskeyEnrolled();
+            if (verified !== null) {
+                LocalStorageStore.setPasskeyEnrolled(userId);
                 setOpen(false);
                 return;
             }

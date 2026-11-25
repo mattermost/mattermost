@@ -3391,7 +3391,12 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StatusOK"
+                type: object
+                properties:
+                  user_id:
+                    description: The user whose passkey was verified, i.e. the
+                      user the ticket was issued for
+                    type: string
         "400":
           description: >
             The request body is invalid, or `ceremony_id` or `credential` is

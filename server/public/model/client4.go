@@ -2131,13 +2131,13 @@ func (c *Client4) BeginPasskeyVerificationWithTicket(ctx context.Context, ticket
 
 // FinishPasskeyVerificationWithTicket completes the ceremony begun by
 // BeginPasskeyVerificationWithTicket. It needs no session and, unlike FinishPasskeyLogin, starts none.
-func (c *Client4) FinishPasskeyVerificationWithTicket(ctx context.Context, finish *PasskeyLoginFinish) (*Response, error) {
+func (c *Client4) FinishPasskeyVerificationWithTicket(ctx context.Context, finish *PasskeyLoginFinish) (*PasskeyVerification, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("passkeys", "enrollment", "verification", "finish"), finish)
 	if err != nil {
-		return BuildResponse(r), err
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return BuildResponse(r), nil
+	return DecodeJSONFromResponse[*PasskeyVerification](r)
 }
 
 // BeginPasskeyLogin starts a usernameless passkey sign-in ceremony and returns the options to hand

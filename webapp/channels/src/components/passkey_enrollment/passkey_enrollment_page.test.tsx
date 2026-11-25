@@ -90,7 +90,7 @@ describe('PasskeyEnrollmentPage', () => {
         renderWithContext(<PasskeyEnrollmentPage/>, state, {history});
         return history;
     };
-    const isEnrolled = () => !LocalStorageStore.isPasskeyPromptDue('any-login');
+    const isEnrolled = () => !LocalStorageStore.isPasskeyPromptDue('u1', 'any-login');
     const addButton = () => screen.queryByRole('button', {name: 'Add passkey'});
     const existingButton = () => screen.queryByRole('button', {name: 'Use existing passkey'});
 
@@ -104,9 +104,9 @@ describe('PasskeyEnrollmentPage', () => {
         isDesktopAppMock.mockReturnValue(false);
 
         beginRegistration = jest.spyOn(Client4, 'beginPasskeyEnrollmentRegistration').mockResolvedValue(beginResult);
-        finishRegistration = jest.spyOn(Client4, 'finishPasskeyEnrollmentRegistration').mockResolvedValue({} as never);
+        finishRegistration = jest.spyOn(Client4, 'finishPasskeyEnrollmentRegistration').mockResolvedValue({user_id: 'u1'} as never);
         beginVerification = jest.spyOn(Client4, 'beginPasskeyEnrollmentVerification').mockResolvedValue(verifyBegin);
-        finishVerification = jest.spyOn(Client4, 'finishPasskeyEnrollmentVerification').mockResolvedValue({status: 'OK'});
+        finishVerification = jest.spyOn(Client4, 'finishPasskeyEnrollmentVerification').mockResolvedValue({user_id: 'u1'});
         create = jest.fn().mockResolvedValue(rawCredential);
         get = jest.fn().mockResolvedValue(assertionCredential);
         Object.defineProperty(navigator, 'credentials', {value: {create, get}, configurable: true});
@@ -136,6 +136,7 @@ describe('PasskeyEnrollmentPage', () => {
         expect(screen.getByRole('heading', {name: 'Passkey added'})).toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
         expect(isEnrolled()).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('u2', 'any-login')).toBe(true);
         expect(beginVerification).not.toHaveBeenCalled();
         expect(beginRegistration).toHaveBeenCalledWith('t1');
         expect(finishRegistration).toHaveBeenCalledWith('cer1', '', expect.objectContaining({id: 'cred1'}));
@@ -290,6 +291,7 @@ describe('PasskeyEnrollmentPage', () => {
             expect(screen.getByRole('heading', {name: 'Passkey confirmed'})).toBeInTheDocument();
             expect(screen.queryByRole('button')).not.toBeInTheDocument();
             expect(isEnrolled()).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('u2', 'any-login')).toBe(true);
             expect(beginVerification).toHaveBeenCalledWith('t1');
             expect(finishVerification).toHaveBeenCalledWith('ver1', expect.objectContaining({id: 'cred2'}));
             expect(beginRegistration).not.toHaveBeenCalled();

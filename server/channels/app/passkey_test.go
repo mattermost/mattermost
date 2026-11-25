@@ -1378,7 +1378,12 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 	verify := func(t *testing.T, ticket string, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) *model.AppError {
 		t.Helper()
 		opts := begin(t, ticket)
-		return th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts, authOpts...))
+		_, appErr := th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts, authOpts...))
+		return appErr
+	}
+	finishErr := func(ceremonyID string, credential []byte) *model.AppError {
+		_, appErr := th.App.FinishPasskeyVerificationWithTicket(th.Context, ceremonyID, credential)
+		return appErr
 	}
 	requireFails := func(t *testing.T, appErr *model.AppError, status int, id string) {
 		t.Helper()
@@ -1447,7 +1452,9 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.Empty(t, ceremony.SessionData.AllowedCredentialIDs)
 
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
-		require.Nil(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)))
+		verifiedUserID, appErr := th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts))
+		require.Nil(t, appErr)
+		require.Equal(t, user.Id, verifiedUserID)
 		require.Positive(t, stored(t, user.Id)[0].LastUsedAt)
 		require.Equal(t, sessions, sessionCount(t, user.Id))
 
@@ -1541,7 +1548,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			}
 		}
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)), http.StatusUnauthorized, invalidCredential)
+		requireFails(t, finishErr(opts.CeremonyId, assert(t, auth, opts)), http.StatusUnauthorized, invalidCredential)
 	})
 
 	t.Run("an assertion without user verification is refused and the ticket still works", func(t *testing.T) {
@@ -1555,7 +1562,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 		opts := begin(t, ticket)
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, []byte(`{"id":`)), http.StatusBadRequest, invalidCredential)
+		requireFails(t, finishErr(opts.CeremonyId, []byte(`{"id":`)), http.StatusBadRequest, invalidCredential)
 		require.Nil(t, verify(t, ticket, auth))
 	})
 
@@ -1594,7 +1601,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			},
 		})
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.update_usage.app_error")
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.update_usage.app_error")
 	})
 
 	t.Run("a verification that loses the race to record its use is refused", func(t *testing.T) {
@@ -1610,7 +1617,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			},
 		})
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusUnauthorized, counterRegressed)
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusUnauthorized, counterRegressed)
 	})
 
 	t.Run("a spent ticket cannot begin again", func(t *testing.T) {
@@ -1623,10 +1630,10 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 	t.Run("a ticket spent by another finish refuses the other ceremony", func(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 		first, second := begin(t, ticket), begin(t, ticket)
-		require.Nil(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, first.CeremonyId, assert(t, auth, first)))
+		require.Nil(t, finishErr(first.CeremonyId, assert(t, auth, first)))
 
 		auth.SignCount = 1
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, second.CeremonyId, assert(t, auth, second)), http.StatusBadRequest, ticketInvalid)
+		requireFails(t, finishErr(second.CeremonyId, assert(t, auth, second)), http.StatusBadRequest, ticketInvalid)
 	})
 
 	t.Run("unknown, aged and wrong-type tickets are refused at begin", func(t *testing.T) {
@@ -1647,7 +1654,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		opts := begin(t, ticket)
 		agePasskeyTicket(t, th, ticket)
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)), http.StatusBadRequest, ticketInvalid)
+		requireFails(t, finishErr(opts.CeremonyId, assert(t, auth, opts)), http.StatusBadRequest, ticketInvalid)
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 
@@ -1658,7 +1665,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.Nil(t, th.App.RevokeSession(th.Context, session))
 
 		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts)), http.StatusBadRequest, ticketInvalid)
+		requireFails(t, finishErr(opts.CeremonyId, assert(t, auth, opts)), http.StatusBadRequest, ticketInvalid)
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 
@@ -1679,7 +1686,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			return next()
 		}})
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusBadRequest, ticketInvalid)
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusBadRequest, ticketInvalid)
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 
@@ -1692,7 +1699,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			return next()
 		}})
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusBadRequest, ticketInvalid)
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusBadRequest, ticketInvalid)
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 
@@ -1704,7 +1711,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			return nil, errors.New("db down")
 		}})
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.finish_verification.app_error")
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.finish_verification.app_error")
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 
@@ -1715,7 +1722,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		useTicketStore(t, th, &ticketTokenStore{getByTokenFromMaster: func() (*model.Token, error) { return nil, errors.New("db down") }})
 
 		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get_ticket.app_error")
 	})
 
 	t.Run("a ticket a lagging replica does not have yet is still found at begin and at finish", func(t *testing.T) {
@@ -1732,7 +1739,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		withPasskeyStore(t, &failingGetForUserPasskeyStore{PasskeyStore: th.App.Srv().Store().Passkey()})
 
 		requireBeginFails(t, ticket, http.StatusInternalServerError, "app.passkey.get.app_error")
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get.app_error")
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.get.app_error")
 	})
 
 	t.Run("a failure to save the ceremony is a server error", func(t *testing.T) {
@@ -1748,7 +1755,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		resp := assert(t, auth, opts)
 		withTokenStore(t, failingConsumeTokenStore{th.App.Srv().Store().Token()})
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.finish_verification.app_error")
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusInternalServerError, "app.passkey.finish_verification.app_error")
 	})
 
 	t.Run("a ticket whose user no longer exists is refused", func(t *testing.T) {
@@ -1773,14 +1780,14 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		})
 
 		requireBeginFails(t, ticket, http.StatusNotImplemented, "app.passkey.unavailable.app_error")
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, resp), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
+		requireFails(t, finishErr(opts.CeremonyId, resp), http.StatusNotImplemented, "app.passkey.unavailable.app_error")
 	})
 
 	t.Run("an unknown ceremony is refused", func(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 		opts := begin(t, ticket)
 
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, model.NewId(), assert(t, auth, opts)), http.StatusBadRequest, ceremonyInvalid)
+		requireFails(t, finishErr(model.NewId(), assert(t, auth, opts)), http.StatusBadRequest, ceremonyInvalid)
 	})
 
 	t.Run("an unusable stored ceremony is refused", func(t *testing.T) {
@@ -1812,7 +1819,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 			"other session": saveCeremony(t, ceremony(otherSession), now),
 		} {
 			t.Run(name, func(t *testing.T) {
-				requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, id, resp), http.StatusBadRequest, ceremonyInvalid)
+				requireFails(t, finishErr(id, resp), http.StatusBadRequest, ceremonyInvalid)
 			})
 		}
 	})
@@ -1822,7 +1829,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 
 		login, appErr := th.App.BeginPasskeyLogin(th.Context)
 		require.Nil(t, appErr)
-		requireFails(t, th.App.FinishPasskeyVerificationWithTicket(th.Context, login.CeremonyId, assert(t, auth, login)), http.StatusBadRequest, ceremonyInvalid)
+		requireFails(t, finishErr(login.CeremonyId, assert(t, auth, login)), http.StatusBadRequest, ceremonyInvalid)
 
 		opts := begin(t, ticket)
 		got, _, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, assert(t, auth, opts))

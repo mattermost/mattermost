@@ -150,6 +150,12 @@ type PasskeyLoginFinish struct {
 	Credential json.RawMessage `json:"credential"`
 }
 
+// PasskeyVerification is the result of confirming a passkey with an enrollment ticket. The caller
+// has no session, so UserId is how it learns whose passkey was confirmed.
+type PasskeyVerification struct {
+	UserId string `json:"user_id"`
+}
+
 // PasskeyRPID returns the WebAuthn relying-party ID for a Site URL and whether passkeys can work with it.
 func PasskeyRPID(siteURL string) (string, bool) {
 	u, err := url.Parse(siteURL)

@@ -181,7 +181,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             if (!passkey) {
                 return;
             }
-            LocalStorageStore.setPasskeyEnrolled();
+            LocalStorageStore.setPasskeyEnrolled(passkey.user_id);
             setName('');
             await load();
         } catch (e) {

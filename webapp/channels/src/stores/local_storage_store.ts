@@ -19,7 +19,7 @@ const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
 const wasNotifiedOfLogInKey = 'was_notified_of_login';
-const passkeyEnrolledKey = 'passkey_enrolled';
+const getPasskeyEnrolledKey = (userId: string) => ['passkey_enrolled', userId].join(':');
 const passkeyPromptSkippedKey = 'passkey_prompt_skipped';
 
 const getPathScopedKey = (path: string, key: string) => {
@@ -95,13 +95,17 @@ class LocalStorageStoreClass {
         }
     }
 
+    // Recorded per user: another account signing in on this browser has not necessarily enrolled.
     // Recording must never break adding a passkey or signing in, so blocked storage is swallowed.
-    setPasskeyEnrolled(): void {
+    setPasskeyEnrolled(userId: string): void {
+        if (!userId) {
+            return;
+        }
         try {
-            this.setItem(passkeyEnrolledKey, 'true');
+            this.setItem(getPasskeyEnrolledKey(userId), 'true');
         } catch (error) {
             // eslint-disable-next-line no-console
-            console.warn('Unable to record that this browser has a passkey', error);
+            console.warn('Unable to record that this user has a passkey in this browser', error);
         }
     }
 
@@ -116,12 +120,12 @@ class LocalStorageStoreClass {
 
     // loginKey identifies one login, so a skip lasts for that login only. Unreadable storage means not due:
     // a browser that cannot remember a skip would be prompted on every page load.
-    isPasskeyPromptDue(loginKey: string): boolean {
-        if (!loginKey) {
+    isPasskeyPromptDue(userId: string, loginKey: string): boolean {
+        if (!userId || !loginKey) {
             return false;
         }
         try {
-            return this.getItem(passkeyEnrolledKey) !== 'true' && this.getItem(passkeyPromptSkippedKey) !== loginKey;
+            return this.getItem(getPasskeyEnrolledKey(userId)) !== 'true' && this.getItem(passkeyPromptSkippedKey) !== loginKey;
         } catch {
             return false;
         }

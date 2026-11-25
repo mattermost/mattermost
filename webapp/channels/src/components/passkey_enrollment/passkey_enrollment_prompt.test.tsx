@@ -20,7 +20,7 @@ jest.mock('@mattermost/shared/utils/user_agent', () => ({
 const isDesktopAppMock = jest.mocked(isDesktopApp);
 
 const stateWith = (enabled: 'true' | 'false') => ({
-    entities: {general: {config: {PasskeyEnrollmentEnabled: enabled}}},
+    entities: {general: {config: {PasskeyEnrollmentEnabled: enabled}}, users: {currentUserId: 'user1'}},
 });
 
 const beginResult = {
@@ -101,6 +101,13 @@ describe('PasskeyEnrollmentPrompt', () => {
         expect(screen.getByRole('button', {name: 'Not now'})).toBeInTheDocument();
     });
 
+    test('is shown to a user who has not enrolled when another user enrolled in this browser', async () => {
+        LocalStorageStore.setPasskeyEnrolled('someone-else');
+        renderPrompt();
+
+        expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    });
+
     test.each([
         ['enrollment is off', () => 'false' as const],
         ['inside the desktop app', () => {
@@ -112,8 +119,8 @@ describe('PasskeyEnrollmentPrompt', () => {
         ['the session was started by a passkey', () => {
             document.cookie = 'MMLOGINMETHOD=passkey';
         }],
-        ['this browser already has a passkey', () => {
-            LocalStorageStore.setPasskeyEnrolled();
+        ['this user already has a passkey in this browser', () => {
+            LocalStorageStore.setPasskeyEnrolled('user1');
         }],
         ['the prompt was skipped for this login', () => {
             LocalStorageStore.setPasskeyPromptSkipped('tok1');
@@ -141,7 +148,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         await waitFor(() => expect(getSessions).toHaveBeenCalled());
         await new Promise((r) => setTimeout(r, 50));
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     describe('the current session', () => {
@@ -195,8 +202,8 @@ describe('PasskeyEnrollmentPrompt', () => {
 
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
             expect(container).toBeEmptyDOMElement();
-            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
-            expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok2')).toBe(true);
         });
 
         test('does not look the sessions up again on a later mount after an old-session answer', async () => {
@@ -219,7 +226,7 @@ describe('PasskeyEnrollmentPrompt', () => {
 
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
             expect(container).toBeEmptyDOMElement();
-            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
         });
     });
 
@@ -237,8 +244,8 @@ describe('PasskeyEnrollmentPrompt', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Not now'}));
 
         await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
-        expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(false);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok2')).toBe(true);
     });
 
     test('has no close button', async () => {
@@ -257,7 +264,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         await userEvent.click(container);
 
         expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     test('the footer buttons are Use existing passkey, Not now, Add passkey in that order', async () => {
@@ -276,7 +283,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape', keyCode: 27});
 
         await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(false);
     });
 
     test('Add passkey registers a passkey with an empty name and records the browser as enrolled', async () => {
@@ -288,7 +295,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
         expect(beginRegistration).toHaveBeenCalledWith('me');
         expect(finishRegistration).toHaveBeenCalledWith('me', 'cer1', '', expect.objectContaining({id: 'cred1'}));
-        expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(false);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok2')).toBe(false);
     });
 
     test('ignores repeated clicks while the ceremony runs', async () => {
@@ -321,7 +328,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
         expect(finishRegistration).not.toHaveBeenCalled();
         expect(document.querySelector('.genericModalError')).not.toBeInTheDocument();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     test('InvalidStateError means the device already has a passkey, so it records that and closes without an error', async () => {
@@ -333,7 +340,7 @@ describe('PasskeyEnrollmentPrompt', () => {
 
         await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
         expect(finishRegistration).not.toHaveBeenCalled();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(false);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok2')).toBe(false);
     });
 
     test('tells the user to sign in again when begin is refused as recent-login-required', async () => {
@@ -358,7 +365,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Not now'}));
 
         await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(false);
     });
 
     test('shows the server message for any other refusal', async () => {
@@ -370,7 +377,7 @@ describe('PasskeyEnrollmentPrompt', () => {
 
         expect(await screen.findByText('limit hit')).toBeInTheDocument();
         expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     test('shows the server message when finish is refused', async () => {
@@ -381,7 +388,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Add passkey'}));
 
         expect(await screen.findByText('limit hit')).toBeInTheDocument();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     test('does not reopen once closed when the page state changes', async () => {
@@ -431,7 +438,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         beforeEach(() => {
             createTicket = jest.spyOn(Client4, 'createPasskeyEnrollmentTicket').mockResolvedValue({ticket: 'tk1', expire_at: 1});
             beginVerification = jest.spyOn(Client4, 'beginPasskeyEnrollmentVerification').mockResolvedValue(verifyBegin);
-            finishVerification = jest.spyOn(Client4, 'finishPasskeyEnrollmentVerification').mockResolvedValue({status: 'OK'});
+            finishVerification = jest.spyOn(Client4, 'finishPasskeyEnrollmentVerification').mockResolvedValue({user_id: 'user1'});
             get = jest.fn().mockResolvedValue(assertionCredential);
             Object.defineProperty(navigator, 'credentials', {value: {create, get}, configurable: true});
         });
@@ -446,7 +453,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             expect(beginVerification).toHaveBeenCalledWith('tk1');
             expect(finishVerification).toHaveBeenCalledWith('ver1', expect.objectContaining({id: 'cred2'}));
             expect(beginRegistration).not.toHaveBeenCalled();
-            expect(LocalStorageStore.isPasskeyPromptDue('tok2')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok2')).toBe(false);
         });
 
         test('stays open without an error when the browser prompt is dismissed, and a new click asks for a new ticket', async () => {
@@ -460,7 +467,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
             expect(finishVerification).not.toHaveBeenCalled();
             expect(document.querySelector('.genericModalError')).not.toBeInTheDocument();
-            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
 
             await clickExisting();
 
@@ -478,7 +485,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             expect(await screen.findByText(NONE_REGISTERED_TEXT)).toBeInTheDocument();
             expect(screen.queryByText('server text')).not.toBeInTheDocument();
             expect(get).not.toHaveBeenCalled();
-            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
         });
 
         test('says the passkey is not this account\'s when finish refuses it', async () => {
@@ -490,7 +497,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             expect(await screen.findByText(INVALID_CREDENTIAL_TEXT)).toBeInTheDocument();
             expect(screen.queryByText('server text')).not.toBeInTheDocument();
             expect(screen.getByRole('dialog')).toBeInTheDocument();
-            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
         });
 
         test('shows the server message when the ticket is refused', async () => {
@@ -515,7 +522,7 @@ describe('PasskeyEnrollmentPrompt', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Not now'}));
             await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-            expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(false);
         });
 
         test('disables the check while a passkey is being added', async () => {

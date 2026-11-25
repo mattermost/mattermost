@@ -1378,7 +1378,7 @@ export default class Client4 {
     };
 
     finishPasskeyEnrollmentVerification = (ceremonyId: string, credential: PasskeyAssertionCredential) => {
-        return this.doFetch<StatusOK>(
+        return this.doFetch<{user_id: string}>(
             `${this.getUsersRoute()}/passkeys/enrollment/verification/finish`,
             {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, credential})},
         );

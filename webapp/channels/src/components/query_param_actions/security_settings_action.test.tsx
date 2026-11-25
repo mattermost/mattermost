@@ -48,7 +48,7 @@ describe('open_security_settings with the passkey prompt', () => {
                 <QueryParamActionController/>
                 <PasskeyEnrollmentPrompt/>
             </>,
-            {entities: {general: {config: {PasskeyEnrollmentEnabled: 'true'}}}},
+            {entities: {general: {config: {PasskeyEnrollmentEnabled: 'true'}}, users: {currentUserId: 'user1'}}},
             {history},
         );
 
@@ -58,7 +58,7 @@ describe('open_security_settings with the passkey prompt', () => {
         expect(history.location.search).toBe('');
         expect(store.getState().views.modals.modalState.user_settings.open).toBe(true);
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-        expect(LocalStorageStore.isPasskeyPromptDue('tok1')).toBe(true);
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     test('still opens the prompt on an ordinary load', async () => {
@@ -67,7 +67,7 @@ describe('open_security_settings with the passkey prompt', () => {
                 <QueryParamActionController/>
                 <PasskeyEnrollmentPrompt/>
             </>,
-            {entities: {general: {config: {PasskeyEnrollmentEnabled: 'true'}}}},
+            {entities: {general: {config: {PasskeyEnrollmentEnabled: 'true'}}, users: {currentUserId: 'user1'}}},
             {history: createMemoryHistory({initialEntries: ['/team/town-square']})},
         );
 

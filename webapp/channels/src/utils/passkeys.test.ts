@@ -380,27 +380,27 @@ describe('utils/passkeys', () => {
         });
 
         describe('verifyPasskey', () => {
-            test('returns true once finish has accepted the converted assertion', async () => {
+            test('returns what finish returned once it has accepted the converted assertion', async () => {
                 get.mockResolvedValue(rawCredential);
-                const finish = jest.fn().mockResolvedValue({});
+                const finish = jest.fn().mockResolvedValue({user_id: 'u1'});
 
-                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBe(true);
+                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toEqual({user_id: 'u1'});
                 expect(finish).toHaveBeenCalledWith('cer2', assertionToJSON(rawCredential as unknown as PublicKeyCredential));
             });
 
-            test('returns false without calling finish when the browser yields no credential', async () => {
+            test('returns null without calling finish when the browser yields no credential', async () => {
                 get.mockResolvedValue(null);
                 const finish = jest.fn();
 
-                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBe(false);
+                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBeNull();
                 expect(finish).not.toHaveBeenCalled();
             });
 
-            test.each(['NotAllowedError', 'AbortError'])('returns false when the user dismisses the prompt (%s)', async (name) => {
+            test.each(['NotAllowedError', 'AbortError'])('returns null when the user dismisses the prompt (%s)', async (name) => {
                 get.mockRejectedValue(domError(name));
                 const finish = jest.fn();
 
-                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBe(false);
+                await expect(verifyPasskey(async () => loginOptions, finish)).resolves.toBeNull();
                 expect(finish).not.toHaveBeenCalled();
             });
 

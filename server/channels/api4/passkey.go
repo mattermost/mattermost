@@ -357,12 +357,15 @@ func finishPasskeyVerificationWithTicket(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	if appErr := c.App.FinishPasskeyVerificationWithTicket(c.AppContext, finish.CeremonyId, finish.Credential); appErr != nil {
+	userID, appErr := c.App.FinishPasskeyVerificationWithTicket(c.AppContext, finish.CeremonyId, finish.Credential)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	ReturnStatusOK(w)
+	if err := json.NewEncoder(w).Encode(model.PasskeyVerification{UserId: userID}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // createPasskeyEnrollmentTicket hands the app the request's own session: the ticket borrows that

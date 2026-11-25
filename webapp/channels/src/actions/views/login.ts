@@ -71,9 +71,16 @@ export function loginWithDesktopToken(token: string): ActionFuncAsync {
     };
 }
 
-export function loginWithPasskey(ceremonyId: string, credential: PasskeyAssertionCredential): ActionFuncAsync {
+// Resolves with the signed-in user's id, which the caller cannot read back from the store until it re-renders.
+export function loginWithPasskey(ceremonyId: string, credential: PasskeyAssertionCredential): ActionFuncAsync<string> {
     return async (dispatch) => {
-        return performLogin(dispatch, () => Client4.finishPasskeyLogin(ceremonyId, credential));
+        let userId = '';
+        const result = await performLogin(dispatch, async () => {
+            const profile = await Client4.finishPasskeyLogin(ceremonyId, credential);
+            userId = profile.id;
+            return profile;
+        });
+        return result.error ? {error: result.error} : {data: userId};
     };
 }
 
