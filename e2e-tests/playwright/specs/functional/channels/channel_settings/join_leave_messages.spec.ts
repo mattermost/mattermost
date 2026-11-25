@@ -13,7 +13,7 @@
  * channel, so tests use `adminClient.addToChannel()` to produce them.
  */
 
-import {Api, ChannelsPage, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
+import {Api, ChannelsPage, createSurface, expect, messageFragment, Msg, settle, test} from '@mattermost/playwright-lib';
 
 test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
     /**
@@ -91,7 +91,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * The join system post is visible in the timeline before disabling
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                channelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.joined_channel.one']),
+                ), // EN locale
             ).toBeVisible({timeout: pw.duration.ten_sec});
 
             // # Open Channel Settings → Configuration tab and disable join/leave messages
@@ -107,7 +109,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * The join system post is no longer visible — wait for post-list re-fetch after ETag bust
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                channelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.joined_channel.one']),
+                ), // EN locale
             ).not.toBeVisible({timeout: pw.duration.ten_sec});
 
             // * Normal messages are still visible
@@ -163,7 +167,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * The channel timeline should NOT contain an add-to-channel system post
             await secondChannelsPage.sidebarLeft.goToItem(channel.name);
-            await expect(secondChannelsPage.centerView.container.getByText('added to the channel')).not.toBeVisible({
+            await expect(
+                secondChannelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.added_to_channel.one']),
+                ),
+            ).not.toBeVisible({
                 timeout: pw.duration.ten_sec,
             });
         },
@@ -201,7 +209,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await secondChannelsPage.toBeVisible();
 
             // * secondUser sees the join system post in the channel
-            await expect(secondChannelsPage.centerView.container.getByText('joined the channel')).toBeVisible({
+            await expect(
+                secondChannelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.joined_channel.one']),
+                ),
+            ).toBeVisible({
                 timeout: pw.duration.ten_sec,
             });
 
@@ -222,7 +234,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await channelSettings.close();
 
             // * secondUser's view updates in real time — join post disappears without a page reload
-            await expect(secondChannelsPage.centerView.container.getByText('joined the channel')).not.toBeVisible({
+            await expect(
+                secondChannelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.joined_channel.one']),
+                ),
+            ).not.toBeVisible({
                 timeout: pw.duration.ten_sec,
             });
         },
@@ -271,7 +287,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * Join system post is hidden after disabling — wait for post-list re-fetch
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                channelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.joined_channel.one']),
+                ), // EN locale
             ).not.toBeVisible({timeout: pw.duration.ten_sec});
 
             // # Re-open Channel Settings → Configuration tab and re-enable join/leave messages
@@ -286,7 +304,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * Join system post is visible again after re-enabling
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                channelsPage.centerView.container.getByText(
+                    messageFragment(Msg['combined_system_message.joined_channel.one']),
+                ), // EN locale
             ).toBeVisible({timeout: pw.duration.ten_sec});
         },
     );

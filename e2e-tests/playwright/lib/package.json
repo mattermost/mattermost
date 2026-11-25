@@ -32,7 +32,7 @@
     "test-automation"
   ],
   "scripts": {
-    "prebuild": "node ../ui-surface/bin/ui-surface.mjs generate",
+    "prebuild": "npm run build --prefix ../ui-surface && node ../ui-surface/bin/ui-surface.mjs generate",
     "build": "rollup -c --bundleConfigAsCjs",
     "build:watch": "npm run build -- --watch",
     "build-tsc": "tsc --build --verbose",

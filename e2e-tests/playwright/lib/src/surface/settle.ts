@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, type Page, type Request, type Response} from '@playwright/test';
+import type {Page, Request, Response} from '@playwright/test';
 
 import {Deadline, type ElementDriver, InputDriver, StateDriver} from './drivers.js';
 
@@ -9,11 +9,17 @@ export type ApiOpSpec = {
     readonly id: string;
     readonly method: string;
     readonly path: string;
+    readonly pathParams?: readonly string[];
 };
 
-export type SettleOptions = {
-    readonly wait: ApiOpSpec;
-    readonly params?: Record<string, string>;
+/** Path parameter names of an operation; a typo in `params` is a compile error, not a wildcard match. */
+export type PathParamsOf<Op extends ApiOpSpec> = Op['pathParams'] extends readonly string[]
+    ? Op['pathParams'][number]
+    : string;
+
+export type SettleOptions<Op extends ApiOpSpec = ApiOpSpec> = {
+    readonly wait: Op;
+    readonly params?: {readonly [K in PathParamsOf<Op>]?: string};
     readonly query?: Record<string, string>;
     readonly status?: number;
     readonly timeout?: number;
@@ -38,12 +44,17 @@ export class SettleHttpError extends Error {
     }
 }
 
-function buildPathRegex(template: string, params: Record<string, string> = {}): RegExp {
-    const resolved = template.replace(/\{([^}]+)\}/g, (_, name: string) => {
-        if (name in params) {
-            return params[name].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-        return '[^/]+';
+function buildPathRegex(op: ApiOpSpec, params: Readonly<Record<string, string | undefined>> = {}): RegExp {
+    const names = [...op.path.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+    const unknown = Object.keys(params).filter((name) => !names.includes(name));
+    if (unknown.length > 0) {
+        throw new TypeError(
+            `Api.${op.id} has no path param ${unknown.map((n) => `"${n}"`).join(', ')}; expected one of: ${names.join(', ') || '(none)'}`,
+        );
+    }
+    const resolved = op.path.replace(/\{([^}]+)\}/g, (_, name: string) => {
+        const value = params[name];
+        return value === undefined ? '[^/]+' : value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     });
     return new RegExp(`${resolved}$`);
 }
@@ -56,14 +67,14 @@ function matchesQuery(url: URL, query?: Record<string, string>): boolean {
 }
 
 /** Run `action` while waiting for the named OpenAPI operation to complete, listing observed API traffic on failure. */
-export async function waitForApi<T = unknown>(
+export async function waitForApi<T = unknown, Op extends ApiOpSpec = ApiOpSpec>(
     page: Page,
-    options: SettleOptions,
+    options: SettleOptions<Op>,
     action: () => Promise<void>,
 ): Promise<T> {
     const timeoutMs = options.timeout ?? 30_000;
     const deadline = new Deadline(timeoutMs);
-    const pathPattern = buildPathRegex(options.wait.path, options.params);
+    const pathPattern = buildPathRegex(options.wait, options.params);
     const observed: string[] = [];
 
     const onRequest = (req: Request) => {
@@ -122,39 +133,56 @@ export async function waitForApi<T = unknown>(
 }
 
 /** Wrap a driver so its action triggers and awaits a specific OpenAPI response. */
-export function settle<T = unknown>(driver: ElementDriver, options: SettleOptions) {
+export function settle<T = unknown, Op extends ApiOpSpec = ApiOpSpec>(
+    driver: ElementDriver,
+    options: SettleOptions<Op>,
+) {
     const page = driver.locator.page();
     return {
-        click: () => waitForApi<T>(page, options, () => driver.click()),
-        press: (key: string) => waitForApi<T>(page, options, () => driver.press(key)),
+        click: () => waitForApi<T, Op>(page, options, () => driver.click()),
+        press: (key: string) => waitForApi<T, Op>(page, options, () => driver.press(key)),
         fill: (value: string) => {
             if (!(driver instanceof InputDriver)) {
                 throw new TypeError(`Driver "${driver.testId}" does not support fill()`);
             }
-            return waitForApi<T>(page, options, () => driver.fill(value));
+            return waitForApi<T, Op>(page, options, () => driver.fill(value));
         },
         check: () => {
             if (!(driver instanceof StateDriver)) {
                 throw new TypeError(`Driver "${driver.testId}" does not support check()`);
             }
-            return waitForApi<T>(page, options, () => driver.check());
+            return waitForApi<T, Op>(page, options, () => driver.check());
         },
         uncheck: () => {
             if (!(driver instanceof StateDriver)) {
                 throw new TypeError(`Driver "${driver.testId}" does not support uncheck()`);
             }
-            return waitForApi<T>(page, options, () => driver.uncheck());
+            return waitForApi<T, Op>(page, options, () => driver.uncheck());
         },
     };
 }
 
-/** Assert the current page pathname matches `expectedPath` (ignoring origin and subpath prefix). */
-export async function toHavePath(page: Page, expectedPath: string, options?: {timeout?: number}): Promise<void> {
-    const normalized = expectedPath.startsWith('/') ? expectedPath : `/${expectedPath}`;
-    await expect.poll(() => new URL(page.url()).pathname.endsWith(normalized), options).toBe(true);
+const ICU_ARGUMENT = /\{\s*[\w.]+\s*,\s*(?:plural|select|selectordinal)\s*,/;
+
+/** Fill `{placeholder}` values in an en.json template. ICU plural/select messages are rejected, not mangled. */
+export function formatMessage(template: string, values: Record<string, string | number> = {}): string {
+    if (ICU_ARGUMENT.test(template)) {
+        throw new TypeError(
+            `formatMessage() supports simple {placeholder} messages only; got ICU message "${template}"`,
+        );
+    }
+    return template.replace(/\{([^}]+)\}/g, (_, key: string) => (key in values ? String(values[key]) : `{${key}}`));
 }
 
-/** Format an i18n message template (`{placeholder}`) for locale-independent assertions. */
-export function formatMessage(template: string, values: Record<string, string | number> = {}): string {
-    return template.replace(/\{([^}]+)\}/g, (_, key: string) => (key in values ? String(values[key]) : `{${key}}`));
+/**
+ * Longest static run of an en.json message, for substring locators: `{firstUser} **joined the channel**.` ->
+ * `joined the channel`. Placeholders and `**` markdown split the text; a trailing period is dropped.
+ */
+export function messageFragment(template: string): string {
+    const runs = template.split(/\{[^}]*\}|\*\*/).map((run) => run.trim().replace(/\.$/, ''));
+    const longest = runs.reduce((best, run) => (run.length > best.length ? run : best), '');
+    if (!longest) {
+        throw new TypeError(`Message "${template}" has no static text to match`);
+    }
+    return longest;
 }

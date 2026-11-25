@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSurface, test, toHavePath} from '@mattermost/playwright-lib';
+import {createSurface, expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a system admin can install a plugin from the Marketplace, configure it
@@ -29,7 +29,7 @@ test(
         await surface.admin().sidebar.toBeVisible();
 
         // * Verify System Console opened directly to the installed plugin's settings page
-        await toHavePath(page, `/admin_console/plugins/plugin_${pluginId}`);
+        await expect(page).toHavePath(`/admin_console/plugins/plugin_${pluginId}`);
 
         // # Navigate to Plugin Management and remove the plugin
         await systemConsolePage.gotoPluginManagement();

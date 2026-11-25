@@ -18,12 +18,13 @@ export {
 } from './drivers.js';
 export {
     formatMessage,
+    messageFragment,
     settle,
     SettleHttpError,
     SettleTimeoutError,
-    toHavePath,
     waitForApi,
     type ApiOpSpec,
+    type PathParamsOf,
     type SettleOptions,
 } from './settle.js';
 export {Api, type ApiOpKey, type ApiOperation} from './generated/api.generated.js';

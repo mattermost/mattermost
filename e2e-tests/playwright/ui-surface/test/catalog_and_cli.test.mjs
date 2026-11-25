@@ -32,8 +32,9 @@ test('emitGenerated writes api, messages, and flat non-generic surface code', ()
         const surface = extractSurface({
             roots: [],
             files: {
-                // eslint-disable-next-line no-template-curly-in-string
-                'modal.tsx': 'export const M = ({id}: {id: string}) => <><button data-testid="confirm_modal.confirm--button" /><li data-testid={`confirm_modal.item:${id}--listitem`} /></>;',
+                'modal.tsx':
+                    // eslint-disable-next-line no-template-curly-in-string
+                    'export const M = ({id}: {id: string}) => <><button data-testid="confirm_modal.confirm--button" /><li data-testid={`confirm_modal.item:${id}--listitem`} /></>;',
             },
         });
         const ops = extractOpenApi(join(repoRoot, 'api/v4/source'));
@@ -48,6 +49,14 @@ test('emitGenerated writes api, messages, and flat non-generic surface code', ()
         assert.equal(res.files.length, 3);
         const surfaceTs = readFileSync(join(outDir, 'surface.generated.ts'), 'utf8');
         assert.match(surfaceTs, /confirm_modal: \(root\?: Locator\)/);
+        assert.match(
+            surfaceTs,
+            /const scope = root \?\? page;/,
+            'scope without a data-surface container defaults to page',
+        );
+        assert.match(surfaceTs, /is missing param/);
+        const apiTs = readFileSync(join(outDir, 'api.generated.ts'), 'utf8');
+        assert.match(apiTs, /\} as const satisfies Record<ApiOpKey, ApiOperation>;/);
         assert.match(surfaceTs, /item: \(key: string\) =>/);
         assert.doesNotMatch(surfaceTs, /NotRendered/);
     } finally {
@@ -69,5 +78,49 @@ test('CLI map and check return expected output and exit codes', async () => {
         assert.match(captured, /\/:team\/channels\/:channel/);
     } finally {
         process.stdout.write = origOut;
+    }
+});
+
+test('extractOpenApi numbers duplicated operationIds instead of dropping a route', () => {
+    const warnings = [];
+    const ops = extractOpenApi(join(repoRoot, 'api/v4/source'), (message) => warnings.push(message));
+    const searchOps = ops.filter((op) => op.id === 'SearchFiles' || op.id === 'SearchFiles2');
+    const search = searchOps.map((op) => op.path).sort();
+    assert.deepEqual(search, ['/api/v4/files/search', '/api/v4/teams/{team_id}/files/search']);
+    assert.ok(warnings.some((w) => w.includes('SearchFiles')));
+});
+
+test('emitGenerated roots contained scopes in their container and fails on property collisions', () => {
+    const outDir = mkdtempSync(join(tmpdir(), 'ui-surface-gen-'));
+    const gen = (files) =>
+        emitGenerated({
+            outDir,
+            surface: extractSurface({roots: [], files}),
+            ops: [],
+            pages: {},
+            enJsonPath: join(repoRoot, 'webapp/channels/src/i18n/en.json'),
+        });
+    try {
+        gen({
+            'p.tsx':
+                'export const P = () => <div data-surface="save_panel"><button data-surface="save_panel.save--button" /></div>;',
+        });
+        const surfaceTs = readFileSync(join(outDir, 'surface.generated.ts'), 'utf8');
+        assert.match(surfaceTs, /const scope = root \?\? page\.locator\("\[data-surface=\\"save_panel\\"\]"\);/);
+
+        assert.throws(
+            () =>
+                gen({
+                    'p.tsx':
+                        'export const P = () => <><button data-surface="panel.save--button" /><a data-surface="panel.save--link" /></>;',
+                }),
+            /panel\.save: "panel\.save--button".*"panel\.save--link"/s,
+        );
+        assert.throws(
+            () => gen({'p.tsx': 'export const P = () => <button data-surface="pages.home--button" />;'}),
+            /reserved surface key "pages"/,
+        );
+    } finally {
+        rmSync(outDir, {recursive: true, force: true});
     }
 });

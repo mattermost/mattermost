@@ -33,13 +33,25 @@ export const DRIVER_ROLES = new Set([
 export const STATE_ROLES = new Set(['checkbox', 'switch', 'radio', 'tab', 'option', 'togglebutton']);
 export const ENTRY_ROLES = new Set(['textbox', 'searchbox', 'spinbutton', 'combobox']);
 const NON_TEXT_INPUT_TYPES = new Set([
-    'button', 'checkbox', 'color', 'file', 'hidden', 'image', 'radio', 'range', 'reset', 'submit',
+    'button',
+    'checkbox',
+    'color',
+    'file',
+    'hidden',
+    'image',
+    'radio',
+    'range',
+    'reset',
+    'submit',
 ]);
 const PATH_WORD = /^[a-z][a-z0-9_]*$/;
 const TESTID_METHOD = /^(?:getByTestId|findByTestId|queryByTestId|findAllByTestId|getAllByTestId)$/;
 const CSS_METHOD = /^(?:locator|find|contains|\$)$/;
 const EXACT_TESTID_CSS = /^\[data-(?:testid|surface)=(?:"([^"]+)"|'([^']+)')\]$/;
 const DYNAMIC = Symbol('dynamic');
+
+/** A list key must name entity identity (`post.id`, `pluginId`, `index`), never display text that varies by locale or data. */
+const IDENTITY_KEY = /^(?:id|key|index|idx|i)$|(?:Id|_id|Key|_key|Ids)$/;
 
 export type ParsedTestId = {
     raw: string;
@@ -63,7 +75,7 @@ export type SurfaceEntry = {
 };
 
 export type Diagnostic = {
-    rule: 'grammar' | 'duplicates' | 'role-fit' | 'stale-reference';
+    rule: 'grammar' | 'duplicates' | 'role-fit' | 'stale-reference' | 'dynamic' | 'key-origin';
     file: string;
     line: number;
     id: string;
@@ -155,19 +167,49 @@ function readAttr(el: ts.JsxOpeningLikeElement, attrName: string): string | bool
     return undefined;
 }
 
-function readAttrIds(el: ts.JsxOpeningLikeElement, attrName: 'data-testid' | 'data-surface'): Array<{id: string; keyed: boolean}> {
-    const out: Array<{id: string; keyed: boolean}> = [];
+type AttrId = {id: string; keyed: boolean; keyExpr?: ts.Expression} | {dynamic: ts.Expression};
+
+/** Last identifier of a key expression: `component.pluginId` -> `pluginId`, `item?.id ?? ''` -> `id`. */
+function keyName(expr: ts.Expression): string | undefined {
+    let cur: ts.Expression = expr;
+    while (
+        ts.isParenthesizedExpression(cur) ||
+        ts.isNonNullExpression(cur) ||
+        ts.isAsExpression(cur) ||
+        (ts.isBinaryExpression(cur) && cur.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken)
+    ) {
+        cur = ts.isBinaryExpression(cur) ? cur.left : cur.expression;
+    }
+    if (ts.isIdentifier(cur)) {
+        return cur.text;
+    }
+    if (ts.isPropertyAccessExpression(cur)) {
+        return cur.name.text;
+    }
+    return undefined;
+}
+
+function readAttrIds(el: ts.JsxOpeningLikeElement, attrName: 'data-testid' | 'data-surface'): AttrId[] {
+    const out: AttrId[] = [];
     const pushExpr = (expr: ts.Expression) => {
         if (ts.isStringLiteralLike(expr)) {
             out.push({id: expr.text, keyed: false});
         } else if (ts.isTemplateExpression(expr) && expr.templateSpans.length === 1) {
             const parsed = parseTemplateTestId(expr.head.text, expr.templateSpans[0].literal.text);
             if (parsed?.valid) {
-                out.push({id: `${parsed.scope}.${parsed.name}:${parsed.role ? `--${parsed.role}` : ''}`, keyed: true});
+                out.push({
+                    id: `${parsed.scope}.${parsed.name}:${parsed.role ? `--${parsed.role}` : ''}`,
+                    keyed: true,
+                    keyExpr: expr.templateSpans[0].expression,
+                });
+            } else {
+                out.push({dynamic: expr});
             }
         } else if (ts.isConditionalExpression(expr)) {
             pushExpr(expr.whenTrue);
             pushExpr(expr.whenFalse);
+        } else {
+            out.push({dynamic: expr});
         }
     };
     for (const prop of el.attributes.properties) {
@@ -217,7 +259,13 @@ function hasRoleMismatch(el: ts.JsxOpeningLikeElement, role: string): boolean {
     for (let cur: ts.Node | undefined = el; cur; cur = cur.parent) {
         const open = openingOf(cur);
         const editable = open && readAttr(open, 'contentEditable');
-        if (editable === true || editable === '' || editable === 'true' || editable === 'plaintext-only' || editable === DYNAMIC) {
+        if (
+            editable === true ||
+            editable === '' ||
+            editable === 'true' ||
+            editable === 'plaintext-only' ||
+            editable === DYNAMIC
+        ) {
             return false;
         }
         if (editable === false || editable === 'false') {
@@ -314,13 +362,38 @@ export function extractSurface(options: {
                 }
                 for (const attrName of ['data-testid', 'data-surface'] as const) {
                     for (const found of readAttrIds(el, attrName)) {
+                        if ('dynamic' in found) {
+                            // Legacy data-testid stays free-form; data-surface is the typed contract, so every value must resolve.
+                            if (attrName === 'data-surface') {
+                                report(
+                                    'dynamic',
+                                    node,
+                                    found.dynamic.getText(source),
+                                    'data-surface value must be a literal, a ternary of literals, or a one-key template (scope.name:<key>[--role])',
+                                );
+                            }
+                            continue;
+                        }
                         if (attrName === 'data-surface' && !found.id.includes('.') && !found.id.includes('--')) {
                             continue;
+                        }
+                        const key = found.keyExpr && keyName(found.keyExpr);
+                        if (found.keyExpr && !(key && IDENTITY_KEY.test(key))) {
+                            report(
+                                'key-origin',
+                                node,
+                                found.id,
+                                `Key \`${found.keyExpr.getText(source)}\` is not an identity field (id, *Id, key, index); display text makes ids locale- and data-dependent`,
+                            );
                         }
                         const parsed = found.keyed ? parseTestId(found.id.replace(':', ':key')) : parseTestId(found.id);
                         const {line} = source.getLineAndCharacterOfPosition(node.getStart(source));
                         if (parsed.valid) {
-                            const role = parsed.role ?? (el.tagName.getText() === 'input' && readAttr(el, 'type') === 'file' ? 'file' : 'container');
+                            const role =
+                                parsed.role ??
+                                (el.tagName.getText() === 'input' && readAttr(el, 'type') === 'file'
+                                    ? 'file'
+                                    : 'container');
                             const entry: SurfaceEntry = {
                                 id: found.id,
                                 scope: parsed.scope,
@@ -335,7 +408,12 @@ export function extractSurface(options: {
                             scopes[parsed.scope] ??= {parts: [], containerFiles: []};
                             scopes[parsed.scope].parts.push(entry);
                             if (parsed.role && hasRoleMismatch(el, parsed.role)) {
-                                report('role-fit', node, found.id, `Element <${el.tagName.getText()}> does not satisfy "--${parsed.role}" semantics`);
+                                report(
+                                    'role-fit',
+                                    node,
+                                    found.id,
+                                    `Element <${el.tagName.getText()}> does not satisfy "--${parsed.role}" semantics`,
+                                );
                             }
                         } else if (options.strictGrammar || isGrammarCandidate(found.id)) {
                             report('grammar', node, found.id, parsed.error ?? 'Invalid testid grammar');
@@ -343,8 +421,11 @@ export function extractSurface(options: {
                     }
                 }
             }
-            const inlineFragment = ts.isJsxFragment(node) && node.parent &&
-                (ts.isJsxFragment(node.parent) || (ts.isJsxElement(node.parent) && isNativeTag(node.parent.openingElement)));
+            const inlineFragment =
+                ts.isJsxFragment(node) &&
+                node.parent &&
+                (ts.isJsxFragment(node.parent) ||
+                    (ts.isJsxElement(node.parent) && isNativeTag(node.parent.openingElement)));
             if ((ts.isJsxFragment(node) && !inlineFragment) || (ts.isJsxElement(node) && isNativeTag(el))) {
                 checkSiblingDuplicates(node.children, new Set(), Boolean(options.strictGrammar), report);
             }
@@ -353,8 +434,33 @@ export function extractSurface(options: {
         visit(source);
     }
 
+    // The same id declared in two files can render twice at once; one file's ternary branches cannot.
+    const filesById = new Map<string, SurfaceEntry[]>();
+    for (const entry of entries) {
+        const list = filesById.get(entry.id) ?? [];
+        list.push(entry);
+        filesById.set(entry.id, list);
+    }
+    for (const [id, list] of filesById) {
+        const files = [...new Set(list.map((entry) => entry.file))];
+        if (files.length > 1 && !list[0].keyed) {
+            diagnostics.push({
+                rule: 'duplicates',
+                file: list[0].file,
+                line: list[0].line,
+                id,
+                message: `"${id}" is also declared in ${files.slice(1).join(', ')}; scope one of them`,
+            });
+        }
+    }
+
     diagnostics.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.rule.localeCompare(b.rule));
-    return {entries, scopes, diagnostics, stats: {files: filePaths.length, durationMs: Math.round(performance.now() - started)}};
+    return {
+        entries,
+        scopes,
+        diagnostics,
+        stats: {files: filePaths.length, durationMs: Math.round(performance.now() - started)},
+    };
 }
 
 function lookupIdFromCall(call: ts.CallExpression): string | undefined {
@@ -370,7 +476,9 @@ function lookupIdFromCall(call: ts.CallExpression): string | undefined {
     }
     const isCyGet = method === 'get' && member?.expression.getText() === 'cy';
     if (isCyGet || CSS_METHOD.test(method)) {
-        return EXACT_TESTID_CSS.exec(arg.text)?.slice(1).find((val) => val !== undefined);
+        return EXACT_TESTID_CSS.exec(arg.text)
+            ?.slice(1)
+            .find((val) => val !== undefined);
     }
     return undefined;
 }

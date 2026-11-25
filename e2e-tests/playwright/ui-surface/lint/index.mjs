@@ -1,17 +1,73 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseTestId} from '../dist/scan.js';
+import {readFileSync} from 'node:fs';
+import {dirname, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
-const PROBE_METHODS = new Set(['isVisible', 'isHidden', 'isChecked', 'isEnabled', 'isDisabled', 'isEditable']);
+const EN_JSON = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../webapp/channels/src/i18n/en.json');
+let appCopy;
+
+/** en.json messages with placeholders and markdown removed; empty when the webapp is not checked out. */
+function loadAppCopy() {
+    if (!appCopy) {
+        try {
+            const raw = JSON.parse(readFileSync(EN_JSON, 'utf8'));
+            appCopy = Object.values(raw).map((val) =>
+                (typeof val === 'string' ? val : (val.defaultMessage ?? '')).replace(/\{[^}]*\}|\*\*/g, '\u0000'),
+            );
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                throw err;
+            }
+            appCopy = [];
+        }
+    }
+    return appCopy;
+}
+
+/** Case-sensitive: a phrase found inside a message, or a single word that is a whole message (a title, a label). */
+function isAppCopy(text) {
+    const needle = text.trim();
+    if (needle.length < 4) {
+        return false;
+    }
+    return loadAppCopy().some((msg) => (needle.includes(' ') ? msg.includes(needle) : msg.trim() === needle));
+}
+
+const PROBE_METHODS = new Set([
+    'isVisible',
+    'isHidden',
+    'isChecked',
+    'isEnabled',
+    'isDisabled',
+    'isEditable',
+    'count',
+    'textContent',
+    'innerText',
+    'inputValue',
+    'getAttribute',
+]);
 const POSITIONAL_METHODS = new Set(['first', 'last', 'nth']);
-const CSS_SELECTOR_HINT = /^[.#[]/;
+
+// `.cls`, `#id`, `[attr]`, or a tag-qualified class/id/attribute such as `div.post` or `button[aria-label]`.
+const CSS_SELECTOR_HINT = /^(?:[a-z][a-z0-9-]*)?[.#[]/i;
+
+/** Static text of a string literal, or the leading static part of a template literal. */
+function staticString(node) {
+    if (node?.type === 'Literal' && typeof node.value === 'string') {
+        return node.value;
+    }
+    return node?.type === 'TemplateLiteral' ? node.quasis[0].value.cooked : undefined;
+}
 
 function insidePollCallback(node) {
     for (let cur = node.parent; cur; cur = cur.parent) {
         if (cur.type === 'CallExpression' && cur.callee?.type === 'MemberExpression') {
             const prop = cur.callee.property?.name;
-            if (prop === 'poll' || prop === 'toPass') {
+
+            // pw.waitUntil re-runs its callback (async-wait-until), so a probe inside it retries.
+            if (prop === 'poll' || prop === 'toPass' || prop === 'waitUntil') {
                 return true;
             }
         }
@@ -24,6 +80,214 @@ function isEmptyCatch(block) {
         return true;
     }
     return block.body.length === 1 && block.body[0].type === 'ReturnStatement';
+}
+
+const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
+const ACTION_METHODS = new Set([
+    'click',
+    'dblclick',
+    'tap',
+    'press',
+    'pressSequentially',
+    'fill',
+    'type',
+    'clear',
+    'check',
+    'uncheck',
+    'setChecked',
+    'selectOption',
+    'setInputFiles',
+    'hover',
+    'dragTo',
+]);
+const WAITER_CALLS = new Set(['settle', 'waitForApi']);
+const OBSERVING_METHODS = new Set(['waitUntil', 'clickTo', 'pressTo', 'toPass', 'poll']);
+const WRAPPERS = new Set(['TSNonNullExpression', 'TSAsExpression', 'TSSatisfiesExpression', 'ChainExpression']);
+
+// Calls that leave the page: server/API clients, test infra, navigation. Page-object calls are not among them,
+// because their next interaction waits for its own target the way a following action does.
+const AWAY_ROOTS = /^(?:\w*client|pw|test|fetch|request)$/i;
+const AWAY_METHODS = new Set(['goto', 'reload', 'goBack', 'goForward']);
+const ASSERTION_METHOD = /^(?:to|notTo)[A-Z]/;
+const WAIT_METHOD = /^waitFor/;
+const PAGE_OBJECT_NAME = /Page$/;
+
+function unwrap(node) {
+    let cur = node;
+    while (cur && WRAPPERS.has(cur.type)) {
+        cur = cur.expression;
+    }
+    return cur;
+}
+
+function methodName(call) {
+    const callee = unwrap(call.callee);
+    if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
+        return callee.property.name;
+    }
+    return callee.type === 'Identifier' ? callee.name : '';
+}
+
+/** Every call in a fluent chain, outermost first: `expect(x).not.toBeVisible()` -> [toBeVisible(), expect(x)]. */
+function chainCalls(call) {
+    const calls = [];
+    for (let cur = unwrap(call); cur;) {
+        if (cur.type === 'CallExpression') {
+            calls.push(cur);
+            cur = unwrap(cur.callee);
+        } else if (cur.type === 'MemberExpression') {
+            cur = unwrap(cur.object);
+        } else {
+            return {calls, root: cur.type === 'Identifier' ? cur.name : ''};
+        }
+    }
+    return {calls, root: ''};
+}
+
+/** `observation`, `action`, `away` (leaves the page) or `page` (a page-object step) for an awaited expression. */
+function classifyAwaited(expr) {
+    const node = unwrap(expr);
+
+    // Awaiting a promise made earlier (`const resp = page.waitForResponse(...)`) waits for what the action caused.
+    if (node?.type === 'Identifier' || node?.type === 'MemberExpression') {
+        return 'observation';
+    }
+    if (node?.type !== 'CallExpression') {
+        return 'away';
+    }
+    const {calls, root} = chainCalls(node);
+    const names = calls.map(methodName);
+    const observes = (n) =>
+        WAITER_CALLS.has(n) || OBSERVING_METHODS.has(n) || ASSERTION_METHOD.test(n) || WAIT_METHOD.test(n);
+    if (root === 'expect' || names.some(observes)) {
+        return 'observation';
+    }
+    if (names[0] === 'all' && root === 'Promise') {
+        const items = node.arguments[0]?.type === 'ArrayExpression' ? node.arguments[0].elements : [];
+        return items.some((item) => item && classifyAwaited(item) === 'observation') ? 'observation' : 'away';
+    }
+    if (ACTION_METHODS.has(names[0])) {
+        return 'action';
+    }
+    if (AWAY_METHODS.has(names[0])) {
+        return 'away';
+    }
+
+    // `pw.keycloakLoginPage.login()` is a page object reached through the fixture, not test infra.
+    const callee = unwrap(node.callee);
+    const owner = callee.type === 'MemberExpression' ? unwrap(callee.object) : undefined;
+    const viaFixturePage =
+        owner?.type === 'MemberExpression' &&
+        owner.property.type === 'Identifier' &&
+        PAGE_OBJECT_NAME.test(owner.property.name);
+    return AWAY_ROOTS.test(root) && !viaFixturePage ? 'away' : 'page';
+}
+
+/** Awaits inside one statement in evaluation order (operands first), not entering nested functions. */
+function awaitsIn(node, out = []) {
+    if (!node || typeof node.type !== 'string' || FUNCTION_TYPES.has(node.type)) {
+        return out;
+    }
+    for (const [key, value] of Object.entries(node)) {
+        if (key === 'parent') {
+            continue;
+        }
+        for (const child of Array.isArray(value) ? value : [value]) {
+            if (child && typeof child.type === 'string') {
+                awaitsIn(child, out);
+            }
+        }
+    }
+    if (node.type === 'AwaitExpression') {
+        out.push(node);
+    }
+    return out;
+}
+
+function label(context, node) {
+    const text = context.sourceCode.getText(node).replace(/\s+/g, ' ');
+    return text.length > 70 ? `${text.slice(0, 67)}...` : text;
+}
+
+/**
+ * Straight-line check of one statement list. An action stays pending until an observation; a following action or
+ * page-object step chains it (Playwright waits for the next target). An API/infra/navigation call, a return, a nested
+ * block or the end of the list with an action pending is reported.
+ * shortcut: no path joins or loop fixed points (Peter's e2e-observe-actions); entering an if/loop/try with an action
+ * pending is reported, so it over-reports there (an expect fixes it) and never misses straight-line code.
+ */
+function checkStatements(context, statements) {
+    let pending;
+    const turnAway = (what) => {
+        if (pending) {
+            context.report({node: pending, messageId: 'unobserved', data: {action: label(context, pending), what}});
+            pending = undefined;
+        }
+    };
+    const step = (expr) => {
+        const kind = classifyAwaited(expr);
+        if (kind === 'observation' || kind === 'page') {
+            pending = undefined;
+        } else if (kind === 'action') {
+            pending = unwrap(expr);
+        } else {
+            turnAway(`\`${label(context, expr)}\``);
+        }
+    };
+    for (const stmt of statements) {
+        if (stmt.type === 'ReturnStatement') {
+            awaitsIn(stmt.argument).forEach((aw) => step(aw.argument));
+            if (
+                stmt.argument &&
+                stmt.argument.type !== 'AwaitExpression' &&
+                classifyAwaited(stmt.argument) === 'action'
+            ) {
+                pending = unwrap(stmt.argument);
+            }
+            turnAway('returning');
+            return;
+        }
+        const nested = nestedBlocks(stmt);
+        if (nested) {
+            awaitsIn(nested.head).forEach((aw) => step(aw.argument));
+            turnAway(`entering this ${stmt.type.replace('Statement', '').toLowerCase()} block`);
+            nested.bodies.forEach((body) => checkStatements(context, body));
+            continue;
+        }
+        awaitsIn(stmt).forEach((aw) => step(aw.argument));
+    }
+    turnAway('the end of the block');
+}
+
+/** Head expression and inner statement lists of a compound statement; undefined for a simple one. */
+function nestedBlocks(stmt) {
+    const list = (node) => {
+        if (!node) {
+            return [];
+        }
+        return [node.type === 'BlockStatement' ? node.body : [node]];
+    };
+    const loop = () => ({head: stmt.test, bodies: list(stmt.body)});
+    const shapes = {
+        BlockStatement: () => ({head: null, bodies: [stmt.body]}),
+        IfStatement: () => ({head: stmt.test, bodies: [...list(stmt.consequent), ...list(stmt.alternate)]}),
+        ForStatement: loop,
+        WhileStatement: loop,
+        DoWhileStatement: loop,
+        ForInStatement: () => ({head: stmt.right, bodies: list(stmt.body)}),
+        ForOfStatement: () => ({head: stmt.right, bodies: list(stmt.body)}),
+        TryStatement: () => ({
+            head: null,
+            bodies: [
+                stmt.block.body,
+                ...(stmt.handler ? [stmt.handler.body.body] : []),
+                ...(stmt.finalizer ? [stmt.finalizer.body] : []),
+            ],
+        }),
+        SwitchStatement: () => ({head: stmt.discriminant, bodies: stmt.cases.map((c) => c.consequent)}),
+        LabeledStatement: () => ({head: null, bodies: list(stmt.body)}),
+    };
+    return shapes[stmt.type]?.();
 }
 
 export const rules = {
@@ -41,7 +305,11 @@ export const rules = {
                         callee.property.name === 'waitForLoadState' &&
                         node.arguments[0]?.value === 'networkidle'
                     ) {
-                        context.report({node, message: 'Avoid waitForLoadState("networkidle"); wait for a specific element or API response.'});
+                        context.report({
+                            node,
+                            message:
+                                'Avoid waitForLoadState("networkidle"); wait for a specific element or API response.',
+                        });
                     }
                     if (callee.type === 'Identifier' && callee.name === 'setTimeout') {
                         context.report({node, message: 'Avoid setTimeout waits in Playwright specs.'});
@@ -60,7 +328,10 @@ export const rules = {
                     }
                     const name = node.callee.property?.name;
                     if (PROBE_METHODS.has(name) && !insidePollCallback(node)) {
-                        context.report({node, message: `Avoid instant probe .${name}() outside expect.poll()/toPass(); use retrying expect() assertions.`});
+                        context.report({
+                            node,
+                            message: `Avoid instant probe .${name}() outside expect.poll()/toPass(); use retrying expect() assertions.`,
+                        });
                     }
                 },
             };
@@ -77,13 +348,19 @@ export const rules = {
                     const arg = node.arguments[0];
                     if (arg && (arg.type === 'ArrowFunctionExpression' || arg.type === 'FunctionExpression')) {
                         if (arg.body.type !== 'BlockStatement' || isEmptyCatch(arg.body)) {
-                            context.report({node, message: 'Do not swallow errors in .catch(); let failures surface or rethrow.'});
+                            context.report({
+                                node,
+                                message: 'Do not swallow errors in .catch(); let failures surface or rethrow.',
+                            });
                         }
                     }
                 },
                 CatchClause(node) {
                     if (isEmptyCatch(node.body)) {
-                        context.report({node, message: 'Do not swallow errors with an empty or value-only catch block.'});
+                        context.report({
+                            node,
+                            message: 'Do not swallow errors with an empty or value-only catch block.',
+                        });
                     }
                 },
             };
@@ -99,7 +376,10 @@ export const rules = {
                     }
                     const name = node.callee.property?.name;
                     if (POSITIONAL_METHODS.has(name)) {
-                        context.report({node, message: `Avoid positional .${name}() selector picks; use a stable key or unique role/text.`});
+                        context.report({
+                            node,
+                            message: `Avoid positional .${name}() selector picks; use a stable key or unique role/text.`,
+                        });
                     }
                 },
             };
@@ -113,29 +393,104 @@ export const rules = {
                     if (node.callee.type !== 'MemberExpression' || node.callee.property?.name !== 'locator') {
                         return;
                     }
-                    const arg = node.arguments[0];
-                    if (arg?.type === 'Literal' && typeof arg.value === 'string' && CSS_SELECTOR_HINT.test(arg.value)) {
-                        context.report({node, message: `Avoid raw CSS selector "${arg.value}" in locator(); use getByTestId or semantic role locators.`});
+                    const text = staticString(node.arguments[0]);
+                    if (text !== undefined && CSS_SELECTOR_HINT.test(text)) {
+                        context.report({
+                            node,
+                            message: `Avoid raw CSS selector "${text}" in locator(); use getByTestId or semantic role locators.`,
+                        });
                     }
                 },
             };
         },
     },
-    'testid-grammar': {
-        meta: {type: 'problem', schema: []},
+    'observe-actions': {
+        meta: {
+            type: 'problem',
+            schema: [],
+            messages: {
+                unobserved:
+                    'Observe `{{action}}` before {{what}}: settle(...) if it saves, otherwise an expect on what it changed.',
+            },
+        },
         create(context) {
+            const checkFunction = (fn) => {
+                if (fn.body.type === 'BlockStatement') {
+                    checkStatements(context, fn.body.body);
+                } else if (
+                    classifyAwaited(fn.body.type === 'AwaitExpression' ? fn.body.argument : fn.body) === 'action'
+                ) {
+                    context.report({
+                        node: fn.body,
+                        messageId: 'unobserved',
+                        data: {action: label(context, fn.body), what: 'returning'},
+                    });
+                }
+            };
             return {
-                JSXAttribute(node) {
-                    if (node.name?.name !== 'data-testid' || node.value?.type !== 'Literal' || typeof node.value.value !== 'string') {
+                FunctionDeclaration: checkFunction,
+                FunctionExpression: checkFunction,
+                ArrowFunctionExpression: checkFunction,
+            };
+        },
+    },
+    'no-literal-absence': {
+        meta: {
+            type: 'problem',
+            schema: [],
+            messages: {
+                literal:
+                    'Absence of literal text "{{text}}" passes forever once the copy changes; use Msg[...] so a removed key fails tsc and new copy flows in.',
+            },
+        },
+        create(context) {
+            /** The literal a text locator matches: getByText('x'), getByRole(r, {name: 'x'}), getByLabel('x'). */
+            const literalText = (call) => {
+                const name = methodName(call);
+                const [first, second] = call.arguments;
+                if (name === 'getByText' || name === 'getByLabel' || name === 'getByPlaceholder') {
+                    return staticString(first);
+                }
+                if (name === 'getByRole' && second?.type === 'ObjectExpression') {
+                    const prop = second.properties.find(
+                        (p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'name',
+                    );
+                    return prop && staticString(prop.value);
+                }
+                return undefined;
+            };
+            const isAbsence = (node) => {
+                const name = methodName(node);
+                const negated =
+                    unwrap(node.callee).type === 'MemberExpression' &&
+                    unwrap(unwrap(node.callee).object).type === 'MemberExpression' &&
+                    unwrap(unwrap(node.callee).object).property.name === 'not';
+                return (
+                    name === 'toBeHidden' ||
+                    (negated && (name === 'toBeVisible' || name === 'toBeAttached')) ||
+                    (name === 'toHaveCount' && node.arguments[0]?.type === 'Literal' && node.arguments[0].value === 0)
+                );
+            };
+            return {
+                CallExpression(node) {
+                    if (!isAbsence(node)) {
                         return;
                     }
-                    const raw = node.value.value;
-                    if (!raw.includes('--') && !raw.includes('.')) {
+                    const expectCall = chainCalls(node).calls.find(
+                        (call) => unwrap(call.callee).type === 'Identifier' && unwrap(call.callee).name === 'expect',
+                    );
+                    const target = expectCall?.arguments[0];
+                    if (!target || unwrap(target).type !== 'CallExpression') {
                         return;
                     }
-                    const parsed = parseTestId(raw);
-                    if (!parsed.valid) {
-                        context.report({node, message: parsed.error ?? `Invalid testid grammar "${raw}"`});
+                    for (const call of chainCalls(target).calls) {
+                        const text = literalText(call);
+
+                        // Test-created data (a marking value, a channel name) is not copy that can change under the test.
+                        if (text !== undefined && isAppCopy(text)) {
+                            context.report({node, messageId: 'literal', data: {text}});
+                            return;
+                        }
                     }
                 },
             };

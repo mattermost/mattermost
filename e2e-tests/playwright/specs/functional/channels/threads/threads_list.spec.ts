@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Api, createSurface, settle, test, toHavePath} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that users can navigate through threads list using keyboard arrow keys
@@ -40,7 +40,7 @@ test('Should be able to change threads with arrow keys', {tag: ['@smoke']}, asyn
 
     // # Switch to the threads list
     await threadsPage.goto(team.name);
-    await toHavePath(page, surface.pages.threads.pathFor({team: team.name}));
+    await expect(page).toHavePath(surface.pages.threads.pathFor({team: team.name}));
     await surface.threads().feed.toBeVisible();
 
     // * Ensure no thread starts selected

@@ -4,8 +4,8 @@
 import {expect, type Locator, type Page} from '@playwright/test';
 
 export class DestinationError extends Error {
-    constructor(message: string) {
-        super(message);
+    constructor(message: string, options?: {cause?: unknown}) {
+        super(message, options);
         this.name = 'DestinationError';
     }
 }
@@ -33,7 +33,9 @@ export class Deadline {
 export type TransitionTarget = Locator | {readonly locator: Locator; readonly testId?: string};
 
 function targetLocator(target: TransitionTarget): Locator {
-    return target instanceof ElementDriver ? target.locator : (typeof target.locator === 'function' ? target : target.locator) as Locator;
+    return target instanceof ElementDriver
+        ? target.locator
+        : ((typeof target.locator === 'function' ? target : target.locator) as Locator);
 }
 
 function targetLabel(target: TransitionTarget): string {
@@ -45,10 +47,16 @@ export class ElementDriver {
     readonly testId: string;
     readonly role: string;
 
-    constructor(scope: Page | Locator, testId: string, role = 'container', attr: 'data-testid' | 'data-surface' = 'data-testid') {
+    constructor(
+        scope: Page | Locator,
+        testId: string,
+        role = 'container',
+        attr: 'data-testid' | 'data-surface' = 'data-testid',
+    ) {
         this.testId = testId;
         this.role = role;
-        this.locator = attr === 'data-surface' ? scope.locator(`[data-surface="${testId}"]`) : scope.getByTestId(testId);
+        this.locator =
+            attr === 'data-surface' ? scope.locator(`[data-surface="${testId}"]`) : scope.getByTestId(testId);
     }
 
     async click(options?: {timeout?: number}): Promise<void> {
@@ -96,14 +104,19 @@ export class ElementDriver {
         const timeoutMs = options.timeout ?? 30_000;
         const deadline = new Deadline(timeoutMs);
         const destLoc = targetLocator(destination);
-        if (!options.allowAlreadyVisible && await destLoc.isVisible()) {
-            throw new DestinationError(`${targetLabel(destination)} was already visible before interacting with "${this.testId}"`);
+        if (!options.allowAlreadyVisible && (await destLoc.isVisible())) {
+            throw new DestinationError(
+                `${targetLabel(destination)} was already visible before interacting with "${this.testId}"`,
+            );
         }
         await trigger(deadline.remaining());
         try {
             await expect(destLoc).toBeVisible({timeout: deadline.remaining()});
-        } catch {
-            throw new DestinationError(`Interacting with "${this.testId}" did not show ${targetLabel(destination)} within ${timeoutMs}ms`);
+        } catch (cause) {
+            throw new DestinationError(
+                `Interacting with "${this.testId}" did not show ${targetLabel(destination)} within ${timeoutMs}ms`,
+                {cause},
+            );
         }
         return destination;
     }
@@ -121,6 +134,9 @@ export async function assertStateSemantics(locator: Locator, expectedRole: strin
             const type = (el.getAttribute('type') ?? 'text').toLowerCase();
             return type === role && role !== 'switch';
         }
+        if (tag === 'option') {
+            return role === 'option';
+        }
         return role === 'togglebutton' && tag === 'button' && el.hasAttribute('aria-pressed');
     }, expectedRole);
     if (!ok) {
@@ -128,37 +144,63 @@ export async function assertStateSemantics(locator: Locator, expectedRole: strin
     }
 }
 
+/** Roles whose state is `aria-selected`, not checked; Playwright's isChecked() throws on them. */
+const SELECTED_ROLES = new Set(['tab', 'option']);
+
 export class StateDriver extends ElementDriver {
     async isChecked(): Promise<boolean> {
         await assertStateSemantics(this.locator, this.role, this.testId);
         if (this.role === 'togglebutton') {
             return (await this.locator.getAttribute('aria-pressed')) === 'true';
         }
+        if (SELECTED_ROLES.has(this.role)) {
+            return this.locator.evaluate((el) => {
+                return el instanceof HTMLOptionElement ? el.selected : el.getAttribute('aria-selected') === 'true';
+            });
+        }
         return this.locator.isChecked();
     }
 
+    /** Toggle to `checked`, then wait until the rendered state matches so a no-op click fails here, not later. */
     async setChecked(checked: boolean): Promise<void> {
         await assertStateSemantics(this.locator, this.role, this.testId);
-        if ((await this.isChecked()) !== checked) {
-            if (this.role !== 'togglebutton') {
-                const target = await this.locator.evaluate((el: HTMLElement) => {
-                    const id = el.getAttribute('id');
-                    if (id && el.ownerDocument.querySelector(`label[for=${JSON.stringify(id)}]`)) {
-                        return id;
-                    }
-                    return el.closest('label') ? '__ancestor__' : null;
-                });
-                if (target === '__ancestor__') {
-                    await this.locator.locator('xpath=ancestor::label[1]').click();
-                    return;
-                }
-                if (typeof target === 'string' && target.length > 0) {
-                    await this.locator.page().locator(`label[for=${JSON.stringify(target)}]`).click();
-                    return;
-                }
-            }
-            await this.locator.click();
+        if (!checked && (SELECTED_ROLES.has(this.role) || this.role === 'radio')) {
+            throw new TypeError(
+                `"${this.testId}" (--${this.role}) cannot be deselected by clicking; select another ${this.role} instead`,
+            );
         }
+        if ((await this.isChecked()) !== checked) {
+            await this.toggle();
+        }
+        await expect
+            .poll(() => this.isChecked(), {
+                message: `"${this.testId}" did not become ${checked ? 'checked' : 'unchecked'}`,
+            })
+            .toBe(checked);
+    }
+
+    private async toggle(): Promise<void> {
+        if (this.role !== 'togglebutton' && !SELECTED_ROLES.has(this.role)) {
+            const target = await this.locator.evaluate((el: HTMLElement) => {
+                const id = el.getAttribute('id');
+                if (id && el.ownerDocument.querySelector(`label[for=${JSON.stringify(id)}]`)) {
+                    return id;
+                }
+                return el.closest('label') ? '__ancestor__' : null;
+            });
+            if (target === '__ancestor__') {
+                await this.locator.locator('xpath=ancestor::label[1]').click();
+                return;
+            }
+            if (typeof target === 'string' && target.length > 0) {
+                await this.locator
+                    .page()
+                    .locator(`label[for=${JSON.stringify(target)}]`)
+                    .click();
+                return;
+            }
+        }
+        await this.locator.click();
     }
 
     async check(): Promise<void> {
@@ -190,7 +232,27 @@ export class FileInputDriver extends ElementDriver {
     }
 }
 
-export const elementDriver = (scope: Page | Locator, testId: string, role = 'container', attr: 'data-testid' | 'data-surface' = 'data-testid') => new ElementDriver(scope, testId, role, attr);
-export const stateDriver = (scope: Page | Locator, testId: string, role: string, attr: 'data-testid' | 'data-surface' = 'data-testid') => new StateDriver(scope, testId, role, attr);
-export const inputDriver = (scope: Page | Locator, testId: string, role: string, attr: 'data-testid' | 'data-surface' = 'data-testid') => new InputDriver(scope, testId, role, attr);
-export const fileInputDriver = (scope: Page | Locator, testId: string, role = 'file', attr: 'data-testid' | 'data-surface' = 'data-testid') => new FileInputDriver(scope, testId, role, attr);
+export const elementDriver = (
+    scope: Page | Locator,
+    testId: string,
+    role = 'container',
+    attr: 'data-testid' | 'data-surface' = 'data-testid',
+) => new ElementDriver(scope, testId, role, attr);
+export const stateDriver = (
+    scope: Page | Locator,
+    testId: string,
+    role: string,
+    attr: 'data-testid' | 'data-surface' = 'data-testid',
+) => new StateDriver(scope, testId, role, attr);
+export const inputDriver = (
+    scope: Page | Locator,
+    testId: string,
+    role: string,
+    attr: 'data-testid' | 'data-surface' = 'data-testid',
+) => new InputDriver(scope, testId, role, attr);
+export const fileInputDriver = (
+    scope: Page | Locator,
+    testId: string,
+    role = 'file',
+    attr: 'data-testid' | 'data-surface' = 'data-testid',
+) => new FileInputDriver(scope, testId, role, attr);

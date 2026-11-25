@@ -39,9 +39,8 @@ test(
 
         // * Verify no channel name validation error is shown for the populated name field
         await expect(infoSettings.nameInput).toHaveValue(channel.display_name);
-        await expect(
-            channelSettings.container.getByText('Channel names must have at least 1 character.'),
-        ).not.toBeVisible();
+        await expect(channelSettings.container).toBeVisible();
+        await expect(channelSettings.container.getByText(Msg['channel_modal.name.longer'])).not.toBeVisible();
 
         // # Close the modal with a single click
         await channelSettings.closeButton.click();

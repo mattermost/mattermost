@@ -3,7 +3,7 @@
 
 import type {AdminConfig} from '@mattermost/types/config';
 
-import {createSurface, expect, test, toHavePath} from '@mattermost/playwright-lib';
+import {createSurface, expect, test} from '@mattermost/playwright-lib';
 
 // Wait for the GET /api/v4/config re-fetch that our config_changed websocket
 // handler triggers. This is the signal that entities.admin.config in the
@@ -36,7 +36,7 @@ test.describe('System Console > Concurrent config saves', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const surface = createSurface(page);
         await page.goto('/admin_console/site_config/emoji');
-        await toHavePath(page, '/admin_console/site_config/emoji');
+        await expect(page).toHavePath('/admin_console/site_config/emoji');
         await surface.admin().sidebar.toBeVisible();
 
         const emojiSection = page.getByTestId('sysconsole_section_EmojiSettings');

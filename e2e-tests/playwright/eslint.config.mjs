@@ -97,6 +97,8 @@ export default [
             'ui-surface/no-swallowed-catch': 'warn',
             'ui-surface/no-positional-picks': 'warn',
             'ui-surface/no-raw-css-locators': 'warn',
+            'ui-surface/observe-actions': 'warn',
+            'ui-surface/no-literal-absence': 'warn',
         },
     },
     {
@@ -127,6 +129,8 @@ export default [
             'ui-surface/no-swallowed-catch': 'error',
             'ui-surface/no-positional-picks': 'error',
             'ui-surface/no-raw-css-locators': 'error',
+            'ui-surface/observe-actions': 'error',
+            'ui-surface/no-literal-absence': 'error',
         },
     },
 ];

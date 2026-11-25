@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ChannelsPage} from '@mattermost/playwright-lib';
-import {Api, createSurface, expect, settle, test, toHavePath} from '@mattermost/playwright-lib';
+import {Api, createSurface, expect, settle, test} from '@mattermost/playwright-lib';
 
 // The LHS Drafts entry itself stays rendered for as long as the /drafts URL matches, so only
 // its count badge can show that the last draft is gone.
@@ -46,7 +46,7 @@ test.describe('sending a draft from the Drafts panel', () => {
 
         // # Send the draft from the Drafts panel
         await channelsPage.sidebarLeft.goToDrafts();
-        await toHavePath(page, surface.pages.drafts.pathFor({team: team1.name}));
+        await expect(page).toHavePath(surface.pages.drafts.pathFor({team: team1.name}));
         await surface.drafts().header.toBeVisible();
         await draftsPage.expectDraftCount(1);
         await draftsPage.sendDraft(await draftsPage.getDraftByChannelName('Town Square'));

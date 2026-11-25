@@ -44,20 +44,31 @@ function extractRegistryMethods(registryPath: string): Record<string, RegistryMe
     const visit = (node: ts.Node) => {
         if (ts.isClassDeclaration(node) && node.name?.text === 'PluginRegistry') {
             for (const member of node.members) {
-                const isPrivate = ts.canHaveModifiers(member) && ts.getModifiers(member)?.some((m) => m.kind === ts.SyntaxKind.PrivateKeyword);
+                const isPrivate =
+                    ts.canHaveModifiers(member) &&
+                    ts.getModifiers(member)?.some((m) => m.kind === ts.SyntaxKind.PrivateKeyword);
                 if (isPrivate || !member.name) {
                     continue;
                 }
                 const name = member.name.getText(source);
                 if (ts.isMethodDeclaration(member)) {
                     methods[name] = {
-                        params: member.parameters.map((p) => `${p.name.getText(source)}: ${p.type ? p.type.getText(source).replace(/\s+/g, ' ') : 'unknown'}`),
+                        params: member.parameters.map(
+                            (p) =>
+                                `${p.name.getText(source)}: ${p.type ? p.type.getText(source).replace(/\s+/g, ' ') : 'unknown'}`,
+                        ),
                         ...(member.type ? {returnType: member.type.getText(source).replace(/\s+/g, ' ')} : {}),
                     };
-                } else if (ts.isPropertyDeclaration(member) && member.initializer && ts.isCallExpression(member.initializer)) {
+                } else if (
+                    ts.isPropertyDeclaration(member) &&
+                    member.initializer &&
+                    ts.isCallExpression(member.initializer)
+                ) {
                     const callee = member.initializer.expression.getText(source);
                     if (callee === 'reArg' && ts.isArrayLiteralExpression(member.initializer.arguments[0])) {
-                        const argNames = member.initializer.arguments[0].elements.map((el) => el.getText(source).replace(/^['"]|['"]$/g, ''));
+                        const argNames = member.initializer.arguments[0].elements.map((el) =>
+                            el.getText(source).replace(/^['"]|['"]$/g, ''),
+                        );
                         methods[name] = {params: argNames};
                     }
                 }
@@ -73,11 +84,15 @@ function extractPluginTypeNames(typesFile: string): string[] {
     const source = ts.createSourceFile(typesFile, readFileSync(typesFile, 'utf8'), ts.ScriptTarget.Latest, true);
     const names: string[] = [];
     for (const stmt of source.statements) {
-        const isExported = ts.canHaveModifiers(stmt) && ts.getModifiers(stmt)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
+        const isExported =
+            ts.canHaveModifiers(stmt) && ts.getModifiers(stmt)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
         if (!isExported) {
             continue;
         }
-        if ((ts.isTypeAliasDeclaration(stmt) || ts.isInterfaceDeclaration(stmt) || ts.isEnumDeclaration(stmt)) && stmt.name) {
+        if (
+            (ts.isTypeAliasDeclaration(stmt) || ts.isInterfaceDeclaration(stmt) || ts.isEnumDeclaration(stmt)) &&
+            stmt.name
+        ) {
             names.push(stmt.name.text);
         }
     }
@@ -93,13 +108,19 @@ export function extractHostContract(options: {
     pluginTypesPath: string;
     surface?: SurfaceReport;
 }): HostContract {
-    const rawSlots = JSON.parse(readFileSync(options.slotsPath, 'utf8')) as Record<string, {template: string; registry?: string[]}>;
+    const rawSlots = JSON.parse(readFileSync(options.slotsPath, 'utf8')) as Record<
+        string,
+        {template: string; registry?: string[]}
+    >;
     const knownIds = new Set(options.surface?.entries.map((entry) => entry.id) ?? []);
     const slots: Record<string, SlotEntry> = {};
 
     for (const [name, slot] of Object.entries(rawSlots).sort(([a], [b]) => a.localeCompare(b))) {
-        const normalized = slot.template.replace('*', '').replace('{key}', '');
-        const verified = knownIds.size === 0 || [...knownIds].some((id) => id.includes(normalized.split(':')[0]));
+        // Keyed ids are recorded as `scope.name:--role`; a leading `*.` template matches any parent scope.
+        const keyedForm = slot.template.replace('{key}', '');
+        const verified = keyedForm.startsWith('*.')
+            ? [...knownIds].some((id) => id.endsWith(keyedForm.slice(1)))
+            : knownIds.has(keyedForm);
         slots[name] = {template: slot.template, registry: slot.registry ?? [], verified};
     }
 
@@ -126,7 +147,10 @@ export function extractHostContract(options: {
 }
 
 /** Diff two host contracts and report breaking removals or signature mismatches across all 3 layers. */
-export function diffHostContracts(base: HostContract, head: HostContract): {
+export function diffHostContracts(
+    base: HostContract,
+    head: HostContract,
+): {
     breaking: BreakingChange[];
     added: string[];
 } {
@@ -138,7 +162,11 @@ export function diffHostContracts(base: HostContract, head: HostContract): {
         if (!next) {
             breaking.push({layer: 'slots', symbol: name, reason: 'Plugin UI slot removed'});
         } else if (next.template !== prev.template) {
-            breaking.push({layer: 'slots', symbol: name, reason: `Slot template changed: "${prev.template}" -> "${next.template}"`});
+            breaking.push({
+                layer: 'slots',
+                symbol: name,
+                reason: `Slot template changed: "${prev.template}" -> "${next.template}"`,
+            });
         }
     }
     for (const name of Object.keys(head.slots)) {
@@ -152,7 +180,11 @@ export function diffHostContracts(base: HostContract, head: HostContract): {
         if (!next) {
             breaking.push({layer: 'api', symbol: opId, reason: 'API operation removed'});
         } else if (next.method !== prev.method || next.path !== prev.path) {
-            breaking.push({layer: 'api', symbol: opId, reason: `Endpoint changed: ${prev.method} ${prev.path} -> ${next.method} ${next.path}`});
+            breaking.push({
+                layer: 'api',
+                symbol: opId,
+                reason: `Endpoint changed: ${prev.method} ${prev.path} -> ${next.method} ${next.path}`,
+            });
         } else if (prev.params.some((p) => !next.params.includes(p))) {
             breaking.push({layer: 'api', symbol: opId, reason: 'Previously supported parameter removed'});
         }
@@ -168,7 +200,11 @@ export function diffHostContracts(base: HostContract, head: HostContract): {
         if (!next) {
             breaking.push({layer: 'registry', symbol: methodName, reason: 'PluginRegistry method removed'});
         } else if (next.params.length < prev.params.length) {
-            breaking.push({layer: 'registry', symbol: methodName, reason: `Arity reduced from ${prev.params.length} to ${next.params.length}`});
+            breaking.push({
+                layer: 'registry',
+                symbol: methodName,
+                reason: `Arity reduced from ${prev.params.length} to ${next.params.length}`,
+            });
         }
     }
     for (const typeName of base.registry.pluginTypes) {

@@ -10,7 +10,6 @@ import {
     preAuthTestPluginId,
     removeTestWebappPlugins,
     test,
-    toHavePath,
 } from '@mattermost/playwright-lib';
 
 test.afterAll(async () => {
@@ -44,7 +43,7 @@ test(
         const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
         const surface = createSurface(page);
         await systemConsolePage.gotoPluginManagement();
-        await toHavePath(page, surface.pages.plugin_management.pathFor({}));
+        await expect(page).toHavePath(surface.pages.plugin_management.pathFor({}));
         await surface.admin().pluginManagement.toBeVisible();
         const pluginManagement = systemConsolePage.pluginManagement;
 

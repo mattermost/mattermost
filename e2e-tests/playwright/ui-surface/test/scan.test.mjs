@@ -62,11 +62,16 @@ test('checkStaleRefs detects stale Playwright and Cypress literals and ignores c
         knownIds,
         onlyGrammarIds: true,
         files: {
-            'good.spec.ts': '// page.getByTestId("settings.missing--button")\npage.getByTestId("settings.save--button").click();',
-            'bad.spec.ts': 'page.getByTestId("settings.old--button").click();\ncy.findByTestId("settings.gone--button").click();\ncy.get(\'[data-testid="settings.css_gone--button"]\');',
+            'good.spec.ts':
+                '// page.getByTestId("settings.missing--button")\npage.getByTestId("settings.save--button").click();',
+            'bad.spec.ts':
+                'page.getByTestId("settings.old--button").click();\ncy.findByTestId("settings.gone--button").click();\ncy.get(\'[data-testid="settings.css_gone--button"]\');',
         },
     });
-    assert.deepEqual(diags.map((d) => d.id), ['settings.old--button', 'settings.gone--button', 'settings.css_gone--button']);
+    assert.deepEqual(
+        diags.map((d) => d.id),
+        ['settings.old--button', 'settings.gone--button', 'settings.css_gone--button'],
+    );
 });
 
 test('extractSurface supports dual data-surface coexistence alongside legacy data-testid', () => {
@@ -87,4 +92,32 @@ test('extractSurface supports dual data-surface coexistence alongside legacy dat
     assert.equal(report.entries.length, 1);
     assert.equal(report.entries[0].id, 'save_panel.save--button');
     assert.equal(report.entries[0].attr, 'data-surface');
+});
+
+test('extractSurface rejects unresolvable data-surface values, display-text keys, and cross-file duplicates', () => {
+    const report = extractSurface({
+        roots: [],
+        files: {
+            'a.tsx': [
+                'export const A = ({post, name, kind}: {post: {id: string; message: string}; name: string; kind: string}) => (<>',
+                // eslint-disable-next-line no-template-curly-in-string
+                '  <li data-surface={`feed.post:${post.id}--listitem`} />',
+                // eslint-disable-next-line no-template-curly-in-string
+                '  <li data-surface={`feed.label:${post.message}--listitem`} />',
+                '  <div data-surface={kind} />',
+                '  <div data-testid={kind} />',
+                '  <button data-surface="feed.shared--button" />',
+                '</>);',
+            ].join('\n'),
+            'b.tsx': 'export const B = () => <button data-surface="feed.shared--button" />;',
+        },
+    });
+    assert.deepEqual(
+        report.diagnostics.map((d) => ({rule: d.rule, file: d.file, id: d.id})),
+        [
+            {rule: 'key-origin', file: 'a.tsx', id: 'feed.label:--listitem'},
+            {rule: 'dynamic', file: 'a.tsx', id: 'kind'},
+            {rule: 'duplicates', file: 'a.tsx', id: 'feed.shared--button'},
+        ],
+    );
 });
