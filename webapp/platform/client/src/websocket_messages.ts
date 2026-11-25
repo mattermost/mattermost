@@ -281,10 +281,6 @@ export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.Permi
     actions?: string[];
 }>;
 
-export type SystemSettingPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.SystemSettingPolicyUpdated, {
-    overrides: Partial<ClientConfig>;
-}>;
-
 export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
     team: JsonEncodedValue<TeamType>;
 }>;

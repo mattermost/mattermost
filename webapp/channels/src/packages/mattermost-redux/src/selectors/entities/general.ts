@@ -12,28 +12,9 @@ import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 import type {CWSAvailabilityState} from '../../reducers/entities/general';
 
-export function getBaseClientConfig(state: GlobalState): Partial<ClientConfig> {
+export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
 }
-
-export function getClientConfigOverrides(state: GlobalState): Partial<ClientConfig> | undefined {
-    return state.entities.general.clientConfigOverrides;
-}
-
-export const getConfig: (state: GlobalState) => Partial<ClientConfig> = createSelector(
-    'getConfig',
-    getBaseClientConfig,
-    getClientConfigOverrides,
-    (baseConfig, overrides) => {
-        if (!overrides || Object.keys(overrides).length === 0) {
-            return baseConfig;
-        }
-        return {
-            ...baseConfig,
-            ...overrides,
-        };
-    },
-);
 
 /**
  * Safely get value of a specific or known FeatureFlag
