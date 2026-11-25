@@ -31,6 +31,7 @@ type BulkItem struct {
 	Body   io.ReadSeeker // nil for delete
 }
 
+// BulkBackend calls must return when their context ends.
 type BulkBackend interface {
 	// Exists returns the docs that exist. Key is index+"/"+docID.
 	Exists(ctx context.Context, items []BulkItem) (map[string]bool, error)
@@ -108,7 +109,7 @@ func (r *BulkRetrier) reject(item BulkItem, status int, err error) {
 }
 
 // Wait blocks until every queued item is settled. If ctx ends first, it stops
-// the retries (the rest count as failed) and returns the ctx error.
+// the retries, counts the rest as failed, and returns the ctx error.
 func (r *BulkRetrier) Wait(ctx context.Context) error {
 	done := make(chan struct{})
 	go func() {
@@ -120,6 +121,7 @@ func (r *BulkRetrier) Wait(ctx context.Context) error {
 		return nil
 	case <-ctx.Done():
 		r.cancel()
+		<-done // stopped calls end at once, so this is short
 		return ctx.Err()
 	}
 }

@@ -280,13 +280,7 @@ func TestBulkRetrierWaitReturnsAfterQueueDrains(t *testing.T) {
 }
 
 func TestBulkRetrierWaitStopsWhenContextEnds(t *testing.T) {
-	release := make(chan struct{})
-	defer close(release)
-	b := &fakeBackend{apply: func(BulkItem) (int, error) {
-		<-release
-		return http.StatusOK, nil
-	}}
-	r := newTestRetrier(t, b)
+	r := newTestRetrier(t, &fakeBackend{hang: true})
 	r.Handle(indexItem("a"), 0, errTransport)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
@@ -355,7 +349,7 @@ func TestBulkRetrierWaitStopsRetriesWhenContextEnds(t *testing.T) {
 	defer cancel()
 	assert.Error(t, r.Wait(ctx))
 
-	wait(t, r) // the stopped retries settle on their own
+	// The stopped item is already counted when Wait returns.
 	assert.Equal(t, int64(1), r.Failed())
 }
 
