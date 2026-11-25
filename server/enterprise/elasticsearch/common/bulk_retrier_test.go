@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -28,10 +29,13 @@ type fakeBackend struct {
 	hang    bool
 	checked []string
 	applied []string
+	// chunks holds the size of each Exists call.
+	chunks []int
 }
 
 func (f *fakeBackend) Exists(ctx context.Context, items []BulkItem) (map[string]bool, error) {
 	f.mut.Lock()
+	f.chunks = append(f.chunks, len(items))
 	for _, it := range items {
 		f.checked = append(f.checked, it.DocID)
 	}
@@ -370,4 +374,123 @@ func TestBulkRetrierEachResendGetsItsOwnBody(t *testing.T) {
 	require.Len(t, bodies, 4)
 	assert.NotSame(t, bodies[0], bodies[1])
 	assert.NotSame(t, item.Body, bodies[0])
+}
+
+// allFound answers that every doc exists.
+func allFound(items []BulkItem) (map[string]bool, error) {
+	found := map[string]bool{}
+	for _, it := range items {
+		found[it.Index+"/"+it.DocID] = true
+	}
+	return found, nil
+}
+
+func TestBulkRetrierChecksAtMost1000ItemsPerCall(t *testing.T) {
+	b := &fakeBackend{exists: allFound}
+	r := newTestRetrier(t, b)
+
+	for i := 0; i < 2500; i++ {
+		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
+	}
+	wait(t, r)
+
+	total := 0
+	for _, n := range b.chunks {
+		assert.LessOrEqual(t, n, 1000)
+		total += n
+	}
+	assert.Equal(t, 2500, total)
+	assert.Equal(t, int64(2500), r.Verified())
+}
+
+func TestBulkRetrierHandlesManyCallersAtOnce(t *testing.T) {
+	b := &fakeBackend{exists: allFound}
+	r := newTestRetrier(t, b)
+
+	var wg sync.WaitGroup
+	for g := 0; g < 8; g++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 100; i++ {
+				r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
+			}
+		}()
+	}
+	wg.Wait()
+	wait(t, r)
+
+	assert.Zero(t, r.Failed())
+	assert.Equal(t, int64(800), r.Verified())
+}
+
+func TestBulkRetrierTakesItemsThatArriveDuringARound(t *testing.T) {
+	started := make(chan struct{})
+	release := make(chan struct{})
+	b := &fakeBackend{apply: func(item BulkItem) (int, error) {
+		if item.DocID == "first" {
+			close(started)
+			<-release
+		}
+		return http.StatusOK, nil
+	}}
+	r := newTestRetrier(t, b)
+
+	r.Handle(indexItem("first"), 0, errTransport)
+	<-started // the round is running
+	r.Handle(indexItem("second"), 0, errTransport)
+	close(release)
+	wait(t, r)
+
+	assert.Zero(t, r.Failed())
+	assert.Equal(t, int64(2), r.Retried())
+}
+
+func newLoggedRetrier(t *testing.T, b *fakeBackend) (*BulkRetrier, func(substr string) int) {
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	buf := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(logger, buf, true, mlog.StdAll...))
+	t.Cleanup(func() { _ = logger.Shutdown() })
+
+	r := NewBulkRetrier(b, logger)
+	r.Backoff = 100 * time.Millisecond // all items land in one round
+	count := func(substr string) int {
+		require.NoError(t, logger.Flush())
+		return strings.Count(buf.String(), substr)
+	}
+	return r, count
+}
+
+func TestBulkRetrierLogsOneWarnForManyVerifiedItems(t *testing.T) {
+	r, count := newLoggedRetrier(t, &fakeBackend{exists: allFound})
+
+	for i := 0; i < 100; i++ {
+		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
+	}
+	wait(t, r)
+
+	assert.Equal(t, 1, count(`"level":"warn"`))
+	assert.Zero(t, count(`"level":"error"`))
+}
+
+func TestBulkRetrierLogsOneErrorForAGivenUpItem(t *testing.T) {
+	b := &fakeBackend{apply: func(BulkItem) (int, error) { return 0, errTransport }}
+	r, count := newLoggedRetrier(t, b)
+	r.Backoff = 0
+
+	r.Handle(indexItem("a"), 0, errTransport)
+	wait(t, r)
+
+	assert.Equal(t, 1, count(`"level":"error"`))
+}
+
+func TestBulkRetrierLogsOneWarnForARejectedResend(t *testing.T) {
+	b := &fakeBackend{apply: func(BulkItem) (int, error) { return http.StatusBadRequest, nil }}
+	r, count := newLoggedRetrier(t, b)
+
+	r.Handle(indexItem("a"), 0, errTransport)
+	wait(t, r)
+
+	assert.Equal(t, 1, count("document rejected"))
 }

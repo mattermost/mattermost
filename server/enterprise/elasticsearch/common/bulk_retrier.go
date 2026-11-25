@@ -80,16 +80,31 @@ func NewBulkRetrier(backend BulkBackend, logger mlog.LoggerIFace) *BulkRetrier {
 // Handle never blocks. It is called from the bulk indexer worker.
 func (r *BulkRetrier) Handle(item BulkItem, status int, err error) {
 	switch {
-	case item.Action == "delete" && status == http.StatusNotFound:
+	case isGone(item, status):
 		return
-	case status == 0 || status == http.StatusTooManyRequests || status >= http.StatusInternalServerError:
+	case isTransient(status):
 		r.enqueue(item)
 	default:
-		r.failed.Add(1)
-		r.logger.Warn("Bulk indexer: document rejected",
-			mlog.String("index", item.Index), mlog.String("doc_id", item.DocID),
-			mlog.String("action", item.Action), mlog.Int("status", status), mlog.Err(err))
+		r.reject(item, status, err)
 	}
+}
+
+// isGone is true for a delete of a doc that is already gone.
+func isGone(item BulkItem, status int) bool {
+	return item.Action == "delete" && status == http.StatusNotFound
+}
+
+// isTransient is true when the outcome is unknown or worth a retry.
+func isTransient(status int) bool {
+	return status == 0 || status == http.StatusTooManyRequests || status >= http.StatusInternalServerError
+}
+
+// reject counts a document the backend refuses.
+func (r *BulkRetrier) reject(item BulkItem, status int, err error) {
+	r.failed.Add(1)
+	r.logger.Warn("Bulk indexer: document rejected",
+		mlog.String("index", item.Index), mlog.String("doc_id", item.DocID),
+		mlog.String("action", item.Action), mlog.Int("status", status), mlog.Err(err))
 }
 
 // Wait blocks until every queued item is settled. If ctx ends first, it stops
@@ -127,7 +142,9 @@ func (r *BulkRetrier) enqueue(item BulkItem) {
 			queued.body, err = io.ReadAll(item.Body)
 		}
 		if err != nil {
-			r.fail(queued, 0, err)
+			r.logger.Warn("Bulk retry: cannot read document body",
+				mlog.String("index", item.Index), mlog.String("doc_id", item.DocID), mlog.Err(err))
+			r.fail()
 			return
 		}
 		queued.Body = nil
@@ -144,18 +161,26 @@ func (r *BulkRetrier) enqueue(item BulkItem) {
 func (r *BulkRetrier) run() {
 	for {
 		r.mut.Lock()
-		items := r.pending
-		r.pending = nil
-		if len(items) == 0 {
+		if len(r.pending) == 0 {
 			r.running = false
 			r.mut.Unlock()
 			return
 		}
+		delay := r.backoff(r.pending)
 		r.mut.Unlock()
 
-		if r.ctx.Err() != nil || !r.sleep(r.backoff(items)) {
-			for _, item := range items {
-				r.fail(item, 0, r.ctx.Err())
+		stopped := r.ctx.Err() != nil || !r.sleep(delay)
+
+		// Take what arrived while waiting.
+		r.mut.Lock()
+		items := r.pending
+		r.pending = nil
+		r.mut.Unlock()
+
+		if stopped {
+			r.logger.Warn("Bulk retry stopped, documents not confirmed", mlog.Int("num_items", len(items)))
+			for range items {
+				r.fail()
 			}
 			continue
 		}
@@ -225,31 +250,30 @@ func (r *BulkRetrier) resend(item retryItem) {
 	cancel()
 
 	switch {
-	case status >= 200 && status < 300, item.Action == "delete" && status == http.StatusNotFound:
+	case status >= 200 && status < 300, isGone(item.BulkItem, status):
 		r.retried.Add(1)
 		r.inflight.Done()
-	case status == 0 || status == http.StatusTooManyRequests || status >= http.StatusInternalServerError:
+	case isTransient(status):
 		if item.attempts >= bulkRetryMaxAttempts {
 			r.logger.Error("Bulk retry: giving up on document",
 				mlog.String("index", item.Index), mlog.String("doc_id", item.DocID),
 				mlog.Int("attempts", item.attempts), mlog.Int("status", status), mlog.Err(err))
-			r.fail(item, status, err)
+			r.fail()
 			return
 		}
 		r.mut.Lock()
 		r.pending = append(r.pending, item)
 		r.mut.Unlock()
 	default:
-		r.fail(item, status, err)
+		r.reject(item.BulkItem, status, err)
+		r.inflight.Done()
 	}
 }
 
-func (r *BulkRetrier) fail(item retryItem, status int, err error) {
+// fail counts one queued item that could not be indexed.
+func (r *BulkRetrier) fail() {
 	r.failed.Add(1)
 	r.inflight.Done()
-	r.logger.Debug("Bulk retry: document failed",
-		mlog.String("index", item.Index), mlog.String("doc_id", item.DocID),
-		mlog.Int("status", status), mlog.Err(err))
 }
 
 func items2bulk(items []retryItem) []BulkItem {
