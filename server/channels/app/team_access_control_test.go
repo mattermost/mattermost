@@ -545,21 +545,23 @@ func TestSearchTeamAccessPolicies_MultipleRules(t *testing.T) {
 	require.NoError(t, err)
 
 	originalACS := th.App.Srv().ch.AccessControl
-	mockACS := &mocks.AccessControlServiceInterface{}
-	th.App.Srv().ch.AccessControl = mockACS
 	t.Cleanup(func() {
 		th.App.Srv().ch.AccessControl = originalACS
-		mockACS.AssertExpectations(t)
 	})
 
-	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
-		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
-	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
-		Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
-			return policy, nil
-		}).Maybe()
-
 	t.Run("requester matching first rule is included", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), firstRuleExpr, mock.Anything).
 			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), secondRuleExpr, mock.Anything).
@@ -576,6 +578,18 @@ func TestSearchTeamAccessPolicies_MultipleRules(t *testing.T) {
 	})
 
 	t.Run("requester matching only second rule is included", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), firstRuleExpr, mock.Anything).
 			Return([]*model.User{}, int64(0), nil).Once()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), secondRuleExpr, mock.Anything).
@@ -592,6 +606,18 @@ func TestSearchTeamAccessPolicies_MultipleRules(t *testing.T) {
 	})
 
 	t.Run("requester matching neither rule is excluded", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), firstRuleExpr, mock.Anything).
 			Return([]*model.User{}, int64(0), nil).Once()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), secondRuleExpr, mock.Anything).

@@ -198,11 +198,11 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 // by SearchTeamAccessPolicies and ValidateTeamAdminPolicySelfInclusion. A
 // parent stays visible when it has no effective rules, or when it has children
 // and none of them is a private channel. Otherwise, including for a parent
-// with no children, the requester must satisfy the first effective rule.
+// with no children, the requester must satisfy at least one membership rule.
 //
-// visible is false when the requester does not satisfy that rule. A non-nil
-// error means the expression could not be evaluated; the listing hides the
-// policy, and a single-policy caller fails closed.
+// visible is false when the requester does not satisfy any membership rule. A
+// non-nil error means the expression could not be evaluated; the listing hides
+// the policy, and a single-policy caller fails closed.
 func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string, idToType map[string]model.ChannelType, batchLookupFailed bool) (bool, error) {
 	if len(policy.EffectiveRules()) == 0 {
 		return true, nil
@@ -211,15 +211,15 @@ func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.Acces
 		!policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
 		return true, nil
 	}
-	return a.requesterMatchesFirstEffectiveRule(rctx, policy, requesterID)
+	return a.requesterMatchesAnyMembershipRule(rctx, policy, requesterID)
 }
 
-// requesterMatchesFirstEffectiveRule reports whether requesterID satisfies any
+// requesterMatchesAnyMembershipRule reports whether requesterID satisfies any
 // membership rule in the policy. The engine ORs membership rules together, so
 // this function checks all rules with the membership action (or legacy "*") and
 // returns true if the requester matches at least one. No effective rules is a
 // match. Expression errors are returned to the caller.
-func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string) (bool, error) {
+func (a *App) requesterMatchesAnyMembershipRule(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string) (bool, error) {
 	effectiveRules := policy.EffectiveRules()
 	if len(effectiveRules) == 0 {
 		return true, nil
