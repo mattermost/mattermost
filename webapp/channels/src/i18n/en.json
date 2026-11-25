@@ -7813,7 +7813,7 @@
   },
   "admin.health_dashboard.run.not_allowed": {
     "defaultMessage": "Only system admins can run checks.",
-    "description": ""
+    "description": "Tooltip on the disabled Re-run checks button in the summary header of the System Console Site health page. It shows only to a delegated admin who can view the page but lacks the system-wide manage permission, so the page is read-only for them. 'checks' are the site health checks that the button runs right away, the same checks the hourly automatic run performs. They are not checks a user writes or edits. 'Run' is a verb. 'system admins' means users with Mattermost's System Admin role, and the term should be translated the way the catalog already renders System Admin. No placeholders."
   },
   "admin.health_dashboard.run.reload_error": {
     "defaultMessage": "The health check results could not be loaded. Reload the page to see them.",
@@ -8433,11 +8433,11 @@
   },
   "admin.ip_filtering.off": {
     "defaultMessage": "Off",
-    "description": ""
+    "description": "State label beside the 'Enable IP Filtering' toggle switch in System Console > IP Filtering, shown while the switch is off. Adjective describing the switch's current state, not a command."
   },
   "admin.ip_filtering.on": {
     "defaultMessage": "On",
-    "description": ""
+    "description": "State label beside the 'Enable IP Filtering' toggle switch in System Console > IP Filtering, shown while the switch is on. Adjective describing the switch's current state, not a command."
   },
   "admin.ip_filtering.rule_name_placeholder": {
     "defaultMessage": "Enter a name for this rule",
@@ -10905,7 +10905,7 @@
   },
   "admin.panel.untitled": {
     "defaultMessage": "Settings",
-    "description": ""
+    "description": "Fallback heading of a System Console settings panel, used only when the panel was given neither a title nor a subtitle, so the heading is never empty. Noun (a generic name for a group of settings)."
   },
   "admin.password.enableForgotLink.description": {
     "defaultMessage": "When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>",
@@ -10953,43 +10953,43 @@
   },
   "admin.permission_policies.channel_management_access_confirm.body_effect": {
     "defaultMessage": "Anyone who does not meet the conditions will no longer be able to change the settings, bookmarks, members or access rules of channels covered by this policy. System admins are not affected.",
-    "description": ""
+    "description": "Body paragraph of the confirmation dialog shown before a permission policy containing the 'Manage Channel' action is saved, in the System Console or in Channel Settings > permission policy tab. It explains what users lose when they do not meet the policy's attribute conditions. 'System admins' means the System Admin role."
   },
   "admin.permission_policies.channel_management_access_confirm.body_scope_channel": {
     "defaultMessage": "This policy controls Manage Channel for this channel only.",
-    "description": ""
+    "description": "Body paragraph of the confirmation dialog shown before a permission policy containing the 'Manage Channel' action is saved, when the policy applies to a single channel. 'Manage Channel' is the name of the policy action: translate it exactly as admin.permission_policies.permission.channel_management_access.label."
   },
   "admin.permission_policies.channel_management_access_confirm.body_scope_workspace": {
     "defaultMessage": "This policy controls Manage Channel across every channel in the workspace, except direct messages and group messages.",
-    "description": ""
+    "description": "Body paragraph of the confirmation dialog shown before a permission policy containing the 'Manage Channel' action is saved, when the policy applies to every channel in the workspace. 'Manage Channel' is the name of the policy action: translate it exactly as admin.permission_policies.permission.channel_management_access.label."
   },
   "admin.permission_policies.channel_read_access_confirm.body_effect": {
     "defaultMessage": "Any session that does not meet the conditions will lose access to channels covered by this policy.",
-    "description": ""
+    "description": "Body paragraph of the confirmation dialog shown before a permission policy containing the 'Channel Read Access' action is saved. It warns that users whose current session does not meet the policy's attribute conditions will stop seeing the channels the policy covers. 'Session' is a user's login session."
   },
   "admin.permission_policies.channel_read_access_confirm.body_scope_channel": {
     "defaultMessage": "This policy controls Channel Read Access for this channel only.",
-    "description": ""
+    "description": "Body paragraph of the confirmation dialog shown before a permission policy containing the 'Channel Read Access' action is saved, when the policy applies to a single channel. 'Channel Read Access' is the name of the policy action: translate it exactly as admin.permission_policies.permission.channel_read_access.label."
   },
   "admin.permission_policies.channel_read_access_confirm.body_scope_workspace": {
     "defaultMessage": "This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.",
-    "description": ""
+    "description": "Body paragraph of the confirmation dialog shown before a permission policy containing the 'Channel Read Access' action is saved, when the policy applies to every channel in the workspace. 'Channel Read Access' is the name of the policy action: translate it exactly as admin.permission_policies.permission.channel_read_access.label."
   },
   "admin.permission_policies.channel_read_access_confirm.body_simulate": {
     "defaultMessage": "Run Simulate rules first if you have not confirmed who this affects.",
-    "description": ""
+    "description": "Last paragraph of the confirmation dialog shown before saving a permission policy that contains the 'Channel Read Access' or 'Manage Channel' action, whichever is present. 'Simulate rules' is the name of a button in the rule editor: translate it exactly as admin.permission_policies.editor.simulate_rules."
   },
   "admin.permission_policies.channel_read_access_confirm.cancel": {
     "defaultMessage": "Cancel",
-    "description": ""
+    "description": "Cancel button of the confirmation dialog shown before saving a permission policy that contains the 'Channel Read Access' or 'Manage Channel' action. Closes the dialog without saving and returns to editing the policy."
   },
   "admin.permission_policies.channel_read_access_confirm.confirm": {
     "defaultMessage": "Save policy",
-    "description": ""
+    "description": "Confirm button, styled as destructive, of the confirmation dialog shown before saving a permission policy that contains the 'Channel Read Access' or 'Manage Channel' action. Imperative verb phrase: saves the policy."
   },
   "admin.permission_policies.channel_read_access_confirm.title": {
     "defaultMessage": "Save this policy?",
-    "description": ""
+    "description": "Title of the confirmation dialog shown before saving a permission policy that contains the 'Channel Read Access' or 'Manage Channel' action. It opens from the System Console policy editor or from Channel Settings."
   },
   "admin.permission_policies.delete": {
     "defaultMessage": "Delete",
@@ -11241,27 +11241,27 @@
   },
   "admin.permission_policies.permission.channel_management_access.description": {
     "defaultMessage": "Allow users to change the channel's settings, bookmarks, members and access rules",
-    "description": ""
+    "description": "Description under the 'Manage Channel' option in the permission picker of the System Console permission policy editor. Explains what the action grants."
   },
   "admin.permission_policies.permission.channel_management_access.label": {
     "defaultMessage": "Manage Channel",
-    "description": ""
+    "description": "Name of a permission policy action in the System Console permission policy editor, shown as a picker option and in rule summaries. A feature name in Title Case: 'Manage' is a verb, so it means 'manage the channel'. The policy confirmation dialog quotes this name, so keep the two consistent."
   },
   "admin.permission_policies.permission.channel_read_access.description": {
     "defaultMessage": "Allow users to read the channel and its content",
-    "description": ""
+    "description": "Description under the 'Channel Read Access' option in the permission picker of the System Console permission policy editor. Explains what the action grants."
   },
   "admin.permission_policies.permission.channel_read_access.label": {
     "defaultMessage": "Channel Read Access",
-    "description": ""
+    "description": "Name of a permission policy action in the System Console permission policy editor, shown as a picker option and in rule summaries. A feature name in Title Case (a noun phrase). The policy confirmation dialog quotes this name, so keep the two consistent."
   },
   "admin.permission_policies.permission.channel_write_access.description": {
     "defaultMessage": "Allow users to post in the channel and change its content",
-    "description": ""
+    "description": "Description under the 'Channel Write Access' option in the permission picker of the System Console permission policy editor. Explains what the action grants."
   },
   "admin.permission_policies.permission.channel_write_access.label": {
     "defaultMessage": "Channel Write Access",
-    "description": ""
+    "description": "Name of a permission policy action in the System Console permission policy editor, shown as a picker option and in rule summaries. A feature name in Title Case (a noun phrase)."
   },
   "admin.permission_policies.permission.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages",
@@ -19769,19 +19769,19 @@
   },
   "channel_access_denied.body": {
     "defaultMessage": "You no longer have access to {channel}. Your membership has not changed, and the channel will reappear if you regain access.",
-    "description": ""
+    "description": "Body of the dialog shown to an end user who opens a channel that an access policy no longer lets them read. {channel} is the channel's display name or, when that is unknown, the phrase from channel_access_denied.channelName. It is shown in bold. 'Membership' means the user is still a member of the channel."
   },
   "channel_access_denied.channelName": {
     "defaultMessage": "this channel",
-    "description": ""
+    "description": "Fallback inserted as {channel} in channel_access_denied.body when the channel's name is unknown. It must read naturally as the object of 'no longer have access to'."
   },
   "channel_access_denied.okay": {
     "defaultMessage": "Okay",
-    "description": ""
+    "description": "Only button of the dialog telling an end user that they lost access to a channel; acknowledges the message and closes the dialog."
   },
   "channel_access_denied.title": {
     "defaultMessage": "No longer available",
-    "description": ""
+    "description": "Title of the dialog shown to an end user who opens a channel that an access policy no longer lets them read. The unstated subject is the channel."
   },
   "channel_attributes.banner.empty_notice": {
     "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
@@ -21477,39 +21477,39 @@
   },
   "channel_settings.permissions_policy.action.channel_management_access": {
     "defaultMessage": "Manage channel",
-    "description": ""
+    "description": "Name of a permission action in the permission policy rule editor of the Channel Settings modal, shown as a picker option and in rule summaries. Sentence case. 'Manage' is a verb. The self-exclusion error message quotes this name, so keep the two consistent."
   },
   "channel_settings.permissions_policy.action.channel_management_access.description": {
     "defaultMessage": "Allow users to change this channel's settings, bookmarks, members and access rules",
-    "description": ""
+    "description": "Description under the 'Manage channel' option in the permission picker of the channel permission rule editor. This wording is used when the channel is an ordinary channel; the .board variant is used for boards."
   },
   "channel_settings.permissions_policy.action.channel_management_access.description.board": {
     "defaultMessage": "Allow users to change this board's settings, bookmarks, members and access rules",
-    "description": ""
+    "description": "Description under the 'Manage channel' option in the permission picker of the channel permission rule editor. This wording is used when the channel is a board."
   },
   "channel_settings.permissions_policy.action.channel_read_access": {
     "defaultMessage": "Channel read access",
-    "description": ""
+    "description": "Name of a permission action in the permission policy rule editor of the Channel Settings modal, shown as a picker option and in rule summaries. Sentence case, noun phrase. The self-exclusion error message quotes this name, so keep the two consistent."
   },
   "channel_settings.permissions_policy.action.channel_read_access.description": {
     "defaultMessage": "Allow users to read the channel and its content",
-    "description": ""
+    "description": "Description under the 'Channel read access' option in the permission picker of the channel permission rule editor. This wording is used when the channel is an ordinary channel; the .board variant is used for boards."
   },
   "channel_settings.permissions_policy.action.channel_read_access.description.board": {
     "defaultMessage": "Allow users to read the board and its content",
-    "description": ""
+    "description": "Description under the 'Channel read access' option in the permission picker of the channel permission rule editor. This wording is used when the channel is a board."
   },
   "channel_settings.permissions_policy.action.channel_write_access": {
     "defaultMessage": "Channel write access",
-    "description": ""
+    "description": "Name of a permission action in the permission policy rule editor of the Channel Settings modal, shown as a picker option and in rule summaries. Sentence case, noun phrase."
   },
   "channel_settings.permissions_policy.action.channel_write_access.description": {
     "defaultMessage": "Allow users to post in this channel and change its content",
-    "description": ""
+    "description": "Description under the 'Channel write access' option in the permission picker of the channel permission rule editor. This wording is used when the channel is an ordinary channel; the .board variant is used for boards."
   },
   "channel_settings.permissions_policy.action.channel_write_access.description.board": {
     "defaultMessage": "Allow users to post in this board and change its content",
-    "description": ""
+    "description": "Description under the 'Channel write access' option in the permission picker of the channel permission rule editor. This wording is used when the channel is a board."
   },
   "channel_settings.permissions_policy.action.create_bor": {
     "defaultMessage": "Create burn-on-read message",
@@ -21597,7 +21597,7 @@
   },
   "channel_settings.permissions_policy.error.back_to_editing": {
     "defaultMessage": "Back to editing",
-    "description": ""
+    "description": "Only button of the 'Cannot save permission rules' dialog in the Channel Settings permission policy tab. Closes the dialog and returns the user to the unsaved rules."
   },
   "channel_settings.permissions_policy.error.expression_required": {
     "defaultMessage": "Each rule needs an attribute expression.",
@@ -21617,19 +21617,19 @@
   },
   "channel_settings.permissions_policy.error.self_exclusion_check_failed": {
     "defaultMessage": "Could not confirm that you would keep access to this channel. Please try again.",
-    "description": ""
+    "description": "Message of the 'Cannot save permission rules' dialog in the Channel Settings permission policy tab. Shown when the server check of whether the rules would lock the editing user out of the channel failed with an error, so the save was blocked."
   },
   "channel_settings.permissions_policy.error.self_exclusion_management_message": {
     "defaultMessage": "You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.",
-    "description": ""
+    "description": "Message of the 'Cannot save permission rules' dialog in the Channel Settings permission policy tab. Shown when the rules being saved would deny the editing user the 'Manage channel' action. 'Manage channel' is the action name: translate it as channel_settings.permissions_policy.action.channel_management_access."
   },
   "channel_settings.permissions_policy.error.self_exclusion_message": {
     "defaultMessage": "You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.",
-    "description": ""
+    "description": "Message of the 'Cannot save permission rules' dialog in the Channel Settings permission policy tab. Shown when the rules being saved would deny the editing user read access to the channel. 'Channel read access' is the action name: translate it as channel_settings.permissions_policy.action.channel_read_access."
   },
   "channel_settings.permissions_policy.error.self_exclusion_title": {
     "defaultMessage": "Cannot save permission rules",
-    "description": ""
+    "description": "Title of the dialog in the Channel Settings permission policy tab that blocks a save because the rules would lock the editing user out of the channel, or because that could not be checked."
   },
   "channel_settings.permissions_policy.field.actions": {
     "defaultMessage": "Permissions",
@@ -21833,11 +21833,11 @@
   },
   "channel_settings.read_only.message": {
     "defaultMessage": "An access policy prevents you from making changes in this channel.",
-    "description": ""
+    "description": "Body of the info banner at the top of the Channel Settings modal. Shown when an attribute-based access policy denies the user the 'Manage channel' action, which disables every control in the modal. Never shown to system admins."
   },
   "channel_settings.read_only.title": {
     "defaultMessage": "Editing is restricted",
-    "description": ""
+    "description": "Title of the info banner at the top of the Channel Settings modal. Shown when an access policy makes all of the channel's settings read-only for the current user."
   },
   "channel_settings.remove_sharing_confirm.cancel": {
     "defaultMessage": "Cancel",
@@ -23037,7 +23037,7 @@
   },
   "create_post.write_access_denied": {
     "defaultMessage": "You do not have permission to post in this channel.",
-    "description": ""
+    "description": "Placeholder text in the message box at the bottom of a channel or thread, which is disabled because an access policy denies the user write access to the channel."
   },
   "create_team.display_name.create": {
     "defaultMessage": "Create",
@@ -24953,7 +24953,7 @@
   },
   "generic_modal.close": {
     "defaultMessage": "Close",
-    "description": ""
+    "description": "Tooltip and accessible label of the X close button in the header of the shared generic modal used throughout the app; also the label of the close button in the Invite People dialog. Imperative verb."
   },
   "generic_modal.confirm": {
     "defaultMessage": "Confirm",
@@ -30861,7 +30861,7 @@
   },
   "saveChangesPanel.dismiss": {
     "defaultMessage": "Dismiss",
-    "description": ""
+    "description": "Tooltip and accessible label of the X icon button on the 'Settings saved' panel at the bottom of settings modals. Hides the confirmation panel; it does not discard anything. Imperative verb."
   },
   "saveChangesPanel.error": {
     "defaultMessage": "There was an error saving your settings",
