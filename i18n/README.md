@@ -55,8 +55,10 @@ agents do the writing, and the two hand files to each other:
 
 The scripts are in [`scripts/`](./scripts/), and each one's header states what
 it does. They keep their working files in a directory outside the repository,
-so nothing but the result is committed. The agents that write descriptions,
-glossary terms and translations are defined in
+so nothing but the result is committed. They check messages with the
+webapp's ICU rules, and finalizing also runs the Go checker, so a run needs Go
+and `webapp/node_modules` (`npm ci` in `webapp/`). The agents that write
+descriptions, glossary terms and translations are defined in
 [`.claude/agents/`](../.claude/agents/), which runs them on the most capable
 model available, whatever model runs the orchestration.
 

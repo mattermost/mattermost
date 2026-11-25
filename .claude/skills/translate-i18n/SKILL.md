@@ -50,7 +50,12 @@ TARGET=master
 git fetch origin "$TARGET"
 git switch -c "translations/$TARGET/$(date -u +%F)" "origin/$TARGET"
 RUN=$(mktemp -d "${TMPDIR:-/tmp}/i18n-run.XXXXXX")
+(cd webapp && npm ci)
 ```
+
+Every script from step 2 on checks messages with the webapp's ICU rules, and
+finalizing runs the Go checker too, so a run needs Go and
+`webapp/node_modules`.
 
 The branch is named `translations/<target>/<date>`, so a run for `master` and
 one for a release branch on the same day never collide, and the next run can
@@ -249,8 +254,6 @@ All or nothing, in order:
 5. It moves the baseline to the plan's base for each surface and locale with
    nothing left. A locale left out keeps its baseline, though its catalog is
    still pruned and its unchanged renames carried.
-
-It runs the Go and webapp checkers, so it needs Go and `webapp/node_modules`.
 
 It writes `$RUN/report.md` for the PR, and `$RUN/pruned.json` with the
 translations pruning removed. Commit the catalogs and `i18n/baseline.json`
