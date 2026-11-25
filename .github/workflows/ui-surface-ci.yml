@@ -6,8 +6,10 @@ on:
       - 'webapp/**'
       - 'api/v4/source/**'
       - 'e2e-tests/playwright/ui-surface/**'
-      - 'e2e-tests/playwright/lib/src/surface/**'
+      - 'e2e-tests/playwright/lib/src/**'
       - 'e2e-tests/playwright/specs/**'
+      - 'e2e-tests/playwright/upgrade-specs/**'
+      - 'e2e-tests/playwright/eslint.config.mjs'
       - '.github/workflows/ui-surface-ci.yml'
 
 permissions:

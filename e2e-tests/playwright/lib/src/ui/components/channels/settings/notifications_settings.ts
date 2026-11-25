@@ -4,7 +4,15 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
+
 type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
+
+/** Webapp `section` prop of each SettingItem (UserSettingsNotificationSections in utils/constants.tsx). */
+const sectionKeys: Record<NotificationSettingsSection, string> = {
+    keysWithHighlight: 'keywordsAndHighlight',
+    keysWithNotification: 'keywordsAndMentions',
+};
 
 export default class NotificationsSettings {
     readonly container: Locator;
@@ -28,21 +36,24 @@ export default class NotificationsSettings {
 
     readonly keysWithHighlightDesc;
 
+    private readonly settingItem;
+
     constructor(container: Locator) {
         this.container = container;
+        this.settingItem = createSurface(container.page()).setting_item(container);
 
         this.title = container.getByRole('heading', {name: 'Notifications', exact: true});
         this.expandedSection = container.locator(this.expandedSectionId);
 
         this.learnMoreText = container.getByRole('link', {name: 'Learn more about notifications'});
-        this.desktopAndMobileEditButton = container.locator('#desktopAndMobileEdit');
-        this.desktopNotificationSoundEditButton = container.locator('#desktopNotificationSoundEdit');
-        this.emailEditButton = container.locator('#emailEdit');
+        this.desktopAndMobileEditButton = this.settingItem.edit('desktopAndMobile').locator;
+        this.desktopNotificationSoundEditButton = this.settingItem.edit('desktopNotificationSound').locator;
+        this.emailEditButton = this.settingItem.edit('email').locator;
         this.channelMentionAutoFollowEditButton = container.getByRole('button', {
             name: 'Auto-follow threads on channel-wide mentions Edit',
         });
-        this.keywordsTriggerNotificationsEditButton = container.locator('#keywordsAndMentionsEdit');
-        this.keywordsGetHighlightedEditButton = container.locator('#keywordsAndHighlightEdit');
+        this.keywordsTriggerNotificationsEditButton = this.settingItem.edit(sectionKeys.keysWithNotification).locator;
+        this.keywordsGetHighlightedEditButton = this.settingItem.edit(sectionKeys.keysWithHighlight).locator;
         this.channelWideMentionsCheckbox = container.getByRole('checkbox', {name: 'Channel-wide mentions'});
 
         this.testNotificationButton = container.getByRole('button', {name: 'Send a test notification'});
@@ -56,14 +67,14 @@ export default class NotificationsSettings {
     }
 
     async expandSection(section: NotificationSettingsSection) {
-        if (section === 'keysWithHighlight') {
-            await this.container.getByText('Keywords That Get Highlighted (without notifications)').click();
-            await this.verifySectionIsExpanded('keysWithHighlight');
-        }
+        // Clicking the Edit button, not the title text, proves the section key exists before the absence check below.
+        await this.settingItem.edit(sectionKeys[section]).click();
+        await this.verifySectionIsExpanded(section);
     }
 
     async verifySectionIsExpanded(section: NotificationSettingsSection) {
-        await expect(this.container.locator(`#${section}Edit`)).not.toBeVisible();
+        await expect(this.container.locator(this.expandedSectionId)).toBeVisible();
+        await this.settingItem.edit(sectionKeys[section]).toBeHidden();
 
         if (section === 'keysWithHighlight') {
             await expect(
@@ -85,7 +96,7 @@ export default class NotificationsSettings {
     }
 
     async save() {
-        await expect(this.container.getByText('Save')).toBeVisible();
-        await this.container.getByText('Save').click();
+        await this.settingItem.save.toBeVisible();
+        await this.settingItem.save.click();
     }
 }

@@ -64,6 +64,7 @@ const BigButtonSelector = ({
     const button = (
         <button
             id={`public-private-selector-button-${id}`}
+            data-surface={`privacy_selector.option:${id}--button`}
             className={classNames('public-private-selector-button', {selected, disabled, locked})}
             onClick={handleOnClick}
         >

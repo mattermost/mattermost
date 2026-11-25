@@ -27,6 +27,7 @@ const TeamNameSection = ({clientError, handleNameChanges, name}: Props) => {
         <Input
             id='teamName'
             data-testid='teamNameInput'
+            data-surface='team_settings.name--textbox'
             type='text'
             maxLength={Constants.MAX_TEAMNAME_LENGTH}
             onChange={updateName}

@@ -77,6 +77,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                 <button
                     ref={this.getEdit}
                     id={this.props.section + 'Edit'}
+                    data-surface={`setting_item.edit:${this.props.section}--button`}
                     className='color--link style--none section-min__edit'
                     onClick={this.handleClick}
                     aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}

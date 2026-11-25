@@ -99,6 +99,11 @@ export default [
             'ui-surface/no-raw-css-locators': 'warn',
             'ui-surface/observe-actions': 'warn',
             'ui-surface/no-literal-absence': 'warn',
+            'ui-surface/no-floating-actions': 'warn',
+            'ui-surface/no-soft-assertions': 'warn',
+            'ui-surface/no-conditional-logic': 'warn',
+            'ui-surface/no-locator-action': 'warn',
+            'ui-surface/disable-reason': 'warn',
         },
     },
     {
@@ -131,6 +136,11 @@ export default [
             'ui-surface/no-raw-css-locators': 'error',
             'ui-surface/observe-actions': 'error',
             'ui-surface/no-literal-absence': 'error',
+            'ui-surface/no-floating-actions': 'error',
+            'ui-surface/no-soft-assertions': 'error',
+            'ui-surface/no-conditional-logic': 'error',
+            'ui-surface/no-locator-action': 'error',
+            'ui-surface/disable-reason': 'error',
         },
     },
 ];

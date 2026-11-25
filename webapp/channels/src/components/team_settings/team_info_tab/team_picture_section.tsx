@@ -47,6 +47,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
             <>
                 <input
                     data-testid='uploadPicture'
+                    data-surface='team_settings.icon_upload--file'
                     ref={selectInput}
                     className='hidden'
                     accept={Constants.ACCEPT_STATIC_IMAGE}
@@ -78,6 +79,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
             return (
                 <div
                     id='teamIconImage'
+                    data-surface='team_settings.icon_image'
                     style={imageStyles}
                     className='team-img-preview'
                     onClick={handleInputFile}
@@ -88,6 +90,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
             return (
                 <img
                     id='teamIconImage'
+                    data-surface='team_settings.icon_image'
                     className='team-img-preview'
                     src={teamImageSource}
                     onClick={handleInputFile}
@@ -98,6 +101,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
             <div className='team-picture-section__team-icon' >
                 <span
                     id='teamIconInitial'
+                    data-surface='team_settings.icon_initial'
                     onClick={handleInputFile}
                     className='team-picture-section__team-name'
                 >{teamName.charAt(0).toUpperCase() + teamName.charAt(1)}</span>
@@ -133,6 +137,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
                 <button
                     onClick={onRemove}
                     data-testid='removeImageButton'
+                    data-surface='team_settings.icon_remove--button'
                     className='style--none picture-setting-item__remove-button'
                 >
                     <TrashCanOutlineIcon/>

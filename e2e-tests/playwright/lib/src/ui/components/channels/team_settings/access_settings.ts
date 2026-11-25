@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
+
 export default class AccessSettings {
     readonly container: Locator;
 
@@ -18,8 +20,10 @@ export default class AccessSettings {
 
         this.allowedDomainsCheckbox = container.locator('input[name="showAllowedDomains"]');
         this.allowedDomainsInput = container.locator('#allowedDomains input');
-        this.publicTeamButton = container.locator('#public-private-selector-button-O');
-        this.privateTeamButton = container.locator('#public-private-selector-button-P');
+        // Shared widget (also in New Channel and Channel Settings): scoped by this tab, no prop threaded through it.
+        const privacy = createSurface(container.page()).privacy_selector(container);
+        this.publicTeamButton = privacy.option('O').locator;
+        this.privateTeamButton = privacy.option('P').locator;
         this.regenerateButton = container.locator('button[data-testid="regenerateButton"]');
     }
 

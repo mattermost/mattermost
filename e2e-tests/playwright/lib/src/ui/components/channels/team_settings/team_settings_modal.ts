@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
+
 import InfoSettings from './info_settings';
 import AccessSettings from './access_settings';
 
@@ -33,14 +35,17 @@ export default class TeamSettingsModal {
         this.accessTab = container.getByTestId('access-tab-button');
         this.accessPoliciesTab = container.getByTestId('access_policies-tab-button');
 
-        this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
-        this.undoButton = container.getByTestId('SaveChangesPanel__cancel-btn');
+        const surface = createSurface(container.page());
+        const savePanel = surface.save_panel(container);
+        const team = surface.team_settings(container);
+        this.saveButton = savePanel.save.locator;
+        this.undoButton = savePanel.cancel.locator;
 
         // Exact link match: the policy editor's delete subtitle also starts with "Remove".
         this.policyChannelRemoveLink = container.getByRole('link', {name: 'Remove', exact: true});
 
-        this.infoSettings = new InfoSettings(container);
-        this.accessSettings = new AccessSettings(container);
+        this.infoSettings = new InfoSettings(team.info.locator);
+        this.accessSettings = new AccessSettings(team.access.locator);
     }
 
     async toBeVisible() {

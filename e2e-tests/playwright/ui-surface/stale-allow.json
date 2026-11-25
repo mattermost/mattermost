@@ -1,0 +1,6 @@
+{
+    "someemailemail": "Rendered by text_setting.tsx as `${props.id}${inputType}` from demo-plugin dialog field names; no literal in webapp source.",
+    "somepasswordpassword": "Rendered by text_setting.tsx as `${props.id}${inputType}` from demo-plugin dialog field names; no literal in webapp source.",
+    "link-to-a-policy": "STALE on master: no webapp source or history renders this id. ABAC specs need a selector fix; remove this entry with that fix.",
+    "systemProperties": "STALE on master: removed from webapp by 3db1a9adf80 (MM-70669). Page object system_properties.ts is unused by specs; remove this entry when it is deleted."
+}

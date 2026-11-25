@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
+
 export type DisplaySettingsSection =
     | 'theme'
     | 'clockDisplay'
@@ -63,28 +65,32 @@ export default class DisplaySettings {
     readonly emojiPickerEditButton;
     readonly languageEditButton;
 
+    private readonly settingItem;
+
     constructor(container: Locator) {
         this.container = container;
 
         this.title = container.getByRole('heading', {name: 'Display Settings', exact: true});
         this.expandedSection = container.locator('section');
 
-        // Edit buttons for each setting section - IDs are {section}Edit pattern from webapp
-        this.themeEditButton = container.locator('#themeEdit');
-        this.clockDisplayEditButton = container.locator('#clockEdit');
-        this.teammateNameDisplayEditButton = container.locator('#name_formatEdit');
-        this.availabilityStatusOnPostsEditButton = container.locator('#availabilityStatusEdit');
-        this.lastActiveTimeEditButton = container.locator('#lastactiveEdit');
-        this.timezoneEditButton = container.locator('#timezoneEdit');
-        this.showLinkPreviewsEditButton = container.locator('#linkpreviewEdit');
-        this.collapseImagePreviewsEditButton = container.locator('#collapseEdit');
-        this.messageDisplayEditButton = container.locator('#message_displayEdit');
-        this.clickToReplyEditButton = container.locator('#click_to_replyEdit');
-        this.channelDisplayModeEditButton = container.locator('#channel_display_modeEdit');
-        this.collapseCategoryWithUnreadsEditButton = container.locator('#collapse_category_with_unreadsEdit');
-        this.oneClickReactionsEditButton = container.locator('#one_click_reactions_enabledEdit');
-        this.emojiPickerEditButton = container.locator('#renderEmoticonsAsEmojiEdit');
-        this.languageEditButton = container.locator('#languagesEdit');
+        // Shared SettingItemMin Edit buttons, keyed by the webapp `section` prop and scoped by this tab.
+        this.settingItem = createSurface(container.page()).setting_item(container);
+        const edit = (section: string) => this.settingItem.edit(section).locator;
+        this.themeEditButton = edit('theme');
+        this.clockDisplayEditButton = edit('clock');
+        this.teammateNameDisplayEditButton = edit('name_format');
+        this.availabilityStatusOnPostsEditButton = edit('availabilityStatus');
+        this.lastActiveTimeEditButton = edit('lastactive');
+        this.timezoneEditButton = edit('timezone');
+        this.showLinkPreviewsEditButton = edit('linkpreview');
+        this.collapseImagePreviewsEditButton = edit('collapse');
+        this.messageDisplayEditButton = edit('message_display');
+        this.clickToReplyEditButton = edit('click_to_reply');
+        this.channelDisplayModeEditButton = edit('channel_display_mode');
+        this.collapseCategoryWithUnreadsEditButton = edit('collapse_category_with_unreads');
+        this.oneClickReactionsEditButton = edit('one_click_reactions_enabled');
+        this.emojiPickerEditButton = edit('renderEmoticonsAsEmoji');
+        this.languageEditButton = edit('languages');
     }
 
     async toBeVisible() {
@@ -108,6 +114,6 @@ export default class DisplaySettings {
         await this.themeEditButton.click();
         await this.verifySectionIsExpanded('theme');
         await this.container.getByRole('button', {name: theme}).click();
-        await this.container.getByRole('button', {name: 'Save', exact: true}).click();
+        await this.settingItem.save.click();
     }
 }

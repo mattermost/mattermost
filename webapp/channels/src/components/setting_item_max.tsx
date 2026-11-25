@@ -218,6 +218,7 @@ const SettingItemMax = ({
                 disabled={saving || isValid === false}
                 onClick={handleSubmit}
                 variant={saveButtonVariant}
+                data-surface='setting_item.save--button'
             />
         );
     }

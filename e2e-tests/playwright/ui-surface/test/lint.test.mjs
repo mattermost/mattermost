@@ -10,13 +10,17 @@ import plugin from '../lint/index.mjs';
 
 function lint(ruleName, code, parserOptions = {}) {
     const linter = new Linter();
-    return linter.verify(code, [
+
+    const messages = linter.verify(code, [
         {
             languageOptions: {ecmaVersion: 2022, sourceType: 'module', parserOptions},
             plugins: {'ui-surface': plugin},
             rules: {[`ui-surface/${ruleName}`]: 'error'},
         },
     ]);
+
+    // Only the rule under test: ESLint's own unused-directive report would double-count disable comments.
+    return messages.filter((message) => message.ruleId === `ui-surface/${ruleName}`);
 }
 
 test('syntactic ESLint rules catch bad patterns and pass clean specs', () => {
@@ -98,4 +102,42 @@ test('no-literal-absence flags absence checks on en.json copy, not on test data'
         ).length,
         0,
     );
+});
+
+test('no-floating-actions flags un-awaited actions and retrying assertions, not synchronous expects', () => {
+    const wrap = (body) => `async function t() { ${body} }`;
+    assert.equal(lint('no-floating-actions', wrap('btn.click();')).length, 1);
+    assert.equal(lint('no-floating-actions', wrap('void btn.click();')).length, 1);
+    assert.equal(lint('no-floating-actions', wrap('expect(await page.loginInput).toBeFocused();')).length, 1);
+    assert.equal(lint('no-floating-actions', wrap('expect(dialog).not.toBeVisible();')).length, 1);
+    assert.equal(lint('no-floating-actions', wrap('savePanel.save.toBeHidden();')).length, 1);
+    assert.equal(lint('no-floating-actions', wrap('expect.poll(() => n).toBe(2);')).length, 1);
+    assert.equal(lint('no-floating-actions', wrap('await btn.click();')).length, 0);
+    assert.equal(lint('no-floating-actions', wrap('expect(value).toBe(1);')).length, 0);
+    assert.equal(lint('no-floating-actions', wrap('expect(list).toHaveLength(2);')).length, 0);
+    assert.equal(lint('no-floating-actions', wrap('return btn.click();')).length, 0);
+});
+
+test('no-soft-assertions, no-conditional-logic, no-locator-action and disable-reason', () => {
+    const wrap = (body) => `async function t() { ${body} }`;
+    assert.equal(lint('no-soft-assertions', wrap('await expect.soft(x).toBeVisible();')).length, 1);
+    assert.equal(lint('no-soft-assertions', wrap('await expect(x).toBeVisible();')).length, 0);
+
+    assert.equal(lint('no-conditional-logic', wrap('if (await btn.isVisible()) { await btn.click(); }')).length, 1);
+    assert.equal(lint('no-conditional-logic', wrap('const n = (await rows.count()) > 1 ? 1 : 0;')).length, 1);
+    assert.equal(lint('no-conditional-logic', wrap('if (process.env.CI) { await btn.click(); }')).length, 0);
+    assert.equal(
+        lint('no-conditional-logic', wrap('if (flag) { await pw.waitUntil(async () => await ok()); }')).length,
+        0,
+    );
+
+    assert.equal(lint('no-locator-action', wrap('await savePanel.save.locator.click();')).length, 1);
+    assert.equal(lint('no-locator-action', wrap('await savePanel.save.click();')).length, 0);
+    assert.equal(lint('no-locator-action', wrap('await page.locator("x").click();')).length, 0);
+
+    assert.equal(lint('disable-reason', '// eslint-disable-next-line\nfoo();').length, 1);
+    assert.equal(lint('disable-reason', '// eslint-disable-next-line ui-surface/no-sleeps\nfoo();').length, 1);
+    const withReason = '// eslint-disable-next-line ui-surface/no-sleeps -- animation has no event\nfoo();';
+    assert.equal(lint('disable-reason', withReason).length, 0);
+    assert.equal(lint('disable-reason', '// eslint-disable-next-line no-console\nfoo();').length, 0);
 });

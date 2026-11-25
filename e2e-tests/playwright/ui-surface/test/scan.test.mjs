@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 
-import {checkStaleRefs, extractSurface, parseTestId} from '../dist/scan.js';
+import {checkStaleRefs, extractSurface, indexSourceIds, parseTestId} from '../dist/scan.js';
 
 test('parseTestId validates scope.name[:key][--role] grammar', () => {
     assert.deepEqual(parseTestId('channel_settings.save--button'), {
@@ -60,7 +60,6 @@ test('checkStaleRefs detects stale Playwright and Cypress literals and ignores c
     const knownIds = new Set(report.entries.map((e) => e.id));
     const diags = checkStaleRefs({
         knownIds,
-        onlyGrammarIds: true,
         files: {
             'good.spec.ts':
                 '// page.getByTestId("settings.missing--button")\npage.getByTestId("settings.save--button").click();',
@@ -72,6 +71,48 @@ test('checkStaleRefs detects stale Playwright and Cypress literals and ignores c
         diags.map((d) => d.id),
         ['settings.old--button', 'settings.gone--button', 'settings.css_gone--button'],
     );
+});
+
+test('checkStaleRefs flags legacy ids missing from webapp source and resolves props, keys, HTML and patterns', () => {
+    const webapp = {
+        'stat.tsx': 'export const S = ({id}) => <div data-testid={id ? id + "Chart" : undefined}/>;',
+        'use.tsx': 'export const U = () => <Stat id="totalPosts"/>;',
+        // eslint-disable-next-line no-template-curly-in-string
+        'text.tsx': 'export const T = (p) => <input data-testid={`${p.id}input`}/>;',
+        'defs.tsx': 'export const defs = {system_attributes: {}};',
+        // eslint-disable-next-line no-template-curly-in-string
+        'html.tsx': 'export const h = (w) => `<span data-testid="search-highlight">${w}</span>`;',
+        // eslint-disable-next-line no-template-curly-in-string
+        'opaque.tsx': 'export const O = (p) => <input data-testid={`${p.id}${p.type}`}/>;',
+    };
+    const sourceIds = indexSourceIds({roots: [], files: webapp});
+    const diags = checkStaleRefs({
+        knownIds: new Set(),
+        sourceIds,
+        allow: new Set(['fieldemail']),
+        files: {
+            'a.spec.ts': [
+                'page.getByTestId("totalPosts");',
+                'page.getByTestId("totalPostsChart");',
+                'page.getByTestId("nameinput");',
+                'page.getByTestId("system_attributes");',
+                'page.getByTestId("search-highlight");',
+                'page.getByTestId("fieldemail");',
+                'page.getByTestId("renamedLegacyId");',
+                'page.getByTestId("ab");',
+            ].join('\n'),
+        },
+    });
+    assert.deepEqual(
+        diags.map((d) => `${d.line}:${d.id}`),
+        ['7:renamedLegacyId', '8:ab'],
+    );
+    assert.match(diags[0].message, /does not appear anywhere in webapp source/);
+});
+
+test('checkStaleRefs skips legacy ids when no source index is given', () => {
+    const diags = checkStaleRefs({knownIds: new Set(), files: {'a.spec.ts': 'page.getByTestId("anything");'}});
+    assert.deepEqual(diags, []);
 });
 
 test('extractSurface supports dual data-surface coexistence alongside legacy data-testid', () => {
@@ -104,6 +145,8 @@ test('extractSurface rejects unresolvable data-surface values, display-text keys
                 '  <li data-surface={`feed.post:${post.id}--listitem`} />',
                 // eslint-disable-next-line no-template-curly-in-string
                 '  <li data-surface={`feed.label:${post.message}--listitem`} />',
+                // eslint-disable-next-line no-template-curly-in-string
+                '  <button data-surface={`feed.edit:${this.props.section}--button`} />',
                 '  <div data-surface={kind} />',
                 '  <div data-testid={kind} />',
                 '  <button data-surface="feed.shared--button" />',

@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {createSurface} from '../../../../surface';
+
 export default class InfoSettings {
     readonly container: Locator;
 
@@ -17,12 +19,13 @@ export default class InfoSettings {
     constructor(container: Locator) {
         this.container = container;
 
-        this.nameInput = container.locator('input#teamName');
-        this.descriptionInput = container.locator('textarea#teamDescription');
-        this.uploadInput = container.locator('input[data-testid="uploadPicture"]');
-        this.removeImageButton = container.locator('button[data-testid="removeImageButton"]');
-        this.teamIconImage = container.locator('#teamIconImage');
-        this.teamIconInitial = container.locator('#teamIconInitial');
+        const team = createSurface(container.page()).team_settings(container);
+        this.nameInput = team.name.locator;
+        this.descriptionInput = team.description.locator;
+        this.uploadInput = team.iconUpload.locator;
+        this.removeImageButton = team.iconRemove.locator;
+        this.teamIconImage = team.iconImage.locator;
+        this.teamIconInitial = team.iconInitial.locator;
     }
 
     async toBeVisible() {

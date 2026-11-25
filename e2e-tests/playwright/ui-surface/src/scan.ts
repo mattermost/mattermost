@@ -50,8 +50,11 @@ const CSS_METHOD = /^(?:locator|find|contains|\$)$/;
 const EXACT_TESTID_CSS = /^\[data-(?:testid|surface)=(?:"([^"]+)"|'([^']+)')\]$/;
 const DYNAMIC = Symbol('dynamic');
 
-/** A list key must name entity identity (`post.id`, `pluginId`, `index`), never display text that varies by locale or data. */
-const IDENTITY_KEY = /^(?:id|key|index|idx|i)$|(?:Id|_id|Key|_key|Ids)$/;
+/**
+ * A list key must name entity identity (`post.id`, `pluginId`, `index`), never display text that varies by locale or data.
+ * `section` is the settings section id (`theme`, `email`) that SettingItemMin already uses to build DOM ids.
+ */
+const IDENTITY_KEY = /^(?:id|key|index|idx|i|section)$|(?:Id|_id|Key|_key|Ids)$/;
 
 export type ParsedTestId = {
     raw: string;
@@ -483,13 +486,108 @@ function lookupIdFromCall(call: ts.CallExpression): string | undefined {
     return undefined;
 }
 
-/** Check Playwright and Cypress spec files for literal testids missing from extracted webapp entries. */
+/** Every id the webapp source can render, for checking legacy (non-grammar) references. */
+export type SourceIdIndex = {literals: Set<string>; patterns: RegExp[]};
+
+const HTML_ATTR_ID = /data-(?:testid|surface)="([^"]+)"/g;
+
+/** A pattern needs this many literal characters; `${a}${b}` matches anything, so its ids go to the allow list. */
+const MIN_PATTERN_LITERAL = 3;
+
+function patternOf(parts: Array<string | null>): RegExp | undefined {
+    if (!parts.includes(null) || parts.filter((part) => part !== null).join('').length < MIN_PATTERN_LITERAL) {
+        return undefined;
+    }
+    const body = parts.map((part) => (part === null ? '.+' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))).join('');
+    return new RegExp(`^${body}$`);
+}
+
+function concatParts(expr: ts.Expression, out: Array<string | null>): Array<string | null> {
+    if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        concatParts(expr.left, out);
+        concatParts(expr.right, out);
+    } else if (ts.isParenthesizedExpression(expr)) {
+        concatParts(expr.expression, out);
+    } else {
+        out.push(ts.isStringLiteralLike(expr) ? expr.text : null);
+    }
+    return out;
+}
+
+/**
+ * Index every string the webapp could render as a testid: string literals, object keys (`data-testid={definitionKey}`),
+ * `data-testid="..."` inside HTML strings, and templates or `+` concatenations as patterns. Ids passed through props
+ * still resolve because the literal lives at the call site.
+ */
+export function indexSourceIds(options: {
+    roots: string[];
+    cwd?: string;
+    files?: Record<string, string>;
+}): SourceIdIndex {
+    const cwd = options.cwd ?? process.cwd();
+    const literals = new Set<string>();
+    const patterns = new Map<string, RegExp>();
+    const addPattern = (pattern?: RegExp) => pattern && patterns.set(pattern.source, pattern);
+    const addText = (text: string) => {
+        literals.add(text);
+        for (const match of text.matchAll(HTML_ATTR_ID)) {
+            literals.add(match[1]);
+        }
+    };
+    const filePaths = options.files ? Object.keys(options.files).sort() : collectFiles(options.roots, cwd);
+    for (const file of filePaths) {
+        const content = options.files ? options.files[file] : readFileSync(file, 'utf8');
+        const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
+        const visit = (node: ts.Node) => {
+            if (ts.isStringLiteralLike(node)) {
+                addText(node.text);
+            } else if (ts.isTemplateExpression(node)) {
+                const literalsOnly = [node.head.text, ...node.templateSpans.map((span) => span.literal.text)];
+                literalsOnly.forEach(addText);
+                addPattern(
+                    patternOf([node.head.text, ...node.templateSpans.flatMap((span) => [null, span.literal.text])]),
+                );
+            } else if (
+                ts.isBinaryExpression(node) &&
+                node.operatorToken.kind === ts.SyntaxKind.PlusToken &&
+                !(ts.isBinaryExpression(node.parent) && node.parent.operatorToken.kind === ts.SyntaxKind.PlusToken)
+            ) {
+                addPattern(patternOf(concatParts(node, [])));
+            } else if (
+                (ts.isPropertyAssignment(node) || ts.isMethodDeclaration(node) || ts.isPropertySignature(node)) &&
+                ts.isIdentifier(node.name)
+            ) {
+                literals.add(node.name.text);
+            }
+            ts.forEachChild(node, visit);
+        };
+        visit(source);
+    }
+    return {literals, patterns: [...patterns.values()]};
+}
+
+function staleMessage(id: string, options: {knownIds: Set<string>; sourceIds?: SourceIdIndex}): string | undefined {
+    if (parseTestId(id).valid) {
+        return options.knownIds.has(id) ? undefined : `Referenced testid "${id}" was not declared in webapp`;
+    }
+    const {sourceIds} = options;
+    if (!sourceIds || sourceIds.literals.has(id) || sourceIds.patterns.some((pattern) => pattern.test(id))) {
+        return undefined;
+    }
+    return `Referenced testid "${id}" does not appear anywhere in webapp source`;
+}
+
+/**
+ * Check Playwright and Cypress spec files for literal testids the webapp no longer renders. Grammar ids must match a
+ * declared surface entry. Legacy ids are checked against `sourceIds` when given: an id whose text appears nowhere in
+ * webapp source, not even as part of a template, is stale.
+ */
 export function checkStaleRefs(options: {
     specRoots?: string[];
     cwd?: string;
     knownIds: Set<string>;
+    sourceIds?: SourceIdIndex;
     allow?: Set<string>;
-    onlyGrammarIds?: boolean;
     files?: Record<string, string>;
 }): Diagnostic[] {
     const cwd = options.cwd ?? process.cwd();
@@ -503,16 +601,10 @@ export function checkStaleRefs(options: {
         const visit = (node: ts.Node) => {
             if (ts.isCallExpression(node)) {
                 const id = lookupIdFromCall(node);
-                const checkable = id && (!options.onlyGrammarIds || parseTestId(id).valid);
-                if (checkable && !options.knownIds.has(id) && !options.allow?.has(id)) {
+                const message = id && !options.allow?.has(id) ? staleMessage(id, options) : undefined;
+                if (id && message) {
                     const {line} = source.getLineAndCharacterOfPosition(node.getStart(source));
-                    diagnostics.push({
-                        rule: 'stale-reference',
-                        file: rel,
-                        line: line + 1,
-                        id,
-                        message: `Referenced testid "${id}" was not declared in webapp`,
-                    });
+                    diagnostics.push({rule: 'stale-reference', file: rel, line: line + 1, id, message});
                 }
             }
             ts.forEachChild(node, visit);

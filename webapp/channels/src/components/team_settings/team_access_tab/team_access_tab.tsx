@@ -249,6 +249,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         <div
             className='modal-access-tab-content user-settings'
             id='accessSettings'
+            data-surface='team_settings.access--region'
             aria-labelledby='accessButton'
             role='tabpanel'
         >

@@ -29,6 +29,7 @@ const TeamDescriptionSection = ({handleDescriptionChanges, clientError, descript
         <Input
             id='teamDescription'
             data-testid='teamDescriptionInput'
+            data-surface='team_settings.description--textbox'
             containerClassName='description-section-input'
             type='textarea'
             maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}

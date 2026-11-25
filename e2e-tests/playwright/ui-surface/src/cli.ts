@@ -6,7 +6,7 @@ import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 import {emitGenerated, extractOpenApi, type PageSpec} from './catalog.js';
-import {checkStaleRefs, extractSurface} from './scan.js';
+import {checkStaleRefs, extractSurface, indexSourceIds} from './scan.js';
 
 function defaultPaths(cwd = process.cwd()) {
     const pkgDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,10 +19,15 @@ function defaultPaths(cwd = process.cwd()) {
         repoRoot,
         webappRoots: ['webapp/channels/src', 'webapp/platform/components/src'].map((p) => resolve(repoRoot, p)),
         // Page objects in lib/src hold most selectors, so a renamed id must fail there too.
-        specRoots: ['e2e-tests/playwright/specs', 'e2e-tests/playwright/lib/src'].map((p) => resolve(repoRoot, p)),
+        specRoots: [
+            'e2e-tests/playwright/specs',
+            'e2e-tests/playwright/upgrade-specs',
+            'e2e-tests/playwright/lib/src',
+        ].map((p) => resolve(repoRoot, p)),
         apiSourceDir: resolve(repoRoot, 'api/v4/source'),
         enJsonPath: resolve(repoRoot, 'webapp/channels/src/i18n/en.json'),
         pagesPath: resolve(pkgDir, 'pages.json'),
+        staleAllowPath: resolve(pkgDir, 'stale-allow.json'),
         generatedDir: resolve(pwRoot, 'lib/src/surface/generated'),
     };
 }
@@ -67,7 +72,21 @@ export async function runCli(argv: string[]): Promise<number> {
             ? [resolve(readFlag(argv, '--specs')!)]
             : paths.specRoots.filter(existsSync);
         const knownIds = new Set(surface.entries.map((e) => e.id));
-        const stale = checkStaleRefs({specRoots, cwd: paths.repoRoot, knownIds, onlyGrammarIds: true});
+        const sourceIds = indexSourceIds({roots, cwd: paths.repoRoot});
+        const allowed: Record<string, string> = existsSync(paths.staleAllowPath)
+            ? JSON.parse(readFileSync(paths.staleAllowPath, 'utf8'))
+            : {};
+        const allow = new Set(Object.keys(allowed));
+        const stale = checkStaleRefs({specRoots, cwd: paths.repoRoot, knownIds, sourceIds, allow});
+
+        // An allow entry nothing references, or one the webapp now renders, is dead weight; drop it so the list stays honest.
+        const referenced = new Set(
+            checkStaleRefs({specRoots, cwd: paths.repoRoot, knownIds, sourceIds}).map((d) => d.id),
+        );
+        const unusedAllow = [...allow].filter((id) => !referenced.has(id));
+        for (const id of unusedAllow) {
+            err(`ui-surface/stale-allow.json: "${id}" is no longer a stale reference; remove the entry\n`);
+        }
         const allDiags = [...surface.diagnostics, ...stale];
         for (const d of allDiags) {
             err(`${d.file}:${d.line} [${d.rule}] ${d.id} — ${d.message}\n`);
@@ -75,7 +94,7 @@ export async function runCli(argv: string[]): Promise<number> {
         out(
             `Checked ${surface.stats.files} webapp files in ${surface.stats.durationMs}ms (${allDiags.length} issues)\n`,
         );
-        return allDiags.length > 0 ? 1 : 0;
+        return allDiags.length > 0 || unusedAllow.length > 0 ? 1 : 0;
     }
 
     if (cmd === 'generate') {

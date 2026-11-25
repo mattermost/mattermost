@@ -290,6 +290,75 @@ function nestedBlocks(stmt) {
     return shapes[stmt.type]?.();
 }
 
+/** Web-first matchers that retry and return a promise; `expect(value).toBe()` and friends are synchronous. */
+const ASYNC_MATCHERS = new Set([
+    'toBeAttached',
+    'toBeChecked',
+    'toBeDisabled',
+    'toBeEditable',
+    'toBeEmpty',
+    'toBeEnabled',
+    'toBeFocused',
+    'toBeHidden',
+    'toBeInViewport',
+    'toBeOK',
+    'toBeVisible',
+    'toContainClass',
+    'toContainText',
+    'toHaveAccessibleDescription',
+    'toHaveAccessibleErrorMessage',
+    'toHaveAccessibleName',
+    'toHaveAttribute',
+    'toHaveCSS',
+    'toHaveClass',
+    'toHaveCount',
+    'toHaveId',
+    'toHaveJSProperty',
+    'toHavePath',
+    'toHaveRole',
+    'toHaveScreenshot',
+    'toHaveText',
+    'toHaveTitle',
+    'toHaveURL',
+    'toHaveValue',
+    'toHaveValues',
+    'toMatchAriaSnapshot',
+    'toPass',
+]);
+
+/** Whether an un-awaited call statement starts an action or a retrying assertion that nobody waits for. */
+function floatingKind(call) {
+    const name = methodName(call);
+    const {calls, root} = chainCalls(call);
+    const poll = calls.some((c) => methodName(c) === 'poll');
+    if (ASYNC_MATCHERS.has(name) || (poll && ASSERTION_METHOD.test(name))) {
+        return 'assertion';
+    }
+    if (root !== 'expect' && ACTION_METHODS.has(name)) {
+        return 'action';
+    }
+    return undefined;
+}
+
+function containsAwait(node) {
+    if (!node || typeof node !== 'object') {
+        return false;
+    }
+    if (node.type === 'AwaitExpression') {
+        return true;
+    }
+    if (FUNCTION_TYPES.has(node.type)) {
+        return false;
+    }
+    return Object.entries(node).some(
+        ([key, value]) =>
+            key !== 'parent' &&
+            (Array.isArray(value) ? value.some(containsAwait) : value?.type !== undefined && containsAwait(value)),
+    );
+}
+
+const DISABLE_COMMENT = /^\s*eslint-disable(?:-next-line|-line)?(?:\s+([^]*?))?\s*$/;
+
 export const rules = {
     'no-sleeps': {
         meta: {type: 'problem', schema: []},
@@ -490,6 +559,110 @@ export const rules = {
                         if (text !== undefined && isAppCopy(text)) {
                             context.report({node, messageId: 'literal', data: {text}});
                             return;
+                        }
+                    }
+                },
+            };
+        },
+    },
+    'no-floating-actions': {
+        meta: {type: 'problem', schema: []},
+        create(context) {
+            return {
+                ExpressionStatement(node) {
+                    let expr = unwrap(node.expression);
+                    if (expr.type === 'UnaryExpression' && expr.operator === 'void') {
+                        expr = unwrap(expr.argument);
+                    }
+                    const kind = expr.type === 'CallExpression' ? floatingKind(expr) : undefined;
+                    if (kind) {
+                        context.report({
+                            node,
+                            message: `Await this ${kind}; un-awaited, the test moves on before it finishes and its failure is lost.`,
+                        });
+                    }
+                },
+            };
+        },
+    },
+    'no-soft-assertions': {
+        meta: {type: 'problem', schema: []},
+        create(context) {
+            return {
+                MemberExpression(node) {
+                    if (
+                        node.object.type === 'Identifier' &&
+                        node.object.name === 'expect' &&
+                        node.property.name === 'soft'
+                    ) {
+                        context.report({
+                            node,
+                            message: 'expect.soft() lets the test continue after a failure; use expect().',
+                        });
+                    }
+                },
+            };
+        },
+    },
+    'no-conditional-logic': {
+        meta: {type: 'problem', schema: []},
+        create(context) {
+            const check = (node) => {
+                if (containsAwait(node.test)) {
+                    context.report({
+                        node: node.test,
+                        message:
+                            'Branching on awaited page state hides which path the test took; set the state up and assert it.',
+                    });
+                }
+            };
+            return {IfStatement: check, ConditionalExpression: check};
+        },
+    },
+    'no-locator-action': {
+        meta: {type: 'problem', schema: []},
+        create(context) {
+            return {
+                CallExpression(node) {
+                    const callee = unwrap(node.callee);
+                    const target = callee.type === 'MemberExpression' ? unwrap(callee.object) : undefined;
+                    if (
+                        ACTION_METHODS.has(methodName(node)) &&
+                        target?.type === 'MemberExpression' &&
+                        !target.computed &&
+                        target.property.name === 'locator'
+                    ) {
+                        context.report({
+                            node,
+                            message: `Act through the driver (\`x.${methodName(node)}()\`), not its raw \`.locator\`; the driver checks role semantics and state.`,
+                        });
+                    }
+                },
+            };
+        },
+    },
+    'disable-reason': {
+        meta: {type: 'problem', schema: []},
+        create(context) {
+            return {
+                Program() {
+                    for (const comment of context.sourceCode.getAllComments()) {
+                        const match = DISABLE_COMMENT.exec(comment.value);
+                        if (!match) {
+                            continue;
+                        }
+                        const [rulesPart = '', reason] = (match[1] ?? '').split(/\s--\s/);
+                        if (!rulesPart.trim()) {
+                            context.report({
+                                loc: comment.loc,
+                                message:
+                                    'Name the rule being disabled; a bare eslint-disable silences every spec rule.',
+                            });
+                        } else if (rulesPart.includes('ui-surface/') && !reason?.trim()) {
+                            context.report({
+                                loc: comment.loc,
+                                message: 'Give a reason after ` -- ` when disabling a ui-surface rule.',
+                            });
                         }
                     }
                 },
