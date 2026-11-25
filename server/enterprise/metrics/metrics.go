@@ -4,7 +4,6 @@
 package metrics
 
 import (
-	"cmp"
 	"database/sql"
 	"maps"
 	"math"
