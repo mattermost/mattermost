@@ -46,3 +46,8 @@ jobs:
           npm run build --workspace @mattermost/playwright-lib
           npm run tsc --workspaces
 
+      # Specs use surface parts as typed properties, so a webapp PR that removes a part a spec uses
+      # fails here instead of later in an e2e-tests PR.
+      - name: Typecheck Playwright specs against the regenerated surface
+        run: npx tsc -b
+
