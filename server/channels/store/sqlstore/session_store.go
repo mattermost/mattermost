@@ -227,6 +227,20 @@ func (me SqlSessionStore) GetSessionsByLoginMethod(loginMethod string) ([]*model
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsByPasskeyId(userID, passkeyID string) ([]*model.Session, error) {
+	// Filtering on UserId lets idx_sessions_user_id bound the scan to one user's sessions.
+	builder := me.sessionSelectQuery.
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Expr("Props->>? = ?", model.SessionPropPasskeyId, passkeyID))
+
+	sessions := []*model.Session{}
+	// Master, not replica: a session created moments ago must not be missed when its passkey is deleted.
+	if err := me.GetMaster().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to find sessions of user %s started by passkey %s", userID, passkeyID)
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	versionProp := model.SessionPropMobileVersion
 	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled

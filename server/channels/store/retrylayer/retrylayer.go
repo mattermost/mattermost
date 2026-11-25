@@ -14928,6 +14928,27 @@ func (s *RetryLayerSessionStore) GetSessionsByLoginMethod(loginMethod string) ([
 
 }
 
+func (s *RetryLayerSessionStore) GetSessionsByPasskeyId(userID string, passkeyID string) ([]*model.Session, error) {
+
+	tries := 0
+	for {
+		result, err := s.SessionStore.GetSessionsByPasskeyId(userID, passkeyID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {
 
 	tries := 0

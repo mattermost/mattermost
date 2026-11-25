@@ -241,6 +241,36 @@ func (_m *SessionStore) GetSessionsByLoginMethod(loginMethod string) ([]*model.S
 	return r0, r1
 }
 
+// GetSessionsByPasskeyId provides a mock function with given fields: userID, passkeyID
+func (_m *SessionStore) GetSessionsByPasskeyId(userID string, passkeyID string) ([]*model.Session, error) {
+	ret := _m.Called(userID, passkeyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSessionsByPasskeyId")
+	}
+
+	var r0 []*model.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Session, error)); ok {
+		return rf(userID, passkeyID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Session); ok {
+		r0 = rf(userID, passkeyID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, passkeyID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSessionsExpired provides a mock function with given fields: thresholdMillis, mobileOnly, unnotifiedOnly
 func (_m *SessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {
 	ret := _m.Called(thresholdMillis, mobileOnly, unnotifiedOnly)

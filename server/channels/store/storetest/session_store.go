@@ -42,6 +42,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetSessionsByLoginMethod", func(t *testing.T) { testGetSessionsByLoginMethod(t, rctx, ss) })
+	t.Run("GetSessionsByPasskeyId", func(t *testing.T) { testGetSessionsByPasskeyId(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 	t.Run("SessionGetDoesNotLeakToken", func(t *testing.T) { testSessionGetDoesNotLeakToken(t, rctx, ss) })
 }
@@ -698,6 +699,47 @@ func testGetSessionsByLoginMethod(t *testing.T, rctx request.CTX, ss store.Store
 	require.False(t, got[passkey1.Id])
 	require.False(t, got[passkey2.Id])
 	require.False(t, got[noProps.Id])
+}
+
+func testGetSessionsByPasskeyId(t *testing.T, rctx request.CTX, ss store.Store) {
+	userA := model.NewId()
+	userB := model.NewId()
+	passkeyP := model.NewId()
+	passkeyQ := model.NewId()
+	expires := model.GetMillis() + 100000
+
+	save := func(userId string, props model.StringMap) *model.Session {
+		s, err := ss.Session().Save(rctx, &model.Session{UserId: userId, ExpiresAt: expires, Props: props})
+		require.NoError(t, err)
+		return s
+	}
+	passkeyProps := func(passkeyID string) model.StringMap {
+		return model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey, model.SessionPropPasskeyId: passkeyID}
+	}
+	p1 := save(userA, passkeyProps(passkeyP))
+	p2 := save(userA, passkeyProps(passkeyP))
+	q := save(userA, passkeyProps(passkeyQ))
+	standard := save(userA, model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodStandard})
+	noPasskeyId := save(userA, model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey})
+	otherUser := save(userB, passkeyProps(passkeyP))
+
+	sessions, err := ss.Session().GetSessionsByPasskeyId(userA, passkeyP)
+	require.NoError(t, err)
+	got := map[string]bool{}
+	for _, s := range sessions {
+		got[s.Id] = true
+	}
+	require.Len(t, got, 2)
+	require.True(t, got[p1.Id])
+	require.True(t, got[p2.Id])
+	require.False(t, got[q.Id], "expected other passkey's session excluded")
+	require.False(t, got[standard.Id], "expected standard session excluded")
+	require.False(t, got[noPasskeyId.Id], "expected passkey session without passkey id excluded")
+	require.False(t, got[otherUser.Id], "expected other user's session excluded")
+
+	sessions, err = ss.Session().GetSessionsByPasskeyId(userA, model.NewId())
+	require.NoError(t, err)
+	require.Empty(t, sessions)
 }
 
 func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store) {

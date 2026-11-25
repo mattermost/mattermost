@@ -616,6 +616,7 @@ type SessionStore interface {
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
 	GetSessionsByLoginMethod(loginMethod string) ([]*model.Session, error)
+	GetSessionsByPasskeyId(userID, passkeyID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error

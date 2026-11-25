@@ -11849,6 +11849,22 @@ func (s *TimerLayerSessionStore) GetSessionsByLoginMethod(loginMethod string) ([
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetSessionsByPasskeyId(userID string, passkeyID string) ([]*model.Session, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetSessionsByPasskeyId(userID, passkeyID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetSessionsByPasskeyId", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {
 	start := time.Now()
 
