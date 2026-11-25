@@ -28,6 +28,16 @@ import * as Utils from 'utils/utils';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
+const QUICK_SWITCH_SUGGESTION_LIST_MAX_HEIGHT = Constants.SUGGESTION_LIST_MAXHEIGHT + 300;
+
+function QuickSwitchSuggestionList(props: React.ComponentProps<typeof SuggestionList>) {
+    return (
+        <SuggestionList
+            {...props}
+            maxHeight={QUICK_SWITCH_SUGGESTION_LIST_MAX_HEIGHT}
+        />
+    );
+}
 
 export type Props = WrappedComponentProps & {
     onExited: () => void;
@@ -244,7 +254,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         onChange={this.onChange}
                         value={this.state.text}
                         onItemSelected={this.handleSubmit}
-                        listComponent={SuggestionList}
+                        listComponent={QuickSwitchSuggestionList}
                         listPosition='bottom'
                         maxLength={64}
                         providers={providers}
