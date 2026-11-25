@@ -76,10 +76,11 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeCloud:          generalJobPermissions,
 	model.JobTypeExtractContent: generalJobPermissions,
 
-	// No manage permission: like cancelling, a status update could cancel a run whose worker doesn't
+	// Site health shows runs to everyone who can read Site Statistics, system admins included. No
+	// manage permission: like cancelling, a status update could cancel a run whose worker doesn't
 	// watch for cancellation.
 	model.JobTypeHealthCheck: {
-		read:   model.PermissionManageSystem,
+		read:   model.PermissionSysconsoleReadReportingSiteStatistics,
 		create: model.PermissionManageSystem,
 	},
 
