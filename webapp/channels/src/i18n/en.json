@@ -28857,7 +28857,7 @@
   },
   "passkey_enrollment_page.signInAgainToAdd": {
     "defaultMessage": "To add a passkey, return to the app and sign in again. You can still use a passkey you already have.",
-    "description": "Error shown when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have."
+    "description": "Shown under the page text when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have."
   },
   "passkey_enrollment_page.tooLong": {
     "defaultMessage": "That took too long. Try again.",

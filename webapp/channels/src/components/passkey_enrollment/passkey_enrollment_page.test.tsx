@@ -301,16 +301,39 @@ describe('PasskeyEnrollmentPage', () => {
         beginRegistration.mockRejectedValueOnce(serverError('app.passkey.recent_login_required.app_error', 403));
         renderPage();
 
-        expect(await screen.findByRole('alert')).toHaveTextContent(SIGN_IN_AGAIN);
-        expect(document.querySelector('.AlertBanner.danger')).not.toBeNull();
+        expect(await screen.findByRole('button', {name: 'Use existing passkey'})).toBeEnabled();
+        expect(screen.getByRole('status')).toHaveTextContent(SIGN_IN_AGAIN);
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(screen.getByRole('status')).not.toHaveTextContent('This adds a passkey');
-        expect(existingButton()).toBeEnabled();
 
         await userEvent.click(existingButton()!);
         expect(await screen.findByRole('heading', {name: 'Passkey confirmed'})).toBeInTheDocument();
         expect(beginVerification).toHaveBeenCalledWith('t1');
         expect(isEnrolled()).toBe(true);
+    });
+
+    test('the sign-in-again guidance stays after "Use existing passkey" is dismissed', async () => {
+        beginRegistration.mockRejectedValueOnce(serverError('app.passkey.recent_login_required.app_error', 403));
+        get.mockRejectedValueOnce(new DOMException('x', 'NotAllowedError'));
+        renderPage();
+        await clickExisting();
+
+        await waitFor(() => expect(get).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(existingButton()).toBeEnabled());
+        expect(screen.getByRole('status')).toHaveTextContent(SIGN_IN_AGAIN);
+        expect(addButton()).not.toBeInTheDocument();
+    });
+
+    test('the sign-in-again guidance stays beside a verify error', async () => {
+        beginRegistration.mockRejectedValueOnce(serverError('app.passkey.recent_login_required.app_error', 403));
+        beginVerification.mockRejectedValue(serverError('app.passkey.none_registered.app_error', 400));
+        renderPage();
+        await clickExisting();
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(NONE_REGISTERED);
+        expect(screen.getByRole('status')).toHaveTextContent(SIGN_IN_AGAIN);
+        expect(addButton()).not.toBeInTheDocument();
     });
 
     test('a session that ages between load and the Add click ends the page with the expired text and no buttons', async () => {

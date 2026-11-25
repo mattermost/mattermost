@@ -65,7 +65,7 @@ const messages = defineMessages({
     signInAgainToAdd: {
         id: 'passkey_enrollment_page.signInAgainToAdd',
         defaultMessage: 'To add a passkey, return to the app and sign in again. You can still use a passkey you already have.',
-        description: 'Error shown when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have.',
+        description: 'Shown under the page text when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have.',
     },
     unavailable: {
         id: 'passkey_enrollment_page.unavailable',
@@ -156,8 +156,10 @@ export default function PasskeyEnrollmentPage() {
         message = (
             <span role='status'>
                 {formatMessage(sharedMessages.body)}
-                {username && ' '}
-                {username && formatMessage(messages.account, {username, b: (chunks) => <b>{chunks}</b>})}
+                {addBlocked && ' '}
+                {addBlocked && formatMessage(messages.signInAgainToAdd)}
+                {!addBlocked && username && ' '}
+                {!addBlocked && username && formatMessage(messages.account, {username, b: (chunks) => <b>{chunks}</b>})}
             </span>
         );
         canAct = loaded;
@@ -196,7 +198,6 @@ export default function PasskeyEnrollmentPage() {
                 }
                 if ((e as {server_error_id?: string}).server_error_id === 'app.passkey.recent_login_required.app_error') {
                     setAddBlocked(true);
-                    setError({text: formatMessage(messages.signInAgainToAdd), final: false});
                 } else {
                     showError(e);
                 }
