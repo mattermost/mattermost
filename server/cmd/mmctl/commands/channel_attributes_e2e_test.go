@@ -249,6 +249,38 @@ func (s *MmctlE2ETestSuite) TestChannelAttributeValues() {
 		s.Require().Equal(channelAttributeOptionOutput{ID: options["Alpha"], Name: "Alpha"}, line.Value)
 	})
 
+	s.RunForSystemAdminAndLocal("create and set with a graph attribute", func(c client.Client) {
+		field, options := s.createChannelAttribute(model.PropertyFieldTypeGraph, adminLevel, false, "Company", "Engineering", "Sales")
+
+		name := "attr-" + model.NewId()
+		err := createChannelCmdF(c, s.newChannelAttributeCreateCmd(name, field.Name+"=Engineering", field.Name+"=company", field.Name+"="+options["Engineering"]), nil)
+		s.Require().NoError(err)
+		s.Require().Empty(printer.GetErrorLines())
+
+		channel, appErr := s.th.App.GetChannelByName(s.th.Context, name, s.th.BasicTeam.Id, false)
+		s.Require().Nil(appErr)
+		s.Require().JSONEq(`["`+options["Engineering"]+`","`+options["Company"]+`"]`, string(s.channelAttributeValue(channel.Id, field.ID)))
+
+		printer.SetFormat(printer.FormatPlain)
+		s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
+		printer.Clean()
+		target := s.th.BasicTeam.Name + ":" + name
+		err = channelAttributesSetCmdF(c, s.newChannelAttributeSetCmd(field.Name+"=Sales"), []string{target})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{field.Name + ": Sales"}, printer.GetLines())
+		s.Require().JSONEq(`["`+options["Sales"]+`"]`, string(s.channelAttributeValue(channel.Id, field.ID)))
+
+		printer.Clean()
+		err = channelAttributesListCmdF(c, newTestCmd(s.T(), ChannelAttributesListCmd), []string{target})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{field.Name + ": Sales"}, printer.GetLines())
+
+		printer.Clean()
+		err = channelAttributesFieldsCmdF(c, newTestCmd(s.T(), ChannelAttributesFieldsCmd), nil)
+		s.Require().NoError(err)
+		s.Require().Contains(printer.GetLines(), field.Name+" (graph): Company, Engineering, Sales")
+	})
+
 	s.Run("regular user creates with a member-level required attribute", func() {
 		field, options := s.createChannelAttribute(model.PropertyFieldTypeSelect, memberLevel, true, "Alpha", "Beta")
 
@@ -384,6 +416,25 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelAttributeValues() {
 			s.Require().Zero(current.DeleteAt)
 			s.Require().JSONEq(`"`+options["Beta"]+`"`, string(s.channelAttributeValue(channel.Id, field.ID)))
 		}
+	})
+
+	s.Run("a team admin who can't read the values back still succeeds with a warning", func() {
+		_, appErr := s.th.App.UpdateTeamMemberRoles(s.th.Context, s.th.BasicTeam.Id, s.th.BasicUser.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+		s.Require().Nil(appErr)
+
+		channel := s.th.CreateChannelWithClientAndTeam(s.T(), s.th.SystemAdminClient, model.ChannelTypePrivate, s.th.BasicTeam.Id)
+		s.Require().Nil(s.th.App.DeleteChannel(s.th.Context, channel, s.th.SystemAdminUser.Id))
+		field, options := s.createChannelAttribute(model.PropertyFieldTypeSelect, adminLevel, false, "Alpha")
+
+		err := unarchiveChannelsCmdF(s.th.Client, s.newChannelAttributeUnarchiveCmd(field.Name+"=Alpha"), []string{s.th.BasicTeam.Id + ":" + channel.Name})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Contains(printer.GetErrorLines()[0], "could not be checked because you don't have permission to read them")
+
+		restored, appErr := s.th.App.GetChannel(s.th.Context, channel.Id)
+		s.Require().Nil(appErr)
+		s.Require().Zero(restored.DeleteAt)
+		s.Require().JSONEq(`"`+options["Alpha"]+`"`, string(s.channelAttributeValue(channel.Id, field.ID)))
 	})
 
 	s.RunForSystemAdminAndLocal("unarchive restores the other channel when one fails", func(c client.Client) {

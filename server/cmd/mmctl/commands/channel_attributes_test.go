@@ -859,3 +859,150 @@ func (s *MmctlUnitTestSuite) TestVerifySavedSkipsMaskedFields() {
 		s.Require().ErrorContains(verifySaved(s.client, resolver, channelID, sent, "created"), "the server didn't save the attribute values")
 	})
 }
+
+func newGraphChannelAttribute() *model.PropertyField {
+	return &model.PropertyField{
+		ID:    model.NewId(),
+		Name:  "Org",
+		Type:  model.PropertyFieldTypeGraph,
+		Attrs: model.StringInterface{"options": newChannelAttributeOptions("Company", "Engineering", "Sales", "Sales")},
+	}
+}
+
+func (s *MmctlUnitTestSuite) TestChannelAttributeGraph() {
+	field := newGraphChannelAttribute()
+	company := optionIDOf(field, "Company")
+	engineering := optionIDOf(field, "Engineering")
+
+	newResolver := func() *channelAttributeResolver {
+		s.expectChannelAttributeFieldSearch([]*model.PropertyField{field})
+		resolver, err := newChannelAttributeResolver(s.client)
+		s.Require().NoError(err)
+		return resolver
+	}
+
+	s.Run("resolves by ID, exact name and case-insensitive name, deduped in order", func() {
+		items, err := newResolver().resolve([]attributeArg{
+			{Field: "Org", Value: "engineering"},
+			{Field: "Org", Value: company},
+			{Field: "Org", Value: "Engineering"},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(items, 1)
+		s.Equal(field.ID, items[0].FieldID)
+		s.JSONEq(`["`+engineering+`","`+company+`"]`, string(items[0].Value))
+	})
+
+	s.Run("a single node is still an array", func() {
+		items, err := newResolver().resolve([]attributeArg{{Field: "Org", Value: "Company"}})
+		s.Require().NoError(err)
+		s.JSONEq(`["`+company+`"]`, string(items[0].Value))
+	})
+
+	s.Run("unknown node lists the names", func() {
+		_, err := newResolver().resolve([]attributeArg{{Field: "Org", Value: "Legal"}})
+		s.Require().EqualError(err, `unknown option "Legal" for attribute "Org"; the options are: Company, Engineering, Sales, Sales`)
+	})
+
+	s.Run("an ambiguous name asks for the ID", func() {
+		_, err := newResolver().resolve([]attributeArg{{Field: "Org", Value: "sales"}})
+		s.Require().EqualError(err, `option "sales" of attribute "Org" matches more than one option (Sales, Sales); use the exact name or the option ID`)
+
+		items, err := newResolver().resolve([]attributeArg{{Field: "Org", Value: field.Attrs["options"].([]*model.PropertyFieldOption)[2].ID}})
+		s.Require().NoError(err)
+		s.Require().Len(items, 1)
+	})
+
+	s.Run("fields shows the nodes", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		s.expectChannelAttributeFieldSearch([]*model.PropertyField{field})
+
+		err := channelAttributesFieldsCmdF(s.client, newTestCmd(s.T(), ChannelAttributesFieldsCmd), nil)
+		s.Require().NoError(err)
+		s.Equal([]any{"Org (graph): Company, Engineering, Sales, Sales"}, printer.GetLines())
+	})
+
+	s.Run("list shows node names in plain and JSON output", func() {
+		channel := &model.Channel{Id: model.NewId(), Name: "ops"}
+		raw := json.RawMessage(`["` + company + `","` + engineering + `"]`)
+		expect := func() {
+			s.client.EXPECT().GetChannel(context.TODO(), channel.Id).Return(channel, &model.Response{}, nil).Times(1)
+			s.expectChannelAttributeFieldSearch([]*model.PropertyField{field})
+			s.client.
+				EXPECT().
+				GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channel.Id, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+				Return([]*model.PropertyValue{{ID: model.NewId(), FieldID: field.ID, Value: raw}}, &model.Response{}, nil).
+				Times(1)
+		}
+
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		expect()
+		s.Require().NoError(channelAttributesListCmdF(s.client, newTestCmd(s.T(), ChannelAttributesListCmd), []string{channel.Id}))
+		s.Equal([]any{"Org: Company, Engineering"}, printer.GetLines())
+
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		expect()
+		s.Require().NoError(channelAttributesListCmdF(s.client, newTestCmd(s.T(), ChannelAttributesListCmd), []string{channel.Id}))
+		lines := printer.GetLines()
+		s.Require().Len(lines, 1)
+		out, err := json.Marshal(lines[0])
+		s.Require().NoError(err)
+		s.JSONEq(`{"field_id": "`+field.ID+`", "field_name": "Org", "value": [{"id": "`+company+`", "name": "Company"}, {"id": "`+engineering+`", "name": "Engineering"}]}`, string(out))
+	})
+
+	s.Run("read-back compares graph arrays", func() {
+		resolver := newResolver()
+		channelID := model.NewId()
+		sent := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(`["` + company + `","` + engineering + `"]`)}}
+		expect := func(value string) {
+			s.client.
+				EXPECT().
+				GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+				Return([]*model.PropertyValue{{FieldID: field.ID, Value: json.RawMessage(value)}}, &model.Response{}, nil).
+				Times(1)
+		}
+
+		expect(`["` + company + `", "` + engineering + `"]`)
+		s.Require().NoError(verifySaved(s.client, resolver, channelID, sent, "created"))
+
+		expect(`["` + company + `"]`)
+		s.Require().ErrorContains(verifySaved(s.client, resolver, channelID, sent, "created"), "the server didn't save the attribute values")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestVerifySavedReadBackErrors() {
+	f := newChannelAttributeFixture()
+	s.expectChannelAttributeFieldSearch(f.fields())
+	resolver, err := newChannelAttributeResolver(s.client)
+	s.Require().NoError(err)
+
+	channelID := model.NewId()
+	sent := []model.PropertyValuePatchItem{{FieldID: f.notes.ID, Value: json.RawMessage(`"x"`)}}
+	expectReadFailure := func(status int) {
+		s.client.
+			EXPECT().
+			GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, gomock.Any()).
+			Return(nil, &model.Response{StatusCode: status}, errors.New("boom")).
+			Times(1)
+	}
+
+	s.Run("a 403 on the read-back warns and succeeds", func() {
+		printer.Clean()
+		expectReadFailure(http.StatusForbidden)
+
+		s.Require().NoError(verifySaved(s.client, resolver, channelID, sent, "unarchived"))
+		s.Equal([]string{"Warning: the channel was unarchived, but its attribute values could not be checked because you don't have permission to read them"}, printer.GetErrorLines())
+	})
+
+	s.Run("another read-back error still fails", func() {
+		printer.Clean()
+		expectReadFailure(http.StatusInternalServerError)
+
+		err := verifySaved(s.client, resolver, channelID, sent, "unarchived")
+		s.Require().ErrorContains(err, "the channel was unarchived, but its attribute values could not be checked")
+		s.Empty(printer.GetErrorLines())
+	})
+}

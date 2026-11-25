@@ -64,7 +64,7 @@ var ChannelAttributesSetCmd = &cobra.Command{
 
 Pass each value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
 
-An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. Run "mmctl channel attributes fields" to see the attributes and their options.
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. Run "mmctl channel attributes fields" to see the attributes and their options.
 
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: `  channel attributes set myteam:mychannel --attribute "Classification=Secret"
@@ -75,7 +75,7 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 }
 
 func init() {
-	ChannelAttributesSetCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
+	ChannelAttributesSetCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute`)
 	_ = ChannelAttributesSetCmd.MarkFlagRequired("attribute")
 
 	ChannelAttributesCmd.AddCommand(
@@ -344,7 +344,7 @@ func (r *channelAttributeResolver) encode(entry *pendingChannelAttribute) (json.
 		}
 		return json.Marshal(option.ID)
 
-	case model.PropertyFieldTypeMultiselect:
+	case model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeGraph:
 		ids := make([]string, 0, len(entry.values))
 		for i, value := range entry.values {
 			option, err := r.findOption(field, entry.typed[i], value)
@@ -365,6 +365,14 @@ func (r *channelAttributeResolver) encode(entry *pendingChannelAttribute) (json.
 	}
 
 	return nil, fmt.Errorf("attribute %q has type %s, which mmctl can't set", entry.typed[0], field.Type)
+}
+
+func isOptionValuedType(t model.PropertyFieldType) bool {
+	switch t {
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank, model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeGraph:
+		return true
+	}
+	return false
 }
 
 type channelAttributeOptionOutput struct {
@@ -435,7 +443,7 @@ func (r *channelAttributeResolver) describeValue(value *model.PropertyValue) (ch
 	}
 	output.FieldName = field.Name
 
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeRank && field.Type != model.PropertyFieldTypeMultiselect {
+	if !isOptionValuedType(field.Type) {
 		return output, nil
 	}
 
@@ -565,14 +573,24 @@ func channelAttributesSetCmdF(c client.Client, cmd *cobra.Command, args []string
 	return resolver.printValues(stored)
 }
 
+// forbiddenValuesError marks a read the server refused with 403.
+type forbiddenValuesError struct{ err error }
+
+func (e *forbiddenValuesError) Error() string { return e.err.Error() }
+func (e *forbiddenValuesError) Unwrap() error { return e.err }
+
 // listChannelAttributeValues reads every value the channel holds, page by page.
 func listChannelAttributeValues(c client.Client, channelID string) ([]*model.PropertyValue, error) {
 	var values []*model.PropertyValue
 	search := model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}
 	for {
-		page, _, err := c.GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, search)
+		page, resp, err := c.GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, search)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get the channel attribute values: %w", err)
+			err = fmt.Errorf("failed to get the channel attribute values: %w", err)
+			if resp != nil && resp.StatusCode == http.StatusForbidden {
+				return nil, &forbiddenValuesError{err}
+			}
+			return nil, err
 		}
 		values = append(values, page...)
 		if len(page) < channelAttributeValuesPageSize {
@@ -730,11 +748,18 @@ func missingRequiredHint(c client.Client, resolver *channelAttributeResolver, er
 // verifySaved reads the channel's values once and checks that every field that
 // was sent holds what was sent, leaving out masked fields, which the read may
 // not show. A server that predates the request body ignores
-// it and answers success. done is the past tense of what happened to the
+// it and answers success. A 403 on the read is a warning, not a failure. done is the past tense of what happened to the
 // channel: "created", "updated" or "unarchived".
 func verifySaved(c client.Client, resolver *channelAttributeResolver, channelID string, sent []model.PropertyValuePatchItem, done string) error {
 	values, err := listChannelAttributeValues(c, channelID)
 	if err != nil {
+		// The write already succeeded; a caller who can't read the values back
+		// (a team admin on a private channel) shouldn't see the command fail.
+		// PrintError only queues a line for stderr, so the exit status is untouched.
+		if _, ok := errors.AsType[*forbiddenValuesError](err); ok {
+			printer.PrintError(fmt.Sprintf("Warning: the channel was %s, but its attribute values could not be checked because you don't have permission to read them", done))
+			return nil
+		}
 		return fmt.Errorf("the channel was %s, but its attribute values could not be checked: %w", done, err)
 	}
 
