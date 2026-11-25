@@ -468,6 +468,30 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+		"MaxEmailInvitationsPerUserPerHour is zero": {
+			ServiceSettings: ServiceSettings{
+				MaxEmailInvitationsPerUserPerHour: new(0),
+			},
+			ExpectError: true,
+		},
+		"MaxEmailInvitationsPerUserPerHour is above the upper limit": {
+			ServiceSettings: ServiceSettings{
+				MaxEmailInvitationsPerUserPerHour: new(ServiceSettingsMaxEmailInvitationsPerUserPerHourUpperLimit + 1),
+			},
+			ExpectError: true,
+		},
+		"MaxEmailInvitationsPerUserPerHour is at the upper limit": {
+			ServiceSettings: ServiceSettings{
+				MaxEmailInvitationsPerUserPerHour: new(ServiceSettingsMaxEmailInvitationsPerUserPerHourUpperLimit),
+			},
+			ExpectError: false,
+		},
+		"MaxEmailInvitationsPerUserPerHour is positive": {
+			ServiceSettings: ServiceSettings{
+				MaxEmailInvitationsPerUserPerHour: new(100),
+			},
+			ExpectError: false,
+		},
 		"FeatureFlagSyncIntervalSeconds is negative": {
 			ServiceSettings: ServiceSettings{
 				FeatureFlagSyncIntervalSeconds: new(-1),

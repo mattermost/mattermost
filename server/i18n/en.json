@@ -8787,6 +8787,11 @@
     "description": "API error returned when a plugin blocks saving a message draft; {{.Reason}} is the explanation supplied by the plugin."
   },
   {
+    "id": "app.email.invite_batch_exceeds_limit.app_error",
+    "translation": "You can invite at most {{.Limit}} people per hour, so these {{.Count}} invitations cannot be sent. Invite fewer people at a time.",
+    "description": "API error when a single invitation request includes more email addresses than one user may invite per hour; {{.Limit}} and {{.Count}} are numbers."
+  },
+  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up.",
     "description": "Internal API error when the email invitation rate limiter component is not initialized; technical message."
@@ -18253,6 +18258,11 @@
     "id": "model.config.is_valid.max_channels.app_error",
     "translation": "Invalid maximum channels per team for team settings. Must be 0 (unlimited) or a positive number.",
     "description": "Config validation error shown to system admins for the maximum channels per team setting; must be 0, meaning no limit, or a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_email_invitations_per_user_per_hour.app_error",
+    "translation": "Invalid maximum email invitations per user per hour. Must be between 1 and {{.Max}}.",
+    "description": "Config validation error shown to system admins when the limit on how many invitation emails one user can send per hour is out of range; {{.Max}} is the largest allowed value."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",

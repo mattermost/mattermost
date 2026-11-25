@@ -629,6 +629,15 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if model.SafeDereference(oldCfg.ServiceSettings.MaxEmailInvitationsPerUserPerHour) == model.SafeDereference(newCfg.ServiceSettings.MaxEmailInvitationsPerUserPerHour) {
+			return
+		}
+		if limitErr := s.EmailService.UpdateInviteRateLimit(); limitErr != nil {
+			mlog.Error("Failed to update the invitation email rate limit", mlog.Err(limitErr))
+		}
+	})
+
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))

@@ -33,11 +33,11 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 	}
 	err = th.App.InviteNewUsersToTeam(th.Context, memberInvite.Emails, th.BasicTeam.Id, th.BasicUser.Id)
 	require.NotNil(t, err)
-	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+	assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
 	_, err = th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, false)
 	require.NotNil(t, err)
-	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+	assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 }

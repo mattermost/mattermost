@@ -1652,6 +1652,7 @@ func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite 
 			eErr = a.Srv().EmailService.SendInviteEmails(rctx, inviteData)
 		}
 		if eErr != nil {
+			var batchErr *email.InviteBatchExceedsLimitError
 			switch {
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
@@ -1667,6 +1668,8 @@ func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite 
 				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", inviteData.SenderUserID, inviteData.Team.Id), http.StatusInternalServerError)
 			case errors.Is(eErr, email.SetupRateLimiterError):
 				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", inviteData.SenderUserID, inviteData.Team.Id, eErr), http.StatusInternalServerError)
+			case errors.As(eErr, &batchErr):
+				return nil, model.AsAppError(batchErr.AppError("InviteNewUsersToTeamGracefully"))
 			default:
 				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", inviteData.SenderUserID, inviteData.Team.Id, eErr), http.StatusRequestEntityTooLarge)
 			}
@@ -1793,6 +1796,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 
 		eErr := a.Srv().EmailService.SendGuestInviteEmails(rctx, team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user), guestMagicLink)
 		if eErr != nil {
+			var batchErr *email.InviteBatchExceedsLimitError
 			switch {
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
@@ -1808,6 +1812,8 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 				return nil, model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
 			case errors.Is(eErr, email.SetupRateLimiterError):
 				return nil, model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusInternalServerError)
+			case errors.As(eErr, &batchErr):
+				return nil, model.AsAppError(batchErr.AppError("SendInviteEmails"))
 			default:
 				return nil, model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusRequestEntityTooLarge)
 			}
@@ -1861,11 +1867,14 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		IsFirstAdmin:  a.UserIsFirstAdmin(rctx, user),
 	})
 	if eErr != nil {
+		var batchErr *email.InviteBatchExceedsLimitError
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
 			return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
 		case errors.Is(eErr, email.SetupRateLimiterError):
 			return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusInternalServerError)
+		case errors.As(eErr, &batchErr):
+			return model.AsAppError(batchErr.AppError("SendInviteEmails"))
 		default:
 			return model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusRequestEntityTooLarge)
 		}
@@ -1908,11 +1917,14 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 
 	eErr := a.Srv().EmailService.SendGuestInviteEmails(rctx, team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user), guestMagicLink)
 	if eErr != nil {
+		var batchErr *email.InviteBatchExceedsLimitError
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
 			return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
 		case errors.Is(eErr, email.SetupRateLimiterError):
 			return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, err), http.StatusInternalServerError)
+		case errors.As(eErr, &batchErr):
+			return model.AsAppError(batchErr.AppError("SendInviteEmails"))
 		default:
 			return model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, err), http.StatusRequestEntityTooLarge)
 		}

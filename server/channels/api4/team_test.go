@@ -4289,12 +4289,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 		resp, err := client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
 		require.Error(t, err)
 		CheckRequestEntityTooLargeStatus(t, resp)
-		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
+		CheckErrorID(t, err, "app.email.invite_batch_exceeds_limit.app_error")
 
 		_, resp, err = client.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, emailList)
 		require.Error(t, err)
 		CheckRequestEntityTooLargeStatus(t, resp)
-		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
+		CheckErrorID(t, err, "app.email.invite_batch_exceeds_limit.app_error")
 	}, "rate limits")
 }
 
@@ -4662,13 +4662,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		}
 		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, err)
-		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+		assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
 		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
-		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
+		assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", appErr.Id)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, appErr.StatusCode)
 	})
 }
 

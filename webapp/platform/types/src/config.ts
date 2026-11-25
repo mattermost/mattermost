@@ -416,6 +416,7 @@ export type ServiceSettings = {
     EnableHardenedMode: boolean;
     ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
+    MaxEmailInvitationsPerUserPerHour: number;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
     EnableSVGs: boolean;

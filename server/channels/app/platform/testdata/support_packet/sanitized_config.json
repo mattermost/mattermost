@@ -91,6 +91,7 @@
         "EnableHardenedMode": null,
         "ExperimentalStrictCSRFEnforcement": null,
         "EnableEmailInvitations": null,
+        "MaxEmailInvitationsPerUserPerHour": null,
         "DisableBotsWhenOwnerIsDeactivated": null,
         "EnableBotAccountCreation": null,
         "EnableSVGs": null,

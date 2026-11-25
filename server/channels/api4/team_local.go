@@ -198,11 +198,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 				}
 
 				if err != nil {
+					var batchErr *email.InviteBatchExceedsLimitError
 					switch {
 					case errors.Is(err, email.NoRateLimiterError):
 						c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError).Wrap(err)
 					case errors.Is(err, email.SetupRateLimiterError):
 						c.Err = model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusInternalServerError).Wrap(err)
+					case errors.As(err, &batchErr):
+						c.Err = model.AsAppError(batchErr.AppError("SendInviteEmails"))
 					default:
 						c.Err = model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusRequestEntityTooLarge).Wrap(err)
 					}
@@ -247,11 +250,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			IsSystemAdmin: true,
 		})
 		if err != nil {
+			var batchErr *email.InviteBatchExceedsLimitError
 			switch {
 			case errors.Is(err, email.NoRateLimiterError):
 				c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError).Wrap(err)
 			case errors.Is(err, email.SetupRateLimiterError):
 				c.Err = model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusInternalServerError).Wrap(err)
+			case errors.As(err, &batchErr):
+				c.Err = model.AsAppError(batchErr.AppError("SendInviteEmails"))
 			default:
 				c.Err = model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusRequestEntityTooLarge).Wrap(err)
 			}

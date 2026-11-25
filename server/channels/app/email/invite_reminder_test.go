@@ -57,8 +57,7 @@ func TestBuildInviteTokenDataReminder(t *testing.T) {
 }
 
 func TestCheckInviteRateLimitSkipsReminders(t *testing.T) {
-	service := &Service{}
-	require.NoError(t, service.setUpRateLimiters())
+	service, _ := newInviteRateLimitTestService(t, model.ServiceSettingsDefaultMaxEmailInvitationsPerUserPerHour)
 	rctx := request.TestContext(t)
 
 	inviteData := InviteEmailData{
@@ -67,7 +66,7 @@ func TestCheckInviteRateLimitSkipsReminders(t *testing.T) {
 		Invites:      []string{"user@example.com"},
 	}
 	var err error
-	for range 2 * emailRateLimitingMaxBurst {
+	for range 2 * model.ServiceSettingsDefaultMaxEmailInvitationsPerUserPerHour {
 		if err = service.checkInviteRateLimit(rctx, inviteData); err != nil {
 			break
 		}
@@ -76,4 +75,44 @@ func TestCheckInviteRateLimitSkipsReminders(t *testing.T) {
 
 	inviteData.ReminderData = &model.TeamInviteReminderData{Interval: InviteReminderInterval}
 	assert.NoError(t, service.checkInviteRateLimit(rctx, inviteData))
+}
+
+func newInviteRateLimitTestService(t *testing.T, perHour int) (*Service, *model.Config) {
+	t.Helper()
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	*cfg.ServiceSettings.MaxEmailInvitationsPerUserPerHour = perHour
+	service := &Service{config: func() *model.Config { return cfg }}
+	require.NoError(t, service.setUpRateLimiters())
+	return service, cfg
+}
+
+func TestUpdateInviteRateLimit(t *testing.T) {
+	service, cfg := newInviteRateLimitTestService(t, 2)
+	rctx := request.TestContext(t)
+	senderID := model.NewId()
+	teamID := model.NewId()
+
+	require.NoError(t, service.checkSenderInviteRateLimit(rctx, senderID, teamID, 2), "the full allowance is available at once")
+	require.ErrorIs(t, service.checkSenderInviteRateLimit(rctx, senderID, teamID, 1), RateLimitExceededError, "no more than the limit per hour")
+
+	*cfg.ServiceSettings.MaxEmailInvitationsPerUserPerHour = 100
+	require.NoError(t, service.UpdateInviteRateLimit())
+	assert.NoError(t, service.checkSenderInviteRateLimit(rctx, senderID, teamID, 100), "the raised limit applies immediately")
+}
+
+func TestCheckSenderInviteRateLimitRejectsOversizedBatch(t *testing.T) {
+	service, _ := newInviteRateLimitTestService(t, 2)
+	rctx := request.TestContext(t)
+	senderID := model.NewId()
+	teamID := model.NewId()
+
+	err := service.checkSenderInviteRateLimit(rctx, senderID, teamID, 3)
+	var batchErr *InviteBatchExceedsLimitError
+	require.ErrorAs(t, err, &batchErr)
+	assert.Equal(t, 3, batchErr.Count)
+	assert.Equal(t, 2, batchErr.Limit)
+	assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", model.AsAppError(batchErr.AppError("test")).Id)
+
+	assert.NoError(t, service.checkSenderInviteRateLimit(rctx, senderID, teamID, 2), "a rejected batch does not use up the allowance")
 }

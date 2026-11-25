@@ -453,23 +453,32 @@ func buildInviteTokenData(inviteData InviteEmailData, invite string) (map[string
 }
 
 func (es *Service) checkInviteRateLimit(rctx request.CTX, inviteData InviteEmailData) error {
-	if es.perHourEmailRateLimiter == nil {
-		return NoRateLimiterError
-	}
-
 	// A reminder re-sends an invite that was already counted against the sender when first sent.
-	if inviteData.ReminderData != nil {
+	if inviteData.ReminderData != nil && es.inviteEmailRateLimiter.Load() != nil {
 		return nil
 	}
 
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), inviteData.SenderUserID, len(inviteData.Invites))
+	return es.checkSenderInviteRateLimit(rctx, inviteData.SenderUserID, inviteData.Team.Id, len(inviteData.Invites))
+}
+
+func (es *Service) checkSenderInviteRateLimit(rctx request.CTX, senderUserID, teamID string, count int) error {
+	rateLimiter := es.inviteEmailRateLimiter.Load()
+	if rateLimiter == nil {
+		return NoRateLimiterError
+	}
+
+	if count > rateLimiter.perHour {
+		return &InviteBatchExceedsLimitError{Count: count, Limit: rateLimiter.perHour}
+	}
+
+	rateLimited, result, err := rateLimiter.limiter.RateLimitCtx(rctx.Context(), senderUserID, count)
 	if err != nil {
 		return SetupRateLimiterError
 	}
 
 	if rateLimited {
-		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
-			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", senderUserID),
+			mlog.String("team_id", teamID), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
 
@@ -560,18 +569,8 @@ func (es *Service) SendGuestInviteEmails(
 	isFirstAdmin bool,
 	isGuestMagicLink bool,
 ) error {
-	if es.perHourEmailRateLimiter == nil {
-		return NoRateLimiterError
-	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
-	if err != nil {
-		return SetupRateLimiterError
-	}
-
-	if rateLimited {
-		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
-		return RateLimitExceededError
+	if err := es.checkSenderInviteRateLimit(rctx, senderUserId, team.Id, len(invites)); err != nil {
+		return err
 	}
 
 	for _, invite := range invites {
@@ -681,12 +680,12 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	invite string,
 	siteURL string,
 ) error {
-	if es.perHourEmailRateLimiter == nil {
+	if es.inviteEmailRateLimiter.Load() == nil {
 		return NoRateLimiterError
 	}
 
 	// Rate limit by email address for self-service requests
-	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
+	rateLimited, result, err := es.magicLinkEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
 	if err != nil {
 		return SetupRateLimiterError
 	}

@@ -81,6 +81,7 @@
         "EnableHardenedMode": false,
         "ExperimentalStrictCSRFEnforcement": false,
         "EnableEmailInvitations": true,
+        "MaxEmailInvitationsPerUserPerHour": 20,
         "DisableBotsWhenOwnerIsDeactivated": true,
         "EnableBotAccountCreation": true,
         "EnableSVGs": true,
