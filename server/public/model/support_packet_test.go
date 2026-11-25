@@ -5,6 +5,7 @@ package model
 
 import (
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +49,7 @@ func TestSupportPacketStatsYAMLRoundTripPreservesNilAndZero(t *testing.T) {
 	assert.Equal(t, int64(0), *roundTrip.Teams)
 }
 
-func TestSupportPacketStatsYAMLAllPopulatedMatchesLegacyBytes(t *testing.T) {
+func TestSupportPacketStatsYAMLAllPopulated(t *testing.T) {
 	t.Parallel()
 
 	stats := SupportPacketStats{
@@ -66,6 +67,9 @@ func TestSupportPacketStatsYAMLAllPopulatedMatchesLegacyBytes(t *testing.T) {
 		SlashCommands:       new(int64(12)),
 		IncomingWebhooks:    new(int64(13)),
 		OutgoingWebhooks:    new(int64(14)),
+
+		PostsEstimated:            new(int64(15)),
+		SiteStatisticsRefreshedAt: new(time.Date(2026, 9, 25, 9, 0, 0, 0, time.UTC)),
 	}
 
 	data, err := yaml.Marshal(&stats)
@@ -80,6 +84,8 @@ guests: 6
 single_channel_guests: 7
 bot_accounts: 8
 posts: 9
+posts_estimated: 15
+site_statistics_refreshed_at: 2026-09-25T09:00:00Z
 channels: 10
 teams: 11
 slash_commands: 12
