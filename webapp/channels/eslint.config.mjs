@@ -7,8 +7,24 @@ import noOnlyTestsPlugin from 'eslint-plugin-no-only-tests';
 
 import eslintPlugin from '@mattermost/eslint-plugin';
 
+// Webapp-side data-testid hygiene from @mattermost/ui-surface (pure AST, no typescript dependency). Imported by
+// relative path so the webapp lint job needs no extra package link. Editor feedback only (eslint runs with --quiet);
+// the repo-wide gate is `ui-surface check` + the testid ratchet in the UI Surface CI workflow.
+import uiSurfaceWebapp from '../../e2e-tests/playwright/ui-surface/lint/webapp.mjs';
+
 export default defineConfig([
     ...eslintPlugin.configs.react,
+    {
+        plugins: {'ui-surface': uiSurfaceWebapp},
+    },
+    {
+        files: ['src/**/*.tsx', 'src/**/*.ts'],
+        ignores: ['**/*.test.*', '**/*.stories.*', '**/__mocks__/**'],
+        rules: {
+            'ui-surface/no-duplicate-testid': 'warn',
+            'ui-surface/no-dynamic-testid': 'warn',
+        },
+    },
     globalIgnores(['./dist']),
     {
         plugins: {

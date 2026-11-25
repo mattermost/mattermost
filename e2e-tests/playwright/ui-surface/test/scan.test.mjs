@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 
-import {checkStaleRefs, extractSurface, indexSourceIds, parseTestId} from '../dist/scan.js';
+import {checkStaleRefs, collectTestIdSurfacePairs, extractSurface, indexSourceIds, parseTestId} from '../dist/scan.js';
 
 test('parseTestId validates scope.name[:key][--role] grammar', () => {
     assert.deepEqual(parseTestId('channel_settings.save--button'), {
@@ -49,6 +49,111 @@ test('extractSurface extracts literal, keyed, and data-surface scopes while catc
             {rule: 'role-fit', id: 'channel_settings.bad--checkbox'},
             {rule: 'duplicates', id: 'channel_settings.sib--text'},
         ],
+    );
+});
+
+test('key-origin resolves local aliases, rejects index and display-text keys, accepts entity ids', () => {
+    const key = (name, body) =>
+        extractSurface({
+            roots: [],
+            files: {[`${name}.tsx`]: body},
+        }).diagnostics.filter((d) => d.rule === 'key-origin');
+
+    // index param of a map callback, even when named `index` (previously whitelisted) or aliased.
+    assert.equal(
+        key(
+            'idx',
+            // eslint-disable-next-line no-template-curly-in-string
+            'export const C=({a}:{a:string[]})=>(<ul data-surface="l">{a.map((x,index)=>(<li data-surface={`l.row:${index}--listitem`}/>))}</ul>);',
+        ).length,
+        1,
+    );
+
+    // alias to display text: const id = t.display_name.
+    assert.equal(
+        key(
+            'alias',
+            // eslint-disable-next-line no-template-curly-in-string
+            'export const C=({t}:{t:Array<{display_name:string}>})=>(<ul data-surface="l">{t.map((v)=>{const id=v.display_name;return <li data-surface={`l.row:${id}--listitem`}/>;})}</ul>);',
+        ).length,
+        1,
+    );
+
+    // composite concatenation.
+    assert.equal(
+        key(
+            'composite',
+            // eslint-disable-next-line no-template-curly-in-string
+            'export const C=({r}:{r:Array<{a:string;b:string}>})=>(<ul data-surface="l">{r.map((x)=>(<li data-surface={`l.row:${x.a + x.b}--listitem`}/>))}</ul>);',
+        ).length,
+        1,
+    );
+
+    // entity id through an alias is accepted.
+    assert.equal(
+        key(
+            'ok',
+            // eslint-disable-next-line no-template-curly-in-string
+            'export const C=({t}:{t:Array<{id:string}>})=>(<ul data-surface="l">{t.map((v)=>{const id=v.id;return <li data-surface={`l.row:${id}--listitem`}/>;})}</ul>);',
+        ).length,
+        0,
+    );
+});
+
+test('drift flags an element whose data-testid and data-surface disagree unless the pair is allow-listed', () => {
+    const body =
+        'export const C=()=>(<div data-surface="p"><button data-surface="p.save--button" data-testid="legacy_save"/></div>);';
+    const drift = (driftAllow) =>
+        extractSurface({roots: [], driftAllow, files: {'c.tsx': body}}).diagnostics.filter((d) => d.rule === 'drift');
+    assert.equal(drift({}).length, 1);
+    assert.equal(drift({legacy_save: 'p.save--button'}).length, 0);
+
+    // An element where both attrs are equal never drifts.
+    assert.equal(
+        extractSurface({
+            roots: [],
+            files: {
+                'c.tsx': 'export const C=()=>(<button data-surface="p.save--button" data-testid="p.save--button"/>);',
+            },
+        }).diagnostics.filter((d) => d.rule === 'drift').length,
+        0,
+    );
+});
+
+test('collectTestIdSurfacePairs returns legacy->surface pairs for dual elements', () => {
+    const pairs = collectTestIdSurfacePairs({
+        roots: [],
+        files: {'c.tsx': 'export const C=()=>(<button data-surface="p.save--button" data-testid="legacy_save"/>);'},
+    });
+    assert.deepEqual(pairs, {legacy_save: 'p.save--button'});
+});
+
+test('role-fit flags a state/input kind on a custom component unless role-map vouches for it', () => {
+    const roleFit = (body, roleMap) =>
+        extractSurface({roots: [], roleMap, files: {'c.tsx': body}}).diagnostics.filter((d) => d.rule === 'role-fit');
+
+    // Unmapped custom component with a state kind: cannot be verified.
+    const unmapped = roleFit(
+        'export const C=()=>(<div data-surface="p"><Toggle data-surface="p.on--checkbox"/></div>);',
+        {},
+    );
+    assert.equal(unmapped.length, 1);
+    assert.match(unmapped[0].message, /role-map\.json/);
+
+    // Mapped to the wrong role: mismatch.
+    assert.equal(
+        roleFit('export const C=()=>(<div data-surface="p"><Toggle data-surface="p.on--checkbox"/></div>);', {
+            Toggle: 'switch',
+        }).length,
+        1,
+    );
+
+    // Mapped text component used as a textbox: accepted.
+    assert.equal(
+        roleFit('export const C=()=>(<div data-surface="p"><Input data-surface="p.name--textbox"/></div>);', {
+            Input: 'text',
+        }).length,
+        0,
     );
 });
 
@@ -127,6 +232,7 @@ test('extractSurface supports dual data-surface coexistence alongside legacy dat
                 ');',
             ].join('\n'),
         },
+        driftAllow: {'SaveChangesPanel__save-btn': 'save_panel.save--button'},
     });
     assert.equal(report.diagnostics.length, 0);
     assert.deepEqual(report.scopes.save_panel.containerFiles, ['save_panel.tsx']);

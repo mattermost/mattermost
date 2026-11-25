@@ -1,0 +1,85 @@
+{
+  "corpus": "specs/functional/channels",
+  "files": 247,
+  "leanTotal": 26,
+  "peterTotal": 0,
+  "filesAgreeing": 232,
+  "filesDisagreeing": 15,
+  "disagreements": [
+    {
+      "file": "specs/functional/channels/account_settings/security/personal_access_tokens.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/burn_on_read/restrictions.spec.ts",
+      "lean": 9,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/categories/default_categories.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/categories/managed_categories.spec.ts",
+      "lean": 2,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/channel_bookmarks/bookmark_file_search.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/channel_settings/channel_admin_self_inclusion.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/custom_profile_attributes/attribute_settings_behavior.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/emoji_picker/scroll_disabled_with_picker.spec.ts",
+      "lean": 2,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/mark_as_unread/channel_and_dm.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/mark_as_unread/thread_and_rhs.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/notifications/system_console.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/post_attributes/post_attributes_rendering.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/post_dot_menu/post_dot_menu_mobile.spec.ts",
+      "lean": 1,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts",
+      "lean": 2,
+      "peter": 0
+    },
+    {
+      "file": "specs/functional/channels/team_settings/invite_people_autocomplete.spec.ts",
+      "lean": 1,
+      "peter": 0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+    "_doc": "Per-directory warning->error ratchet. Spec files/globs listed here enforce every ui-surface spec rule as an error; everything else under specs/** keeps them as warnings so adoption is incremental. This list may only GROW: add a spec (or a directory glob) once it is clean, never remove one to silence a new failure.",
+    "strict": [
+        "specs/functional/auth/password_length.spec.ts",
+        "specs/functional/channels/channel_attributes/channel_attribute_editing.spec.ts",
+        "specs/functional/channels/channel_settings/channel_headers.spec.ts",
+        "specs/functional/channels/channel_settings/default_channel_url.spec.ts",
+        "specs/functional/channels/channel_settings/join_leave_messages.spec.ts",
+        "specs/functional/channels/channel_settings/modal_behavior.spec.ts",
+        "specs/functional/channels/channel_settings/unsaved_changes_on_open.spec.ts",
+        "specs/functional/channels/drafts/draft_send_from_panel.spec.ts",
+        "specs/functional/channels/messaging/edit_history_restore.spec.ts",
+        "specs/functional/channels/messaging/message_reply_too_long.spec.ts",
+        "specs/functional/channels/plugin_marketplace/install_configure_remove_plugin.spec.ts",
+        "specs/functional/channels/team_settings/team_settings_info.spec.ts",
+        "specs/functional/channels/team_settings/team_settings_unsaved_changes.spec.ts",
+        "specs/functional/channels/threads/threads_list.spec.ts",
+        "specs/functional/system_console/concurrent_config_save.spec.ts",
+        "specs/functional/system_console/plugins/restrict_unauthenticated_webapp_plugins.spec.ts"
+    ]
+}

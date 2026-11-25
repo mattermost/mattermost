@@ -13,6 +13,8 @@ export type SlotEntry = {
     template: string;
     registry: string[];
     verified: boolean;
+    host?: string;
+    reason?: string;
 };
 
 export type RegistryMethod = {
@@ -110,18 +112,27 @@ export function extractHostContract(options: {
 }): HostContract {
     const rawSlots = JSON.parse(readFileSync(options.slotsPath, 'utf8')) as Record<
         string,
-        {template: string; registry?: string[]}
+        {template: string; registry?: string[]; host?: string; reason?: string}
     >;
     const knownIds = new Set(options.surface?.entries.map((entry) => entry.id) ?? []);
     const slots: Record<string, SlotEntry> = {};
 
     for (const [name, slot] of Object.entries(rawSlots).sort(([a], [b]) => a.localeCompare(b))) {
+        if (name === '_doc') {
+            continue;
+        }
         // Keyed ids are recorded as `scope.name:--role`; a leading `*.` template matches any parent scope.
         const keyedForm = slot.template.replace('{key}', '');
         const verified = keyedForm.startsWith('*.')
             ? [...knownIds].some((id) => id.endsWith(keyedForm.slice(1)))
             : knownIds.has(keyedForm);
-        slots[name] = {template: slot.template, registry: slot.registry ?? [], verified};
+        slots[name] = {
+            template: slot.template,
+            registry: slot.registry ?? [],
+            verified,
+            ...(slot.host ? {host: slot.host} : {}),
+            ...(verified ? {} : {reason: slot.reason ?? 'Host render point not yet instrumented with data-surface.'}),
+        };
     }
 
     const api: HostContract['api'] = {};

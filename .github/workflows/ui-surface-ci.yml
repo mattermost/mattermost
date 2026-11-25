@@ -3,61 +3,130 @@ name: UI Surface CI
 on:
   pull_request:
     paths:
-      - 'webapp/**'
-      - 'api/v4/source/**'
-      - 'e2e-tests/playwright/ui-surface/**'
-      - 'e2e-tests/playwright/lib/src/**'
-      - 'e2e-tests/playwright/specs/**'
-      - 'e2e-tests/playwright/upgrade-specs/**'
-      - 'e2e-tests/playwright/eslint.config.mjs'
-      - '.github/workflows/ui-surface-ci.yml'
+      - "webapp/**"
+      - "api/v4/source/**"
+      - "e2e-tests/playwright/ui-surface/**"
+      - "e2e-tests/playwright/lib/src/**"
+      - "e2e-tests/playwright/specs/**"
+      - "e2e-tests/playwright/upgrade-specs/**"
+      - "e2e-tests/playwright/eslint.config.mjs"
+      - ".github/workflows/ui-surface-ci.yml"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  ui-surface:
-    name: UI Surface Check, Build & Host Contract
+  # Tier A: fast syntactic gate on every matching PR. Builds the tool, runs its unit tests, and checks only the files
+  # changed since the PR base with the incremental cache. Target < 30s of real work.
+  fast:
+    name: Fast syntactic gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
       run:
         working-directory: e2e-tests/playwright
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          node-version: '24'
-          cache: 'npm'
+          fetch-depth: 0
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "24"
+          cache: "npm"
           cache-dependency-path: e2e-tests/playwright/package-lock.json
 
-      - name: Install Playwright workspace dependencies
+      - name: Install workspace dependencies
         run: npm ci --ignore-scripts
 
-      - name: Build and test @mattermost/ui-surface
+      - name: Build and unit-test @mattermost/ui-surface
+        # playwright-lib is built first because the runtime unit tests import its compiled drivers.
         run: |
           npm run build --workspace @mattermost/ui-surface
+          npm run build --workspace @mattermost/playwright-lib
           npm test --workspace @mattermost/ui-surface
 
-      - name: Scan webapp and check stale references
-        run: node ui-surface/bin/ui-surface.mjs check
+      - name: Restore incremental scan cache
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-tests/playwright/.ui-surface-cache
+          key: ui-surface-scan-${{ github.sha }}
+          restore-keys: |
+            ui-surface-scan-
 
-      - name: Build @mattermost/playwright-lib and typecheck workspaces
+      - name: Check files changed since base (incremental)
+        run: node ui-surface/bin/ui-surface.mjs check --incremental --changed-since "origin/${{ github.base_ref }}"
+
+  # Tier B: cached full check, baseline/drift/role-fit over the whole webapp, plus typecheck and the host-contract diff.
+  # Typechecking the Playwright lib/specs needs the webapp platform packages, so this tier sets them up (as the
+  # test-surface scan does); the fast gate above stays webapp-free.
+  full:
+    name: Full check, typecheck & host-contract diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: ci/webapp-setup
+        # provides node (.nvmrc) and the webapp platform packages (@mattermost/client, @mattermost/types) that the
+        # Playwright lib and specs typecheck against.
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
+      - name: Install Playwright workspace dependencies
+        working-directory: e2e-tests/playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build and test @mattermost/ui-surface
+        working-directory: e2e-tests/playwright
+        # playwright-lib is built first because the runtime unit tests import its compiled drivers.
         run: |
+          npm run build --workspace @mattermost/ui-surface
           npm run build --workspace @mattermost/playwright-lib
+          npm test --workspace @mattermost/ui-surface
+
+      - name: Restore incremental scan cache
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-tests/playwright/.ui-surface-cache
+          key: ui-surface-scan-${{ github.sha }}
+          restore-keys: |
+            ui-surface-scan-
+
+      - name: Scan webapp, check stale references and testid ratchet (cached)
+        working-directory: e2e-tests/playwright
+        run: node ui-surface/bin/ui-surface.mjs check --incremental
+
+      - name: Save incremental scan cache
+        if: always()
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-tests/playwright/.ui-surface-cache
+          key: ui-surface-scan-${{ github.sha }}
+
+      - name: Typecheck workspaces and Playwright specs/surface types against the regenerated surface
+        working-directory: e2e-tests/playwright
+        run: |
           npm run tsc --workspaces
+          npx tsc -b
 
-      # Specs use surface parts as typed properties, so a webapp PR that removes a part a spec uses
-      # fails here instead of later in an e2e-tests PR.
-      - name: Typecheck Playwright specs against the regenerated surface
-        run: npx tsc -b
+      - name: Host-contract diff against the committed baseline (fails on breaking removals)
+        working-directory: e2e-tests/playwright
+        run: |
+          node ui-surface/bin/ui-surface.mjs host-contract --out host-contract.head.json
+          node ui-surface/bin/ui-surface.mjs host-contract diff ui-surface/host-contract.baseline.json host-contract.head.json
 
-      - name: Emit 3-layer Host-Plugin Contract artifact
-        run: node ui-surface/bin/ui-surface.mjs host-contract --out host-contract.json
-
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: mattermost-host-contract
-          path: e2e-tests/playwright/host-contract.json
+          path: e2e-tests/playwright/host-contract.head.json
           retention-days: 30

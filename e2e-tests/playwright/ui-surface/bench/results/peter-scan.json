@@ -1,0 +1,18 @@
+{
+  "timing": {
+    "seconds": 292.67,
+    "maxRssKb": 3513636
+  },
+  "caught": {
+    "dup-sibling-testid": "[duplicates] \"benchdup.save--button\" is also used by channels/src/components/bench_seed.tsx:17:25, and both can render together.",
+    "role-native-div": "[role-fit] \"benchrolenative.enabled--checkbox\" is on a <div> with no readable state/input role.",
+    "key-display-name": "[key-origin] Key of \"benchkeydisplay.row:{key}--listitem\" remains an unresolved string without a strict origin.",
+    "key-aliased-display": "[key-origin] Key of \"benchkeyalias.row:{key}--listitem\" remains an unresolved string without a strict origin.",
+    "key-composite": "[key-origin] Key of \"benchkeycomposite.row:{key}_{key}--listitem\" remains an unresolved string without a strict origin.",
+    "role-custom-component": "[role-fit] \"benchrolecustom.enabled--checkbox\" is on a switch (<button>)."
+  },
+  "notes": {
+    "key-identity-clean": "Peter needs the keys entity type registered in entityTypeDirs; the synthetic seed type is not, so this is a seed artifact, not a real Peter false positive."
+  },
+  "status": 1
+}

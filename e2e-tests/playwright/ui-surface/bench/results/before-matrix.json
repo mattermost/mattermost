@@ -1,0 +1,404 @@
+[
+  {
+    "id": "dup-sibling-testid",
+    "category": "duplicate id",
+    "level": "webapp",
+    "title": "Two sibling elements share one data-testid",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "panel.save--button — Duplicate sibling data-testid \"panel.save--button\""
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "dynamic-testid-grammar",
+    "category": "dynamic id",
+    "level": "webapp",
+    "title": "Non-literal grammar data-testid value",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "dynamic-testid",
+    "category": "ratchet",
+    "level": "webapp",
+    "title": "Non-literal plain data-testid value (free-form legacy slips through unless ratcheted)",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "ungrammatical-id",
+    "category": "grammar",
+    "level": "webapp",
+    "title": "Ungrammatical id (scope.name but unknown role)",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "panel.save--frobnicate — Unknown role suffix \"--frobnicate\""
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "role-native-div",
+    "category": "role mismatch",
+    "level": "webapp",
+    "title": "checkbox role on a plain <div>",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "panel.enabled--checkbox — Element <div> does not satisfy \"--checkbox\" semantics"
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "new-legacy-testid",
+    "category": "ratchet",
+    "level": "webapp",
+    "title": "A brand-new file adds a plain legacy data-testid with no surface counterpart",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "drift-disagree",
+    "category": "drift",
+    "level": "webapp",
+    "title": "data-testid and data-surface on one element disagree",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "clean-testid",
+    "category": "baseline",
+    "level": "webapp",
+    "title": "A correct grammar data-testid element (must not be flagged)",
+    "expectCaught": false,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": true,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": true,
+      "excerpt": ""
+    }
+  },
+  {
+    "id": "key-array-index",
+    "category": "list key",
+    "level": "scanner",
+    "title": "List key is the array map index",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "NOT-RUN",
+      "excerpt": "needs bench:peter-scan (full program scan)"
+    }
+  },
+  {
+    "id": "key-display-name",
+    "category": "list key",
+    "level": "scanner",
+    "title": "List key is display_name (locale/data dependent)",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "list.row:--listitem — Key `t.display_name` is not an identity field (id, *Id, key, index); display text makes ids locale- and data-dependent"
+    },
+    "peter": {
+      "status": "NOT-RUN",
+      "excerpt": "needs bench:peter-scan (full program scan)"
+    }
+  },
+  {
+    "id": "key-aliased-display",
+    "category": "list key",
+    "level": "scanner",
+    "title": "List key aliased: const id = t.display_name",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "NOT-RUN",
+      "excerpt": "needs bench:peter-scan (full program scan)"
+    }
+  },
+  {
+    "id": "key-composite",
+    "category": "list key",
+    "level": "scanner",
+    "title": "List key is a composite string (team + channel)",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "list.row:--listitem — Key `r.teamId + \"_\" + r.channelId` is not an identity field (id, *Id, key, index); display text makes ids locale- and data-dependent"
+    },
+    "peter": {
+      "status": "NOT-RUN",
+      "excerpt": "needs bench:peter-scan (full program scan)"
+    }
+  },
+  {
+    "id": "key-identity-clean",
+    "category": "list key",
+    "level": "scanner",
+    "title": "List key is an entity id via alias (must not be flagged)",
+    "expectCaught": false,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": true,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "NOT-RUN",
+      "excerpt": "needs bench:peter-scan (full program scan)"
+    }
+  },
+  {
+    "id": "role-custom-component",
+    "category": "role mismatch",
+    "level": "scanner",
+    "title": "checkbox kind on a custom <Toggle> that renders a switch",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "NOT-RUN",
+      "excerpt": "needs bench:peter-scan (full program scan)"
+    }
+  },
+  {
+    "id": "unobserved-click",
+    "category": "observability",
+    "level": "spec",
+    "title": "Unobserved click before an API call",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Observe `page.getByTestId(\"panel.save--button\").click()` before `pw.client.getConfig()`: settle(...) if it saves, otherwise an expect on what it changed."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "`getByTestId()` on the page in a spec is a raw lookup. Reach the element through `app` (the generated page objects); migrate the webapp area if it has no testids yet."
+    }
+  },
+  {
+    "id": "sleep",
+    "category": "flake",
+    "level": "spec",
+    "title": "waitForTimeout sleep",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Avoid waitForTimeout(); assert on UI or API state instead."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "`waitForTimeout` is a guess at timing. Wait for the thing itself: a retrying `expect(...)`, `settle` or `clickTo`."
+    }
+  },
+  {
+    "id": "raw-css",
+    "category": "locator",
+    "level": "spec",
+    "title": "Raw CSS locator",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Observe `page.locator(\".btn-primary\").click()` before the end of the block: settle(...) if it saves, otherwise an expect on what it changed."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "observe `page.locator(\".btn-primary\").click()` before the function ends: `settle` if it saves, otherwise an `expect` on what it changed."
+    }
+  },
+  {
+    "id": "floating-action",
+    "category": "flake",
+    "level": "spec",
+    "title": "Floating (un-awaited) action",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Await this action; un-awaited, the test moves on before it finishes and its failure is lost."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "await `page.getByTestId(\"panel.save--button\").click()`: an action that is not awaited runs past the next line."
+    }
+  },
+  {
+    "id": "conditional-on-state",
+    "category": "flake",
+    "level": "spec",
+    "title": "Conditional on awaited page state",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Branching on awaited page state hides which path the test took; set the state up and assert it."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "A test branches on awaited page state here, so what it ran depends on timing. Know the state the test is in and assert it; only a navigation walk (\"get to X from wherever I am\") may branch."
+    }
+  },
+  {
+    "id": "soft-assertion",
+    "category": "flake",
+    "level": "spec",
+    "title": "expect.soft()",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "expect.soft() lets the test continue after a failure; use expect()."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "`expect.soft` lets the test go on after it failed. Use `expect`, so the first failure is the one reported."
+    }
+  },
+  {
+    "id": "url-assertion",
+    "category": "flake",
+    "level": "spec",
+    "title": "toHaveURL(\"/path\") drops server subpath",
+    "expectCaught": true,
+    "lean": {
+      "status": "MISSED",
+      "clean": false,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Assert where the test is through the page object: `expect(page).toHavePath(app.<page>.pathFor(params))` (subpath-aware), and `app.<page>.ready[0]` visible when the test needs the page rendered. Write `toHaveURL` only where the URL is the subject (a redirect target, a query parameter), with a reason."
+    }
+  },
+  {
+    "id": "positional-pick",
+    "category": "locator",
+    "level": "spec",
+    "title": "Positional .first() pick",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Avoid positional .first() selector picks; use a stable key or unique role/text."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "`getByTestId()` on the page in a spec is a raw lookup. Reach the element through `app` (the generated page objects); migrate the webapp area if it has no testids yet."
+    }
+  },
+  {
+    "id": "disable-no-reason",
+    "category": "hygiene",
+    "level": "spec",
+    "title": "Bare eslint-disable with no rule/reason",
+    "expectCaught": true,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Name the rule being disabled; a bare eslint-disable silences every spec rule."
+    },
+    "peter": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "name the rules this disables, with a reason: a bare disable also silences `test-surface/e2e-no-literal-locators`."
+    }
+  },
+  {
+    "id": "clean-spec",
+    "category": "baseline",
+    "level": "spec",
+    "title": "A correct observed interaction (must not be flagged)",
+    "expectCaught": false,
+    "lean": {
+      "status": "CAUGHT",
+      "clean": true,
+      "excerpt": ""
+    },
+    "peter": {
+      "status": "FALSE-POSITIVE",
+      "clean": true,
+      "excerpt": "`getByTestId()` on the page in a spec is a raw lookup. Reach the element through `app` (the generated page objects); migrate the webapp area if it has no testids yet."
+    }
+  }
+]

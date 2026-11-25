@@ -140,7 +140,7 @@ export default function ShareChannelWithWorkspaces({
                         checked={enabled && hasAvailableWorkspaces}
                         disabled={disabled || !hasAvailableWorkspaces}
                         onChange={handleToggle}
-                        data-testid='shareChannelWithWorkspacesToggle-button'
+                        data-testid='channel_settings.share_with_workspaces--switch'
                         data-surface='channel_settings.share_with_workspaces--switch'
                         tabIndex={hasAvailableWorkspaces && !disabled ? 0 : -1}
                         semiBold={true}

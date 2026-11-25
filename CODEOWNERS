@@ -1,3 +1,9 @@
+# UI Surface tool and the host<->plugin contract it guards. Changes to the plugin slot contract or the baseline must
+# be reviewed by the UI Surface owners.
+/e2e-tests/playwright/ui-surface/ @mattermost/ui-surface
+/e2e-tests/playwright/ui-surface/plugin-slots.json @mattermost/ui-surface
+/e2e-tests/playwright/ui-surface/host-contract.baseline.json @mattermost/ui-surface
+
 /webapp/channels/src/packages/mattermost-redux/src/store/configureStore.ts @hmhealey
 /server/channels/app/authentication.go @mattermost/product-security
 /server/channels/app/authorization.go @mattermost/product-security

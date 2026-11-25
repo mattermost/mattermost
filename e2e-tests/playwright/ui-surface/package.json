@@ -13,6 +13,8 @@
     "build": "tsc -b",
     "tsc": "tsc -b",
     "test": "node --test test/*.test.mjs",
+    "bench": "node bench/run.mjs",
+    "bench:peter-scan": "node bench/peter-scan.mjs",
     "clean": "rm -rf dist *.tsbuildinfo"
   }
 }
