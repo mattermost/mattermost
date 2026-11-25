@@ -620,6 +620,22 @@ def fetch_report(version: str, env: dict, run=subprocess.run, repo: str = REPO, 
     return next(fetch_reports(version, env, run, repo, limit), None)
 
 
+GENERATOR_ACTIVE = {"queued", "in_progress", "waiting", "pending", "requested"}
+
+
+def generator_running(env: dict, run=subprocess.run, repo: str = REPO) -> bool:
+    """Whether a generate-changelog run (not a Release Day run) is queued or in progress. Its report
+    isn't readable until it ends, so the label waits for the next run. True when the runs can't be
+    listed."""
+    listing = run(["gh", "run", "list", "--repo", repo, "--workflow", "generate-changelog.yml", "--limit", "50",
+                   "--json", "status,displayTitle"],
+                  capture_output=True, text=True, env={**os.environ, "GH_TOKEN": env.get("ACTIONS_TOKEN", "")})
+    if listing.returncode != 0:
+        return True
+    return any(found.get("status") in GENERATOR_ACTIVE and found.get("displayTitle") != MERGE_RUN_NAME
+               for found in json.loads(listing.stdout or "[]"))
+
+
 def release_version(event: str, tag: str, dispatched: str) -> str | None:
     """vX.Y.0 for a feature release being released, or None (dot releases, RCs, other tags)."""
     name = dispatched.strip() if event == "workflow_dispatch" else tag.strip()
@@ -657,15 +673,17 @@ def automerge_state(api, pr: dict, repo: str = REPO) -> str:
     return "none"
 
 
-def run_release_day(api, version: str, load_report, auto_merge: bool, find, now: datetime, repo: str = REPO) -> dict:
+def run_release_day(api, version: str, load_report, auto_merge: bool, find, now: datetime, repo: str = REPO,
+                    generator_busy=lambda: False) -> dict:
     """On Release Day, add the AutoMerge label to the changelog PR, once, when every condition holds.
 
     The conditions: the vX.Y.0 release is published (not a pre-release), the PR targets master and
     is not a draft, no "Release day: TBD" is left, the generator's report is clean, and the blog
     link is the published post (or, from 23:00 UTC on Release Day, the releases category page).
     The AutoMerge automation then merges after reviews and checks. ``load_report()`` is called
-    only when the label is still to be decided. With ``auto_merge`` off, nothing is changed: the
-    outcome says what would happen.
+    only when the label is still to be decided, and again just before the label is added, after
+    ``generator_busy()`` says no generator run is still writing a newer one. With ``auto_merge``
+    off, nothing is changed: the outcome says what would happen.
     """
     outcome = {"labelled": False, "already": None, "pr": None, "problems": [], "auto": auto_merge, "blog_link": None}
     pr = find_changelog_pr(api, version, repo)
@@ -695,6 +713,12 @@ def run_release_day(api, version: str, load_report, auto_merge: bool, find, now:
     changed = pr_problems(now_pr)
     if not committed and (now_pr.get("head") or {}).get("sha") != pr["head"]["sha"]:
         changed.append("the PR got new commits during this run; it is checked again on the next run")
+    # The report as it is now: a generator run can publish a blocking one without changing the head.
+    if not changed and generator_busy():
+        changed.append("a generate-changelog run is in progress; it is checked again on the next run")
+    if not changed:
+        entry = "\n".join(line for _, line in entry_lines(content, version))
+        changed = blocking_report_problems(load_report(), entry)
     if changed:
         outcome["problems"] = changed
         return outcome
@@ -1232,7 +1256,8 @@ def cmd_merge(env: dict) -> int:
     auto = env.get("AUTO_MERGE", "").strip().lower() == "true"
     for version in versions:
         if find_changelog_pr(api, version) is not None:
-            outcome = run_release_day(api, version, lambda: fetch_report(version, env), auto, find, now)
+            outcome = run_release_day(api, version, lambda: fetch_report(version, env), auto, find, now,
+                                      generator_busy=lambda: generator_running(env))
             _summary(release_day_summary(version, outcome))
         # The labels are reconciled against the merged entry: by a dispatch or release run (that is how a
         # hand-merge is reconciled), or by the first scheduled runs after the AutoMerge automation merged it.

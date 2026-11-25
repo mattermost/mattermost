@@ -701,6 +701,35 @@ class ReleaseDayTest(unittest.TestCase):
         self.assertFalse([c for c in repo.calls if c[1].endswith("/merge")])  # never merges itself
         self.assertIn("Added the AutoMerge label to [mattermost#50]", ca.release_day_summary(VERSION, outcome))
 
+    def test_the_report_is_read_again_just_before_the_label(self):
+        repo = Repo()
+        blocking = {**REPORT, "readiness": {**REPORT.get("readiness", {}), "not_placed": [{"source": SRC}]}}
+        reports = [REPORT, blocking]
+        outcome = ca.run_release_day(repo, VERSION, lambda: reports.pop(0), True, finder(GUESS), at(RELEASE_DAY, 10))
+        self.assertFalse(outcome["labelled"])
+        self.assertEqual(outcome["problems"], ["1 note(s) not placed by the model"])
+        self.assertEqual(repo.labelled(), [])
+
+    def test_no_label_while_a_generator_run_is_in_progress(self):
+        repo = Repo()
+        outcome = ca.run_release_day(repo, VERSION, lambda: REPORT, True, finder(GUESS), at(RELEASE_DAY, 10),
+                                     generator_busy=lambda: True)
+        self.assertFalse(outcome["labelled"])
+        self.assertIn("a generate-changelog run is in progress", outcome["problems"][0])
+        self.assertEqual(repo.labelled(), [])
+
+    def test_a_queued_or_running_generator_run_is_found(self):
+        import types
+
+        def runner(returncode, runs):
+            return lambda args, capture_output, text, env: types.SimpleNamespace(returncode=returncode,
+                                                                                 stdout=json.dumps(runs))
+        done = {"status": "completed", "displayTitle": "Generate Changelog"}
+        merge = {"status": "in_progress", "displayTitle": ca.MERGE_RUN_NAME}
+        self.assertFalse(ca.generator_running({}, runner(0, [done, merge])))
+        self.assertTrue(ca.generator_running({}, runner(0, [done, {"status": "queued", "displayTitle": "Generate Changelog"}])))
+        self.assertTrue(ca.generator_running({}, runner(1, [])))  # can't tell: wait
+
     def test_the_label_is_added_once(self):
         repo = Repo()
         self.run_day(repo)
