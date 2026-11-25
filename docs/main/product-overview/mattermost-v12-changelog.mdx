@@ -34,18 +34,20 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
- - **Changes to All plans:**
+ - **Changes to Enterprise Advanced Plans:**
    - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting to specify the TLS CA certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientCert`` configuration setting to specify the TLS client certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientKey`` configuration setting to specify the TLS client key for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSSkipVerify`` configuration setting to skip TLS verification for Redis connections.
+ - **Changes to Enterprise Plans:**
    - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting.
+ - **Changes to All Plans:**
    - Under ``SSOSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting.
    - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
-#### Compatibility
+#### Important Upgrade Notes
  - Config validation now rejects a ``CacheSettings.RedisCachePrefix`` value that contains ``:``, ``*``, ``?``, ``[``, ``]``, or ``\`` when the Redis cache is enabled. A server already configured with such a prefix will fail config validation after upgrading and must change the prefix before restarting.
  - Allowed 0 (no limit) for ``TeamSettings.MaxUsersPerTeam`` and ``TeamSettings.MaxChannelsPerTeam``, and made 0 the default for new installations. Existing deployments keep their saved values. A server with either setting at 0 fails to start if downgraded to an earlier version that does not support 0.
  - ``LogSettings.EnableWebhookDebugging`` now defaults to false. When enabled, it logs failed incoming webhook requests with their payload, and System Console > Reporting > Site health shows a warning while it is on and debug logging is active. See the [Important upgrade notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes) documentation for details.
@@ -55,6 +57,12 @@ New setting options were added to ``config.json``. Below is a list of the additi
  - In High Availability deployments using Redis, cluster messages are now sent on a channel namespaced by ``CacheSettings.RedisCachePrefix``. Deployments that already set a prefix will not exchange cluster messages between old and new versions during a rolling upgrade.
  - Reserved the plugin ID ``com.mattermost.server``, including case variants, for the core server. Existing plugins with this ID will no longer load, and new installations and development reattachment are rejected.
  - Raised the minimum session attribute time-to-live and grace period to 1 minute. Existing session attributes configured with a TTL or grace period under 1 minute are migrated to 1 minute, and the 30-second option has been removed from the System Console.
+
+<Important>
+
+If you upgrade from a release earlier than v12.1, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/backup-disaster-recovery.html) for rollback steps and interim mitigation strategy.
+
+</Important>
 
 ### Improvements
 See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-available/) on the highlights in our latest release.
