@@ -19,13 +19,19 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: tag-public-module
+  cancel-in-progress: false
+
 jobs:
   tag-public-module:
+    name: Tag public module
     permissions:
-      contents: write
-    runs-on: ubuntu-22.04
+      contents: write # create the server/public/* tag
+    runs-on: ubuntu-24.04
     env:
       COMMIT_SHA: ${{ inputs.commit_sha }}
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: release/checkout-mattermost
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -35,7 +41,7 @@ jobs:
 
       - name: release/find-latest-public-module-tags
         run: |
-          echo LATEST_MODULE_TAG=$(git tag --list 'server/public/*' --format='%(refname:lstrip=-1)'  --sort -v:refname | head -1) >> ${GITHUB_ENV}
+          echo "LATEST_MODULE_TAG=$(git tag --list 'server/public/*' --format='%(refname:lstrip=-1)' --sort -v:refname | head -1)" >> "$GITHUB_ENV"
 
       - name: release/validate-commit-sha
         run: |
@@ -43,6 +49,11 @@ jobs:
             # Validate commit SHA format (40 character hex string)
             if [[ ! "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]; then
               echo "Error: Invalid commit SHA format. Must be a 40-character hexadecimal string."
+              exit 1
+            fi
+            # Must exist and be on master
+            if ! git merge-base --is-ancestor "$COMMIT_SHA" origin/master 2>/dev/null; then
+              echo "Error: Commit SHA '$COMMIT_SHA' does not exist or is not on master."
               exit 1
             fi
             # Verify the commit exists in the repository
@@ -57,20 +68,20 @@ jobs:
 
       - name: release/generate-module-release-notes
         run: |
-          echo "RELEASE_NOTES<<EOF" >> ${GITHUB_ENV}
+          echo "RELEASE_NOTES<<EOF" >> "$GITHUB_ENV"
           if [ -z "$COMMIT_SHA" ]; then
-            echo "$(git log --oneline --graph --decorate --abbrev-commit "server/public/${LATEST_MODULE_TAG}"...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
+            git log --oneline --graph --decorate --abbrev-commit "server/public/${LATEST_MODULE_TAG}...$(git rev-parse HEAD)" server/public >> "$GITHUB_ENV"
           else
-            echo "$(git log --oneline --graph --decorate --abbrev-commit "server/public/${LATEST_MODULE_TAG}"...${COMMIT_SHA} server/public)" >> ${GITHUB_ENV}
+            git log --oneline --graph --decorate --abbrev-commit "server/public/${LATEST_MODULE_TAG}...${COMMIT_SHA}" server/public >> "$GITHUB_ENV"
           fi
-          echo "EOF" >> ${GITHUB_ENV}
+          echo "EOF" >> "$GITHUB_ENV"
 
       - name: release/semver-bump
         id: bump-semver
         env:
           SEMVER_BUMP: ${{ inputs.semver_bump }}
         run: |
-          # This is rejecting leading zeros: semver forbids them and bash arithmetic would read them as octal.
+          # This is rejecting leading zeros: semver forbids them and bash arithmetic would read them as octal numbers.
           if [[ ! "$LATEST_MODULE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
             echo "Error: Latest module tag '$LATEST_MODULE_TAG' is not vMAJOR.MINOR.PATCH."
             exit 1
