@@ -13,8 +13,14 @@ import {extractSurface} from '../dist/scan.js';
 test('incremental scan matches a full scan and reuses the cache on a warm run', () => {
     const root = mkdtempSync(join(tmpdir(), 'inc-'));
     mkdirSync(join(root, 'src'), {recursive: true});
-    writeFileSync(join(root, 'src/a.tsx'), 'export const A=()=>(<div data-surface="p"><button data-surface="p.save--button"/></div>);');
-    writeFileSync(join(root, 'src/b.tsx'), 'export const B=()=>(<div data-surface="q"><div data-surface="q.on--checkbox"/></div>);');
+    writeFileSync(
+        join(root, 'src/a.tsx'),
+        'export const A=()=>(<div data-surface="p"><button data-surface="p.save--button"/></div>);',
+    );
+    writeFileSync(
+        join(root, 'src/b.tsx'),
+        'export const B=()=>(<div data-surface="q"><div data-surface="q.on--checkbox"/></div>);',
+    );
     const cacheDir = join(root, '.cache');
     try {
         const full = extractSurface({roots: [join(root, 'src')], cwd: root});

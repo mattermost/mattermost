@@ -5,8 +5,9 @@
 // against the regenerated surface. Each `@ts-expect-error` must be a real compile error, so tsc fails if the typing
 // ever weakens. No runtime: this file asserts types only.
 
-import {brandKey, createSurface, type PluginId} from '@mattermost/playwright-lib';
 import type {Page} from '@playwright/test';
+
+import {brandKey, createSurface, type PluginId} from '@mattermost/playwright-lib';
 
 declare const page: Page;
 const surface = createSurface(page);

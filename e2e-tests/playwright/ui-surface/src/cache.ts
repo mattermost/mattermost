@@ -9,7 +9,15 @@ import {join, relative, resolve} from 'node:path';
 import {globSync} from 'glob';
 
 import {legacyIds} from './ratchet.js';
-import {crossFileDuplicates, extractSurface, indexSourceIds, type Diagnostic, type SourceIdIndex, type SurfaceEntry, type SurfaceReport} from './scan.js';
+import {
+    crossFileDuplicates,
+    extractSurface,
+    indexSourceIds,
+    type Diagnostic,
+    type SourceIdIndex,
+    type SurfaceEntry,
+    type SurfaceReport,
+} from './scan.js';
 
 /**
  * Incremental scan keyed by per-file content hash. Each file is scanned on its own (grammar/role/key/drift/legacy and
@@ -51,13 +59,23 @@ function collectFiles(roots: string[], cwd: string): string[] {
 function changedSet(ref: string, cwd: string): Set<string> | undefined {
     try {
         const out = execFileSync('git', ['diff', '--name-only', ref, '--', '.'], {cwd, encoding: 'utf8'});
-        return new Set(out.split('\n').filter(Boolean).map((p) => resolve(cwd, p)));
+        return new Set(
+            out
+                .split('\n')
+                .filter(Boolean)
+                .map((p) => resolve(cwd, p)),
+        );
     } catch {
         return undefined;
     }
 }
 
-function scanFile(rel: string, content: string, roleMap?: Record<string, string>, driftAllow?: Record<string, string>): Omit<FileCache, 'hash'> {
+function scanFile(
+    rel: string,
+    content: string,
+    roleMap?: Record<string, string>,
+    driftAllow?: Record<string, string>,
+): Omit<FileCache, 'hash'> {
     const r = extractSurface({roots: [], files: {[rel]: content}, roleMap, driftAllow});
     const src = indexSourceIds({roots: [], files: {[rel]: content}});
     return {
@@ -76,7 +94,12 @@ export function incrementalScan(options: {
     roleMap?: Record<string, string>;
     driftAllow?: Record<string, string>;
     changedSince?: string;
-}): SurfaceReport & {cacheHits: number; cacheMisses: number; sourceIds: SourceIdIndex; legacy: Record<string, string[]>} {
+}): SurfaceReport & {
+    cacheHits: number;
+    cacheMisses: number;
+    sourceIds: SourceIdIndex;
+    legacy: Record<string, string[]>;
+} {
     const started = performance.now();
     const cachePath = join(options.cacheDir, 'scan.json');
     const prev: Cache =

@@ -47,7 +47,8 @@ export async function lintSpecs(workspaceDir, pluginPrefix, samples) {
     const benchDir = join(workspaceDir, 'specs', '__bench__');
     rmSync(benchDir, {recursive: true, force: true});
     mkdirSync(benchDir, {recursive: true});
-    const header = '// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n// See LICENSE.txt for license information.\n\nimport {expect, test} from \'@playwright/test\';\n\n';
+    const header =
+        "// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n// See LICENSE.txt for license information.\n\nimport {expect, test} from '@playwright/test';\n\n";
     for (const s of samples) {
         writeFileSync(join(benchDir, `${s.id}.spec.ts`), header + s.code + '\n');
     }
@@ -73,7 +74,8 @@ export async function lintWebapp(webappChannelsDir, pluginPrefix, samples) {
     const benchDir = join(webappChannelsDir, 'src', '__bench__');
     rmSync(benchDir, {recursive: true, force: true});
     mkdirSync(benchDir, {recursive: true});
-    const header = '// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n// See LICENSE.txt for license information.\n\nimport React from \'react\';\n\n';
+    const header =
+        "// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n// See LICENSE.txt for license information.\n\nimport React from 'react';\n\n";
     for (const s of samples) {
         writeFileSync(join(benchDir, `${s.id}.tsx`), header + s.code + '\n');
     }
@@ -120,6 +122,7 @@ export async function leanCheck(sample) {
     const file = `${sample.id}.tsx`;
     const report = api.extractSurface({roots: [], roleMap: api.roleMap, files: {[file]: sample.code}});
     const diags = report.diagnostics.map((d) => ({rule: d.rule, message: d.message}));
+
     // A new file's legacy ids are absent from the committed baseline, so the ratchet flags any growth. Sample
     // containers use data-surface, so only a genuinely legacy child contributes.
     const ids = api.legacyIds(sample.code, file);

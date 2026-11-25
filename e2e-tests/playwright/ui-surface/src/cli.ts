@@ -10,7 +10,14 @@ import {diffHostContracts, extractHostContract, readHostVersion, type HostContra
 import {incrementalScan} from './cache.js';
 import {baselineFromLegacy, computeBaseline, diffBaseline, serializeBaseline, type Baseline} from './ratchet.js';
 import {analyzeSpecMigration, migrateTestIds, surfaceIdMap} from './migrate.js';
-import {checkStaleRefs, collectTestIdSurfacePairs, extractSurface, indexSourceIds, type SurfaceEntry, type SurfaceReport} from './scan.js';
+import {
+    checkStaleRefs,
+    collectTestIdSurfacePairs,
+    extractSurface,
+    indexSourceIds,
+    type SurfaceEntry,
+    type SurfaceReport,
+} from './scan.js';
 
 function defaultPaths(cwd = process.cwd()) {
     const pkgDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -68,7 +75,7 @@ const RULE_DOCS: Record<string, {summary: string; why: string; fix: string; exam
     dynamic: {
         summary: 'A data-surface value is not statically resolvable.',
         why: 'The typed contract needs a literal, a ternary of literals, or a one-key template.',
-        fix: 'Make the value a literal grammar id or a `scope.name:${key}--role` template.',
+        fix: 'Make the value a literal grammar id or a one-key template of the form scope.name:<key>--role.',
     },
     'legacy-testid': {
         summary: 'A new legacy data-testid was added (the ratchet only shrinks).',
@@ -160,7 +167,9 @@ export async function runCli(argv: string[]): Promise<number> {
     const err = (text: string) => process.stderr.write(text);
 
     if (!cmd || cmd === '--help' || cmd === '-h') {
-        out('Usage: ui-surface <scan|check|baseline|generate|map|find|host-contract|explain|migrate-testid|migrate-spec> [options]\n');
+        out(
+            'Usage: ui-surface <scan|check|baseline|generate|map|find|host-contract|explain|migrate-testid|migrate-spec> [options]\n',
+        );
         return 0;
     }
 
@@ -262,9 +271,7 @@ export async function runCli(argv: string[]): Promise<number> {
             err(`${d.file}:${d.line} [${d.rule}] ${d.id} — ${d.message}\n`);
         }
         const issues = allDiags.length + ratchet.grown.length;
-        out(
-            `Checked ${surface.stats.files} webapp files in ${surface.stats.durationMs}ms (${issues} issues)\n`,
-        );
+        out(`Checked ${surface.stats.files} webapp files in ${surface.stats.durationMs}ms (${issues} issues)\n`);
         return issues > 0 || unusedAllow.length > 0 ? 1 : 0;
     }
 
@@ -279,7 +286,9 @@ export async function runCli(argv: string[]): Promise<number> {
                 for (const g of diff.grown) {
                     err(`${g.file}: legacy data-testid count would grow ${g.from} -> ${g.to}\n`);
                 }
-                err('Refusing to grow the testid baseline. Fix the new ids, or pass --allow-growth to record them deliberately.\n');
+                err(
+                    'Refusing to grow the testid baseline. Fix the new ids, or pass --allow-growth to record them deliberately.\n',
+                );
                 return 1;
             }
             writeFileSync(paths.baselinePath, serializeBaseline(current));

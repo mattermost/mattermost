@@ -6,8 +6,8 @@ import {test} from 'node:test';
 
 import {Linter} from 'eslint';
 
-import webappPlugin from '../lint/webapp.mjs';
 import {computeBaseline, diffBaseline, legacyIds, serializeBaseline} from '../dist/ratchet.js';
+import webappPlugin from '../lint/webapp.mjs';
 
 test('legacyIds counts only non-grammar, non-surface-paired data-testids', () => {
     // Grammar id and a surface-paired id are not legacy; a plain id and a dynamic id are.
@@ -48,7 +48,11 @@ test('ratchet fails on growth, allows shrink, and refuses to grow the baseline w
     assert.equal(d.shrunk.length, 1);
 
     // A same-count swap (one removed, one added) is reported as changed by the hash.
-    const swapped = computeBaseline({roots: [], cwd: '.', files: {'a.tsx': 'export const A = () => <button data-testid="three"/>;'}});
+    const swapped = computeBaseline({
+        roots: [],
+        cwd: '.',
+        files: {'a.tsx': 'export const A = () => <button data-testid="three"/>;'},
+    });
     assert.equal(diffBaseline(baseline, swapped).changed.length, 1);
 
     assert.match(serializeBaseline(baseline), /"a\.tsx": \{"count": 1/);

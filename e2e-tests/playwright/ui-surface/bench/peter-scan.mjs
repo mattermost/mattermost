@@ -6,7 +6,6 @@
 // and writes results/peter-scan.json for run.mjs to read. Reverts every edit afterwards. Set PETER_DIR to his
 // e2e-tests/playwright. Peter's model reads data-testid, so each seeded element uses a unique data-testid scope.
 
-import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -113,6 +112,7 @@ export function parsePeterDiagnostics(out) {
 function withSeed(fn) {
     const rootBefore = readFileSync(ROOT, 'utf8');
     writeFileSync(SEED, SEED_SOURCE);
+
     // A side-effect import puts the seed in root's import closure so the scanner reaches it.
     writeFileSync(ROOT, "import './components/bench_seed';\n" + rootBefore);
     try {
@@ -129,24 +129,34 @@ function main() {
         process.exit(2);
     }
     const {seconds, maxRssKb, stdout, stderr, status} = withSeed(() =>
-        timed('node', [join(PETER_PW, 'test-surface/bin/test-surface.mjs'), 'report', '--all', '--config', CONFIG], join(PETER_PW, 'lib')),
+        timed(
+            'node',
+            [join(PETER_PW, 'test-surface/bin/test-surface.mjs'), 'report', '--all', '--config', CONFIG],
+            join(PETER_PW, 'lib'),
+        ),
     );
     const out = stdout + '\n' + stderr;
     const caught = parsePeterDiagnostics(out);
+
     // key-identity-clean is a clean control; if Peter flags it here it is only because this synthetic seed's local
     // `Team` type is not registered in his config's entityTypeDirs (the real webapp's types are), so record it as a
     // seed limitation, not a false positive against Peter.
     const notes = {};
     if (caught['key-identity-clean']) {
         notes['key-identity-clean'] =
-            'Peter needs the key\'s entity type registered in entityTypeDirs; the synthetic seed type is not, so this is a seed artifact, not a real Peter false positive.';
+            "Peter needs the key's entity type registered in entityTypeDirs; the synthetic seed type is not, so this is a seed artifact, not a real Peter false positive.";
         delete caught['key-identity-clean'];
     }
     const results = join(HERE, 'results');
     mkdirSync(results, {recursive: true});
-    writeFileSync(join(results, 'peter-scan.json'), JSON.stringify({timing: {seconds, maxRssKb}, caught, notes, status}, null, 2) + '\n');
+    writeFileSync(
+        join(results, 'peter-scan.json'),
+        JSON.stringify({timing: {seconds, maxRssKb}, caught, notes, status}, null, 2) + '\n',
+    );
     writeFileSync(join(results, 'peter-scan.log'), out);
-    console.log(`peter scan: ${seconds}s, ${Math.round(maxRssKb / 1024)}MB, caught ${Object.keys(caught).length}/${Object.keys(SCOPE_TO_ID).length} seeded mutations`);
+    console.log(
+        `peter scan: ${seconds}s, ${Math.round(maxRssKb / 1024)}MB, caught ${Object.keys(caught).length}/${Object.keys(SCOPE_TO_ID).length} seeded mutations`,
+    );
     console.log('caught:', JSON.stringify(caught, null, 2));
 }
 

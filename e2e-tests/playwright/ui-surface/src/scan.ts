@@ -84,7 +84,15 @@ export type SurfaceEntry = {
 };
 
 export type Diagnostic = {
-    rule: 'grammar' | 'duplicates' | 'role-fit' | 'stale-reference' | 'dynamic' | 'key-origin' | 'legacy-testid' | 'drift';
+    rule:
+        | 'grammar'
+        | 'duplicates'
+        | 'role-fit'
+        | 'stale-reference'
+        | 'dynamic'
+        | 'key-origin'
+        | 'legacy-testid'
+        | 'drift';
     file: string;
     line: number;
     id: string;
@@ -230,14 +238,21 @@ function collectKeyScope(source: ts.SourceFile): KeyScope {
     const indexParams = new Set<string>();
     const ITERATORS = new Set(['map', 'forEach', 'flatMap', 'filter', 'reduce', 'some', 'every']);
     const visit = (node: ts.Node) => {
-        if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && !aliases.has(node.name.text)) {
+        if (
+            ts.isVariableDeclaration(node) &&
+            ts.isIdentifier(node.name) &&
+            node.initializer &&
+            !aliases.has(node.name.text)
+        ) {
             aliases.set(node.name.text, node.initializer);
         }
-        if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && ITERATORS.has(node.expression.name.text)) {
+        if (
+            ts.isCallExpression(node) &&
+            ts.isPropertyAccessExpression(node.expression) &&
+            ITERATORS.has(node.expression.name.text)
+        ) {
             const cb = node.arguments.find((a) => ts.isArrowFunction(a) || ts.isFunctionExpression(a)) as
-                | ts.ArrowFunction
-                | ts.FunctionExpression
-                | undefined;
+                ts.ArrowFunction | ts.FunctionExpression | undefined;
             const idxParam = cb?.parameters[1]?.name;
             if (idxParam && ts.isIdentifier(idxParam)) {
                 indexParams.add(idxParam.text);
@@ -332,7 +347,11 @@ function isNativeTag(el: ts.JsxOpeningLikeElement | undefined): el is ts.JsxOpen
  * render the role it is declared with; one not in the map cannot be verified, so a state/input kind on it is rejected
  * (add it to role-map.json with its role, or use a native element). Returns a mismatch message, or undefined when fine.
  */
-function customRoleMismatch(el: ts.JsxOpeningLikeElement, role: string, roleMap: Record<string, string>): string | undefined {
+function customRoleMismatch(
+    el: ts.JsxOpeningLikeElement,
+    role: string,
+    roleMap: Record<string, string>,
+): string | undefined {
     if (STATE_ROLES.has(role) || ENTRY_ROLES.has(role) || role === 'radio') {
         const tag = el.tagName.getText();
         const mapped = roleMap[tag];
@@ -521,7 +540,12 @@ export function extractSurface(options: {
                         if (found.keyExpr) {
                             const kind = classifyKey(found.keyExpr, keyScope);
                             if (kind !== 'identity') {
-                                report('key-origin', node, found.id, keyOriginMessage(found.keyExpr.getText(source), kind));
+                                report(
+                                    'key-origin',
+                                    node,
+                                    found.id,
+                                    keyOriginMessage(found.keyExpr.getText(source), kind),
+                                );
                             }
                         }
                         const parsed = found.keyed ? parseTestId(found.id.replace(':', ':key')) : parseTestId(found.id);
@@ -590,7 +614,11 @@ export function extractSurface(options: {
 }
 
 /** Every element carrying both a literal data-testid and a literal data-surface that differ, as a testid->surface map. */
-export function collectTestIdSurfacePairs(options: {roots: string[]; cwd?: string; files?: Record<string, string>}): Record<string, string> {
+export function collectTestIdSurfacePairs(options: {
+    roots: string[];
+    cwd?: string;
+    files?: Record<string, string>;
+}): Record<string, string> {
     const cwd = options.cwd ?? process.cwd();
     const pairs: Record<string, string> = {};
     const filePaths = options.files ? Object.keys(options.files).sort() : collectFiles(options.roots, cwd);

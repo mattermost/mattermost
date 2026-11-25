@@ -8,12 +8,12 @@
     "lean": {
       "status": "CAUGHT",
       "clean": false,
-      "excerpt": "panel.save--button — Duplicate sibling data-testid \"panel.save--button\""
+      "excerpt": "Duplicate sibling data-testid \"panel.save--button\""
     },
     "peter": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "[duplicates] \"benchdup.save--button\" is also used by channels/src/components/bench_seed.tsx:17:25, and both can render together."
     }
   },
   {
@@ -23,14 +23,14 @@
     "title": "Non-literal grammar data-testid value",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "1 new legacy data-testid(s): <dyn:`panel.${name}--button`>"
     },
     "peter": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "testid \"panel.${…}--button\": runtime data may only fill the key of the last word (`scope.name:${value}`)."
     }
   },
   {
@@ -40,14 +40,14 @@
     "title": "Non-literal plain data-testid value (free-form legacy slips through unless ratcheted)",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "1 new legacy data-testid(s): <dyn:name>"
     },
     "peter": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "testid is made entirely of runtime data. Write the scope and name as literals and put the data in the key (`scope.name:${value}--role`), or pass it down from a prop named testId/testIdScope."
     }
   },
   {
@@ -59,12 +59,12 @@
     "lean": {
       "status": "CAUGHT",
       "clean": false,
-      "excerpt": "panel.save--frobnicate — Unknown role suffix \"--frobnicate\""
+      "excerpt": "Unknown role suffix \"--frobnicate\""
     },
     "peter": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "testid \"panel.save--frobnicate\": unknown role \"--frobnicate\"; use one of button, link, textbox, searchbox, checkbox, switch, radio, radiogroup, combobox, listbox, option, tab, tablist, tabpanel, menu, menuitem, menuitemcheckbox, menuitemradio, dialog, alertdialog, slider, spinbutton, togglebutton, text, img, list, listitem, row, grid, gridcell, status, alert, tooltip, region, group, separator."
     }
   },
   {
@@ -76,12 +76,12 @@
     "lean": {
       "status": "CAUGHT",
       "clean": false,
-      "excerpt": "panel.enabled--checkbox — Element <div> does not satisfy \"--checkbox\" semantics"
+      "excerpt": "Element <div> does not satisfy \"--checkbox\" semantics"
     },
     "peter": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "[role-fit] \"benchrolenative.enabled--checkbox\" is on a <div> with no readable state/input role."
     }
   },
   {
@@ -91,9 +91,9 @@
     "title": "A brand-new file adds a plain legacy data-testid with no surface counterpart",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "1 new legacy data-testid(s): brand_new_legacy_button"
     },
     "peter": {
       "status": "MISSED",
@@ -108,21 +108,20 @@
     "title": "data-testid and data-surface on one element disagree",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "data-testid \"panel.cancel--button\" and data-surface \"panel.save--button\" disagree on the same element; make them equal, or map the legacy id to the surface id in ui-surface/testid-surface-map.json with a reason"
     },
     "peter": {
-      "status": "MISSED",
-      "clean": false,
-      "excerpt": ""
+      "status": "N/A",
+      "excerpt": "Peter uses data-testid only; no data-surface to disagree with"
     }
   },
   {
     "id": "clean-testid",
     "category": "baseline",
     "level": "webapp",
-    "title": "A correct grammar data-testid element (must not be flagged)",
+    "title": "A correct grammar id (data-surface container, grammar data-testid; must not be flagged)",
     "expectCaught": false,
     "lean": {
       "status": "CAUGHT",
@@ -142,13 +141,14 @@
     "title": "List key is the array map index",
     "expectCaught": true,
     "lean": {
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "Key `index` is not an identity field — the map index is a position, not identity: reorder or insert and every key shifts. Key by an entity id, or allow-list it with a reason."
+    },
+    "peter": {
       "status": "MISSED",
       "clean": false,
       "excerpt": ""
-    },
-    "peter": {
-      "status": "NOT-RUN",
-      "excerpt": "needs bench:peter-scan (full program scan)"
     }
   },
   {
@@ -160,11 +160,12 @@
     "lean": {
       "status": "CAUGHT",
       "clean": false,
-      "excerpt": "list.row:--listitem — Key `t.display_name` is not an identity field (id, *Id, key, index); display text makes ids locale- and data-dependent"
+      "excerpt": "Key `t.display_name` is not an identity field — display text is locale- and data-dependent. Key by an entity id, or allow-list it with a reason."
     },
     "peter": {
-      "status": "NOT-RUN",
-      "excerpt": "needs bench:peter-scan (full program scan)"
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "[key-origin] Key of \"benchkeydisplay.row:{key}--listitem\" remains an unresolved string without a strict origin."
     }
   },
   {
@@ -174,13 +175,14 @@
     "title": "List key aliased: const id = t.display_name",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "Key `id` is not an identity field — display text is locale- and data-dependent. Key by an entity id, or allow-list it with a reason."
     },
     "peter": {
-      "status": "NOT-RUN",
-      "excerpt": "needs bench:peter-scan (full program scan)"
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "[key-origin] Key of \"benchkeyalias.row:{key}--listitem\" remains an unresolved string without a strict origin."
     }
   },
   {
@@ -192,11 +194,12 @@
     "lean": {
       "status": "CAUGHT",
       "clean": false,
-      "excerpt": "list.row:--listitem — Key `r.teamId + \"_\" + r.channelId` is not an identity field (id, *Id, key, index); display text makes ids locale- and data-dependent"
+      "excerpt": "Key `r.teamId + \"_\" + r.channelId` is not an identity field — a composite string concatenates identities: key the item by one entity id. Key by an entity id, or allow-list it with a reason."
     },
     "peter": {
-      "status": "NOT-RUN",
-      "excerpt": "needs bench:peter-scan (full program scan)"
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "[key-origin] Key of \"benchkeycomposite.row:{key}_{key}--listitem\" remains an unresolved string without a strict origin."
     }
   },
   {
@@ -211,8 +214,8 @@
       "excerpt": ""
     },
     "peter": {
-      "status": "NOT-RUN",
-      "excerpt": "needs bench:peter-scan (full program scan)"
+      "status": "N/A",
+      "excerpt": "Peter needs the keys entity type registered in entityTypeDirs; the synthetic seed type is not, so this is a seed artifact, not a real Peter false positive."
     }
   },
   {
@@ -222,13 +225,14 @@
     "title": "checkbox kind on a custom <Toggle> that renders a switch",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "state/input kind \"--checkbox\" on custom <Toggle> cannot be verified; add <Toggle> to ui-surface/role-map.json with the role it renders, or use a native element"
     },
     "peter": {
-      "status": "NOT-RUN",
-      "excerpt": "needs bench:peter-scan (full program scan)"
+      "status": "CAUGHT",
+      "clean": false,
+      "excerpt": "[role-fit] \"benchrolecustom.enabled--checkbox\" is on a switch (<button>)."
     }
   },
   {
@@ -274,7 +278,7 @@
     "lean": {
       "status": "CAUGHT",
       "clean": false,
-      "excerpt": "Observe `page.locator(\".btn-primary\").click()` before the end of the block: settle(...) if it saves, otherwise an expect on what it changed."
+      "excerpt": "Observe `page.locator(\".btn-primary\").click()` before the function ends: settle(...) if it saves, otherwise an expect on what it changed."
     },
     "peter": {
       "status": "CAUGHT",
@@ -340,9 +344,9 @@
     "title": "toHaveURL(\"/path\") drops server subpath",
     "expectCaught": true,
     "lean": {
-      "status": "MISSED",
+      "status": "CAUGHT",
       "clean": false,
-      "excerpt": ""
+      "excerpt": "toHaveURL() with a path drops the server subpath; assert with toHavePath(pages.<page>.pathFor(...)) and the page ready part."
     },
     "peter": {
       "status": "CAUGHT",
@@ -396,9 +400,8 @@
       "excerpt": ""
     },
     "peter": {
-      "status": "FALSE-POSITIVE",
-      "clean": true,
-      "excerpt": "`getByTestId()` on the page in a spec is a raw lookup. Reach the element through `app` (the generated page objects); migrate the webapp area if it has no testids yet."
+      "status": "N/A",
+      "excerpt": "Peter bans literal getByTestId (page objects only) — stronger than lean; clean under lean's contract"
     }
   }
 ]

@@ -23,7 +23,11 @@ function literal(attr) {
     if (v.type === 'Literal' && typeof v.value === 'string') {
         return v.value;
     }
-    if (v.type === 'JSXExpressionContainer' && v.expression?.type === 'Literal' && typeof v.expression.value === 'string') {
+    if (
+        v.type === 'JSXExpressionContainer' &&
+        v.expression?.type === 'Literal' &&
+        typeof v.expression.value === 'string'
+    ) {
         return v.expression.value;
     }
     return undefined;
@@ -35,13 +39,16 @@ export const rules = {
         create(context) {
             const seen = new Map();
             return {
-                'JSXOpeningElement'(node) {
+                JSXOpeningElement(node) {
                     const id = literal(attrs(node)['data-testid']);
                     if (id === undefined) {
                         return;
                     }
                     if (seen.has(id)) {
-                        context.report({node, message: `Duplicate data-testid "${id}" in this file; ids must be unique so a lookup is unambiguous.`});
+                        context.report({
+                            node,
+                            message: `Duplicate data-testid "${id}" in this file; ids must be unique so a lookup is unambiguous.`,
+                        });
                     } else {
                         seen.set(id, node);
                     }
@@ -53,7 +60,7 @@ export const rules = {
         meta: {type: 'suggestion', schema: []},
         create(context) {
             return {
-                'JSXOpeningElement'(node) {
+                JSXOpeningElement(node) {
                     const a = attrs(node);
                     const testid = a['data-testid'];
                     if (!testid) {
@@ -62,6 +69,7 @@ export const rules = {
                     const value = testid.value;
                     const isLiteral = literal(testid) !== undefined;
                     const hasSurface = Boolean(a['data-surface']);
+
                     // A dynamic data-testid that is not paired with a typed data-surface cannot be statically resolved.
                     if (!isLiteral && value?.type === 'JSXExpressionContainer' && !hasSurface) {
                         context.report({

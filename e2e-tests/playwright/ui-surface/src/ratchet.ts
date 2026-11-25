@@ -3,7 +3,7 @@
 
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {relative} from 'node:path';
+import {relative, resolve} from 'node:path';
 
 import {globSync} from 'glob';
 import ts from 'typescript';
@@ -20,10 +20,16 @@ import {parseTemplateTestId, parseTestId} from './scan.js';
 export type FileLegacy = {count: number; hash: string};
 export type Baseline = Record<string, FileLegacy>;
 
-function elementsWithTestId(source: ts.SourceFile): Array<{value?: string; dynamic: boolean; keyedTemplate: boolean; hasSurface: boolean}> {
+function elementsWithTestId(
+    source: ts.SourceFile,
+): Array<{value?: string; dynamic: boolean; keyedTemplate: boolean; hasSurface: boolean}> {
     const out: Array<{value?: string; dynamic: boolean; keyedTemplate: boolean; hasSurface: boolean}> = [];
-    const opening = (node: ts.Node): ts.JsxOpeningLikeElement | undefined =>
-        ts.isJsxElement(node) ? node.openingElement : ts.isJsxSelfClosingElement(node) ? node : undefined;
+    const opening = (node: ts.Node): ts.JsxOpeningLikeElement | undefined => {
+        if (ts.isJsxElement(node)) {
+            return node.openingElement;
+        }
+        return ts.isJsxSelfClosingElement(node) ? node : undefined;
+    };
     const visit = (node: ts.Node) => {
         const el = opening(node);
         if (el) {
@@ -47,7 +53,12 @@ function elementsWithTestId(source: ts.SourceFile): Array<{value?: string; dynam
                         out.push({value: expr.text, dynamic: false, keyedTemplate: false, hasSurface});
                     } else if (ts.isTemplateExpression(expr) && expr.templateSpans.length === 1) {
                         const parsed = parseTemplateTestId(expr.head.text, expr.templateSpans[0].literal.text);
-                        out.push({value: expr.getText(source), dynamic: true, keyedTemplate: Boolean(parsed?.valid), hasSurface});
+                        out.push({
+                            value: expr.getText(source),
+                            dynamic: true,
+                            keyedTemplate: Boolean(parsed?.valid),
+                            hasSurface,
+                        });
                     } else {
                         out.push({value: expr.getText(source), dynamic: true, keyedTemplate: false, hasSurface});
                     }
@@ -97,11 +108,11 @@ export function baselineFromLegacy(legacy: Record<string, string[]>): Baseline {
     return baseline;
 }
 
-function collectFiles(roots: string[], cwd: string): string[] {
+function collectFiles(roots: string[]): string[] {
     const out = new Set<string>();
     for (const root of roots) {
         for (const file of globSync('**/*.{ts,tsx,js,jsx}', {
-            cwd: root,
+            cwd: resolve(root),
             absolute: true,
             ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.*', '**/*.stories.*', '**/*.d.ts'],
         })) {
@@ -114,7 +125,7 @@ function collectFiles(roots: string[], cwd: string): string[] {
 /** Compute the per-file legacy-testid baseline for the given webapp roots (or in-memory files for tests). */
 export function computeBaseline(options: {roots: string[]; cwd: string; files?: Record<string, string>}): Baseline {
     const baseline: Baseline = {};
-    const paths = options.files ? Object.keys(options.files).sort() : collectFiles(options.roots, options.cwd);
+    const paths = options.files ? Object.keys(options.files).sort() : collectFiles(options.roots);
     for (const file of paths) {
         const content = options.files ? options.files[file] : readFileSync(file, 'utf8');
         const rel = options.files ? file : relative(options.cwd, file);
@@ -155,6 +166,8 @@ export function diffBaseline(committed: Baseline, current: Baseline): RatchetDif
 /** Serialize a baseline as one file per line, keys sorted, so diffs stay small and merge conflicts are per-file. */
 export function serializeBaseline(baseline: Baseline): string {
     const keys = Object.keys(baseline).sort();
-    const lines = keys.map((k) => `    ${JSON.stringify(k)}: {"count": ${baseline[k].count}, "hash": ${JSON.stringify(baseline[k].hash)}}`);
+    const lines = keys.map(
+        (k) => `    ${JSON.stringify(k)}: {"count": ${baseline[k].count}, "hash": ${JSON.stringify(baseline[k].hash)}}`,
+    );
     return `{\n${lines.join(',\n')}\n}\n`;
 }

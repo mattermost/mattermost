@@ -10,8 +10,19 @@ import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 
+import {
+    HERE,
+    LEAN_ROOT,
+    PETER_DIR,
+    PW_ROOT,
+    leanCheck,
+    lintSpecs,
+    lintWebapp,
+    loadJson,
+    median,
+    timed,
+} from './lib.mjs';
 import {mutations} from './mutations.mjs';
-import {HERE, LEAN_ROOT, PETER_DIR, PW_ROOT, leanCheck, lintSpecs, lintWebapp, loadJson, median, timed} from './lib.mjs';
 
 const RESULTS = join(HERE, 'results');
 mkdirSync(RESULTS, {recursive: true});
@@ -52,7 +63,11 @@ async function run() {
         console.log('Running peter spec rules...');
         peterSpec = await lintSpecs(PETER_DIR, 'test-surface/', specMutations);
         console.log('Running peter webapp lint rules...');
-        peterWebappLint = await lintWebapp(join(PETER_DIR, '..', '..', 'webapp', 'channels'), 'test-surface/', webappMutations);
+        peterWebappLint = await lintWebapp(
+            join(PETER_DIR, '..', '..', 'webapp', 'channels'),
+            'test-surface/',
+            webappMutations,
+        );
     }
 
     const rows = [];
@@ -62,7 +77,19 @@ async function run() {
 
         let peter;
         if (m.level === 'spec') {
-            peter = peterAvailable ? verdict(m, peterSpec.get(m.id)?.messages ?? []) : {status: 'NOT-RUN', excerpt: ''};
+            const specHits = peterSpec.get(m.id)?.messages ?? [];
+            if (!peterAvailable) {
+                peter = {status: 'NOT-RUN', excerpt: ''};
+            } else if (m.id === 'clean-spec' && specHits.length) {
+                // Peter bans literal getByTestId (page objects only): stricter than lean, not a defect on a clean control.
+                peter = {
+                    status: 'N/A',
+                    excerpt:
+                        "Peter bans literal getByTestId (page objects only) — stronger than lean; clean under lean's contract",
+                };
+            } else {
+                peter = verdict(m, specHits);
+            }
         } else {
             // webapp/scanner: combine Peter's fast webapp lint with his cached full-scan diagnostics.
             const lintHits = peterWebappLint.get(m.id)?.messages ?? [];
@@ -76,13 +103,24 @@ async function run() {
                 peter = {status: 'NOT-RUN', excerpt: ''};
             } else if (lintHits.length || scanHits.length) {
                 peter = verdict(m, [...lintHits, ...scanHits]);
-            } else if ((m.level === 'scanner' || ['dup-sibling-testid', 'role-native-div'].includes(m.id)) && !peterScan) {
+            } else if (
+                (m.level === 'scanner' || ['dup-sibling-testid', 'role-native-div'].includes(m.id)) &&
+                !peterScan
+            ) {
                 peter = {status: 'NOT-RUN', excerpt: 'needs bench:peter-scan (full program scan)'};
             } else {
                 peter = verdict(m, []);
             }
         }
-        rows.push({id: m.id, category: m.category, level: m.level, title: m.title, expectCaught: m.expectCaught, lean, peter});
+        rows.push({
+            id: m.id,
+            category: m.category,
+            level: m.level,
+            title: m.title,
+            expectCaught: m.expectCaught,
+            lean,
+            peter,
+        });
     }
 
     writeFileSync(join(RESULTS, 'matrix.json'), JSON.stringify(rows, null, 2) + '\n');
@@ -117,6 +155,7 @@ function measureLeanTiming() {
         execFileSync('rm', ['-rf', cacheDir], {stdio: 'ignore'});
         const cold = timed('node', [bin, 'check', '--incremental'], PW_ROOT);
         const warm = timed('node', [bin, 'check', '--incremental'], PW_ROOT);
+
         // one-file-changed: invalidate a single cached file if the tool supports it; else repeat warm.
         tryExec(bin, ['cache-bust', '1']);
         const one = timed('node', [bin, 'check', '--incremental'], PW_ROOT);
@@ -151,7 +190,9 @@ function summarize(rows, timing) {
         );
     }
     if (timing.peter) {
-        console.log(`peter timing: full=${timing.peter.seconds}s rss=${Math.round(timing.peter.maxRssKb / 1024)}MB (run once)`);
+        console.log(
+            `peter timing: full=${timing.peter.seconds}s rss=${Math.round(timing.peter.maxRssKb / 1024)}MB (run once)`,
+        );
     }
     console.log(`\nWrote ${join('results', 'matrix.json')}, ${join('results', 'timing.json')}, report.html`);
 }

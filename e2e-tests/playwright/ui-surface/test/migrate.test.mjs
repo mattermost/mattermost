@@ -23,11 +23,18 @@ test('migrate-testid classifies files and rewrites only safe literal lookups on 
     const dir = scratch({
         'webapp/src/c.tsx': "export const C = () => <button data-testid='legacy_save' data-surface='p.save--button'/>;",
         'webapp/src/c.test.tsx': "it('x', () => { screen.getByTestId('legacy_save'); });",
-        'webapp/src/mixed.test.tsx': "it('y', () => { screen.getByTestId('legacy_save'); screen.getByTestId('not_mapped_legacy'); });",
+        'webapp/src/mixed.test.tsx':
+            "it('y', () => { screen.getByTestId('legacy_save'); screen.getByTestId('not_mapped_legacy'); });",
     });
     try {
         const driftMap = {legacy_save: 'p.save--button'};
-        const dry = migrateTestIds({webappRoots: [join(dir, 'webapp/src')], specRoots: [], cwd: dir, driftMap, apply: false});
+        const dry = migrateTestIds({
+            webappRoots: [join(dir, 'webapp/src')],
+            specRoots: [],
+            cwd: dir,
+            driftMap,
+            apply: false,
+        });
         assert.equal(dry.summary.filesWritten, 0);
         const auto = dry.perFile.find((f) => f.file.endsWith('c.test.tsx'));
         const hand = dry.perFile.find((f) => f.file.endsWith('mixed.test.tsx'));
@@ -36,8 +43,10 @@ test('migrate-testid classifies files and rewrites only safe literal lookups on 
 
         migrateTestIds({webappRoots: [join(dir, 'webapp/src')], specRoots: [], cwd: dir, driftMap, apply: true});
         assert.match(readFileSync(join(dir, 'webapp/src/c.test.tsx'), 'utf8'), /getByTestId\('p\.save--button'\)/);
+
         // The component's legacy data-testid is renamed to the surface id (drift resolved).
         assert.match(readFileSync(join(dir, 'webapp/src/c.tsx'), 'utf8'), /data-testid='p\.save--button'/);
+
         // The mixed file is left for hand edits (not auto-rewritten).
         assert.match(readFileSync(join(dir, 'webapp/src/mixed.test.tsx'), 'utf8'), /not_mapped_legacy/);
     } finally {

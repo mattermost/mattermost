@@ -107,6 +107,38 @@ export default [
             ],
         },
     },
+
+    // ui-surface ships .mjs tooling (the ESLint plugin, bench harness, tests). The repo's "covered by Prettier"
+    // overrides target **/*.js, which misses .mjs, so turn the same formatting rules off here; Prettier formats them.
+    {
+        files: ['ui-surface/**/*.mjs', 'surface_types.test-d.ts'],
+        rules: {
+            '@stylistic/dot-location': 'off',
+            '@stylistic/indent': 'off',
+            '@stylistic/lines-around-comment': 'off',
+            '@stylistic/multiline-ternary': 'off',
+            '@stylistic/no-mixed-operators': 'off',
+            '@stylistic/operator-linebreak': 'off',
+            '@stylistic/space-before-function-paren': 'off',
+            '@stylistic/wrap-regex': 'off',
+        },
+    },
+
+    // The ui-surface benchmark harness and the surface type-level test are standalone tooling: CLI-style console
+    // output, process env/exit, and intentional ${...}-in-string JSX samples are expected here.
+    {
+        files: ['ui-surface/bench/**/*.mjs', 'surface_types.test-d.ts'],
+        rules: {
+            'no-console': 'off',
+            'no-process-env': 'off',
+            'no-process-exit': 'off',
+            'no-await-in-loop': 'off',
+            'no-template-curly-in-string': 'off',
+            '@stylistic/no-mixed-operators': 'off',
+            'no-unused-expressions': 'off',
+            '@typescript-eslint/no-unused-expressions': 'off',
+        },
+    },
     {
         files: ['specs/**/*.ts', 'upgrade-specs/**/*.ts'],
         plugins: {

@@ -209,7 +209,12 @@ function label(context, node) {
     return text.length > 70 ? `${text.slice(0, 67)}...` : text;
 }
 
-const LIST_STMT = (node) => (!node ? [] : node.type === 'BlockStatement' ? node.body : [node]);
+const stmtList = (node) => {
+    if (!node) {
+        return [];
+    }
+    return node.type === 'BlockStatement' ? node.body : [node];
+};
 
 /**
  * Structured dataflow over one function body. State is the Set of actions still pending observation on the current
@@ -274,54 +279,59 @@ function analyzeBody(context, statements) {
             return null;
         }
         switch (node.type) {
-        case 'BlockStatement':
-            return list(node.body, state);
-        case 'ReturnStatement': {
-            const after = flow(node.argument, state);
-            if (node.argument && node.argument.type !== 'AwaitExpression' && classifyAwaited(node.argument) === 'action') {
-                turnAway(new Set([unwrap(node.argument)]), 'returning');
+            case 'BlockStatement':
+                return list(node.body, state);
+            case 'ReturnStatement': {
+                const after = flow(node.argument, state);
+                if (
+                    node.argument &&
+                    node.argument.type !== 'AwaitExpression' &&
+                    classifyAwaited(node.argument) === 'action'
+                ) {
+                    turnAway(new Set([unwrap(node.argument)]), 'returning');
+                }
+                turnAway(after, 'returning');
+                return null;
             }
-            turnAway(after, 'returning');
-            return null;
-        }
-        case 'ThrowStatement':
-            flow(node.argument, state);
-            return null;
-        case 'IfStatement': {
-            const tested = flow(node.test, state);
-            const thenS = stmt(node.consequent, tested);
-            const elseS = node.alternate ? stmt(node.alternate, tested) : tested;
-            return union(thenS, elseS);
-        }
-        case 'ForStatement':
-        case 'WhileStatement':
-        case 'DoWhileStatement':
-        case 'ForInStatement':
-        case 'ForOfStatement': {
-            const head = flow(node.test ?? node.right, state);
-            const once = list(LIST_STMT(node.body), head);
-            // zero-or-more iterations: the loop may be skipped (head) or run (once).
-            return union(head, once);
-        }
-        case 'TryStatement': {
-            const tried = list(node.block.body, state);
-            const caught = node.handler ? list(node.handler.body.body, union(state, tried)) : null;
-            const normal = node.handler ? union(tried, caught) : tried;
-            return node.finalizer ? list(node.finalizer.body, normal ?? new Set()) : normal;
-        }
-        case 'SwitchStatement': {
-            const tested = flow(node.discriminant, state);
-            const hasDefault = node.cases.some((c) => !c.test);
-            const branches = node.cases.map((c) => list(c.consequent, tested));
-            return union(...branches, hasDefault ? null : tested);
-        }
-        case 'LabeledStatement':
-            return stmt(node.body, state);
-        case 'BreakStatement':
-        case 'ContinueStatement':
-            return null;
-        default:
-            return flow(node, state);
+            case 'ThrowStatement':
+                flow(node.argument, state);
+                return null;
+            case 'IfStatement': {
+                const tested = flow(node.test, state);
+                const thenS = stmt(node.consequent, tested);
+                const elseS = node.alternate ? stmt(node.alternate, tested) : tested;
+                return union(thenS, elseS);
+            }
+            case 'ForStatement':
+            case 'WhileStatement':
+            case 'DoWhileStatement':
+            case 'ForInStatement':
+            case 'ForOfStatement': {
+                const head = flow(node.test ?? node.right, state);
+                const once = list(stmtList(node.body), head);
+
+                // zero-or-more iterations: the loop may be skipped (head) or run (once).
+                return union(head, once);
+            }
+            case 'TryStatement': {
+                const tried = list(node.block.body, state);
+                const caught = node.handler ? list(node.handler.body.body, union(state, tried)) : null;
+                const normal = node.handler ? union(tried, caught) : tried;
+                return node.finalizer ? list(node.finalizer.body, normal ?? new Set()) : normal;
+            }
+            case 'SwitchStatement': {
+                const tested = flow(node.discriminant, state);
+                const hasDefault = node.cases.some((c) => !c.test);
+                const branches = node.cases.map((c) => list(c.consequent, tested));
+                return union(...branches, hasDefault ? null : tested);
+            }
+            case 'LabeledStatement':
+                return stmt(node.body, state);
+            case 'BreakStatement':
+            case 'ContinueStatement':
+                return null;
+            default:
+                return flow(node, state);
         }
     };
 
@@ -650,6 +660,7 @@ export const rules = {
                         context.report({
                             node,
                             message: 'expect.soft() lets the test continue after a failure; use expect().',
+
                             // Safe trivial autofix: expect.soft(x) -> expect(x).
                             fix: (fixer) => fixer.removeRange([node.object.range[1], node.property.range[1]]),
                         });
@@ -703,6 +714,7 @@ export const rules = {
                     if (methodName(node) !== 'toHaveURL') {
                         return;
                     }
+
                     // Playwright resolves toHaveURL('/path') against baseURL, which silently drops the server subpath
                     // in subpath mode; a relative-URL assertion then passes against the wrong page.
                     const arg = node.arguments[0];

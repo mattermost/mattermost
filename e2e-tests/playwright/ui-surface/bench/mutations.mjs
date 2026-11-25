@@ -14,9 +14,30 @@
 
 /** @typedef {{id: string, category: string, level: 'spec'|'webapp'|'scanner', title: string, code: string, expectCaught: boolean, clean?: boolean}} Mutation */
 
-const spec = (id, category, title, code, expectCaught = true) => ({id, category, level: 'spec', title, code, expectCaught});
-const webapp = (id, category, title, code, expectCaught = true) => ({id, category, level: 'webapp', title, code, expectCaught});
-const scanner = (id, category, title, code, expectCaught = true) => ({id, category, level: 'scanner', title, code, expectCaught});
+const spec = (id, category, title, code, expectCaught = true) => ({
+    id,
+    category,
+    level: 'spec',
+    title,
+    code,
+    expectCaught,
+});
+const webapp = (id, category, title, code, expectCaught = true) => ({
+    id,
+    category,
+    level: 'webapp',
+    title,
+    code,
+    expectCaught,
+});
+const scanner = (id, category, title, code, expectCaught = true) => ({
+    id,
+    category,
+    level: 'scanner',
+    title,
+    code,
+    expectCaught,
+});
 
 /** @type {Mutation[]} */
 export const mutations = [
@@ -269,11 +290,7 @@ export const mutations = [
         'url-assertion',
         'flake',
         'toHaveURL("/path") drops server subpath',
-        [
-            'test("x", async ({page}) => {',
-            '    await expect(page).toHaveURL("/admin_console");',
-            '});',
-        ].join('\n'),
+        ['test("x", async ({page}) => {', '    await expect(page).toHaveURL("/admin_console");', '});'].join('\n'),
     ),
     spec(
         'positional-pick',

@@ -39,11 +39,12 @@ function findTestIdRefs(source: ts.SourceFile): Ref[] {
     const visit = (node: ts.Node) => {
         if (ts.isCallExpression(node)) {
             const callee = node.expression;
-            const method = ts.isPropertyAccessExpression(callee)
-                ? callee.name.text
-                : ts.isIdentifier(callee)
-                  ? callee.text
-                  : '';
+            let method = '';
+            if (ts.isPropertyAccessExpression(callee)) {
+                method = callee.name.text;
+            } else if (ts.isIdentifier(callee)) {
+                method = callee.text;
+            }
             const arg = node.arguments[0];
             if (TESTID_METHOD.test(method)) {
                 if (arg && ts.isStringLiteralLike(arg)) {
@@ -53,14 +54,21 @@ function findTestIdRefs(source: ts.SourceFile): Ref[] {
                 }
             }
             const isCssGet =
-                (method === 'get' && ts.isPropertyAccessExpression(callee) && callee.expression.getText(source) === 'cy') ||
+                (method === 'get' &&
+                    ts.isPropertyAccessExpression(callee) &&
+                    callee.expression.getText(source) === 'cy') ||
                 method === 'locator';
             if (isCssGet && arg && ts.isStringLiteralLike(arg)) {
                 const m = EXACT_TESTID_CSS.exec(arg.text);
                 if (m) {
                     const id = m[1] ?? m[2];
                     const idx = arg.text.indexOf(id);
-                    refs.push({id, dynamic: false, start: arg.getStart(source) + 1 + idx, end: arg.getStart(source) + 1 + idx + id.length});
+                    refs.push({
+                        id,
+                        dynamic: false,
+                        start: arg.getStart(source) + 1 + idx,
+                        end: arg.getStart(source) + 1 + idx + id.length,
+                    });
                 }
             }
         }
@@ -73,14 +81,22 @@ function findTestIdRefs(source: ts.SourceFile): Ref[] {
 function collect(roots: string[], cwd: string, pattern: string): string[] {
     const out = new Set<string>();
     for (const root of roots) {
-        for (const file of globSync(pattern, {cwd: resolve(cwd, root), absolute: true, ignore: ['**/node_modules/**', '**/dist/**']})) {
+        for (const file of globSync(pattern, {
+            cwd: resolve(cwd, root),
+            absolute: true,
+            ignore: ['**/node_modules/**', '**/dist/**'],
+        })) {
             out.add(file);
         }
     }
     return [...out].sort();
 }
 
-function rewriteLiterals(content: string, refs: Ref[], renameMap: Record<string, string>): {text: string; count: number} {
+function rewriteLiterals(
+    content: string,
+    refs: Ref[],
+    renameMap: Record<string, string>,
+): {text: string; count: number} {
     let count = 0;
     const edits = refs
         .filter((r) => !r.dynamic && r.id !== undefined && renameMap[r.id])
@@ -158,7 +174,12 @@ export function migrateTestIds(options: {
                 filesWritten += count > 0 ? 1 : 0;
             }
         }
-        perFile.push({file: relative(options.cwd, file), status, rewrites: rewritable.length, blockers: [...new Set(blockers)]});
+        perFile.push({
+            file: relative(options.cwd, file),
+            status,
+            rewrites: rewritable.length,
+            blockers: [...new Set(blockers)],
+        });
     }
 
     // When applying, also rename the legacy data-testid in webapp components to the surface id (drift -> consistent).
@@ -170,7 +191,11 @@ export function migrateTestIds(options: {
             const content = readFileSync(file, 'utf8');
             let text = content;
             for (const [legacy, surface] of Object.entries(renameMap)) {
-                text = text.split(`data-testid='${legacy}'`).join(`data-testid='${surface}'`).split(`data-testid="${legacy}"`).join(`data-testid="${surface}"`);
+                text = text
+                    .split(`data-testid='${legacy}'`)
+                    .join(`data-testid='${surface}'`)
+                    .split(`data-testid="${legacy}"`)
+                    .join(`data-testid="${surface}"`);
             }
             if (text !== content) {
                 writeFileSync(file, text);
@@ -248,7 +273,10 @@ export function analyzeSpecMigration(options: {
         let mappable = 0;
         let unmappable = 0;
         for (const r of refs) {
-            const surfaceId = r.id !== undefined ? (options.surfaceIds.has(r.id) ? r.id : legacyToSurface[r.id]) : undefined;
+            let surfaceId;
+            if (r.id !== undefined) {
+                surfaceId = options.surfaceIds.has(r.id) ? r.id : legacyToSurface[r.id];
+            }
             if (!r.dynamic && surfaceId && options.surfaceIds.has(surfaceId)) {
                 mappable++;
             } else {
@@ -257,7 +285,10 @@ export function analyzeSpecMigration(options: {
         }
         mappableCalls += mappable;
         unmappableCalls += unmappable;
-        const status = mappable > 0 && unmappable === 0 ? 'full' : mappable > 0 ? 'partial' : 'none';
+        let status: 'full' | 'partial' | 'none' = 'none';
+        if (mappable > 0) {
+            status = unmappable === 0 ? 'full' : 'partial';
+        }
         if (status === 'full') {
             fullyMappableSpecs++;
         } else if (status === 'partial') {
@@ -280,7 +311,9 @@ export function analyzeSpecMigration(options: {
 }
 
 /** Build the id -> {scope, name} map used by spec migration from surface entries (camelCased part names). */
-export function surfaceIdMap(entries: Array<{id: string; scope: string; name: string}>): Map<string, {scope: string; name: string}> {
+export function surfaceIdMap(
+    entries: Array<{id: string; scope: string; name: string}>,
+): Map<string, {scope: string; name: string}> {
     const map = new Map<string, {scope: string; name: string}>();
     for (const e of entries) {
         map.set(e.id, {scope: e.scope, name: toCamel(e.name)});

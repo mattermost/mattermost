@@ -70,7 +70,15 @@ for (const f of files) {
     }
 }
 
-const summary = {corpus: CORPUS, files: files.length, leanTotal, peterTotal, filesAgreeing: agree, filesDisagreeing: disagree, disagreements: rows};
+const summary = {
+    corpus: CORPUS,
+    files: files.length,
+    leanTotal,
+    peterTotal,
+    filesAgreeing: agree,
+    filesDisagreeing: disagree,
+    disagreements: rows,
+};
 mkdirSync(join(HERE, 'results'), {recursive: true});
 writeFileSync(join(HERE, 'results/observe-compare.json'), JSON.stringify(summary, null, 2) + '\n');
 console.log(JSON.stringify(summary, null, 2));
