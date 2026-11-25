@@ -29,7 +29,7 @@ const beginResult = {
         publicKey: {
             challenge: 'AQID',
             rp: {name: 'Mattermost', id: 'example.com'},
-            user: {id: 'BAUG', name: 'me', displayName: 'me'},
+            user: {id: 'BAUG', name: 'alice', displayName: 'alice'},
             pubKeyCredParams: [{type: 'public-key', alg: -7}],
         },
     },
@@ -121,14 +121,39 @@ describe('PasskeyEnrollmentPage', () => {
         Reflect.deleteProperty(window, 'PublicKeyCredential');
     });
 
-    test('shows the title and the add button, and runs nothing until the button is tapped', async () => {
+    test('names the account from the server\'s answer before either button appears, and add begins a fresh ceremony', async () => {
+        let release: (v: unknown) => void = () => {};
+        beginRegistration.mockReturnValueOnce(new Promise((resolve) => {
+            release = resolve;
+        }));
         renderPage();
 
         expect(await screen.findByRole('heading', {name: 'Add a passkey'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Add passkey'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Use existing passkey'})).toBeInTheDocument();
-        expect(beginRegistration).not.toHaveBeenCalled();
+        expect(addButton()).not.toBeInTheDocument();
+        expect(existingButton()).not.toBeInTheDocument();
+        expect(screen.getByRole('status')).not.toHaveTextContent('alice');
+
+        release(beginResult);
+        expect(await screen.findByText('alice')).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('This adds a passkey to the account alice. If that isn\'t your account, close this page.');
+        expect(addButton()).toBeInTheDocument();
+        expect(existingButton()).toBeInTheDocument();
+        expect(beginRegistration).toHaveBeenCalledTimes(1);
         expect(beginVerification).not.toHaveBeenCalled();
+
+        await userEvent.click(addButton()!);
+        expect(await screen.findByText(RETURN_TO_APP)).toBeInTheDocument();
+        expect(beginRegistration).toHaveBeenCalledTimes(2);
+    });
+
+    test('a non-final error at load shows the banner with both buttons and no account line', async () => {
+        beginRegistration.mockRejectedValueOnce(serverError('app.passkey.limit_reached.app_error', 400, 'limit hit'));
+        renderPage();
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('limit hit');
+        expect(addButton()).toBeEnabled();
+        expect(existingButton()).toBeEnabled();
+        expect(screen.getByRole('status')).not.toHaveTextContent('This adds a passkey');
     });
 
     test('adding a passkey redeems the ticket, records the enrollment and shows the done text with no buttons', async () => {
@@ -211,6 +236,7 @@ describe('PasskeyEnrollmentPage', () => {
         expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
+        expect(beginRegistration).not.toHaveBeenCalled();
     });
 
     test('a ticket in the query string is not read: shows the incomplete-link text and no button', async () => {
@@ -230,6 +256,7 @@ describe('PasskeyEnrollmentPage', () => {
         expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
+        expect(beginRegistration).not.toHaveBeenCalled();
     });
 
     test('a browser without WebAuthn gets the cannot-create text and no button', async () => {
@@ -240,6 +267,7 @@ describe('PasskeyEnrollmentPage', () => {
         expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
+        expect(beginRegistration).not.toHaveBeenCalled();
     });
 
     test('the desktop app is told to open the page in a browser and gets no button', async () => {
@@ -250,16 +278,16 @@ describe('PasskeyEnrollmentPage', () => {
         expect(await cantAddHeading()).toBeInTheDocument();
         expect(addButton()).not.toBeInTheDocument();
         expect(existingButton()).not.toBeInTheDocument();
+        expect(beginRegistration).not.toHaveBeenCalled();
     });
 
     test.each([
         ['ticket_invalid', 400, 'app.passkey.ticket_invalid.app_error', EXPIRED],
         ['recent_login_required', 403, 'app.passkey.recent_login_required.app_error', EXPIRED],
         ['a disabled feature', 501, 'app.passkey.not_enabled.app_error', UNAVAILABLE],
-    ])('begin refused with %s ends the page with an alert and no button', async (_name, status, id, text) => {
+    ])('begin refused at load with %s ends the page with an alert and no button, without a click', async (_name, status, id, text) => {
         beginRegistration.mockRejectedValue(serverError(id, status));
         renderPage();
-        await userEvent.click(await screen.findByRole('button', {name: 'Add passkey'}));
 
         expect(await screen.findByRole('alert')).toHaveTextContent(text);
         expect(document.querySelector('.AlertBanner')).toBeNull();
@@ -336,7 +364,7 @@ describe('PasskeyEnrollmentPage', () => {
             expect(LocalStorageStore.isPasskeyPromptDue('u2', 'any-login')).toBe(true);
             expect(beginVerification).toHaveBeenCalledWith('t1');
             expect(finishVerification).toHaveBeenCalledWith('ver1', expect.objectContaining({id: 'cred2'}));
-            expect(beginRegistration).not.toHaveBeenCalled();
+            expect(beginRegistration).toHaveBeenCalledTimes(1);
         });
 
         test('dismissing the browser prompt shows no error and keeps both buttons', async () => {

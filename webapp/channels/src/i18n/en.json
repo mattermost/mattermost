@@ -28819,6 +28819,10 @@
     "defaultMessage": "1-50",
     "description": "Company size option '1-50' employees in the Start Trial form dropdown; keep the numeric range."
   },
+  "passkey_enrollment_page.account": {
+    "defaultMessage": "This adds a passkey to the account <b>{username}</b>. If that isn't your account, close this page.",
+    "description": "Shown on the passkey enrollment page, opened from the Mattermost app, naming the account the passkey will be added to so the user can notice a link meant for someone else. {username} is that account's username."
+  },
   "passkey_enrollment_page.addedTitle": {
     "defaultMessage": "Passkey added",
     "description": "Title shown after a passkey was added on the page opened from the Mattermost app."

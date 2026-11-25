@@ -72,6 +72,11 @@ const messages = defineMessages({
         defaultMessage: 'That took too long. Try again.',
         description: 'Error shown when the passkey setup started on the page timed out on the server.',
     },
+    account: {
+        id: 'passkey_enrollment_page.account',
+        defaultMessage: 'This adds a passkey to the account <b>{username}</b>. If that isn\'t your account, close this page.',
+        description: 'Shown on the passkey enrollment page, opened from the Mattermost app, naming the account the passkey will be added to so the user can notice a link meant for someone else. {username} is that account\'s username.',
+    },
     alreadyOnDevice: {
         id: 'passkey_enrollment_page.alreadyOnDevice',
         defaultMessage: 'This device already has a passkey for your account. Choose "Use existing passkey".',
@@ -105,6 +110,10 @@ export default function PasskeyEnrollmentPage() {
     const [busy, setBusy] = useState<'add' | 'verify' | null>(null);
     const [done, setDone] = useState<'added' | 'confirmed' | null>(null);
 
+    // The account the ticket belongs to, learned from the server; the buttons wait until that has settled.
+    const [username, setUsername] = useState<string | null>(null);
+    const [loaded, setLoaded] = useState(false);
+
     // A refusal that retrying cannot fix removes the button; any other error leaves it for another try.
     const [error, setError] = useState<{text: string; final: boolean} | null>(null);
 
@@ -136,9 +145,51 @@ export default function PasskeyEnrollmentPage() {
         // Final errors get no banner (which carries the alert role), so the subtitle announces the refusal itself.
         message = <span role='alert'>{error.text}</span>;
     } else {
-        message = <span role='status'>{formatMessage(sharedMessages.body)}</span>;
-        canAct = true;
+        message = (
+            <span role='status'>
+                {formatMessage(sharedMessages.body)}
+                {username && ' '}
+                {username && formatMessage(messages.account, {username, b: (chunks) => <b>{chunks}</b>})}
+            </span>
+        );
+        canAct = loaded;
     }
+
+    const showError = (e: unknown, extraErrors: typeof verifyErrors = {}) => {
+        const err = e as Error & {server_error_id?: string; status_code?: number};
+        const id = err.server_error_id ?? '';
+        if (terminalErrors[id]) {
+            setError({text: formatMessage(terminalErrors[id]), final: true});
+        } else if (err.status_code === 501) {
+            setError({text: formatMessage(messages.unavailable), final: true});
+        } else if (retryableErrors[id] ?? extraErrors[id]) {
+            setError({text: formatMessage(retryableErrors[id] ?? extraErrors[id]), final: false});
+        } else if (err.name === 'InvalidStateError') {
+            setError({text: formatMessage(messages.alreadyOnDevice), final: false});
+        } else {
+            setError({text: err.message, final: false});
+        }
+    };
+
+    // Begin does not spend the ticket. It runs here only to learn the username; Add begins its own ceremony, because
+    // the browser's timer starts at create() while the server's starts at begin, so a reused one could expire mid-biometric.
+    const canStart = Boolean(ticket) && !isDesktopApp() && typeof window.PublicKeyCredential !== 'undefined';
+    useEffect(() => {
+        if (!canStart) {
+            return undefined;
+        }
+        let cancelled = false;
+        Client4.beginPasskeyEnrollmentRegistration(ticket!).then(
+            (begin) => !cancelled && setUsername(begin.options.publicKey.user.name),
+            (e) => !cancelled && showError(e),
+        ).finally(() => !cancelled && setLoaded(true));
+        return () => {
+            cancelled = true;
+        };
+
+        // Once per page load: the ticket never changes and showError only reads render-time values.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const run = async (kind: 'add' | 'verify', action: () => Promise<string | null>, result: 'added' | 'confirmed', extraErrors: typeof verifyErrors = {}) => {
         setBusy(kind);
@@ -150,19 +201,7 @@ export default function PasskeyEnrollmentPage() {
                 setDone(result);
             }
         } catch (e) {
-            const err = e as Error & {server_error_id?: string; status_code?: number};
-            const id = err.server_error_id ?? '';
-            if (terminalErrors[id]) {
-                setError({text: formatMessage(terminalErrors[id]), final: true});
-            } else if (err.status_code === 501) {
-                setError({text: formatMessage(messages.unavailable), final: true});
-            } else if (retryableErrors[id] ?? extraErrors[id]) {
-                setError({text: formatMessage(retryableErrors[id] ?? extraErrors[id]), final: false});
-            } else if (err.name === 'InvalidStateError') {
-                setError({text: formatMessage(messages.alreadyOnDevice), final: false});
-            } else {
-                setError({text: err.message, final: false});
-            }
+            showError(e, extraErrors);
         }
         setBusy(null);
     };
