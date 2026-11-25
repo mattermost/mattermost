@@ -777,8 +777,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         const {data: userId, error} = await dispatch(loginWithPasskey(ceremonyId, assertionToJSON(credential)));
         if (error) {
             if (error.server_error_id === 'app.passkey.unknown_credential.app_error') {
-                // Don't signal the browser to forget it: the relying-party ID is only the Site URL host, so servers
-                // on the same host (other subpath or port) share it and the passkey may be valid on another of them.
+                // No signalUnknownCredential here: the relying-party ID is only the Site URL host, so servers on the
+                // same host (other subpath or port) share it, and this passkey may still be valid on another of them.
                 showPasskeyError(formatMessage({
                     id: 'login.passkeyUnknown',
                     defaultMessage: 'This passkey isn’t registered on this server. Choose another passkey or log in another way.',
