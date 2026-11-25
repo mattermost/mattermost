@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -68,9 +69,9 @@ func TestGetPasskeys(t *testing.T) {
 		}
 	})
 
-	t.Run("response carries no credential material", func(t *testing.T) {
+	t.Run("response carries the credential id and user handle but no other credential material", func(t *testing.T) {
 		th := setupPasskeys(t, true)
-		savePasskey(t, th, th.BasicUser.Id, "laptop")
+		saved := savePasskey(t, th, th.BasicUser.Id, "laptop")
 
 		r, err := th.Client.DoAPIGet(context.Background(), "/users/me/passkeys", "")
 		require.NoError(t, err)
@@ -82,7 +83,13 @@ func TestGetPasskeys(t *testing.T) {
 		for k := range raw[0] {
 			keys = append(keys, k)
 		}
-		assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at"}, keys)
+		assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at", "credential_id", "user_handle"}, keys)
+		credentialId, err := base64.RawURLEncoding.DecodeString(raw[0]["credential_id"].(string))
+		require.NoError(t, err)
+		assert.Equal(t, saved.CredentialId, credentialId)
+		userHandle, err := base64.RawURLEncoding.DecodeString(raw[0]["user_handle"].(string))
+		require.NoError(t, err)
+		assert.Equal(t, saved.UserHandle, userHandle)
 	})
 
 	t.Run("none is an empty array", func(t *testing.T) {
@@ -911,7 +918,7 @@ func TestPasskeyRegistration(t *testing.T) {
 		assert.Len(t, passkeys, 2)
 	})
 
-	t.Run("finish response carries no credential material", func(t *testing.T) {
+	t.Run("finish response carries the credential id and user handle but no other credential material", func(t *testing.T) {
 		th := setupPasskeyRegistration(t)
 
 		opts, _, err := th.Client.BeginPasskeyRegistration(context.Background(), model.Me)
@@ -933,8 +940,18 @@ func TestPasskeyRegistration(t *testing.T) {
 		for k := range raw {
 			keys = append(keys, k)
 		}
-		assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at"}, keys)
+		assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at", "credential_id", "user_handle"}, keys)
 		assert.NotEmpty(t, raw["name"], "empty name falls back to the default")
+
+		stored, err := th.App.Srv().Store().Passkey().GetForUser(th.BasicUser.Id)
+		require.NoError(t, err)
+		require.Len(t, stored, 1)
+		credentialId, err := base64.RawURLEncoding.DecodeString(raw["credential_id"].(string))
+		require.NoError(t, err)
+		assert.Equal(t, stored[0].CredentialId, credentialId)
+		userHandle, err := base64.RawURLEncoding.DecodeString(raw["user_handle"].(string))
+		require.NoError(t, err)
+		assert.Equal(t, stored[0].UserHandle, userHandle)
 	})
 
 	t.Run("enrollment on with login off still registers", func(t *testing.T) {

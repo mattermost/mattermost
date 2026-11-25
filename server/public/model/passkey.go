@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -24,8 +25,9 @@ const (
 	PasskeyRecentLoginWindow = 10 * 60 * 1000
 )
 
-// Passkey is one WebAuthn credential registered to a user. Credential material is tagged
-// json:"-" so it never reaches clients.
+// Passkey is one WebAuthn credential registered to a user. Its JSON (see MarshalJSON) carries the
+// credential id and user handle, which go to the passkey's owner; the public key, AAGUID,
+// transports, counter and backup flags are tagged json:"-" and never reach clients.
 type Passkey struct {
 	Id         string `json:"id"`
 	UserId     string `json:"user_id"`
@@ -41,6 +43,46 @@ type Passkey struct {
 	SignCount      int64  `json:"-"`
 	BackupEligible bool   `json:"-"`
 	BackupState    bool   `json:"-"`
+}
+
+// passkeyAlias drops Passkey's methods so the JSON methods below do not recurse.
+type passkeyAlias Passkey
+
+// passkeyJSON adds the two ids as base64url strings: encoding/json would write []byte as padded
+// standard base64, which the browser's WebAuthn signal calls reject.
+type passkeyJSON struct {
+	*passkeyAlias
+	CredentialId string `json:"credential_id"`
+	UserHandle   string `json:"user_handle"`
+}
+
+func (p Passkey) MarshalJSON() ([]byte, error) {
+	a := passkeyAlias(p)
+	return json.Marshal(passkeyJSON{
+		passkeyAlias: &a,
+		CredentialId: base64.RawURLEncoding.EncodeToString(p.CredentialId),
+		UserHandle:   base64.RawURLEncoding.EncodeToString(p.UserHandle),
+	})
+}
+
+func (p *Passkey) UnmarshalJSON(data []byte) error {
+	a := passkeyAlias(*p)
+	v := passkeyJSON{passkeyAlias: &a}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	credentialId, err := base64.RawURLEncoding.DecodeString(v.CredentialId)
+	if err != nil {
+		return err
+	}
+	userHandle, err := base64.RawURLEncoding.DecodeString(v.UserHandle)
+	if err != nil {
+		return err
+	}
+	*p = Passkey(a)
+	p.CredentialId = credentialId
+	p.UserHandle = userHandle
+	return nil
 }
 
 func (p *Passkey) PreSave() {

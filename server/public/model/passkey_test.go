@@ -156,15 +156,52 @@ func TestPasskeyIsValid(t *testing.T) {
 	})
 }
 
-func TestPasskeyJSONOmitsCredentialMaterial(t *testing.T) {
+func TestPasskeyJSONCarriesCredentialIdsOnly(t *testing.T) {
 	p := validPasskey()
 	p.Transports = "internal"
 	p.AAGUID = []byte("aaguid")
+	// Standard base64 of these bytes is "+/8=": it needs the "+" and "/" alphabet and padding.
+	p.CredentialId = []byte{0xfb, 0xff}
+	p.UserHandle = []byte{0xff, 0xfe, 0xfd}
 	b, err := json.Marshal(p)
 	require.NoError(t, err)
 	var m map[string]any
 	require.NoError(t, json.Unmarshal(b, &m))
-	assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at"}, slices.Collect(maps.Keys(m)))
+	assert.ElementsMatch(t, []string{"id", "user_id", "name", "create_at", "last_used_at", "credential_id", "user_handle"}, slices.Collect(maps.Keys(m)))
+	assert.Equal(t, "-_8", m["credential_id"])
+	assert.Equal(t, "__79", m["user_handle"])
+
+	t.Run("a slice of pointers uses the same shape", func(t *testing.T) {
+		listBody, err := json.Marshal([]*Passkey{p})
+		require.NoError(t, err)
+		var list []map[string]any
+		require.NoError(t, json.Unmarshal(listBody, &list))
+		require.Len(t, list, 1)
+		assert.Equal(t, "-_8", list[0]["credential_id"])
+	})
+
+	t.Run("round trip restores the ids and plain fields", func(t *testing.T) {
+		var got Passkey
+		require.NoError(t, json.Unmarshal(b, &got))
+		assert.Equal(t, p.Id, got.Id)
+		assert.Equal(t, p.UserId, got.UserId)
+		assert.Equal(t, p.Name, got.Name)
+		assert.Equal(t, p.CreateAt, got.CreateAt)
+		assert.Equal(t, p.LastUsedAt, got.LastUsedAt)
+		assert.Equal(t, p.CredentialId, got.CredentialId)
+		assert.Equal(t, p.UserHandle, got.UserHandle)
+		assert.Nil(t, got.PublicKey)
+	})
+
+	for name, body := range map[string]string{
+		"invalid credential_id": `{"credential_id":"+/8="}`,
+		"invalid user_handle":   `{"user_handle":"not base64!"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			var got Passkey
+			assert.Error(t, json.Unmarshal([]byte(body), &got))
+		})
+	}
 }
 
 func TestPasskeyRegistrationTokenExpiry(t *testing.T) {
