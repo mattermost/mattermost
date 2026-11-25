@@ -5,6 +5,7 @@ package cluster
 
 import (
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -12,11 +13,13 @@ import (
 )
 
 const (
-	gossipMessage         = "health.rule.cluster_gossip_unencrypted.message"
-	lruMessage            = "health.rule.cluster_lru_cache.message"
-	singleNodeMessage     = "health.rule.cluster_single_node.message"
-	badAdvertiseMessage   = "health.rule.cluster_bad_advertise.message"
-	configWritableMessage = "health.rule.cluster_config_writable.message"
+	gossipMessage          = "health.rule.cluster_gossip_unencrypted.message"
+	lruMessage             = "health.rule.cluster_lru_cache.message"
+	singleNodeMessage      = "health.rule.cluster_single_node.message"
+	badAdvertiseMessage    = "health.rule.cluster_bad_advertise.message"
+	configWritableMessage  = "health.rule.cluster_config_writable.message"
+	notEnabledMessage      = "health.rule.cluster_not_enabled.message"
+	notEnabledScaleMessage = "health.rule.cluster_not_enabled_at_scale.message"
 )
 
 func gossipOff(cfg *model.Config) { cfg.ClusterSettings.EnableGossipEncryption = new(false) }
@@ -229,6 +232,65 @@ func TestClusterSingleNode(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assertResult(t, tc.want, clusterSingleNode.Eval(tc.snapshot))
+		})
+	}
+}
+
+func TestClusterNotEnabled(t *testing.T) {
+	t.Parallel()
+
+	license := func(license model.SupportPacketLicense) *healthcheck.NodeSnapshot {
+		return leaderNode(func(diag *model.SupportPacketDiagnostics) { diag.License = license })
+	}
+	licenseFailed := func() *healthcheck.NodeSnapshot {
+		node := license(clusterLicense())
+		node.Diagnostics.Errors[model.SectionLicense] = errors.New("boom")
+		return node
+	}
+	users := func(n int64) map[string]string { return map[string]string{"users": strconv.FormatInt(n, 10)} }
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		info     want
+		warning  want
+	}{
+		{"below the info threshold", withUsers(configSnapshot(nil), 199), resolved.withValue(199), resolved.withValue(199)},
+		{"at the info threshold", withUsers(configSnapshot(nil), 200), firing(notEnabledMessage, users(200)).withValue(200), resolved.withValue(200)},
+		{"below the warning threshold", withUsers(configSnapshot(nil), 1_999), firing(notEnabledMessage, users(1_999)).withValue(1_999), resolved.withValue(1_999)},
+		{"at the warning threshold", withUsers(configSnapshot(nil), 2_000), resolved.withValue(2_000), firing(notEnabledScaleMessage, users(2_000)).withValue(2_000)},
+		{"ha enabled", withUsers(configSnapshot(haEnabled), 200_000), resolved, resolved},
+		{"ha enabled without a cluster name is left to CLUSTER_SINGLE_NODE", withUsers(configSnapshot(func(cfg *model.Config) {
+			cfg.ClusterSettings.Enable = new(true)
+		}), 200_000), resolved, resolved},
+		{"ha enable unset", withUsers(configSnapshot(func(cfg *model.Config) { cfg.ClusterSettings.Enable = nil }), 200_000), configUnknown, configUnknown},
+		{"config section absent", func() *healthcheck.Snapshot {
+			s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{licensedLeader()})
+			s.Sections = map[model.WorkspaceSection]error{}
+			return withUsers(s, 200_000)
+		}(), configUnknown, configUnknown},
+		{"stats section absent", configSnapshot(nil), statsUnknown, statsUnknown},
+		{"users stat missing", func() *healthcheck.Snapshot {
+			s := configSnapshot(nil)
+			s.Stats = &model.SupportPacketStats{}
+			s.Sections[model.SectionStats] = nil
+			return s
+		}(), statsUnknown, statsUnknown},
+		{"unlicensed at scale", withUsers(configSnapshot(nil, license(model.SupportPacketLicense{})), 200_000), resolved.withValue(200_000), resolved},
+		{"cluster feature off", withUsers(configSnapshot(nil, license(model.SupportPacketLicense{
+			SkuShortName: model.LicenseShortSkuProfessional,
+			Features:     &model.Features{Cluster: new(false)},
+		})), 1_000), resolved, resolved.withValue(1_000)},
+		{"license section failed", withUsers(configSnapshot(nil, licenseFailed()), 1_000), licenseUnknown, resolved.withValue(1_000)},
+		{"license section failed at scale", withUsers(configSnapshot(nil, licenseFailed()), 2_000), resolved.withValue(2_000), licenseUnknown},
+		{"below the threshold stays resolved without license data", withUsers(configSnapshot(nil, &healthcheck.NodeSnapshot{IsLeader: true}), 199), resolved.withValue(199), resolved.withValue(199)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertResult(t, tc.info, clusterNotEnabled.Eval(tc.snapshot), "CLUSTER_NOT_ENABLED")
+			assertResult(t, tc.warning, clusterNotEnabledAtScale.Eval(tc.snapshot), "CLUSTER_NOT_ENABLED_AT_SCALE")
 		})
 	}
 }

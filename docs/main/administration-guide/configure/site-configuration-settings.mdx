@@ -2296,6 +2296,21 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Check for security and release updates
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>From Mattermost v12.3, this setting is located under Notices, and delegated admins need the <strong>Site Configuration &gt; Notices</strong> permission to change it. In Mattermost v12.2 and earlier, it's located in <strong>Environment &gt; SMTP</strong> as <a href={useBaseUrl('/administration-guide/configure/environment-configuration-settings#enable-security-alerts')}>Enable Security Alerts</a>.</p><p>Enable or disable the security update check and the check for the latest Mattermost release. This setting isn't available for Cloud deployments.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Once every 24 hours, the server checks <code>securityupdatecheck.mattermost.com</code> for security bulletins that apply to its version. See the <a href={useBaseUrl('/administration-guide/manage/telemetry#security-update-check-feature')}>Telemetry</a> documentation for the data sent with this request. When SMTP is configured, system admins are notified by email of relevant bulletins. The server also requests the latest Mattermost release from GitHub (<code>api.github.com</code>) to report whether it's out of date.</li><li><strong>false</strong>: The server doesn't contact <code>securityupdatecheck.mattermost.com</code> or request the latest Mattermost release from GitHub. Security alerts aren't emailed, and the server doesn't report whether it's out of date.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableSecurityFixAlert</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLESECURITYFIXALERT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ## Connected workspaces
 
 <PlanAvailability slug="entry-ent" />

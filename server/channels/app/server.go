@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -81,6 +82,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
@@ -174,6 +176,14 @@ type Server struct {
 
 	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
 	notifyAdminCoolOffDaysOverride string
+
+	// latestVersionURLOverride overrides releases.LatestURL.
+	latestVersionURLOverride string
+}
+
+// LatestVersionURL is where the server looks up the latest release.
+func (s *Server) LatestVersionURL() string {
+	return cmp.Or(s.latestVersionURLOverride, releases.LatestURL)
 }
 
 // SetCWSTokenOverride sets the CWS token override for CWS login authentication.
@@ -306,7 +316,6 @@ func NewServer(options ...Option) (*Server, error) {
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
-		{Name: model.PostAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.PostAttributesPropertyGroupSchemaVersion},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
@@ -420,27 +429,17 @@ func NewServer(options ...Option) (*Server, error) {
 	s.propertyService.AddHook(valueAuditHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.
-	// Only "user" has a per-type cap today; when channel/team/post CPA fields
-	// are added, set their per-type caps here. Until then
-	// AccessControlGroupFieldLimit is the only ceiling for non-user
-	// object types within this group.
+	// "user" fields are capped at 20 and "post" fields at
+	// PostAttributesMaxFields, each counted across the whole group.
+	// Post fields still count toward AccessControlGroupFieldLimit, which is the
+	// only ceiling for the other object types within this group.
 	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
 	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
 		PerObjectType: map[string]int64{
 			model.PropertyFieldObjectTypeUser: 20,
+			model.PropertyFieldObjectTypePost: model.PostAttributesMaxFields,
 		},
 		GlobalLimit: model.AccessControlGroupFieldLimit,
-	})
-
-	// Post attributes are capped per target (the system, one team, or one channel) rather
-	// than group-wide, so one busy channel cannot exhaust every other channel's allowance.
-	// This cap is also what bounds the post hydration value lookup, so the two cannot drift.
-	postAttrGroup, err := s.propertyService.Group(model.PostAttributesPropertyGroupName)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to look up post attributes property group")
-	}
-	fieldLimitHook.AddGroupLimit(postAttrGroup.ID, &properties.FieldLimitConfig{
-		PerTarget: model.PostAttributesMaxFieldsPerTarget,
 	})
 
 	s.propertyService.AddHook(fieldLimitHook)

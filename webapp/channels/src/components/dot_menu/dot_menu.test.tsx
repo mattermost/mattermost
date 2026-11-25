@@ -709,6 +709,7 @@ describe('components/dot_menu/DotMenu', () => {
                             ...initialState.entities!.general!.config,
                             FeatureFlagPostAttributes: flag ? 'true' : 'false',
                         },
+                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
                     },
                     channels: {
                         ...initialState.entities!.channels,
@@ -735,8 +736,8 @@ describe('components/dot_menu/DotMenu', () => {
                         // chip row, so a field the user can set is the way in.
                         values: {byTargetId: hasValue ? {[post1.id]: {[field.id]: value}} : {}, byFieldId: {}},
                         groups: {
-                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
-                            byName: {post_attributes: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'access_control'}},
+                            byName: {access_control: {id: POST_ATTRIBUTES_GROUP_ID, name: 'access_control'}},
                         },
                     },
                 },

@@ -33,6 +33,11 @@ type Props = {
      */
     countId?: string;
 
+    /**
+     * Shows IconButton's unread badge: a dot on the icon's corner.
+     */
+    unreadBadge?: boolean;
+
     children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
@@ -51,6 +56,7 @@ const HeaderIconWrapper = (props: Props) => {
         children,
         count,
         countId,
+        unreadBadge,
         onClick,
         tooltip: tooltipText,
         tooltipShortcut,
@@ -88,6 +94,7 @@ const HeaderIconWrapper = (props: Props) => {
                     className={buttonClass || 'channel-header__icon'}
                     icon={children}
                     count={count}
+                    unreadBadge={unreadBadge}
                     active={active}
                     onClick={onClick}
                     aria-label={ariaLabelText}
