@@ -457,17 +457,27 @@ func newLoggedRetrier(t *testing.T, b *fakeBackend) (*BulkRetrier, func(substr s
 }
 
 func TestBulkRetrierLogsOneWarnPerRoundNotPerItem(t *testing.T) {
-	b := &fakeBackend{exists: allFound}
+	started := make(chan struct{})
+	release := make(chan struct{})
+	var once sync.Once
+	b := &fakeBackend{exists: func(items []BulkItem) (map[string]bool, error) {
+		once.Do(func() {
+			close(started)
+			<-release
+		})
+		return allFound(items)
+	}}
 	r, count := newLoggedRetrier(t, b)
 
-	for i := 0; i < 100; i++ {
-		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
+	r.Handle(indexItem("first"), 0, errTransport)
+	<-started // round 1 is running with one item
+	for i := 0; i < 99; i++ {
+		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport) // all wait for round 2
 	}
+	close(release)
 	wait(t, r)
 
-	rounds := len(b.chunks) // 100 items fit one check call, so one call per round
-	assert.Equal(t, rounds, count(`"level":"warn"`))
-	assert.Less(t, rounds, 10)
+	assert.Equal(t, 2, count(`"level":"warn"`))
 	assert.Zero(t, count(`"level":"error"`))
 }
 
