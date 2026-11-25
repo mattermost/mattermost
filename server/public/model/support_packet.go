@@ -253,7 +253,7 @@ type SupportPacketJobTypeSummary struct {
 	LastRunID       string // job_id in the server logs
 	LastRunStatus   string
 	LastRunCreateAt int64
-	// LastRunError is truncated; the full error is in the server logs under LastRunID.
+	// LastRunError is truncated to 2000 runes; the full error may be in the server logs under LastRunID.
 	LastRunError  string
 	LastSuccessAt int64 // CreateAt of the newest success or warning; 0 = never
 	// RunsCreated counts runs of this type created in the 30 days before the packet was

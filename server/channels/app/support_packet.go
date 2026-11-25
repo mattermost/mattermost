@@ -279,9 +279,9 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.SupportPacketJob
 	return &jobs, rErr.ErrorOrNil()
 }
 
-// maxJobErrorRunes keeps a job error short enough to read in a Support Packet; the full error is in the
-// server log under the job's id.
-const maxJobErrorRunes = 500
+// maxJobErrorRunes bounds a job error in the Support Packet, so one runaway error doesn't bloat jobs.yaml.
+// The full error may be in the server log under the job's id.
+const maxJobErrorRunes = 2000
 
 // truncateJobError cuts s to maxJobErrorRunes runes.
 func truncateJobError(s string) string {

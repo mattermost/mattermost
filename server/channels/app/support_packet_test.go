@@ -765,7 +765,7 @@ func TestSupportPacketJobSummary(t *testing.T) {
 	// A type outside the per-type job lists, so only the summary reports it.
 	jobType := model.JobTypeRefreshMaterializedViews
 	now := model.GetMillis()
-	jobError := `LDAP Result Code 200 "Network Error": dial tcp ldap.example.com:389: ` + strings.Repeat("ü", 600)
+	jobError := `LDAP Result Code 200 "Network Error": dial tcp ldap.example.com:389: ` + strings.Repeat("ü", maxJobErrorRunes)
 	succeeded := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 2000, Status: model.JobStatusSuccess}
 	failed := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": jobError}}
 	outsideWindow := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - (jobSummaryWindow + time.Hour).Milliseconds(), Status: model.JobStatusError}
