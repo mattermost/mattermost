@@ -195,6 +195,16 @@ describe('PasskeySection', () => {
 
             expect(none.closest('.alert-transparent')).not.toBeNull();
         });
+
+        test('keeps the delete button clear of the name and the list flush with its box', async () => {
+            renderExpanded(passkeys);
+            const laptop = await screen.findByText('Laptop');
+
+            const nameBlock = laptop.parentElement!;
+            expect(nameBlock).toHaveClass('flex-1');
+            expect(nameBlock).not.toContainElement(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+            expect(laptop.closest('ul')).toHaveClass('m-0');
+        });
     });
 
     test('deleting a passkey asks for confirmation, deletes it and refetches', async () => {

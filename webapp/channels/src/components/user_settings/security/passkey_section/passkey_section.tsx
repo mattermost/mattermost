@@ -243,15 +243,15 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             />
         )
     ) : (
-        <ul className='list-unstyled'>
+        <ul className='list-unstyled m-0'>
             {passkeys.map((passkey) => (
                 <li
                     key={passkey.id}
                     className='setting-box__item'
                 >
-                    <div className='d-flex justify-content-between align-items-center'>
-                        <div>
-                            <strong>{passkey.name}</strong>
+                    <div className='d-flex align-items-center'>
+                        <div className='flex-1 pr-3'>
+                            <strong className='word-break--all'>{passkey.name}</strong>
                             <div className='light'>
                                 <FormattedMessage
                                     id='user.settings.passkeys.created'
@@ -322,7 +322,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             );
         } else if (signInAgainNeeded) {
             addControl = (
-                <div className='pt-3'>
+                <div>
                     <div className='setting-list__hint pb-3'>
                         {formatMessage(messages.signInAgainHint)}
                     </div>
@@ -342,7 +342,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             );
         } else {
             addControl = (
-                <div className='pt-3'>
+                <div>
                     <div className='row'>
                         <label
                             htmlFor='passkeyName'
