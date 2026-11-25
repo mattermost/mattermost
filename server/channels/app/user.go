@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -1795,8 +1796,12 @@ func (a *App) revokeSessionsForPasswordUpdate(rctx request.CTX, user *model.User
 	if *a.Config().ServiceSettings.TerminateSessionsOnPasswordChange {
 		// Get currently active sessions if request is user-initiated to retain it
 		currentSession := ""
+		currentSessionToken := ""
+		currentSessionIsOAuth := false
 		if rctx.Session() != nil && rctx.Session().UserId == user.Id {
 			currentSession = rctx.Session().Id
+			currentSessionToken = rctx.Session().Token
+			currentSessionIsOAuth = rctx.Session().IsOAuth
 		}
 
 		sessions, err := a.GetSessions(rctx, user.Id)
@@ -1814,6 +1819,39 @@ func (a *App) revokeSessionsForPasswordUpdate(rctx request.CTX, user *model.User
 			if err != nil {
 				return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+		}
+
+		if appErr := a.removeOAuthGrantsForPasswordUpdate(user.Id, currentSessionToken, currentSessionIsOAuth); appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
+// A retained OAuth session keeps its access data, without the refresh token, because
+// revoking that session later requires the row.
+func (a *App) removeOAuthGrantsForPasswordUpdate(userID, currentSessionToken string, currentSessionIsOAuth bool) *model.AppError {
+	var currentAccessData *model.AccessData
+	if currentSessionIsOAuth && currentSessionToken != "" {
+		accessData, err := a.Srv().Store().OAuth().GetAccessData(currentSessionToken)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		currentAccessData = accessData
+	}
+
+	if err := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(userID); err != nil {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if err := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); err != nil {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if currentAccessData != nil {
+		currentAccessData.RefreshToken = ""
+		if _, err := a.Srv().Store().OAuth().SaveAccessData(currentAccessData); err != nil {
+			return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 

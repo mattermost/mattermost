@@ -339,6 +339,14 @@ func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) ([
 		}
 	}
 
+	// Must run after the loop: RevokeAccessToken fails once the access data is gone.
+	if err := ps.Store.OAuth().PermanentDeleteAuthDataByUser(userID); err != nil {
+		return nil, fmt.Errorf("%s: %w", err.Error(), DeleteTokenError)
+	}
+	if err := ps.Store.OAuth().RemoveAuthDataByUserId(userID); err != nil {
+		return nil, fmt.Errorf("%s: %w", err.Error(), DeleteTokenError)
+	}
+
 	ps.ClearUserSessionCache(userID)
 	return sessions, nil
 }
