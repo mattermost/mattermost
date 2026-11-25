@@ -7,6 +7,8 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {Page} from '@playwright/test';
 
+import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+
 // Channel attributes share the access_control group with Classification Markings.
 export const GROUP = 'access_control';
 export const TARGET_TYPE = 'system';
@@ -198,47 +200,21 @@ export async function assignAttributeOwner(
 }
 
 /**
- * Unarchives a channel that still lacks values for the given required fields.
- *
- * A person's unarchive must supply every required value they can set, so each
- * field's value writes are locked for the restore and its permissions put back
- * afterwards. Required is already on, so the field patches don't trip the
- * required gate.
+ * Unarchives a channel through a team admin who is not a channel member, so
+ * required attributes stay unset. That admin can restore the channel but cannot
+ * set a member-tier value, so the restore skips it. Fields must be member-tier.
  */
 export async function unarchiveWithoutRequiredValues(
+    pw: PlaywrightExtended,
     adminClient: Client4,
+    teamId: string,
     channelId: string,
-    fields: PropertyField[],
 ): Promise<void> {
-    type Permissions = {restrictions: {value: {write: string}}};
-    const saved: Array<{field: PropertyField; permissions: Permissions}> = [];
-    try {
-        for (const field of fields) {
-            const current = (
-                await adminClient.getPropertyFields(GROUP, field.object_type, {
-                    targetType: TARGET_TYPE,
-                    targetId: '',
-                } as Parameters<Client4['getPropertyFields']>[2])
-            ).find((f) => f.id === field.id);
-            const permissions = (current as unknown as {permissions?: Permissions} | undefined)?.permissions;
-            if (!permissions) {
-                throw new Error(`field ${field.name} has no permissions to lock`);
-            }
-            const locked = structuredClone(permissions);
-            locked.restrictions.value.write = 'none';
-            await adminClient.patchPropertyField(GROUP, field.object_type, field.id, {
-                permissions: locked,
-            } as Partial<PropertyField>);
-            saved.push({field, permissions});
-        }
-        await adminClient.unarchiveChannel(channelId);
-    } finally {
-        for (const {field, permissions} of saved) {
-            await adminClient.patchPropertyField(GROUP, field.object_type, field.id, {
-                permissions,
-            } as Partial<PropertyField>);
-        }
-    }
+    const restorer = await pw.createNewUserProfile(adminClient, {prefix: 'restorer'});
+    await adminClient.addToTeam(teamId, restorer.id);
+    await adminClient.updateTeamMemberSchemeRoles(teamId, restorer.id, true, true);
+    const {client} = await pw.makeClient({username: restorer.username, password: restorer.password});
+    await client.unarchiveChannel(channelId);
 }
 
 export async function createChannelForAttributes(

@@ -149,9 +149,10 @@ test.describe(
             const pair = await createChannelAttributeField(adminClient, fieldName('escape', suffix), {
                 options: ['Value A'],
                 required: true,
+                permissionValues: 'member',
                 displayName: `Escape ${suffix}`,
             });
-            await unarchiveWithoutRequiredValues(adminClient, channel.id, [pair.channelField]);
+            await unarchiveWithoutRequiredValues(pw, adminClient, team.id, channel.id);
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -405,8 +406,9 @@ test.describe(
             const pair = await createChannelAttributeField(adminClient, fieldName('undo', suffix), {
                 options: ['Value A'],
                 required: true,
+                permissionValues: 'member',
             });
-            await unarchiveWithoutRequiredValues(adminClient, channel.id, [pair.channelField]);
+            await unarchiveWithoutRequiredValues(pw, adminClient, team.id, channel.id);
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);

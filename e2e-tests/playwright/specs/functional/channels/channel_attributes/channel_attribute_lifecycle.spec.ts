@@ -168,7 +168,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 required: true,
             });
             created.push(required);
-            await unarchiveWithoutRequiredValues(adminClient, channel.id, [required]);
+            await unarchiveWithoutRequiredValues(pw, adminClient, team.id, channel.id);
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, channel.name);

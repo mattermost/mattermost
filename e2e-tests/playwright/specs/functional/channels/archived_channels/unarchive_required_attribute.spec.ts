@@ -189,8 +189,8 @@ test.describe('Unarchive - required channel attributes', {tag: ['@channel_attrib
     });
 
     /**
-     * @objective Verify a team admin who cannot set a sysadmin-level required value sees the flagged notice
-     * instead of the field, and can still unarchive the channel.
+     * @objective Verify a channel and team admin whose scheme strips manage_channel_roles cannot set an
+     * admin-level required value, sees the flagged notice instead of the field, and can still unarchive.
      */
     test('flags the channel for a team admin who cannot set the value and restores it', async ({pw}) => {
         test.setTimeout(REQUIRED_FIELD_TEST_TIMEOUT);
@@ -200,6 +200,7 @@ test.describe('Unarchive - required channel attributes', {tag: ['@channel_attrib
         const {adminClient} = await adminOrThrow();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
+        let schemeId: string | undefined;
 
         try {
             await purgeAttributes(adminClient);
@@ -211,12 +212,29 @@ test.describe('Unarchive - required channel attributes', {tag: ['@channel_attrib
             const channel = await createChannelForAttributes(creatorClient, team, `unarchive-flag-${suffix}`);
             await creatorClient.deleteChannel(channel.id);
 
+            // The admin tier is checked as manage_channel_roles, which both admin roles
+            // carry by default. A team scheme without it leaves the creator, a member who
+            // can read the values, unable to set this one.
+            await pw.ensurePhase2MigrationCompleted();
+            const scheme = await adminClient.createScheme({
+                display_name: `Unarchive flag ${suffix}`,
+                scope: 'team',
+            });
+            schemeId = scheme.id;
+            for (const roleName of [scheme.default_team_admin_role, scheme.default_channel_admin_role]) {
+                const role = await adminClient.getRoleByName(roleName);
+                await adminClient.patchRole(role.id, {
+                    permissions: role.permissions.filter((permission) => permission !== 'manage_channel_roles'),
+                });
+            }
+            await adminClient.updateTeamScheme(team.id, scheme.id);
+
             created.push(
                 await createAttribute(adminClient, attributeName('unarchive_flag', suffix), {
                     type: 'select',
                     options: OPTIONS,
                     required: true,
-                    permissionValues: 'sysadmin',
+                    permissionValues: 'admin',
                 }),
             );
 
@@ -240,6 +258,9 @@ test.describe('Unarchive - required channel attributes', {tag: ['@channel_attrib
             expect((await adminClient.getChannel(channel.id)).delete_at).toBe(0);
         } finally {
             await deleteAttributes(adminClient, created);
+            if (schemeId) {
+                await adminClient.deleteScheme(schemeId);
+            }
         }
     });
 });
