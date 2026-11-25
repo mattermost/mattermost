@@ -223,9 +223,7 @@ func TestBuildHealthSnapshotJobSummary(t *testing.T) {
 	})
 
 	t.Run("a failed summary query does not hide the job lists from the job rules", func(t *testing.T) {
-		original := th.App.Srv().Store()
-		th.App.Srv().SetStore(stubJobSummaryStore{Store: original, err: errors.New("job summary query failed")})
-		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+		stubJobSummary(t, th, nil, errors.New("job summary query failed"))
 
 		snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
 		require.NoError(t, buildErr)

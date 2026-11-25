@@ -248,7 +248,7 @@ type SupportPacketJobTypeSummary struct {
 	LastRunID       string `yaml:"last_run_id"` // job_id in the server logs
 	LastRunStatus   string `yaml:"last_run_status"`
 	LastRunCreateAt int64  `yaml:"last_run_create_at"`
-	// LastRunError is masked for URL credentials and truncated; the full error is in the server logs under LastRunID.
+	// LastRunError is truncated; the full error is in the server logs under LastRunID.
 	LastRunError  string `yaml:"last_run_error,omitempty"`
 	LastSuccessAt int64  `yaml:"last_success_at,omitempty"` // CreateAt of the newest success or warning; 0 = never
 	// RunsCreated counts runs of this type created in the 30 days before the packet was

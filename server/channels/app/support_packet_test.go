@@ -721,6 +721,27 @@ func (s stubJobSummaryJobStore) GetTypeSummaries(request.CTX, int64) ([]*store.J
 	return s.rows, s.err
 }
 
+// stubJobSummary makes the job summary query return rows and err until the test ends.
+func stubJobSummary(t *testing.T, th *TestHelper, rows []*store.JobTypeSummary, err error) {
+	original := th.App.Srv().Store()
+	th.App.Srv().SetStore(stubJobSummaryStore{Store: original, rows: rows, err: err})
+	t.Cleanup(func() { th.App.Srv().SetStore(original) })
+}
+
+func TestTruncateJobError(t *testing.T) {
+	t.Run("an error at the limit is kept whole", func(t *testing.T) {
+		exact := strings.Repeat("x", maxJobErrorRunes)
+		assert.Equal(t, exact, truncateJobError(exact))
+	})
+
+	t.Run("a long error is truncated on a rune boundary", func(t *testing.T) {
+		got := truncateJobError(strings.Repeat("ü", maxJobErrorRunes+10))
+
+		assert.True(t, utf8.ValidString(got))
+		assert.Equal(t, strings.Repeat("ü", maxJobErrorRunes)+"…", got)
+	})
+}
+
 func TestSupportPacketJobSummary(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -744,7 +765,7 @@ func TestSupportPacketJobSummary(t *testing.T) {
 	// A type outside the per-type job lists, so only the summary reports it.
 	jobType := model.JobTypeRefreshMaterializedViews
 	now := model.GetMillis()
-	jobError := `LDAP Result Code 200 "Network Error": dial ldap://admin:hunter2@ldap.example.com:389: ` + strings.Repeat("ü", 600)
+	jobError := `LDAP Result Code 200 "Network Error": dial tcp ldap.example.com:389: ` + strings.Repeat("ü", 600)
 	succeeded := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 2000, Status: model.JobStatusSuccess}
 	failed := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": jobError}}
 	outsideWindow := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - (jobSummaryWindow + time.Hour).Milliseconds(), Status: model.JobStatusError}
@@ -757,18 +778,14 @@ func TestSupportPacketJobSummary(t *testing.T) {
 		})
 	}
 
-	t.Run("jobs.yaml summarizes a type outside the job lists, with a masked, truncated error", func(t *testing.T) {
+	t.Run("jobs.yaml summarizes a type outside the job lists, with a truncated error", func(t *testing.T) {
 		jobs, body, _ := readJobsFile(t)
 
 		assert.Contains(t, body, "\njob_summary:\n")
 		require.Contains(t, jobs.JobSummary, jobType)
 		summary := jobs.JobSummary[jobType]
 
-		wantPrefix := `LDAP Result Code 200 "Network Error": dial ldap://****@ldap.example.com:389: `
-		assert.True(t, strings.HasPrefix(summary.LastRunError, wantPrefix), summary.LastRunError)
-		assert.NotContains(t, summary.LastRunError, "hunter2")
-		assert.True(t, utf8.ValidString(summary.LastRunError))
-		assert.Less(t, utf8.RuneCountInString(summary.LastRunError), utf8.RuneCountInString(jobError))
+		assert.Equal(t, truncateJobError(jobError), summary.LastRunError)
 
 		summary.LastRunError = ""
 		assert.Equal(t, &model.SupportPacketJobTypeSummary{
@@ -782,9 +799,7 @@ func TestSupportPacketJobSummary(t *testing.T) {
 	})
 
 	t.Run("a failed summary query leaves the job lists and omits the summary", func(t *testing.T) {
-		original := th.App.Srv().Store()
-		th.App.Srv().SetStore(stubJobSummaryStore{Store: original, err: errors.New("job summary query failed")})
-		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+		stubJobSummary(t, th, nil, errors.New("job summary query failed"))
 
 		jobs, body, files := readJobsFile(t)
 
@@ -802,9 +817,7 @@ func TestSupportPacketJobSummary(t *testing.T) {
 	})
 
 	t.Run("an empty Jobs table is written as a collected, empty summary", func(t *testing.T) {
-		original := th.App.Srv().Store()
-		th.App.Srv().SetStore(stubJobSummaryStore{Store: original, rows: []*store.JobTypeSummary{}})
-		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+		stubJobSummary(t, th, []*store.JobTypeSummary{}, nil)
 
 		jobs, body, _ := readJobsFile(t)
 

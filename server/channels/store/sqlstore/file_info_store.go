@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -799,7 +800,7 @@ func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, 
 }
 
 func (fs SqlFileInfoStore) RefreshFileStats() error {
-	ctx, cancel := fs.analyticsContext()
+	ctx, cancel := fs.analyticsContext(context.Background())
 	defer cancel()
 
 	// CONCURRENTLY is not used deliberately because as per Postgres docs,

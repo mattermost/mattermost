@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -505,7 +504,7 @@ func (jss SqlJobStore) GetTypeSummaries(rctx request.CTX, since int64) ([]*store
 	// (CleanupJobsThresholdDays is -1), so the table keeps growing; a 500k-row table takes about a second.
 	const query = `
 		WITH latest AS (
-			SELECT DISTINCT ON (Type) Type, Id, Status, CreateAt, Data->>'error' AS Error
+			SELECT DISTINCT ON (Type) Type, Id, Status, CreateAt
 			FROM Jobs
 			ORDER BY Type, CreateAt DESC, Id DESC
 		), agg AS (
@@ -520,15 +519,15 @@ func (jss SqlJobStore) GetTypeSummaries(rctx request.CTX, since int64) ([]*store
 			latest.Id AS LastRunId,
 			latest.Status AS LastRunStatus,
 			latest.CreateAt AS LastRunCreateAt,
-			COALESCE(latest.Error, '') AS LastRunError,
+			COALESCE(Jobs.Data->>'error', '') AS LastRunError,
 			COALESCE(agg.LastSuccessAt, 0) AS LastSuccessAt,
 			agg.RunsCreated,
 			agg.RunsFailed
-		FROM latest JOIN agg USING (Type)
+		FROM latest JOIN agg USING (Type) JOIN Jobs ON Jobs.Id = latest.Id
 		ORDER BY latest.Type`
 
-	// Derive from rctx, not context.Background(), so stopping the health check also stops the query.
-	ctx, cancel := context.WithTimeout(rctx.Context(), time.Duration(*jss.settings.AnalyticsQueryTimeout)*time.Second)
+	// Derive from rctx so stopping the health check also stops the query.
+	ctx, cancel := jss.analyticsContext(rctx.Context())
 	defer cancel()
 
 	summaries := []*store.JobTypeSummary{}

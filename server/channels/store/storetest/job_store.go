@@ -875,18 +875,17 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, summary := range summaries {
 		byType[summary.Type] = *summary
 	}
-	lastRun := func(jobType string) store.JobTypeSummary {
+	lastRun := func(jobType string) model.SupportPacketJobTypeSummary {
 		t.Helper()
 		summary, ok := byType[jobType]
 		require.True(t, ok, "job type %q is not listed", jobType)
 		require.True(t, model.IsValidId(summary.LastRunID))
 		summary.LastRunID = ""
-		return summary
+		return summary.SupportPacketJobTypeSummary
 	}
 
 	t.Run("a type with only runs before the window is listed with no recent runs", func(t *testing.T) {
-		assert.Equal(t, store.JobTypeSummary{
-			Type:            stale,
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
 			LastRunStatus:   model.JobStatusError,
 			LastRunCreateAt: since - 1000,
 			LastRunError:    "stale failure",
@@ -895,8 +894,7 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("runs in the window are counted whatever their status", func(t *testing.T) {
-		assert.Equal(t, store.JobTypeSummary{
-			Type:            busy,
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
 			LastRunStatus:   model.JobStatusInProgress,
 			LastRunCreateAt: since + 4000,
 			LastSuccessAt:   since - 1000,
@@ -906,8 +904,7 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("a type that never succeeded has no last success", func(t *testing.T) {
-		assert.Equal(t, store.JobTypeSummary{
-			Type:            neverSucceeded,
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
 			LastRunStatus:   model.JobStatusError,
 			LastRunCreateAt: since + 2000,
 			LastRunError:    "second",
@@ -917,8 +914,7 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("a warning counts as a success and not as a failure", func(t *testing.T) {
-		assert.Equal(t, store.JobTypeSummary{
-			Type:            warned,
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
 			LastRunStatus:   model.JobStatusWarning,
 			LastRunCreateAt: since + 2000,
 			LastRunError:    "partly exported",
@@ -928,8 +924,7 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("a run created exactly at the window start is counted", func(t *testing.T) {
-		assert.Equal(t, store.JobTypeSummary{
-			Type:            boundary,
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
 			LastRunStatus:   model.JobStatusError,
 			LastRunCreateAt: since,
 			RunsCreated:     1,

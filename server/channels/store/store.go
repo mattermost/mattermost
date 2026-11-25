@@ -1522,16 +1522,11 @@ type ThreadMembershipImportData struct {
 	UnreadMentions int64
 }
 
-// JobTypeSummary describes the runs of one job type. LastRunError is the newest run's raw error.
+// JobTypeSummary describes the runs of one job type. LastRunError is the newest run's raw error,
+// not yet masked or truncated.
 type JobTypeSummary struct {
-	Type            string
-	LastRunID       string
-	LastRunStatus   string
-	LastRunCreateAt int64
-	LastRunError    string
-	LastSuccessAt   int64
-	RunsCreated     int64
-	RunsFailed      int64
+	Type string
+	model.SupportPacketJobTypeSummary
 }
 
 // ChannelJoinRequestStore persists user requests to join discoverable private

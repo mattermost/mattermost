@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"cmp"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -2437,7 +2438,7 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 }
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
-	ctx, cancel := us.analyticsContext()
+	ctx, cancel := us.analyticsContext(context.Background())
 	defer cancel()
 
 	if _, err := us.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW poststats"); err != nil {

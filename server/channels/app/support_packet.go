@@ -18,7 +18,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
@@ -280,6 +279,19 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.SupportPacketJob
 	return &jobs, rErr.ErrorOrNil()
 }
 
+// maxJobErrorRunes keeps a job error short enough to read in a Support Packet; the full error is in the
+// server log under the job's id.
+const maxJobErrorRunes = 500
+
+// truncateJobError cuts s to maxJobErrorRunes runes.
+func truncateJobError(s string) string {
+	runes := []rune(s)
+	if len(runes) <= maxJobErrorRunes {
+		return s
+	}
+	return string(runes[:maxJobErrorRunes]) + "…"
+}
+
 // jobSummaryWindow is the period SupportPacketJobTypeSummary.RunsCreated and RunsFailed count runs over.
 const jobSummaryWindow = 30 * 24 * time.Hour
 
@@ -291,15 +303,9 @@ func (a *App) getSupportPacketJobSummary(rctx request.CTX) (model.SupportPacketJ
 
 	summary := make(model.SupportPacketJobSummary, len(rows))
 	for _, row := range rows {
-		summary[row.Type] = &model.SupportPacketJobTypeSummary{
-			LastRunID:       row.LastRunID,
-			LastRunStatus:   row.LastRunStatus,
-			LastRunCreateAt: row.LastRunCreateAt,
-			LastRunError:    healthcheck.SanitizeJobError(row.LastRunError),
-			LastSuccessAt:   row.LastSuccessAt,
-			RunsCreated:     row.RunsCreated,
-			RunsFailed:      row.RunsFailed,
-		}
+		s := row.SupportPacketJobTypeSummary
+		s.LastRunError = truncateJobError(s.LastRunError)
+		summary[row.Type] = &s
 	}
 
 	return summary, nil
