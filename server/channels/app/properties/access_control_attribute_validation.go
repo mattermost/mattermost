@@ -1143,13 +1143,37 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
-	callerID := h.propertyService.extractCallerID(rctx)
 
 	// Authorization precedes validation, and refusing here avoids the field
 	// round trip below.
 	if err := h.refuseDirectChannelValueWrite(rctx, values); err != nil {
 		return err
 	}
+
+	fieldMap, err := h.validateValueContents(rctx, values)
+	if err != nil {
+		return err
+	}
+
+	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
+}
+
+// ValidateValueContents runs the checks a value write makes on what is being
+// written -- shape per field type, required-ness and that every named option
+// exists -- without the authorization and change-policy checks, which depend on
+// where the values will be stored. It lets a caller that can only write after
+// another step refuse a bad value before taking that step.
+func (h *AccessControlAttributeValidationHook) ValidateValueContents(rctx request.CTX, values []*model.PropertyValue) error {
+	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
+		return nil
+	}
+	_, err := h.validateValueContents(rctx, values)
+	return err
+}
+
+func (h *AccessControlAttributeValidationHook) validateValueContents(rctx request.CTX, values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
+	groupID := values[0].GroupID
+	callerID := h.propertyService.extractCallerID(rctx)
 
 	// Collect unique field IDs
 	fieldIDSet := make(map[string]struct{})
@@ -1163,7 +1187,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 
 	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
-		return fmt.Errorf("failed to fetch fields for validation: %w", err)
+		return nil, fmt.Errorf("failed to fetch fields for validation: %w", err)
 	}
 
 	fieldMap := make(map[string]*model.PropertyField, len(fields))
@@ -1186,11 +1210,11 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	for _, value := range values {
 		field, ok := fieldMap[value.FieldID]
 		if !ok {
-			return fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
 		optionIDs, err := h.validateValueAgainstField(field, value)
 		if err != nil {
-			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
+			return nil, fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
 		// The kill switch is scoped to channel attributes: a required field on any
 		// other object type (post, user) stays enforced regardless of the flag.
@@ -1200,7 +1224,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
 			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) &&
 			!h.propertyService.isDefinitionSync(rctx, field, callerID) {
-			return newRequiredValueError(field)
+			return nil, newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {
 			continue
@@ -1225,7 +1249,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	for fieldID, optionIDs := range neededByField {
 		existing, err := h.propertyService.fieldStore.GetExistingOptionIDs(fieldMap[fieldID], optionIDs)
 		if err != nil {
-			return fmt.Errorf("failed to look up the options of field %s: %w", fieldID, err)
+			return nil, fmt.Errorf("failed to look up the options of field %s: %w", fieldID, err)
 		}
 		existingSet := make(map[string]struct{}, len(existing))
 		for _, id := range existing {
@@ -1236,11 +1260,11 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 
 	for _, p := range pending {
 		if err := optionsMissing(p.optionIDs, existingByField[p.fieldID]); err != nil {
-			return fmt.Errorf("field %s: %s: %w", p.fieldID, err.Error(), ErrInvalidValue)
+			return nil, fmt.Errorf("field %s: %s: %w", p.fieldID, err.Error(), ErrInvalidValue)
 		}
 	}
 
-	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
+	return fieldMap, nil
 }
 
 // validateChangePolicy enforces attrs.change_policy: a value may be set once,

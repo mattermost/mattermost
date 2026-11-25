@@ -491,6 +491,13 @@ func TestCanSetChannelAttributeOnPendingChannel(t *testing.T) {
 	none := model.PermissionLevelNone
 	unknown := model.PermissionLevel("supervisor")
 
+	t.Run("creator and everyone are satisfied by creation itself", func(t *testing.T) {
+		creator := model.PermissionLevelCreator
+		everyone := model.PermissionLevelEveryone
+		require.True(t, th.App.CanSetChannelAttributeOnPendingChannel(th.Context, &model.PropertyField{PermissionValues: &creator}))
+		require.True(t, th.App.CanSetChannelAttributeOnPendingChannel(th.Context, &model.PropertyField{PermissionValues: &everyone}))
+	})
+
 	t.Run("member and admin are satisfied by creation itself", func(t *testing.T) {
 		require.True(t, th.App.CanSetChannelAttributeOnPendingChannel(th.Context, &model.PropertyField{PermissionValues: &member}))
 		require.True(t, th.App.CanSetChannelAttributeOnPendingChannel(th.Context, &model.PropertyField{PermissionValues: &admin}))
@@ -519,6 +526,28 @@ func TestCanSetChannelAttributeOnPendingChannel(t *testing.T) {
 		rctx := th.Context.WithSession(&model.Session{Roles: model.SystemUserRoleId})
 		require.False(t, th.App.CanSetChannelAttributeOnPendingChannel(rctx, &model.PropertyField{PermissionValues: &sysadmin}))
 	})
+}
+
+func TestIsDirectChannelOnMaster(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	other := th.CreateUser(t)
+	th.LinkUserToTeam(t, other, th.BasicTeam)
+	other2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, other2, th.BasicTeam)
+	gm := th.CreateGroupChannel(t, other, other2)
+
+	isDirect, err := th.App.isDirectChannelOnMaster(th.Context, gm.Id)
+	require.NoError(t, err)
+	assert.True(t, isDirect)
+
+	isDirect, err = th.App.isDirectChannelOnMaster(th.Context, th.BasicChannel.Id)
+	require.NoError(t, err)
+	assert.False(t, isDirect)
+
+	_, err = th.App.isDirectChannelOnMaster(th.Context, model.NewId())
+	require.Error(t, err)
 }
 
 func TestConvertGroupMessageToChannelRequiredAttributes(t *testing.T) {
@@ -683,12 +712,12 @@ func TestConvertGroupMessageToChannelRequiredAttributes(t *testing.T) {
 		requireNoMissingAttributesPost(t, th, bot.UserId, th.BasicUser.Id)
 	})
 
-	t.Run("a value write that fails leaves a group message, as it was", func(t *testing.T) {
+	t.Run("a value the write would refuse is refused before the conversion", func(t *testing.T) {
 		th := setupMissingAttributes(t)
 		gm, team, ctx := newGM(t, th)
 		members := memberIDsOf(t, th, gm)
-		// An option that doesn't exist passes the checks made up front and is
-		// refused by the value hooks, once the channel is already private.
+		// An option that doesn't exist is refused by the value hooks, which can
+		// only run once the channel is private, so it is checked before that.
 		field := createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeSelect, "Program", true, model.PermissionLevelAdmin)
 
 		converted, appErr := th.App.ConvertGroupMessageToChannel(ctx, th.BasicUser.Id, conversion(gm, team,
@@ -697,7 +726,13 @@ func TestConvertGroupMessageToChannelRequiredAttributes(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.NotEqual(t, "api.channel.create_channel.missing_required_attributes.app_error", appErr.Id)
 		assert.NotEqual(t, "api.channel.create_channel.invalid_attribute.app_error", appErr.Id)
+		assert.Equal(t, "app.property_value.validate.app_error", appErr.Id)
 
+		// An untouched UpdateAt means the type change was never made, so no
+		// channel_updated event went out either.
+		current, appErr := th.App.GetChannel(th.Context, gm.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, gm.UpdateAt, current.UpdateAt)
 		requireStillGM(t, th, gm, members)
 		member, appErr := th.App.GetChannelMember(th.Context, gm.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)

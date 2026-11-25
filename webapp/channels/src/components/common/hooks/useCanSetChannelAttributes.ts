@@ -9,7 +9,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getPropertyFieldChangePolicy, isPropertyFieldSourceManaged} from 'mattermost-redux/utils/property_utils';
 
 import type {GlobalState} from 'types/store';
@@ -28,6 +28,7 @@ import type {GlobalState} from 'types/store';
 export default function useCanSetChannelAttributes(channelId: string) {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const currentUserId = useSelector(getCurrentUserId);
 
     const canManageChannelRoles = useSelector((state: GlobalState) => (
         channel ? haveIChannelPermission(state, channel.team_id, channelId, Permissions.MANAGE_CHANNEL_ROLES) : false
@@ -62,10 +63,14 @@ export default function useCanSetChannelAttributes(channelId: string) {
         case 'admin':
         case '':
             return isSystemAdmin || canManageChannelRoles;
+        case 'creator':
+            return isSystemAdmin || canManageChannelRoles || channel.creator_id === currentUserId;
         case 'member':
             return isSystemAdmin || canReadChannel;
+        case 'everyone':
+            return true;
         default:
             return false;
         }
-    }, [channel, isSystemAdmin, canManageChannelRoles, canReadChannel]);
+    }, [channel, isSystemAdmin, currentUserId, canManageChannelRoles, canReadChannel]);
 }

@@ -925,6 +925,8 @@ func TestPropertySyncHelpers(t *testing.T) {
 		assert.False(t, propertyValueChanged(model.PropertyFieldTypeMultiselect, v(`["x","y"]`), json.RawMessage(`["y","x"]`)))
 		assert.True(t, propertyValueChanged(model.PropertyFieldTypeMultiselect, v(`["x","y"]`), json.RawMessage(`["x"]`)))
 		assert.True(t, propertyValueChanged(model.PropertyFieldTypeMultiselect, v(`"legacy-text"`), json.RawMessage(`["x"]`)))
+		assert.False(t, propertyValueChanged(model.PropertyFieldTypeGraph, v(`["x","y"]`), json.RawMessage(`["y","x"]`)))
+		assert.True(t, propertyValueChanged(model.PropertyFieldTypeGraph, v(`["x","y"]`), json.RawMessage(`["x"]`)))
 	})
 
 	t.Run("lostOptionReferences", func(t *testing.T) {

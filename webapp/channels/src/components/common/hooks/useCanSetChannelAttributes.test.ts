@@ -43,11 +43,11 @@ function field(permissionValues: PropertyField['permission_values'], changePolic
     };
 }
 
-function makeState(isSystemAdmin = false): DeepPartial<GlobalState> {
+function makeState(isSystemAdmin = false, creatorId = ''): DeepPartial<GlobalState> {
     return {
         entities: {
             channels: {
-                channels: {[CHANNEL_ID]: {id: CHANNEL_ID, team_id: TEAM_ID, type: 'P'}},
+                channels: {[CHANNEL_ID]: {id: CHANNEL_ID, team_id: TEAM_ID, type: 'P', creator_id: creatorId}},
             },
             users: {
                 currentUserId: 'user1',
@@ -81,6 +81,34 @@ describe('useCanSetChannelAttributes', () => {
         const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState());
 
         expect(result.current(field('member'))).toBe(true);
+    });
+
+    test('creator tier is settable by the channel creator without any role', () => {
+        mockChannelPermissions = {read_channel: true, manage_channel_roles: false};
+        const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState(false, 'user1'));
+
+        expect(result.current(field('creator'))).toBe(true);
+    });
+
+    test('creator tier is refused to a member who is neither creator nor admin', () => {
+        mockChannelPermissions = {read_channel: true, manage_channel_roles: false};
+        const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState(false, 'someone-else'));
+
+        expect(result.current(field('creator'))).toBe(false);
+    });
+
+    test('creator tier is settable by a channel admin who is not the creator', () => {
+        mockChannelPermissions = {read_channel: true, manage_channel_roles: true};
+        const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState(false, 'someone-else'));
+
+        expect(result.current(field('creator'))).toBe(true);
+    });
+
+    test('everyone tier is settable by anyone', () => {
+        mockChannelPermissions = {read_channel: false, manage_channel_roles: false};
+        const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState());
+
+        expect(result.current(field('everyone'))).toBe(true);
     });
 
     test('admin tier requires manage_channel_roles', () => {
