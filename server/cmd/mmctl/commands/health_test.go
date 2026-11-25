@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"testing"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -615,7 +616,7 @@ func healthTestRelease(tag string) http.HandlerFunc {
 
 // serveLatestRelease points the --packet latest release fetch at handler until the test ends,
 // and counts the requests that reach it.
-func (s *MmctlUnitTestSuite) serveLatestRelease(handler http.HandlerFunc) *atomic.Int32 {
+func serveLatestRelease(t testing.TB, handler http.HandlerFunc) *atomic.Int32 {
 	var requests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requests.Add(1)
@@ -623,7 +624,7 @@ func (s *MmctlUnitTestSuite) serveLatestRelease(handler http.HandlerFunc) *atomi
 	}))
 	originalURL := healthLatestVersionURL
 	healthLatestVersionURL = server.URL
-	s.T().Cleanup(func() {
+	t.Cleanup(func() {
 		healthLatestVersionURL = originalURL
 		server.Close()
 	})
@@ -661,7 +662,7 @@ func healthTestFinding(findings []*model.HealthFinding, code string) *model.Heal
 }
 
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
-	s.serveLatestRelease(healthTestRelease("v12.4.0"))
+	serveLatestRelease(s.T(), healthTestRelease("v12.4.0"))
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04 MST")
 	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
@@ -816,7 +817,7 @@ Could not evaluate
 	supportedPacket := s.writeHealthTestPacket(supportedFiles)
 
 	s.Run("fetches the latest release the packet doesn't record", func() {
-		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
+		requests := serveLatestRelease(s.T(), healthTestRelease("v"+latest))
 
 		findings := s.runHealthPacketJSON(supportedPacket)
 
@@ -838,7 +839,7 @@ Could not evaluate
 	}
 
 	s.Run("a failed fetch leaves version-behind findings unknown", func() {
-		s.serveLatestRelease(func(w http.ResponseWriter, _ *http.Request) {
+		serveLatestRelease(s.T(), func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusBadGateway)
 		})
 
@@ -849,7 +850,7 @@ Could not evaluate
 	})
 
 	s.Run("a timed out fetch leaves version-behind findings unknown", func() {
-		s.serveLatestRelease(func(_ http.ResponseWriter, r *http.Request) {
+		serveLatestRelease(s.T(), func(_ http.ResponseWriter, r *http.Request) {
 			select {
 			case <-r.Context().Done():
 			case <-time.After(5 * time.Second):
@@ -868,7 +869,7 @@ Could not evaluate
 	})
 
 	s.Run("an interrupted command stops the fetch", func() {
-		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
+		requests := serveLatestRelease(s.T(), healthTestRelease("v"+latest))
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 		cmd := s.healthPacketTestCommand(supportedPacket, false, false)
@@ -884,7 +885,7 @@ Could not evaluate
 	})
 
 	s.Run("a latest release the snapshot already records is not fetched", func() {
-		requests := s.serveLatestRelease(healthTestRelease("v99.0.0"))
+		requests := serveLatestRelease(s.T(), healthTestRelease("v99.0.0"))
 		snapshot := &healthcheck.Snapshot{}
 		snapshot.Version.Latest = "12.1.0"
 
@@ -1037,7 +1038,7 @@ func (s *MmctlUnitTestSuite) healthTestCommand(command *cobra.Command, flags ...
 }
 
 func (s *MmctlUnitTestSuite) TestHealthExport() {
-	s.serveLatestRelease(healthTestRelease("v12.4.0"))
+	serveLatestRelease(s.T(), healthTestRelease("v12.4.0"))
 	lastSeen := time.Now().Add(-5 * time.Minute)
 	exportList := func() *model.HealthFindingList {
 		list := healthTestList(lastSeen)
