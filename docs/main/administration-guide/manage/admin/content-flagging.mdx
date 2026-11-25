@@ -113,7 +113,7 @@ If you choose to skip the report download from the **Remove message** or **Keep 
 
 If report generation fails (for example, due to a network interruption or session timeout), the dialog displays an error and offers a retry option. You can also skip the report and proceed with the action, or cancel and download the report later from the message details.
 
-Each time a reviewer generates a quarantined message report or a [post exposure report](#generate-a-post-exposure-report), the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained. If the report was generated without the message's file attachments, the bot sends an additional notification to the reviewer who requested it, explaining why. See [File attachments and download policies](#file-attachments-and-download-policies) for details.
+Each time a reviewer generates a quarantined message report or a [post exposure report](#generate-a-post-exposure-report), the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained. From Mattermost v12.3, the notification includes the downloaded file's name and SHA-256 checksum, so reviewers can confirm that a copy shared with them hasn't been modified. See [Verify a downloaded report](#verify-a-downloaded-report) for details. If the report was generated without the message's file attachments, the bot sends an additional notification to the reviewer who requested it, explaining why. See [File attachments and download policies](#file-attachments-and-download-policies) for details.
 
 <Tip>
 
@@ -273,6 +273,40 @@ The report is derived from channel membership history and channel read state, wh
 - **Deleted accounts are omitted**: If a user's account record no longer exists, that user is skipped, and **Total users** reflects the count after the skip.
 
 Generating an exposure report queries session activity for each user in the report individually, and the whole report is assembled in memory before the download starts. On channels with several thousand members, expect generation to take proportionally longer.
+
+### Verify a downloaded report
+
+From Mattermost v12.3, reviewers can confirm that a quarantined message report or a post exposure report is exactly the file Mattermost produced. Reports are often passed between reviewers, incident responders, and compliance teams outside Mattermost, and without a way to verify them, someone could edit a report's contents, re-create the archive, and share the altered file as the original.
+
+Before Mattermost serves a report, it computes the SHA-256 checksum of the exact file being downloaded, and records it in places the reviewer who downloaded the report can't change:
+
+- **Every reviewer's content review thread**: The **Data Spillage Bot** posts the name of the reviewer who downloaded the report, the file name, and the SHA-256 checksum in each content reviewer's review thread for the quarantined message, including the thread of the reviewer who downloaded it. Each review thread is a reviewer's own direct message with the bot, so the reviewer who downloaded the report can't edit the checksum that other reviewers see.
+- **The audit log**: The `generateFlaggedPostReport` and `generatePostExposureReport` audit entries record `filename` and `sha256` parameters.
+- **The download response**: The report download includes an `X-Report-SHA256` response header, so API clients and automated tooling can verify a download without reading the review thread.
+
+To verify a report you've received:
+
+1.  In your content review thread for the quarantined message, find the **Data Spillage Bot** message whose file name matches the report you received.
+2.  Compute the SHA-256 checksum of the file:
+
+    - **macOS**: `shasum -a 256 <file>`
+    - **Linux**: `sha256sum <file>`
+    - **Windows (PowerShell)**: `Get-FileHash <file> -Algorithm SHA256`
+
+3.  Compare the result with the checksum in the bot message. Windows prints the checksum in uppercase, so compare without regard to letter case.
+
+If the checksums match, the file is byte-for-byte identical to the one Mattermost served. If they don't match, the file was modified after it was downloaded, so treat it as untrusted and generate a fresh report.
+
+Keep the following in mind when verifying reports:
+
+- **Every download has its own checksum**: A quarantined message report embeds its generation timestamp, and an exposure report reflects live channel read state, so two downloads of the report for the same message almost always have different checksums. Verify a file against the bot message for that specific download, matched by file name.
+- **Any change breaks the match**: Extracting and re-compressing a report archive, even without editing its contents, produces a different checksum. Share and store reports as the original downloaded file.
+- **Review threads created after a download don't receive its checksum**: The checksum is posted to the review threads that exist when the report is downloaded. Review threads are created shortly after a message is quarantined, so a report downloaded in that window may not reach every reviewer. Those reviewers can ask a System Administrator for the checksum from the audit log.
+- **Downloads aren't blocked when the checksum can't be posted**: If posting the checksum to review threads fails, the report is still downloaded. The checksum remains in the audit log and in the response header, and Mattermost logs an error that includes the quarantined message's post ID, the file name, and the checksum.
+
+The checksum proves a file is unchanged since Mattermost served it. It isn't a digital signature, and it doesn't identify who shared the file afterward.
+
+Data Spillage Bot messages in review threads, including checksum notifications and reviewer assignment, keep, and remove notifications, are shown in each reviewer's language.
 
 ### Deleted messages
 

@@ -426,6 +426,10 @@
               schema:
                 type: string
               description: Specifies the suggested filename for the downloaded archive (e.g. `attachment; filename="flagged-post-{post_id}-{timestamp}.zip"`).
+            X-Report-SHA256:
+              schema:
+                type: string
+              description: The hex-encoded SHA-256 checksum of the response body. The same checksum and file name are posted to every content reviewer's review thread for the post and recorded in the audit log, so a copy of the file can be verified later. Each download is hashed separately and its checksum usually differs from earlier downloads.
           content:
             application/zip:
               schema:
@@ -468,6 +472,10 @@
               schema:
                 type: string
               description: Specifies the suggested filename for the downloaded file (e.g. `attachment; filename="post-exposure-{post_id}-{timestamp}.csv"`).
+            X-Report-SHA256:
+              schema:
+                type: string
+              description: The hex-encoded SHA-256 checksum of the response body. The same checksum and file name are posted to every content reviewer's review thread for the post and recorded in the audit log, so a copy of the file can be verified later. Each download is hashed separately and its checksum usually differs from earlier downloads.
           content:
             text/csv:
               schema:
