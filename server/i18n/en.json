@@ -6279,8 +6279,8 @@
   },
   {
     "id": "api.user.create_user_access_token.passkey_session.app_error",
-    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then create the token.",
-    "description": "API error when a session that was started by signing in with a passkey tries to create or re-enable a personal access token for its own account. 'Passkey' is a sign-in credential stored on the user's device or password manager."
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then manage your access tokens.",
+    "description": "API error when a session that was started by signing in with a passkey tries to create, re-enable or rotate (issue a new secret for) a personal access token for its own account. 'Passkey' is a sign-in credential stored on the user's device or password manager."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
