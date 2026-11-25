@@ -32,7 +32,7 @@ var ChannelCreateCmd = &cobra.Command{
 
 When the server requires channel attributes, pass each value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
 
-An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
 	Example: `  channel create --team myteam --name mynewchannel --display-name "My New Channel"
   channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private
   channel create --team myteam --name ops --display-name "Ops" --attribute "Classification=Secret" --attribute "Region=EMEA" --attribute "Region=APAC"`,
@@ -95,7 +95,7 @@ When the server requires channel attributes, --attribute can be used only togeth
 
 Pass each attribute value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
 
-An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
 	Example: `  channel modify myteam:mychannel --private
   channel modify myteam:mychannel --private --attribute "Classification=Secret"
   channel modify channelId --public`,
@@ -113,7 +113,7 @@ When the server requires channel attributes, the values you pass are applied to 
 
 Pass each attribute value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
 
-An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect attribute. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.`,
 	Example: `  channel unarchive myteam:mychannel
   channel unarchive myteam:mychannel myteam:otherchannel --attribute "Classification=Secret"`,
 	RunE: withClient(unarchiveChannelsCmdF),
@@ -148,11 +148,11 @@ func init() {
 	ChannelCreateCmd.Flags().String("header", "", "Channel header")
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
-	ChannelCreateCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
+	ChannelCreateCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute`)
 
 	ModifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
-	ModifyChannelCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
-	UnarchiveChannelCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect attribute`)
+	ModifyChannelCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute`)
+	UnarchiveChannelCmd.Flags().StringArray("attribute", nil, `Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute`)
 	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
 
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")

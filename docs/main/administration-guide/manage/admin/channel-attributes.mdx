@@ -52,6 +52,10 @@ To manage values together with the channel's other information:
 
 Changes made in Channel Settings remain pending until you select **Save**. Channel attributes aren't available for direct message or group message channels.
 
+### From mmctl
+
+System admins can list and set channel attribute values from the command line with [mmctl channel attributes](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-attributes). `mmctl channel create`, `mmctl channel modify --private`, and `mmctl channel unarchive` also accept `--attribute` to set values in the same command.
+
 ## Use channel attributes in access rules
 
 From Mattermost v12.0, a membership or permission policy rule can compare a user attribute with an attribute of the channel being accessed. For example, a single system-wide policy assigned to many channels can require each user's clearance to be at least the clearance set on each channel. Rules are written in CEL, the expression language Mattermost uses for access rules:
