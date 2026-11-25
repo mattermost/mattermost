@@ -355,13 +355,28 @@ func TestBusDisabledWhileSubscriberStartsDropsTheDelivery(t *testing.T) {
 	tb.registerItemSignals(t)
 	tb.hooks.setStarting(subscriberID, true)
 	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
-	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("early"), "", nil))
 
-	require.Eventually(t, func() bool { return tb.hooks.startingObserved(subscriberID) > 0 }, 5*time.Second, 5*time.Millisecond)
+	// Run the delivery directly so the test can wait for it to finish.
+	q := subscriberQueue(t, tb, subscriberID)
+	tb.subs.mu.RLock()
+	sub := tb.subs.subscribers[subscriberID].byID["s"]
+	tb.subs.mu.RUnlock()
+	qd := &queuedDelivery{
+		delivery: &model.SignalDelivery{ID: "early", Signal: publisherID + "/item_created", Payload: itemPayload("early")},
+		matched:  []*model.SignalSubscription{sub},
+	}
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		tb.deliver(q, qd)
+	}()
+
+	require.Eventually(t, func() bool { return tb.hooks.startingObserved(subscriberID) > 0 }, 5*time.Second, 5*time.Millisecond,
+		"the delivery is waiting for OnActivate")
 	tb.enabled.Store(false)
 	tb.hooks.setStarting(subscriberID, false)
 
-	time.Sleep(4 * startingPollInterval)
+	waitClosed(t, done)
 	assert.Empty(t, tb.hooks.delivered(subscriberID))
 }
 
