@@ -6,6 +6,7 @@ import {FormattedDate, FormattedMessage, defineMessages, useIntl} from 'react-in
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Passkey} from '@mattermost/types/passkeys';
 
 import {Client4} from 'mattermost-redux/client';
@@ -351,6 +352,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                 id='deletePasskeyModal'
                 compassDesign={true}
                 show={showDelete}
+                isConfirmDisabled={!showDelete}
                 modalHeaderText={
                     <FormattedMessage
                         id='user.settings.passkeys.deleteTitle'
@@ -380,7 +382,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                         values={{name: toDelete?.name}}
                     />
                 </p>
-                {typeof window.PublicKeyCredential?.signalUnknownCredential === 'function' && (
+                {!isDesktopApp() && typeof window.PublicKeyCredential?.signalUnknownCredential === 'function' && (
                     <p>
                         <FormattedMessage
                             id='user.settings.passkeys.deleteForgetOnDevice'

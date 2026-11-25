@@ -461,6 +461,7 @@ describe('PasskeySection', () => {
 
         afterEach(() => {
             Reflect.deleteProperty(window, 'PublicKeyCredential');
+            isDesktopAppMock.mockReturnValue(false);
         });
 
         test('says the browser will be asked to remove the passkey when it can be', async () => {
@@ -469,6 +470,30 @@ describe('PasskeySection', () => {
             const dialog = await openDialog();
 
             expect(within(dialog).getByText(forgetSentence)).toBeInTheDocument();
+        });
+
+        test('does not promise browser removal inside the desktop app', async () => {
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential: jest.fn()}), configurable: true});
+            isDesktopAppMock.mockReturnValue(true);
+
+            const dialog = await openDialog();
+
+            expect(within(dialog).getByText(/You will no longer be able to sign in with "Laptop"/)).toBeInTheDocument();
+            expect(within(dialog).queryByText(forgetSentence)).not.toBeInTheDocument();
+        });
+
+        test('sends one delete request when Delete is double-clicked while the dialog closes', async () => {
+            deletePasskey.mockResolvedValueOnce({status: 'OK'} as never).mockRejectedValue({message: 'Passkey not found.'});
+            const dialog = await openDialog();
+            getPasskeys.mockResolvedValue([passkeys[1]]);
+
+            await userEvent.dblClick(within(dialog).getByRole('button', {name: 'Delete'}));
+
+            await waitFor(() => {
+                expect(screen.queryByText('Laptop')).not.toBeInTheDocument();
+            });
+            expect(deletePasskey).toHaveBeenCalledTimes(1);
+            expect(screen.queryByText('Passkey not found.')).not.toBeInTheDocument();
         });
 
         test('promises nothing when the browser has no Signal API', async () => {
