@@ -34,7 +34,11 @@ func onBulkFailure(retrier *common.BulkRetrier) onFailureFunc {
 func closeBulk(bi esutil.BulkIndexer, retrier *common.BulkRetrier, logger mlog.LoggerIFace) (int64, error) {
 	// Close first: its last flush can still hand items to the retrier.
 	err := bi.Close(context.Background())
-	_ = retrier.Wait(context.Background())
+	waitCtx, cancel := context.WithTimeout(context.Background(), common.BulkRetryWaitLimit)
+	defer cancel()
+	if err := retrier.Wait(waitCtx); err != nil {
+		logger.Warn("Bulk retries stopped, the rest count as failed", mlog.Err(err))
+	}
 
 	stats := bi.Stats()
 	fields := []mlog.Field{

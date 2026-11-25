@@ -6,6 +6,7 @@ package common
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -20,29 +21,39 @@ import (
 
 // fakeBackend answers from the funcs and records the calls.
 type fakeBackend struct {
-	mut     sync.Mutex
-	exists  func(items []BulkItem) (map[string]bool, error)
-	apply   func(item BulkItem) (int, error)
+	mut    sync.Mutex
+	exists func(items []BulkItem) (map[string]bool, error)
+	apply  func(item BulkItem) (int, error)
+	// hang makes every call wait for its context to end.
+	hang    bool
 	checked []string
 	applied []string
 }
 
-func (f *fakeBackend) Exists(_ context.Context, items []BulkItem) (map[string]bool, error) {
+func (f *fakeBackend) Exists(ctx context.Context, items []BulkItem) (map[string]bool, error) {
 	f.mut.Lock()
 	for _, it := range items {
 		f.checked = append(f.checked, it.DocID)
 	}
 	f.mut.Unlock()
+	if f.hang {
+		<-ctx.Done()
+		return nil, ctx.Err()
+	}
 	if f.exists == nil {
 		return map[string]bool{}, nil
 	}
 	return f.exists(items)
 }
 
-func (f *fakeBackend) Apply(_ context.Context, item BulkItem) (int, error) {
+func (f *fakeBackend) Apply(ctx context.Context, item BulkItem) (int, error) {
 	f.mut.Lock()
 	f.applied = append(f.applied, item.DocID)
 	f.mut.Unlock()
+	if f.hang {
+		<-ctx.Done()
+		return 0, ctx.Err()
+	}
 	if f.apply == nil {
 		return http.StatusOK, nil
 	}
@@ -318,4 +329,45 @@ func TestBulkRetrierBackoffIgnoresOlderItemsWhenNewOnesArrive(t *testing.T) {
 	r.Backoff = time.Second
 
 	assert.Equal(t, time.Second, r.backoff([]retryItem{{attempts: 3}, {attempts: 0}}))
+}
+
+func TestBulkRetrierCallTimeoutEndsHungBackend(t *testing.T) {
+	b := &fakeBackend{hang: true}
+	r := newTestRetrier(t, b)
+	r.Timeout = 10 * time.Millisecond
+
+	r.Handle(indexItem("a"), 0, errTransport)
+	wait(t, r)
+
+	assert.Equal(t, int64(1), r.Failed())
+}
+
+func TestBulkRetrierWaitStopsRetriesWhenContextEnds(t *testing.T) {
+	b := &fakeBackend{hang: true}
+	r := newTestRetrier(t, b)
+	r.Handle(indexItem("a"), 0, errTransport)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	assert.Error(t, r.Wait(ctx))
+
+	wait(t, r) // the stopped retries settle on their own
+	assert.Equal(t, int64(1), r.Failed())
+}
+
+func TestBulkRetrierEachResendGetsItsOwnBody(t *testing.T) {
+	var bodies []io.ReadSeeker
+	b := &fakeBackend{apply: func(item BulkItem) (int, error) {
+		bodies = append(bodies, item.Body)
+		return http.StatusServiceUnavailable, nil
+	}}
+	r := newTestRetrier(t, b)
+
+	item := indexItem("a")
+	r.Handle(item, 0, errTransport)
+	wait(t, r)
+
+	require.Len(t, bodies, 4)
+	assert.NotSame(t, bodies[0], bodies[1])
+	assert.NotSame(t, item.Body, bodies[0])
 }

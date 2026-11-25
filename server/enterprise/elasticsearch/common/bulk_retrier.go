@@ -4,6 +4,7 @@
 package common
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -18,6 +19,9 @@ const (
 	bulkRetryMaxAttempts = 4
 	bulkRetryChunkSize   = 1000
 	bulkRetryBackoff     = 2 * time.Second
+
+	// BulkRetryWaitLimit is the longest a job close waits for the retries.
+	BulkRetryWaitLimit = 5 * time.Minute
 )
 
 type BulkItem struct {
@@ -36,6 +40,7 @@ type BulkBackend interface {
 
 type retryItem struct {
 	BulkItem
+	body     []byte // own copy, so a late reader of the old Body cannot clash
 	attempts int
 }
 
@@ -46,6 +51,12 @@ type BulkRetrier struct {
 	logger  mlog.LoggerIFace
 	// Backoff is the wait before an item's first check. It doubles per attempt.
 	Backoff time.Duration
+	// Timeout limits each check and each resend.
+	Timeout time.Duration
+
+	// ctx ends when Wait gives up. It stops the retries.
+	ctx    context.Context
+	cancel context.CancelFunc
 
 	mut     sync.Mutex
 	pending []retryItem
@@ -59,7 +70,11 @@ type BulkRetrier struct {
 }
 
 func NewBulkRetrier(backend BulkBackend, logger mlog.LoggerIFace) *BulkRetrier {
-	return &BulkRetrier{backend: backend, logger: logger, Backoff: bulkRetryBackoff}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &BulkRetrier{
+		backend: backend, logger: logger, ctx: ctx, cancel: cancel,
+		Backoff: bulkRetryBackoff, Timeout: BulkRequestTimeoutFloor,
+	}
 }
 
 // Handle never blocks. It is called from the bulk indexer worker.
@@ -77,7 +92,8 @@ func (r *BulkRetrier) Handle(item BulkItem, status int, err error) {
 	}
 }
 
-// Wait blocks until every queued item is settled, or ctx ends.
+// Wait blocks until every queued item is settled. If ctx ends first, it stops
+// the retries (the rest count as failed) and returns the ctx error.
 func (r *BulkRetrier) Wait(ctx context.Context) error {
 	done := make(chan struct{})
 	go func() {
@@ -88,6 +104,7 @@ func (r *BulkRetrier) Wait(ctx context.Context) error {
 	case <-done:
 		return nil
 	case <-ctx.Done():
+		r.cancel()
 		return ctx.Err()
 	}
 }
@@ -103,9 +120,21 @@ func (r *BulkRetrier) Verified() int64 { return r.verified.Load() }
 
 func (r *BulkRetrier) enqueue(item BulkItem) {
 	r.inflight.Add(1)
+	queued := retryItem{BulkItem: item}
+	if item.Body != nil {
+		var err error
+		if _, err = item.Body.Seek(0, io.SeekStart); err == nil {
+			queued.body, err = io.ReadAll(item.Body)
+		}
+		if err != nil {
+			r.fail(queued, 0, err)
+			return
+		}
+		queued.Body = nil
+	}
 	r.mut.Lock()
 	defer r.mut.Unlock()
-	r.pending = append(r.pending, retryItem{BulkItem: item})
+	r.pending = append(r.pending, queued)
 	if !r.running {
 		r.running = true
 		go r.run()
@@ -124,7 +153,12 @@ func (r *BulkRetrier) run() {
 		}
 		r.mut.Unlock()
 
-		time.Sleep(r.backoff(items))
+		if r.ctx.Err() != nil || !r.sleep(r.backoff(items)) {
+			for _, item := range items {
+				r.fail(item, 0, r.ctx.Err())
+			}
+			continue
+		}
 		r.logger.Warn("Bulk items unconfirmed, checking documents", mlog.Int("num_items", len(items)))
 		for len(items) > 0 {
 			n := min(len(items), bulkRetryChunkSize)
@@ -144,9 +178,22 @@ func (r *BulkRetrier) backoff(items []retryItem) time.Duration {
 	return r.Backoff << attempts
 }
 
+// sleep returns false if the retries were stopped meanwhile.
+func (r *BulkRetrier) sleep(d time.Duration) bool {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return true
+	case <-r.ctx.Done():
+		return false
+	}
+}
+
 func (r *BulkRetrier) processChunk(items []retryItem) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(r.ctx, r.Timeout)
 	found, err := r.backend.Exists(ctx, items2bulk(items))
+	cancel()
 	if err != nil {
 		r.logger.Warn("Bulk retry: check failed, resending all", mlog.Err(err))
 	}
@@ -157,7 +204,7 @@ func (r *BulkRetrier) processChunk(items []retryItem) {
 			r.inflight.Done()
 			continue
 		}
-		r.resend(ctx, item)
+		r.resend(item)
 	}
 }
 
@@ -168,15 +215,14 @@ func isSettled(item BulkItem, found map[string]bool) bool {
 	return ok && exists == (item.Action == "index")
 }
 
-func (r *BulkRetrier) resend(ctx context.Context, item retryItem) {
+func (r *BulkRetrier) resend(item retryItem) {
 	item.attempts++
-	if item.Body != nil {
-		if _, err := item.Body.Seek(0, io.SeekStart); err != nil {
-			r.fail(item, 0, err)
-			return
-		}
+	if item.body != nil {
+		item.Body = bytes.NewReader(item.body)
 	}
+	ctx, cancel := context.WithTimeout(r.ctx, r.Timeout)
 	status, err := r.backend.Apply(ctx, item.BulkItem)
+	cancel()
 
 	switch {
 	case status >= 200 && status < 300, item.Action == "delete" && status == http.StatusNotFound:
