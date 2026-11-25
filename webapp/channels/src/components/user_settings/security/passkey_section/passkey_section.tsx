@@ -3,6 +3,7 @@
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedDate, FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {useLocation} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
@@ -18,7 +19,7 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {createPasskey, signalAcceptedPasskeys, signalUnknownPasskey} from 'utils/passkeys';
+import {createPasskey, currentSessionCanAddPasskey, signalAcceptedPasskeys, signalUnknownPasskey} from 'utils/passkeys';
 
 const SECTION_PASSKEYS = 'passkeys';
 const MAX_PASSKEYS = 10;
@@ -34,10 +35,10 @@ const messages = defineMessages({
         defaultMessage: '{count, plural, =0 {No passkeys} one {# passkey} other {# passkeys}}',
         description: 'Summary under the Passkeys heading in Profile > Security when the section is collapsed; {count} is how many passkeys the user has.',
     },
-    recentLogin: {
-        id: 'user.settings.passkeys.recentLoginRequired',
-        defaultMessage: 'For your security, sign out and sign back in, then add your passkey within 10 minutes.',
-        description: 'Error shown when adding a passkey is refused because the user did not sign in recently enough.',
+    signInAgainHint: {
+        id: 'user.settings.passkeys.signInAgainHint',
+        defaultMessage: 'To add a passkey, sign in again first.',
+        description: 'Shown in place of the add-passkey controls when the current session is too old, or the server refused an add for that reason, to say the user must sign in again before adding a passkey.',
     },
     alreadyOnDevice: {
         id: 'user.settings.passkeys.alreadyOnDevice',
@@ -80,6 +81,7 @@ type Props = {
 
 export default function PasskeySection({visible, canAddPasskey, active, areAllSectionsInactive, updateSection}: Props) {
     const {formatMessage} = useIntl();
+    const {pathname} = useLocation();
     const minRef = useRef<SettingItemMinComponent>(null);
     const wasActive = useRef(active);
     const [passkeys, setPasskeys] = useState<Passkey[]>([]);
@@ -91,6 +93,10 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
     const [showDelete, setShowDelete] = useState(false);
     const [name, setName] = useState('');
     const [adding, setAdding] = useState(false);
+    const [loginKey] = useState(() => Client4.getCSRFFromCookie());
+
+    // The server refuses an add from a session that did not sign in recently; true once known, from the lookup or a refusal.
+    const [signInAgainNeeded, setSignInAgainNeeded] = useState(false);
 
     const load = useCallback(async (signOutOnUnauthorized = false) => {
         try {
@@ -115,6 +121,23 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             load();
         }
     }, [visible, load]);
+
+    useEffect(() => {
+        if (!visible || !canAddPasskey) {
+            return undefined;
+        }
+        let cancelled = false;
+        currentSessionCanAddPasskey(loginKey).then((canAdd) => {
+            if (!cancelled && !canAdd) {
+                setSignInAgainNeeded(true);
+            }
+        }, () => {
+            // The server still enforces the rule; a failed lookup must not lock the user out of adding.
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [visible, canAddPasskey, loginKey]);
 
     useEffect(() => {
         if (!active) {
@@ -166,7 +189,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             if (err.name === 'InvalidStateError') {
                 setServerError(formatMessage(messages.alreadyOnDevice));
             } else if (err.server_error_id === 'app.passkey.recent_login_required.app_error') {
-                setServerError(formatMessage(messages.recentLogin));
+                setSignInAgainNeeded(true);
             } else {
                 setServerError(err.message);
             }
@@ -274,58 +297,82 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
 
     let addControl = null;
     if (canAddPasskey) {
-        addControl = passkeys.length >= MAX_PASSKEYS ? (
-            <div className='setting-list__hint pb-3'>
-                <FormattedMessage
-                    id='user.settings.passkeys.limit'
-                    defaultMessage='You have reached the limit of {max} passkeys. Delete one to add another.'
-                    description='Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum.'
-                    values={{max: MAX_PASSKEYS}}
-                />
-            </div>
-        ) : (
-            <div className='pt-3'>
-                <div className='row'>
-                    <label
-                        htmlFor='passkeyName'
-                        className='col-sm-auto control-label pr-3'
-                    >
-                        {formatMessage(messages.nameLabel)}
-                    </label>
-                    <div className='col-sm-5'>
-                        <input
-                            id='passkeyName'
-                            className='form-control'
-                            type='text'
-                            maxLength={MAX_NAME_LENGTH}
-                            placeholder={formatMessage(messages.namePlaceholder)}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            disabled={adding}
-                        />
-                    </div>
-                </div>
+        if (passkeys.length >= MAX_PASSKEYS) {
+            addControl = (
                 <div className='setting-list__hint pb-3'>
                     <FormattedMessage
-                        id='user.settings.passkeys.nameHelp'
-                        defaultMessage='Leave blank to name it after this browser'
-                        description='Help text under the passkey name field: an empty name makes the server name the passkey after the browser.'
+                        id='user.settings.passkeys.limit'
+                        defaultMessage='You have reached the limit of {max} passkeys. Delete one to add another.'
+                        description='Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum.'
+                        values={{max: MAX_PASSKEYS}}
                     />
                 </div>
-                <Button
-                    emphasis='primary'
-                    disabled={adding}
-                    loading={adding}
-                    onClick={addPasskey}
-                >
-                    <FormattedMessage
-                        id='user.settings.passkeys.add'
-                        defaultMessage='Add passkey'
-                        description='Button that starts adding a new passkey to the account.'
-                    />
-                </Button>
-            </div>
-        );
+            );
+        } else if (signInAgainNeeded) {
+            addControl = (
+                <div className='pt-3'>
+                    <div className='setting-list__hint pb-3'>
+                        {formatMessage(messages.signInAgainHint)}
+                    </div>
+                    <Button
+                        emphasis='primary'
+
+                        // Only the pathname: the SAML handler HTML-escapes redirect_to, which would corrupt a second parameter.
+                        onClick={() => emitUserLoggedOutEvent('/login?redirect_to=' + encodeURIComponent(pathname + '?action=open_security_settings'))}
+                    >
+                        <FormattedMessage
+                            id='user.settings.passkeys.signInAgain'
+                            defaultMessage='Sign in again'
+                            description='Button in Profile > Security that signs the user out so they can sign back in and then add a passkey.'
+                        />
+                    </Button>
+                </div>
+            );
+        } else {
+            addControl = (
+                <div className='pt-3'>
+                    <div className='row'>
+                        <label
+                            htmlFor='passkeyName'
+                            className='col-sm-auto control-label pr-3'
+                        >
+                            {formatMessage(messages.nameLabel)}
+                        </label>
+                        <div className='col-sm-5'>
+                            <input
+                                id='passkeyName'
+                                className='form-control'
+                                type='text'
+                                maxLength={MAX_NAME_LENGTH}
+                                placeholder={formatMessage(messages.namePlaceholder)}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                disabled={adding}
+                            />
+                        </div>
+                    </div>
+                    <div className='setting-list__hint pb-3'>
+                        <FormattedMessage
+                            id='user.settings.passkeys.nameHelp'
+                            defaultMessage='Leave blank to name it after this browser'
+                            description='Help text under the passkey name field: an empty name makes the server name the passkey after the browser.'
+                        />
+                    </div>
+                    <Button
+                        emphasis='primary'
+                        disabled={adding}
+                        loading={adding}
+                        onClick={addPasskey}
+                    >
+                        <FormattedMessage
+                            id='user.settings.passkeys.add'
+                            defaultMessage='Add passkey'
+                            description='Button that starts adding a new passkey to the account.'
+                        />
+                    </Button>
+                </div>
+            );
+        }
     }
 
     return (

@@ -35567,9 +35567,13 @@
     "defaultMessage": "You have no passkeys.",
     "description": "Shown in the expanded Passkeys section when the user has not added any passkey."
   },
-  "user.settings.passkeys.recentLoginRequired": {
-    "defaultMessage": "For your security, sign out and sign back in, then add your passkey within 10 minutes.",
-    "description": "Error shown when adding a passkey is refused because the user did not sign in recently enough."
+  "user.settings.passkeys.signInAgain": {
+    "defaultMessage": "Sign in again",
+    "description": "Button in Profile > Security that signs the user out so they can sign back in and then add a passkey."
+  },
+  "user.settings.passkeys.signInAgainHint": {
+    "defaultMessage": "To add a passkey, sign in again first.",
+    "description": "Shown in place of the add-passkey controls when the current session is too old, or the server refused an add for that reason, to say the user must sign in again before adding a passkey."
   },
   "user.settings.passkeys.title": {
     "defaultMessage": "Passkeys",

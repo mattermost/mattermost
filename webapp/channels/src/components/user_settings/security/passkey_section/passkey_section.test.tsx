@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
@@ -12,6 +13,7 @@ import * as GlobalActions from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import * as Passkeys from 'utils/passkeys';
 
 import PasskeySection from './index';
 
@@ -75,9 +77,11 @@ describe('PasskeySection', () => {
 
     let getPasskeys: jest.SpyInstance;
     let deletePasskey: jest.SpyInstance;
+    let canAddPasskey: jest.SpyInstance;
 
     beforeEach(() => {
         getPasskeys = jest.spyOn(Client4, 'getPasskeys').mockResolvedValue(passkeys);
+        canAddPasskey = jest.spyOn(Passkeys, 'currentSessionCanAddPasskey').mockResolvedValue(true);
         deletePasskey = jest.spyOn(Client4, 'deletePasskey').mockResolvedValue({status: 'OK'} as never);
     });
 
@@ -584,15 +588,16 @@ describe('PasskeySection', () => {
         let create: jest.Mock;
         let signalUnknownCredential: jest.Mock;
 
-        const renderExpanded = async () => {
+        const renderExpanded = async (options?: Parameters<typeof renderWithContext>[2]) => {
             renderWithContext(
                 <PasskeySection
                     {...baseProps}
                     active={true}
                 />,
                 enabledState,
+                options,
             );
-            await screen.findByText('Laptop');
+            await screen.findByText(/Laptop|Key 0/);
         };
 
         const clickAdd = () => userEvent.click(screen.getByRole('button', {name: 'Add passkey'}));
@@ -611,6 +616,58 @@ describe('PasskeySection', () => {
 
         afterEach(() => {
             Reflect.deleteProperty(window, 'PublicKeyCredential');
+        });
+
+        describe('when the session is too old to add a passkey', () => {
+            test('offers the add control for a recent session', async () => {
+                jest.spyOn(Client4, 'getCSRFFromCookie').mockReturnValue('csrf1');
+                await renderExpanded();
+
+                expect(screen.getByRole('button', {name: 'Add passkey'})).toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Sign in again'})).not.toBeInTheDocument();
+                expect(canAddPasskey).toHaveBeenCalledWith('csrf1');
+            });
+
+            test('offers Sign in again instead of the name field for a stale session', async () => {
+                canAddPasskey.mockResolvedValue(false);
+                await renderExpanded();
+
+                expect(await screen.findByRole('button', {name: 'Sign in again'})).toBeInTheDocument();
+                expect(screen.getByText('To add a passkey, sign in again first.')).toBeInTheDocument();
+                expect(screen.queryByLabelText('Passkey name')).not.toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Add passkey'})).not.toBeInTheDocument();
+            });
+
+            test('shows only the limit hint at the limit with a stale session', async () => {
+                canAddPasskey.mockResolvedValue(false);
+                getPasskeys.mockResolvedValue(manyPasskeys);
+                await renderExpanded();
+                await canAddPasskey.mock.results[0].value;
+
+                expect(screen.getByText(/You have reached the limit of 10 passkeys/)).toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Sign in again'})).not.toBeInTheDocument();
+                expect(screen.queryByText('To add a passkey, sign in again first.')).not.toBeInTheDocument();
+            });
+
+            test('keeps the add control when the lookup fails', async () => {
+                canAddPasskey.mockRejectedValue(new Error('sessions unavailable'));
+                await renderExpanded();
+
+                await waitFor(() => expect(canAddPasskey).toHaveBeenCalled());
+                await canAddPasskey.mock.results[0].value.catch(() => {});
+                expect(screen.getByRole('button', {name: 'Add passkey'})).toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Sign in again'})).not.toBeInTheDocument();
+            });
+
+            test('signs out to the login page and returns to this page with Profile > Security open', async () => {
+                canAddPasskey.mockResolvedValue(false);
+                const logout = jest.spyOn(GlobalActions, 'emitUserLoggedOutEvent').mockImplementation(() => {});
+                await renderExpanded({history: createMemoryHistory({initialEntries: ['/team1/channels/town-square?a=1&b=2']})});
+
+                await userEvent.click(await screen.findByRole('button', {name: 'Sign in again'}));
+
+                expect(logout).toHaveBeenCalledWith('/login?redirect_to=' + encodeURIComponent('/team1/channels/town-square?action=open_security_settings'));
+            });
         });
 
         test('is hidden without WebAuthn support but the list still shows', async () => {
@@ -726,14 +783,16 @@ describe('PasskeySection', () => {
         test.each([
             ['begin', () => beginRegistration],
             ['finish', () => finishRegistration],
-        ])('tells the user to sign in again when %s is refused as recent-login-required', async (_name, spy) => {
+        ])('switches to Sign in again when %s is refused as recent-login-required', async (_name, spy) => {
             spy().mockRejectedValue({server_error_id: 'app.passkey.recent_login_required.app_error', message: 'server text'});
             await renderExpanded();
 
             await clickAdd();
 
-            expect(await screen.findByText('For your security, sign out and sign back in, then add your passkey within 10 minutes.')).toBeInTheDocument();
+            expect(await screen.findByRole('button', {name: 'Sign in again'})).toBeInTheDocument();
+            expect(screen.getByText('To add a passkey, sign in again first.')).toBeInTheDocument();
             expect(screen.queryByText('server text')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Add passkey'})).not.toBeInTheDocument();
         });
 
         test.each([
@@ -775,7 +834,7 @@ describe('PasskeySection', () => {
         });
 
         test.each([
-            ['403 recent login required', 403, 'app.passkey.recent_login_required.app_error', 'For your security, sign out and sign back in, then add your passkey within 10 minutes.'],
+            ['403 recent login required', 403, 'app.passkey.recent_login_required.app_error', 'To add a passkey, sign in again first.'],
             ['400 limit reached', 400, 'app.passkey.limit_reached.app_error', 'limit text'],
         ])('tells the browser to forget the new passkey when finish is refused: %s', async (_name, status, id, text) => {
             finishRegistration.mockRejectedValue({server_error_id: id, status_code: status, message: 'limit text'});
