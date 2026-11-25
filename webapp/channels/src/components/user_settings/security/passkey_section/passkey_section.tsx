@@ -218,7 +218,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                                     description='Date a passkey was added, shown on its row in the passkey list; {date} is a formatted date.'
                                     values={{date: <Day value={passkey.create_at}/>}}
                                 />
-                                <span aria-hidden='true'>{' · '}</span>
+                                {' '}
+                                <span aria-hidden='true'>{'·'}</span>
+                                {' '}
                                 {passkey.last_used_at === 0 ? (
                                     <FormattedMessage
                                         id='user.settings.passkeys.neverUsed'

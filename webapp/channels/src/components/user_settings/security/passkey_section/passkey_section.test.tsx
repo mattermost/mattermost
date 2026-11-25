@@ -126,6 +126,21 @@ describe('PasskeySection', () => {
         expect(screen.getByText(/Last used Mar 5, 2025/)).toBeInTheDocument();
     });
 
+    test('keeps whitespace between the created date and last use when the separator is hidden from assistive tech', async () => {
+        renderWithContext(
+            <PasskeySection
+                {...baseProps}
+                active={true}
+            />,
+            enabledState,
+        );
+
+        const line = (await screen.findByText(/Created Jan 15, 2025/)).closest('.light')!.cloneNode(true) as HTMLElement;
+        line.querySelectorAll('[aria-hidden="true"]').forEach((el) => el.remove());
+
+        expect(line.textContent).toMatch(/Jan 15, 2025\s+Never used/);
+    });
+
     describe('layout', () => {
         const renderExpanded = (list: Passkey[]) => {
             getPasskeys.mockResolvedValue(list);
