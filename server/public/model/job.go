@@ -120,18 +120,21 @@ func (j *Job) Auditable() map[string]any {
 	}
 }
 
+// jobYAML is how a Job is written to the Support Packet's jobs.yaml.
+type jobYAML struct {
+	Id             string    `yaml:"id"`
+	Type           string    `yaml:"type"`
+	Priority       int64     `yaml:"priority"`
+	CreateAt       string    `yaml:"create_at"`
+	StartAt        string    `yaml:"start_at"`
+	LastActivityAt string    `yaml:"last_activity_at"`
+	Status         string    `yaml:"status"`
+	Progress       int64     `yaml:"progress"`
+	Data           StringMap `yaml:"data"`
+}
+
 func (j *Job) MarshalYAML() (any, error) {
-	return struct {
-		Id             string    `yaml:"id"`
-		Type           string    `yaml:"type"`
-		Priority       int64     `yaml:"priority"`
-		CreateAt       string    `yaml:"create_at"`
-		StartAt        string    `yaml:"start_at"`
-		LastActivityAt string    `yaml:"last_activity_at"`
-		Status         string    `yaml:"status"`
-		Progress       int64     `yaml:"progress"`
-		Data           StringMap `yaml:"data"`
-	}{
+	return jobYAML{
 		Id:             j.Id,
 		Type:           j.Type,
 		Priority:       j.Priority,
@@ -145,46 +148,34 @@ func (j *Job) MarshalYAML() (any, error) {
 }
 
 func (j *Job) UnmarshalYAML(unmarshal func(any) error) error {
-	out := struct {
-		Id             string    `yaml:"id"`
-		Type           string    `yaml:"type"`
-		Priority       int64     `yaml:"priority"`
-		CreateAt       string    `yaml:"create_at"`
-		StartAt        string    `yaml:"start_at"`
-		LastActivityAt string    `yaml:"last_activity_at"`
-		Status         string    `yaml:"status"`
-		Progress       int64     `yaml:"progress"`
-		Data           StringMap `yaml:"data"`
-	}{}
-
-	err := unmarshal(&out)
-	if err != nil {
+	var in jobYAML
+	if err := unmarshal(&in); err != nil {
 		return err
 	}
 
-	createAt, err := timeutils.ParseFormatedMillis(out.CreateAt)
+	createAt, err := timeutils.ParseFormatedMillis(in.CreateAt)
 	if err != nil {
 		return err
 	}
-	updateAt, err := timeutils.ParseFormatedMillis(out.StartAt)
+	startAt, err := timeutils.ParseFormatedMillis(in.StartAt)
 	if err != nil {
 		return err
 	}
-	deleteAt, err := timeutils.ParseFormatedMillis(out.LastActivityAt)
+	lastActivityAt, err := timeutils.ParseFormatedMillis(in.LastActivityAt)
 	if err != nil {
 		return err
 	}
 
 	*j = Job{
-		Id:             out.Id,
-		Type:           out.Type,
-		Priority:       out.Priority,
+		Id:             in.Id,
+		Type:           in.Type,
+		Priority:       in.Priority,
 		CreateAt:       createAt,
-		StartAt:        updateAt,
-		LastActivityAt: deleteAt,
-		Status:         out.Status,
-		Progress:       out.Progress,
-		Data:           out.Data,
+		StartAt:        startAt,
+		LastActivityAt: lastActivityAt,
+		Status:         in.Status,
+		Progress:       in.Progress,
+		Data:           in.Data,
 	}
 	return nil
 }
