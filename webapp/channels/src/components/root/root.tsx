@@ -25,6 +25,7 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import ProductPluggable from 'components/product_pluggable';
+import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import Readout from 'components/readout/readout';
 import {WithUserTheme} from 'components/theme_provider';
 
@@ -428,6 +429,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
                         <WindowSizeObserver/>
                         <ModalController/>
+                        <QueryParamActionController/>
                         <GlobalClassificationBanner position='top'/>
                         <AnnouncementBarController/>
                         <SystemNotice/>

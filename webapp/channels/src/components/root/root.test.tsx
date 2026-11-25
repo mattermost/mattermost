@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
@@ -22,6 +23,7 @@ jest.mock('components/announcement_bar', () => () => <div/>);
 jest.mock('components/team_sidebar', () => () => <div/>);
 jest.mock('components/mobile_view_watcher', () => () => <div/>);
 jest.mock('./performance_reporter_controller', () => () => <div/>);
+jest.mock('components/user_settings/modal', () => () => null);
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
@@ -223,6 +225,17 @@ describe('components/Root', () => {
         await waitFor(() => {
             expect(BrowserUtils.reloadPage).toHaveBeenCalledTimes(1);
         });
+    });
+
+    test('should open the Security tab for an action on a logged-in route outside the team routes', async () => {
+        const history = createMemoryHistory({initialEntries: ['/plug/custom_route?action=open_security_settings']});
+        const props = {...baseProps, plugins: [{id: 'p1', route: 'custom_route'} as Props['plugins'][number]]};
+        const {store: rootStore} = renderWithContext(<Root {...props}/>, {}, {history});
+
+        await waitFor(() => {
+            expect(rootStore.getState().views.modals.modalState.user_settings?.open).toBe(true);
+        });
+        expect(rootStore.getState().views.modals.modalState.user_settings.dialogProps).toMatchObject({activeTab: 'security'});
     });
 
     describe('showLandingPageIfNecessary', () => {
