@@ -44,8 +44,10 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Build and unit-test @mattermost/ui-surface
+        # playwright-lib is built first because the runtime unit tests import its compiled drivers.
         run: |
           npm run build --workspace @mattermost/ui-surface
+          npm run build --workspace @mattermost/playwright-lib
           npm test --workspace @mattermost/ui-surface
 
       - name: Restore incremental scan cache
@@ -80,8 +82,10 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Build and test @mattermost/ui-surface
+        # playwright-lib is built first because the runtime unit tests import its compiled drivers.
         run: |
           npm run build --workspace @mattermost/ui-surface
+          npm run build --workspace @mattermost/playwright-lib
           npm test --workspace @mattermost/ui-surface
 
       - name: Restore incremental scan cache
