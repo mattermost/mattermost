@@ -3449,6 +3449,12 @@ func rotateUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Rotating returns a fresh secret, the same lasting access that creating a token would.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && accessToken.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("rotateUserAccessToken", "api.user.create_user_access_token.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return

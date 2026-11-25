@@ -3724,6 +3724,11 @@
         includes the new token secret (shown once, like token creation).
 
 
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403 when the token belongs to the session's own user. Tokens of bots or
+        other users are not affected, and neither are other sessions of the same user.
+
+
         __Minimum server version__: 10.10
 
 

@@ -8357,6 +8357,31 @@ func TestRotateUserAccessToken(t *testing.T) {
 		assertInvalidToken(t, th, oldToken)
 	})
 
+	t.Run("rotate own token as passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+		require.NoError(t, err)
+
+		passkeyClient := passkeySessionClient(t, th, user)
+
+		_, resp, err := passkeyClient.RotateUserAccessToken(context.Background(), token.Id, 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appError *model.AppError
+		require.ErrorAs(t, err, &appError)
+		assert.Equal(t, "api.user.create_user_access_token.passkey_session.app_error", appError.Id)
+		assertToken(t, th, token, user.Id)
+
+		_, _, err = th.Client.RotateUserAccessToken(context.Background(), token.Id, 0)
+		require.NoError(t, err)
+	})
+
 	t.Run("rotate token without permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
