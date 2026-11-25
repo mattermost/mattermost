@@ -1020,13 +1020,6 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		receivedUpdatedPost.RemoteId = nil
 	}
 
-	// access_control_resource may only be written by the owning plugin; the
-	// plugin API sets AllowAccessControlResourceUpdate after verifying that.
-	var receivedAccessControlResource string
-	if updatePostOptions.AllowAccessControlResourceUpdate {
-		receivedAccessControlResource = receivedUpdatedPost.GetAccessControlResource()
-	}
-
 	receivedUpdatedPost.SanitizeProps()
 
 	// Read the row we are about to mutate from master. The post may have been written
@@ -1119,23 +1112,12 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			newPost.PreserveIdentityPropsFrom(oldPost)
 		}
 
-		// access_control_resource is local policy state, not identity, so it
-		// survives every edit (federated included) unless the owning plugin
-		// replaces it. Another plugin's marker is never replaced.
-		oldResource := oldPost.GetAccessControlResource()
-		if oldResource != "" && a.postAccessControlResourceEnabled() {
+		// access_control_resource is local policy state, not identity: the
+		// stored value survives every edit (federated included) and an incoming
+		// value, already stripped by SanitizeProps, never adds or changes it.
+		// Restored even with the feature flag off so toggling it cannot drop a marker.
+		if oldResource := oldPost.GetAccessControlResource(); oldResource != "" {
 			newPost.AddProp(model.PostPropsAccessControlResource, oldResource)
-		}
-		if receivedAccessControlResource != "" && a.postAccessControlResourceEnabled() {
-			replaceable := oldResource == ""
-			if !replaceable {
-				oldParsed, oldErr := model.ParsePostAccessControlResource(oldResource)
-				newParsed, newErr := model.ParsePostAccessControlResource(receivedAccessControlResource)
-				replaceable = oldErr == nil && newErr == nil && oldParsed.PluginID == newParsed.PluginID
-			}
-			if replaceable {
-				newPost.AddProp(model.PostPropsAccessControlResource, receivedAccessControlResource)
-			}
 		}
 
 		// When the caller opted in via AllowIdentityPropsUpdate (federation

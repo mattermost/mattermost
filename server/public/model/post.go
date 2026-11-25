@@ -702,8 +702,9 @@ func (o *Post) SanitizeProps() {
 	// access_control_resource is stripped for every origin, federation
 	// included: a remote cluster's policies do not exist here, so the marker
 	// could only ever collide with a local plugin's resource IDs. The plugin
-	// API re-injects it under verified ownership (CreatePostFlags.
-	// AllowAccessControlResource / UpdatePostOptions.AllowAccessControlResourceUpdate).
+	// API re-injects it under verified ownership on create
+	// (CreatePostFlags.AllowAccessControlResource), and UpdatePost restores
+	// the stored value, so no edit can add or change it.
 	membersToSanitize = append(membersToSanitize, PostPropsAccessControlResource)
 
 	for _, member := range membersToSanitize {
@@ -1604,13 +1605,6 @@ type UpdatePostOptions struct {
 	// the incoming value, and PluginAPI.UpdatePostWithOptions.
 	AllowMmBlocksActionsUpdate bool
 
-	// AllowAccessControlResourceUpdate lets the caller set
-	// props.access_control_resource on edit. Without it UpdatePost restores
-	// the prior post's value, so a regular edit can neither add nor strip the
-	// marker. Set only by the plugin API after verifying the value names the
-	// calling plugin.
-	AllowAccessControlResourceUpdate bool
-
 	// AllowIdentityPropsUpdate grants the caller permission to change the
 	// display-identity props (override_username, override_icon_url,
 	// override_icon_emoji, webhook_display_name) on edit. Without it,
@@ -1656,12 +1650,11 @@ func (o *UpdatePostOptions) Copy() *UpdatePostOptions {
 		return nil
 	}
 	return &UpdatePostOptions{
-		SafeUpdate:                       o.SafeUpdate,
-		IsRestorePost:                    o.IsRestorePost,
-		AllowMmBlocksActionsUpdate:       o.AllowMmBlocksActionsUpdate,
-		AllowAccessControlResourceUpdate: o.AllowAccessControlResourceUpdate,
-		AllowIdentityPropsUpdate:         o.AllowIdentityPropsUpdate,
-		FileCreatorID:                    o.FileCreatorID,
+		SafeUpdate:                 o.SafeUpdate,
+		IsRestorePost:              o.IsRestorePost,
+		AllowMmBlocksActionsUpdate: o.AllowMmBlocksActionsUpdate,
+		AllowIdentityPropsUpdate:   o.AllowIdentityPropsUpdate,
+		FileCreatorID:              o.FileCreatorID,
 	}
 }
 

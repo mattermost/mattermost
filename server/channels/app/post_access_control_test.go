@@ -210,6 +210,13 @@ func TestUpdatePostAccessControlResource(t *testing.T) {
 		return post, value
 	}
 
+	storedMarker := func(t *testing.T, id string) string {
+		t.Helper()
+		stored, appErr := th.App.GetSinglePost(th.Context, id, false)
+		require.Nil(t, appErr)
+		return stored.GetAccessControlResource()
+	}
+
 	t.Run("a regular edit keeps the marker", func(t *testing.T) {
 		post, value := createMarked(t)
 		edit := post.Clone()
@@ -241,62 +248,91 @@ func TestUpdatePostAccessControlResource(t *testing.T) {
 		assert.Empty(t, updated.GetAccessControlResource())
 	})
 
-	t.Run("the owning plugin can replace the marker", func(t *testing.T) {
-		post, _ := createMarked(t)
-		replacement := testPostResource(model.NewId())
+	t.Run("plugin edits cannot add a marker to an unmarked post", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
 		edit := post.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, replacement)
+		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
 
 		updated, appErr := api.UpdatePost(edit)
 		require.Nil(t, appErr)
-		assert.Equal(t, replacement, updated.GetAccessControlResource())
-	})
+		assert.Empty(t, updated.GetAccessControlResource())
 
-	t.Run("the owning plugin can add a marker to an existing post", func(t *testing.T) {
-		post := th.CreatePost(t, th.BasicChannel)
-		value := testPostResource(model.NewId())
-		edit := post.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, value)
-
-		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
+		updated, appErr = api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
-		assert.Equal(t, value, updated.GetAccessControlResource())
+		assert.Empty(t, updated.GetAccessControlResource())
+		assert.Empty(t, storedMarker(t, post.Id))
 	})
 
-	t.Run("a plugin cannot write another plugin's marker even when it asks for the grant", func(t *testing.T) {
+	t.Run("plugin edits cannot change or remove an existing marker", func(t *testing.T) {
 		post, value := createMarked(t)
+
+		// A value naming the calling plugin is not special on update.
 		edit := post.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, model.NewPostAccessControlResource("other-plugin", testPostResourceType, model.NewId(), testPostAction))
-
-		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{AllowAccessControlResourceUpdate: true})
-		require.Nil(t, appErr)
-		assert.Equal(t, value, updated.GetAccessControlResource())
-	})
-
-	t.Run("a second plugin cannot replace the marker of the first", func(t *testing.T) {
-		post, value := createMarked(t)
-		otherAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "other-plugin"})
-		edit := post.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, model.NewPostAccessControlResource("other-plugin", testPostResourceType, model.NewId(), testPostAction))
-
-		updated, appErr := otherAPI.UpdatePost(edit)
+		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
+		updated, appErr := api.UpdatePost(edit)
 		require.Nil(t, appErr)
 		assert.Equal(t, value, updated.GetAccessControlResource())
 
-		replacement := testPostResource(model.NewId())
-		edit = updated.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, replacement)
+		updated, appErr = api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		assert.Equal(t, value, updated.GetAccessControlResource())
+
+		edit = post.Clone()
+		edit.AddProp(model.PostPropsAccessControlResource, model.NewPostAccessControlResource("other-plugin", testPostResourceType, model.NewId(), testPostAction))
+		updated, appErr = api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		assert.Equal(t, value, updated.GetAccessControlResource())
+
+		edit = post.Clone()
+		edit.DelProp(model.PostPropsAccessControlResource)
 		updated, appErr = api.UpdatePost(edit)
 		require.Nil(t, appErr)
-		assert.Equal(t, replacement, updated.GetAccessControlResource())
+		assert.Equal(t, value, updated.GetAccessControlResource())
+
+		assert.Equal(t, value, storedMarker(t, post.Id))
+	})
+
+	t.Run("plugin edits keep the marker on a root with replies and on the replies", func(t *testing.T) {
+		root, value := createMarked(t)
+		reply, appErr := api.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "reply"})
+		require.Nil(t, appErr)
+
+		for _, post := range []*model.Post{root, reply} {
+			edit := post.Clone()
+			edit.Message = "edited"
+			edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
+			updated, appErr := api.UpdatePost(edit)
+			require.Nil(t, appErr)
+			assert.Equal(t, "edited", updated.Message)
+			assert.Equal(t, value, updated.GetAccessControlResource())
+			assert.Equal(t, value, storedMarker(t, post.Id))
+		}
+	})
+
+	t.Run("a federated edit keeps the marker and cannot add one", func(t *testing.T) {
+		marked, value := createMarked(t)
+		edit := marked.Clone()
+		edit.RemoteId = model.NewPointer(model.NewId())
+		edit.Message = "federated edit"
+		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
+		updated, _, appErr := th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{AllowIdentityPropsUpdate: true})
+		require.Nil(t, appErr)
+		assert.Equal(t, value, updated.GetAccessControlResource())
+
+		plain := th.CreatePost(t, th.BasicChannel)
+		edit = plain.Clone()
+		edit.RemoteId = model.NewPointer(model.NewId())
+		edit.Message = "federated edit"
+		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
+		updated, _, appErr = th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{AllowIdentityPropsUpdate: true})
+		require.Nil(t, appErr)
+		assert.Empty(t, updated.GetAccessControlResource())
 	})
 }
 
-func TestPluginAPIUpdatePostAccessControlResourceThread(t *testing.T) {
+func TestPluginAPICreatePostAccessControlResourceReply(t *testing.T) {
 	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
 	api := th.SetupPluginAPI()
-
-	const errID = "plugin.api.update_post.access_control_resource_thread.app_error"
 
 	createRoot := func(t *testing.T, marker string) *model.Post {
 		t.Helper()
@@ -308,107 +344,6 @@ func TestPluginAPIUpdatePostAccessControlResourceThread(t *testing.T) {
 		require.Nil(t, appErr)
 		return root
 	}
-	createReply := func(t *testing.T, root *model.Post) *model.Post {
-		t.Helper()
-		reply, appErr := api.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "reply"})
-		require.Nil(t, appErr)
-		return reply
-	}
-	storedMarker := func(t *testing.T, id string) string {
-		t.Helper()
-		stored, appErr := th.App.GetSinglePost(th.Context, id, false)
-		require.Nil(t, appErr)
-		return stored.GetAccessControlResource()
-	}
-	requireRefused := func(t *testing.T, appErr *model.AppError) {
-		t.Helper()
-		require.NotNil(t, appErr)
-		assert.Equal(t, errID, appErr.Id)
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	}
-
-	t.Run("marking a root with no replies is allowed", func(t *testing.T) {
-		root := createRoot(t, "")
-		value := testPostResource(model.NewId())
-		edit := root.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, value)
-
-		updated, appErr := api.UpdatePost(edit)
-		require.Nil(t, appErr)
-		assert.Equal(t, value, updated.GetAccessControlResource())
-		assert.Equal(t, value, storedMarker(t, root.Id))
-	})
-
-	t.Run("marking a root that has replies is refused and the marker is unchanged", func(t *testing.T) {
-		root := createRoot(t, "")
-		createReply(t, root)
-		edit := root.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
-
-		_, appErr := api.UpdatePost(edit)
-		requireRefused(t, appErr)
-		assert.Empty(t, storedMarker(t, root.Id))
-
-		_, appErr = api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
-		requireRefused(t, appErr)
-		assert.Empty(t, storedMarker(t, root.Id))
-	})
-
-	t.Run("replacing the marker of a root that has replies is refused", func(t *testing.T) {
-		value := testPostResource(model.NewId())
-		root := createRoot(t, value)
-		reply := createReply(t, root)
-		edit := root.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
-
-		_, appErr := api.UpdatePost(edit)
-		requireRefused(t, appErr)
-		assert.Equal(t, value, storedMarker(t, root.Id))
-		assert.Equal(t, value, storedMarker(t, reply.Id))
-	})
-
-	t.Run("a marker cannot be set on a reply", func(t *testing.T) {
-		root := createRoot(t, "")
-		reply := createReply(t, root)
-		edit := reply.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
-
-		_, appErr := api.UpdatePost(edit)
-		requireRefused(t, appErr)
-		assert.Empty(t, storedMarker(t, reply.Id))
-	})
-
-	t.Run("a marker cannot be replaced on a reply", func(t *testing.T) {
-		value := testPostResource(model.NewId())
-		root := createRoot(t, value)
-		reply := createReply(t, root)
-		edit := reply.Clone()
-		edit.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
-
-		_, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
-		requireRefused(t, appErr)
-		assert.Equal(t, value, storedMarker(t, reply.Id))
-	})
-
-	t.Run("sending the stored marker again is a no-op", func(t *testing.T) {
-		value := testPostResource(model.NewId())
-		root := createRoot(t, value)
-		reply := createReply(t, root)
-
-		edit := root.Clone()
-		edit.Message = "edited root"
-		updated, appErr := api.UpdatePost(edit)
-		require.Nil(t, appErr)
-		assert.Equal(t, "edited root", updated.Message)
-		assert.Equal(t, value, updated.GetAccessControlResource())
-
-		edit = reply.Clone()
-		edit.Message = "edited reply"
-		updated, appErr = api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{})
-		require.Nil(t, appErr)
-		assert.Equal(t, "edited reply", updated.Message)
-		assert.Equal(t, value, updated.GetAccessControlResource())
-	})
 
 	t.Run("a plugin reply carrying a different marker takes the root's marker", func(t *testing.T) {
 		value := testPostResource(model.NewId())
@@ -419,7 +354,9 @@ func TestPluginAPIUpdatePostAccessControlResourceThread(t *testing.T) {
 		created, appErr := api.CreatePost(reply)
 		require.Nil(t, appErr)
 		assert.Equal(t, value, created.GetAccessControlResource())
-		assert.Equal(t, value, storedMarker(t, created.Id))
+		stored, appErr := th.App.GetSinglePost(th.Context, created.Id, false)
+		require.Nil(t, appErr)
+		assert.Equal(t, value, stored.GetAccessControlResource())
 	})
 
 	t.Run("a plugin reply to an unmarked root stays unmarked", func(t *testing.T) {
@@ -430,7 +367,9 @@ func TestPluginAPIUpdatePostAccessControlResourceThread(t *testing.T) {
 		created, appErr := api.CreatePost(reply)
 		require.Nil(t, appErr)
 		assert.Empty(t, created.GetAccessControlResource())
-		assert.Empty(t, storedMarker(t, created.Id))
+		stored, appErr := th.App.GetSinglePost(th.Context, created.Id, false)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.GetAccessControlResource())
 	})
 }
 

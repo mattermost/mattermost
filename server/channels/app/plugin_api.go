@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 type PluginAPI struct {
@@ -1132,9 +1131,6 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	if appErr := api.grantPluginMmBlocksActionsUpdate("UpdatePost", post, options); appErr != nil {
 		return nil, appErr
 	}
-	if err := api.grantPluginAccessControlResourceUpdate("UpdatePost", post, options); err != nil {
-		return nil, model.AsAppError(err)
-	}
 	return api.updatePostForPlugin(post, options)
 }
 
@@ -1160,10 +1156,6 @@ func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.Upd
 		}
 	}
 
-	if err := api.grantPluginAccessControlResourceUpdate("UpdatePostWithOptions", post, options); err != nil {
-		return nil, model.AsAppError(err)
-	}
-
 	return api.updatePostForPlugin(post, options)
 }
 
@@ -1184,33 +1176,6 @@ func (api *PluginAPI) ownedAccessControlResource(post *model.Post) string {
 		return ""
 	}
 	return value
-}
-
-// grantPluginAccessControlResourceUpdate lets the edit carry
-// access_control_resource exactly when the value names this plugin. The
-// grant is derived here rather than trusted from the plugin's options, so a
-// plugin cannot mark a post with another plugin's resource. Any other value
-// is stripped by UpdatePost like every reserved prop, and the stored marker
-// is kept. A marker can be set or replaced only on a root post that has no
-// replies, because replies take the root's marker when they are created, and
-// it is never removed. A different marker on a reply, or on a root that
-// already has replies, is refused so a thread never ends up partly marked.
-func (api *PluginAPI) grantPluginAccessControlResourceUpdate(where string, post *model.Post, options *model.UpdatePostOptions) error {
-	resource := api.ownedAccessControlResource(post)
-	if resource != "" {
-		stored, err := api.app.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(api.ctx), post.Id, false)
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			// UpdatePost reports the missing post.
-		case err != nil:
-			return err
-		case stored.GetAccessControlResource() != resource && (stored.RootId != "" || stored.ReplyCount > 0):
-			return model.NewAppError(where, "plugin.api.update_post.access_control_resource_thread.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-	options.AllowAccessControlResourceUpdate = resource != ""
-	return nil
 }
 
 // grantPluginMmBlocksActionsUpdate sets the grant when the post carries a
