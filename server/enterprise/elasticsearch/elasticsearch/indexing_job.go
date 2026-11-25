@@ -6,8 +6,6 @@ package elasticsearch
 import (
 	"context"
 	"io"
-	"net/http"
-	"sync/atomic"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 
@@ -36,13 +34,16 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 		return nil
 	}
 
-	var realFailed atomic.Int64
+	// Set per job, so the counts start from zero.
+	var retrier *common.BulkRetrier
 
 	return common.NewIndexerWorker(workerName, model.ElasticsearchSettingsESBackend,
 		esi.Server.Jobs,
 		logger,
 		esi.Server.Platform().FileBackend(), esi.Server.License,
 		func() error {
+			retrier = common.NewBulkRetrier(&bulkBackend{client: client}, logger)
+
 			// Creating the bulk indexer from the client.
 			biCfg := esutil.BulkIndexerConfig{
 				Client: client,
@@ -66,46 +67,11 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				Action:     indexOp,
 				DocumentID: docID,
 				Body:       body,
-				OnFailure: func(_ context.Context, item esutil.BulkIndexerItem, resp esutil.BulkIndexerResponseItem, err error) {
-					if item.Action == "delete" && resp.Status == http.StatusNotFound {
-						return
-					}
-					realFailed.Add(1)
-					fields := []mlog.Field{
-						mlog.String("index", item.Index),
-						mlog.String("doc_id", item.DocumentID),
-						mlog.String("action", item.Action),
-						mlog.Int("status", resp.Status),
-					}
-					if resp.Error.Type != "" || resp.Error.Reason != "" {
-						fields = append(fields,
-							mlog.String("error_type", resp.Error.Type),
-							mlog.String("error_reason", resp.Error.Reason),
-						)
-					}
-					if err != nil {
-						fields = append(fields, mlog.Err(err))
-					}
-					logger.Warn("Bulk indexer: failed to index document", fields...)
-				},
+				OnFailure:  onBulkFailure(retrier),
 			})
 		},
 		// Closing the bulk processor and returning the number of failed items.
 		func() (int64, error) {
-			err := esi.bulkProcessor.Close(context.Background())
-			stats := esi.bulkProcessor.Stats()
-			fields := []mlog.Field{
-				mlog.Uint("num_indexed", stats.NumIndexed),
-				mlog.Int("num_failed", realFailed.Load()),
-				mlog.Uint("stats_num_failed", stats.NumFailed),
-				mlog.Uint("num_added", stats.NumAdded),
-				mlog.Uint("num_flushed", stats.NumFlushed),
-			}
-			if err != nil {
-				logger.Warn("Bulk indexer closed with error", append(fields, mlog.Err(err))...)
-			} else {
-				logger.Info("Bulk indexer closed", fields...)
-			}
-			return realFailed.Load(), err
+			return closeBulk(esi.bulkProcessor, retrier, logger)
 		})
 }
