@@ -2110,12 +2110,13 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 type clusterTask struct {
 	mut     sync.Mutex
 	task    *model.ScheduledTask
+	cancel  context.CancelFunc
 	stopped bool
 }
 
 // start schedules fn, guarded by isLeader and the mutex named key, unless the task has been
-// stopped or started.
-func (t *clusterTask) start(api cluster.MutexPluginAPI, isLeader func() bool, key string, fn func(), schedule func(run func()) *model.ScheduledTask) error {
+// stopped or started. fn's context is canceled when the task stops.
+func (t *clusterTask) start(api cluster.MutexPluginAPI, isLeader func() bool, key string, fn func(ctx context.Context), schedule func(run func()) *model.ScheduledTask) error {
 	mutex, err := cluster.NewMutex(api, key)
 	if err != nil {
 		return err
@@ -2126,19 +2127,25 @@ func (t *clusterTask) start(api cluster.MutexPluginAPI, isLeader func() bool, ke
 	if t.stopped || t.task != nil {
 		return nil
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	t.cancel = cancel
 	t.task = schedule(func() {
 		if isLeader() {
-			runLocked(api, key, mutex, fn)
+			runLocked(api, key, mutex, func() { fn(ctx) })
 		}
 	})
 	return nil
 }
 
-// stop cancels the task for good, waiting for a run in progress to finish.
+// stop cancels the task for good, canceling the context of a run in progress and waiting for it
+// to return.
 func (t *clusterTask) stop() {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 	t.stopped = true
+	if t.cancel != nil {
+		t.cancel()
+	}
 	if t.task != nil {
 		t.task.Cancel()
 		t.task = nil
@@ -2164,21 +2171,21 @@ func runClusterTasks(a *App) {
 	rctx := request.EmptyContext(a.Log())
 	api := serverMutexAPI{a: a}
 
-	startTask := func(t *clusterTask, key string, fn func(), schedule func(run func()) *model.ScheduledTask) {
+	startTask := func(t *clusterTask, key string, fn func(ctx context.Context), schedule func(run func()) *model.ScheduledTask) {
 		if err := t.start(api, a.IsLeader, key, fn, schedule); err != nil {
 			a.Log().Error("Failed to start cluster task", mlog.String("key", key), mlog.Err(err))
 		}
 	}
 
-	startTask(&a.ch.dndTask, "cluster_task_unset_dnd_statuses", a.UpdateDNDStatusOfUsers, func(run func()) *model.ScheduledTask {
+	startTask(&a.ch.dndTask, "cluster_task_unset_dnd_statuses", func(context.Context) { a.UpdateDNDStatusOfUsers() }, func(run func()) *model.ScheduledTask {
 		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", run, model.DNDExpiryInterval)
 	})
 
-	startTask(&a.ch.postReminderTask, "cluster_task_post_reminders", func() { a.CheckPostReminders(rctx) }, func(run func()) *model.ScheduledTask {
+	startTask(&a.ch.postReminderTask, "cluster_task_post_reminders", func(context.Context) { a.CheckPostReminders(rctx) }, func(run func()) *model.ScheduledTask {
 		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", run, 5*time.Minute)
 	})
 
-	startTask(&a.ch.scheduledPostTask, "cluster_task_scheduled_posts", func() { a.ProcessScheduledPosts(rctx) }, func(run func()) *model.ScheduledTask {
+	startTask(&a.ch.scheduledPostTask, "cluster_task_scheduled_posts", func(context.Context) { a.ProcessScheduledPosts(rctx) }, func(run func()) *model.ScheduledTask {
 		jobInterval := scheduledPostJobInterval
 		if *a.Config().ServiceSettings.EnableTesting {
 			jobInterval = debugScheduledPostJobInterval

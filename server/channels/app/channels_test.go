@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -57,7 +58,7 @@ func TestClusterTask(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	var calls atomic.Int32
-	fn := func() { calls.Add(1) }
+	fn := func(context.Context) { calls.Add(1) }
 	schedule := func(run func()) *model.ScheduledTask {
 		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
@@ -113,7 +114,7 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	ch := &Channels{interruptQuitChan: make(chan struct{})}
 
 	var calls atomic.Int32
-	fn := func() { calls.Add(1) }
+	fn := func(context.Context) { calls.Add(1) }
 	schedule := func(run func()) *model.ScheduledTask {
 		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
@@ -130,4 +131,32 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	stoppedAt := calls.Load()
 	time.Sleep(50 * time.Millisecond)
 	assert.Equal(t, stoppedAt, calls.Load())
+}
+
+func TestClusterTaskStopCancelsRunInProgress(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	running := make(chan struct{})
+	fn := func(ctx context.Context) {
+		close(running)
+		<-ctx.Done()
+	}
+	schedule := func(run func()) *model.ScheduledTask {
+		return model.CreateTask("Test", run, time.Millisecond)
+	}
+
+	var ct clusterTask
+	require.NoError(t, ct.start(fakeMutexAPI{}, func() bool { return true }, "test", fn, schedule))
+	<-running
+
+	stopped := make(chan struct{})
+	go func() {
+		ct.stop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "stop should cancel the run in progress instead of waiting for it")
+	}
 }
