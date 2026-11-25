@@ -265,6 +265,9 @@ func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError
 		case errors.Is(err, platform.DeleteSessionError):
 			return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		case errors.Is(err, platform.DeleteTokenError):
+			a.Srv().Go(func() {
+				a.sendMobileWipeSignal(rctx, sessions...)
+			})
 			return model.NewAppError("RevokeAllSessions", "app.oauth.remove_access_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		default:
 			return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

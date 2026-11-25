@@ -27,6 +27,7 @@ func TestOAuthStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetAuthData", func(t *testing.T) { testOAuthStoreGetAuthData(t, rctx, ss) })
 	t.Run("RemoveAuthData", func(t *testing.T) { testOAuthStoreRemoveAuthData(t, rctx, ss) })
 	t.Run("RemoveAuthDataByUser", func(t *testing.T) { testOAuthStoreRemoveAuthDataByUser(t, rctx, ss) })
+	t.Run("RemoveAuthDataByUserExceptToken", func(t *testing.T) { testOAuthStoreRemoveAuthDataByUserExceptToken(t, rctx, ss) })
 	t.Run("OAuthGetAuthorizedApps", func(t *testing.T) { testOAuthGetAuthorizedApps(t, rctx, ss) })
 	t.Run("OAuthGetAccessDataByUserForApp", func(t *testing.T) { testOAuthGetAccessDataByUserForApp(t, rctx, ss) })
 	t.Run("DeleteApp", func(t *testing.T) { testOAuthStoreDeleteApp(t, rctx, ss) })
@@ -311,6 +312,77 @@ func testOAuthStoreRemoveAuthDataByUser(t *testing.T, rctx request.CTX, ss store
 
 	err = ss.OAuth().PermanentDeleteAuthDataByUser(a1.UserId)
 	require.NoError(t, err)
+}
+
+func testOAuthStoreRemoveAuthDataByUserExceptToken(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	saveAccessData := func(uid string) *model.AccessData {
+		ad := &model.AccessData{
+			ClientId:     model.NewId(),
+			UserId:       uid,
+			Token:        model.NewId(),
+			RefreshToken: model.NewId(),
+			RedirectUri:  "http://example.com",
+		}
+		_, err := ss.OAuth().SaveAccessData(ad)
+		require.NoError(t, err)
+		return ad
+	}
+	saveAuthData := func(uid string) *model.AuthData {
+		ad := &model.AuthData{
+			ClientId:    model.NewId(),
+			UserId:      uid,
+			Code:        model.NewId(),
+			RedirectUri: "http://example.com",
+		}
+		_, err := ss.OAuth().SaveAuthData(ad)
+		require.NoError(t, err)
+		return ad
+	}
+
+	retained := saveAccessData(userID)
+	removed := saveAccessData(userID)
+	removedCode := saveAuthData(userID)
+	otherAccess := saveAccessData(otherUserID)
+	otherCode := saveAuthData(otherUserID)
+
+	require.NoError(t, ss.OAuth().RemoveAuthDataByUserExceptToken(userID, retained.Token))
+
+	got, err := ss.OAuth().GetAccessData(retained.Token)
+	require.NoError(t, err)
+	assert.Empty(t, got.RefreshToken)
+
+	_, err = ss.OAuth().GetAccessData(removed.Token)
+	require.Error(t, err)
+	_, err = ss.OAuth().GetAuthData(removedCode.Code)
+	require.Error(t, err)
+
+	got, err = ss.OAuth().GetAccessData(otherAccess.Token)
+	require.NoError(t, err)
+	assert.Equal(t, otherAccess.RefreshToken, got.RefreshToken)
+	_, err = ss.OAuth().GetAuthData(otherCode.Code)
+	require.NoError(t, err)
+
+	t.Run("no retained token removes everything for the user", func(t *testing.T) {
+		require.NoError(t, ss.OAuth().RemoveAuthDataByUserExceptToken(userID, ""))
+		_, err := ss.OAuth().GetAccessData(retained.Token)
+		require.Error(t, err)
+	})
+
+	t.Run("retained token that no longer exists is not recreated", func(t *testing.T) {
+		stale := saveAccessData(userID)
+		require.NoError(t, ss.OAuth().RemoveAccessData(stale.Token))
+		other := saveAccessData(userID)
+
+		require.NoError(t, ss.OAuth().RemoveAuthDataByUserExceptToken(userID, stale.Token))
+
+		_, err := ss.OAuth().GetAccessData(stale.Token)
+		require.Error(t, err)
+		_, err = ss.OAuth().GetAccessData(other.Token)
+		require.Error(t, err)
+	})
 }
 
 func testOAuthGetAuthorizedApps(t *testing.T, rctx request.CTX, ss store.Store) {

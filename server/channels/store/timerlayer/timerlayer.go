@@ -7010,6 +7010,22 @@ func (s *TimerLayerOAuthStore) RemoveAuthDataByClientId(clientID string, userID 
 	return err
 }
 
+func (s *TimerLayerOAuthStore) RemoveAuthDataByUserExceptToken(userID string, retainedToken string) error {
+	start := time.Now()
+
+	err := s.OAuthStore.RemoveAuthDataByUserExceptToken(userID, retainedToken)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthDataByUserExceptToken", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerOAuthStore) RemoveAuthDataByUserId(userID string) error {
 	start := time.Now()
 
