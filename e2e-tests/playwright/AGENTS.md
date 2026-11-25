@@ -58,3 +58,19 @@ scheduler.
 
 Use `await pw.skipIfNoLicense()` to skip a test when the server has no
 license.
+
+## UI Surface: adding and using test ids
+
+`@mattermost/ui-surface` (`ui-surface/`) turns `data-surface` declarations into the typed
+`createSurface()` SDK. When you add UI or write specs:
+
+- Declare ids with the grammar `scope.name[:key][--role]` on a `data-surface` attribute. Key
+  repeated items by an entity id (`r.id`), never the map index, display text, or a composite.
+- Put state/input roles (`--checkbox`, `--switch`, `--textbox`, ...) on a native element with those
+  semantics, or add the custom component to `ui-surface/role-map.json`.
+- Do not add new free-form `data-testid`s: the ratchet (`ui-surface/testid-baseline.json`) fails on
+  growth. Make the id grammar or pair it with a `data-surface`.
+- In specs, reach elements through `createSurface(page)`, observe every action (an `expect` or
+  `settle(...)` after a click), and assert URLs with `toHavePath(...)`, not `toHaveURL('/path')`.
+- Run `node ui-surface/bin/ui-surface.mjs check` before committing, and `ui-surface explain <rule>`
+  for any violation. Retire a legacy id with `ui-surface migrate-testid`.

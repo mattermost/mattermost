@@ -142,6 +142,15 @@ test('no-soft-assertions, no-conditional-logic, no-locator-action and disable-re
     const wrap = (body) => `async function t() { ${body} }`;
     assert.equal(lint('no-soft-assertions', wrap('await expect.soft(x).toBeVisible();')).length, 1);
     assert.equal(lint('no-soft-assertions', wrap('await expect(x).toBeVisible();')).length, 0);
+    // Autofix drops `.soft`.
+    const fixed = new Linter().verifyAndFix('async function t(){ await expect.soft(x).toBeVisible(); }', [
+        {
+            languageOptions: {ecmaVersion: 2022, sourceType: 'module'},
+            plugins: {'ui-surface': plugin},
+            rules: {'ui-surface/no-soft-assertions': 'error'},
+        },
+    ]);
+    assert.match(fixed.output, /await expect\(x\)\.toBeVisible\(\)/);
 
     assert.equal(lint('no-conditional-logic', wrap('if (await btn.isVisible()) { await btn.click(); }')).length, 1);
     assert.equal(lint('no-conditional-logic', wrap('const n = (await rows.count()) > 1 ? 1 : 0;')).length, 1);

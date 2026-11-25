@@ -42,6 +42,61 @@ function defaultPaths(cwd = process.cwd()) {
     };
 }
 
+/** Human-readable explanations for `ui-surface explain <ruleId>`, mirroring the diagnostic hints. */
+const RULE_DOCS: Record<string, {summary: string; why: string; fix: string; example?: string}> = {
+    grammar: {
+        summary: 'A surface id must be scope.name[:key][--role].',
+        why: 'The grammar is what lets the scanner type the id and generate a driver for it.',
+        fix: 'Use lowercase path words separated by dots, an optional :key, and a known --role suffix.',
+        example: "data-surface='channel_settings.save--button'",
+    },
+    duplicates: {
+        summary: 'Two elements that can render together share one id.',
+        why: 'A lookup by a duplicated id is ambiguous and trips Playwright strict mode.',
+        fix: 'Give concurrently-rendered elements distinct names, or key repeated items by an entity id.',
+    },
+    'role-fit': {
+        summary: 'A state/input kind (--checkbox, --switch, --textbox, ...) is on an element that cannot have it.',
+        why: 'State and input drivers read role/semantics the element must actually expose.',
+        fix: 'Use a native element with the right type/role, or add a custom component to ui-surface/role-map.json with the role it renders.',
+    },
+    'key-origin': {
+        summary: 'A list key is not a stable entity identity.',
+        why: 'Index, display text and composite keys change with order, locale or data, so lookups break.',
+        fix: 'Key the item by an entity id field (id, *Id), following local aliases, or allow-list it with a reason.',
+    },
+    dynamic: {
+        summary: 'A data-surface value is not statically resolvable.',
+        why: 'The typed contract needs a literal, a ternary of literals, or a one-key template.',
+        fix: 'Make the value a literal grammar id or a `scope.name:${key}--role` template.',
+    },
+    'legacy-testid': {
+        summary: 'A new legacy data-testid was added (the ratchet only shrinks).',
+        why: 'Free-form and dynamic testids are unchecked; the baseline stops new ones creeping in.',
+        fix: 'Make the new id grammar (scope.name--role) or pair it with a data-surface; the baseline may only shrink.',
+    },
+    drift: {
+        summary: 'An element carries data-testid and data-surface that disagree.',
+        why: 'Two ids for one element drift apart; one of them silently stops matching.',
+        fix: 'Make them equal, or map the legacy testid to the surface id in ui-surface/testid-surface-map.json with a reason. Retire the legacy id with `ui-surface migrate-testid`.',
+    },
+    'stale-reference': {
+        summary: 'A spec references an id the webapp no longer renders.',
+        why: 'A stale selector silently never matches; the test passes for the wrong reason.',
+        fix: 'Update the reference after a rename, or remove it. Allow-list only with a documented reason.',
+    },
+    'observe-actions': {
+        summary: 'An action is not observed before the test turns away from the page.',
+        why: 'An un-observed action can still be in flight when the next step or API call runs, so the test flakes.',
+        fix: 'Follow the action with settle(...) if it saves, or an expect on what it changed.',
+    },
+    'no-url-assertions': {
+        summary: 'toHaveURL with a path drops the server subpath.',
+        why: 'Playwright resolves a relative URL against baseURL, which omits the subpath in subpath mode.',
+        fix: 'Assert with toHavePath(pages.<page>.pathFor(...)) and the page ready part.',
+    },
+};
+
 function readFlag(args: string[], flag: string): string | undefined {
     const idx = args.indexOf(flag);
     return idx >= 0 ? args[idx + 1] : undefined;
@@ -106,6 +161,23 @@ export async function runCli(argv: string[]): Promise<number> {
 
     if (!cmd || cmd === '--help' || cmd === '-h') {
         out('Usage: ui-surface <scan|check|baseline|generate|map|find|host-contract|explain|migrate-testid|migrate-spec> [options]\n');
+        return 0;
+    }
+
+    if (cmd === 'explain') {
+        const ruleId = (sub ?? '').replace(/^ui-surface\//, '');
+        const entry = RULE_DOCS[ruleId];
+        if (!entry) {
+            out('ui-surface explain <ruleId>\n\nRules:\n');
+            for (const [id, doc] of Object.entries(RULE_DOCS)) {
+                out(`  ${id.padEnd(16)} ${doc.summary}\n`);
+            }
+            return ruleId ? 1 : 0;
+        }
+        out(`${ruleId}\n\n${entry.summary}\n\nWhy: ${entry.why}\n\nFix: ${entry.fix}\n`);
+        if (entry.example) {
+            out(`\nExample:\n${entry.example}\n`);
+        }
         return 0;
     }
 

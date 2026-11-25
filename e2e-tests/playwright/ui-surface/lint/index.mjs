@@ -638,7 +638,7 @@ export const rules = {
         },
     },
     'no-soft-assertions': {
-        meta: {type: 'problem', schema: []},
+        meta: {type: 'problem', schema: [], fixable: 'code'},
         create(context) {
             return {
                 MemberExpression(node) {
@@ -650,6 +650,8 @@ export const rules = {
                         context.report({
                             node,
                             message: 'expect.soft() lets the test continue after a failure; use expect().',
+                            // Safe trivial autofix: expect.soft(x) -> expect(x).
+                            fix: (fixer) => fixer.removeRange([node.object.range[1], node.property.range[1]]),
                         });
                     }
                 },
