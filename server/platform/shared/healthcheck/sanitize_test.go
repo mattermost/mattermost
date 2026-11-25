@@ -23,10 +23,12 @@ func TestMaskURLCredentials(t *testing.T) {
 		"https://user:p@ss@push.example.com/version":       "https://****@push.example.com/version",
 		"a http://u:p@one.example.com b ftp://x@two":       "a http://****@one.example.com b ftp://****@two",
 		"no url here, user@example.com":                    "no url here, user@example.com",
-		"https://api.example.com?email=ops@example.net":    "https://api.example.com?email=ops@example.net",
+		"https://api.example.com?email=ops@example.net":    "https://****@example.net",
 		"https://api.example.com/v1?email=ops@example.net": "https://api.example.com/v1?email=ops@example.net",
-		"https://api.example.com#ops@example.net":          "https://api.example.com#ops@example.net",
-		"https://user:p@ss@api.example.com?email=a@b.c":    "https://****@api.example.com?email=a@b.c",
+		"https://api.example.com#ops@example.net":          "https://****@example.net",
+		"https://user:p@ss@api.example.com?email=a@b.c":    "https://****@b.c",
+		"https://elastic:pa#ss@es.example.com:9200":        "https://****@es.example.com:9200",
+		"https://elastic:pa?ss@es.example.com:9200":        "https://****@es.example.com:9200",
 	} {
 		assert.Equal(t, want, MaskURLCredentials(in), in)
 	}

@@ -11,9 +11,11 @@ import (
 // server log under the job's id.
 const maxJobErrorRunes = 500
 
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/?#]+@`)
+var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
 
 // MaskURLCredentials removes URL userinfo from an error. Hostnames and secrets in query strings are kept.
+// The match does not stop at '?' or '#', so a password containing them unencoded is still masked; the
+// cost is that an '@' in a query or fragment with no path before it also masks the host.
 func MaskURLCredentials(s string) string {
 	return urlCredentials.ReplaceAllString(s, "${1}****@")
 }

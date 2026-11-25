@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -500,7 +501,8 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 }
 
 func (jss SqlJobStore) GetTypeSummaries(rctx request.CTX, since int64) ([]*store.JobTypeSummary, error) {
-	// Jobs has no index that serves this, so it scans the table. Job history is small since job cleanup is off by default.
+	// Jobs has no index that serves this, so it scans the table. Job cleanup is off by default
+	// (CleanupJobsThresholdDays is -1), so the table keeps growing; a 500k-row table takes about a second.
 	const query = `
 		WITH latest AS (
 			SELECT DISTINCT ON (Type) Type, Id, Status, CreateAt, Data->>'error' AS Error
@@ -525,7 +527,8 @@ func (jss SqlJobStore) GetTypeSummaries(rctx request.CTX, since int64) ([]*store
 		FROM latest JOIN agg USING (Type)
 		ORDER BY latest.Type`
 
-	ctx, cancel := jss.analyticsContext()
+	// Derive from rctx, not context.Background(), so stopping the health check also stops the query.
+	ctx, cancel := context.WithTimeout(rctx.Context(), time.Duration(*jss.settings.AnalyticsQueryTimeout)*time.Second)
 	defer cancel()
 
 	summaries := []*store.JobTypeSummary{}
