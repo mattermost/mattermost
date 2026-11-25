@@ -10,6 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {isEmbedded} from 'utils/embed';
 
 import PasskeyEnrollmentPrompt from './passkey_enrollment_prompt';
 
@@ -17,7 +18,12 @@ jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(() => false),
 }));
 
+jest.mock('utils/embed', () => ({
+    isEmbedded: jest.fn(() => false),
+}));
+
 const isDesktopAppMock = jest.mocked(isDesktopApp);
+const isEmbeddedMock = jest.mocked(isEmbedded);
 
 const stateWith = (enabled: 'true' | 'false') => ({
     entities: {general: {config: {PasskeyEnrollmentEnabled: enabled}}, users: {currentUserId: 'user1'}},
@@ -73,6 +79,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         expireCookie('MMLOGINMETHOD');
         document.cookie = 'MMCSRF=tok1';
         isDesktopAppMock.mockReturnValue(false);
+        isEmbeddedMock.mockReturnValue(false);
 
         getSessions = jest.spyOn(Client4, 'getSessions').mockResolvedValue([session({csrf: 'tok1', login_method: 'standard'})] as never);
         beginRegistration = jest.spyOn(Client4, 'beginPasskeyRegistration').mockResolvedValue(beginResult);
@@ -113,6 +120,9 @@ describe('PasskeyEnrollmentPrompt', () => {
         ['inside the desktop app', () => {
             isDesktopAppMock.mockReturnValue(true);
         }],
+        ['inside an embedded frame', () => {
+            isEmbeddedMock.mockReturnValue(true);
+        }],
         ['the browser has no WebAuthn', () => {
             Reflect.deleteProperty(window, 'PublicKeyCredential');
         }],
@@ -137,6 +147,15 @@ describe('PasskeyEnrollmentPrompt', () => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(container).toBeEmptyDOMElement();
         expect(getSessions).not.toHaveBeenCalled();
+    });
+
+    test('records nothing when embedded, so the prompt is still due outside the frame', async () => {
+        isEmbeddedMock.mockReturnValue(true);
+        renderPrompt();
+
+        await new Promise((r) => setTimeout(r, 50));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(LocalStorageStore.isPasskeyPromptDue('user1', 'tok1')).toBe(true);
     });
 
     test('stays closed and due while account settings is open', async () => {

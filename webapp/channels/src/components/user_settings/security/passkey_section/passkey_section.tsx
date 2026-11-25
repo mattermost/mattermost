@@ -19,6 +19,7 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
+import {isEmbedded} from 'utils/embed';
 import {createPasskey, currentSessionCanAddPasskey, signalAcceptedPasskeys, signalUnknownPasskey} from 'utils/passkeys';
 
 const SECTION_PASSKEYS = 'passkeys';
@@ -449,7 +450,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                         values={{name: toDelete?.name}}
                     />
                 </p>
-                {!isDesktopApp() && typeof window.PublicKeyCredential?.signalUnknownCredential === 'function' && (
+                {!isDesktopApp() && !isEmbedded() && typeof window.PublicKeyCredential?.signalUnknownCredential === 'function' && (
                     <p>
                         <FormattedMessage
                             id='user.settings.passkeys.deleteForgetOnDevice'

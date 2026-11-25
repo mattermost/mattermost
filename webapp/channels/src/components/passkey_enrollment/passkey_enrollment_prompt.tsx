@@ -7,7 +7,6 @@ import {useSelector, useStore} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -17,7 +16,7 @@ import {isModalOpen} from 'selectors/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {createPasskey, currentSessionCanAddPasskey, verifyPasskey} from 'utils/passkeys';
+import {canRunPasskeyCeremony, createPasskey, currentSessionCanAddPasskey, verifyPasskey} from 'utils/passkeys';
 import {isPasskeySession} from 'utils/route';
 
 import type {GlobalState} from 'types/store';
@@ -46,8 +45,7 @@ export default function PasskeyEnrollmentPrompt() {
     const [userId] = useState(currentUserId);
     const [eligible] = useState(() => (
         enrollmentEnabled &&
-        !isDesktopApp() &&
-        typeof window.PublicKeyCredential !== 'undefined' &&
+        canRunPasskeyCeremony() &&
         !isPasskeySession() &&
         LocalStorageStore.isPasskeyPromptDue(userId, loginKey)
     ));

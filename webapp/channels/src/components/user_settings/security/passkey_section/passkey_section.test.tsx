@@ -13,6 +13,7 @@ import * as GlobalActions from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {isEmbedded} from 'utils/embed';
 import * as Passkeys from 'utils/passkeys';
 
 import PasskeySection from './index';
@@ -21,7 +22,12 @@ jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(() => false),
 }));
 
+jest.mock('utils/embed', () => ({
+    isEmbedded: jest.fn(() => false),
+}));
+
 const isDesktopAppMock = jest.mocked(isDesktopApp);
+const isEmbeddedMock = jest.mocked(isEmbedded);
 
 const passkeys: Passkey[] = [
     {id: 'pk1', user_id: 'me', name: 'Laptop', create_at: Date.UTC(2025, 0, 15, 12), last_used_at: 0, credential_id: 'Y3JlZC1wazE', user_handle: 'aGFuZGxl'},
@@ -576,6 +582,7 @@ describe('PasskeySection', () => {
         afterEach(() => {
             Reflect.deleteProperty(window, 'PublicKeyCredential');
             isDesktopAppMock.mockReturnValue(false);
+            isEmbeddedMock.mockReturnValue(false);
         });
 
         test('says the browser will be asked to remove the passkey when it can be', async () => {
@@ -589,6 +596,16 @@ describe('PasskeySection', () => {
         test('does not promise browser removal inside the desktop app', async () => {
             Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential: jest.fn()}), configurable: true});
             isDesktopAppMock.mockReturnValue(true);
+
+            const dialog = await openDialog();
+
+            expect(within(dialog).getByText(/You will no longer be able to sign in with "Laptop"/)).toBeInTheDocument();
+            expect(within(dialog).queryByText(forgetSentence)).not.toBeInTheDocument();
+        });
+
+        test('does not promise browser removal when embedded', async () => {
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential: jest.fn()}), configurable: true});
+            isEmbeddedMock.mockReturnValue(true);
 
             const dialog = await openDialog();
 
@@ -649,6 +666,7 @@ describe('PasskeySection', () => {
 
         beforeEach(() => {
             isDesktopAppMock.mockReturnValue(false);
+            isEmbeddedMock.mockReturnValue(false);
             beginRegistration = jest.spyOn(Client4, 'beginPasskeyRegistration').mockResolvedValue(beginResult);
             finishRegistration = jest.spyOn(Client4, 'finishPasskeyRegistration').mockResolvedValue(passkeys[0]);
             create = jest.fn().mockResolvedValue(rawCredential);
@@ -775,6 +793,15 @@ describe('PasskeySection', () => {
             await renderExpanded();
 
             expect(screen.queryByRole('button', {name: 'Add passkey'})).not.toBeInTheDocument();
+        });
+
+        test('is hidden when embedded (list still shows)', async () => {
+            isEmbeddedMock.mockReturnValue(true);
+            await renderExpanded();
+
+            expect(screen.getByText('Laptop')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Add passkey'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Sign in again'})).not.toBeInTheDocument();
         });
 
         test('at the limit shows the limit text instead of the control', async () => {
