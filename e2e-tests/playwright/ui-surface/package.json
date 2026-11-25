@@ -1,7 +1,7 @@
 {
   "name": "@mattermost/ui-surface",
   "version": "1.0.0",
-  "description": "Lean UI surface extractor, OpenAPI/i18n codegen, agent query CLI, and 3-layer Host-Plugin contract",
+  "description": "Lean UI surface extractor, stale-reference check, and OpenAPI/i18n/surface codegen for Playwright",
   "license": "MIT",
   "type": "module",
   "main": "dist/scan.js",

@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   ui-surface:
-    name: UI Surface Check, Build & Host Contract
+    name: UI Surface Check & Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -46,11 +46,3 @@ jobs:
           npm run build --workspace @mattermost/playwright-lib
           npm run tsc --workspaces
 
-      - name: Emit 3-layer Host-Plugin Contract artifact
-        run: node ui-surface/bin/ui-surface.mjs host-contract --out host-contract.json
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mattermost-host-contract
-          path: e2e-tests/playwright/host-contract.json
-          retention-days: 30
