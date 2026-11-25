@@ -1,0 +1,6 @@
+{
+    "_doc": "Design-system components and the role/semantics they render, so a state/input testid kind (--switch, --checkbox, --textbox, ...) on a custom component can be verified without a full type program. 'text' satisfies any text-entry role (textbox/searchbox/combobox/spinbutton); 'any' opts a component out when it legitimately varies its semantics. A state/input kind on a component NOT listed here fails role-fit: add the component with the role it renders, or use a native element. Each entry is verified against the component's render in webapp source.",
+    "Input": "text",
+    "PasswordInput": "text",
+    "Switch": "switch"
+}

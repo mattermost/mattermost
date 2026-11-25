@@ -52,6 +52,67 @@ test('extractSurface extracts literal, keyed, and data-surface scopes while catc
     );
 });
 
+test('key-origin resolves local aliases, rejects index and display-text keys, accepts entity ids', () => {
+    const key = (name, body) =>
+        extractSurface({
+            roots: [],
+            files: {[`${name}.tsx`]: body},
+        }).diagnostics.filter((d) => d.rule === 'key-origin');
+
+    // index param of a map callback, even when named `index` (previously whitelisted) or aliased.
+    assert.equal(
+        // eslint-disable-next-line no-template-curly-in-string
+        key('idx', 'export const C=({a}:{a:string[]})=>(<ul data-surface="l">{a.map((x,index)=>(<li data-surface={`l.row:${index}--listitem`}/>))}</ul>);').length,
+        1,
+    );
+    // alias to display text: const id = t.display_name.
+    assert.equal(
+        key(
+            'alias',
+            // eslint-disable-next-line no-template-curly-in-string
+            'export const C=({t}:{t:Array<{display_name:string}>})=>(<ul data-surface="l">{t.map((v)=>{const id=v.display_name;return <li data-surface={`l.row:${id}--listitem`}/>;})}</ul>);',
+        ).length,
+        1,
+    );
+    // composite concatenation.
+    assert.equal(
+        // eslint-disable-next-line no-template-curly-in-string
+        key('composite', 'export const C=({r}:{r:Array<{a:string;b:string}>})=>(<ul data-surface="l">{r.map((x)=>(<li data-surface={`l.row:${x.a + x.b}--listitem`}/>))}</ul>);').length,
+        1,
+    );
+    // entity id through an alias is accepted.
+    assert.equal(
+        key(
+            'ok',
+            // eslint-disable-next-line no-template-curly-in-string
+            'export const C=({t}:{t:Array<{id:string}>})=>(<ul data-surface="l">{t.map((v)=>{const id=v.id;return <li data-surface={`l.row:${id}--listitem`}/>;})}</ul>);',
+        ).length,
+        0,
+    );
+});
+
+test('role-fit flags a state/input kind on a custom component unless role-map vouches for it', () => {
+    const roleFit = (body, roleMap) =>
+        extractSurface({roots: [], roleMap, files: {'c.tsx': body}}).diagnostics.filter((d) => d.rule === 'role-fit');
+
+    // Unmapped custom component with a state kind: cannot be verified.
+    const unmapped = roleFit('export const C=()=>(<div data-surface="p"><Toggle data-surface="p.on--checkbox"/></div>);', {});
+    assert.equal(unmapped.length, 1);
+    assert.match(unmapped[0].message, /role-map\.json/);
+
+    // Mapped to the wrong role: mismatch.
+    assert.equal(
+        roleFit('export const C=()=>(<div data-surface="p"><Toggle data-surface="p.on--checkbox"/></div>);', {Toggle: 'switch'}).length,
+        1,
+    );
+
+    // Mapped text component used as a textbox: accepted.
+    assert.equal(
+        roleFit('export const C=()=>(<div data-surface="p"><Input data-surface="p.name--textbox"/></div>);', {Input: 'text'}).length,
+        0,
+    );
+});
+
 test('checkStaleRefs detects stale Playwright and Cypress literals and ignores comments', () => {
     const report = extractSurface({
         roots: [],

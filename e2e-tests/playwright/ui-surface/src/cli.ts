@@ -32,6 +32,7 @@ function defaultPaths(cwd = process.cwd()) {
         slotsPath: resolve(pkgDir, 'plugin-slots.json'),
         pagesPath: resolve(pkgDir, 'pages.json'),
         staleAllowPath: resolve(pkgDir, 'stale-allow.json'),
+        roleMapPath: resolve(pkgDir, 'role-map.json'),
         generatedDir: resolve(pwRoot, 'lib/src/surface/generated'),
     };
 }
@@ -119,7 +120,10 @@ export async function runCli(argv: string[]): Promise<number> {
     const roots = readFlag(argv, '--root')
         ? [resolve(readFlag(argv, '--root')!)]
         : paths.webappRoots.filter(existsSync);
-    const surface = extractSurface({roots, cwd: paths.repoRoot});
+    const roleMap = existsSync(paths.roleMapPath)
+        ? (JSON.parse(readFileSync(paths.roleMapPath, 'utf8')) as Record<string, string>)
+        : {};
+    const surface = extractSurface({roots, cwd: paths.repoRoot, roleMap});
 
     if (cmd === 'scan') {
         const outFile = readFlag(argv, '--out');

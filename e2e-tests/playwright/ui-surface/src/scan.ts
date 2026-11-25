@@ -51,10 +51,15 @@ const EXACT_TESTID_CSS = /^\[data-(?:testid|surface)=(?:"([^"]+)"|'([^']+)')\]$/
 const DYNAMIC = Symbol('dynamic');
 
 /**
- * A list key must name entity identity (`post.id`, `pluginId`, `index`), never display text that varies by locale or data.
- * `section` is the settings section id (`theme`, `email`) that SettingItemMin already uses to build DOM ids.
+ * A list key must name entity identity (`post.id`, `pluginId`), never display text that varies by locale or data, and
+ * never the map index (position is not stable identity). `section` is the settings section id (`theme`, `email`) that
+ * SettingItemMin already uses to build DOM ids.
  */
-const IDENTITY_KEY = /^(?:id|key|index|idx|i|section)$|(?:Id|_id|Key|_key|Ids)$/;
+const IDENTITY_KEY = /^(?:id|key|section)$|(?:Id|_id|Key|_key|Ids)$/;
+
+/** Map/`forEach` index names and display-text fields that must never key a list. */
+const INDEX_NAME = /^(?:index|idx|i)$/;
+const DISPLAY_TEXT = /^(?:display_name|name|title|label|text|message|description|caption|heading|subtitle)$/;
 
 export type ParsedTestId = {
     raw: string;
@@ -135,6 +140,17 @@ export function parseTemplateTestId(head: string, tail: string): ParsedTestId | 
     return parseTestId(`${head}key${role ? `--${role}` : ''}`);
 }
 
+/** A key-origin diagnostic worded for the kind of bad key found, with the exact fix. */
+function keyOriginMessage(expr: string, kind: Exclude<KeyKind, 'identity'>): string {
+    const why = {
+        index: 'the map index is a position, not identity: reorder or insert and every key shifts',
+        display: 'display text is locale- and data-dependent',
+        composite: 'a composite string concatenates identities: key the item by one entity id',
+        unknown: 'its origin could not be resolved to an identity field (id, *Id, key, section)',
+    }[kind];
+    return `Key \`${expr}\` is not an identity field — ${why}. Key by an entity id, or allow-list it with a reason.`;
+}
+
 function openingOf(node: ts.Node): ts.JsxOpeningLikeElement | undefined {
     if (ts.isJsxElement(node)) {
         return node.openingElement;
@@ -172,8 +188,13 @@ function readAttr(el: ts.JsxOpeningLikeElement, attrName: string): string | bool
 
 type AttrId = {id: string; keyed: boolean; keyExpr?: ts.Expression} | {dynamic: ts.Expression};
 
-/** Last identifier of a key expression: `component.pluginId` -> `pluginId`, `item?.id ?? ''` -> `id`. */
-function keyName(expr: ts.Expression): string | undefined {
+/** Local aliases (`const id = t.display_name`) and index parameters (`items.map((x, index) => ...)`) in one file. */
+type KeyScope = {aliases: Map<string, ts.Expression>; indexParams: Set<string>};
+
+export type KeyKind = 'identity' | 'index' | 'display' | 'composite' | 'unknown';
+
+/** Strip transparent wrappers that do not change a key's origin. */
+function unwrapKey(expr: ts.Expression): ts.Expression {
     let cur: ts.Expression = expr;
     while (
         ts.isParenthesizedExpression(cur) ||
@@ -183,6 +204,12 @@ function keyName(expr: ts.Expression): string | undefined {
     ) {
         cur = ts.isBinaryExpression(cur) ? cur.left : cur.expression;
     }
+    return cur;
+}
+
+/** Last identifier of a key expression: `component.pluginId` -> `pluginId`, `item?.id ?? ''` -> `id`. */
+function keyName(expr: ts.Expression): string | undefined {
+    const cur = unwrapKey(expr);
     if (ts.isIdentifier(cur)) {
         return cur.text;
     }
@@ -190,6 +217,73 @@ function keyName(expr: ts.Expression): string | undefined {
         return cur.name.text;
     }
     return undefined;
+}
+
+/**
+ * Collect per-file local alias initialisers and map/forEach index parameters, so a key written through a local name
+ * (`const id = t.display_name`) or an index param resolves to its real origin. Single file only, no cross-module
+ * resolution (lean by design); a one-hop import would need the importing file's program, which we deliberately avoid.
+ */
+function collectKeyScope(source: ts.SourceFile): KeyScope {
+    const aliases = new Map<string, ts.Expression>();
+    const indexParams = new Set<string>();
+    const ITERATORS = new Set(['map', 'forEach', 'flatMap', 'filter', 'reduce', 'some', 'every']);
+    const visit = (node: ts.Node) => {
+        if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && !aliases.has(node.name.text)) {
+            aliases.set(node.name.text, node.initializer);
+        }
+        if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && ITERATORS.has(node.expression.name.text)) {
+            const cb = node.arguments.find((a) => ts.isArrowFunction(a) || ts.isFunctionExpression(a)) as
+                | ts.ArrowFunction
+                | ts.FunctionExpression
+                | undefined;
+            const idxParam = cb?.parameters[1]?.name;
+            if (idxParam && ts.isIdentifier(idxParam)) {
+                indexParams.add(idxParam.text);
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(source);
+    return {aliases, indexParams};
+}
+
+/**
+ * Classify a list key's origin by resolving local aliases and index params with the file's AST. `identity` passes;
+ * `index`, `display` and `composite` are rejected; `unknown` keeps the previous strict behaviour (non-identity fails).
+ */
+export function classifyKey(expr: ts.Expression, scope: KeyScope, depth = 0): KeyKind {
+    const cur = unwrapKey(expr);
+    if (ts.isBinaryExpression(cur) && cur.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return 'composite';
+    }
+    if (ts.isTemplateExpression(cur)) {
+        return 'composite';
+    }
+    if (ts.isIdentifier(cur)) {
+        if (scope.indexParams.has(cur.text) || INDEX_NAME.test(cur.text)) {
+            return 'index';
+        }
+        const alias = depth < 6 ? scope.aliases.get(cur.text) : undefined;
+        if (alias) {
+            return classifyKey(alias, scope, depth + 1);
+        }
+        if (DISPLAY_TEXT.test(cur.text)) {
+            return 'display';
+        }
+        return IDENTITY_KEY.test(cur.text) ? 'identity' : 'unknown';
+    }
+    const name = keyName(cur);
+    if (!name) {
+        return 'unknown';
+    }
+    if (INDEX_NAME.test(name)) {
+        return 'index';
+    }
+    if (DISPLAY_TEXT.test(name)) {
+        return 'display';
+    }
+    return IDENTITY_KEY.test(name) ? 'identity' : 'unknown';
 }
 
 function readAttrIds(el: ts.JsxOpeningLikeElement, attrName: 'data-testid' | 'data-surface'): AttrId[] {
@@ -230,6 +324,27 @@ function readAttrIds(el: ts.JsxOpeningLikeElement, attrName: 'data-testid' | 'da
 
 function isNativeTag(el: ts.JsxOpeningLikeElement | undefined): el is ts.JsxOpeningLikeElement {
     return Boolean(el && /^[a-z][a-z\d]*$/.test(el.tagName.getText()));
+}
+
+/**
+ * Role check for a state/input kind on a custom (non-native) component. A design-system component in `roleMap` must
+ * render the role it is declared with; one not in the map cannot be verified, so a state/input kind on it is rejected
+ * (add it to role-map.json with its role, or use a native element). Returns a mismatch message, or undefined when fine.
+ */
+function customRoleMismatch(el: ts.JsxOpeningLikeElement, role: string, roleMap: Record<string, string>): string | undefined {
+    if (STATE_ROLES.has(role) || ENTRY_ROLES.has(role) || role === 'radio') {
+        const tag = el.tagName.getText();
+        const mapped = roleMap[tag];
+        if (mapped === undefined) {
+            return `state/input kind "--${role}" on custom <${tag}> cannot be verified; add <${tag}> to ui-surface/role-map.json with the role it renders, or use a native element`;
+        }
+        // "text" satisfies any text-entry role; "any" opts out of the check for a component that varies its semantics.
+        const satisfied = mapped === role || mapped === 'any' || (mapped === 'text' && ENTRY_ROLES.has(role));
+        if (!satisfied) {
+            return `custom <${tag}> renders role "${mapped}" but is marked "--${role}"`;
+        }
+    }
+    return undefined;
 }
 
 function hasRoleMismatch(el: ts.JsxOpeningLikeElement, role: string): boolean {
@@ -333,7 +448,9 @@ export function extractSurface(options: {
     cwd?: string;
     strictGrammar?: boolean;
     files?: Record<string, string>;
+    roleMap?: Record<string, string>;
 }): SurfaceReport {
+    const roleMap = options.roleMap ?? {};
     const started = performance.now();
     const cwd = options.cwd ?? process.cwd();
     const entries: SurfaceEntry[] = [];
@@ -348,6 +465,7 @@ export function extractSurface(options: {
         }
         const rel = options.files ? file : relative(cwd, file);
         const source = ts.createSourceFile(rel, content, ts.ScriptTarget.Latest, true);
+        const keyScope = collectKeyScope(source);
         const report = (rule: Diagnostic['rule'], node: ts.Node, id: string, message: string) => {
             const {line} = source.getLineAndCharacterOfPosition(node.getStart(source));
             diagnostics.push({rule, file: rel, line: line + 1, id, message});
@@ -380,14 +498,11 @@ export function extractSurface(options: {
                         if (attrName === 'data-surface' && !found.id.includes('.') && !found.id.includes('--')) {
                             continue;
                         }
-                        const key = found.keyExpr && keyName(found.keyExpr);
-                        if (found.keyExpr && !(key && IDENTITY_KEY.test(key))) {
-                            report(
-                                'key-origin',
-                                node,
-                                found.id,
-                                `Key \`${found.keyExpr.getText(source)}\` is not an identity field (id, *Id, key, index); display text makes ids locale- and data-dependent`,
-                            );
+                        if (found.keyExpr) {
+                            const kind = classifyKey(found.keyExpr, keyScope);
+                            if (kind !== 'identity') {
+                                report('key-origin', node, found.id, keyOriginMessage(found.keyExpr.getText(source), kind));
+                            }
                         }
                         const parsed = found.keyed ? parseTestId(found.id.replace(':', ':key')) : parseTestId(found.id);
                         const {line} = source.getLineAndCharacterOfPosition(node.getStart(source));
@@ -410,13 +525,18 @@ export function extractSurface(options: {
                             entries.push(entry);
                             scopes[parsed.scope] ??= {parts: [], containerFiles: []};
                             scopes[parsed.scope].parts.push(entry);
-                            if (parsed.role && hasRoleMismatch(el, parsed.role)) {
+                            if (parsed.role && isNativeTag(el) && hasRoleMismatch(el, parsed.role)) {
                                 report(
                                     'role-fit',
                                     node,
                                     found.id,
                                     `Element <${el.tagName.getText()}> does not satisfy "--${parsed.role}" semantics`,
                                 );
+                            } else if (parsed.role && !isNativeTag(el)) {
+                                const custom = customRoleMismatch(el, parsed.role, roleMap);
+                                if (custom) {
+                                    report('role-fit', node, found.id, custom);
+                                }
                             }
                         } else if (options.strictGrammar || isGrammarCandidate(found.id)) {
                             report('grammar', node, found.id, parsed.error ?? 'Invalid testid grammar');
