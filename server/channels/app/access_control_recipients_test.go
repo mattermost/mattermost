@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"sync"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -542,6 +544,86 @@ func TestSendNotificationsAccessControlResource(t *testing.T) {
 
 	// The same post with no marker reaches the mentioned member.
 	plain := th.CreatePost(t, th.BasicChannel, func(p *model.Post) { p.Message = "@" + th.BasicUser2.Username + " and now?" })
+	mentioned, err = th.App.SendNotifications(th.Context, plain, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+	require.NoError(t, err)
+	assert.Contains(t, mentioned, th.BasicUser2.Id)
+}
+
+func TestSendNotificationsAccessControlResourceGroupMention(t *testing.T) {
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
+	notInChannel := th.CreateUser(t)
+	th.LinkUserToTeam(t, notInChannel, th.BasicTeam)
+
+	resourceID := model.NewId()
+	plantPostPolicy(t, th, resourceID)
+	value := testPostResource(resourceID)
+
+	enablePluginAccessControl(t, th)
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+	mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(0), nil)
+
+	groupName := "acgroup" + model.NewId()[:8]
+	group, appErr := th.App.CreateGroup(&model.Group{
+		Name:           &groupName,
+		DisplayName:    groupName,
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	})
+	require.Nil(t, appErr)
+	for _, u := range []*model.User{th.BasicUser, th.BasicUser2, notInChannel} {
+		_, appErr = th.App.UpsertGroupMember(group.Id, u.Id)
+		require.Nil(t, appErr)
+	}
+
+	cluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(cluster)
+	t.Cleanup(func() { th.Server.Platform().SetCluster(nil) })
+
+	post := &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: "@" + groupName + " can you see this?"}
+	post.AddProp(model.PostPropsAccessControlResource, value)
+	post, appErr = api.CreatePost(post)
+	require.Nil(t, appErr)
+
+	// The warning is sent asynchronously. The group member outside the channel is
+	// listed in it, which also proves the denied channel member was left out of
+	// the same message rather than the warning simply not having run yet.
+	cluster.ClearMessages()
+	mentioned, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+	require.NoError(t, err)
+	assert.NotContains(t, mentioned, th.BasicUser2.Id, "a denied group member is not notified")
+
+	var notInChannelUsernames []string
+	require.Eventually(t, func() bool {
+		for _, msg := range cluster.GetMessages() {
+			ev, evErr := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+			if evErr != nil || ev.EventType() != model.WebsocketEventEphemeralMessage {
+				continue
+			}
+			postJSON, _ := ev.GetData()["post"].(string)
+			var ephemeral model.Post
+			if json.Unmarshal([]byte(postJSON), &ephemeral) != nil {
+				continue
+			}
+			addMember, _ := ephemeral.GetProp(model.PropsAddChannelMember).(map[string]any)
+			names, _ := addMember["usernames"].([]any)
+			for _, n := range names {
+				notInChannelUsernames = append(notInChannelUsernames, n.(string))
+			}
+			return true
+		}
+		return false
+	}, 5*time.Second, 10*time.Millisecond)
+	assert.Equal(t, []string{notInChannel.Username}, notInChannelUsernames)
+
+	// Without the marker the same group mention notifies the channel member.
+	plain := th.CreatePost(t, th.BasicChannel, func(p *model.Post) { p.Message = "@" + groupName + " and now?" })
 	mentioned, err = th.App.SendNotifications(th.Context, plain, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	assert.Contains(t, mentioned, th.BasicUser2.Id)

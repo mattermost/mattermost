@@ -202,9 +202,6 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		} else {
 			mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 		}
-		// Users pruned above are channel members, so they must not be reported
-		// as "not in the channel".
-		mentions.OtherPotentialMentions = dropPrunedPotentialMentions(mentions.OtherPotentialMentions, accessControlPrunedUsernames)
 
 		if channel.Type != model.ChannelTypeDirect {
 			// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
@@ -227,6 +224,10 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					a.sendNoUsersNotifiedByGroupInChannel(rctx, sender, post, channel, groups[groupID])
 				}
 			}
+
+			// Pruned users are channel members, so they must not be reported as
+			// "not in the channel". Group insertion above adds them by username too.
+			mentions.OtherPotentialMentions = dropPrunedPotentialMentions(mentions.OtherPotentialMentions, accessControlPrunedUsernames)
 
 			go func() {
 				_, err := a.sendOutOfChannelMentions(rctx, sender, post, channel, mentions.OtherPotentialMentions)
