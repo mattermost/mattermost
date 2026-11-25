@@ -290,11 +290,21 @@ func TestMutex(t *testing.T) {
 		m := mustNewMutex(mockPluginAPI, makeKey())
 
 		mockPluginAPI.setFailing(true)
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		go func() { _ = m.LockWithContext(ctx) }()
+		ctx, cancel := context.WithCancel(t.Context())
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			assert.Error(t, m.LockWithContext(ctx))
+		}()
 
 		assert.Eventually(t, func() bool { return mockPluginAPI.errorLogCount() >= 1 }, 2*time.Second, 10*time.Millisecond)
+
+		cancel()
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "LockWithContext did not return after its context was canceled")
+		}
 	})
 
 	t.Run("try lock", func(t *testing.T) {
