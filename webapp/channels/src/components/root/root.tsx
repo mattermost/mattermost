@@ -429,7 +429,8 @@ export default class Root extends React.PureComponent<Props, State> {
 
                         <WindowSizeObserver/>
                         <ModalController/>
-                        <QueryParamActionController/>
+                        {/* Logged out, LoggedIn builds redirect_to from this URL, so the action must survive until after sign-in */}
+                        {this.props.isLoggedIn && <QueryParamActionController/>}
                         <GlobalClassificationBanner position='top'/>
                         <AnnouncementBarController/>
                         <SystemNotice/>

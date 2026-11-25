@@ -9,7 +9,7 @@ import {bindActionCreators} from 'redux';
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import * as BrowserUtils from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
 
@@ -65,6 +65,7 @@ describe('components/Root', () => {
         rhsState: null,
         shouldShowAppBar: false,
         isCloud: false,
+        isLoggedIn: false,
         enableDesktopLandingPage: true,
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
@@ -229,13 +230,27 @@ describe('components/Root', () => {
 
     test('should open the Security tab for an action on a logged-in route outside the team routes', async () => {
         const history = createMemoryHistory({initialEntries: ['/plug/custom_route?action=open_security_settings']});
-        const props = {...baseProps, plugins: [{id: 'p1', route: 'custom_route'} as Props['plugins'][number]]};
+        const props = {...baseProps, isLoggedIn: true, plugins: [{id: 'p1', route: 'custom_route'} as Props['plugins'][number]]};
         const {store: rootStore} = renderWithContext(<Root {...props}/>, {}, {history});
 
         await waitFor(() => {
             expect(rootStore.getState().views.modals.modalState.user_settings?.open).toBe(true);
         });
         expect(rootStore.getState().views.modals.modalState.user_settings.dialogProps).toMatchObject({activeTab: 'security'});
+    });
+
+    test('should leave a URL action alone when nobody is logged in', async () => {
+        const history = createMemoryHistory({initialEntries: ['/plug/custom_route?action=open_security_settings']});
+        const props = {...baseProps, plugins: [{id: 'p1', route: 'custom_route'} as Props['plugins'][number]]};
+        const {store: rootStore} = renderWithContext(<Root {...props}/>, {}, {history});
+
+        await waitFor(() => expect(props.actions.loadConfigAndMe).toHaveBeenCalled());
+        await act(async () => {
+            await new Promise((r) => setTimeout(r, 50));
+        });
+
+        expect(rootStore.getState().views.modals.modalState.user_settings?.open).toBeFalsy();
+        expect(history.location.search).toBe('?action=open_security_settings');
     });
 
     describe('showLandingPageIfNecessary', () => {
