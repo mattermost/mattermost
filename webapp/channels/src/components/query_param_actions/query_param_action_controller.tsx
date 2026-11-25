@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
+
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
 
@@ -22,6 +24,7 @@ function QueryParamActionController() {
     const location = useLocation();
     const dispatch = useDispatch();
     const history = useHistory();
+    const currentTeamId = useSelector(getCurrentTeamId);
 
     const actionMap: ActionMap = {
         open_invitation_modal: {
@@ -42,6 +45,11 @@ function QueryParamActionController() {
         const searchParams = new URLSearchParams(location.search);
         const action = searchParams.get('action');
 
+        // InvitationModal renders nothing without a team but would still be marked open, so skip it
+        if (action === 'open_invitation_modal' && !currentTeamId) {
+            return;
+        }
+
         if (action && actionMap[action]) {
             dispatch(openModal(actionMap[action]));
 
@@ -51,7 +59,7 @@ function QueryParamActionController() {
                 search: searchParams.toString(),
             });
         }
-    }, [location, actionMap]);
+    }, [location, actionMap, currentTeamId]);
 
     return null;
 }
