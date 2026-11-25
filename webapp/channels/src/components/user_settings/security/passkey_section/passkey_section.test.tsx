@@ -304,6 +304,94 @@ describe('PasskeySection', () => {
         expect(await screen.findByText('You have no passkeys.')).toBeInTheDocument();
     });
 
+    describe('telling the browser which passkeys exist', () => {
+        let signalAllAcceptedCredentials: jest.Mock;
+        let signalUnknownCredential: jest.Mock;
+
+        const renderCollapsed = () => renderWithContext(<PasskeySection {...baseProps}/>, enabledState);
+
+        beforeEach(() => {
+            signalAllAcceptedCredentials = jest.fn().mockResolvedValue(undefined);
+            signalUnknownCredential = jest.fn().mockResolvedValue(undefined);
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalAllAcceptedCredentials, signalUnknownCredential}), configurable: true});
+        });
+
+        afterEach(() => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+        });
+
+        test('lists the accepted credential ids after a successful fetch', async () => {
+            renderCollapsed();
+
+            await waitFor(() => expect(signalAllAcceptedCredentials).toHaveBeenCalledTimes(1));
+            expect(signalAllAcceptedCredentials).toHaveBeenCalledWith({
+                rpId: window.location.hostname,
+                userId: 'aGFuZGxl',
+                allAcceptedCredentialIds: ['Y3JlZC1wazE', 'Y3JlZC1wazI'],
+            });
+        });
+
+        test('signals nothing when the fetch fails', async () => {
+            getPasskeys.mockRejectedValue({message: 'no list'});
+            renderWithContext(<PasskeySection {...baseProps}/>, enabledState);
+
+            await waitFor(() => expect(getPasskeys).toHaveBeenCalled());
+            await screen.findByText('Passkeys');
+            expect(signalAllAcceptedCredentials).not.toHaveBeenCalled();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+        });
+
+        test('signals nothing when there are no passkeys', async () => {
+            getPasskeys.mockResolvedValue([]);
+            renderCollapsed();
+
+            expect(await screen.findByText('No passkeys')).toBeInTheDocument();
+            expect(signalAllAcceptedCredentials).not.toHaveBeenCalled();
+        });
+
+        test('tells the browser a deleted passkey is gone, then lists the rest', async () => {
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+            signalAllAcceptedCredentials.mockClear();
+
+            getPasskeys.mockResolvedValue([passkeys[1]]);
+            await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
+
+            await waitFor(() => expect(signalAllAcceptedCredentials).toHaveBeenCalledTimes(1));
+            expect(signalUnknownCredential).toHaveBeenCalledWith({rpId: window.location.hostname, credentialId: 'Y3JlZC1wazE'});
+            expect(signalAllAcceptedCredentials).toHaveBeenCalledWith({
+                rpId: window.location.hostname,
+                userId: 'aGFuZGxl',
+                allAcceptedCredentialIds: ['Y3JlZC1wazI'],
+            });
+        });
+
+        test('does not tell the browser a passkey is gone when the delete fails', async () => {
+            deletePasskey.mockRejectedValue({message: 'could not delete passkey'});
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+            await screen.findByText('Laptop');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Delete passkey Laptop'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
+
+            expect(await screen.findByText('could not delete passkey')).toBeInTheDocument();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+        });
+    });
+
     describe('adding a passkey', () => {
         let beginRegistration: jest.SpyInstance;
         let finishRegistration: jest.SpyInstance;

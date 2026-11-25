@@ -16,11 +16,15 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {createPasskey} from 'utils/passkeys';
+import {createPasskey, signalAcceptedPasskeys, signalUnknownPasskey} from 'utils/passkeys';
 
 const SECTION_PASSKEYS = 'passkeys';
 const MAX_PASSKEYS = 10;
 const MAX_NAME_LENGTH = 64;
+
+// The server derives the RP ID from the Site URL host and refuses ceremonies from any other origin, so it equals the
+// hostname wherever passkeys work.
+const rpId = () => window.location.hostname;
 
 const messages = defineMessages({
     count: {
@@ -85,9 +89,11 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
 
     const load = useCallback(async () => {
         try {
-            setPasskeys(await Client4.getPasskeys('me'));
+            const list = await Client4.getPasskeys('me');
+            setPasskeys(list);
             setLoadFailed(false);
             setServerError(null);
+            signalAcceptedPasskeys(rpId(), list);
         } catch (e) {
             setLoadFailed(true);
             setServerError((e as Error).message);
@@ -125,6 +131,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             setServerError((e as Error).message);
             return;
         }
+
+        // signalAcceptedPasskeys never signals an empty list, so this is what removes a last or sole-handle passkey.
+        signalUnknownPasskey(rpId(), passkey.credential_id);
         await load();
     };
 
