@@ -2719,8 +2719,8 @@
         - users
       summary: Get a user's passkeys
       description: >
-        Get the passkeys registered to a user, oldest first. Only the passkey's
-        name and timestamps are returned, never any credential material.
+        Get the passkeys registered to a user, oldest first. Each passkey's name,
+        timestamps, credential ID and user handle are returned, never its public key.
 
 
         Passkeys are available only when the `Passkeys` feature flag is on and the

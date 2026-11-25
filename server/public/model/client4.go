@@ -2041,8 +2041,9 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
-// GetPasskeysForUser returns the passkeys registered to the user, oldest first. Credential
-// material is never returned. Only the user themselves may list their passkeys.
+// GetPasskeysForUser returns the passkeys registered to the user, oldest first. Each passkey's
+// credential ID and user handle are returned, but never its public key. Only the user themselves may
+// list their passkeys.
 func (c *Client4) GetPasskeysForUser(ctx context.Context, userID string) ([]*Passkey, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.userRoute(userID).Join("passkeys"), "")
 	if err != nil {

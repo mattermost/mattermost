@@ -3255,6 +3255,12 @@ components:
           type: integer
           format: int64
           description: The time the passkey was last used to sign in, in milliseconds since the Unix epoch. 0 if it has never been used.
+        credential_id:
+          type: string
+          description: The WebAuthn credential ID, base64url without padding. Browsers use it to tell a passkey manager which passkeys the server still accepts.
+        user_handle:
+          type: string
+          description: The WebAuthn user handle the passkey was registered under, base64url without padding. A user's passkeys usually share one handle, but can have more than one.
     GlobalDataRetentionPolicy:
       type: object
       properties:
