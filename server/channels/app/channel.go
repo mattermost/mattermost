@@ -2489,6 +2489,23 @@ func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel,
 	return channel, nil
 }
 
+// isDirectChannelOnMaster answers whether a channel is a DM or GM from the
+// primary, bypassing the channel cache. GetChannel reads a replica and caches
+// the row, so right after a type change it can report and keep the old type.
+func (a *App) isDirectChannelOnMaster(rctx request.CTX, channelID string) (bool, error) {
+	// The common case after a conversion is a private channel, so those come first.
+	for _, channelType := range []model.ChannelType{model.ChannelTypePrivate, model.ChannelTypeOpen, model.ChannelTypeGroup, model.ChannelTypeDirect} {
+		_, err := a.Srv().Store().Channel().GetChannelOfType(rctx, channelID, channelType)
+		if err == nil {
+			return channelType == model.ChannelTypeGroup || channelType == model.ChannelTypeDirect, nil
+		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return false, err
+		}
+	}
+	return false, model.NewAppError("isDirectChannelOnMaster", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound)
+}
+
 func (a *App) GetChannels(rctx request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store().Channel().GetMany(channelIDs, true)
 	if err != nil {
@@ -4622,6 +4639,12 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 		return nil, appErr
 	}
 
+	// The write has to follow the type change, so a value the write would refuse
+	// is refused now, while nothing has been published yet.
+	if appErr = a.validateChannelAttributeValues(rctx, resolution.ValuesToWrite); appErr != nil {
+		return nil, appErr
+	}
+
 	updatedChannel, appErr := a.UpdateChannel(rctx, toUpdate)
 	if appErr != nil {
 		return nil, appErr
@@ -4643,7 +4666,9 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 	}
 
 	// The value write is refused on a group message, so it follows the type change.
-	appErr = model.AsAppError(a.writeChannelAttributeValues(rctx, updatedChannel, convertedByUserId, resolution.ValuesToWrite))
+	// On the primary: the direct-channel check in the write must not see a replica
+	// that hasn't caught up with the type change.
+	appErr = model.AsAppError(a.writeChannelAttributeValues(RequestContextWithMaster(rctx), updatedChannel, convertedByUserId, resolution.ValuesToWrite))
 	if appErr != nil {
 		a.revertConvertedGroupMessage(rctx, originalChannel, updatedChannel, &channelRoleRestore{userID: convertedByUserId, wasAdmin: converterWasAdmin}, appErr)
 		return nil, appErr

@@ -261,6 +261,26 @@ func (ps *PropertyService) AddHook(hook PropertyHook) {
 	ps.hooks = append(ps.hooks, hook)
 }
 
+// valueContentValidator is implemented by hooks that can check the contents of
+// values without a write.
+type valueContentValidator interface {
+	ValidateValueContents(rctx request.CTX, values []*model.PropertyValue) error
+}
+
+// ValidatePropertyValueContents runs the content checks of every hook that has
+// them against values, writing nothing, so a bad value can be refused before a
+// step that has to come first. It returns the error the write would.
+func (ps *PropertyService) ValidatePropertyValueContents(rctx request.CTX, values []*model.PropertyValue) error {
+	for _, hook := range ps.hooks {
+		if v, ok := hook.(valueContentValidator); ok {
+			if err := v.ValidateValueContents(rctx, values); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // runPreCreatePropertyField runs all registered pre-hooks for CreatePropertyField.
 func (ps *PropertyService) runPreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	var err error
