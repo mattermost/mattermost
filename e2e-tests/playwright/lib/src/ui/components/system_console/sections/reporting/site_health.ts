@@ -111,6 +111,12 @@ export class SiteHealthArea {
 export default class SiteHealth {
     readonly container: Locator;
 
+    readonly automaticChecksTrue: Locator;
+    readonly automaticChecksFalse: Locator;
+    readonly automaticChecksOff: Locator;
+    readonly turnOnButton: Locator;
+    readonly saveButton: Locator;
+
     readonly notEvaluated: Locator;
     readonly lastEvaluated: Locator;
     readonly lastEvaluatedTime: Locator;
@@ -127,6 +133,15 @@ export default class SiteHealth {
 
     constructor(container: Locator) {
         this.container = container;
+
+        this.automaticChecksTrue = container.getByRole('radio', {name: 'True', exact: true});
+        this.automaticChecksFalse = container.getByRole('radio', {name: 'False', exact: true});
+        this.automaticChecksOff = container.getByText(
+            'Automatic checks are off. Findings show the last run and may be out of date.',
+            {exact: true},
+        );
+        this.turnOnButton = container.getByRole('button', {name: 'Turn on', exact: true});
+        this.saveButton = container.getByRole('button', {name: 'Save', exact: true});
 
         this.notEvaluated = container.getByText('Not evaluated yet', {exact: true});
         this.lastEvaluated = container.getByText(/^Last evaluated /);

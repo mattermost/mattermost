@@ -131,11 +131,12 @@ let savedConfig: ConfigPatch;
 
 test.beforeEach(async ({pw}) => {
     const {adminClient} = await pw.getAdminClient();
-    const {ServiceSettings, LogSettings} = await adminClient.getConfig();
+    const {ServiceSettings, LogSettings, SiteHealthSettings} = await adminClient.getConfig();
 
     savedConfig = {
         ServiceSettings: {ExtendSessionLengthWithActivity: ServiceSettings.ExtendSessionLengthWithActivity},
         LogSettings: {EnableWebhookDebugging: LogSettings.EnableWebhookDebugging, FileLevel: LogSettings.FileLevel},
+        SiteHealthSettings: {EnableAutomaticChecks: SiteHealthSettings.EnableAutomaticChecks},
     };
 });
 
@@ -730,3 +731,89 @@ test(
         await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
     },
 );
+
+async function getAutomaticChecks(adminClient: Client4) {
+    return (await adminClient.getConfig()).SiteHealthSettings.EnableAutomaticChecks;
+}
+
+/**
+ * @objective Verify a system admin can turn automatic checks off, still run the checks on demand while they are
+ * off, and turn them back on from the banner.
+ */
+test('turns automatic checks off and back on', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, ENTERPRISE_TIER);
+
+    const {adminUser, adminClient} = await pw.initSetup();
+    await adminClient.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: true}});
+
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const siteHealth = systemConsolePage.siteHealth;
+
+    // # Open Site health
+    await systemConsolePage.gotoSiteHealth();
+
+    // * Verify automatic checks are on, with nothing to save and no banner
+    await expect(siteHealth.automaticChecksTrue).toBeChecked();
+    await expect(siteHealth.saveButton).toBeDisabled();
+    await expect(siteHealth.automaticChecksOff).not.toBeVisible();
+
+    // # Set Run checks automatically to False and save
+    await siteHealth.automaticChecksFalse.check();
+    await siteHealth.saveButton.click();
+
+    // * Verify the server stores the setting and the page says automatic checks are off
+    await expect.poll(() => getAutomaticChecks(adminClient)).toBe(false);
+    await expect(siteHealth.automaticChecksOff).toBeVisible();
+    await expect(siteHealth.turnOnButton).toBeVisible();
+
+    // # Reload the page
+    await systemConsolePage.page.reload();
+    await siteHealth.toBeVisible();
+
+    // * Verify the setting stayed off
+    await expect(siteHealth.automaticChecksFalse).toBeChecked();
+    await expect(siteHealth.automaticChecksOff).toBeVisible();
+
+    // # Run the checks on demand while automatic checks are off
+    await siteHealth.runChecks();
+
+    // # Select Turn on in the banner
+    await siteHealth.turnOnButton.click();
+
+    // * Verify the server stores the setting, the banner goes away and True is selected
+    await expect.poll(() => getAutomaticChecks(adminClient)).toBe(true);
+    await expect(siteHealth.automaticChecksOff).not.toBeVisible();
+    await expect(siteHealth.automaticChecksTrue).toBeChecked();
+});
+
+/**
+ * @objective Verify a System Manager, who can read Site Statistics but lacks manage_system, sees automatic checks
+ * read-only: the setting is disabled and the banner has no Turn on action.
+ */
+test('shows automatic checks read-only to a system manager', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
+
+    const {adminClient, user} = await pw.initSetup();
+
+    // Assigning system_manager needs the Custom Permission Schemes license feature.
+    test.skip(
+        !hasCustomPermissionsSchemesLicense(await adminClient.getClientLicenseOld()),
+        'Skipping test - server does not have Custom Permission Schemes',
+    );
+
+    await adminClient.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: false}});
+    await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+    const {systemConsolePage} = await pw.testBrowser.login(user);
+    const siteHealth = systemConsolePage.siteHealth;
+
+    // # Open Site health
+    await systemConsolePage.gotoSiteHealth();
+
+    // * Verify the banner shows without Turn on, and the setting can't be changed
+    await expect(siteHealth.automaticChecksOff).toBeVisible();
+    await expect(siteHealth.turnOnButton).not.toBeVisible();
+    await expect(siteHealth.automaticChecksFalse).toBeChecked();
+    await expect(siteHealth.automaticChecksTrue).toBeDisabled();
+    await expect(siteHealth.automaticChecksFalse).toBeDisabled();
+    await expect(siteHealth.saveButton).toBeDisabled();
+});
