@@ -77,6 +77,7 @@ export type SurfaceEntry = {
     name: string;
     role: string;
     keyed: boolean;
+    keyField?: string;
     attr: 'data-testid' | 'data-surface';
     file: string;
     line: number;
@@ -537,6 +538,7 @@ export function extractSurface(options: {
                                 name: parsed.name,
                                 role,
                                 keyed: found.keyed,
+                                keyField: found.keyExpr ? keyName(found.keyExpr) : undefined,
                                 attr: attrName,
                                 file: rel,
                                 line: line + 1,

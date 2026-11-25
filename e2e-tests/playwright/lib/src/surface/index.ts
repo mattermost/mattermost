@@ -29,4 +29,4 @@ export {
 } from './settle.js';
 export {Api, type ApiOpKey, type ApiOperation} from './generated/api.generated.js';
 export {Msg, type MsgKey} from './generated/messages.generated.js';
-export {createSurface} from './generated/surface.generated.js';
+export * from './generated/surface.generated.js';

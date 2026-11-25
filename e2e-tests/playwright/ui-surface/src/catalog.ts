@@ -27,6 +27,23 @@ export type PageSpec = {
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const;
 const RESERVED_SCOPES = new Set(['pages']);
 
+/**
+ * When a keyed part's key resolves to a known entity id field, the generated accessor takes a branded key type instead
+ * of a bare `string`, so a raw string or a key of the wrong entity fails to compile. Fixed-set/section keys stay
+ * `string`. The branded types are nominal aliases of `string`.
+ */
+const KEY_BRANDS: Record<string, string> = {
+    pluginId: 'PluginId',
+    channelId: 'ChannelId',
+    postId: 'PostId',
+    userId: 'UserId',
+    teamId: 'TeamId',
+};
+
+function keyTypeFor(entry: SurfaceEntry): string {
+    return (entry.keyField && KEY_BRANDS[entry.keyField]) ?? 'string';
+}
+
 function parseYamlFragment(filePath: string): Record<string, unknown> {
     const raw = readFileSync(filePath, 'utf8');
     let parsed: unknown;
@@ -203,6 +220,7 @@ export function emitGenerated(options: {
     );
 
     const usedHelpers = new Set<string>();
+    const usedKeyBrands = new Set<string>();
     const scopeBlocks: string[] = [];
     const collisions: string[] = [];
     for (const scope of Object.keys(options.surface.scopes).sort()) {
@@ -234,8 +252,10 @@ export function emitGenerated(options: {
             const attrArg = part.attr === 'data-surface' ? ", 'data-surface'" : '';
             if (part.keyed) {
                 const [head, tail] = part.id.split(':');
+                const keyType = keyTypeFor(part);
+                usedKeyBrands.add(keyType);
                 propLines.push(
-                    `        ${prop}: (key: string) => ${fn}(scope, ${JSON.stringify(head)} + ':' + key + ${JSON.stringify(tail)}, ${JSON.stringify(part.role)}${attrArg}),`,
+                    `        ${prop}: (key: ${keyType}) => ${fn}(scope, ${JSON.stringify(head)} + ':' + key + ${JSON.stringify(tail)}, ${JSON.stringify(part.role)}${attrArg}),`,
                 );
             } else {
                 propLines.push(
@@ -283,6 +303,16 @@ export function emitGenerated(options: {
             ? "import type {Locator, Page} from '@playwright/test';\n"
             : "import type {Page} from '@playwright/test';\n";
     const driverImport = helperImports.length > 0 ? `import {${helperImports.join(', ')}} from '../drivers.js';\n` : '';
+
+    // Branded key types: a keyed part whose key is a known entity id takes a nominal brand, so a bare string or the
+    // wrong entity's key fails to compile. `brandKey` is the one place a raw id is asserted into a brand.
+    const brands = [...usedKeyBrands].filter((b) => b !== 'string').sort();
+    const brandBlock =
+        brands.length > 0
+            ? brands.map((b) => `export type ${b} = string & {readonly __brand: '${b}'};`).join('\n') +
+              '\nexport function brandKey<B extends string>(value: string): B {\n    return value as B;\n}\n\n'
+            : '';
+
     const surfaceFile = join(options.outDir, 'surface.generated.ts');
     writeFileSync(
         surfaceFile,
@@ -290,6 +320,7 @@ export function emitGenerated(options: {
             HEADER,
             typeImport,
             driverImport,
+            '\n' + brandBlock,
             'export function createSurface(page: Page) {\n    return {\n',
             ...scopeBlocks,
             '        pages: {',
