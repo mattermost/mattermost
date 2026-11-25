@@ -122,8 +122,59 @@ describe('PasskeySection', () => {
         expect(await screen.findByText('Laptop')).toBeInTheDocument();
         expect(screen.getByText('Phone')).toBeInTheDocument();
         expect(screen.getByText(/Created Jan 15, 2025/)).toBeInTheDocument();
-        expect(screen.getByText('Never used')).toBeInTheDocument();
+        expect(screen.getByText(/Never used/)).toBeInTheDocument();
         expect(screen.getByText(/Last used Mar 5, 2025/)).toBeInTheDocument();
+    });
+
+    describe('layout', () => {
+        const renderExpanded = (list: Passkey[]) => {
+            getPasskeys.mockResolvedValue(list);
+            renderWithContext(
+                <PasskeySection
+                    {...baseProps}
+                    active={true}
+                />,
+                enabledState,
+            );
+        };
+
+        beforeEach(() => {
+            isDesktopAppMock.mockReturnValue(false);
+            Object.defineProperty(window, 'PublicKeyCredential', {value: function PublicKeyCredential() {}, configurable: true});
+        });
+
+        afterEach(() => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+        });
+
+        test('explains passkeys above the list when expanded', async () => {
+            renderExpanded(passkeys);
+            await screen.findByText('Laptop');
+
+            expect(screen.getByText(/Passkeys let you sign in with your fingerprint, face, screen lock or a security key instead of your password\./)).toBeInTheDocument();
+        });
+
+        test('puts the passkey rows in the list box, before the add button', async () => {
+            renderExpanded(passkeys);
+            const laptop = await screen.findByText('Laptop');
+
+            const box = laptop.closest('.alert-transparent');
+            expect(box).not.toBeNull();
+            expect(box).toContainElement(screen.getByText('Phone'));
+            expect(box?.querySelectorAll('li')).toHaveLength(2);
+
+            const add = screen.getByRole('button', {name: 'Add passkey'});
+            expect(box).not.toContainElement(add);
+            expect(box!.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        test('puts the empty-state text in the list box', async () => {
+            renderExpanded([]);
+
+            const none = await screen.findByText('You have no passkeys.');
+
+            expect(none.closest('.alert-transparent')).not.toBeNull();
+        });
     });
 
     test('deleting a passkey asks for confirmation, deletes it and refetches', async () => {
@@ -573,7 +624,11 @@ describe('PasskeySection', () => {
 
             await clickAdd();
 
-            expect(screen.getByRole('button', {name: 'Add passkey'})).toBeDisabled();
+            const button = screen.getByRole('button', {name: 'Add passkey'});
+            expect(button).toBeDisabled();
+
+            // compass Button renders its spinner in an aria-hidden slot.
+            expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
             resolveCreate(rawCredential);
             await waitFor(() => expect(screen.getByRole('button', {name: 'Add passkey'})).toBeEnabled());
         });

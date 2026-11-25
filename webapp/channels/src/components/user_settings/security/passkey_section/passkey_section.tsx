@@ -192,7 +192,7 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
         );
     }
 
-    const list = passkeys.length === 0 ? (
+    const rows = passkeys.length === 0 ? (
         !loadFailed && (
             <FormattedMessage
                 id='user.settings.passkeys.none'
@@ -205,84 +205,98 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
             {passkeys.map((passkey) => (
                 <li
                     key={passkey.id}
-                    className='d-flex justify-content-between align-items-center pb-2'
+                    className='setting-box__item'
                 >
-                    <div>
-                        <strong>{passkey.name}</strong>
+                    <div className='d-flex justify-content-between align-items-center'>
                         <div>
+                            <strong>{passkey.name}</strong>
+                            <div className='light'>
+                                <FormattedMessage
+                                    id='user.settings.passkeys.created'
+                                    defaultMessage='Created {date}'
+                                    description='Date a passkey was added, shown on its row in the passkey list; {date} is a formatted date.'
+                                    values={{date: <Day value={passkey.create_at}/>}}
+                                />
+                                <span aria-hidden='true'>{' · '}</span>
+                                {passkey.last_used_at === 0 ? (
+                                    <FormattedMessage
+                                        id='user.settings.passkeys.neverUsed'
+                                        defaultMessage='Never used'
+                                        description='Shown on a passkey row when the passkey has never been used to sign in.'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='user.settings.passkeys.lastUsed'
+                                        defaultMessage='Last used {date}'
+                                        description='Date a passkey was last used to sign in, shown on its row in the passkey list; {date} is a formatted date.'
+                                        values={{date: <Day value={passkey.last_used_at}/>}}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                        <Button
+                            emphasis='tertiary'
+                            size='small'
+                            aria-label={formatMessage(messages.deleteLabel, {name: passkey.name})}
+                            onClick={() => {
+                                setToDelete(passkey);
+                                setShowDelete(true);
+                            }}
+                        >
                             <FormattedMessage
-                                id='user.settings.passkeys.created'
-                                defaultMessage='Created {date}'
-                                description='Date a passkey was added, shown on its row in the passkey list; {date} is a formatted date.'
-                                values={{date: <Day value={passkey.create_at}/>}}
+                                id='user.settings.passkeys.delete'
+                                defaultMessage='Delete'
+                                description='Button on a passkey row that starts deleting that passkey.'
                             />
-                        </div>
-                        <div>
-                            {passkey.last_used_at === 0 ? (
-                                <FormattedMessage
-                                    id='user.settings.passkeys.neverUsed'
-                                    defaultMessage='Never used'
-                                    description='Shown on a passkey row when the passkey has never been used to sign in.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='user.settings.passkeys.lastUsed'
-                                    defaultMessage='Last used {date}'
-                                    description='Date a passkey was last used to sign in, shown on its row in the passkey list; {date} is a formatted date.'
-                                    values={{date: <Day value={passkey.last_used_at}/>}}
-                                />
-                            )}
-                        </div>
+                        </Button>
                     </div>
-                    <Button
-                        emphasis='tertiary'
-                        aria-label={formatMessage(messages.deleteLabel, {name: passkey.name})}
-                        onClick={() => {
-                            setToDelete(passkey);
-                            setShowDelete(true);
-                        }}
-                    >
-                        <FormattedMessage
-                            id='user.settings.passkeys.delete'
-                            defaultMessage='Delete'
-                            description='Button on a passkey row that starts deleting that passkey.'
-                        />
-                    </Button>
+                    <hr className='mb-3 mt-3'/>
                 </li>
             ))}
         </ul>
     );
 
+    // Nothing to put in the box when the fetch failed and there are no passkeys to show.
+    const list = rows && (
+        <div className='alert alert-transparent'>
+            {rows}
+        </div>
+    );
+
     let addControl = null;
     if (canAddPasskey) {
         addControl = passkeys.length >= MAX_PASSKEYS ? (
-            <p>
+            <div className='setting-list__hint pb-3'>
                 <FormattedMessage
                     id='user.settings.passkeys.limit'
                     defaultMessage='You have reached the limit of {max} passkeys. Delete one to add another.'
                     description='Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum.'
                     values={{max: MAX_PASSKEYS}}
                 />
-            </p>
+            </div>
         ) : (
-            <div className='pb-3'>
-                <label
-                    htmlFor='passkeyName'
-                    className='control-label'
-                >
-                    {formatMessage(messages.nameLabel)}
-                </label>
-                <input
-                    id='passkeyName'
-                    className='form-control'
-                    type='text'
-                    maxLength={MAX_NAME_LENGTH}
-                    placeholder={formatMessage(messages.namePlaceholder)}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    disabled={adding}
-                />
-                <div className='setting-list__hint'>
+            <div className='pt-3'>
+                <div className='row'>
+                    <label
+                        htmlFor='passkeyName'
+                        className='col-sm-auto control-label pr-3'
+                    >
+                        {formatMessage(messages.nameLabel)}
+                    </label>
+                    <div className='col-sm-5'>
+                        <input
+                            id='passkeyName'
+                            className='form-control'
+                            type='text'
+                            maxLength={MAX_NAME_LENGTH}
+                            placeholder={formatMessage(messages.namePlaceholder)}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            disabled={adding}
+                        />
+                    </div>
+                </div>
+                <div className='setting-list__hint pb-3'>
                     <FormattedMessage
                         id='user.settings.passkeys.nameHelp'
                         defaultMessage='Leave blank to name it after this browser'
@@ -290,8 +304,9 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                     />
                 </div>
                 <Button
-                    emphasis='secondary'
+                    emphasis='primary'
                     disabled={adding}
+                    loading={adding}
                     onClick={addPasskey}
                 >
                     <FormattedMessage
@@ -310,10 +325,19 @@ export default function PasskeySection({visible, canAddPasskey, active, areAllSe
                 title={title}
                 inputs={
                     <div className='pt-2'>
-                        {addControl}
                         {list}
+                        {addControl}
                     </div>
                 }
+                extraInfo={
+                    <FormattedMessage
+                        id='user.settings.passkeys.description'
+                        defaultMessage='Passkeys let you sign in with your fingerprint, face, screen lock or a security key instead of your password.'
+                        description='Introduction at the top of the expanded Passkeys section in Profile > Security.'
+                    />
+                }
+                infoPosition='top'
+                isFullWidth={true}
                 serverError={serverError}
                 updateSection={updateSection}
                 cancelButtonText={

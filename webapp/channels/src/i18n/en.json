@@ -35535,6 +35535,10 @@
     "defaultMessage": "Delete passkey?",
     "description": "Title of the confirmation dialog for deleting a passkey."
   },
+  "user.settings.passkeys.description": {
+    "defaultMessage": "Passkeys let you sign in with your fingerprint, face, screen lock or a security key instead of your password.",
+    "description": "Introduction at the top of the expanded Passkeys section in Profile > Security."
+  },
   "user.settings.passkeys.lastUsed": {
     "defaultMessage": "Last used {date}",
     "description": "Date a passkey was last used to sign in, shown on its row in the passkey list; {date} is a formatted date."
