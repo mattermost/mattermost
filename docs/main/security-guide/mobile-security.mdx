@@ -34,6 +34,8 @@ Without an EMM, there is no device inventory, device log collection, or operatin
 
 Mattermost supports the ability for an EMM provider to push Mattermost Mobile apps to EMM-enrolled devices. This approach is recommended for organizations that typically use EMM solutions to deploy Mobile apps to meet security and compliance policies. Learn more about [deploying Mattermost mobile using an EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider).
 
+Mattermost supports the AppConfig standard, so EMM providers can pre-configure server URLs, apply a per-app VPN, prevent app backup, enforce app encryption policies, and distribute the app as a managed application. Learn more about [AppConfig values and settings](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider#manage-app-configuration-using-appconfig).
+
 ### Remote wipe capability
 
 Administrators can remotely wipe Mattermost data from mobile devices in case of loss or theft. This capability prevents unauthorized access to sensitive information by ensuring that data is erased from compromised devices.
@@ -68,11 +70,15 @@ Session attributes let the mobile app report the posture of the current connecti
 
 Reporting the Wi-Fi network name requires the user to grant location access, because both iOS and Android gate Wi-Fi information behind that permission. Learn more about Mattermost [mobile session attribute collection](/deployment-guide/mobile/mobile-security-features#session-attribute-collection) and how administrators [enable and use session attributes](/administration-guide/manage/admin/session-attributes).
 
+## Session management
+ 
+Set how long mobile sessions last with [Session length for mobile](/administration-guide/configure/environment-configuration-settings#session-length-for-mobile). To require users to authenticate again when they return to the app, enable [biometric authentication](#biometric-authentication). The [session idle timeout](/administration-guide/configure/environment-configuration-settings#session-idle-timeout) applies to the web and desktop apps, not to mobile.
+
 ## Biometric authentication
 
 Native biometric authentication ensures only the authorized device owner can access the Mattermost application. By utilizing hardware-level security, biometrics significantly enhance data protection, especially in cases of lost or stolen devices. This advanced security measure is far more robust and user-friendly compared to traditional passwords, adding a resilient layer of protection against unauthorized access.
 
-Administrators can mandate biometric authentication each time users attempt to open the Mattermost application, further safeguarding customer data and mitigating risks. Learn more about Mattermost [mobile biometric authentication](/deployment-guide/mobile/mobile-security-features#biometric-authentication), and the [user workflows in which users must authenticate](/administration-guide/configure/environment-configuration-settings#enable-biometric-authentication), when biometric authentication is enabled.
+Administrators can mandate biometric authentication each time users attempt to open the Mattermost application, further safeguarding customer data and mitigating risks. When enabled, the app enforces this on the device: it requires a device PIN or biometric lock and prompts users again after the app has been in the background for 5 minutes or more. Biometric authentication and jailbreak and root detection are enabled independently. Learn more about Mattermost [mobile biometric authentication](/deployment-guide/mobile/mobile-security-features#biometric-authentication), and the [user workflows in which users must authenticate](/administration-guide/configure/environment-configuration-settings#enable-biometric-authentication), when biometric authentication is enabled.
 
 ## Screenshot and screen recording prevention
 
@@ -80,13 +86,17 @@ Preventing screenshots and screen recordings protects sensitive information from
 
 ## App sandboxing and secure data storage
 
-Sandboxing is a critical defense that isolates the application’s data from other apps—even if malicious software is present on the device. This isolation helps maintain user privacy and data integrity by ensuring that only Mattermost has access to its stored data. Learn more about Mattermost [mobile app sandboxing and secure data storage](/deployment-guide/mobile/mobile-security-features#mobile-data-isolation).
+Sandboxing is a critical defense that isolates the application’s data from other apps—even if malicious software is present on the device. This isolation helps maintain user privacy and data integrity by ensuring that only Mattermost has access to its stored data. Sign in tokens are stored in the operating system's secure credential storage, the iOS Keychain and the Android Keystore, and cached content is removed according to the [Mobile Ephemeral Mode](#mobile-ephemeral-mode) settings. Learn more about Mattermost [mobile app sandboxing and secure data storage](/deployment-guide/mobile/mobile-security-features#mobile-data-isolation).
 
 Learn more about how Mattermost leverages robust sandboxing mechanisms on both iOS and Android to [securely store files](/deployment-guide/mobile/secure-mobile-file-storage) in its cache folder within the application container, ensuring isolation from unauthorized third-party apps.
 
 ## Push notification message visibility
 
 Push notifications are a convenient way to stay updated, but they can also pose security risks if sensitive information is displayed. Mattermost provides options to [control the visibility of message content in push notifications](/administration-guide/configure/push-notification-server-configuration-settings#id-only-push-notifications), ensuring that sensitive information is not inadvertently exposed through locked mobile screens and via relay servers from Apple and Google when sending notifications to iOS or Android mobile apps.
+
+## Network security
+ 
+Mobile connections use the TLS configuration of your server or reverse proxy. See the [TLS minimum version](/administration-guide/configure/environment-configuration-settings#tls-minimum-version) setting. Organizations that build their own mobile app can also [enable SSL pinning certificates](https://developers.mattermost.com/contribute/more-info/mobile/build-your-own/ssl-pinning/).
 
 ## Disable downloads
 
@@ -102,7 +112,7 @@ For organizations requiring even stricter control over file access on mobile dev
 
 When secure file preview is enabled, files are stored temporarily in the app's cache and cannot be exported or shared externally. This approach provides a balance between security and usability, ensuring that users can view necessary content without creating potential data leakage pathways.
 
-Additionally, administrators can control link navigation within PDF files when secure file preview mode is active, allowing links to open in the device browser or supported applications as needed.
+The secure PDF viewer supports password protected PDFs and locks a file after repeated failed password attempts. Additionally, administrators can control link navigation within PDF files when secure file preview mode is active, allowing links to open in the device browser or supported applications as needed.
 
 Learn more about [enabling secure file preview on mobile](/administration-guide/configure/environment-configuration-settings#enable-secure-file-preview-on-mobile) and [allow PDF link navigation on mobile](/administration-guide/configure/environment-configuration-settings#allow-pdf-link-navigation-on-mobile) in the Mattermost mobile app.
 
