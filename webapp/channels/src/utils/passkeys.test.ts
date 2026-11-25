@@ -429,12 +429,17 @@ describe('utils/passkeys', () => {
         const WINDOW = 10 * 60 * 1000;
         const now = 1_700_000_000_000;
         const session = (props: Record<string, string>, age: number) => ({props, create_at: now - age});
+        const reply = (data: unknown[], date?: number) => ({
+            data,
+            headers: new Map(date === undefined ? [] : [['Date', new Date(date).toUTCString()]]),
+            response: {},
+        });
         let dateNow: jest.SpyInstance;
         let getSessions: jest.SpyInstance;
 
         beforeEach(() => {
             dateNow = jest.spyOn(Date, 'now').mockReturnValue(now);
-            getSessions = jest.spyOn(Client4, 'getSessions');
+            getSessions = jest.spyOn(Client4, 'getSessionsWithResponse');
         });
 
         afterEach(() => {
@@ -449,14 +454,40 @@ describe('utils/passkeys', () => {
             ['a passkey session', session({csrf: 'k', login_method: 'passkey'}, 1000), false],
             ['a session with no login method', session({csrf: 'k'}, 1000), false],
         ])('resolves for %s', async (_name, current, want) => {
-            getSessions.mockResolvedValue([session({csrf: 'other', login_method: 'passkey'}, WINDOW * 5), current] as never);
+            getSessions.mockResolvedValue(reply([session({csrf: 'other', login_method: 'passkey'}, WINDOW * 5), current], now) as never);
 
             await expect(currentSessionCanAddPasskey('k')).resolves.toBe(want);
             expect(getSessions).toHaveBeenCalledWith('me');
         });
 
+        test('measures age against the server clock when the device clock is fast', async () => {
+            dateNow.mockReturnValue(now + (15 * 60 * 1000));
+            getSessions.mockResolvedValue(reply([session({csrf: 'k', login_method: 'standard'}, 60 * 1000)], now) as never);
+
+            await expect(currentSessionCanAddPasskey('k')).resolves.toBe(true);
+        });
+
+        test('resolves false for a session past the window by the server clock', async () => {
+            getSessions.mockResolvedValue(reply([session({csrf: 'k', login_method: 'standard'}, 11 * 60 * 1000)], now) as never);
+
+            await expect(currentSessionCanAddPasskey('k')).resolves.toBe(false);
+        });
+
+        test.each([
+            ['is missing', undefined],
+            ['is unparseable', 'not a date'],
+        ])('falls back to the device clock when the Date header %s', async (_name, header) => {
+            const headers = new Map(header === undefined ? [] : [['Date', header]]);
+            getSessions.mockResolvedValue({data: [session({csrf: 'k', login_method: 'standard'}, WINDOW + 1)], headers, response: {}} as never);
+
+            await expect(currentSessionCanAddPasskey('k')).resolves.toBe(false);
+
+            dateNow.mockReturnValue(now - (WINDOW - 999));
+            await expect(currentSessionCanAddPasskey('k')).resolves.toBe(true);
+        });
+
         test('resolves true when no session matches the login key', async () => {
-            getSessions.mockResolvedValue([session({csrf: 'other', login_method: 'passkey'}, WINDOW * 5)] as never);
+            getSessions.mockResolvedValue(reply([session({csrf: 'other', login_method: 'passkey'}, WINDOW * 5)], now) as never);
 
             await expect(currentSessionCanAddPasskey('k')).resolves.toBe(true);
         });

@@ -31,7 +31,7 @@ describe('open_security_settings with the passkey prompt', () => {
     beforeEach(() => {
         localStorage.clear();
         document.cookie = 'MMCSRF=tok1';
-        jest.spyOn(Client4, 'getSessions').mockResolvedValue([{props: {csrf: 'tok1', login_method: 'standard'}, create_at: Date.now()}] as never);
+        jest.spyOn(Client4, 'getSessionsWithResponse').mockResolvedValue({data: [{props: {csrf: 'tok1', login_method: 'standard'}, create_at: Date.now()}], headers: new Map(), response: {}} as never);
         Object.defineProperty(window, 'PublicKeyCredential', {value: function PublicKeyCredential() {}, configurable: true});
     });
 
@@ -52,7 +52,7 @@ describe('open_security_settings with the passkey prompt', () => {
             {history},
         );
 
-        await waitFor(() => expect(Client4.getSessions).toHaveBeenCalled());
+        await waitFor(() => expect(Client4.getSessionsWithResponse).toHaveBeenCalled());
         await new Promise((r) => setTimeout(r, 50));
 
         expect(history.location.search).toBe('');

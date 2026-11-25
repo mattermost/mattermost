@@ -1125,6 +1125,14 @@ export default class Client4 {
         );
     };
 
+    // Also returns the response headers so a caller can read the server's Date.
+    getSessionsWithResponse = (userId: string) => {
+        return this.doFetchWithResponse<Session[]>(
+            `${this.getUserRoute(userId)}/sessions`,
+            {method: 'get'},
+        );
+    };
+
     revokeSession = (userId: string, sessionId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getUserRoute(userId)}/sessions/revoke`,

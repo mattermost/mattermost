@@ -81,7 +81,7 @@ describe('PasskeyEnrollmentPrompt', () => {
         isDesktopAppMock.mockReturnValue(false);
         isEmbeddedMock.mockReturnValue(false);
 
-        getSessions = jest.spyOn(Client4, 'getSessions').mockResolvedValue([session({csrf: 'tok1', login_method: 'standard'})] as never);
+        getSessions = jest.spyOn(Client4, 'getSessionsWithResponse').mockResolvedValue({data: [session({csrf: 'tok1', login_method: 'standard'})], headers: new Map(), response: {}} as never);
         beginRegistration = jest.spyOn(Client4, 'beginPasskeyRegistration').mockResolvedValue(beginResult);
         finishRegistration = jest.spyOn(Client4, 'finishPasskeyRegistration').mockResolvedValue({} as never);
         create = jest.fn().mockResolvedValue(rawCredential);
@@ -178,7 +178,7 @@ describe('PasskeyEnrollmentPrompt', () => {
             getSessions.mockReturnValue(new Promise((resolve, reject) => {
                 settle = () => {
                     try {
-                        resolve(answer());
+                        resolve({data: answer(), headers: new Map(), response: {}});
                     } catch (e) {
                         reject(e);
                     }

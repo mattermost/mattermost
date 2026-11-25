@@ -159,12 +159,17 @@ const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
 // Whether the session identified by loginKey (its CSRF token) was started by a standard sign-in recently enough
 // for the server to accept a new passkey. Rejects when the session list cannot be read.
 export async function currentSessionCanAddPasskey(loginKey: string): Promise<boolean> {
-    const sessions = await Client4.getSessions('me');
+    const {data: sessions, headers} = await Client4.getSessionsWithResponse('me');
     const current = sessions.find((s) => s.props?.csrf === loginKey);
+
+    // create_at is on the server's clock, so age is measured against the server's Date header; the device clock
+    // may be minutes off. A cross-origin API URL does not expose Date, hence the fallback.
+    const serverNow = Date.parse(headers.get('Date') ?? '');
+    const now = Number.isNaN(serverNow) ? Date.now() : serverNow;
 
     // The list comes from a read replica, so a session created moments ago may be missing from it. The request
     // is authenticated by that session, so a missing one is treated as recent.
-    return !current || (current.props.login_method === 'standard' && Date.now() - current.create_at <= RECENT_LOGIN_WINDOW_MS);
+    return !current || (current.props.login_method === 'standard' && now - current.create_at <= RECENT_LOGIN_WINDOW_MS);
 }
 
 // No passkey ceremony runs inside the desktop app; browsers without WebAuthn lack
