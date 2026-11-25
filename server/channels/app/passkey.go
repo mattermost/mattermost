@@ -49,18 +49,13 @@ func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.A
 		return model.NewAppError("DeletePasskey", "app.passkey.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Loads every passkey session on the server; a store query by user and passkey_id if that
-	// ever gets large. It reads the primary, so a session created a moment ago is not missed.
-	sessions, err := a.Srv().Store().Session().GetSessionsByLoginMethod(model.SessionLoginMethodPasskey)
+	sessions, err := a.Srv().Store().Session().GetSessionsByPasskeyId(userID, passkeyID)
 	if err != nil {
 		return model.NewAppError("DeletePasskey", "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var revokeErr *model.AppError
 	for _, session := range sessions {
-		if session.UserId != userID || session.Props[model.SessionPropPasskeyId] != passkeyID {
-			continue
-		}
 		if appErr := a.RevokeSession(rctx, session); appErr != nil {
 			revokeErr = model.NewAppError("DeletePasskey", "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
