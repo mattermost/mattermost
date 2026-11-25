@@ -20,7 +20,7 @@ type bulkBackend struct {
 	client *elasticsearch.Client
 }
 
-// Exists asks with one _mget. Only the _index and _id are read back.
+// Exists asks with one _mget. Docs with a per-doc error are left out.
 func (b *bulkBackend) Exists(ctx context.Context, items []common.BulkItem) (map[string]bool, error) {
 	type doc struct {
 		Index  string `json:"_index"`
@@ -50,6 +50,7 @@ func (b *bulkBackend) Exists(ctx context.Context, items []common.BulkItem) (map[
 			Index string `json:"_index"`
 			ID    string `json:"_id"`
 			Found bool   `json:"found"`
+			Error any    `json:"error"`
 		} `json:"docs"`
 	}
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
@@ -58,6 +59,9 @@ func (b *bulkBackend) Exists(ctx context.Context, items []common.BulkItem) (map[
 
 	found := make(map[string]bool, len(resp.Docs))
 	for _, d := range resp.Docs {
+		if d.Error != nil {
+			continue // unknown, not "missing"
+		}
 		found[d.Index+"/"+d.ID] = d.Found
 	}
 	return found, nil

@@ -134,7 +134,9 @@ func TestBulkRetrierDeleteFoundIsResent(t *testing.T) {
 }
 
 func TestBulkRetrierDeleteNotFoundIsDone(t *testing.T) {
-	b := &fakeBackend{}
+	b := &fakeBackend{exists: func([]BulkItem) (map[string]bool, error) {
+		return map[string]bool{"posts/a": false}, nil
+	}}
 	r := newTestRetrier(t, b)
 
 	r.Handle(deleteItem("a"), 0, errTransport)
@@ -143,6 +145,17 @@ func TestBulkRetrierDeleteNotFoundIsDone(t *testing.T) {
 	assert.Zero(t, r.Failed())
 	assert.Equal(t, int64(1), r.Verified())
 	assert.Empty(t, b.applied)
+}
+
+func TestBulkRetrierDeleteMissingFromCheckIsResent(t *testing.T) {
+	b := &fakeBackend{} // the check says nothing about the doc
+	r := newTestRetrier(t, b)
+
+	r.Handle(deleteItem("a"), 0, errTransport)
+	wait(t, r)
+
+	assert.Zero(t, r.Verified())
+	assert.Equal(t, []string{"a"}, b.applied)
 }
 
 func TestBulkRetrierExistsErrorResendsAll(t *testing.T) {

@@ -57,6 +57,22 @@ func TestBulkBackendExistsReturnsFoundDocs(t *testing.T) {
 	assert.Contains(t, body, `"_source":false`)
 }
 
+func TestBulkBackendExistsSkipsDocsWithError(t *testing.T) {
+	b := newTestBackend(t, func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"docs":[
+			{"_index":"posts","_id":"1","error":{"type":"shard_failure"}},
+			{"_index":"posts","_id":"2","found":false}]}`))
+	})
+
+	found, err := b.Exists(context.Background(), []common.BulkItem{
+		{Index: "posts", DocID: "1"},
+		{Index: "posts", DocID: "2"},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, map[string]bool{"posts/2": false}, found)
+}
+
 func TestBulkBackendExistsFailsOnServerError(t *testing.T) {
 	b := newTestBackend(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)

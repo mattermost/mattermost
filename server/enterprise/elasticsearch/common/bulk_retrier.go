@@ -139,18 +139,23 @@ func (r *BulkRetrier) processChunk(items []retryItem) {
 	found, err := r.backend.Exists(ctx, items2bulk(items))
 	if err != nil {
 		r.logger.Warn("Bulk retry: check failed, resending all", mlog.Err(err))
-		found = nil
 	}
 
 	for _, item := range items {
-		if err == nil && found[item.Index+"/"+item.DocID] == (item.Action == "index") {
-			// Index is there, or delete target is gone. Nothing to do.
+		if err == nil && isSettled(item.BulkItem, found) {
 			r.verified.Add(1)
 			r.inflight.Done()
 			continue
 		}
 		r.resend(ctx, item)
 	}
+}
+
+// isSettled is true when the check shows the wanted state: an indexed doc
+// is there, or a deleted doc is gone. A doc missing from the answer is unknown.
+func isSettled(item BulkItem, found map[string]bool) bool {
+	exists, ok := found[item.Index+"/"+item.DocID]
+	return ok && exists == (item.Action == "index")
 }
 
 func (r *BulkRetrier) resend(ctx context.Context, item retryItem) {
