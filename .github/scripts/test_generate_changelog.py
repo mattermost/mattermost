@@ -405,6 +405,9 @@ See [this blog post](https://example.com) on the highlights in our latest releas
 #### User Interface
  - A reviewer rewrote this bullet completely.
 
+#### Performance
+ - Benchmarking test results: TBD. Added by the changelog workflow once the v12.1 performance comparison is published.
+
 ### Bug Fixes
  - Fixed an issue that was already here.
 
@@ -787,7 +790,7 @@ class MainTest(unittest.TestCase):
         self.assertFalse(self._payload()["changed"])
 
     def _update_with(self, entry, sources):
-        self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + entry)
+        self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n" + entry)
         body = self.tmp / "body.md"
         body.write_text(gc.render_pr_body("Changelog.", set(sources)))
         os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
@@ -845,6 +848,30 @@ class MainTest(unittest.TestCase):
                       results["plugin:mattermost-plugin-calls@v1.12.5"]["remedy"])
         self.assertIn("no longer in the release diff", results["websocket:gone@added"]["detail"])
         self.assertEqual(payload["metrics"]["bullets_needing_review"], 2)
+
+    def test_update_adds_the_benchmarking_sentence_once_the_report_appears(self):
+        sentence = ("Benchmarking test results showed no significant difference: a 0.18% decrease in the number of "
+                    "supported users for the new release.")
+        gc.changelog_release.benchmark = lambda version: {
+            "notes": [{"source": "benchmark:v12.1", "text": sentence, "fallback": sentence, "derived": True}],
+            "gap": {"section": "Benchmarking", "status": "ready", "detail": "-0.18%", "blocks_publish": False}}
+        prs = ["mattermost/mattermost#1", "mattermost/mattermost#2", "plugin:mattermost-plugin-calls@v1.12.6"]
+        content, payload = self._update_with(ENTRY_V12_1, prs)
+        self.assertIn(f"#### Performance\n - {sentence}\n", content)
+        self.assertNotRegex(content, gc.BENCHMARK_PENDING_RE)
+        self.assertTrue(payload["changed"])
+        self.assertIn({"section": "Improvements", "subsection": "Performance",
+                       "items": [{"text": sentence, "sources": ["benchmark:v12.1"]}]}, payload["sections"])
+
+    def test_update_marks_benchmarking_pending_in_an_entry_without_the_line(self):
+        entry = ENTRY_V12_1.replace("#### Performance\n - Benchmarking test results: TBD. Added by the changelog workflow "
+                                    "once the v12.1 performance comparison is published.\n\n", "")
+        prs = ["mattermost/mattermost#1", "mattermost/mattermost#2", "plugin:mattermost-plugin-calls@v1.12.6"]
+        content, payload = self._update_with(entry, prs)
+        self.assertRegex(content, gc.BENCHMARK_PENDING_RE)
+        gap = next(g for g in payload["readiness"]["gaps"] if g["section"] == "Benchmarking")
+        self.assertIn("the entry says “Benchmarking test results: TBD”", gap["detail"])
+        self.assertIn("#### Release Note\n```release-note\nNONE\n```", (self.out / "pr_body.md").read_text())
 
     def test_create_reports_the_go_bullet_in_sections(self):
         gc.main()
@@ -959,7 +986,7 @@ class MainTest(unittest.TestCase):
         content = self.changelog.read_text()
         self.assertEqual(content.count("Added the first thing."), 1)
         self.assertEqual(content.count("Fixed an issue found later."), 1)
-        self.assertEqual(len(self._payload()["sections"]), 3)
+        self.assertEqual(len(self._payload()["sections"]), 4)  # with Performance's benchmarking line
 
     def test_a_note_placed_only_under_go_version_is_not_recorded(self):
         gc.polish_with_ai = lambda notes: (
@@ -1439,6 +1466,164 @@ class GoVersionPruneTest(unittest.TestCase):
         self.assertEqual(referenced, {"N1"})
         self.assertEqual([item["section"] for item in items], ["Bug Fixes"])
         self.assertEqual([n["id"] for n in gc.dropped_notes(notes, referenced)], ["N2"])
+
+
+# The v12.2 auto run (mattermost/mattermost#40345), as the model wrote it.
+REDIS_PAGE = ("https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls",
+              "Redis: Secure Redis connections with TLS")
+PREAUTH_PAGE = ("https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth",
+                "Web app plugins: Loading before login with preauth")
+CONFIG_BULLETS = (
+    "#### config.json\n"
+    " - **Changes to All plans:**\n"
+    "   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. [[N1,N3]]\n"
+    "   - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting. [[N4]]\n"
+    "   - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control "
+    "whether unauthenticated requests only return plugins that set ``webapp.pre_auth``. [[N2,N5]]\n"
+)
+
+
+class V122FixesTest(unittest.TestCase):
+    """The fixes for the first auto run's changelog PR, mattermost/mattermost#40345."""
+
+    # 1. The PR body's Release Note section
+    def test_a_new_pr_body_has_the_release_note_section(self):
+        body = gc.default_pr_body()
+        self.assertIn("#### Release Note\n```release-note\nNONE\n```", body)
+        self.assertNotIn("Contributor", body)
+
+    def test_an_existing_body_gets_the_section_above_the_sources_list(self):
+        body = gc.render_pr_body("Auto-generated changelog.\n", {"mattermost/mattermost#1"})
+        updated = gc.with_release_note_section(body)
+        self.assertLess(updated.index("#### Release Note"), updated.index("<!-- changelog-sources:"))
+        self.assertEqual(gc.with_release_note_section(updated), updated)  # once
+        self.assertEqual(gc.parse_sources_comment(updated), {"mattermost/mattermost#1"})
+
+    # 2. Docs links: a page only on its own PR's bullet, one "See the" per bullet
+    def test_each_pr_s_page_goes_on_its_own_bullet(self):
+        # N1: #39474's note (Redis TLS). #39433's notes: N2 (pre-auth plugins), and its config-checker
+        # lines N3 (RedisEnableTLS, from a branch based on #39474), N4 (RedisTLSCA), N5 (Restrict...).
+        sources = {"N1": "mattermost/mattermost#39474", "N2": "mattermost/mattermost#39433",
+                   "N3": "mattermost/mattermost#39433", "N4": "mattermost/mattermost#39433",
+                   "N5": "mattermost/mattermost#39433"}
+        docs = {"N1": REDIS_PAGE, "N2": PREAUTH_PAGE, "N3": PREAUTH_PAGE, "N4": PREAUTH_PAGE, "N5": PREAUTH_PAGE}
+        lines = gc.link_docs_pages(CONFIG_BULLETS, docs, sources_by_id=sources).split("\n")
+        redis, ca, restrict = lines[2], lines[3], lines[4]
+        self.assertIn(REDIS_PAGE[0], redis)
+        self.assertNotIn(PREAUTH_PAGE[0], redis)
+        self.assertEqual(redis.count("See the"), 1)
+        self.assertIn(PREAUTH_PAGE[0], restrict)  # it names webapp.pre_auth, so it is #39433's bullet for the page
+        self.assertNotIn("See the", ca)
+
+    def test_a_bullet_never_gets_a_second_see_the_sentence(self):
+        text = (" - Added X. See the [X documentation](https://docs.mattermost.com/x) for details. [[N1]]\n")
+        out = gc.link_docs_pages(text, {"N1": ("https://docs.mattermost.com/y", "Y page")},
+                                 sources_by_id={"N1": "mattermost/mattermost#1"})
+        self.assertEqual(out, text)
+
+    def test_another_pr_s_page_never_goes_on_a_shared_bullet_that_doesn_t_name_it(self):
+        text = " - Added ``RedisEnableTLS`` to enable TLS for Redis connections. [[N1,N3]]\n"
+        out = gc.link_docs_pages(text, {"N3": PREAUTH_PAGE}, sources_by_id={
+            "N1": "mattermost/mattermost#39474", "N3": "mattermost/mattermost#39433"})
+        self.assertEqual(out, text)
+
+    # 3. Benchmarking line kept in step
+    NOTE = {"source": "benchmark:v12.2", "text": "Benchmarking test results showed no significant difference: a 0.18% decrease.",
+            "fallback": "", "derived": True}
+    PENDING = {"notes": [], "gap": {"section": "Benchmarking", "status": "not_yet_checked"}}
+    ENTRY = ("## Release v12.2 - Feature Release\n\n**Release day: TBD**\n\n### Improvements\nSee [this blog post](x) on the highlights.\n\n"
+             "#### User Interface\n - Added a page.\n\n#### Performance\n - Improved loading.\n\n### Bug Fixes\n - Fixed a thing.\n\n"
+             "## Release v12.1 - Feature Release\n\n - Old.\n")
+
+    def test_a_pending_marker_until_the_report_is_published(self):
+        content, action = gc.apply_benchmark(self.ENTRY, "v12.2", self.PENDING)
+        self.assertEqual(action, "marked")
+        self.assertIn("#### Performance\n - Benchmarking test results: TBD. Added by the changelog workflow once the v12.2 "
+                      "performance comparison is published.\n - Improved loading.", content)
+        self.assertEqual(gc.apply_benchmark(content, "v12.2", self.PENDING), (content, "pending"))  # once
+
+    def test_the_sentence_replaces_the_marker_when_the_report_appears(self):
+        pending, _ = gc.apply_benchmark(self.ENTRY, "v12.2", self.PENDING)
+        content, action = gc.apply_benchmark(pending, "v12.2", {"notes": [self.NOTE], "gap": {"status": "ready"}})
+        self.assertEqual(action, "added")
+        self.assertIn("#### Performance\n - Benchmarking test results showed no significant difference: a 0.18% decrease.\n"
+                      " - Improved loading.", content)
+        self.assertNotRegex(content, gc.BENCHMARK_PENDING_RE)
+        self.assertIn(" - Old.", content)  # the next release untouched
+
+    def test_a_sentence_a_reviewer_edited_is_kept(self):
+        edited = self.ENTRY.replace(" - Improved loading.", " - Benchmarking test results showed a reviewer's wording.")
+        self.assertEqual(gc.apply_benchmark(edited, "v12.2", {"notes": [self.NOTE], "gap": {}}), (edited, "kept"))
+
+    def test_a_flagged_comparison_says_a_person_writes_the_line(self):
+        content, _ = gc.apply_benchmark(self.ENTRY.replace("#### Performance\n - Improved loading.\n\n", ""), "v12.2",
+                                        {"notes": [], "gap": {"status": "needs_review"}})
+        self.assertIn("\n#### Performance\n - Benchmarking test results: TBD. The v12.2 performance comparison needs a "
+                      "person: replace this line with the Performance bullet.\n\n### Bug Fixes", content)
+
+    # 4. mmctl placement
+    def test_bullets_mainly_about_mmctl_move_from_administration(self):
+        for text in ("Added [``mmctl logs``](https://docs.mattermost.com/x) flags ``--follow`` and ``--level``.",
+                     "Added the ``--plugin`` flag to [``mmctl logs``](https://docs.mattermost.com/x), which filters by plugin.",
+                     "Added ``mmctl plugin keys`` and ``mmctl plugin keys add`` commands (local mode only)."):
+            self.assertTrue(gc.is_mmctl_bullet(f" - {text} [[N1]]"), text)
+        for text in ('Added a "Re-run checks" button to the System Console Site health page and an ``mmctl health run`` command.',
+                     "Support Packets now record ``audit_logging_active``, and ``mmctl health check --packet`` uses it.",
+                     "Added scoped migration reporting. After the import, ``mmctl import job show`` displays the count."):
+            self.assertFalse(gc.is_mmctl_bullet(f" - {text} [[N1]]"), text)
+        text = ("### Improvements\n\n#### Administration\n - Added ``mmctl plugin keys`` commands. [[N1]]\n"
+                " - Added a System Console page. [[N2]]\n\n#### Performance\n - Faster. [[N3]]\n")
+        moved = gc.move_mmctl_bullets(text)
+        self.assertEqual(moved, "### Improvements\n\n#### Administration\n - Added a System Console page. [[N2]]\n\n"
+                                "#### mmctl\n - Added ``mmctl plugin keys`` commands. [[N1]]\n\n#### Performance\n - Faster. [[N3]]\n")
+
+    def test_a_whole_entry_keeps_its_heading_when_mmctl_bullets_move(self):
+        entry = ("## Release v12.2 - Feature Release\n\n**Release day: TBD**\n\n### Improvements\n\n#### Administration\n"
+                 " - Added ``mmctl plugin keys`` commands.\n - Added a page.\n")
+        moved = gc.move_mmctl_bullets(entry)
+        self.assertTrue(moved.startswith("## Release v12.2 - Feature Release\n\n**Release day: TBD**\n\n### Improvements"))
+        self.assertIn("#### mmctl\n - Added ``mmctl plugin keys`` commands.", moved)
+
+    # 5. One Compatibility bullet per dependency change
+    def test_compatibility_bullets_for_one_ticket_are_merged(self):
+        text = ("#### Compatibility\n"
+                " - Plugin signatures that use the SHA-1 hash algorithm are now rejected. [[N1]]\n"
+                " - Replaced ``golang.org/x/crypto/openpgp`` with ``github.com/ProtonMail/go-crypto`` for plugin signature verification. [[N2]]\n"
+                " - Reserved the plugin ID ``com.mattermost.server``. [[N3]]\n")
+        notes = [{"id": "N1", "source": "mattermost/mattermost#39840", "tickets": ["MM-70987"]},
+                 {"id": "N2", "source": "mattermost/mattermost#39738", "tickets": ["MM-70987"]},
+                 {"id": "N3", "source": "mattermost/mattermost#39000", "tickets": ["MM-1"]}]
+        self.assertEqual(gc.merge_related_compatibility(text, notes), (
+            "#### Compatibility\n"
+            " - Plugin signatures that use the SHA-1 hash algorithm are now rejected. Replaced ``golang.org/x/crypto/openpgp`` "
+            "with ``github.com/ProtonMail/go-crypto`` for plugin signature verification. [[N1,N2]]\n"
+            " - Reserved the plugin ID ``com.mattermost.server``. [[N3]]\n"))
+        self.assertIn("Ticket: MM-70987", gc._notes_text([{"id": "N1", "text": "x", "tickets": ["MM-70987"]}]))
+
+    # 6. Formatting
+    def test_plain_words_lose_their_code_formatting(self):
+        self.assertEqual(gc.unformat_plain_words(" - Updated ``AI``-generated recaps."), " - Updated AI-generated recaps.")
+        self.assertEqual(gc.unformat_plain_words("Uses ``SAML`` and ``AI`` now."), "Uses SAML and AI now.")
+        kept = "Set ``GOMAXPROCS``, ``ProductRail``, ``--follow``, ``config.json`` and ``post``-type fields."
+        self.assertEqual(gc.unformat_plain_words(kept), kept)
+
+    def test_one_blank_line_before_the_entry_and_before_the_next_release(self):
+        content = ("</Note>\n\n\n## Release v12.2 - Feature Release\n\n**Release day: TBD**\n\n\n### Go Version\n - Go.\n\n\n"
+                   "## Release v12.1 - Feature Release\n\n - Old.\n")
+        self.assertEqual(gc.normalize_entry_spacing(content, "v12.2"),
+                         "</Note>\n\n## Release v12.2 - Feature Release\n\n**Release day: TBD**\n\n### Go Version\n - Go.\n\n"
+                         "## Release v12.1 - Feature Release\n\n - Old.\n")
+
+    def test_a_new_entry_is_inserted_with_one_blank_line_each_side(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "c.mdx")
+            with open(path, "w") as f:
+                f.write("---\ntitle: x\n---\n\n<Note>\n" + gc.HEADER_END_MARKER + "\n\n## Release v12.1 - Feature Release\n\n - Old.\n")
+            gc.insert_changelog_entry("## Release v12.2 - Feature Release\n\n - New.\n\n", path)
+            with open(path) as f:
+                text = f.read()
+        self.assertIn("</Note>\n\n## Release v12.2 - Feature Release\n\n - New.\n\n## Release v12.1", text)
 
 
 if __name__ == "__main__":

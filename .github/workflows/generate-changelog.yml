@@ -438,6 +438,18 @@ jobs:
           fi
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
+      # The changelog PR has no release note of its own: its body carries the template's Release
+      # Note section with NONE, and this label, so do-not-merge/release-note-label-needed isn't
+      # applied. No other label is added. Every publishing run, so an existing PR gets it too.
+      - name: Label the changelog PR release-note-none
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && (steps.publish.outputs.number != '' || steps.pr.outputs.number != '') }}
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
+        run: |
+          gh api --method POST "repos/mattermost/mattermost/issues/$PR_NUMBER/labels" -f "labels[]=release-note-none" --silent \
+            || echo "::warning::Could not add release-note-none to #$PR_NUMBER"
+
       # The report says which PR it describes. A dry run never gets here, so its preview is never
       # read as the PR's report on Release Day or by the label reconcile.
       - name: Record the published PR in the report

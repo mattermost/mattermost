@@ -727,6 +727,12 @@ class ReleaseDayTest(unittest.TestCase):
         self.assert_not_labelled(Repo(BLOG_CHANGELOG.replace("November 16, 2026", "TBD")),
                                  "the entry still says Release day: TBD")
 
+    def test_not_while_the_benchmarking_line_is_pending(self):
+        pending = BLOG_CHANGELOG.replace("#### User Interface\n", "#### Performance\n - Benchmarking test results: TBD. Added by "
+                                         "the changelog workflow once the v12.2 performance comparison is published.\n\n"
+                                         "#### User Interface\n", 1)
+        self.assert_not_labelled(Repo(pending), "the entry still says Benchmarking test results: TBD")
+
     def test_tbd_in_another_releases_entry_does_not_count(self):
         self.assertTrue(self.run_day(Repo(BLOG_CHANGELOG.replace("2026-12-16", "TBD")))["labelled"])
 
@@ -1098,6 +1104,13 @@ class WorkflowTest(unittest.TestCase):
                 continue
             self.assertFalse(condition and "github.event_name == 'release'" in condition.group(1)
                              and "!=" not in condition.group(1), name)
+
+    def test_the_changelog_pr_is_labelled_release_note_none_only(self):
+        step = self.text[self.text.index("- name: Label the changelog PR release-note-none"):]
+        step = step[:step.index("\n      - name:")]
+        self.assertIn('-f "labels[]=release-note-none"', step)
+        self.assertIn("GH_TOKEN: ${{ steps.writeToken.outputs.token }}", step)
+        self.assertNotIn("Contributor", self.text)
 
     def test_nothing_talks_to_hub(self):
         for name in ("RELEASE_AGENT_MM_TOKEN", "RELEASE_AGENT_MM_URL", "RELEASE_AGENT_RELEASE_CHANNEL_IDS", "digest"):

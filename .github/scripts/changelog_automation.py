@@ -60,6 +60,9 @@ MERGE_RUN_NAME = "Changelog Release Day"
 MIN_REWRITE_WORDS = 6
 MAX_REWRITE_CHARS = 400
 RELEASE_DAY_TBD = re.compile(r"Release day:\s*\**\s*TBD\b", re.IGNORECASE)
+# generate_changelog.BENCHMARK_PENDING: the entry's benchmarking line until the performance
+# comparison is in, or until a person writes it.
+BENCHMARK_PENDING = re.compile(r"Benchmarking test results:\s*TBD\b", re.IGNORECASE)
 
 
 # ── GitHub ──────────────────────────────────────────────────────────────────────────
@@ -487,7 +490,7 @@ def request_reviewers(api, number: int, names: list[str], repo: str = REPO) -> s
 # ── 3. Release Day: the AutoMerge label ─────────────────────────────────────────────
 
 # The generator's in-range sentence must not count: a stale one survives a flip to needs_review.
-BENCHMARK_BULLET = re.compile(r"^ *[-*] +Benchmarking test results\b(?! showed no significant difference)", re.MULTILINE)
+BENCHMARK_BULLET = re.compile(r"^ *[-*] +Benchmarking test results\b(?! showed no significant difference|:\s*TBD)", re.MULTILINE)
 _BENCHMARK_LINE = re.compile(r"^ *[-*] +Benchmarking test results\b.*$", re.MULTILINE)
 
 
@@ -570,6 +573,8 @@ def label_problems(version: str, pr: dict, content: str | None, report: dict | N
         problems.append("the PR's changelog file has no entry for the release")
     elif RELEASE_DAY_TBD.search(entry):
         problems.append("the entry still says Release day: TBD")
+    if BENCHMARK_PENDING.search(entry):
+        problems.append("the entry still says Benchmarking test results: TBD")
     return problems + blocking_report_problems(report, entry)
 
 

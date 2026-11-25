@@ -58,6 +58,7 @@ import re
 import sys
 import time
 import unicodedata
+import urllib.parse
 import requests
 from datetime import date, datetime, timezone
 from requests.adapters import HTTPAdapter
@@ -134,7 +135,7 @@ Here are your instructions:
         - `#### User Interface` — user interface and UX changes and new visual features. Pre-packaged plugin version updates go at the TOP of this subsection, before other items. Always write "user interface" in full — never abbreviate as "UI".
         - `#### Plugins/Integrations` — plugin and integration improvements (use as a separate subsection when there are enough items to warrant it)
         - `#### Administration` — System Console features, logging, support packet changes
-        - `#### mmctl` — mmctl command additions or changes (use as a separate subsection when there are enough items to warrant it)
+        - `#### mmctl` — every bullet mainly about mmctl commands or flags (it adds or changes an ``mmctl`` command or flag), even when there is only one. Never put such a bullet under `#### Administration`; a bullet mainly about a System Console feature that also mentions an mmctl command stays under Administration.
         - `#### Performance` — performance improvements
     - `### Bug Fixes` — corrections to defects. All items starting with "Fixed an issue..." go here, even if the raw note appeared in an Improvements context.
     - `### API Changes` — API additions, changes, or deprecations
@@ -164,6 +165,8 @@ Here are your instructions:
     - Feature flags (e.g., ``MM_FEATUREFLAGS_CJKSEARCH``)
     - Package names in Open Source Components (e.g., ``x/text``)
 
+    Never put plain words, product terms or acronyms in code formatting: write AI, SAML, SSO or "AI-generated", never ``AI`` or ``AI``-generated. Double backticks are for identifiers only.
+
 5.  **Markdown formatting — indentation is exact:**
     - Top-level bullets are indented with exactly ONE space: ` - item`
     - Nested bullets are indented with exactly THREE spaces: `   - nested item`
@@ -190,13 +193,13 @@ Here are your instructions:
 
 12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
-13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing. A developer's note about a schema change listed under `#### Database Schema Changes` (its PR added that migration, or the note names it) goes into that migration's bullet, carrying both IDs: never write a second bullet for it in another section. Never write a migration number (such as ``000238``) or migration file name anywhere outside `#### Database Schema Changes`.
+13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code: pre-packaged plugin version changes, added or removed WebSocket events, and database schema migrations (given as SQL). The benchmarking result is added automatically; never write a benchmarking bullet. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, and migrations under `#### Database Schema Changes`. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing. A developer's note about a schema change listed under `#### Database Schema Changes` (its PR added that migration, or the note names it) goes into that migration's bullet, carrying both IDs: never write a second bullet for it in another section. Never write a migration number (such as ``000238``) or migration file name anywhere outside `#### Database Schema Changes`.
 
 14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. Link that note's bullet to that URL, exactly as given, wherever the bullet goes (under `### Improvements`, `#### config.json`, `#### Compatibility` or any other section), by linking the feature's name the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link each page once. Never add a docs.mattermost.com link that was not given in a note.
 
 15.  **Verbs:** Start a bullet with "Added" only when the note is about something new being added. A note that is already a sentence with its own verb (such as "``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` now includes deleted replies") is kept as that sentence, or rewritten with a fitting verb ("Updated ... so that ..."); never put "Added" in front of it.
 
-16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Compatibility` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Compatibility` describes the same change, write one bullet that combines them and carries both IDs."""
+16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Compatibility` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Compatibility` describes the same change, write one bullet that combines them and carries both IDs. Notes that name the same ticket (their `Ticket:` lines match), or the same library, describe one change: never write two Compatibility bullets for them."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -665,6 +668,7 @@ def _notes_text(notes: list[dict]) -> str:
     """The notes as the model reads them: each with its ID, and its docs page when one was found."""
     return "\n\n---\n\n".join(
         f"[{note['id']}] {note['text']}" + (f"\nDocs page: {note['docs_url']}" if note.get("docs_url") else "")
+        + (f"\nTicket: {', '.join(note['tickets'])}" if note.get("tickets") else "")
         + (f"\n{note['context']}" if note.get("context") else "")
         for note in notes
     )
@@ -1046,7 +1050,7 @@ def insert_changelog_entry(
         new_content = (header + "\n\n" + entry) if header else entry
     elif HEADER_END_MARKER in existing:
         idx = existing.index(HEADER_END_MARKER) + len(HEADER_END_MARKER)
-        new_content = existing[:idx] + "\n\n\n" + entry + existing[idx:]
+        new_content = existing[:idx].rstrip("\n") + "\n\n" + entry.strip("\n") + "\n\n" + existing[idx:].lstrip("\n")
     else:
         # Fallback: insert immediately before the first "## Release" heading, which keeps
         # frontmatter, imports, and any header components above the newest entry.
@@ -1064,8 +1068,8 @@ def insert_changelog_entry(
             )
         new_content = (
             existing[: first_release.start()].rstrip()
-            + "\n\n\n"
-            + entry.rstrip()
+            + "\n\n"
+            + entry.strip("\n")
             + "\n\n"
             + existing[first_release.start():]
         )
@@ -1587,6 +1591,95 @@ def _bullet_text(line: str) -> str:
 _GO_LINE_RE = re.compile(r"(is built with Go\s+``)(v?[\d.]+)(``)")
 
 
+# The benchmarking line until the release's performance comparison is in: visible in the PR
+# and on a docs preview, read by the readiness report, and refused by the Release Day gate
+# (changelog_automation.py) like "Release day: TBD".
+BENCHMARK_PENDING = "Benchmarking test results: TBD"
+BENCHMARK_PENDING_RE = re.compile(r"Benchmarking test results:\s*TBD\b", re.IGNORECASE)
+_BENCHMARK_BULLET_RE = re.compile(r"^ *- +Benchmarking test results\b")
+
+
+def benchmark_pending_line(version_short: str, gap: dict) -> str:
+    if gap.get("status") == "needs_review":
+        return (f" - {BENCHMARK_PENDING}. The {version_short} performance comparison needs a person: "
+                "replace this line with the Performance bullet.")
+    return (f" - {BENCHMARK_PENDING}. Added by the changelog workflow once the {version_short} "
+            "performance comparison is published.")
+
+
+def apply_benchmark(content: str, version_short: str, benchmark: dict, blog_line: str = "") -> tuple[str, str]:
+    """Keep the entry's benchmarking line in step with the performance comparison, like the Go
+    version: (content, what happened).
+
+    The comparison's sentence replaces the pending marker, or is added as the first bullet of
+    ``#### Performance`` when the entry has no benchmarking line; a sentence already there (a
+    reviewer may have edited it) is kept. Until there is a sentence, the entry carries the
+    pending marker. "added" (the sentence), "marked" (the marker added), "pending" (the marker
+    was there), "kept" (a sentence was there) or "" (no entry).
+    """
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content, ""
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## Release ")), len(lines))
+    note = (benchmark.get("notes") or [None])[0]
+    marker = next((i for i in range(start, end) if BENCHMARK_PENDING_RE.search(lines[i])), None)
+    sentence = next((i for i in range(start, end) if _BENCHMARK_BULLET_RE.match(lines[i])
+                     and not BENCHMARK_PENDING_RE.search(lines[i])), None)
+    if sentence is not None:
+        if marker is not None and note:
+            del lines[marker]  # the sentence is in; the marker is stale
+            return "\n".join(lines), "added"
+        return content, "kept"
+    if note:
+        new_line = f" - {note['text']}"
+    elif marker is not None:
+        return content, "pending"
+    else:
+        new_line = benchmark_pending_line(version_short, benchmark.get("gap") or {})
+    if marker is not None:
+        lines[marker] = new_line
+        return "\n".join(lines), "added"  # only reached with a note: a marker without one returned above
+    improvements = next((i for i in range(start, end) if re.match(r"^### Improvements\s*$", lines[i])), None)
+    if improvements is None:
+        following = next((i for i in range(start + 1, end) if re.match(r"^### (?!Upgrade Impact\b)", lines[i])), end)
+        block = ["### Improvements"] + ([blog_line] if blog_line else []) + ["", "#### Performance", new_line, ""]
+        lines[following:following] = block
+    else:
+        section_end = next((i for i in range(improvements + 1, end) if lines[i].startswith("### ")), end)
+        performance = next((i for i in range(improvements + 1, section_end) if re.match(r"^#### Performance\s*$", lines[i])), None)
+        if performance is not None:
+            lines.insert(performance + 1, new_line)
+        else:
+            last = section_end
+            while last > improvements + 1 and not lines[last - 1].strip():
+                last -= 1
+            lines[last:last] = ["", "#### Performance", new_line]
+    return "\n".join(lines), "added" if note else "marked"
+
+
+def normalize_entry_spacing(content: str, version_short: str) -> str:
+    """Exactly one blank line before the entry's heading and before the next release's, and no
+    run of blank lines inside the entry."""
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## Release ")), len(lines))
+    before = lines[:start]
+    while before and not before[-1].strip():
+        before.pop()
+    body = []
+    for line in lines[start:end]:
+        if not line.strip() and body and not body[-1].strip():
+            continue
+        body.append(line)
+    while body and not body[-1].strip():
+        body.pop()
+    after = lines[end:]
+    return "\n".join((before + [""] if before else []) + body + ([""] + after if after else [""]))
+
+
 def replace_entry_go_version(content: str, version_short: str, go_version: str) -> tuple[str, str | None, str | None]:
     """Set the Go version in the entry's ``### Go Version`` line.
 
@@ -2092,15 +2185,34 @@ def set_github_output(name: str, value) -> None:
             f.write(f"{name}={value}\n")
 
 
+# The template's Release Note section, which the changelog PR itself needs: without a
+# release-note block (and the release-note-none label the workflow adds) the PR is labelled
+# do-not-merge/release-note-label-needed.
+RELEASE_NOTE_SECTION = "#### Release Note\n```release-note\nNONE\n```"
+_RELEASE_NOTE_BLOCK_RE = re.compile(r"```release-note\b", re.IGNORECASE)
+
+
+def with_release_note_section(body: str) -> str:
+    """``body`` with the template's Release Note section (``NONE``), added when it has none.
+    It goes above the changelog-sources list, which stays last."""
+    if _RELEASE_NOTE_BLOCK_RE.search(body or ""):
+        return body
+    sources = _SOURCES_COMMENT_RE.search(body or "")
+    if sources:
+        return body[:sources.start()].rstrip() + "\n\n" + RELEASE_NOTE_SECTION + "\n\n" + body[sources.start():]
+    return (body or "").rstrip() + "\n\n" + RELEASE_NOTE_SECTION + "\n"
+
+
 def default_pr_body() -> str:
     """The body of a new changelog PR, explaining how reruns treat it."""
-    return (
+    return with_release_note_section(
         f"Auto-generated changelog for milestone `{MILESTONE_TITLE}` from `{', '.join(REPOS)}`.\n\n"
         "Re-running the **Generate Changelog** workflow in `auto` mode adds release notes "
         "from newly merged PRs to this PR and leaves every existing line, including edits "
-        "made here, untouched, except that the Go version and pre-packaged plugin version "
-        "links are kept in step with the release branch. `regenerate` mode rebuilds the "
-        "entry from scratch and discards those edits.\n"
+        "made here, untouched, except that the Go version, the pre-packaged plugin version "
+        "links and the benchmarking line are kept in step with the release branch and the "
+        "performance report. `regenerate` mode rebuilds the entry from scratch and discards "
+        "those edits.\n"
     )
 
 
@@ -2291,41 +2403,181 @@ def drop_added_before_verb(text: str) -> str:
     return "\n".join(out)
 
 
-def link_docs_pages(text: str, docs: dict, already: str = "") -> str:
-    """Link each note's docs page from its bullet, wherever the bullet is, once.
+_SEE_THE_RE = re.compile(r"\bSee the\b")
+_TITLE_STOPWORDS = {
+    "about", "after", "before", "configure", "configuration", "developers", "docs", "documentation",
+    "from", "guide", "html", "https", "integrate", "manage", "mattermost", "setting", "settings", "that",
+    "this", "using", "with", "your",
+}
 
-    ``docs`` maps a note ID to ``(url, title)``. A page the model linked anywhere (in ``text``
-    or ``already``) is left alone; otherwise the first bullet carrying one of the page's notes
-    gets "See the [title](url) documentation for details." before its markers.
+
+def _page_words(url: str, title: str | None) -> set[str]:
+    """Distinctive words of a docs page's title and path, to tell its bullet from another PR's."""
+    text = f"{title or ''} {urllib.parse.urlparse(url).path} {urllib.parse.urlparse(url).fragment}"
+    return {word for word in re.findall(r"[a-z0-9]+", text.lower().replace("_", "")) if len(word) >= 4} - _TITLE_STOPWORDS
+
+
+def link_docs_pages(text: str, docs: dict, already: str = "", sources_by_id: dict | None = None) -> str:
+    """Link each note's docs page from one bullet of that note's PR, once.
+
+    ``docs`` maps a note ID to ``(url, title)``; ``sources_by_id`` maps a note ID to its PR. A
+    page the model linked anywhere (in ``text`` or ``already``) is left alone. Otherwise the
+    page goes on a bullet written only from that PR's notes; failing that, on a bullet that
+    also carries another PR's note only when the bullet names something in the page's title
+    or path, so a combined bullet (two PRs listed the same setting) doesn't get the other
+    PR's page. A bullet never gets a second "See the ... documentation" sentence.
     """
+    sources_by_id = sources_by_id or {}
+
     def page(url: str) -> str:
         return url.split("#")[0].split("?")[0].rstrip("/")
 
     lines = text.split("\n")
     linked = {page(match.group(2)) for match in _MD_LINK_RE.finditer(already)}
-    for block in _bullet_blocks(lines):
-        for note_id in block["ids"]:
-            url, title = docs.get(note_id, (None, None))
-            if not url:
-                continue
-            if page(url) in linked | {page(match.group(2)) for match in _MD_LINK_RE.finditer("\n".join(lines))}:
-                continue
-            last = block["end"] - 1
-            markers = _TRAILING_MARKERS_RE.search(lines[last])
-            body = lines[last][:markers.start()] if markers else lines[last]
-            tail = lines[last][markers.start():] if markers else ""
-            # The title is page text: escaped like the rest of the fragment, which was escaped before this.
-            title = escape_mdx_unsafe(re.sub(r"([\[\]])", r"\\\1", title)) if title else title
-            label = f"[{title}]({url}) documentation" if title else f"[documentation]({url})"
-            lines[last] = f"{body.rstrip()} See the {label} for details.{tail}"
+    pages = {}  # page -> (url, title, the PRs whose notes have it)
+    for note_id, (url, title) in docs.items():
+        if url:
+            entry = pages.setdefault(page(url), (url, title, set()))
+            entry[2].add(sources_by_id.get(note_id, note_id))
+
+    def block_text(block):
+        return "\n".join(lines[block["start"]:block["end"]])
+
+    def owners(block):
+        return {sources_by_id.get(note_id, note_id) for note_id in block["ids"]}
+
+    for key, (url, title, prs) in pages.items():
+        if key in linked | {page(match.group(2)) for match in _MD_LINK_RE.finditer("\n".join(lines))}:
+            continue
+        blocks = [block for block in _bullet_blocks(lines)
+                  if owners(block) & prs and not _SEE_THE_RE.search(block_text(block))]
+        words = _page_words(url, title)
+        own = [block for block in blocks if owners(block) <= prs]
+        shared = [block for block in blocks if not owners(block) <= prs
+                  and any(word in _SOURCE_MARKER_RE.sub("", block_text(block)).lower() for word in words)]
+        target = next((block for block in own
+                       if any(word in _SOURCE_MARKER_RE.sub("", block_text(block)).lower() for word in words)),
+                      own[0] if own else (shared[0] if shared else None))
+        if target is None:
+            continue
+        last = target["end"] - 1
+        markers = _TRAILING_MARKERS_RE.search(lines[last])
+        body = lines[last][:markers.start()] if markers else lines[last]
+        tail = lines[last][markers.start():] if markers else ""
+        # The title is page text: escaped like the rest of the fragment, which was escaped before this.
+        shown = escape_mdx_unsafe(re.sub(r"([\[\]])", r"\\\1", title)) if title else title
+        label = f"[{shown}]({url}) documentation" if title else f"[documentation]({url})"
+        lines[last] = f"{body.rstrip()} See the {label} for details.{tail}"
     return "\n".join(lines)
+
+
+# Words the model sometimes puts in code although they are prose: an acronym or product
+# term, not a setting, command or identifier.
+PLAIN_WORDS = {"AI", "API", "APIs", "UI", "UX", "SSO", "SAML", "LDAP", "MFA", "OAuth", "URL", "URLs",
+               "HTTP", "HTTPS", "TLS", "SQL", "CSV", "PDF", "JSON", "YAML", "HA"}
+_CODE_SPAN_RE = re.compile(r"``([^`\n]+?)``|(?<!`)`([^`\n]+?)`(?!`)")
+
+
+def unformat_plain_words(text: str) -> str:
+    """Take code formatting off plain words: ``AI``-generated becomes AI-generated, and an
+    acronym such as ``SAML`` on its own becomes SAML. Identifiers keep their formatting,
+    ``post``-type included."""
+    def plain(match):
+        word = match.group(1) or match.group(2)
+        follows = text[match.end():match.end() + 2]
+        # An acronym run into a word (``AI``-generated); a lowercase identifier (``post``-type) keeps its code.
+        if word in PLAIN_WORDS or (re.fullmatch(r"[A-Z]{2,5}", word) and re.match(r"-[A-Za-z]", follows)):
+            return word
+        return match.group(0)
+    return _CODE_SPAN_RE.sub(plain, text)
+
+
+_FIRST_SENTENCE_RE = re.compile(r"^(.*?[.!?])(?:\s|$)", re.DOTALL)
+
+
+def is_mmctl_bullet(text: str) -> bool:
+    """Whether a bullet is mainly about mmctl: its first sentence's first code span is an mmctl
+    command (or a flag given to the mmctl command named next), and the sentence isn't about the
+    System Console. "Added ``mmctl plugin keys`` commands" is; "Added a button to the System
+    Console and an ``mmctl health run`` command" is not."""
+    body = _SOURCE_MARKER_RE.sub("", text).strip().lstrip("-* ").strip()
+    first = _FIRST_SENTENCE_RE.match(body)
+    sentence = first.group(1) if first else body
+    if "System Console" in sentence:
+        return False
+    spans = [a or b for a, b in _CODE_SPAN_RE.findall(sentence)]
+    if not spans:
+        return False
+    if spans[0].startswith("mmctl"):
+        return True
+    return spans[0].startswith("-") and len(spans) > 1 and spans[1].startswith("mmctl")
+
+
+def move_mmctl_bullets(text: str) -> str:
+    """Move bullets mainly about mmctl commands or flags from ``#### Administration`` to
+    ``#### mmctl`` (created after Administration if needed). The prompt asks for this; this
+    makes sure of it."""
+    lines = text.split("\n")
+    moving = [block for block in _bullet_blocks(lines)
+              if block["section"] == "Improvements" and block["subsection"] == "Administration"
+              and is_mmctl_bullet("\n".join(lines[block["start"]:block["end"]]))]
+    if not moving:
+        return text
+    taken = [line for block in moving for line in lines[block["start"]:block["end"]]]
+    drop = {number for block in moving for number in range(block["start"], block["end"])}
+    # Text that starts with its release heading (a whole entry) keeps it: only the sections are merged.
+    first = next((i for i, line in enumerate(lines) if line.startswith("### ")), 0)
+    head = lines[:first]
+    rest = "\n".join(line for number, line in enumerate(lines) if number not in drop and number >= first)
+    rest = drop_bulletless_sections(rest)
+    merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n{rest}", "v0.0",
+                              "### Improvements\n\n#### mmctl\n" + "\n".join(taken))
+    body = merged.split("\n", 2)[2].rstrip("\n") + ("\n" if text.endswith("\n") else "")
+    return "\n".join(head + [body]) if head else body
+
+
+def merge_related_compatibility(text: str, notes: list[dict]) -> str:
+    """Write one ``#### Compatibility`` bullet for bullets whose PRs share a Jira ticket: two PRs
+    for one dependency change (replacing the openpgp library, then rejecting SHA-1 signatures
+    with it) are one change for an administrator. The first bullet keeps its place; the others'
+    sentences are appended to it, with all their source markers."""
+    tickets = {note["id"]: set(note.get("tickets") or ()) for note in notes if note.get("id")}
+    lines = text.split("\n")
+    blocks = [block for block in _bullet_blocks(lines)
+              if block["subsection"] == "Compatibility" and block["end"] - block["start"] == 1]
+    groups = []  # [first block, [blocks merged into it], its tickets]
+    for block in blocks:
+        keys = set().union(*(tickets.get(note_id, set()) for note_id in block["ids"])) if block["ids"] else set()
+        group = next((g for g in groups if g[2] & keys), None) if keys else None
+        if group:
+            group[1].append(block)
+            group[2] |= keys
+        else:
+            groups.append([block, [], keys])
+    drop = set()
+    for first, others, _ in groups:
+        if not others:
+            continue
+        texts, ids = [], []
+        for block in [first, *others]:
+            line = lines[block["start"]]
+            texts.append(_SOURCE_MARKER_RE.sub("", line).strip().lstrip("-").strip())
+            ids += [note_id for note_id in block["ids"] if note_id not in ids]
+        indent = re.match(r"^( *)", lines[first["start"]]).group(1)
+        lines[first["start"]] = f"{indent}- {' '.join(texts)} [[{','.join(ids)}]]"
+        drop.update(block["start"] for block in others)
+    return "\n".join(line for number, line in enumerate(lines) if number not in drop)
 
 
 def tidy_generated(text: str, notes: list[dict], already: str = "") -> str:
     """The deterministic fixes applied to the model's text while it still carries its markers."""
     docs = {note["id"]: (note["docs_url"], note.get("docs_title")) for note in notes if note.get("docs_url")}
+    sources_by_id = {note["id"]: note["source"] for note in notes if note.get("id")}
     text = fill_version(text, changelog_release.short_version(VERSION))
-    return link_docs_pages(drop_added_before_verb(strip_migration_numbers(text)), docs, already)
+    text = unformat_plain_words(drop_added_before_verb(strip_migration_numbers(text)))
+    text = merge_related_compatibility(text, notes)
+    text = move_mmctl_bullets(text)
+    return link_docs_pages(text, docs, already, sources_by_id)
 
 
 def _drop_go_version(items: list[dict], referenced: set) -> tuple[list[dict], set]:
@@ -2509,7 +2761,8 @@ def main():
                                              "excerpt": line})
                     if not note:
                         continue
-                    all_notes.append({"source": source, "text": note, "merged_at": merged_at})
+                    all_notes.append({"source": source, "text": note, "merged_at": merged_at,
+                                      "tickets": sorted(changelog_release.jira_keys(pr["title"], "", body))})
                     issue = note_quality_issue(note)
                     if issue:
                         lines = [line.strip() for line in note.splitlines() if line.strip()]
@@ -2593,8 +2846,10 @@ def main():
     # between the previous release's tag and this release's branch.
     base_ref = os.environ.get("RELEASE_BASE_REF", "").strip()
     head_ref = os.environ.get("RELEASE_HEAD_REF", "").strip()
+    # The benchmarking line is not the model's: apply_benchmark writes it, in create and update
+    # mode alike, from the performance comparison (or a pending marker until it is published).
     benchmark = changelog_release.benchmark(VERSION)
-    derived = changelog_release.derived_notes(base_ref, head_ref) + benchmark["notes"]
+    derived = changelog_release.derived_notes(base_ref, head_ref)
     if derived:
         print(f"🔧 {len(derived)} change(s) read from the {base_ref}..{head_ref} diff and the performance comparison:")
         for note in derived:
@@ -2711,6 +2966,16 @@ def main():
             print(f"🔁 Go version: {had} → {formatted_go}")
             extra_items.append({"section": "Go Version", "subsection": None, "text": go_line, "sources": []})
 
+    benchmark_action = ""
+    if content is not None:
+        content, benchmark_action = apply_benchmark(content, version_short, benchmark)
+        if benchmark_action in ("added", "marked"):
+            print(f"🔁 Benchmarking line for {version_short} set from the performance comparison"
+                  if benchmark["notes"] else f"⏳ Benchmarking line for {version_short} marked pending")
+            extra_items.append({"section": "Improvements", "subsection": "Performance",
+                                "text": benchmark["notes"][0]["text"] if benchmark["notes"] else BENCHMARK_PENDING,
+                                "sources": [n["source"] for n in benchmark["notes"]]})
+
     previous_go = None
     if mode == "create":
         previous_go = extract_previous_go_version(changelog_path) or extract_previous_go_version(
@@ -2735,6 +3000,9 @@ def main():
                            benchmark["gap"]),
         "reconciled": reconciled,
     }
+    for gap in readiness["gaps"]:
+        if gap["section"] == "Benchmarking" and gap["status"] != "ready":
+            gap["detail"] += f"; the entry says “{BENCHMARK_PENDING}” until the line is written"
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     if blocking:
         if output_dir:
@@ -2777,6 +3045,8 @@ def main():
             print(f"✅ Added {len(items)} bullet(s) from {len(sources_by_id)} note(s) to the {version_short} entry")
         elif updated == original_content:
             print("✅ No new release notes since the last run — changelog left unchanged")
+        if updated is not None:
+            updated = normalize_entry_spacing(updated, version_short)
         changed = updated is not None and updated != original_content
         if changed:
             with open(changelog_path, "w", encoding="utf-8") as f:
@@ -2877,8 +3147,18 @@ def main():
             check_for_truncation(entry)
         require_recorded_sources_placed(_sources_of(sources_by_id, referenced), items)
 
+        entry, benchmark_action = apply_benchmark(
+            entry, version_short, benchmark, f"See {blog_post_link()} on the highlights in our latest release.")
+        items.append({"section": "Improvements", "subsection": "Performance",
+                      "text": benchmark["notes"][0]["text"] if benchmark["notes"] else BENCHMARK_PENDING,
+                      "sources": [n["source"] for n in benchmark["notes"]]})
+
         header = CHANGELOG_HEADER_TEMPLATE.format(major=major_version(VERSION))
         insert_changelog_entry(entry, changelog_path, header=header)
+        with open(changelog_path, "r", encoding="utf-8") as f:
+            spaced = normalize_entry_spacing(f.read(), version_short)
+        with open(changelog_path, "w", encoding="utf-8") as f:
+            f.write(spaced)
         changed = True
 
         prs_with_notes = total_prs - len(no_notes_prs)
@@ -2984,6 +3264,8 @@ def main():
             "duration_seconds": round(time.monotonic() - started, 1),
         },
     }
+    if not proposed_before:  # a proposal changes nothing, the body included
+        pr_body = with_release_note_section(pr_body)
     write_outputs(output_dir, entry, payload, pr_body, render_model_output(sources_by_id))
     set_github_output("changed", "true" if changed else "false")
     # The PR body can change when the text does not, such as when every new note was
