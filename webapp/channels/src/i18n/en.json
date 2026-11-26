@@ -7731,6 +7731,10 @@
     "defaultMessage": "Print / Save as PDF",
     "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
   },
+  "admin.health_dashboard.finding.node_left": {
+    "defaultMessage": "Node no longer in the cluster",
+    "description": "Badge on a finding row of the System Console Site health page, in place of 'Resolved', when the finding was resolved because its node (one Mattermost server of the cluster) is no longer part of the cluster, not because the problem was fixed."
+  },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
     "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
@@ -7862,6 +7866,10 @@
   "admin.health_dashboard.trend.firing": {
     "defaultMessage": "Firing for {duration}",
     "description": "Meta line on a finding row of the System Console Site health page; {duration} is a compact duration such as \"3d 4h\"."
+  },
+  "admin.health_dashboard.trend.node_left": {
+    "defaultMessage": "Node left {time}",
+    "description": "Meta line on a finding row of the System Console Site health page, in place of 'Resolved {time}', when the finding's node (one Mattermost server of the cluster) left the cluster; {time} is a relative time such as \"2 hours ago\"."
   },
   "admin.health_dashboard.trend.resolved": {
     "defaultMessage": "Resolved {time}",

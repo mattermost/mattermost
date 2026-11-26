@@ -9,6 +9,7 @@ import {
     filterHealthFindingsByTab,
     groupHealthFindingsByArea,
     groupHealthFindingsBySection,
+    isHealthFindingNodeLeft,
     RECENTLY_RESOLVED_WINDOW,
 } from './health_utils';
 
@@ -73,6 +74,14 @@ describe('mattermost-redux/utils/health_utils', () => {
             expect(filterHealthFindingsByTab([neverFired], 'resolved', now)).toEqual([]);
         });
 
+        test('a finding resolved because its node left is recently resolved, not open or unknown', () => {
+            const nodeLeft = makeFinding({fingerprint: 'nodeLeft', scope: 'app-2', state: 'resolved', state_since: now - hour, first_seen_at: now - (2 * hour), details: {resolved_reason: 'node_left'}});
+
+            expect(filterHealthFindingsByTab([nodeLeft], 'resolved', now)).toEqual([nodeLeft]);
+            expect(filterHealthFindingsByTab([nodeLeft], 'open', now)).toEqual([]);
+            expect(filterHealthFindingsByTab([nodeLeft], 'unknown', now)).toEqual([]);
+        });
+
         test('unknown holds unknown findings only', () => {
             expect(fingerprints(filterHealthFindingsByTab(all, 'unknown', now))).toEqual(['unknownCritical', 'unknownWarning']);
         });
@@ -132,6 +141,18 @@ describe('mattermost-redux/utils/health_utils', () => {
             notifications: [critical],
             database: [warning, resolvedRecent],
             auth: [unknownWarning],
+        });
+    });
+
+    describe('isHealthFindingNodeLeft', () => {
+        test.each([
+            ['resolved with the node_left reason', {state: 'resolved' as const, details: {resolved_reason: 'node_left'}}, true],
+            ['resolved without details', {state: 'resolved' as const}, false],
+            ['resolved with another reason', {state: 'resolved' as const, details: {resolved_reason: 'other'}}, false],
+            ['firing with a leftover node_left reason', {state: 'firing' as const, details: {resolved_reason: 'node_left'}}, false],
+            ['unknown with a leftover node_left reason', {state: 'unknown' as const, details: {resolved_reason: 'node_left'}}, false],
+        ])('%s is %s', (_, overrides, expected) => {
+            expect(isHealthFindingNodeLeft(makeFinding({fingerprint: 'f', scope: 'app-2', ...overrides}))).toBe(expected);
         });
     });
 });

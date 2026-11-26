@@ -123,6 +123,36 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(screen.getByRole('button', {name: /Resolved 2 hours ago/})).toBeInTheDocument();
     });
 
+    test('a finding resolved because its node left says so instead of claiming it was fixed', () => {
+        renderRow(makeFinding({
+            scope: 'node-3',
+            state: 'resolved',
+            state_since: now - (2 * 60 * 60000),
+            message: 'This node is no longer part of the cluster, so this check no longer runs on it.',
+            message_id: 'health.resolved.node_left',
+            details: {url: 'http://push.example.com', resolved_reason: 'node_left'},
+        }), {expanded: true});
+
+        const row = screen.getByTestId('healthFinding-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        expect(row).toHaveClass('HealthFinding--nodeLeft');
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Node no longer in the cluster$/);
+        expect(screen.getByText('This node is no longer part of the cluster, so this check no longer runs on it.')).toBeInTheDocument();
+
+        const toggle = screen.getByRole('button', {name: /Push notification server is not HTTPS on node-3/});
+        expect(toggle).toHaveAccessibleName(/Node left 2 hours ago/);
+        expect(toggle).not.toHaveAccessibleName(/Resolved/);
+
+        expect(detailTerms(expandedDetail())).toEqual(['Severity', 'Node', 'url']);
+    });
+
+    test('a resolved finding with no resolved reason is not shown as a node that left', () => {
+        renderRow(makeFinding({state: 'resolved', scope: 'node-3', state_since: now - (2 * 60 * 60000)}));
+
+        expect(screen.getByTestId('healthFinding-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).not.toHaveClass('HealthFinding--nodeLeft');
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Resolved$/);
+        expect(screen.getByRole('button', {name: /Resolved 2 hours ago/})).toBeInTheDocument();
+    });
+
     test('a node-scoped finding names its node', () => {
         renderRow(makeFinding({scope: 'node-3'}));
 

@@ -403,6 +403,15 @@
         opacity: 0.72;
     }
 
+    &--nodeLeft {
+        --health-tone: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        --health-tone-rgb: var(--sys-center-channel-color-rgb);
+    }
+
+    &--nodeLeft &__header {
+        opacity: 0.72;
+    }
+
     &--expanded {
         border-color: var(--sys-button-bg);
         border-left-color: var(--health-tone);

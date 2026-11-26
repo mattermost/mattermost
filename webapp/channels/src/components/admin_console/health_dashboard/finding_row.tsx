@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import React, {useId} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {BellOffOutlineIcon, ChevronRightIcon, ChevronUpIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+import {BellOffOutlineIcon, ChevronRightIcon, ChevronUpIcon, ClockOutlineIcon, ServerOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
-import {getHealthFindingSection, isHealthFindingMuted} from 'mattermost-redux/utils/health_utils';
+import {getHealthFindingSection, isHealthFindingMuted, isHealthFindingNodeLeft} from 'mattermost-redux/utils/health_utils';
 
 import {AreaIcon, AreaLabel} from './area';
 import FindingDetail from './finding_detail';
@@ -31,9 +31,13 @@ type Props = {
 const stateBadges = defineMessages({
     unknown: {id: 'admin.health_dashboard.finding.unknown', defaultMessage: 'Unknown'},
     resolved: {id: 'admin.health_dashboard.finding.resolved', defaultMessage: 'Resolved'},
+    nodeLeft: {id: 'admin.health_dashboard.finding.node_left', defaultMessage: 'Node no longer in the cluster'},
 });
 
 function getBadgeMessage(finding: HealthFinding) {
+    if (isHealthFindingNodeLeft(finding)) {
+        return stateBadges.nodeLeft;
+    }
     switch (finding.state) {
     case 'unknown':
         return stateBadges.unknown;
@@ -51,6 +55,7 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
     const tone = getHealthFindingSection(finding);
     const title = finding.title || finding.code;
     const muted = isHealthFindingMuted(finding);
+    const nodeLeft = isHealthFindingNodeLeft(finding);
 
     let message = finding.message;
     if (!message && finding.state === 'unknown') {
@@ -67,6 +72,7 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
             className={classNames('HealthFinding', `HealthFinding--${tone}`, {
                 'HealthFinding--expanded': expanded,
                 'HealthFinding--muted': muted,
+                'HealthFinding--nodeLeft': nodeLeft,
             })}
             data-testid={`healthFinding-${finding.fingerprint}`}
         >
@@ -79,10 +85,18 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
                     onClick={() => onToggle(finding.fingerprint)}
                 >
                     <span className='HealthFinding__icon'>
-                        <ToneIcon
-                            tone={tone}
-                            size={18}
-                        />
+                        {nodeLeft ? (
+                            <ServerOutlineIcon
+                                size={18}
+                                color='currentColor'
+                                aria-hidden={true}
+                            />
+                        ) : (
+                            <ToneIcon
+                                tone={tone}
+                                size={18}
+                            />
+                        )}
                     </span>
                     <span className='HealthFinding__body'>
                         <span className='HealthFinding__title'>

@@ -33,6 +33,13 @@ export function isHealthFindingOpen(finding: HealthFinding) {
     return finding.state === 'firing' || finding.state === 'unknown';
 }
 
+export const HEALTH_FINDING_RESOLVED_REASON = 'resolved_reason';
+
+// Resolved because its node is no longer part of the cluster, not because the problem cleared.
+export function isHealthFindingNodeLeft(finding: HealthFinding) {
+    return finding.state === 'resolved' && finding.details?.[HEALTH_FINDING_RESOLVED_REASON] === 'node_left';
+}
+
 // A check that passed on its first run is stored as resolved without ever having changed state.
 export function isRecentlyResolved(finding: HealthFinding, now: number) {
     return finding.state === 'resolved' &&
