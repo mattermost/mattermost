@@ -381,16 +381,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* TLS */
-	// The listener reads its TLS settings only at startup, so the config only decides whether a missing certificate is an error.
-	if cert := ps.tlsCertificate.Load(); cert != nil {
-		d.TLS.Certificate = model.NewSupportPacketCertificate(cert, nil)
-	} else if serviceSettings := ps.Config().ServiceSettings; model.SafeDereference(serviceSettings.ConnectionSecurity) == model.ConnSecurityTLS {
-		certErr := errors.New("the HTTPS listener has not loaded a certificate; TLS settings apply after a restart")
-		if model.SafeDereference(serviceSettings.UseLetsEncrypt) {
-			certErr = errors.New("the HTTPS listener has not served a Let's Encrypt certificate yet; TLS settings apply after a restart")
-		}
-		d.TLS.Certificate = model.NewSupportPacketCertificate(nil, certErr)
-	}
+	d.TLS.Certificate = model.NewSupportPacketCertificate(ps.tlsCertificate.Load(), nil)
 
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {

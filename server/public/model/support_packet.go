@@ -191,9 +191,9 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"saml"`
 
 	TLS struct {
-		// Certificate is the one the HTTPS listener serves, whatever the current config says, since the
-		// listener only reads it at startup. For a TLSCertFile that is the file as loaded at startup, even
-		// if it has been renewed since; for Let's Encrypt it is the certificate of the latest handshake.
+		// Certificate is the one the HTTPS listener loaded from TLSCertFile at startup, which is what it
+		// serves until a restart, even if the file has been renewed since. It is nil with Let's Encrypt or
+		// without an HTTPS listener.
 		Certificate *SupportPacketCertificate `yaml:"certificate,omitempty"`
 	} `yaml:"tls,omitempty"`
 

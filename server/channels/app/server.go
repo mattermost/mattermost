@@ -8,7 +8,6 @@ import (
 	"cmp"
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"net"
 	"net/http"
@@ -27,7 +26,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/idna"
 
@@ -1071,20 +1069,6 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
-// recordServedCertificate passes the leaf of each certificate getCertificate serves to record. autocert
-// swaps in renewed certificates without a restart, so this follows renewals. ACME challenge certificates
-// are skipped, using autocert's own test: the only offered protocol is acme-tls/1.
-func recordServedCertificate(getCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error), record func(*x509.Certificate)) func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
-	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-		cert, err := getCertificate(hello)
-		challenge := len(hello.SupportedProtos) == 1 && hello.SupportedProtos[0] == acme.ALPNProto
-		if err == nil && cert != nil && cert.Leaf != nil && !challenge {
-			record(cert.Leaf)
-		}
-		return cert, err
-	}
-}
-
 func (s *Server) newLetsEncryptManager() *autocert.Manager {
 	return &autocert.Manager{
 		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
@@ -1367,7 +1351,7 @@ func (s *Server) Start() error {
 			}
 
 			if *s.platform.Config().ServiceSettings.UseLetsEncrypt {
-				tlsConfig.GetCertificate = recordServedCertificate(m.GetCertificate, s.platform.SetTLSCertificate)
+				tlsConfig.GetCertificate = m.GetCertificate
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 			} else {
 				// Loaded here rather than by ServeTLS so that the Support Packet can report the certificate being served.

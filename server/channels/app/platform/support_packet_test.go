@@ -1710,78 +1710,21 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 		assert.Nil(t, d.SAML.SPCertificate)
 	})
 
-	// Config validation only checks that the files exist; the listener isn't started.
-	tlsFile := filepath.Join(t.TempDir(), "tls.pem")
-	require.NoError(t, os.WriteFile(tlsFile, nil, 0600))
-	setTLS := func(t *testing.T, connectionSecurity string, useLetsEncrypt bool, served *x509.Certificate) {
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.ConnectionSecurity = new(connectionSecurity)
-			cfg.ServiceSettings.UseLetsEncrypt = new(useLetsEncrypt)
-			cfg.ServiceSettings.TLSCertFile = new(tlsFile)
-			cfg.ServiceSettings.TLSKeyFile = new(tlsFile)
-		})
-		require.Equal(t, connectionSecurity, *th.Service.Config().ServiceSettings.ConnectionSecurity)
-		th.Service.SetTLSCertificate(served)
-		t.Cleanup(func() {
-			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.ConnectionSecurity = new("")
-				cfg.ServiceSettings.UseLetsEncrypt = new(false)
-			})
-			th.Service.SetTLSCertificate(nil)
-		})
-	}
-
 	served := newTestX509Certificate(t, "chat.example.com", "R11", time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC))
 
 	t.Run("TLS reports the certificate the listener serves", func(t *testing.T) {
-		setTLS(t, model.ConnSecurityTLS, false, served)
-
-		nodeDiagnostics := getDiagnostics(t)
+		th.Service.SetTLSCertificate(served)
+		t.Cleanup(func() { th.Service.SetTLSCertificate(nil) })
 
 		assert.Equal(t, &model.SupportPacketCertificate{
 			CommonName: "chat.example.com",
 			Issuer:     "R11",
 			NotAfter:   time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC),
-		}, nodeDiagnostics.Diagnostics.TLS.Certificate)
-		require.Contains(t, nodeDiagnostics.Errors, model.SectionTLS)
-		assert.NoError(t, nodeDiagnostics.Errors[model.SectionTLS])
+		}, getDiagnostics(t).Diagnostics.TLS.Certificate)
 	})
 
-	t.Run("TLS without a loaded certificate reports an error", func(t *testing.T) {
-		setTLS(t, model.ConnSecurityTLS, false, nil)
-
-		d := getDiagnostics(t).Diagnostics
-		require.NotNil(t, d.TLS.Certificate)
-		assert.Contains(t, d.TLS.Certificate.Error, "the HTTPS listener has not loaded a certificate")
-		assert.True(t, d.TLS.Certificate.NotAfter.IsZero())
-	})
-
-	t.Run("TLS reports the served certificate after TLS is turned off until a restart", func(t *testing.T) {
-		setTLS(t, "", false, served)
-
-		d := getDiagnostics(t).Diagnostics
-		require.NotNil(t, d.TLS.Certificate)
-		assert.Equal(t, "chat.example.com", d.TLS.Certificate.CommonName)
-	})
-
-	t.Run("TLS reports the served certificate with Let's Encrypt", func(t *testing.T) {
-		setTLS(t, model.ConnSecurityTLS, true, served)
-
-		d := getDiagnostics(t).Diagnostics
-		require.NotNil(t, d.TLS.Certificate)
-		assert.Equal(t, "chat.example.com", d.TLS.Certificate.CommonName)
-	})
-
-	t.Run("Let's Encrypt without a served certificate reports an error", func(t *testing.T) {
-		setTLS(t, model.ConnSecurityTLS, true, nil)
-
-		d := getDiagnostics(t).Diagnostics
-		require.NotNil(t, d.TLS.Certificate)
-		assert.Contains(t, d.TLS.Certificate.Error, "the HTTPS listener has not served a Let's Encrypt certificate yet")
-	})
-
-	t.Run("no TLS certificate without TLS", func(t *testing.T) {
-		setTLS(t, "", false, nil)
+	t.Run("no TLS certificate without one served", func(t *testing.T) {
+		th.Service.SetTLSCertificate(nil)
 
 		assert.Nil(t, getDiagnostics(t).Diagnostics.TLS.Certificate)
 	})

@@ -5,17 +5,12 @@ package app
 
 import (
 	"bufio"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -152,13 +147,13 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 func TestStartServerTLSSuccess(t *testing.T) {
 	mainHelper.Parallel(t)
+	testDir, _ := fileutils.FindDir("tests")
+	certFile := path.Join(testDir, "tls_test_cert.pem")
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
-		testDir, _ := fileutils.FindDir("tests")
-
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+		*cfg.ServiceSettings.TLSCertFile = certFile
 	})
 	require.NoError(t, err)
 
@@ -172,95 +167,18 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 	require.NoError(t, err)
 
-	s.Shutdown()
-	require.NoError(t, serverErr)
-}
-
-func TestStartServerTLSReportsServedCertificate(t *testing.T) {
-	mainHelper.Parallel(t)
-	dir := t.TempDir()
-	certFile, keyFile := path.Join(dir, "cert.pem"), path.Join(dir, "key.pem")
-	writeTestKeyPair := func(commonName string, notAfter time.Time) {
-		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		require.NoError(t, err)
-		template := &x509.Certificate{
-			SerialNumber: big.NewInt(1),
-			Subject:      pkix.Name{CommonName: commonName},
-			DNSNames:     []string{"localhost"},
-			NotBefore:    time.Now().Add(-time.Hour),
-			NotAfter:     notAfter,
-		}
-		der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
-		require.NoError(t, err)
-		keyDER, err := x509.MarshalECPrivateKey(key)
-		require.NoError(t, err)
-		require.NoError(t, os.WriteFile(certFile, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0600))
-		require.NoError(t, os.WriteFile(keyFile, pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0600))
-	}
-	servedNotAfter := time.Now().Add(10 * 24 * time.Hour).Truncate(time.Second).UTC()
-	writeTestKeyPair("served.example.com", servedNotAfter)
-
-	s, err := newServerWithConfig(t, func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = "localhost:0"
-		*cfg.ServiceSettings.ConnectionSecurity = model.ConnSecurityTLS
-		*cfg.ServiceSettings.TLSCertFile = certFile
-		*cfg.ServiceSettings.TLSKeyFile = keyFile
-		*cfg.EmailSettings.SendPushNotifications = false
-	})
+	certPEM, err := os.ReadFile(certFile)
 	require.NoError(t, err)
-	require.NoError(t, s.Start())
-	t.Cleanup(s.Shutdown)
-
-	servedCommonName := func() string {
-		conn, err := tls.Dial("tcp", s.ListenAddr.String(), &tls.Config{InsecureSkipVerify: true})
-		require.NoError(t, err)
-		defer conn.Close()
-		return conn.ConnectionState().PeerCertificates[0].Subject.CommonName
-	}
-	require.Equal(t, "served.example.com", servedCommonName())
-
-	// A renewed file isn't served until a restart, so the packet must keep reporting the loaded certificate.
-	writeTestKeyPair("renewed.example.com", time.Now().Add(365*24*time.Hour))
-	require.Equal(t, "served.example.com", servedCommonName())
-
+	block, _ := pem.Decode(certPEM)
+	require.NotNil(t, block)
+	served, err := x509.ParseCertificate(block.Bytes)
+	require.NoError(t, err)
 	nodeDiagnostics, _ := s.platform.GetSupportPacketDiagnostics(request.TestContext(t))
 	require.NotNil(t, nodeDiagnostics)
-	assert.Equal(t, &model.SupportPacketCertificate{
-		CommonName: "served.example.com",
-		Issuer:     "served.example.com",
-		NotAfter:   servedNotAfter,
-	}, nodeDiagnostics.Diagnostics.TLS.Certificate)
-}
+	assert.Equal(t, model.NewSupportPacketCertificate(served, nil), nodeDiagnostics.Diagnostics.TLS.Certificate)
 
-func TestRecordServedCertificate(t *testing.T) {
-	leaf := &x509.Certificate{Subject: pkix.Name{CommonName: "chat.example.com"}}
-	served := &tls.Certificate{Leaf: leaf}
-
-	for name, tc := range map[string]struct {
-		cert   *tls.Certificate
-		err    error
-		protos []string
-		want   *x509.Certificate
-	}{
-		"records the served leaf":            {cert: served, protos: []string{"h2", "http/1.1"}, want: leaf},
-		"skips a failed lookup":              {cert: served, err: errors.New("no certificate")},
-		"skips a certificate without a leaf": {cert: &tls.Certificate{}},
-		"skips an ACME challenge":            {cert: served, protos: []string{acme.ALPNProto}},
-		"records when ACME is one of many":   {cert: served, protos: []string{"h2", acme.ALPNProto}, want: leaf},
-	} {
-		t.Run(name, func(t *testing.T) {
-			var recorded *x509.Certificate
-			getCertificate := recordServedCertificate(func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
-				return tc.cert, tc.err
-			}, func(cert *x509.Certificate) { recorded = cert })
-
-			cert, err := getCertificate(&tls.ClientHelloInfo{SupportedProtos: tc.protos})
-
-			assert.Same(t, tc.cert, cert)
-			assert.Equal(t, tc.err, err)
-			assert.Same(t, tc.want, recorded)
-		})
-	}
+	s.Shutdown()
+	require.NoError(t, serverErr)
 }
 
 func TestStartServerTLSVersion(t *testing.T) {

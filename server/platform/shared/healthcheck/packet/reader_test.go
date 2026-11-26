@@ -466,7 +466,6 @@ func TestReadCertificates(t *testing.T) {
 		assert.Nil(t, diag.LDAP.ClientCertificate)
 		assert.Nil(t, diag.SAML.IdpCertificate)
 		assert.Nil(t, diag.SAML.SPCertificate)
-		assert.True(t, p.Snapshot.Nodes()[0].Has(model.SectionTLS))
 	})
 
 	t.Run("reads the certificates", func(t *testing.T) {
