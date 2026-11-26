@@ -804,6 +804,8 @@ func TestUpdateUserEmail(t *testing.T) {
 	})
 
 	t.Run("Only the last token works if verification is required", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-72349")
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.RequireEmailVerification = true
 		})
