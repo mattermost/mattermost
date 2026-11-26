@@ -390,6 +390,19 @@ describe('reducers.entities.search', () => {
             expect(actualState.flaggedPaging).toEqual({before: 'abcd', isEnd: true});
         });
 
+        it('removes every post unsaved at once', () => {
+            const action = {
+                type: PreferenceTypes.DELETED_PREFERENCES,
+                data: [
+                    {category: Preferences.CATEGORY_FLAGGED_POST, name: 'abcd'},
+                    {category: Preferences.CATEGORY_FLAGGED_POST, name: 'efgh'},
+                ],
+            };
+
+            const actualState = reducer({flagged: ['abcd', 'efgh', 'ijkl']} as SearchState, action);
+            expect(actualState.flagged).toEqual(['ijkl']);
+        });
+
         it.each([
             ['unsaved', {type: PreferenceTypes.DELETED_PREFERENCES, data: [{category: Preferences.CATEGORY_FLAGGED_POST, name: 'efgh'}]}],
             ['deleted', {type: PostTypes.POST_DELETED, data: {id: 'efgh'}}],

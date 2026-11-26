@@ -119,19 +119,12 @@ function flagged(state: string[] = [], action: MMReduxAction) {
     }
     case PreferenceTypes.DELETED_PREFERENCES: {
         if (action.data) {
-            const nextState = [...state];
-            let flaggedPostsRemoved = false;
-            action.data.forEach((pref: PreferenceType) => {
-                if (pref.category === Preferences.CATEGORY_FLAGGED_POST) {
-                    const index = state.indexOf(pref.name);
-                    if (index !== -1) {
-                        flaggedPostsRemoved = true;
-                        nextState.splice(index, 1);
-                    }
-                }
-            });
+            const unsaved = new Set(action.data.
+                filter((pref: PreferenceType) => pref.category === Preferences.CATEGORY_FLAGGED_POST).
+                map((pref: PreferenceType) => pref.name));
+            const nextState = state.filter((id) => !unsaved.has(id));
 
-            return flaggedPostsRemoved ? nextState : state;
+            return nextState.length === state.length ? state : nextState;
         }
 
         return state;
