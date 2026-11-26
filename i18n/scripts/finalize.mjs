@@ -35,8 +35,9 @@ import path from 'path';
 import {parseArgs} from 'util';
 
 import {BASELINE, catalogPath, parseCatalog, readBaseline, same, serializeBaseline, serializeCatalog} from './lib/catalogs.mjs';
+import {formatNotes} from './lib/notes.mjs';
 import {commitTree, workingTree} from './lib/repo.mjs';
-import {mergePayloads, NOTE_KINDS, unanswered, validatePayload} from './lib/validate.mjs';
+import {mergePayloads, unanswered, validatePayload} from './lib/validate.mjs';
 import {answerFiles, digest, paths, PLAN_VERSION, readJSON, writeJSON} from './lib/workdir.mjs';
 
 const usage = 'usage: node i18n/scripts/finalize.mjs <workdir> [--no-verify]';
@@ -264,46 +265,13 @@ if (Object.keys(behind).length) {
     }
 }
 
-// A note about the source, the English, its description or the glossary, is
-// the same report from every locale that makes it, so it is listed once per
-// string. One about a locale's own catalog or choice is listed per locale.
-const NOTE_HEADINGS = {
-    english: 'Defects in the English',
-    description: 'Defects in the descriptions',
-    glossary: 'Glossary terms that are wrong or missing for the context',
-    catalog: 'Wrong translations elsewhere in the catalogs, outside this run',
-    choice: 'Translation choices to check',
-};
-const SHARED_KINDS = new Set(['english', 'description', 'glossary']);
-const byKind = Object.fromEntries(NOTE_KINDS.map((kind) => [kind, new Map()]));
-for (const [locale, r] of Object.entries(results).sort()) {
-    for (const [ref, {kind, text}] of Object.entries(r.notes)) {
-        byKind[kind].set(ref, [...(byKind[kind].get(ref) || []), {locale, text}]);
-    }
-}
-const noteLines = [];
-const counts = [];
-for (const kind of NOTE_KINDS) {
-    const notes = [...byKind[kind]].sort(([a], [b]) => a.localeCompare(b));
-    if (!notes.length) {
-        continue;
-    }
-    counts.push(`${notes.length} ${kind}`);
-    noteLines.push(`#### ${NOTE_HEADINGS[kind]}`, '');
-    for (const [ref, by] of notes) {
-        if (SHARED_KINDS.has(kind)) {
-            noteLines.push(`- \`${ref}\` (${by.map((n) => n.locale).join(', ')}): ${by[0].text}`);
-        } else {
-            noteLines.push(`- \`${ref}\``, ...by.map((n) => `  - ${n.locale}: ${n.text}`));
-        }
-    }
-    noteLines.push('');
-}
+const notes = formatNotes(Object.fromEntries(Object.entries(results).map(([locale, r]) => [locale, r.notes])));
+const counts = Object.entries(notes.counts).map(([kind, n]) => `${n} ${kind}`);
 if (counts.length) {
     lines.push('', `The translators' notes, by kind, are in notes.md: ${counts.join(', ')} string(s).`);
 }
 fs.writeFileSync(p.report, lines.join('\n') + '\n');
-fs.writeFileSync(p.notes, noteLines.join('\n'));
+fs.writeFileSync(p.notes, notes.text);
 
 console.log(lines.join('\n'));
 console.log(`\n${originals.size} files changed. Report: ${p.report}. Notes: ${p.notes}`);

@@ -418,7 +418,7 @@ describe('a translation run', () => {
         assert.match(report, /notes\.md: 1 english, 1 catalog string\(s\)/);
         const notes = fs.readFileSync(path.join(workdir, 'notes.md'), 'utf8');
         assert.match(notes, /#### Defects in the English\n\n- `webapp:app\.new` \(ru\): The English does not say what is saved/);
-        assert.match(notes, /#### Wrong translations elsewhere in the catalogs, outside this run\n\n- `webapp:app\.reword`\n {2}- ru: app\.old says the opposite/);
+        assert.match(notes, /#### Wrong translations elsewhere in the catalogs, outside this run\n\n- `webapp:app\.reword` \(ru\): app\.old says the opposite/);
     });
 
     test('finalize refuses a plan the repository has moved away from', () => {
