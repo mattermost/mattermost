@@ -375,6 +375,22 @@ describe('a translation run', () => {
         }
     });
 
+    test('finalize restores every file when it cannot write its report', () => {
+        payload('ru', ruPayload);
+        const before = {catalog: repo.read('webapp/channels/src/i18n/ru.json'), baseline: repo.read('i18n/baseline.json')};
+        const report = path.join(workdir, 'report.md');
+        fs.mkdirSync(report);
+        try {
+            const r = repo.run('finalize.mjs', workdir, '--no-verify');
+            assert.equal(r.status, 1);
+            assert.match(r.stderr, /EISDIR[\s\S]*every catalog is restored/);
+            assert.equal(repo.read('webapp/channels/src/i18n/ru.json'), before.catalog);
+            assert.equal(repo.read('i18n/baseline.json'), before.baseline);
+        } finally {
+            fs.rmdirSync(report);
+        }
+    });
+
     test('finalize writes the catalogs and advances only the baselines it brought up to date', () => {
         payload('ru', {...ruPayload,
             notes: {

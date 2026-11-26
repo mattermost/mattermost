@@ -240,38 +240,47 @@ try {
         }
     }
     write(BASELINE, serializeBaseline(baseline));
+
+    writeOutputs();
 } catch (e) {
     abort(e.stack || String(e));
 }
+console.log(`\n${originals.size} files changed. Report: ${p.report}. Notes: ${p.notes}`);
 
-writeJSON(p.pruned, pruned);
+// pruned.json, the report and notes.md, written before anything is kept, so
+// that a run whose report could not be written is restored with the rest.
+function writeOutputs() {
+    writeJSON(p.pruned, pruned);
+    const notes = formatNotes(Object.fromEntries(Object.entries(results).map(([locale, r]) => [locale, r.notes])));
+    const report = formatReport(notes.counts);
+    fs.writeFileSync(p.report, report);
+    fs.writeFileSync(p.notes, notes.text);
+    console.log(report);
+}
 
 // The report: what a reviewer, who reads few of these languages, can check.
 // It stays short whatever the size of the run: counts per locale, the locales
 // left for the next run, and how many notes of each kind notes.md holds.
-const acknowledgedBy = Object.fromEntries(Object.entries(results).map(([locale, r]) => [locale, r.acknowledged.length]));
-const lines = [`Translation run against ${plan.base}.`, ''];
-lines.push('| Locale | New | Changed: rewritten | Changed: kept | Repaired | Repair: no action | Acknowledged | Carried | Pruned |', '|---|---|---|---|---|---|---|---|---|');
-for (const locale of Object.keys(tally).sort()) {
-    const t = tally[locale];
-    if (Object.values(t).some(Boolean)) {
-        lines.push(`| ${locale} | ${t.new} | ${t.rewritten} | ${t.kept} | ${t.repaired} | ${t.untouched} | ${acknowledgedBy[locale] || 0} | ${t.carried} | ${t.pruned} |`);
+function formatReport(noteCounts) {
+    const acknowledgedBy = Object.fromEntries(Object.entries(results).map(([locale, r]) => [locale, r.acknowledged.length]));
+    const lines = [`Translation run against ${plan.base}.`, ''];
+    lines.push('| Locale | New | Changed: rewritten | Changed: kept | Repaired | Repair: no action | Acknowledged | Carried | Pruned |', '|---|---|---|---|---|---|---|---|---|');
+    for (const locale of Object.keys(tally).sort()) {
+        const t = tally[locale];
+        if (Object.values(t).some(Boolean)) {
+            lines.push(`| ${locale} | ${t.new} | ${t.rewritten} | ${t.kept} | ${t.repaired} | ${t.untouched} | ${acknowledgedBy[locale] || 0} | ${t.carried} | ${t.pruned} |`);
+        }
     }
-}
-if (Object.keys(behind).length) {
-    lines.push('', 'Not brought up to date, so their baseline stays where it was:', '');
-    for (const [locale, s] of Object.entries(behind).sort()) {
-        lines.push(`- ${locale}: ${Object.entries(s).map(([surface, n]) => `${n} ${surface}`).join(', ')}`);
+    if (Object.keys(behind).length) {
+        lines.push('', 'Not brought up to date, so their baseline stays where it was:', '');
+        for (const [locale, s] of Object.entries(behind).sort()) {
+            lines.push(`- ${locale}: ${Object.entries(s).map(([surface, n]) => `${n} ${surface}`).join(', ')}`);
+        }
     }
-}
 
-const notes = formatNotes(Object.fromEntries(Object.entries(results).map(([locale, r]) => [locale, r.notes])));
-const counts = Object.entries(notes.counts).map(([kind, n]) => `${n} ${kind}`);
-if (counts.length) {
-    lines.push('', `The translators' notes, by kind, are in notes.md: ${counts.join(', ')} string(s).`);
+    const counts = Object.entries(noteCounts).map(([kind, n]) => `${n} ${kind}`);
+    if (counts.length) {
+        lines.push('', `The translators' notes, by kind, are in notes.md: ${counts.join(', ')} string(s).`);
+    }
+    return lines.join('\n') + '\n';
 }
-fs.writeFileSync(p.report, lines.join('\n') + '\n');
-fs.writeFileSync(p.notes, notes.text);
-
-console.log(lines.join('\n'));
-console.log(`\n${originals.size} files changed. Report: ${p.report}. Notes: ${p.notes}`);
