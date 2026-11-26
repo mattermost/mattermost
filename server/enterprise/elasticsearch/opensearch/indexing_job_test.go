@@ -41,10 +41,9 @@ func TestOpenSearchIndexerClientTimesOutStalledResponse(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.ElasticsearchSettings.ConnectionURL = model.NewPointer(ts.URL)
-	cfg.ElasticsearchSettings.RequestTimeoutSeconds = model.NewPointer(1)
 	cfg.ElasticsearchSettings.Sniff = model.NewPointer(false)
 
-	client, appErr := createIndexerClient(mlog.CreateConsoleTestLogger(t), cfg, nil)
+	client, appErr := createIndexerClient(mlog.CreateConsoleTestLogger(t), cfg, nil, time.Second)
 	require.Nil(t, appErr)
 
 	bi, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
