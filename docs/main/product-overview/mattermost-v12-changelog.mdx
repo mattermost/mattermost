@@ -154,6 +154,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Server Logs live tail in the System Console now fetches only new log entries, briefly highlights them, and holds them behind a "new entries" button while the admin is reading elsewhere in the list.
  - Added documentation on [turning off Elasticsearch indexing before a large bulk permanent channel delete](https://docs.mattermost.com/deployment-guide/scale/enterprise-search#should-i-turn-off-indexing-before-a-large-bulk-permanent-channel-delete), and that leftover search documents do not require a full index purge.
  - Updated advanced logging configuration.
+ - Improved validation of cluster support packet requests.
 
 #### mmctl
  - ``mmctl system`` commands now propagate context, so Ctrl+C and SIGTERM cancel in-flight API calls cleanly.
