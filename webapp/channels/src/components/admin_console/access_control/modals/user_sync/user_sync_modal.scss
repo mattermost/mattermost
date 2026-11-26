@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 #user-list-modal-dialog {
     .modal-header {
         padding-bottom: 0px;
@@ -36,21 +38,9 @@
         }
 
         .no-user-message {
-            display: flex;
-            height: 440px;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            text-align: center;
+            @include mixins.fill-empty-state;
 
-            .empty-state-svg {
-                margin-bottom: 20px;
-            }
-          
-            .primary-message {
-                padding-bottom: 24px;
-            }
+            height: 440px;
         }
     }
 }

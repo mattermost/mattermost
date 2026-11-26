@@ -47,6 +47,6 @@ describe('Collapsed Reply Threads', () => {
         cy.visit(`/${testTeam.name}/threads`);
 
         // * should see No followed threads yet in H3 title
-        cy.get('h3.no-results__title').should('have.text', 'No followed threads yet');
+        cy.get('[data-testid="no-results-title"]').should('have.text', 'No followed threads yet');
     });
 });

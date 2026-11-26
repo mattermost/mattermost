@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
+import OauthApplicationsSvg from 'components/common/svg_images_components/oauth_applications_svg';
 import ExternalLink from 'components/external_link';
 
 import {DeveloperLinks} from 'utils/constants';
@@ -175,6 +176,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                         }}
                     />
                 }
+                emptyIllustration={<OauthApplicationsSvg/>}
                 emptyText={
                     <FormattedMessage
                         id='installed_oauth_apps.empty'

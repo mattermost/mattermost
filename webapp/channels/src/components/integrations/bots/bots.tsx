@@ -5,6 +5,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import BotAccountsSvg from '@mattermost/compass-ui/illustrations/bot-accounts';
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
@@ -333,6 +334,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 }
                 addLink={'/' + this.props.team.name + '/integrations/bots/add'}
                 addButtonId='addBotAccount'
+                emptyIllustration={<BotAccountsSvg/>}
                 emptyText={
                     <FormattedMessage
                         id='bots.manage.empty'

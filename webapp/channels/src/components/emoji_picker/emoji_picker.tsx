@@ -422,7 +422,7 @@ const EmojiPicker = ({
                     style={{height: EMOJI_CONTAINER_HEIGHT + CATEGORIES_CONTAINER_HEIGHT}}
                 >
                     <NoResultsIndicator
-                        variant={NoResultsVariant.Search}
+                        variant={NoResultsVariant.ChannelSearch}
                         titleValues={{channelName: `${filter}`}}
                     />
                 </div>

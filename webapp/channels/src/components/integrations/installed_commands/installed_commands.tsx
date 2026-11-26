@@ -4,6 +4,7 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import SlashCommandsSvg from '@mattermost/compass-ui/illustrations/slash-commands';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -99,6 +100,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                 }
                 addLink={'/' + this.props.team.name + '/integrations/commands/add'}
                 addButtonId='addSlashCommand'
+                emptyIllustration={<SlashCommandsSvg/>}
                 emptyText={
                     <FormattedMessage
                         id='installed_commands.empty'

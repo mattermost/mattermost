@@ -11,6 +11,25 @@
     @return $selector;
 }
 
+// A flex column that takes the remaining height of its parent. Chained down to a Compass EmptyState
+// it gives the empty state the whole area, so it can center itself vertically.
+@mixin fill-height-column($flex: 1) {
+    display: flex;
+    min-height: 0;
+    flex: $flex;
+    flex-direction: column;
+}
+
+// The wrapper around a single EmptyState: fills its parent and hands that height on to the EmptyState.
+@mixin fill-empty-state($flex: 1) {
+    @include fill-height-column($flex);
+
+    > * {
+        min-height: 0;
+        flex: $flex;
+    }
+}
+
 @mixin file-icon($path) {
     background-image: url($path);
     background-position: center;

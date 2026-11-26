@@ -79,6 +79,21 @@ describe('SearchableSyncJobChannelList', () => {
             expect(screen.queryByText(/No results for/)).not.toBeInTheDocument();
         });
 
+        it('keeps the search empty state when it mounts with a search the parent is already filtering by', () => {
+            renderWithContext(
+                <SearchableSyncJobChannelList
+                    {...emptyProps}
+                    searchTerm='nomatch'
+                />,
+                baseState,
+            );
+
+            expect(screen.getByText('No results for "nomatch"')).toBeInTheDocument();
+            expect(screen.getByText('No channels match your search or filter.')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Search channels')).toHaveValue('nomatch');
+            expect(screen.queryByText('No channels were affected by this job.')).not.toBeInTheDocument();
+        });
+
         it('shows the search empty state when a search term yields no matches', async () => {
             renderWithContext(
                 <SearchableSyncJobChannelList {...emptyProps}/>,
@@ -107,6 +122,30 @@ describe('SearchableSyncJobChannelList', () => {
             expect(screen.getByText('No channels were affected by this job.')).toBeInTheDocument();
             expect(screen.queryByText('No channels match your search or filter.')).not.toBeInTheDocument();
             expect(screen.queryByText(/No results for/)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('channel rows', () => {
+        it('renders a channel whose team is not loaded without a team label', () => {
+            renderWithContext(
+                <SearchableSyncJobChannelList
+                    {...baseProps}
+                    teams={{}}
+                />,
+                baseState,
+            );
+
+            expect(screen.getByText('Open Channel')).toBeInTheDocument();
+            expect(screen.queryByText('Team One')).not.toBeInTheDocument();
+        });
+
+        it('shows the team label when the team is loaded', () => {
+            renderWithContext(
+                <SearchableSyncJobChannelList {...baseProps}/>,
+                baseState,
+            );
+
+            expect(screen.getByText('Team One')).toBeInTheDocument();
         });
     });
 
