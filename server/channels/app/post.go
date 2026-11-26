@@ -3999,9 +3999,9 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 
 	// If the post is a burn-on-read post, we should get the original post contents
 	if post.Type == model.PostTypeBurnOnRead {
-		revealedPost, err := a.getBurnOnReadPost(rctx, post)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get burn-on-read post", mlog.Err(err))
+		revealedPost, appErr := a.getBurnOnReadPost(rctx, post)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to get burn-on-read post", mlog.Err(appErr))
 		}
 		if revealedPost != nil {
 			postHasFiles = len(revealedPost.FileIds) > 0
