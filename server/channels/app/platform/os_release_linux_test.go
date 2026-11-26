@@ -138,6 +138,7 @@ func TestGetRunningInContainer(t *testing.T) {
 	dir := t.TempDir()
 	missingMarker := filepath.Join(dir, "missing-dockerenv")
 	hostCgroup := "0::/system.slice/mattermost.service\n"
+	t.Setenv("KUBERNETES_SERVICE_HOST", "")
 
 	runningInContainer := func(t *testing.T, installationType, cgroup string, markers ...string) bool {
 		t.Helper()
@@ -151,9 +152,10 @@ func TestGetRunningInContainer(t *testing.T) {
 	}
 
 	for name, cgroup := range map[string]string{
-		"host process":             hostCgroup,
-		"cgroup v1 host process":   "1:name=systemd:/user.slice/user-1000.slice/session-2.scope\n2:cpu:/user.slice\n",
-		"private cgroup namespace": "0::/\n",
+		"host process":                         hostCgroup,
+		"cgroup v1 host process":               "1:name=systemd:/user.slice/user-1000.slice/session-2.scope\n2:cpu:/user.slice\n",
+		"private cgroup namespace":             "0::/\n",
+		"runtime names inside host unit names": "0::/system.slice/mattermost-docker.service\n1:cpu:/lxc-tools.slice/crio.service\n2:memory:/system.slice/containerd.service\n",
 	} {
 		t.Run(name, func(t *testing.T) {
 			assert.False(t, runningInContainer(t, "unknown", cgroup))
@@ -173,6 +175,11 @@ func TestGetRunningInContainer(t *testing.T) {
 		assert.Equal(t, new(true), result)
 	})
 
+	t.Run("Kubernetes pod in a private cgroup namespace", func(t *testing.T) {
+		t.Setenv("KUBERNETES_SERVICE_HOST", "10.96.0.1")
+		assert.True(t, runningInContainer(t, "unknown", "0::/\n"))
+	})
+
 	t.Run("container marker file", func(t *testing.T) {
 		assert.True(t, runningInContainer(t, "unknown", hostCgroup, writeTempCgroupFile(t, dir, ".containerenv", "")))
 	})
@@ -182,7 +189,8 @@ func TestGetRunningInContainer(t *testing.T) {
 		"cgroup v2 Docker systemd":     "0::/system.slice/docker-0123456789abcdef.scope\n",
 		"cgroup v2 Kubernetes":         "0::/kubepods.slice/kubepods-burstable.slice/cri-containerd-0123.scope\n",
 		"cgroup v2 Podman":             "0::/machine.slice/libpod-0123456789abcdef.scope/container\n",
-		"cgroup v1 containerd":         "4:memory:/default/containerd-0123456789abcdef\n",
+		"cgroup v1 Kubernetes":         "4:memory:/kubepods/burstable/pod0123/0123456789abcdef\n",
+		"cgroup v2 LXC payload":        "0::/lxc.payload.mattermost/system.slice/mattermost.service\n",
 		"cgroup v2 CRI-O":              "0::/machine.slice/crio-0123456789abcdef.scope\n",
 		"cgroup v1 LXC, mixed entries": "1:name=systemd:/\n2:cpuset:/lxc/mattermost\n",
 	} {
@@ -222,6 +230,7 @@ func TestGetRunningInContainer(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnosticsOSRelease(t *testing.T) {
+	t.Setenv("KUBERNETES_SERVICE_HOST", "")
 	th := Setup(t)
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		cfg.FileSettings.Directory = model.NewPointer(t.TempDir())

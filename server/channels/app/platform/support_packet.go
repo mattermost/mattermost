@@ -44,11 +44,11 @@ const (
 var diagnosticsYAMLComments = yaml.CommentMap{
 	// server: — grouped into Machine / Capacity / Process lifecycle / Software
 	"$.server.os":                              {yaml.HeadComment(" Machine")},
-	"$.server.os_release":                      {yaml.LineComment(" /etc/os-release on Linux, describing the container image when running_in_container is true; kern.osproductversion on macOS")},
-	"$.server.os_release.version_id":           {yaml.LineComment(" RHEL includes the minor version, Debian only the major; omitted on rolling releases")},
+	"$.server.os_release":                      {yaml.LineComment(" /etc/os-release or /usr/lib/os-release on Linux, describing the container image when running_in_container is true; kern.osproductversion on macOS")},
+	"$.server.os_release.version_id":           {yaml.LineComment(" RHEL includes the minor version, Debian only the major")},
 	"$.server.os_release.platform_id":          {yaml.LineComment(" RHEL and Fedora family only; platform:el8 matches RHEL 8 and its clones")},
 	"$.server.kernel_release":                  {yaml.LineComment(" uname -r; the host's kernel, also inside a container; Linux and macOS")},
-	"$.server.running_in_container":            {yaml.LineComment(" from MM_INSTALL_TYPE, /.dockerenv, /run/.containerenv or cgroup paths on Linux; always false on macOS")},
+	"$.server.running_in_container":            {yaml.LineComment(" from MM_INSTALL_TYPE, KUBERNETES_SERVICE_HOST, /.dockerenv, /run/.containerenv or cgroup paths on Linux; always false on macOS")},
 	"$.server.cpu_cores":                       {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
 	"$.server.total_memory_mb":                 {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
 	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo on Linux; free plus cached file and purgeable pages on macOS")},

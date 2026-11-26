@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -29,8 +30,12 @@ var hostOSPaths = struct {
 // osReleaseUnescaper undoes the shell escapes os-release(5) allows in double-quoted values.
 var osReleaseUnescaper = strings.NewReplacer(`\\`, `\`, `\"`, `"`, `\$`, `$`, "\\`", "`")
 
-// cgroupContainerMarkers appear in the cgroup paths that container runtimes create.
-var cgroupContainerMarkers = []string{"docker", "kubepods", "containerd", "libpod", "crio", "lxc"}
+// cgroupContainerSegments and cgroupContainerPrefixes match the cgroup path segments that container
+// runtimes create, e.g. /docker/<id>, /lxc/<name>, kubepods.slice or docker-<id>.scope.
+var (
+	cgroupContainerSegments = []string{"docker", "lxc"}
+	cgroupContainerPrefixes = []string{"kubepods", "docker-", "libpod-", "crio-", "cri-containerd-", "lxc.payload"}
+)
 
 func getOSRelease() (*model.SupportPacketOSRelease, error) {
 	for _, path := range hostOSPaths.osRelease {
@@ -88,6 +93,11 @@ func getRunningInContainer(installationType string) (*bool, error) {
 	if installationType == "docker" {
 		return new(true), nil
 	}
+	// Kubernetes sets this in every pod. containerd creates no marker file, and its pods usually have a
+	// private cgroup namespace, so their cgroup path is "/".
+	if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
+		return new(true), nil
+	}
 	var markerErr error
 	for _, path := range hostOSPaths.containerMarkers {
 		_, err := os.Stat(path)
@@ -120,9 +130,9 @@ func cgroupIndicatesContainer(contents string) bool {
 		if len(parts) != 3 {
 			continue
 		}
-		path := strings.ToLower(parts[2])
-		for _, marker := range cgroupContainerMarkers {
-			if strings.Contains(path, marker) {
+		for segment := range strings.SplitSeq(strings.ToLower(parts[2]), "/") {
+			if slices.Contains(cgroupContainerSegments, segment) ||
+				slices.ContainsFunc(cgroupContainerPrefixes, func(prefix string) bool { return strings.HasPrefix(segment, prefix) }) {
 				return true
 			}
 		}
