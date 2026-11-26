@@ -138,6 +138,8 @@ func expectJobError(mockStore *storetest.Store, job *model.Job) {
 }
 
 func TestDoJob(t *testing.T) {
+	t.Setenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION", strconv.FormatInt(FourtyEightHoursInMillis, 10))
+
 	t.Run("does nothing before the job is due", func(t *testing.T) {
 		app := &fakeResendApp{}
 		worker, _ := newDoJobTestWorker(t, app)
