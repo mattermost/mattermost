@@ -20,8 +20,9 @@ import type {ResourceObjectType} from './attribute_details/attribute_applies_to_
 // Global Attributes is Enterprise, but a channel attribute is refused below
 // Enterprise Advanced (the server 501s a channel-scoped access_control
 // request), so Channels needs the licence as well as its flag. Posts is gated
-// on PostAttributes alone: the resource is not finished yet, so it must not be
-// offered until the flag is on.
+// by isPostAttributesEnabled: the PostAttributes flag plus the minimum
+// Enterprise licence, because the server refuses post requests in the
+// access_control group below that.
 export default function useAllowedResourceTypes(): ResourceObjectType[] {
     const channelAttributesEnabled = useSelector((state: GlobalState) =>
         isChannelAttributesEnabled(state) && isMinimumEnterpriseAdvancedLicense(getLicense(state)));

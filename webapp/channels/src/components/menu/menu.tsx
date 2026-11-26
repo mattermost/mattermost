@@ -59,6 +59,7 @@ type MenuButtonProps = {
     dataTestId?: string;
     'aria-label'?: string;
     'aria-describedby'?: string;
+    'aria-invalid'?: boolean;
     disabled?: boolean;
     class?: string;
     as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
@@ -446,6 +447,7 @@ export function Menu(props: Props) {
                 tabIndex={divTabIndex}
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
+                aria-invalid={props.menuButton?.['aria-invalid']}
                 className={props.menuButton?.class ?? ''}
                 onMouseDown={props.menuButton?.onMouseDown}
                 onMouseEnter={isDisabled ? undefined : handleHoverEnter}

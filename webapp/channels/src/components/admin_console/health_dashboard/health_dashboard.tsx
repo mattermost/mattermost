@@ -9,8 +9,11 @@ import type {MessageDescriptor} from 'react-intl';
 import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {AdminConfig} from '@mattermost/types/config';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
@@ -25,6 +28,8 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useWebSocketClient} from 'utils/use_websocket/hooks';
 
+import {AutomaticChecksOffBanner, AutomaticChecksSwitch} from './automatic_checks';
+import type {AutomaticChecksDisabledReason} from './automatic_checks';
 import {EmptyState, TabEmptyState} from './empty_state';
 import ExportMenu from './export_menu';
 import FindingGroups from './finding_groups';
@@ -41,8 +46,17 @@ export type Props = {
     mutedFindings: HealthFinding[];
     lastEvaluatedAt: number;
 
-    // Whether the viewer has manage_system, which exporting the findings needs.
+    // Whether the viewer has manage_system, which muting findings and running checks need.
+    // Delegated admins who can only read Site Statistics see the page read-only.
     canManage: boolean;
+
+    // SiteHealthSettings.EnableAutomaticChecks as saved, or undefined where the viewer can't read
+    // it, as on Cloud, which hides the setting.
+    automaticChecks?: boolean;
+    automaticChecksSetByEnv: boolean;
+
+    // ExperimentalSettings.RestrictSystemAdmin, which keeps even system admins from changing the setting.
+    restrictSystemAdmin: boolean;
 
     // Jobs in the store by ID. job_updated WebSocket events keep them up to date.
     jobs: Record<string, Job>;
@@ -52,6 +66,7 @@ export type Props = {
         unmuteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
         createJob: (job: JobTypeBase) => Promise<ActionResult<Job>>;
         getJobsByType: (type: JobType, page?: number, perPage?: number) => Promise<ActionResult<Job[]>>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
 };
 
@@ -116,12 +131,37 @@ const unmuteErrorMessage = defineMessage({
     defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
 });
 
+const automaticChecksOnErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.automatic_checks.on_error',
+    defaultMessage: 'Automatic checks could not be turned on, so they are still off. Try again.',
+});
+
+const automaticChecksOffErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.automatic_checks.off_error',
+    defaultMessage: 'Automatic checks could not be turned off, so they are still on. Try again.',
+});
+
+const runNotAllowedMessage = defineMessage({
+    id: 'admin.health_dashboard.run.not_allowed',
+    defaultMessage: 'Only system admins can run checks.',
+});
+
 const exportErrorMessage = defineMessage({
     id: 'admin.health_dashboard.export.error',
     defaultMessage: 'The health findings could not be exported. Try again.',
 });
 
-const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, jobs, actions}: Props) => {
+const HealthDashboard = ({
+    findings,
+    mutedFindings,
+    lastEvaluatedAt,
+    canManage,
+    automaticChecks,
+    automaticChecksSetByEnv,
+    restrictSystemAdmin,
+    jobs,
+    actions,
+}: Props) => {
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
     const [now, setNow] = useState(Date.now);
@@ -135,6 +175,8 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
     const [exportFailed, setExportFailed] = useState(false);
     const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
     const [, setStaleCheck] = useState(0);
+    const [pendingAutomaticChecks, setPendingAutomaticChecks] = useState<boolean>();
+    const [automaticChecksError, setAutomaticChecksError] = useState<MessageDescriptor | null>(null);
     const wsClient = useWebSocketClient();
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
@@ -191,6 +233,18 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
         return () => clearTimeout(timer);
     }, [staleAt]);
 
+    // Shows the new value while it saves. A failed save drops it, which reverts the switch.
+    const savingAutomaticChecks = pendingAutomaticChecks !== undefined;
+    const saveAutomaticChecks = useCallback(async (value: boolean) => {
+        setPendingAutomaticChecks(value);
+        setAutomaticChecksError(null);
+        const {error} = await actions.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: value}});
+        setPendingAutomaticChecks(undefined);
+        if (error) {
+            setAutomaticChecksError(value ? automaticChecksOnErrorMessage : automaticChecksOffErrorMessage);
+        }
+    }, [actions]);
+
     const startRun = useCallback(async () => {
         setStarting(true);
         setRunError(null);
@@ -231,30 +285,53 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
         setMuteError(error ? unmuteErrorMessage : null);
     }, [actions]);
 
-    const rowState = {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute};
+    const rowState = canManage ? {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute} : {now, expanded, onToggle: toggle};
 
+    let automaticChecksDisabledReason: AutomaticChecksDisabledReason | undefined;
+    if (automaticChecksSetByEnv) {
+        automaticChecksDisabledReason = 'set_by_env';
+    } else if (restrictSystemAdmin) {
+        automaticChecksDisabledReason = 'restricted';
+    } else if (!canManage) {
+        automaticChecksDisabledReason = 'not_allowed';
+    }
+    const automaticChecksSwitch = automaticChecks !== undefined && (
+        <AutomaticChecksSwitch
+            checked={pendingAutomaticChecks ?? automaticChecks}
+            saving={savingAutomaticChecks}
+            disabledReason={automaticChecksDisabledReason}
+            onChange={saveAutomaticChecks}
+        />
+    );
+
+    // Always wrapped so the button node is stable whether or not the tooltip applies.
     const runButton = (
-        <Button
-            emphasis='secondary'
-            size='small'
-            loading={running}
-            disabled={running}
-            aria-busy={running}
-            leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
-            onClick={startRun}
+        <WithTooltip
+            title={runNotAllowedMessage}
+            disabled={canManage}
         >
-            {running ? (
-                <FormattedMessage
-                    id='admin.health_dashboard.run.running'
-                    defaultMessage='Running checks…'
-                />
-            ) : (
-                <FormattedMessage
-                    id='admin.health_dashboard.run.button'
-                    defaultMessage='Re-run checks'
-                />
-            )}
-        </Button>
+            <Button
+                emphasis='secondary'
+                size='small'
+                loading={running}
+                disabled={running || !canManage}
+                aria-busy={running}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
+                onClick={startRun}
+            >
+                {running ? (
+                    <FormattedMessage
+                        id='admin.health_dashboard.run.running'
+                        defaultMessage='Running checks…'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='admin.health_dashboard.run.button'
+                        defaultMessage='Re-run checks'
+                    />
+                )}
+            </Button>
+        </WithTooltip>
     );
     let banner: RunError | undefined;
     if (runError) {
@@ -304,7 +381,10 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
         content = (
             <>
                 <div className='HealthDashboard__summary HealthDashboard__summary--end'>
-                    {runButton}
+                    <div className='HealthDashboard__actions'>
+                        {automaticChecksSwitch}
+                        {runButton}
+                    </div>
                 </div>
                 {runErrorBanner}
                 <EmptyState
@@ -317,7 +397,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                     body={
                         <FormattedMessage
                             id='admin.health_dashboard.empty.body'
-                            defaultMessage='The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.'
+                            defaultMessage='No health check has run yet. To run one now, select Re-run checks.'
                         />
                     }
                 />
@@ -337,8 +417,9 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                         />
                     </p>
                     <div className='HealthDashboard__actions'>
+                        {automaticChecksSwitch}
                         {runButton}
-                        {canManage && <ExportMenu onError={setExportFailed}/>}
+                        <ExportMenu onError={setExportFailed}/>
                     </div>
                 </div>
                 {runErrorBanner}
@@ -432,6 +513,17 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
+                    {automaticChecks === false && (
+                        <AutomaticChecksOffBanner/>
+                    )}
+                    {automaticChecksError && (
+                        <AlertBanner
+                            mode='danger'
+                            className='HealthDashboard__automaticChecksError'
+                            onDismiss={() => setAutomaticChecksError(null)}
+                            message={<FormattedMessage {...automaticChecksError}/>}
+                        />
+                    )}
                     {content}
                 </div>
             </div>

@@ -109,13 +109,32 @@ func TestScheduleJob(t *testing.T) {
 
 func TestSchedulerEnabled(t *testing.T) {
 	scheduler := MakeScheduler(nil, enterpriseLicense)
-	cfg := &model.Config{}
-	cfg.SetDefaults()
 
-	cfg.FeatureFlags.HealthDashboard = false
-	assert.False(t, scheduler.Enabled(cfg))
-	cfg.FeatureFlags.HealthDashboard = true
-	assert.True(t, scheduler.Enabled(cfg))
+	for name, tc := range map[string]struct {
+		flag, automaticChecks, enabled bool
+	}{
+		"flag on, automatic checks on":   {flag: true, automaticChecks: true, enabled: true},
+		"flag on, automatic checks off":  {flag: true, automaticChecks: false, enabled: false},
+		"flag off, automatic checks on":  {flag: false, automaticChecks: true, enabled: false},
+		"flag off, automatic checks off": {flag: false, automaticChecks: false, enabled: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			cfg.FeatureFlags.HealthDashboard = tc.flag
+			*cfg.SiteHealthSettings.EnableAutomaticChecks = tc.automaticChecks
+
+			assert.Equal(t, tc.enabled, scheduler.Enabled(cfg))
+		})
+	}
+
+	t.Run("automatic checks are on by default", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.HealthDashboard = true
+
+		assert.True(t, scheduler.Enabled(cfg))
+	})
 }
 
 func TestRunningJob(t *testing.T) {

@@ -46,17 +46,17 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.os":                              {yaml.HeadComment(" Machine")},
 	"$.server.cpu_cores":                       {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
 	"$.server.total_memory_mb":                 {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
-	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo; Linux only")},
-	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux only")},
-	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux only")},
+	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo on Linux; free plus cached file and purgeable pages on macOS")},
+	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux and macOS")},
+	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux and macOS")},
 	"$.server.container_cpu_limit":             {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
 	"$.server.container_memory_limit_mb":       {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
 	"$.server.container_memory_usage_mb":       {yaml.LineComment(" cgroup v2 memory.current in MB, including page cache; Linux only")},
 	"$.server.container_memory_working_set_mb": {yaml.LineComment(" cgroup v2 memory.current minus inactive file cache in MB; Linux only")},
 	"$.server.container_oom_kills":             {yaml.LineComment(" cgroup v2 OOM kills since the cgroup was created; Linux only")},
-	"$.server.load_average_1m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 1 minute; Linux only")},
-	"$.server.load_average_5m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 5 minutes; Linux only")},
-	"$.server.load_average_15m":                {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 15 minutes; Linux only")},
+	"$.server.load_average_1m":                 {yaml.LineComment(" host-wide runnable (and on Linux, uninterruptible) tasks averaged over 1 minute; Linux and macOS")},
+	"$.server.load_average_5m":                 {yaml.LineComment(" host-wide runnable (and on Linux, uninterruptible) tasks averaged over 5 minutes; Linux and macOS")},
+	"$.server.load_average_15m":                {yaml.LineComment(" host-wide runnable (and on Linux, uninterruptible) tasks averaged over 15 minutes; Linux and macOS")},
 	"$.server.container_cpu_periods":           {yaml.LineComment(" cgroup v2 CPU scheduling periods since the cgroup was created; Linux only")},
 	"$.server.container_cpu_throttled_periods": {yaml.LineComment(" throttled periods divided by total periods is the CPU throttling ratio")},
 	"$.server.container_cpu_throttled_seconds": {yaml.LineComment(" total cgroup v2 CPU throttling time since the cgroup was created")},
@@ -469,6 +469,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
 	})
 
+	oauthClient := ps.HTTPService().MakeClient(false)
 	for _, provider := range []struct {
 		name   string
 		sso    *model.SSOSettings
@@ -481,7 +482,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	} {
 		add(model.SafeDereference(provider.sso.Enable), networkProbe{
 			name: provider.name, section: model.SectionOAuthProbes, status: &provider.status.Status, errMsg: &provider.status.Error,
-			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, provider.sso) },
+			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, oauthClient, provider.sso) },
 		})
 	}
 
@@ -631,25 +632,25 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 // Otherwise it probes the TokenEndpoint host: any HTTP response (including
 // 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
 // Callers only probe enabled providers.
-func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) error {
+func probeOAuthProvider(ctx context.Context, client *http.Client, sso *model.SSOSettings) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
-		return probeOIDCDiscovery(ctx, discoveryEndpoint)
+		return probeOIDCDiscovery(ctx, client, discoveryEndpoint)
 	}
 	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
-		return probeOAuthTokenEndpoint(ctx, tokenEndpoint)
+		return probeOAuthTokenEndpoint(ctx, client, tokenEndpoint)
 	}
 	return errors.New("no discovery or token endpoint configured")
 }
 
-func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
+func probeOIDCDiscovery(ctx context.Context, client *http.Client, discoveryURL string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -674,12 +675,12 @@ func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
 	return nil
 }
 
-func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
+func probeOAuthTokenEndpoint(ctx context.Context, client *http.Client, tokenURL string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -696,7 +697,7 @@ func drainAndCloseBody(body io.ReadCloser) {
 	_ = body.Close()
 }
 
-// TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
+// TODO: move this into its own push proxy package once one exists, together with PushNotificationClient
 func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -708,7 +709,7 @@ func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverUR
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := ps.PushNotificationClient().Do(req)
 	if err != nil {
 		return err
 	}

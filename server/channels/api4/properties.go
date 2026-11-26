@@ -166,6 +166,14 @@ func resolvePropertyGroupParam(c *Context, r *http.Request) string {
 		return ""
 	}
 
+	// The licence hook refuses every access_control read without an Enterprise
+	// licence, so hydrating would mark every post property_values_unavailable.
+	// Refuse the request once, with a clear status, instead.
+	if group.Name == model.AccessControlPropertyGroupName && !model.MinimumEnterpriseLicense(c.App.License()) {
+		c.Err = model.NewAppError("resolvePropertyGroupParam", "api.property.post_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+		return ""
+	}
+
 	return group.ID
 }
 

@@ -27,11 +27,19 @@ func (api *API) InitHealthDashboard() {
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(unmuteHealthFinding)).Methods(http.MethodDelete)
 }
 
-// requireHealthDashboard sets c.Err and returns false unless the caller may use the health
-// dashboard. Permission is checked first so a non-admin learns nothing about the flag or license.
-func requireHealthDashboard(c *Context) bool {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
+// healthFindingsReadPermissions lets delegated admins who can read Site Statistics see and export
+// the findings. Muting stays manage_system, since a mute changes what every admin sees.
+var healthFindingsReadPermissions = []*model.Permission{
+	model.PermissionManageSystem,
+	model.PermissionSysconsoleReadReportingSiteStatistics,
+}
+
+// requireHealthDashboard sets c.Err and returns false unless the caller holds one of permissions
+// and the health dashboard is available. Permission is checked first so a caller without it
+// learns nothing about the flag or license.
+func requireHealthDashboard(c *Context, permissions ...*model.Permission) bool {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
+		c.SetPermissionError(permissions...)
 		return false
 	}
 
@@ -46,6 +54,50 @@ func requireHealthDashboard(c *Context) bool {
 	}
 
 	return true
+}
+
+// complianceFindingPermissions maps each compliance rule to the read permission of the System
+// Console page its setting is on, the same permission GET /config checks for that setting. It is
+// a stopgap until every rule declares the permission that gates it: compliance is the area a
+// delegated admin's default role may not read.
+var complianceFindingPermissions = map[string]*model.Permission{
+	"AUDIT_LOG_OFF":           model.PermissionSysconsoleReadExperimentalFeatures,
+	"COMPLIANCE_NO_DIR":       model.PermissionSysconsoleReadComplianceComplianceMonitoring,
+	"EXPORT_GR_TIMEOUT_LOW":   model.PermissionSysconsoleReadComplianceComplianceExport,
+	"RETENTION_TIGHT_BATCHES": model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+}
+
+// readableFindings drops the findings the caller may not read. A caller with manage_system reads
+// every finding. Otherwise a compliance finding needs read access to its setting's System Console
+// page, and one whose rule isn't listed needs manage_system. A job finding, whose subject is the
+// job type, needs read access to that type's jobs. Every other finding is visible to anyone who
+// may use the dashboard.
+func readableFindings(c *Context, findings []*model.HealthFinding) []*model.HealthFinding {
+	session := *c.AppContext.Session()
+	if c.App.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		return findings
+	}
+
+	readable := make([]*model.HealthFinding, 0, len(findings))
+	for _, finding := range findings {
+		switch finding.Area {
+		case model.AreaCompliance:
+			permission, ok := complianceFindingPermissions[finding.Code]
+			if !ok {
+				permission = model.PermissionManageSystem
+			}
+			if !c.App.SessionHasPermissionTo(session, permission) {
+				continue
+			}
+		case model.AreaJobs:
+			if ok, _ := c.App.SessionHasPermissionToReadJob(session, finding.Subject); !ok {
+				continue
+			}
+		}
+		readable = append(readable, finding)
+	}
+
+	return readable
 }
 
 // renderFindings resolves each finding's message and its rule's title and remediation into the
@@ -66,7 +118,7 @@ func renderFindings(c *Context, findings []*model.HealthFinding) []*model.Health
 }
 
 func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, healthFindingsReadPermissions...) {
 		return
 	}
 
@@ -81,7 +133,7 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	list.Findings = renderFindings(c, list.Findings)
+	list.Findings = renderFindings(c, readableFindings(c, list.Findings))
 
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -89,7 +141,7 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, healthFindingsReadPermissions...) {
 		return
 	}
 
@@ -122,7 +174,7 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	list.Findings = renderFindings(c, list.Findings)
+	list.Findings = renderFindings(c, readableFindings(c, list.Findings))
 
 	var tier, company string
 	if license := c.App.Channels().License(); license != nil {
@@ -169,7 +221,7 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func muteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, model.PermissionManageSystem) {
 		return
 	}
 
@@ -196,7 +248,7 @@ func muteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func unmuteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, model.PermissionManageSystem) {
 		return
 	}
 

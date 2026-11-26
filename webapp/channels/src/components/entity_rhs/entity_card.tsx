@@ -244,7 +244,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                             data-testid='entity-severity'
                             style={{...badge, ...severityStyle[severity]}}
                         >
-                            {card.score && <span style={{fontWeight: 700}}>{card.score}</span>}
+                            {card.score && <span style={{fontWeight: 600}}>{card.score}</span>}
                             <FormattedMessage {...severityMessages[severity as keyof typeof severityMessages]}/>
                         </span>
                     )}
