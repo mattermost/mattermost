@@ -41,6 +41,43 @@ if cronErr != nil {
 p.backgroundJob = job
 ```
 
+## Non-blocking mutex lock
+
+From Mattermost v11.7, `cluster.Mutex` exposes a `TryLock()` method that makes a single attempt to acquire the cluster-wide lock without blocking. It returns `true` if the lock was acquired, or `false` if another plugin instance already holds it. A non-nil error means the attempt could not be made.
+
+Use `TryLock` when you want every node to schedule a recurring task but only one node to run it on each tick — skipping the tick rather than queuing behind the holder:
+
+```go
+mutex, err := cluster.NewMutex(p.API, "MyPeriodicTask")
+if err != nil {
+    return errors.Wrap(err, "failed to create mutex")
+}
+
+job, err := cluster.Schedule(
+    p.API,
+    "MyPeriodicTask",
+    cluster.MakeWaitForRoundedInterval(5*time.Minute),
+    func() {
+        locked, err := mutex.TryLock()
+        if err != nil {
+            p.API.LogError("Failed to acquire task mutex", "err", err.Error())
+            return
+        }
+        if !locked {
+            return // another node is already running this tick
+        }
+        defer mutex.Unlock()
+
+        p.runPeriodicTask()
+    },
+)
+if err != nil {
+    return errors.Wrap(err, "failed to schedule task")
+}
+```
+
+`TryLock` does not log failed attempts; the caller decides how to handle them. The blocking `Lock` and `LockWithContext` methods continue to log failed attempts and retry until they succeed or their context is cancelled.
+
 ## Discover cluster node identity
 
 From Mattermost v12.2, plugins can discover the cluster topology and identify which node sent a cluster event.
