@@ -262,7 +262,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	s.httpService = httpservice.MakeHTTPService(s.platform)
+	s.httpService = s.platform.HTTPService()
 
 	// Step 2: Init Enterprise
 	// Depends on step 1 (s.Platform must be non-nil)
@@ -498,7 +498,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	s.pushNotificationClient = s.httpService.MakeClient(true)
+	s.pushNotificationClient = s.platform.PushNotificationClient()
 	// Slash commands and outgoing webhooks give each request a deadline derived from
 	// ServiceSettings.OutgoingIntegrationRequestsTimeout, so this client must not impose a
 	// timeout of its own that would cap a configured value above httpservice.RequestTimeout.
