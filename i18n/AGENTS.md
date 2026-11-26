@@ -18,8 +18,9 @@ part well.
   again, not patched.
 - **Check your own work** before handing it back: a translator runs
   `node i18n/scripts/validate_locale.mjs <workdir> <answer file>` until it
-  reports no errors, and a glossary agent runs
-  `node i18n/scripts/check_glossary.mjs`.
+  reports no errors. A glossary agent leaves
+  `node i18n/scripts/check_glossary.mjs` to the orchestrator: it checks every
+  locale, including those other agents are still writing.
 - **Leave out what you cannot get right.** An item you do not answer goes to
   another translator; an answer with an error holds up the whole locale.
 - **Report, do not repair, the English.** A defect in a source string goes in a

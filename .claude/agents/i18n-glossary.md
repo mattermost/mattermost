@@ -17,6 +17,6 @@ parts.
 
 Change only the files the message names. Other agents run beside you, so keep
 any scratch file, such as a search script, in the directory the message names
-for it, never in a shared scratchpad or temporary directory. When you edit the
-glossary, check it with `node i18n/scripts/check_glossary.mjs` from the
-repository root before you finish.
+for it, never in a shared scratchpad or temporary directory. Do not run
+`check_glossary.mjs`: it checks every locale, including those other agents are
+still writing, so the orchestrator runs it once all of you have finished.
