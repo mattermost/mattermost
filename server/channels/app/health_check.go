@@ -62,7 +62,7 @@ func (ch *Channels) startHealthCheckWorkersWithRun(run func(rctx request.CTX) er
 	})
 
 	ch.cancelHealthCheck = cancel
-	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, worker)
+	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, worker, ch.License)
 	ch.healthCheckWorkers.Start()
 }
 
