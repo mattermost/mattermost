@@ -628,10 +628,10 @@ describe('ChannelsResourceSettings', () => {
         it('patches only the permissions, keeping the stored restrictions, and clears the warning', async () => {
             const field = savedField({
                 permission_values: undefined,
-                permissions: {restrictions: {value: {read: 'everyone', write: 'sysadmin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}},
+                permissions: {restrictions: {value: {read: 'everyone', write: 'sysadmin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}, grants: []},
             });
             const patched = savedField({
-                permissions: {restrictions: {value: {read: 'everyone', write: 'admin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}},
+                permissions: {restrictions: {value: {read: 'everyone', write: 'admin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}, grants: []},
             });
             const patchSpy = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(patched);
             await renderWithSavedField(field);

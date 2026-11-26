@@ -28,6 +28,16 @@ func TestIsRootJsonlFile(t *testing.T) {
 	assert.False(t, IsRootJsonlFile(""))
 }
 
+func TestIsRemoteUsername(t *testing.T) {
+	assert.True(t, IsRemoteUsername("admin:connection-to-v11-7-rc1"))
+	assert.True(t, IsRemoteUsername("Admin:Remote"))
+	assert.True(t, IsRemoteUsername("long-user...:remote...2"))
+	assert.False(t, IsRemoteUsername("admin"))
+	assert.False(t, IsRemoteUsername("all"))
+	assert.False(t, IsRemoteUsername("bad user:remote"))
+	assert.False(t, IsRemoteUsername(strings.Repeat("a", model.UserNameMaxLength)+":remote"))
+}
+
 func TestImportValidateSchemeImportData(t *testing.T) {
 	// Test with minimum required valid properties and team scope.
 	data := SchemeImportData{

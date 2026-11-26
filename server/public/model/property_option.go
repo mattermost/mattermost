@@ -241,6 +241,9 @@ type PropertyFieldOptionsInUse struct {
 // row. CoveredBy names the caller's own options: a candidate is kept when one
 // of them is at-or-above it, the same covering relation the hooks' own
 // masking applies elsewhere -- this filter only narrows the query by it.
+// At-or-above reads per type: graph through the hierarchy, rank by rank number
+// (a candidate's rank at or below the highest held), select and multiselect by
+// identity.
 //
 // ShowNothing is checked first when both fields are set on the same value. A
 // non-nil filter whose CoveredBy is empty means "nothing", not "everything":

@@ -465,7 +465,7 @@ describe('channel field fillability', () => {
     describe('permissions', () => {
         const withRestrictions = (value: {read?: 'member' | 'everyone' | 'creator' | 'admin' | 'none'; write?: 'admin' | 'member' | 'everyone' | 'creator' | 'sysadmin' | 'none'}, optionRead: 'member' | 'everyone' | 'creator' | 'none' = 'everyone', masking?: Record<string, unknown>) => channelField({
             permission_values: 'sysadmin',
-            permissions: {restrictions: {value, option: {read: optionRead}}, masking},
+            permissions: {restrictions: {value, option: {read: optionRead}, field: {}}, grants: [], masking},
         });
 
         it.each([
@@ -502,7 +502,7 @@ describe('channel field fillability', () => {
     describe('getRestrictionsWithChannelAdminValueWrite', () => {
         it('keeps the stored restrictions and only changes value.write', () => {
             const field = channelField({
-                permissions: {restrictions: {value: {read: 'everyone', write: 'sysadmin'}, option: {read: 'everyone', write: 'admin'}, field: {write: 'admin'}}},
+                permissions: {restrictions: {value: {read: 'everyone', write: 'sysadmin'}, option: {read: 'everyone', write: 'admin'}, field: {write: 'admin'}}, grants: []},
             });
             expect(getRestrictionsWithChannelAdminValueWrite(field)).toEqual({
                 value: {read: 'everyone', write: 'admin'},

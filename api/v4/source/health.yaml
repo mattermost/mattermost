@@ -17,7 +17,9 @@
 
         ##### Permissions
 
-        Must have `manage_system` permission. Also available over local mode.
+        Must have `manage_system` or `sysconsole_read_reporting_site_statistics` permission.
+
+        Which findings are returned depends on the caller's permissions.
 
         Requires the `HealthDashboard` feature flag and a Professional license or higher.
       operationId: GetHealthFindings
@@ -69,7 +71,8 @@
 
         ##### Permissions
 
-        Must have `manage_system` permission. Not available over local mode.
+        Must have `manage_system` or `sysconsole_read_reporting_site_statistics` permission. Not available
+        over local mode.
 
         Requires the `HealthDashboard` feature flag and a Professional license or higher.
       operationId: ExportHealthFindings

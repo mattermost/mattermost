@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -23,10 +22,6 @@ const healthCollectTimeout = 3 * time.Minute
 // node's diagnostics. A failed workspace collector is recorded in Snapshot.Sections rather than
 // failing the call; the error return is for a snapshot that cannot be built at all.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
-	return a.buildHealthSnapshotWithLatestVersionURL(rctx, releases.LatestURL)
-}
-
-func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVersionURL string) (*healthcheck.Snapshot, error) {
 	collectCtx, cancel := context.WithTimeout(rctx.Context(), healthCollectTimeout)
 	nodes, err := a.Srv().Platform().CollectHealthNodes(rctx.WithContext(collectCtx))
 	cancel()
@@ -58,11 +53,11 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	// With the check off, Latest stays empty and the version rules read the reason from the config.
 	sections[model.SectionVersion] = nil
 	if *a.Config().ServiceSettings.EnableSecurityFixAlert {
-		release, appErr := a.GetLatestVersion(rctx, latestVersionURL)
+		release, appErr := a.GetLatestVersion(rctx, a.Srv().LatestVersionURL())
 		if appErr != nil {
 			sections[model.SectionVersion] = appErr
 		} else {
-			snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+			snapshot.Version.Latest = releases.Version(release)
 		}
 	}
 

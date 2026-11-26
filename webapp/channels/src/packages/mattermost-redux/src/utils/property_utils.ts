@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyChangePolicy, PropertyField, PropertyFieldOption, PropertyRestrictionLevel, PropertyRestrictions} from '@mattermost/types/properties';
+import type {PropertyChangePolicy, PropertyField, PropertyFieldOption, PropertyPermissionLevel, PropertyRestrictions} from '@mattermost/types/properties';
 
 // The identity sources a user attribute can be synced from, in the order the
 // server resolves them (model.GetPropertyFieldSyncSource). Each names the
@@ -211,7 +211,7 @@ export function getPropertyFieldLabel(field: PropertyField): string {
 }
 
 // Reads at member or everyone are visible to every member of a channel.
-function isReadableByMembers(level: PropertyRestrictionLevel | undefined): boolean {
+function isReadableByMembers(level: PropertyPermissionLevel | undefined): boolean {
     return level === 'member' || level === 'everyone';
 }
 
@@ -221,23 +221,23 @@ function isReadableByMembers(level: PropertyRestrictionLevel | undefined): boole
 // default, admin.
 function getEffectiveRestrictions(field: PropertyField): {restrictions: PropertyRestrictions; masked: boolean} {
     if (field.permissions) {
-        return {restrictions: field.permissions.restrictions ?? {}, masked: Boolean(field.permissions.masking)};
+        return {restrictions: field.permissions.restrictions ?? {value: {}, option: {}, field: {}}, masked: Boolean(field.permissions.masking)};
     }
 
     const accessMode = field.attrs?.access_mode;
-    let read: PropertyRestrictionLevel = 'none';
+    let read: PropertyPermissionLevel = 'none';
     if (accessMode === undefined || accessMode === '' || accessMode === 'public' || accessMode === 'shared_only') {
         read = 'everyone';
     }
 
     const sourceManaged = isPropertyFieldSourceManaged(field);
-    let valueWrite: PropertyRestrictionLevel = field.permission_values ?? 'admin';
+    let valueWrite: PropertyPermissionLevel = field.permission_values ?? 'admin';
     if (sourceManaged) {
         valueWrite = 'none';
     }
     const protectedField = field.protected === true || field.attrs?.protected === true;
-    const fieldWrite: PropertyRestrictionLevel = protectedField ? 'none' : (field.permission_field || 'none');
-    const optionWrite: PropertyRestrictionLevel = field.attrs?.protected === true ? 'none' : (field.permission_options || 'none');
+    const fieldWrite: PropertyPermissionLevel = protectedField ? 'none' : (field.permission_field || 'none');
+    const optionWrite: PropertyPermissionLevel = field.attrs?.protected === true ? 'none' : (field.permission_options || 'none');
 
     return {
         restrictions: {
