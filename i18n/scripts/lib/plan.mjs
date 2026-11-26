@@ -125,8 +125,8 @@ function similarity(a, b) {
 export const RENAME_SIMILARITY = 0.7;
 
 /**
- * Renames, for one locale: a key en.json dropped, translated here, and an
- * untranslated key en.json gained, each the other's closest match by English,
+ * Renames, for one locale: a key en.json dropped, translated here, and a key
+ * en.json gained, untranslated here, each the other's closest match by English,
  * with no tie. With the English and description unchanged, the old translation
  * is carried as is. Otherwise it goes to the translator as a changed item, to
  * keep or adjust.
@@ -139,7 +139,7 @@ function findRenames({en, then, map, retired}) {
     }
 
     const olds = retired.filter((old) => then.has(old) && !isBlank(map.get(old)));
-    const news = [...en.keys()].filter((k) => isBlank(map.get(k)));
+    const news = [...en.keys()].filter((k) => !then.has(k) && isBlank(map.get(k)));
     if (!olds.length || !news.length) {
         return {carry, renamed};
     }

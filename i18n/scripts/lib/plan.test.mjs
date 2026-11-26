@@ -115,6 +115,16 @@ describe('renames', () => {
         assert.deepEqual(Object.keys(l.prune).sort(), ['app.closer', 'app.further']);
     });
 
+    test('a key en.json already had is not a rename, so a deleted translation goes to a translator', () => {
+        const l = planDe({
+            then: {'app.kept': ['Remove member', 'Button'], 'app.old': ['Remove member', 'Button']},
+            now: {'app.kept': ['Remove member', 'Button']},
+            de: {'app.old': 'Mitglied entfernen'},
+        });
+        assert.deepEqual(l.carry, {});
+        assert.deepEqual(kinds(l), {'app.kept': 'new'});
+    });
+
     test('only a removed key this locale translated can be renamed', () => {
         const l = planDe({
             then: {'app.old': 'Remove member'},
