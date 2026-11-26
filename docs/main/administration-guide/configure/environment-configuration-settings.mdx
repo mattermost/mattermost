@@ -306,6 +306,20 @@ Enabling this feature makes these connections susceptible to man-in-the-middle a
 
 </Warning>
 
+<Note>
+
+The following outgoing connections pick up a change to this setting only after a server restart:
+
+- Push notifications, including the push notification server health check.
+- Outgoing webhooks and slash commands.
+- Amazon S3 and Azure file storage.
+- The local image proxy, unless its settings or the Site URL also change.
+- Outgoing OAuth connections.
+
+Other outgoing connections, such as OAuth and OpenID Connect sign-in, SAML metadata, link previews, and plugin downloads, use the new value right away.
+
+</Note>
+
 ### Enable hardened mode
 
 <table>
