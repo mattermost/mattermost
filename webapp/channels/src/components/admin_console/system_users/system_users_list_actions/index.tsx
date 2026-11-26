@@ -534,7 +534,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }
             </SystemPermissionGate>
             <SystemPermissionGate permissions={[Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS]}>
-                {(user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.EnableSyncWithLdap)) &&
+                {(user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.Enable && config.SamlSettings?.EnableSyncWithLdap)) &&
                     <Menu.Item
                         id={`${menuItemIdPrefix}-resyncUserViaLdapGroups`}
                         labels={

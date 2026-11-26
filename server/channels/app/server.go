@@ -611,7 +611,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	// Re-init email batching only when its enable flag or interval changes.
+	// Re-init email batching only when its enable flags or interval change.
 	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if emailBatchingSettingChanged(oldCfg, newCfg) {
 			s.EmailService.InitEmailBatching()
@@ -637,9 +637,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.platform.SetAuditLoggingActiveFunc(s.Audit.IsActive)
 
-	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
-		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
-		!s.Audit.IsActive() {
+	if s.platform.Config().AccessControlSettings.AuditLoggingEnabled() && !s.Audit.IsActive() {
 		s.Log().Warn(accessControlAuditTargetMissingWarning)
 	}
 
@@ -2199,6 +2197,8 @@ func emailBatchingSettingChanged(oldCfg, newCfg *model.Config) bool {
 	}
 	return model.SafeDereference(oldCfg.EmailSettings.EnableEmailBatching) !=
 		model.SafeDereference(newCfg.EmailSettings.EnableEmailBatching) ||
+		model.SafeDereference(oldCfg.EmailSettings.SendEmailNotifications) !=
+			model.SafeDereference(newCfg.EmailSettings.SendEmailNotifications) ||
 		model.SafeDereference(oldCfg.EmailSettings.EmailBatchingInterval) !=
 			model.SafeDereference(newCfg.EmailSettings.EmailBatchingInterval)
 }

@@ -1417,7 +1417,7 @@ func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch 
 
 	conflictField := ""
 	if a.Ldap() != nil &&
-		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
+		(user.IsLDAPUser() || (user.IsSAMLUser() && SamlSettings.SyncsWithLdap())) {
 		conflictField = a.Ldap().CheckProviderAttributes(rctx, LdapSettings, user, patch)
 	} else if a.Saml() != nil && user.IsSAMLUser() {
 		conflictField = a.Saml().CheckProviderAttributes(rctx, SamlSettings, user, patch)

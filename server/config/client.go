@@ -53,7 +53,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableSVGs"] = strconv.FormatBool(*c.ServiceSettings.EnableSVGs)
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
 	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
-	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
+	props["EnableInlineLatex"] = strconv.FormatBool(c.ServiceSettings.InlineLatexEnabled())
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
 	props["DeleteAccountLink"] = *c.ServiceSettings.DeleteAccountLink
@@ -69,7 +69,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
 	props["RequireEmailVerification"] = strconv.FormatBool(*c.EmailSettings.RequireEmailVerification)
-	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
+	props["EnableEmailBatching"] = strconv.FormatBool(c.EmailSettings.EmailBatchingEnabled())
 	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
@@ -162,8 +162,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
 	props["EnableUserManagedAttributes"] = strconv.FormatBool(*c.AccessControlSettings.EnableUserManagedAttributes)
-	props["EnableAccessControlAuditLogging"] = strconv.FormatBool(*c.AccessControlSettings.EnableAccessControlAuditLogging)
-	props["EnableChannelPolicyIndicators"] = strconv.FormatBool(*c.AccessControlSettings.EnableChannelPolicyIndicators)
+	props["EnableAccessControlAuditLogging"] = strconv.FormatBool(c.AccessControlSettings.AuditLoggingEnabled())
+	props["EnableChannelPolicyIndicators"] = strconv.FormatBool(c.AccessControlSettings.ChannelPolicyIndicatorsEnabled())
 
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
 	props["WranglerAllowedEmailDomain"] = strings.Join(c.WranglerSettings.AllowedEmailDomain, ",")
@@ -203,8 +203,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.Cluster {
 			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
-			props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable && *c.MetricsSettings.EnableClientMetrics)
-			props["EnableNotificationMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableNotificationMetrics)
+			props["EnableClientMetrics"] = strconv.FormatBool(c.MetricsSettings.ClientMetricsEnabled())
+			props["EnableNotificationMetrics"] = strconv.FormatBool(c.MetricsSettings.NotificationMetricsEnabled())
 		}
 
 		if *license.Features.Announcement {
@@ -212,13 +212,13 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["BannerText"] = *c.AnnouncementSettings.BannerText
 			props["BannerColor"] = *c.AnnouncementSettings.BannerColor
 			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
-			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
+			props["AllowBannerDismissal"] = strconv.FormatBool(c.AnnouncementSettings.BannerDismissalAllowed())
 		}
 
 		if *license.Features.ThemeManagement {
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
 			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
-			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
+			props["AllowCustomThemes"] = strconv.FormatBool(c.ThemeSettings.CustomThemesAllowed())
 			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
 		}
 
@@ -250,7 +250,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
 			props["MobileEnableSecureFilePreview"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableSecureFilePreview)
-			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
+			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(c.NativeAppSettings.MobilePdfLinkNavigationAllowed())
 
 			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 			props["EnableAutoTranslation"] = strconv.FormatBool(c.FeatureFlags.AutoTranslation && *c.AutoTranslationSettings.Enable)
@@ -313,7 +313,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
-	props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableClientMetrics)
+	props["EnableClientMetrics"] = strconv.FormatBool(c.MetricsSettings.ClientMetricsEnabled())
 
 	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
 
@@ -379,7 +379,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
 	props["HideGuestTags"] = strconv.FormatBool(*c.GuestAccountsSettings.HideTags)
-	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
+	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(c.GuestMultifactorAuthenticationEnforced())
 	props["EnableGuestMagicLink"] = strconv.FormatBool(*c.GuestAccountsSettings.EnableGuestMagicLink)
 
 	if license != nil {
@@ -399,7 +399,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		}
 
 		if *license.Features.MFA {
-			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
+			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(c.ServiceSettings.MultifactorAuthenticationEnforced())
 		}
 
 		if license.IsCloud() {

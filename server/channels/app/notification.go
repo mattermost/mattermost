@@ -1854,7 +1854,7 @@ func (a *App) notificationMetricsDisabled() bool {
 		return true
 	}
 
-	if *a.Config().MetricsSettings.EnableNotificationMetrics {
+	if a.Config().MetricsSettings.NotificationMetricsEnabled() {
 		return false
 	}
 

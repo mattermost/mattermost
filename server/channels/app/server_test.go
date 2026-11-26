@@ -693,6 +693,20 @@ func TestEmailBatchingSettingChanged(t *testing.T) {
 		{name: "disabled", oldCfg: cfg(true, 30), newCfg: cfg(false, 30), expected: true},
 		{name: "interval changed", oldCfg: cfg(true, 30), newCfg: cfg(true, 300), expected: true},
 		{
+			name: "email notifications enabled",
+			oldCfg: func() *model.Config {
+				c := cfg(true, 30)
+				c.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+				return c
+			}(),
+			newCfg: func() *model.Config {
+				c := cfg(true, 30)
+				c.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				return c
+			}(),
+			expected: true,
+		},
+		{
 			name: "push notification server change is ignored",
 			oldCfg: func() *model.Config {
 				c := cfg(false, 30)

@@ -18,6 +18,9 @@ import (
 
 func enableAccessControlAuditLogging(th *TestHelper, enabled bool) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		if enabled {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		}
 		cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(enabled)
 	})
 }

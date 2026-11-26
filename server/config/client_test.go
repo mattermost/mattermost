@@ -102,6 +102,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for enforcement",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
+					EnableMultifactorAuthentication:  new(true),
 					EnforceMultifactorAuthentication: new(true),
 				},
 			},
@@ -113,6 +114,25 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			map[string]string{
 				"EnforceMultifactorAuthentication": "true",
+			},
+			nil,
+		},
+		{
+			"enforcement without MFA enabled",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableMultifactorAuthentication:  new(false),
+					EnforceMultifactorAuthentication: new(true),
+				},
+			},
+			"tag1",
+			&model.License{
+				Features: &model.Features{
+					MFA: new(true),
+				},
+			},
+			map[string]string{
+				"EnforceMultifactorAuthentication": "false",
 			},
 			nil,
 		},
@@ -417,7 +437,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
-				"EnableChannelPolicyIndicators":     "true",
+				"EnableChannelPolicyIndicators":     "false",
 			},
 			nil,
 		},
@@ -737,7 +757,8 @@ func TestGetClientConfig(t *testing.T) {
 			"audit logging - AuditLoggingActive is not derived from config",
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
-					EnableAccessControlAuditLogging: new(true),
+					EnableAttributeBasedAccessControl: new(true),
+					EnableAccessControlAuditLogging:   new(true),
 				},
 				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
 					FileEnabled: new(true),
@@ -949,4 +970,80 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestClientConfigDependentSettings(t *testing.T) {
+	t.Parallel()
+
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+
+	for key, set := range map[string]func(cfg *model.Config, parent, child bool){
+		"EnableInlineLatex": func(cfg *model.Config, p, c bool) {
+			cfg.ServiceSettings.EnableLatex, cfg.ServiceSettings.EnableInlineLatex = &p, &c
+		},
+		"EnableEmailBatching": func(cfg *model.Config, p, c bool) {
+			cfg.EmailSettings.SendEmailNotifications, cfg.EmailSettings.EnableEmailBatching = &p, &c
+		},
+		"EnableClientMetrics": func(cfg *model.Config, p, c bool) {
+			cfg.MetricsSettings.Enable, cfg.MetricsSettings.EnableClientMetrics = &p, &c
+		},
+		"EnableNotificationMetrics": func(cfg *model.Config, p, c bool) {
+			cfg.MetricsSettings.Enable, cfg.MetricsSettings.EnableNotificationMetrics = &p, &c
+		},
+		"AllowBannerDismissal": func(cfg *model.Config, p, c bool) {
+			cfg.AnnouncementSettings.EnableBanner, cfg.AnnouncementSettings.AllowBannerDismissal = &p, &c
+		},
+		"AllowCustomThemes": func(cfg *model.Config, p, c bool) {
+			cfg.ThemeSettings.EnableThemeSelection, cfg.ThemeSettings.AllowCustomThemes = &p, &c
+		},
+		"MobileAllowPdfLinkNavigation": func(cfg *model.Config, p, c bool) {
+			cfg.NativeAppSettings.MobileEnableSecureFilePreview, cfg.NativeAppSettings.MobileAllowPdfLinkNavigation = &p, &c
+		},
+		"EnforceMultifactorAuthentication": func(cfg *model.Config, p, c bool) {
+			cfg.ServiceSettings.EnableMultifactorAuthentication, cfg.ServiceSettings.EnforceMultifactorAuthentication = &p, &c
+		},
+		"GuestAccountsEnforceMultifactorAuthentication": func(cfg *model.Config, p, c bool) {
+			cfg.ServiceSettings.EnableMultifactorAuthentication = model.NewPointer(true)
+			cfg.ServiceSettings.EnforceMultifactorAuthentication = &p
+			cfg.GuestAccountsSettings.EnforceMultifactorAuthentication = &c
+		},
+		"EnableAccessControlAuditLogging": func(cfg *model.Config, p, c bool) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl, cfg.AccessControlSettings.EnableAccessControlAuditLogging = &p, &c
+		},
+		"EnableChannelPolicyIndicators": func(cfg *model.Config, p, c bool) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl, cfg.AccessControlSettings.EnableChannelPolicyIndicators = &p, &c
+		},
+	} {
+		t.Run(key, func(t *testing.T) {
+			t.Parallel()
+
+			for _, tc := range []struct {
+				parent, child bool
+				expected      string
+			}{
+				{parent: true, child: true, expected: "true"},
+				{parent: false, child: true, expected: "false"},
+			} {
+				cfg := &model.Config{}
+				cfg.SetDefaults()
+				set(cfg, tc.parent, tc.child)
+
+				props := GenerateClientConfig(cfg, "", license)
+				assert.Contains(t, props, key)
+				assert.Equal(t, tc.expected, props[key], "parent=%v child=%v", tc.parent, tc.child)
+			}
+		})
+	}
+
+	t.Run("limited EnableClientMetrics", func(t *testing.T) {
+		t.Parallel()
+
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.MetricsSettings.Enable = model.NewPointer(false)
+		cfg.MetricsSettings.EnableClientMetrics = model.NewPointer(true)
+
+		props := GenerateLimitedClientConfig(cfg, "", license)
+		assert.Equal(t, "false", props["EnableClientMetrics"])
+	})
 }

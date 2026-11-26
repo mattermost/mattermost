@@ -1724,7 +1724,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	// race with that goroutine still reading it.
 	text, err := docextractor.Extract(logger, fileInfo.Name, file, docextractor.ExtractSettings{
 		Ctx:              rctx.Context(),
-		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+		ArchiveRecursion: a.Config().FileSettings.ArchiveRecursionEnabled(),
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
 		Timeout:          time.Duration(*a.Config().FileSettings.ExtractContentTimeout) * time.Second,
 		ReaderCloser:     file,

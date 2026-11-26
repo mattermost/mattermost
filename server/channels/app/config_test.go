@@ -213,11 +213,22 @@ func TestAccessControlAuditTargetMissingWarning(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	enableAccessControlAuditLogging := func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(true)
 	}
 
 	t.Run("stays quiet when access control audit logging is off", func(t *testing.T) {
 		th := Setup(t)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, accessControlAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when attribute-based access control is off", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			enableAccessControlAuditLogging(cfg)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
 
 		require.NoError(t, th.TestLogger.Flush())
 		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, accessControlAuditTargetMissingWarning)
