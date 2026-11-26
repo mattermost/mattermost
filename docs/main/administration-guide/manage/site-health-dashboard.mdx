@@ -86,22 +86,9 @@ To run the checks now instead of waiting, select **Re-run checks** at the top of
 
 ### Turn off automatic checks
 
-From Mattermost v12.3, you can stop the hourly run. Each run queries the database, asks every cluster node for its diagnostics, and tests the connections to the services you've enabled, such as file storage, LDAP, SMTP, Elasticsearch or OpenSearch, OAuth, and the push notification server. It runs on app servers even when [`RunJobs`](/administration-guide/configure/experimental-configuration-settings#run-jobs) is `false`.
+From Mattermost v12.3, system admins can stop the hourly run: at the top of the Site health page, set **Run checks automatically** to **False**, then select **Save**. The `config.json` setting is `SiteHealthSettings` > `EnableAutomaticChecks` (default `true`). It isn't available in Mattermost Cloud.
 
-At the top of the Site health page, set **Run checks automatically** to **False**, then select **Save**. Only system admins can change this setting; delegated admins see it read-only. It isn't available in Mattermost Cloud.
-
-| System Config path | `config.json` setting | Environment variable |
-| --- | --- | --- |
-| **Reporting \> Site health** | `SiteHealthSettings` \> `EnableAutomaticChecks` \> `true` | `MM_SITEHEALTHSETTINGS_ENABLEAUTOMATICCHECKS` |
-
-While automatic checks are off:
-
-- No scheduled runs take place. **Re-run checks** and `mmctl health run` still work.
-- The dashboard shows the findings from the last run, with a banner saying that automatic checks are off. System admins can select **Turn on** in the banner to turn them back on.
-- Findings from old runs aren't cleaned up until the next run.
-- The [Support Packet](/administration-guide/manage/admin/generating-support-packet) and the check for newer Mattermost releases, which follows **Enable Security Fix Alert**, aren't affected.
-
-When you turn automatic checks back on, no restart is needed. The first automatic run starts within about an hour. To get results sooner, select **Re-run checks**.
+While automatic checks are off, the dashboard shows the findings from the last run, and **Re-run checks** and `mmctl health run` still work. Turning them back on needs no restart; the next automatic run starts within about an hour.
 
 ### Filter by tab
 
