@@ -51,6 +51,15 @@ type HealthFinding struct {
 	MutedBy string `json:"muted_by,omitempty"`
 }
 
+const (
+	// HealthFindingDetailResolvedReason records why a finding was resolved when it was not
+	// because its check passed.
+	HealthFindingDetailResolvedReason = "resolved_reason"
+	// HealthFindingResolvedReasonNodeLeft marks a node-scoped finding whose node is no longer
+	// part of the deployment, so its check no longer runs.
+	HealthFindingResolvedReasonNodeLeft = "node_left"
+)
+
 func (f *HealthFinding) IsMuted() bool {
 	return f != nil && f.MutedAt > 0
 }

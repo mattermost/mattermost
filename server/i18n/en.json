@@ -14960,6 +14960,11 @@
     "description": "Title of the shareable health report (Site health export and mmctl health check output)."
   },
   {
+    "id": "health.resolved.node_left",
+    "translation": "This node is no longer part of the cluster, so this check no longer runs on it. This does not mean the problem was fixed.",
+    "description": "Health dashboard finding message for a node-scoped finding whose server (node) has left the cluster, for example after a Kubernetes pod or Docker container was replaced or a server was renamed. 'node' means one Mattermost server in a cluster."
+  },
+  {
     "id": "health.rule.audit_log_off.message",
     "translation": "No audit log target is active and this workspace has {{.users}} registered users. Administrative actions, logins and configuration changes leave no separate audit trail. This is a compliance and forensic gap, not a stability risk.",
     "description": "Health dashboard finding detail when audit logging is off on a large workspace; {{.users}} is the number of registered users. An 'audit log target' is a destination (such as a file) that audit records are written to."

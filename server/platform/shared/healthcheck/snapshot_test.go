@@ -139,3 +139,67 @@ func TestNewSnapshotSortsNodesByHostname(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "node-1", leader.Hostname)
 }
+
+func TestSnapshotHostnames(t *testing.T) {
+	t.Parallel()
+
+	replied := &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}}
+	clusterConfig := func(enabled bool) *model.SupportPacketConfig {
+		cfg := &model.Config{}
+		cfg.ClusterSettings.Enable = model.NewPointer(enabled)
+		return &model.SupportPacketConfig{Config: cfg}
+	}
+
+	testCases := []struct {
+		name     string
+		config   *model.SupportPacketConfig
+		nodes    []*NodeSnapshot
+		expected []string
+	}{
+		{
+			name:     "standalone node",
+			config:   clusterConfig(false),
+			nodes:    []*NodeSnapshot{{Hostname: "mm.example.com", Diagnostics: replied}},
+			expected: []string{"mm.example.com"},
+		},
+		{
+			name:   "every cluster node replied",
+			config: clusterConfig(true),
+			nodes: []*NodeSnapshot{
+				{Hostname: "app-2", ClusterInfo: &model.ClusterInfo{Hostname: "app-2"}, Diagnostics: replied},
+				{Hostname: "app-1", ClusterInfo: &model.ClusterInfo{Hostname: "app-1"}, Diagnostics: replied},
+			},
+			expected: []string{"app-1", "app-2"},
+		},
+		{
+			name:   "a node that did not reply may be listed by its discovery address",
+			config: clusterConfig(true),
+			nodes: []*NodeSnapshot{
+				{Hostname: "app-1", ClusterInfo: &model.ClusterInfo{Hostname: "app-1"}, Diagnostics: replied},
+				{Hostname: "10.0.0.5:8075", ClusterInfo: &model.ClusterInfo{Hostname: "10.0.0.5:8075"}, CollectErr: ErrNodeNoReply},
+			},
+		},
+		{
+			name:  "a node without a hostname",
+			nodes: []*NodeSnapshot{{Diagnostics: replied}},
+		},
+		{
+			name:   "clustering on but the cluster could not be listed",
+			config: clusterConfig(true),
+			nodes:  []*NodeSnapshot{{Hostname: "app-1", Diagnostics: replied}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := NewSnapshot(tc.nodes)
+			s.Config = tc.config
+			s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+			require.Equal(t, tc.expected, s.Hostnames())
+		})
+	}
+
+	require.Empty(t, (*Snapshot)(nil).Hostnames())
+}

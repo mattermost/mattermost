@@ -113,7 +113,7 @@ func evaluate(t *testing.T, snapshot *healthcheck.Snapshot) []finding {
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Now: now})
 	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Registry: registry, Now: now})
 
-	_, err := reconciler.Reconcile(engine.Evaluate(snapshot))
+	_, err := reconciler.Reconcile(engine.Evaluate(snapshot), snapshot.Hostnames())
 	require.NoError(t, err)
 
 	stored, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})

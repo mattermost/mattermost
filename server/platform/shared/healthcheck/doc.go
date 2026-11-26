@@ -43,6 +43,14 @@
 // allows ([Policy]). Resolved means a problem cleared, so a check that passes and has never
 // fired stores nothing.
 //
+// The one exception is a node-scoped finding whose node is no longer part of the deployment: a
+// node is part of it while it is in the memberlist or its cluster discovery row is live. Its
+// finding is resolved with [MessageNodeLeft] and the node_left resolved reason, so it is not
+// shown as fixed or as a check that could not run. A run that cannot name every node under the
+// hostname its findings use, for example because one did not reply, resolves none this way. The
+// row and its mute are kept, so a node that returns under the same hostname fires under the same
+// fingerprint, still muted.
+//
 // Findings store translation ids and details, never prose: evaluation has no locale, and admins
 // read one finding in several languages. Text is rendered when the API or mmctl returns a
 // finding (model.HealthFinding.Render). Changed wording gets a new id, so outdated

@@ -51,6 +51,29 @@ func (s *Snapshot) Nodes() []*NodeSnapshot {
 	return nodes
 }
 
+// Hostnames returns the hostnames of the nodes that make up the deployment, or nil when the
+// snapshot cannot name them all as their findings are scoped:
+//   - a node that did not reply may be listed under its cluster discovery hostname, often an IP
+//     address, rather than the hostname it reports itself;
+//   - a node without a hostname could be any of them;
+//   - with clustering on, a node without cluster info is the local node standing in for a
+//     cluster that could not be listed.
+func (s *Snapshot) Hostnames() []string {
+	clusterEnabled, _ := s.ClusterEnabled()
+	nodes := s.Nodes()
+	hostnames := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		if node == nil {
+			continue
+		}
+		if node.CollectErr != nil || node.Hostname == "" || (clusterEnabled && node.ClusterInfo == nil) {
+			return nil
+		}
+		hostnames = append(hostnames, node.Hostname)
+	}
+	return hostnames
+}
+
 func (s *Snapshot) Leader() (*NodeSnapshot, bool) {
 	if s == nil {
 		return nil, false
