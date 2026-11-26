@@ -63,18 +63,19 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			conn.WebSocket.Close()
 			return
 		}
-		conn.SetSession(session)
-		conn.SetSessionToken(session.Token)
-		conn.UserId = session.UserId
-		// Must happen before HubRegister: broadcast hooks read these without locking.
+		// Must happen before HubRegister (and before binding the session on conn):
+		// broadcast hooks read these without locking, and device ID consistency
+		// enforcement may revoke the session.
 		if conn.resolveRequestAttributes != nil {
 			conn.RequestSessionAttributes = conn.resolveRequestAttributes(session)
-			// Device ID consistency enforcement may have revoked the session.
 			if _, err := conn.Suite.GetSession(token); err != nil {
 				conn.WebSocket.Close()
 				return
 			}
 		}
+		conn.SetSession(session)
+		conn.SetSessionToken(session.Token)
+		conn.UserId = session.UserId
 
 		nErr := conn.Platform.HubRegister(conn)
 		if nErr != nil {
