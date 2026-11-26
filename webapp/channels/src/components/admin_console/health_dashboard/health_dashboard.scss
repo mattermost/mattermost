@@ -9,6 +9,8 @@
     --health-resolved-rgb: var(--sys-online-indicator-rgb);
     --health-unknown: rgba(var(--sys-center-channel-color-rgb), 0.64);
     --health-unknown-rgb: var(--sys-center-channel-color-rgb);
+    --health-nodeLeft: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    --health-nodeLeft-rgb: var(--sys-center-channel-color-rgb);
 
     .admin-console__content {
         max-width: 1000px;
@@ -384,7 +386,7 @@
     box-shadow: var(--elevation-1);
     transition: box-shadow 150ms ease, border-color 150ms ease;
 
-    @each $tone in critical, warning, info, resolved, unknown {
+    @each $tone in critical, warning, info, resolved, unknown, nodeLeft {
         &--#{$tone} {
             --health-tone: var(--health-#{$tone});
             --health-tone-rgb: var(--health-#{$tone}-rgb);
@@ -399,15 +401,7 @@
         border-left-color: rgba(var(--sys-center-channel-color-rgb), 0.24);
     }
 
-    &--muted &__header {
-        opacity: 0.72;
-    }
-
-    &--nodeLeft {
-        --health-tone: rgba(var(--sys-center-channel-color-rgb), 0.56);
-        --health-tone-rgb: var(--sys-center-channel-color-rgb);
-    }
-
+    &--muted &__header,
     &--nodeLeft &__header {
         opacity: 0.72;
     }

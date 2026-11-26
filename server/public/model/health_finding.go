@@ -64,6 +64,11 @@ func (f *HealthFinding) IsMuted() bool {
 	return f != nil && f.MutedAt > 0
 }
 
+// IsNodeLeft reports whether the finding was resolved because its node left the deployment.
+func (f *HealthFinding) IsNodeLeft() bool {
+	return f != nil && f.State == "resolved" && f.Details[HealthFindingDetailResolvedReason] == HealthFindingResolvedReasonNodeLeft
+}
+
 // PreSave normalizes mute state before persistence. Mute is owned by Mute/Unmute,
 // which set MutedAt and MutedBy together, so an unmuted finding must clear MutedBy
 // to match Unmute's canonical state and keep every store's upsert guard equivalent.

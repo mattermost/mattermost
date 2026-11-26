@@ -71,8 +71,8 @@ type Transition struct {
 
 // Reconcile applies one run's evaluations to the stored findings. nodes lists the hostnames of
 // the nodes that make up the deployment in this run; a node-scoped finding whose scope is not
-// among them belongs to a node that has left. With nil nodes, as [Snapshot.Hostnames] returns
-// when it cannot name every node, no finding is treated as belonging to a node that left.
+// among them belongs to a node that has left. Empty nodes means the inventory is unknown, as
+// [Snapshot.Hostnames] reports when it cannot name every node, never that every node left.
 func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition, error) {
 	if r == nil {
 		return nil, fmt.Errorf("reconciler is nil")
@@ -166,6 +166,7 @@ func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition
 	// Step 4: resolve the findings of nodes that have left, and age other findings that were NOT
 	// evaluated this cycle (and aren't already unknown) to unknown once they have gone
 	// unevaluated longer than their rule's UnknownAfter.
+	inventoryKnown := len(nodes) > 0
 	current := make(map[string]bool, len(nodes))
 	for _, hostname := range nodes {
 		current[hostname] = true
@@ -178,9 +179,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition
 			continue
 		}
 		// Unknown would claim the check failed, and a plain resolve that a problem was fixed, when
-		// the node is simply gone. The row and its mute stay until retention removes them. An empty
-		// node set means it is unknown, never that every node left, so the length is checked.
-		if len(current) > 0 && finding.Scope != "" && !current[finding.Scope] {
+		// the node is simply gone. The row and its mute stay until retention removes them.
+		if inventoryKnown && finding.Scope != "" && !current[finding.Scope] {
 			if finding.State != string(StateResolved) {
 				left := nodeLeftFinding(finding, nowUnixMilli)
 				pending[left.Fingerprint] = left
@@ -197,8 +197,7 @@ func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition
 		}
 		// Without a node inventory the departure cannot be re-checked, and aging would turn the
 		// departure into a check failure; a later run with the inventory settles it.
-		if len(current) == 0 && finding.State == string(StateResolved) &&
-			finding.Details[model.HealthFindingDetailResolvedReason] == model.HealthFindingResolvedReasonNodeLeft {
+		if !inventoryKnown && finding.IsNodeLeft() {
 			continue
 		}
 		// The node-down finding already represents this scope; aging its dependents to unknown

@@ -144,11 +144,6 @@ func TestSnapshotHostnames(t *testing.T) {
 	t.Parallel()
 
 	replied := &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}}
-	clusterConfig := func(enabled bool) *model.SupportPacketConfig {
-		cfg := &model.Config{}
-		cfg.ClusterSettings.Enable = model.NewPointer(enabled)
-		return &model.SupportPacketConfig{Config: cfg}
-	}
 
 	testCases := []struct {
 		name      string
@@ -229,6 +224,12 @@ func TestSnapshotHostnames(t *testing.T) {
 	}
 
 	require.Empty(t, (*Snapshot)(nil).Hostnames())
+}
+
+func clusterConfig(enabled bool) *model.SupportPacketConfig {
+	cfg := &model.Config{}
+	cfg.ClusterSettings.Enable = model.NewPointer(enabled)
+	return &model.SupportPacketConfig{Config: cfg}
 }
 
 func licensedDiagnostics(cluster bool) *model.NodeDiagnostics {

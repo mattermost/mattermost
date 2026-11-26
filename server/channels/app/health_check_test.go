@@ -204,13 +204,11 @@ func TestRunHealthCheckResolvesFindingsOfNodesThatLeft(t *testing.T) {
 	}
 	require.Len(t, byScope, 2)
 	left := byScope["replaced-pod"]
-	assert.Equal(t, string(healthcheck.StateResolved), left.State)
+	assert.True(t, left.IsNodeLeft())
 	assert.Equal(t, healthcheck.MessageNodeLeft, left.MessageID)
-	assert.Equal(t, model.HealthFindingResolvedReasonNodeLeft, left.Details[model.HealthFindingDetailResolvedReason])
-	for scope, finding := range byScope {
-		if scope != "replaced-pod" {
-			assert.Equal(t, string(healthcheck.StateFiring), finding.State, "the current node's finding on %q", scope)
-		}
+	delete(byScope, "replaced-pod")
+	for scope, current := range byScope {
+		assert.Equal(t, string(healthcheck.StateFiring), current.State, "the current node's finding on %q", scope)
 	}
 }
 

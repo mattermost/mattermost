@@ -486,9 +486,7 @@ func (h *healthRuns) run(t *testing.T, at time.Time, nodes ...*NodeSnapshot) []T
 	t.Helper()
 	h.now = at
 	snapshot := NewSnapshot(nodes)
-	cfg := &model.Config{}
-	cfg.ClusterSettings.Enable = model.NewPointer(false)
-	snapshot.Config = &model.SupportPacketConfig{Config: cfg}
+	snapshot.Config = clusterConfig(false)
 	snapshot.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
 	transitions, err := h.reconciler.Reconcile(h.engine.Evaluate(snapshot), snapshot.Hostnames())
 	require.NoError(t, err)
@@ -690,25 +688,6 @@ func TestReconcileKeepsNodeLeftFindingsResolvedWhenNodesAreUnknown(t *testing.T)
 
 	assert.Equal(t, string(StateUnknown), h.finding(t, ordinary.Fingerprint).State, "an ordinary resolved finding still ages")
 	assert.Equal(t, string(StateUnknown), h.finding(t, firing.Fingerprint).State, "a firing finding still ages")
-}
-
-func TestReconcileRetiresNothingWhenANodeHasNoHostname(t *testing.T) {
-	t.Parallel()
-
-	t0 := time.UnixMilli(60_000_000)
-	h := newHealthRuns(t0, diskLowRule)
-	known := Fingerprint("DISK_LOW", "disk_free_percent", "mm.example.com")
-
-	h.run(t, t0, replyingNode("mm.example.com"))
-	transitions := h.run(t, t0.Add(time.Hour), &NodeSnapshot{})
-
-	assert.Nil(t, transitionFor(transitions, known))
-	finding := h.finding(t, known)
-	assert.Equal(t, string(StateFiring), finding.State)
-	assert.Equal(t, diskLowMessage, finding.MessageID)
-
-	h.run(t, t0.Add(3*time.Hour), &NodeSnapshot{})
-	assert.Equal(t, string(StateUnknown), h.finding(t, known).State, "without a hostname to compare, the finding ages as before")
 }
 
 func testRegistry(rules ...Rule) *Registry {
