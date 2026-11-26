@@ -2987,9 +2987,9 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	requestAttrs, appErr := a.requestScopedSessionAttributes(rctx)
-	if appErr != nil {
-		return nil, appErr
+	requestAttrs, err := a.requestScopedSessionAttributes(rctx)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	if len(requestAttrs) > 0 {
 		if attrs == nil {

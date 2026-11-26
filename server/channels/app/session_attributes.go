@@ -121,7 +121,7 @@ func RequestSessionAttributes(rctx request.CTX) *platform.RequestSessionAttribut
 // requestScopedSessionAttributes returns the session attributes proven by the
 // request rctx serves, checked against the current schema: the server-derived
 // ones and, while the proxy header is trusted, tls_device_id.
-func (a *App) requestScopedSessionAttributes(rctx request.CTX) (map[string]any, *model.AppError) {
+func (a *App) requestScopedSessionAttributes(rctx request.CTX) (map[string]any, error) {
 	inputs := RequestSessionAttributes(rctx)
 	if inputs == nil {
 		return nil, nil
@@ -396,9 +396,9 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 }
 
 // GetSessionAttributes returns the unexpired cached attributes of sessionID
-// that ABAC evaluation uses. IP address, user agent and tls_device_id are left
-// out: evaluation takes them only from the request it serves, so a cached copy
-// proves only what an earlier request had.
+// that ABAC evaluation uses. tls_device_id is omitted because it is cached
+// only for EnforceDeviceIDConsistency; ABAC evaluation takes it from the
+// current request.
 func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[string]any, *model.AppError) {
 	if !a.sessionAttributesEnabled() {
 		return nil, nil
@@ -418,9 +418,6 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 	}
 
 	filtered := filterStaleSessionAttributes(attrs, timestamps, fieldsByName)
-	for name := range model.SessionAttributesRequestDerivedFieldNames {
-		delete(filtered, name)
-	}
 	delete(filtered, model.SessionAttributesPropertyFieldTLSDDeviceID)
 	if len(filtered) == 0 {
 		return nil, nil

@@ -144,8 +144,8 @@ func newSessionAttributesRequest(t *testing.T, userAgent, remoteAddr string) *ht
 
 func evaluatedRequestSessionAttributes(t *testing.T, th *TestHelper, rctx request.CTX) map[string]any {
 	t.Helper()
-	attrs, appErr := th.App.requestScopedSessionAttributes(rctx)
-	require.Nil(t, appErr)
+	attrs, err := th.App.requestScopedSessionAttributes(rctx)
+	require.NoError(t, err)
 	return attrs
 }
 
@@ -596,26 +596,26 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 func TestGetSessionAttributeFieldsByName(t *testing.T) {
 	th := Setup(t)
 	enableSessionAttributesCollection(t, th)
-	ipName := model.SessionAttributesPropertyFieldIPAddress
+	fieldName := model.SessionAttributesPropertyFieldClientIPAddress
 
 	first, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
 	require.Nil(t, appErr)
 	second, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
 	require.Nil(t, appErr)
-	require.Same(t, first[ipName], second[ipName], "the parsed schema must be reused while no field changes")
+	require.Same(t, first[fieldName], second[fieldName], "the parsed schema must be reused while no field changes")
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
 	require.Nil(t, appErr)
-	ipField, appErr := th.App.GetPropertyFieldByName(th.Context, group.ID, "", ipName)
+	field, appErr := th.App.GetPropertyFieldByName(th.Context, group.ID, "", fieldName)
 	require.Nil(t, appErr)
-	ipField.Attrs[model.SAAttrTTLSeconds] = 60
-	_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, ipField, true, "")
+	field.Attrs[model.SAAttrTTLSeconds] = 120
+	_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, field, true, "")
 	require.Nil(t, appErr)
 
 	third, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
 	require.Nil(t, appErr)
-	require.NotSame(t, first[ipName], third[ipName])
-	require.Equal(t, 60, third[ipName].Attrs.TTLSeconds)
+	require.NotSame(t, first[fieldName], third[fieldName])
+	require.Equal(t, 120, third[fieldName].Attrs.TTLSeconds)
 }
 
 func TestProcessSessionAttributesRequestSkipsUnchangedWrites(t *testing.T) {
