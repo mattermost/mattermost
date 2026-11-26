@@ -930,7 +930,6 @@ describe('components/admin_console/health_dashboard', () => {
         }
 
         const automaticChecksSwitch = () => screen.getByRole('switch', {name: 'Automatic checks'});
-        const turnOnButton = () => screen.queryByRole('button', {name: 'Turn on'});
 
         function mockPatchConfig() {
             return jest.spyOn(Client4, 'patchConfig').mockImplementation(async (patch) => ({
@@ -997,14 +996,13 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
         });
 
-        test('Turn on in the banner saves through the same path and turns the switch on', async () => {
+        test('turning it back on with the switch saves at once and hides the banner', async () => {
             const {patchConfig, finishSave} = mockPendingPatchConfig();
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(automaticChecksSwitch()).not.toBeChecked();
 
-            await userEvent.click(turnOnButton()!);
+            await userEvent.click(automaticChecksSwitch());
 
             expect(patchConfig).toHaveBeenCalledWith({SiteHealthSettings: {EnableAutomaticChecks: true}});
             expect(automaticChecksSwitch()).toBeChecked();
@@ -1017,15 +1015,23 @@ describe('components/admin_console/health_dashboard', () => {
             expect(automaticChecksSwitch()).toBeEnabled();
         });
 
-        test('a failed Turn on keeps the banner and the switch off and shows an error', async () => {
+        test('a failed turn on keeps the banner and the switch off and shows an error', async () => {
             jest.spyOn(Client4, 'patchConfig').mockRejectedValue({message: 'Not allowed.'});
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false));
 
-            await userEvent.click(turnOnButton()!);
+            await userEvent.click(automaticChecksSwitch());
 
             expect(await screen.findByText('Automatic checks could not be turned on, so they are still off. Try again.')).toBeInTheDocument();
             expect(screen.getByText(offBanner)).toBeInTheDocument();
             expect(automaticChecksSwitch()).not.toBeChecked();
+        });
+
+        test('the banner has no button, even for a system admin who can change the setting', async () => {
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false));
+
+            const banner = screen.getByText(offBanner).closest('.HealthDashboard__automaticChecksOff') as HTMLElement;
+            expect(within(banner).queryByRole('button')).not.toBeInTheDocument();
+            expect(automaticChecksSwitch()).toBeEnabled();
         });
 
         test('shows the switch and the banner in the empty state too', async () => {
@@ -1036,12 +1042,11 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.getByText('No health check has run yet. To run one now, select Re-run checks.')).toBeInTheDocument();
         });
 
-        test('a delegated admin without manage_system sees the switch disabled and the banner without Turn on', async () => {
+        test('a delegated admin without manage_system sees the switch disabled and the banner', async () => {
             const patchConfig = mockPatchConfig();
             await renderDashboard(evaluated(mixed), withSetting(systemManager, false));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(turnOnButton()).not.toBeInTheDocument();
             expect(automaticChecksSwitch()).not.toBeChecked();
             expect(automaticChecksSwitch()).toBeDisabled();
             expect(patchConfig).not.toHaveBeenCalled();
@@ -1051,7 +1056,6 @@ describe('components/admin_console/health_dashboard', () => {
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false, {restrictSystemAdmin: true}));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(turnOnButton()).not.toBeInTheDocument();
             expect(automaticChecksSwitch()).toBeDisabled();
         });
 
@@ -1059,7 +1063,6 @@ describe('components/admin_console/health_dashboard', () => {
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false, {setByEnv: true}));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(turnOnButton()).not.toBeInTheDocument();
             expect(automaticChecksSwitch()).toBeDisabled();
 
             await userEvent.hover(automaticChecksSwitch().closest('.HealthDashboard__automaticChecks')!);

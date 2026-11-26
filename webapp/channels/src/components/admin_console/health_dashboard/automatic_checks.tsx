@@ -4,7 +4,6 @@
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {Switch} from '@mattermost/compass-ui/components/switch';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -46,14 +45,7 @@ export const AutomaticChecksSwitch = ({checked, setByEnv, disabled, onChange}: S
     </WithTooltip>
 );
 
-type BannerProps = {
-
-    // Omitted for admins who can't change the setting, who see the text only.
-    onTurnOn?: () => void;
-    turningOn: boolean;
-};
-
-export const AutomaticChecksOffBanner = ({onTurnOn, turningOn}: BannerProps) => (
+export const AutomaticChecksOffBanner = () => (
     <AlertBanner
         mode='info'
         className='HealthDashboard__automaticChecksOff'
@@ -63,19 +55,5 @@ export const AutomaticChecksOffBanner = ({onTurnOn, turningOn}: BannerProps) => 
                 defaultMessage='Automatic checks are off. Findings show the last run and may be out of date.'
             />
         }
-        actionButtonLeft={onTurnOn && (
-            <Button
-                emphasis='secondary'
-                size='small'
-                loading={turningOn}
-                disabled={turningOn}
-                onClick={onTurnOn}
-            >
-                <FormattedMessage
-                    id='admin.health_dashboard.automatic_checks.turn_on'
-                    defaultMessage='Turn on'
-                />
-            </Button>
-        )}
     />
 );

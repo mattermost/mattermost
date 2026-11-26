@@ -7577,11 +7577,7 @@
   },
   "admin.health_dashboard.automatic_checks.on_error": {
     "defaultMessage": "Automatic checks could not be turned on, so they are still off. Try again.",
-    "description": "Error banner on the System Console Site health page when turning on automatic checks, from the switch or the banner's Turn on button, fails; the switch is turned back off."
-  },
-  "admin.health_dashboard.automatic_checks.turn_on": {
-    "defaultMessage": "Turn on",
-    "description": "Button in the \"Automatic checks are off\" banner on the System Console Site health page that turns automatic hourly health checks back on; only shown to system admins."
+    "description": "Error banner on the System Console Site health page when turning on the \"Automatic checks\" switch fails; the switch is turned back off."
   },
   "admin.health_dashboard.detail.details": {
     "defaultMessage": "Details",

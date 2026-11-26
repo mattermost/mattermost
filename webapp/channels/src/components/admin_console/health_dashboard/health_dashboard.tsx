@@ -503,10 +503,7 @@ const HealthDashboard = ({
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {automaticChecks === false && (
-                        <AutomaticChecksOffBanner
-                            onTurnOn={canWriteAutomaticChecks && !automaticChecksSetByEnv ? () => saveAutomaticChecks(true) : undefined}
-                            turningOn={savingAutomaticChecks}
-                        />
+                        <AutomaticChecksOffBanner/>
                     )}
                     {automaticChecksError && (
                         <AlertBanner

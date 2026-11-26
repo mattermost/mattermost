@@ -115,7 +115,6 @@ export default class SiteHealth {
 
     readonly automaticChecksSwitch: Switch;
     readonly automaticChecksOff: Locator;
-    readonly turnOnButton: Locator;
 
     readonly notEvaluated: Locator;
     readonly lastEvaluated: Locator;
@@ -139,7 +138,6 @@ export default class SiteHealth {
             'Automatic checks are off. Findings show the last run and may be out of date.',
             {exact: true},
         );
-        this.turnOnButton = container.getByRole('button', {name: 'Turn on', exact: true});
 
         this.notEvaluated = container.getByText('Not evaluated yet', {exact: true});
         this.lastEvaluated = container.getByText(/^Last evaluated /);

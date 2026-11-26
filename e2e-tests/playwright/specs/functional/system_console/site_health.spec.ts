@@ -738,7 +738,7 @@ async function getAutomaticChecks(adminClient: Client4) {
 
 /**
  * @objective Verify a system admin can turn automatic checks off, still run the checks on demand while they are
- * off, and turn them back on from the banner.
+ * off, and turn them back on.
  */
 test('turns automatic checks off and back on', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, ENTERPRISE_TIER);
@@ -762,7 +762,6 @@ test('turns automatic checks off and back on', {tag: '@system_console'}, async (
     // * Verify the server stores the setting and the page says automatic checks are off
     await expect.poll(() => getAutomaticChecks(adminClient)).toBe(false);
     await expect(siteHealth.automaticChecksOff).toBeVisible();
-    await expect(siteHealth.turnOnButton).toBeVisible();
 
     // # Reload the page
     await systemConsolePage.page.reload();
@@ -775,8 +774,8 @@ test('turns automatic checks off and back on', {tag: '@system_console'}, async (
     // # Run the checks on demand while automatic checks are off
     await siteHealth.runChecks();
 
-    // # Select Turn on in the banner
-    await siteHealth.turnOnButton.click();
+    // # Turn the Automatic checks switch back on
+    await siteHealth.automaticChecksSwitch.click();
 
     // * Verify the server stores the setting, the banner goes away and the switch is on
     await expect.poll(() => getAutomaticChecks(adminClient)).toBe(true);
@@ -786,7 +785,7 @@ test('turns automatic checks off and back on', {tag: '@system_console'}, async (
 
 /**
  * @objective Verify a System Manager, who can read Site Statistics but lacks manage_system, sees automatic checks
- * read-only: the switch is disabled and the banner has no Turn on action.
+ * read-only: the switch is disabled.
  */
 test('shows automatic checks read-only to a system manager', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
@@ -807,9 +806,8 @@ test('shows automatic checks read-only to a system manager', {tag: '@system_cons
     // # Open Site health
     await systemConsolePage.gotoSiteHealth();
 
-    // * Verify the banner shows without Turn on, and the switch can't be changed
+    // * Verify the banner shows and the switch can't be changed
     await expect(siteHealth.automaticChecksOff).toBeVisible();
-    await expect(siteHealth.turnOnButton).not.toBeVisible();
     await expect(siteHealth.automaticChecksSwitch.input).not.toBeChecked();
     await expect(siteHealth.automaticChecksSwitch.input).toBeDisabled();
 });
