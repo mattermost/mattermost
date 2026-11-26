@@ -345,7 +345,17 @@ def contradicted(fact: dict, base_ref: str, head_ref: str, show, endpoints=None)
     already shipped as added. ``endpoints(ref)`` gives the router's ``(path, handler, method)``
     routes at a ref, for checking API lines; without it they are not checked.
     """
-    if not base_ref or not head_ref or fact["kind"] not in ("config", "audit", "api"):
+    if not base_ref or not head_ref or fact["kind"] not in ("config", "config_default", "audit", "api"):
+        return None
+    if fact["kind"] == "config_default":
+        key = (fact["group"], fact["field"])
+        before = config_defaults(show(base_ref, CONFIG_PATH) or "").get(key)
+        after = config_defaults(show(head_ref, CONFIG_PATH) or "").get(key)
+        if before is None or after is None:
+            return None  # computed or missing: nothing to compare against
+        if (_plain(fact["old"]), _plain(fact["new"])) != (_plain(before), _plain(after)):
+            return (f"not what the release does: the default goes from {show_default(before)} to {show_default(after)}"
+                    if before != after else f"not what the release does: the default stays {show_default(after)}")
         return None
     if fact["kind"] == "api":
         if endpoints is None:
@@ -371,6 +381,11 @@ def contradicted(fact: dict, base_ref: str, head_ref: str, show, endpoints=None)
     if fact["verb"] == "Removed" and key in head:
         return "still on the release branch"
     return None
+
+
+def _plain(value: str) -> str:
+    """A default as a note or config.go writes it, compared without quotes or backticks."""
+    return (value or "").strip().strip("`").strip('"').lower()
 
 
 # ── Finding the PR that made a change ───────────────────────────────────────────────
@@ -635,13 +650,24 @@ def _config_order(fact: dict) -> tuple:
     return (fact["kind"] != "config", fact["group"], fact["field"])
 
 
+def _names_setting(fact: dict, line: str) -> bool:
+    """Whether ``line`` names the setting: ``Group.Field``, or the field with its group."""
+    if re.search(rf"\b{re.escape(fact['group'])}\.{re.escape(fact['field'])}\b", line):
+        return True
+    return bool(re.search(rf"\b{re.escape(fact['field'])}\b", line)) and fact["group"] in line
+
+
 def mentioned(fact: dict, text: str) -> bool:
     """Whether ``text`` (release notes, or an entry a reviewer edited) already states ``fact``."""
-    if fact["kind"] in ("config", "config_default"):
-        if re.search(rf"\b{re.escape(fact['group'])}\.{re.escape(fact['field'])}\b", text):
-            return True
-        return any(re.search(rf"\b{re.escape(fact['field'])}\b", line) and fact["group"] in line
+    if fact["kind"] == "config_default":
+        # Naming the setting isn't enough ("Set MaxUsersPerTeam to 25"): the line must say its
+        # default is now the new value ("made 0 the default", "now defaults to false").
+        new = re.escape(_plain(fact["new"].split(" (new installs)")[0]))
+        return any(_names_setting(fact, line) and re.search(r"(?i)\bdefault", line)
+                   and re.search(rf"(?i)(?<![\w.]){new}(?!\w|\.\w)", line.replace("`", "").replace('"', ""))
                    for line in text.splitlines())
+    if fact["kind"] == "config":
+        return any(_names_setting(fact, line) for line in text.splitlines())
     if fact["kind"] == "audit":
         return re.search(rf"\b{re.escape(fact['ident'])}\b", text) is not None
     if fact["kind"] == "api":

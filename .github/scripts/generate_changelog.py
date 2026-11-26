@@ -2654,6 +2654,13 @@ def _fact_row(fact: dict, detail: str = "") -> dict:
             "plan_basis": fact.get("plan_basis"), "placed": None, "detail": detail}
 
 
+def _fact_claim(fact: dict) -> tuple:
+    """What a fact says, for telling a note's checker line and the code's reading apart."""
+    values = tuple(changelog_facts._plain(fact.get(k) or "") for k in ("old", "new")) \
+        if fact["kind"] == "config_default" else ()
+    return (fact["kind"], fact["ident"], fact["verb"], *values)
+
+
 def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, head_ref: str,
                   entry_text: str | None = None, included: set | frozenset = frozenset(),
                   show=None, commits_for=None, plan_of=None, endpoints=None) -> tuple[list[dict], list[dict]]:
@@ -2691,10 +2698,13 @@ def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, he
     except RuntimeError as err:
         print(f"::warning title=Code not read for config, audit and minimum-version changes::{err}")
         code = []
-    known = {(fact["kind"], fact["ident"]) for fact in note_facts}
+    # Only a checker line the diff confirmed stands in for the code's fact, and only when it says
+    # the same thing (added or removed, and for a default the same values): a rejected line must
+    # not hide the real change.
+    known = {_fact_claim(fact) for fact in valid}
     missing = []
     for fact in code:
-        if (fact["kind"], fact["ident"]) in known:
+        if _fact_claim(fact) in known:
             continue
         if changelog_facts.mentioned(fact, developer_text):
             rows.append({**_fact_row({**fact, "basis": "code"}), "placed": "stated in a release note's text"})
@@ -2722,6 +2732,18 @@ def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, he
         place.append(fact)
     for fact in missing:
         fact["basis"] = "code"
+        earlier = sorted(key for key in included if fact["kind"] == "min_version"
+                         and key.startswith(f"min-version:{fact['ident']}@") and key != fact["source"])
+        if earlier:
+            # The entry already gives an earlier minimum for this product. A second bullet would give
+            # administrators two requirements, so a reviewer replaces the old one instead.
+            recorded = ", ".join(key.rsplit("@", 1)[1] for key in earlier)
+            rows.append(_fact_row(fact, f"not placed: the entry already gives {fact['ident']} {recorded}+, and the "
+                                        f"release branch now requires {fact['new']}+. Update that bullet, then replace "
+                                        f"`{earlier[0]}` with `{fact['source']}` in the changelog-sources comment"))
+            print(f"::warning title=Minimum version needs review::{fact['ident']}: the entry says {recorded}+, "
+                  f"the release branch now requires {fact['new']}+")
+            continue
         if fact["source"] in included:
             rows.append({**_fact_row(fact), "placed": "recorded earlier; not in the entry now (removed by a reviewer?)"
                          if entry_text is not None and not changelog_facts.mentioned(fact, entry_text) else "already in the entry"})

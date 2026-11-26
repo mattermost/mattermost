@@ -1642,6 +1642,31 @@ class PrepareFactsTest(unittest.TestCase):
         self.assertEqual([(row["ident"], row["placed"], row["basis"]) for row in rows],
                          [("TeamSettings.MaxUsersPerTeam", "stated in a release note's text", "code")])
 
+    def test_should_not_let_a_rejected_checker_line_hide_the_real_change(self):
+        import test_changelog_facts as fx
+        show = fx.repo({"a": fx.V12_1, "b": fx.V12_2})
+        _, wrong, _ = gc.changelog_facts.parse_checker_lines(
+            "Removed ``CacheSettings.RedisEnableTLS`` configuration setting.\n"
+            "Changed the default value of ``TeamSettings.MaxUsersPerTeam`` from ``50`` to ``100``.", "x#1")
+        place, rows = gc.prepare_facts(wrong, "", "a", "b", show=show, plan_of=lambda fact: ("All", "test"))
+        placed = {(fact["ident"], fact["verb"], fact["source"]) for fact in place}
+        self.assertIn(("CacheSettings.RedisEnableTLS", "Added", "config:CacheSettings.RedisEnableTLS@added"), placed)
+        self.assertIn(("TeamSettings.MaxUsersPerTeam", "Changed", "config-default:TeamSettings.MaxUsersPerTeam@0"), placed)
+        self.assertEqual(sorted(row["ident"] for row in rows if row["detail"].startswith("not placed")),
+                         ["CacheSettings.RedisEnableTLS", "TeamSettings.MaxUsersPerTeam"])
+
+    def test_should_not_add_a_second_minimum_for_a_product_already_given_one(self):
+        import test_changelog_facts as fx
+        show = fx.repo({"a": {**fx.V12_1, fx.cf.SERVER_I18N_PATH: fx.i18n("150", "150")},
+                        "b": {**fx.V12_2, fx.cf.SERVER_I18N_PATH: fx.i18n("157", "156")}})
+        place, rows = gc.prepare_facts([], "", "a", "b", entry_text="Updated minimum Chrome versions to 156+.",
+                                       included={"min-version:Chrome@156"}, show=show, plan_of=lambda fact: ("All", "t"))
+        self.assertNotIn("Chrome", [fact["ident"] for fact in place if fact["kind"] == "min_version"])
+        self.assertIn("Edge", [fact["ident"] for fact in place if fact["kind"] == "min_version"])
+        chrome = next(row for row in rows if row["ident"] == "Chrome")
+        self.assertIn("already gives Chrome 156+", chrome["detail"])
+        self.assertIn("now requires 157+", chrome["detail"])
+
     def test_should_not_place_an_endpoint_line_the_previous_router_already_had(self):
         import test_changelog_facts as fx
         line = "Added ``POST /api/v4/logs/query`` (``queryLogs``) API endpoint."

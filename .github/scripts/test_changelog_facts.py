@@ -261,6 +261,24 @@ class CodeFactsTest(unittest.TestCase):
         self.assertEqual({cf.contradicted(f, "v12.1.0", "origin/release-12.2", self.show) for f in audit}, {None})
 
 
+class DefaultClaimTest(unittest.TestCase):
+    def setUp(self):
+        self.show = repo({"v12.1.0": V12_1, "origin/release-12.2": V12_2})
+
+    def test_should_reject_a_default_change_the_release_does_not_make(self):
+        wrong = cf.default_fact("TeamSettings", "MaxUsersPerTeam", "50", "100", "x#1")
+        self.assertIn("goes from ``50`` to ``0``", cf.contradicted(wrong, "v12.1.0", "origin/release-12.2", self.show))
+        right = cf.default_fact("TeamSettings", "MaxUsersPerTeam", "``50``", "``0``", "x#1")
+        self.assertIsNone(cf.contradicted(right, "v12.1.0", "origin/release-12.2", self.show))
+
+    def test_should_count_a_default_change_as_stated_only_when_the_new_default_is_given(self):
+        fact = cf.default_fact("TeamSettings", "MaxUsersPerTeam", "50", "0", "code")
+        self.assertFalse(cf.mentioned(fact, "Set ``TeamSettings.MaxUsersPerTeam`` to 25 for this deployment."))
+        self.assertTrue(cf.mentioned(fact, "Allowed 0 for ``TeamSettings.MaxUsersPerTeam``, and made 0 the default."))
+        self.assertTrue(cf.mentioned(cf.default_fact("LogSettings", "EnableWebhookDebugging", "true", "false", "code"),
+                                     "``LogSettings.EnableWebhookDebugging`` now defaults to false."))
+
+
 class FindPrsTest(unittest.TestCase):
     def test_should_take_the_pr_from_the_commit_that_added_the_line(self):
         facts = [cf.audit_fact("Added", "AuditEventLocalAddPluginPublicKey", "audit:x"),
