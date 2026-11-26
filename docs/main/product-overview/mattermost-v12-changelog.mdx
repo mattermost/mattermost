@@ -34,13 +34,13 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
- - **Changes to Enterprise Plans:**
+ - **Changes to Enterprise and Enterprise Advanced plans:**
    - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting to specify the TLS CA certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientCert`` configuration setting to specify the TLS client certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientKey`` configuration setting to specify the TLS client key for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSSkipVerify`` configuration setting to skip TLS verification for Redis connections.
- - **Changes to All Plans:**
+ - **Changes to All plans:**
    - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
