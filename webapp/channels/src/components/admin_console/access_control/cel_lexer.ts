@@ -11,9 +11,11 @@ const LITERALS_AND_COMMENTS = new RegExp(LITERAL_OR_COMMENT, 'g');
 // The reference patterns can't run over the masked string because the bracket form
 // (`user.attributes["x"]`) names the attribute inside a literal. Instead, literals and
 // comments are leading alternatives, so a reference inside one is consumed as part of it
-// and produces no capture. Captures: 1 = dotted name, 2 = "quoted" name, 3 = 'quoted' name.
+// and produces no capture. The first defined capture is the name.
 const USER_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\s*\.\s*attributes(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
-const SESSION_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\s*\.\s*session(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
+
+// Also matches a presence test such as `"os_platform" in user.session`, ahead of the literal alternative.
+const SESSION_ATTRIBUTE_REFERENCE = new RegExp(String.raw`(?:"([^"\\\n\r]*)"|'([^'\\\n\r]*)')\s+in\s+user\s*\.\s*session(?!\s*[.[\w])|${LITERAL_OR_COMMENT}|user\s*\.\s*session(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
 
 // A single-segment `user.<name>` selector such as `user.email`; `attributes` and `session` are namespaces, not fields.
 const NATIVE_USER_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|(?<![\w.])user\s*(?:\.\s*(\w+)|\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
@@ -163,8 +165,8 @@ export function everyPathRequires(expr: string, isRequired: (condition: string) 
 
 function referencedNames(expr: string, pattern: RegExp): Set<string> {
     const names = new Set<string>();
-    for (const [, dotted, doubleQuoted, singleQuoted] of expr.matchAll(pattern)) {
-        const name = dotted ?? doubleQuoted ?? singleQuoted;
+    for (const [, ...captures] of expr.matchAll(pattern)) {
+        const name = captures.find((capture) => capture !== undefined);
         if (name !== undefined) {
             names.add(name);
         }

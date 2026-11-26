@@ -416,6 +416,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             ['several user-managed attributes', 'user.attributes.nickname == "boss" && user.attributes["color"] == "red"', `Nickname and Favorite color are user-managed attributes that users can change themselves. ${ADVICE}`],
             ['session and user-managed attributes', 'user.attributes.nickname == "boss" && user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${NICKNAME_SENTENCE} ${ADVICE}`],
             ['a session attribute OR-ed with an admin-managed attribute', 'user.session.network_name == "office" || user.attributes.department == "sales"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a session presence test OR-ed with an admin-managed attribute', '"network_name" in user.session || user.attributes.department == "sales"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
             ['a user-managed attribute OR-ed with a synced attribute', 'user.attributes.nickname == "boss" || user.attributes.teams == "eng"', `${NICKNAME_SENTENCE} ${ADVICE}`],
             ['a negated AND with a trusted side', '!(user.attributes.department == "sales" && user.session.network_name == "office")', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
             ['a ternary on a session attribute with a user-managed branch', 'user.session.network_name == "office" ? user.attributes.teams == "eng" : user.attributes.nickname == "boss"', `${NETWORK_NAME_SENTENCE} ${NICKNAME_SENTENCE} ${ADVICE}`],
