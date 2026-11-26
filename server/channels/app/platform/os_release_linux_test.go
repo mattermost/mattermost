@@ -191,6 +191,26 @@ func TestGetRunningInContainer(t *testing.T) {
 		})
 	}
 
+	t.Run("uninspectable marker without a positive cgroup result", func(t *testing.T) {
+		notADir := writeTempCgroupFile(t, dir, "not-a-dir", "")
+		setHostOSPaths(t, nil, []string{filepath.Join(notADir, ".dockerenv")})
+		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", hostCgroup)
+
+		result, err := getRunningInContainer("unknown")
+		require.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("uninspectable marker with a positive cgroup result", func(t *testing.T) {
+		notADir := writeTempCgroupFile(t, dir, "not-a-dir", "")
+		setHostOSPaths(t, nil, []string{filepath.Join(notADir, ".dockerenv")})
+		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", "0::/system.slice/docker-0123.scope\n")
+
+		result, err := getRunningInContainer("unknown")
+		require.NoError(t, err)
+		assert.Equal(t, new(true), result)
+	})
+
 	t.Run("unreadable cgroup file", func(t *testing.T) {
 		setHostOSPaths(t, nil, []string{missingMarker})
 		resourcePaths.procSelfCgroup = filepath.Join(dir, "missing-cgroup")

@@ -98,16 +98,27 @@ func getRunningInContainer(installationType string) (*bool, error) {
 	if installationType == "docker" {
 		return new(true), nil
 	}
+	var markerErr error
 	for _, path := range hostOSPaths.containerMarkers {
-		if _, err := os.Stat(path); err == nil {
+		_, err := os.Stat(path)
+		if err == nil {
 			return new(true), nil
+		}
+		if !errors.Is(err, os.ErrNotExist) && markerErr == nil {
+			markerErr = err
 		}
 	}
 	cgroup, err := readFile(resourcePaths.procSelfCgroup)
 	if err != nil {
 		return nil, err
 	}
-	return new(cgroupIndicatesContainer(cgroup)), nil
+	if cgroupIndicatesContainer(cgroup) {
+		return new(true), nil
+	}
+	if markerErr != nil {
+		return nil, markerErr
+	}
+	return new(false), nil
 }
 
 // cgroupIndicatesContainer reports whether any cgroup v1 or v2 path in /proc/self/cgroup was
