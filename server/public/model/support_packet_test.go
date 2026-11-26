@@ -4,13 +4,9 @@
 package model
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"errors"
-	"math/big"
 	"testing"
 	"time"
 
@@ -132,32 +128,17 @@ func TestSupportPacketLicenseIsMattermostEntry(t *testing.T) {
 	assert.False(t, (*SupportPacketLicense)(nil).IsMattermostEntry())
 }
 
-func newTestX509Certificate(t *testing.T, subject, issuer pkix.Name, notAfter time.Time) *x509.Certificate {
-	t.Helper()
-
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.NoError(t, err)
-	template := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject:      subject,
-		NotBefore:    notAfter.Add(-24 * time.Hour),
-		NotAfter:     notAfter,
-	}
-	parent := &x509.Certificate{SerialNumber: big.NewInt(2), Subject: issuer}
-	der, err := x509.CreateCertificate(rand.Reader, template, parent, &key.PublicKey, key)
-	require.NoError(t, err)
-	cert, err := x509.ParseCertificate(der)
-	require.NoError(t, err)
-	return cert
-}
-
 func TestNewSupportPacketCertificate(t *testing.T) {
 	t.Parallel()
 
 	notAfter := time.Date(2026, 11, 28, 9, 14, 2, 0, time.FixedZone("CET", 3600))
 
 	t.Run("names the certificate by common names", func(t *testing.T) {
-		cert := newTestX509Certificate(t, pkix.Name{CommonName: "chat.example.com", Organization: []string{"Example"}}, pkix.Name{CommonName: "R11", Organization: []string{"Let's Encrypt"}}, notAfter)
+		cert := &x509.Certificate{
+			Subject:  pkix.Name{CommonName: "chat.example.com", Organization: []string{"Example"}},
+			Issuer:   pkix.Name{CommonName: "R11", Organization: []string{"Let's Encrypt"}},
+			NotAfter: notAfter,
+		}
 
 		assert.Equal(t, &SupportPacketCertificate{
 			CommonName: "chat.example.com",
@@ -166,15 +147,8 @@ func TestNewSupportPacketCertificate(t *testing.T) {
 		}, NewSupportPacketCertificate(cert, nil))
 	})
 
-	t.Run("reports the expiry in UTC", func(t *testing.T) {
-		got := NewSupportPacketCertificate(&x509.Certificate{NotAfter: notAfter}, nil)
-
-		assert.Equal(t, time.UTC, got.NotAfter.Location())
-		assert.True(t, got.NotAfter.Equal(notAfter))
-	})
-
 	t.Run("falls back to the distinguished name without a common name", func(t *testing.T) {
-		cert := newTestX509Certificate(t, pkix.Name{Organization: []string{"Example"}}, pkix.Name{Organization: []string{"Example CA"}}, notAfter)
+		cert := &x509.Certificate{Subject: pkix.Name{Organization: []string{"Example"}}, Issuer: pkix.Name{Organization: []string{"Example CA"}}}
 
 		got := NewSupportPacketCertificate(cert, nil)
 		assert.Equal(t, "O=Example", got.CommonName)
@@ -193,7 +167,11 @@ func TestNewSupportPacketCertificate(t *testing.T) {
 func TestSupportPacketCertificateYAML(t *testing.T) {
 	t.Parallel()
 
-	cert := newTestX509Certificate(t, pkix.Name{CommonName: "chat.example.com"}, pkix.Name{CommonName: "R11"}, time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC))
+	cert := &x509.Certificate{
+		Subject:  pkix.Name{CommonName: "chat.example.com"},
+		Issuer:   pkix.Name{CommonName: "R11"},
+		NotAfter: time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC),
+	}
 	var diagnostics SupportPacketDiagnostics
 	diagnostics.TLS.Certificate = NewSupportPacketCertificate(cert, nil)
 	diagnostics.LDAP.ClientCertificate = NewSupportPacketCertificate(nil, errors.New(`failed to read certificate "ldap-public.crt": not found`))

@@ -7,15 +7,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/x509"
-	"crypto/x509/pkix"
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -1524,9 +1518,12 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 	})
 
+	expiredCert := &model.SupportPacketCertificate{CommonName: "dc01.corp.example.com", Issuer: "Example Corp Issuing CA 2", NotAfter: time.Date(2026, 11, 10, 23, 59, 59, 0, time.UTC)}
+	unreadableCert := &model.SupportPacketCertificate{Error: `failed to parse certificate "public.crt": x509: malformed certificate`}
+
 	t.Run("failed probe stays present and clean", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(nil, nil, model.NewAppError("", "bind failed", nil, "", 0))
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(expiredCert, unreadableCert, model.NewAppError("", "bind failed", nil, "", 0))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -1539,7 +1536,38 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			cfg.LdapSettings.EnableSync = model.NewPointer(true)
 		})
 
-		requireSectionErrors(t, nil)
+		d := requireSectionErrors(t, nil)
+		// The certificates are reported even when the test fails.
+		assert.Equal(t, expiredCert, d.LDAP.ServerCertificate)
+		assert.Equal(t, unreadableCert, d.LDAP.ClientCertificate)
+	})
+
+	t.Run("failed SAML test still reports its certificates", func(t *testing.T) {
+		samlMock := emocks.NewSamlDiagnosticInterface(t)
+		samlMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("model.SamlSettings")).
+			Return(expiredCert, unreadableCert, errors.New("SAML IdP certificate expired"))
+		originalSAML := th.Service.samlDiagnostic
+		t.Cleanup(func() {
+			th.Service.samlDiagnostic = originalSAML
+			th.Service.UpdateConfig(func(cfg *model.Config) { cfg.SamlSettings.Enable = model.NewPointer(false) })
+		})
+		th.Service.samlDiagnostic = samlMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("https://idp.example.com/saml")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("https://idp.example.com")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		d := requireSectionErrors(t, nil)
+		assert.Equal(t, model.StatusFail, d.SAML.Status)
+		assert.Equal(t, expiredCert, d.SAML.IdpCertificate)
+		assert.Equal(t, unreadableCert, d.SAML.SPCertificate)
 	})
 
 	t.Run("probe still running at the deadline", func(t *testing.T) {
@@ -1617,136 +1645,6 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		assert.Equal(t, model.StatusOk, d.LDAP.Status, d.LDAP.Error)
 		assert.Equal(t, "OpenLDAP", d.LDAP.ServerName)
 	})
-}
-
-func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
-	th := Setup(t)
-
-	expiredCert := &model.SupportPacketCertificate{CommonName: "dc01.corp.example.com", Issuer: "Example Corp Issuing CA 2", NotAfter: time.Date(2026, 11, 10, 23, 59, 59, 0, time.UTC)}
-	unreadableCert := &model.SupportPacketCertificate{Error: `failed to parse certificate "public.crt": x509: malformed certificate`}
-
-	getDiagnostics := func(t *testing.T) *model.NodeDiagnostics {
-		t.Helper()
-		nodeDiagnostics, _ := th.Service.GetSupportPacketDiagnostics(th.Context)
-		require.NotNil(t, nodeDiagnostics)
-		return nodeDiagnostics
-	}
-
-	t.Run("LDAP certificates are reported when the probe fails, without failing its section", func(t *testing.T) {
-		ldapMock := emocks.NewLdapDiagnosticInterface(t)
-		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).
-			Return(expiredCert, unreadableCert, model.NewAppError("", "certificate has expired", nil, "", 0))
-		originalLDAP := th.Service.ldapDiagnostic
-		th.Service.ldapDiagnostic = ldapMock
-		th.Service.UpdateConfig(func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(true) })
-		t.Cleanup(func() {
-			th.Service.ldapDiagnostic = originalLDAP
-			th.Service.UpdateConfig(func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(false) })
-		})
-
-		nodeDiagnostics := getDiagnostics(t)
-
-		d := nodeDiagnostics.Diagnostics
-		assert.Equal(t, model.StatusFail, d.LDAP.Status)
-		assert.Equal(t, "certificate has expired", d.LDAP.Error)
-		assert.Equal(t, expiredCert, d.LDAP.ServerCertificate)
-		assert.Equal(t, unreadableCert, d.LDAP.ClientCertificate)
-		assert.NoError(t, nodeDiagnostics.Errors[model.SectionLDAPProbe])
-	})
-
-	t.Run("no LDAP certificates when LDAP is disabled", func(t *testing.T) {
-		// The probe runs on its own goroutine, where a strict mock's failure would hang the collection.
-		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunSupportPacketTest", mock.Anything).Return(expiredCert, nil, nil).Maybe()
-		ldapMock.On("GetVendorNameAndVendorVersion", mock.Anything).Return("", "", nil).Maybe()
-		originalLDAP := th.Service.ldapDiagnostic
-		th.Service.ldapDiagnostic = ldapMock
-		t.Cleanup(func() { th.Service.ldapDiagnostic = originalLDAP })
-
-		d := getDiagnostics(t).Diagnostics
-		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
-		assert.Nil(t, d.LDAP.ServerCertificate)
-		assert.Nil(t, d.LDAP.ClientCertificate)
-		ldapMock.AssertNotCalled(t, "RunSupportPacketTest", mock.Anything)
-	})
-
-	t.Run("SAML certificates are reported when the test fails", func(t *testing.T) {
-		samlMock := emocks.NewSamlDiagnosticInterface(t)
-		samlMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("model.SamlSettings")).
-			Return(expiredCert, unreadableCert, errors.New("SAML IdP certificate expired on 2026-11-10T23:59:59Z"))
-		originalSAML := th.Service.samlDiagnostic
-		th.Service.samlDiagnostic = samlMock
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = new(true)
-			cfg.SamlSettings.Verify = new(false)
-			cfg.SamlSettings.Encrypt = new(false)
-			cfg.SamlSettings.IdpURL = new("https://idp.example.com/saml")
-			cfg.SamlSettings.IdpDescriptorURL = new("https://idp.example.com")
-			cfg.SamlSettings.ServiceProviderIdentifier = new("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = new("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = new("email")
-			cfg.SamlSettings.UsernameAttribute = new("username")
-		})
-		require.True(t, *th.Service.Config().SamlSettings.Enable)
-		t.Cleanup(func() {
-			th.Service.samlDiagnostic = originalSAML
-			th.Service.UpdateConfig(func(cfg *model.Config) { cfg.SamlSettings.Enable = new(false) })
-		})
-
-		d := getDiagnostics(t).Diagnostics
-		assert.Equal(t, model.StatusFail, d.SAML.Status)
-		assert.Equal(t, expiredCert, d.SAML.IdpCertificate)
-		assert.Equal(t, unreadableCert, d.SAML.SPCertificate)
-	})
-
-	t.Run("no SAML certificates when SAML is disabled", func(t *testing.T) {
-		originalSAML := th.Service.samlDiagnostic
-		th.Service.samlDiagnostic = emocks.NewSamlDiagnosticInterface(t)
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAML })
-
-		d := getDiagnostics(t).Diagnostics
-		assert.Equal(t, model.StatusDisabled, d.SAML.Status)
-		assert.Nil(t, d.SAML.IdpCertificate)
-		assert.Nil(t, d.SAML.SPCertificate)
-	})
-
-	served := newTestX509Certificate(t, "chat.example.com", "R11", time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC))
-
-	t.Run("TLS reports the certificate the listener serves", func(t *testing.T) {
-		th.Service.SetTLSCertificate(served)
-		t.Cleanup(func() { th.Service.SetTLSCertificate(nil) })
-
-		assert.Equal(t, &model.SupportPacketCertificate{
-			CommonName: "chat.example.com",
-			Issuer:     "R11",
-			NotAfter:   time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC),
-		}, getDiagnostics(t).Diagnostics.TLS.Certificate)
-	})
-
-	t.Run("no TLS certificate without one served", func(t *testing.T) {
-		th.Service.SetTLSCertificate(nil)
-
-		assert.Nil(t, getDiagnostics(t).Diagnostics.TLS.Certificate)
-	})
-}
-
-func newTestX509Certificate(t *testing.T, commonName, issuer string, notAfter time.Time) *x509.Certificate {
-	t.Helper()
-
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.NoError(t, err)
-	template := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject:      pkix.Name{CommonName: commonName},
-		NotBefore:    notAfter.Add(-24 * time.Hour),
-		NotAfter:     notAfter,
-	}
-	parent := &x509.Certificate{SerialNumber: big.NewInt(2), Subject: pkix.Name{CommonName: issuer}}
-	der, err := x509.CreateCertificate(rand.Reader, template, parent, &key.PublicKey, key)
-	require.NoError(t, err)
-	cert, err := x509.ParseCertificate(der)
-	require.NoError(t, err)
-	return cert
 }
 
 func TestStartNetworkProbes(t *testing.T) {

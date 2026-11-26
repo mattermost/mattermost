@@ -6,8 +6,6 @@ package app
 import (
 	"bufio"
 	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -147,13 +145,13 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 func TestStartServerTLSSuccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	testDir, _ := fileutils.FindDir("tests")
-	certFile := path.Join(testDir, "tls_test_cert.pem")
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		testDir, _ := fileutils.FindDir("tests")
+
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = certFile
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
 	require.NoError(t, err)
 
@@ -167,15 +165,13 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 	require.NoError(t, err)
 
-	certPEM, err := os.ReadFile(certFile)
-	require.NoError(t, err)
-	block, _ := pem.Decode(certPEM)
-	require.NotNil(t, block)
-	served, err := x509.ParseCertificate(block.Bytes)
-	require.NoError(t, err)
 	nodeDiagnostics, _ := s.platform.GetSupportPacketDiagnostics(request.TestContext(t))
 	require.NotNil(t, nodeDiagnostics)
-	assert.Equal(t, model.NewSupportPacketCertificate(served, nil), nodeDiagnostics.Diagnostics.TLS.Certificate)
+	assert.Equal(t, &model.SupportPacketCertificate{
+		CommonName: "O=Default Company Ltd,L=Default City,C=XX",
+		Issuer:     "O=Default Company Ltd,L=Default City,C=XX",
+		NotAfter:   time.Date(2019, time.October, 6, 20, 3, 45, 0, time.UTC),
+	}, nodeDiagnostics.Diagnostics.TLS.Certificate)
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
