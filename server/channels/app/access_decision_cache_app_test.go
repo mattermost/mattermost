@@ -311,6 +311,90 @@ func TestAccessDecisionCachePeerInvalidationEvictsMembershipRoles(t *testing.T) 
 	}
 }
 
+// A peer's subject eviction is a separate best-effort message, so its decision invalidation can
+// arrive first. The invalidation also drops this node's cached subjects for the users it names;
+// otherwise the next check would rebuild the decision from the old attributes and cache it under
+// the new versions.
+func TestAccessDecisionCachePeerInvalidationEvictsUserAttributes(t *testing.T) {
+	cases := []struct {
+		name    string
+		inv     func(userID string) accessDecisionInvalidation
+		evicted bool
+	}{
+		{"the user is invalidated", func(userID string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Users: []string{userID}}
+		}, true},
+		{"everything is invalidated", func(string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Global: true}
+		}, true},
+		{"another user is invalidated", func(string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Users: []string{model.NewId()}}
+		}, false},
+		{"a channel is invalidated", func(string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Resources: []string{model.NewId()}}
+		}, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := setupAccessDecisionCacheTest(t)
+			requests := capturesRequests(h.acs, true)
+			userID := h.th.BasicUser.Id
+
+			group, appErr := h.th.App.GetPropertyGroup(h.th.Context, model.AccessControlPropertyGroupName)
+			require.Nil(t, appErr)
+			field, appErr := h.th.App.CreatePropertyField(h.th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "department_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+			}, false, "")
+			require.Nil(t, appErr)
+			value := func(department string) *model.PropertyValue {
+				return &model.PropertyValue{
+					GroupID:    group.ID,
+					FieldID:    field.ID,
+					TargetType: model.PropertyFieldObjectTypeUser,
+					TargetID:   userID,
+					Value:      json.RawMessage(`"` + department + `"`),
+				}
+			}
+			_, appErr = h.th.App.CreatePropertyValue(h.th.Context, value("Sales"))
+			require.Nil(t, appErr)
+
+			cachedDepartment := func() any {
+				t.Helper()
+				subject, err := h.th.App.Srv().Store().Attributes().GetSubject(h.th.Context, userID, group.ID, model.PropertyFieldObjectTypeUser)
+				require.NoError(t, err)
+				return subject.Attributes[field.Name]
+			}
+			require.True(t, h.check(t))
+			require.Len(t, *requests, 1)
+			require.Equal(t, "Sales", (*requests)[0].Subject.Attributes[field.Name])
+			require.Equal(t, "Sales", cachedDepartment())
+
+			// The peer's write reaches the database, but not its eviction of this node's subject.
+			_, err := h.th.GetSqlStore().PropertyValue().Upsert([]*model.PropertyValue{value("Engineering")})
+			require.NoError(t, err)
+			require.NoError(t, h.th.GetSqlStore().Attributes().RefreshAttributes())
+			require.Equal(t, "Sales", cachedDepartment(), "the old subject is still cached")
+
+			data, err := json.Marshal(tc.inv(userID))
+			require.NoError(t, err)
+			h.th.App.Srv().Channels().clusterInvalidateAccessDecisionsHandler(&model.ClusterMessage{Data: data})
+
+			if !tc.evicted {
+				assert.Equal(t, "Sales", cachedDepartment())
+				return
+			}
+			require.True(t, h.check(t))
+			require.Len(t, *requests, 2, "the decision is asked again")
+			assert.Equal(t, "Engineering", (*requests)[1].Subject.Attributes[field.Name], "from the new attributes")
+		})
+	}
+}
+
 func TestAccessDecisionCacheUnrelatedChangesKeepEntries(t *testing.T) {
 	h := setupAccessDecisionCacheTest(t)
 	decides(h.acs, true)

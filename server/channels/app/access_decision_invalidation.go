@@ -107,7 +107,31 @@ func (ch *Channels) clusterInvalidateAccessDecisionsHandler(msg *model.ClusterMe
 		inv = accessDecisionInvalidation{Global: true, PurgeRoles: true}
 	}
 	ch.evictMembershipRoles(&inv)
+	ch.evictUserAttributes(&inv)
 	ch.applyAccessDecisionInvalidation(&inv)
+}
+
+// evictUserAttributes drops this node's cached subjects of the users a peer invalidated, before
+// their decisions are. The peer's own subject eviction is a separate best-effort message, so it
+// can arrive after this one; the next check would then rebuild the decision from the old
+// attributes and cache it under the new versions. A user or global invalidation sent for any
+// other reason costs one extra subject read per affected user.
+func (ch *Channels) evictUserAttributes(inv *accessDecisionInvalidation) {
+	if !inv.Global && len(inv.Users) == 0 {
+		return
+	}
+	subjects, ok := ch.srv.Store().(interface {
+		RemoveUserAttributesLocal([]string)
+		PurgeUserAttributesLocal()
+	})
+	if !ok {
+		return
+	}
+	if inv.Global {
+		subjects.PurgeUserAttributesLocal()
+		return
+	}
+	subjects.RemoveUserAttributesLocal(inv.Users)
 }
 
 // evictMembershipRoles drops this node's cached channel member roles that a peer's membership
