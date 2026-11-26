@@ -49,10 +49,13 @@ type SupportPacketDiagnostics struct {
 
 	Server struct {
 		// Machine
-		OS               string  `yaml:"os"`
-		Architecture     string  `yaml:"architecture"`
-		Hostname         *string `yaml:"hostname,omitempty"`
-		InstallationType string  `yaml:"installation_type"`
+		OS                 string                  `yaml:"os"`
+		Architecture       string                  `yaml:"architecture"`
+		OSRelease          *SupportPacketOSRelease `yaml:"os_release,omitempty"`
+		KernelRelease      *string                 `yaml:"kernel_release,omitempty"`
+		RunningInContainer *bool                   `yaml:"running_in_container,omitempty"`
+		Hostname           *string                 `yaml:"hostname,omitempty"`
+		InstallationType   string                  `yaml:"installation_type"`
 
 		// Capacity
 		CPUCores                     int      `yaml:"cpu_cores"`
@@ -185,6 +188,15 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"elastic"`
 
 	OAuthProviders OAuthProviders `yaml:"oauth_providers,omitempty"`
+}
+
+// SupportPacketOSRelease holds the identifying fields of os-release(5). Fields other than ID are empty
+// when the file doesn't set them.
+type SupportPacketOSRelease struct {
+	ID         string `yaml:"id"`
+	VersionID  string `yaml:"version_id,omitempty"`
+	PlatformID string `yaml:"platform_id,omitempty"`
+	PrettyName string `yaml:"pretty_name,omitempty"`
 }
 
 // OAuthProviderStatus reports the connectivity status of a single OAuth2/OpenID Connect provider.

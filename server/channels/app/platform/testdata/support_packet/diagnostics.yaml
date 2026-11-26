@@ -13,6 +13,13 @@ server:
   # Machine
   os: linux
   architecture: amd64
+  os_release: # from /etc/os-release; describes the container image when running_in_container is true; Linux only
+    id: rhel
+    version_id: "8.10" # RHEL includes the minor version, Debian only the major; omitted on rolling releases
+    platform_id: platform:el8 # RHEL and Fedora family only; platform:el8 matches RHEL 8 and its clones
+    pretty_name: Red Hat Enterprise Linux 8.10 (Ootpa)
+  kernel_release: 4.18.0-553.el8_10.x86_64 # uname -r; the host's kernel, also inside a container; Linux only
+  running_in_container: true # from MM_INSTALL_TYPE, /.dockerenv, /run/.containerenv or cgroup paths; Linux only
   hostname: mm-host
   installation_type: docker
   # Capacity (hardware → effective quota)

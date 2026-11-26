@@ -1953,6 +1953,14 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.License.Features = &model.Features{IDLoadedPushNotifications: new(true), LDAP: new(false)}
 	diagnostics.Server.OS = "linux"
 	diagnostics.Server.Architecture = "amd64"
+	diagnostics.Server.OSRelease = &model.SupportPacketOSRelease{
+		ID:         "rhel",
+		VersionID:  "8.10",
+		PlatformID: "platform:el8",
+		PrettyName: "Red Hat Enterprise Linux 8.10 (Ootpa)",
+	}
+	diagnostics.Server.KernelRelease = new("4.18.0-553.el8_10.x86_64")
+	diagnostics.Server.RunningInContainer = new(true)
 	diagnostics.Server.Hostname = new("mm-host")
 	diagnostics.Server.InstallationType = "docker"
 	diagnostics.Server.CPUCores = 8
