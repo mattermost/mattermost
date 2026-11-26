@@ -253,6 +253,9 @@ func TestGetSupportPacketDiagnosticsOSRelease(t *testing.T) {
 	t.Run("failed container detection fails the server host section", func(t *testing.T) {
 		originalPaths := resourcePaths
 		t.Cleanup(func() { resourcePaths = originalPaths })
+		originalInstallType := th.Service.installTypeOverride
+		t.Cleanup(func() { th.Service.installTypeOverride = originalInstallType })
+		th.Service.installTypeOverride = "tar"
 		dir := t.TempDir()
 		setHostOSPaths(t, hostOSPaths.osRelease, []string{filepath.Join(dir, "missing-dockerenv")})
 		resourcePaths.procSelfCgroup = filepath.Join(dir, "missing-cgroup")
