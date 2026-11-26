@@ -856,11 +856,12 @@ function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, ha
         onClick();
     });
 
-    const indicator = renderIndicator(mentions, hasUrgent, unread);
+    // The item the user is in shows its unreads in its own sidebar, so it marks none here.
+    const indicator = active ? null : renderIndicator(mentions, hasUrgent, unread);
 
     const className = classNames('ProductRail__item', {
         'ProductRail__item--active': active,
-        'ProductRail__item--unread': unread || mentions > 0,
+        'ProductRail__item--unread': !active && (unread || mentions > 0),
     });
     const content = (
         <>
