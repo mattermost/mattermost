@@ -12,7 +12,8 @@
 //   {"webapp": {"<key>": {"english": "...", "suggested": {...}}}, "server": {...}}
 //
 // suggested is offered for a key whose English is identical to a key en.json
-// had at a baseline and no longer has: probably a rename. Reusing that
+// had at a baseline and no longer has: probably a rename. A single word, such as
+// "Cancel", is too common to say so, and gets no suggestion. Reusing that
 // description lets plan_translations.mjs carry the translation over with no
 // translator involved, so use it unless the string has moved somewhere it no
 // longer fits.
@@ -59,7 +60,8 @@ for (const surface of Object.keys(SURFACES)) {
     }
 
     for (const [k, {english}] of empty) {
-        const candidates = dropped.get(stableText(english)) || [];
+        const id = stableText(english);
+        const candidates = id.trim().split(/\s+/).length > 1 ? dropped.get(id) || [] : [];
         const descriptions = new Set(candidates.map((c) => c.description));
         out[surface][k] = descriptions.size === 1 ? {english, suggested: candidates[0]} : {english};
         total++;

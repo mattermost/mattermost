@@ -49,9 +49,10 @@ the English is multiplied by the number of locales. Three things come first.
      once there is a question nobody re-derives.
 
    A listed key may carry a `suggested` description: that of a key `en.json`
-   dropped with identical English, probably the same string renamed. Reuse it
-   unless the string has moved somewhere it no longer fits. An unchanged
-   description lets the plan carry the translation across with no translator.
+   dropped with identical English of more than one word, probably the same
+   string renamed. Reuse it unless the string has moved somewhere it no longer
+   fits. An unchanged description lets the plan carry the translation across
+   with no translator.
 
    Where to write it: on the webapp, in the message descriptor in source, which
    wins, or in `en.json`, which `npm run i18n-extract` keeps. On the server, in

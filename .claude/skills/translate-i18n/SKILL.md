@@ -127,23 +127,30 @@ The pass has two halves:
    each can hold: one slice in a normal month, a few in a large catch-up. Start
    one `i18n-glossary` subagent per slice to propose the product terms its
    strings introduce, each with a definition and part of speech, following the
-   candidate pass in `i18n/AGENTS.md`. Then one more merges their proposals,
-   drops duplicates and terms already in the glossary, and appends the rest to
-   `i18n/glossary/en.json`.
-2. **Each locale's target.** One `i18n-glossary` subagent per locale, as for
-   translating, writes every new term to its locale's file, with this brief:
+   candidate pass in `i18n/AGENTS.md`, and keeping any scratch file in
+   `$RUN/scratch/terms-<slice>/`. Merge their proposals yourself: drop
+   duplicates and terms already in the glossary, give a plural its singular's
+   entry as an alias, and append the rest to `i18n/glossary/en.json`.
+2. **Each locale's target.** `i18n-glossary` subagents write every new term to
+   each locale's file: one locale per agent when the run adds ten terms or
+   more, and three or four locales per agent when it adds fewer, since
+   finding its way around the catalogs costs an agent more than a handful of
+   terms do. Give each this brief:
 
    > Read `i18n/AGENTS.md`, section "Glossary candidates". For each term
-   > `<new terms>` in `i18n/glossary/en.json`, choose `<locale>`'s target. A
-   > `doNotTranslate` term's target is the term itself. For any other, search
+   > `<new terms>` in `i18n/glossary/en.json`, choose the target in each of
+   > `<locales>`, one locale at a time. A `doNotTranslate` term's target is
+   > the term itself. For any other, search
    > `webapp/channels/src/i18n/<locale>.json` and `server/i18n/<locale>.json`
    > for how the product already renders the term or its parts, and follow
    > that. Append every new term to `i18n/glossary/<locale>.json` in the order
    > `en.json` lists them, each with its `target`, and a `note` where the
-   > choice needs explaining. Change no other file.
+   > choice needs explaining. Keep any scratch file in
+   > `$RUN/scratch/glossary-<locale>/`. Change no other file.
 
    `check_glossary.mjs` requires each locale's file to list the terms in
-   `en.json`'s order, so one agent writes them all, in that order.
+   `en.json`'s order, so one agent writes all of a locale's terms, in that
+   order.
 
 A run adds terms and never edits existing ones. Check the files with
 `node i18n/scripts/check_glossary.mjs`, commit the additions on their own
@@ -207,7 +214,8 @@ Give each this brief:
 > names, under `$RUN`, in the shape `i18n/AGENTS.md` describes, and check it
 > with `node i18n/scripts/validate_locale.mjs $RUN <that file>` until it
 > reports no errors. Leave out any item you cannot get right, rather than
-> answer it wrongly. Change no other file.
+> answer it wrongly. Keep any scratch file in `$RUN/scratch/<locale>-<slice>/`.
+> Change no other file.
 
 Then, for each locale:
 

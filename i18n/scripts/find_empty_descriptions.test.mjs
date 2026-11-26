@@ -51,11 +51,12 @@ describe('find_empty_descriptions.mjs', () => {
         assert.deepEqual(found(), {webapp: {}, server: {}});
     });
 
-    test('suggests the description of a key with the same English that en.json dropped since the baseline', () => {
+    test('suggests the description of a key with the same English, of more than one word, that en.json dropped since the baseline', () => {
         const git = (...args) => execFileSync('git', args, {cwd: root, encoding: 'utf8'}).trim();
         git('init', '-q');
         fs.writeFileSync(webapp(), json({
             'app.old': {defaultMessage: 'Remove member', description: 'Button that removes a member from the channel'},
+            'billing.cancel': {defaultMessage: 'Cancel', description: 'Button that discards the billing form'},
             'app.title': {defaultMessage: 'Channel settings', description: 'Title of the channel settings modal'},
         }));
         git('add', '-A');
@@ -65,6 +66,7 @@ describe('find_empty_descriptions.mjs', () => {
         fs.writeFileSync(path.join(root, 'i18n/baseline.json'), json({webapp: {de: A}, server: {de: A}}));
         fs.writeFileSync(webapp(), json({
             'app.remove_member': {defaultMessage: 'Remove member', description: ''},
+            'policy.cancel': {defaultMessage: 'Cancel', description: ''},
             'app.title': {defaultMessage: 'Channel settings', description: 'Title of the channel settings modal'},
         }));
 
@@ -72,6 +74,7 @@ describe('find_empty_descriptions.mjs', () => {
         assert.equal(r.status, 0, r.stderr);
         assert.deepEqual(found().webapp, {
             'app.remove_member': {english: 'Remove member', suggested: {description: 'Button that removes a member from the channel', from: 'app.old'}},
+            'policy.cancel': {english: 'Cancel'},
         });
     });
 });

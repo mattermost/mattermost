@@ -15,6 +15,8 @@ a product vocabulary decision: propose only what names a product concept, and
 choose a target from how the locale's catalog already renders the term or its
 parts.
 
-Change only the files the message names. When you edit the glossary, check it
-with `node i18n/scripts/check_glossary.mjs` from the repository root before you
-finish.
+Change only the files the message names. Other agents run beside you, so keep
+any scratch file, such as a search script, in the directory the message names
+for it, never in a shared scratchpad or temporary directory. When you edit the
+glossary, check it with `node i18n/scripts/check_glossary.mjs` from the
+repository root before you finish.
