@@ -56,17 +56,19 @@ func (s *Snapshot) Nodes() []*NodeSnapshot {
 //   - a node that did not reply may be listed under its cluster discovery hostname, often an IP
 //     address, rather than the hostname it reports itself;
 //   - a node without a hostname could be any of them;
-//   - with clustering on, a node without cluster info is the local node standing in for a
-//     cluster that could not be listed.
+//   - with clustering on and licensed, a node without cluster info is the local node standing in
+//     for a cluster that could not be listed. Without the license the cluster never starts.
 func (s *Snapshot) Hostnames() []string {
 	clusterEnabled, _ := s.ClusterEnabled()
+	clusterLicensed, licenseKnown := s.LicenseAllows(FeatureCluster)
+	clustered := clusterEnabled && (clusterLicensed || !licenseKnown)
 	nodes := s.Nodes()
 	hostnames := make([]string, 0, len(nodes))
 	for _, node := range nodes {
 		if node == nil {
 			continue
 		}
-		if node.CollectErr != nil || node.Hostname == "" || (clusterEnabled && node.ClusterInfo == nil) {
+		if node.CollectErr != nil || node.Hostname == "" || (clustered && node.ClusterInfo == nil) {
 			return nil
 		}
 		hostnames = append(hostnames, node.Hostname)

@@ -178,7 +178,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition
 			continue
 		}
 		// Unknown would claim the check failed, and a plain resolve that a problem was fixed, when
-		// the node is simply gone. The row and its mute stay until retention removes them.
+		// the node is simply gone. The row and its mute stay until retention removes them. An empty
+		// node set means it is unknown, never that every node left, so the length is checked.
 		if len(current) > 0 && finding.Scope != "" && !current[finding.Scope] {
 			if finding.State != string(StateResolved) {
 				left := nodeLeftFinding(finding, nowUnixMilli)

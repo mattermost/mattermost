@@ -229,6 +229,26 @@ func TestBuild(t *testing.T) {
 		assert.Empty(t, muted.Findings[1].Remediation)
 	})
 
+	t.Run("a finding whose node left keeps its message and details but not the raw reason", func(t *testing.T) {
+		left := finding("NODE_CONTAINER_OOM_KILLS", "warning", "resolved", model.AreaPlatform, "A container process was killed for running out of memory")
+		left.Scope = "mattermost-7d9f8c6b5-x2k4q"
+		left.Message = "No running server reports this hostname any more, for example because the server was renamed, replaced or removed."
+		left.Details = map[string]string{"kills": "3", model.HealthFindingDetailResolvedReason: model.HealthFindingResolvedReasonNodeLeft}
+
+		r := Build(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: []*model.HealthFinding{left}}, testOptions())
+		require.Len(t, r.Sections, 1)
+		assert.Equal(t, SectionResolved, r.Sections[0].Kind)
+		got := r.Sections[0].Findings[0]
+		assert.Equal(t, left.Message, got.Message)
+		assert.Equal(t, []Field{{Label: "kills", Value: "3"}}, got.Details)
+
+		var html, markdown bytes.Buffer
+		require.NoError(t, r.WriteHTML(&html))
+		require.NoError(t, r.WriteMarkdown(&markdown))
+		assert.NotContains(t, html.String(), model.HealthFindingDetailResolvedReason)
+		assert.NotContains(t, markdown.String(), model.HealthFindingDetailResolvedReason)
+	})
+
 	t.Run("a nil Location shows times in UTC", func(t *testing.T) {
 		opts := testOptions()
 		opts.Location = nil

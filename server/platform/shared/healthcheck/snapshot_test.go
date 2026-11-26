@@ -188,6 +188,17 @@ func TestSnapshotHostnames(t *testing.T) {
 			config: clusterConfig(true),
 			nodes:  []*NodeSnapshot{{Hostname: "app-1", Diagnostics: replied}},
 		},
+		{
+			name:   "clustering on and licensed but the cluster could not be listed",
+			config: clusterConfig(true),
+			nodes:  []*NodeSnapshot{{Hostname: "app-1", IsLeader: true, Diagnostics: licensedDiagnostics(true)}},
+		},
+		{
+			name:     "clustering on without a Cluster license, so the cluster never starts",
+			config:   clusterConfig(true),
+			nodes:    []*NodeSnapshot{{Hostname: "mm.example.com", IsLeader: true, Diagnostics: licensedDiagnostics(false)}},
+			expected: []string{"mm.example.com"},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -202,4 +213,10 @@ func TestSnapshotHostnames(t *testing.T) {
 	}
 
 	require.Empty(t, (*Snapshot)(nil).Hostnames())
+}
+
+func licensedDiagnostics(cluster bool) *model.NodeDiagnostics {
+	return &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{
+		License: model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuProfessional, Features: &model.Features{Cluster: model.NewPointer(cluster)}},
+	}}
 }
