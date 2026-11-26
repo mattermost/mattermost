@@ -182,3 +182,5 @@ The report includes resolved and muted findings. Without `--output`, it goes to 
 ```sh
 mmctl health export md --packet mm_support_packet.zip
 ```
+
+From Mattermost v12.3, the export endpoint (`GET /api/v4/health/findings/export`) is also available over local mode. Times in reports generated over local mode are shown in UTC, because no user session is present to supply a timezone.
