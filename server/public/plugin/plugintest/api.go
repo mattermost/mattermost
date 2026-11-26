@@ -1499,6 +1499,26 @@ func (_m *API) ExtendSessionExpiry(sessionID string, newExpiry int64) *model.App
 	return r0
 }
 
+// GetAccessControlCapabilities provides a mock function with no fields
+func (_m *API) GetAccessControlCapabilities() *model.PluginAccessControlCapabilities {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccessControlCapabilities")
+	}
+
+	var r0 *model.PluginAccessControlCapabilities
+	if rf, ok := ret.Get(0).(func() *model.PluginAccessControlCapabilities); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PluginAccessControlCapabilities)
+		}
+	}
+
+	return r0
+}
+
 // GetAccessControlFieldsAutocomplete provides a mock function with given fields: actingUserID, after, limit
 func (_m *API) GetAccessControlFieldsAutocomplete(actingUserID string, after string, limit int) ([]*model.PropertyField, *model.AppError) {
 	ret := _m.Called(actingUserID, after, limit)

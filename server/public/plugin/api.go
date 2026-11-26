@@ -1980,6 +1980,20 @@ type API interface {
 	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
 
+	// GetAccessControlCapabilities reports what the calling plugin may
+	// currently do with its access control policy types. PoliciesAvailable
+	// means it may save, read, delete, and evaluate policies;
+	// ConditionsAvailable means those policies may also use attribute
+	// conditions rather than only people-list rules ("true" or
+	// user.id in [...]). Both are false when the plugin may not use access
+	// control policies at all. The answer depends on the server's license,
+	// configuration, and the plugin, so call it when deciding which editor to
+	// offer instead of caching it.
+	//
+	// @tag AccessControl
+	// Minimum server version: 12.3
+	GetAccessControlCapabilities() *model.PluginAccessControlCapabilities
+
 	// RegisterEntityType registers a type owned by the calling plugin. Its id
 	// is the plugin id, a colon, and the name. Registration is idempotent: the
 	// same name replaces the previous display name.

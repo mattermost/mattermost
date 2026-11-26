@@ -10577,6 +10577,31 @@
     "description": "API error for admins when an access control policy expression cannot be rewritten into its normalized form."
   },
   {
+    "id": "app.pap.plugin.conditions_require_license",
+    "translation": "Attribute conditions in plugin access control policies require an Enterprise Advanced license with attribute-based access control enabled.",
+    "description": "API error (501) returned to a plugin that saves, checks, or edits a policy that uses user attribute conditions, or reads the attribute field list, when the server lacks an Enterprise Advanced license or attribute-based access control is turned off. 'Enterprise Advanced' is a Mattermost license tier name; keep it in English."
+  },
+  {
+    "id": "app.pap.plugin.invalid_type",
+    "translation": "The access control policy type is not a plugin policy type.",
+    "description": "API error returned to a plugin when the policy type it passed is not a plugin-owned type, which has the form <plugin ID>:<resource type>."
+  },
+  {
+    "id": "app.pap.plugin.policy_not_found",
+    "translation": "Access control policy not found.",
+    "description": "API error (404) returned to a plugin when the plugin access control policy it asked to read or delete does not exist or is not of the requested type."
+  },
+  {
+    "id": "app.pap.plugin.type_conflict",
+    "translation": "An access control policy of a different type already uses this ID.",
+    "description": "API error returned to a plugin when it saves an access control policy whose ID is already used by a stored policy of another type."
+  },
+  {
+    "id": "app.pap.plugin.unavailable",
+    "translation": "Plugin access control policies are not available on this server.",
+    "description": "API error (501) returned to a plugin when it saves, checks, or queries access control policies but the server does not currently allow plugin policies, for example because the access control engine is not running or the plugin may not use it on this license."
+  },
+  {
     "id": "app.pap.query_expression.app_error",
     "translation": "Could not query for expression.",
     "description": "API error for admins when searching for users matching an access control policy expression fails."

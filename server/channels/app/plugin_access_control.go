@@ -41,13 +41,16 @@ func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string
 	return nil
 }
 
-// pluginAccessControlAvailable reports whether the enterprise ABAC service is
-// registered, licensed, and enabled. Checked before calling enterprise so its
-// readiness AppErrors never leak into plugin decision calls.
-func (a *App) pluginAccessControlAvailable() bool {
-	return a.Srv().ch.AccessControl != nil &&
-		model.MinimumEnterpriseAdvancedLicense(a.License()) &&
-		*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
+// pluginAccessControlMode reports whether the engine serves policies of
+// policyType and whether they may use attribute conditions (otherwise only
+// people-list rules). Checked before calling enterprise so its readiness
+// AppErrors never leak into plugin decision calls.
+func (a *App) pluginAccessControlMode(rctx request.CTX, policyType string) (available, conditionsAllowed bool) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, false
+	}
+	return acs.PluginPolicyMode(rctx, policyType)
 }
 
 // validatePluginActingUser validates actingUserID is a well-formed ID of an
@@ -121,7 +124,7 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 
 	const where = "EvaluatePluginAccessRequest"
 
-	if !a.pluginAccessControlAvailable() {
+	if available, _ := a.pluginAccessControlMode(rctx, resourceType); !available {
 		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "abac_unavailable")
 	}
 
@@ -142,7 +145,7 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "subject_build_failed")
 	}
 
-	decision, evalErr := a.Srv().ch.AccessControl.AccessEvaluation(rctx, model.AccessRequest{
+	decision, evalErr := a.Srv().ch.AccessControl.EvaluatePluginResource(rctx, model.AccessRequest{
 		Subject:  *subject,
 		Resource: model.Resource{ID: resourceID, Type: resourceType},
 		Action:   action,
@@ -214,7 +217,7 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 		return decisions, nil
 	}
 
-	if !a.pluginAccessControlAvailable() {
+	if available, _ := a.pluginAccessControlMode(rctx, resourceType); !available {
 		return a.resolvePluginPolicyExistenceBatch(rctx, where, pluginID, resourceType, ids, "abac_unavailable")
 	}
 
@@ -239,7 +242,7 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 	var failed []string
 	var firstEvalErr error
 	for _, id := range ids {
-		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+		decision, evalErr := acs.EvaluatePluginResource(rctx, model.AccessRequest{
 			Subject:  *subject,
 			Resource: model.Resource{ID: id, Type: resourceType},
 			Action:   action,
@@ -337,6 +340,10 @@ func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginI
 // satisfy the saved expression (self-inclusion), including when
 // AttributeValueMasking is off. System admins may author policies they do not
 // match, but remain subject to value-holding validation when masking is on.
+// While attribute conditions are not allowed (people-list rules only) there
+// are no attribute values to validate, so the masking guards are skipped.
+//
+// Saves need the engine to serve the policy type; there is no store fallback.
 func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	// Audit every attempt, including precondition failures.
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusFail)
@@ -366,6 +373,16 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 		return nil, model.AsAppError(err)
 	}
 
+	available, conditionsAllowed := a.pluginAccessControlMode(rctx, policy.Type)
+	if !available {
+		return nil, model.NewAppError("SavePluginAccessControlPolicy", "app.pap.plugin.unavailable", nil, "", http.StatusNotImplemented)
+	}
+	engineMode := "plugin"
+	if conditionsAllowed {
+		engineMode = "licensed"
+	}
+	model.AddEventParameterToAuditRec(auditRec, "engine_mode", engineMode)
+
 	policy.Version = model.AccessControlPolicyVersionV0_5
 	policy.Active = true
 
@@ -377,7 +394,7 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 	// the trusted-plugin model: the squatting row is attributable by its Type,
 	// and evaluation reports the resource as no_policy rather than denying it.
 	operation := "update"
-	existing, getErr := acs.GetPolicy(rctx, policy.ID)
+	existing, getErr := acs.GetPluginPolicy(rctx, policy.Type, policy.ID)
 	if getErr != nil {
 		if getErr.StatusCode != http.StatusNotFound {
 			return nil, getErr
@@ -392,14 +409,14 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 		return nil, appErr
 	}
 
-	if _, appErr := a.enforceAccessControlPolicyWriteGuards(rctx, policy, actingUserID, false); appErr != nil {
+	if _, appErr := a.enforceAccessControlPolicyWriteGuards(rctx, policy, actingUserID, false, conditionsAllowed); appErr != nil {
 		return nil, appErr
 	}
 
 	// Enterprise SavePolicy derives the caller ID from the session, so
 	// synthesize one for the acting user.
 	saveCtx := rctx.WithSession(&model.Session{UserId: actingUserID})
-	saved, appErr := acs.SavePolicy(saveCtx, policy)
+	saved, appErr := acs.SavePluginPolicy(saveCtx, policy)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -471,7 +488,7 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 	}
 
 	acs := a.Srv().ch.AccessControl
-	if acs == nil || !a.pluginAccessControlAvailable() {
+	if acs == nil {
 		policy, err := a.readStoredPolicy(rctx, where, pluginID, id)
 		return policy, model.AsAppError(err)
 	}
@@ -483,6 +500,10 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 	if !model.PluginOwnsAccessControlPolicyType(pluginID, storedType) {
 		return nil, pluginPolicyNotFoundError(where)
 	}
+	if available, _ := a.pluginAccessControlMode(rctx, storedType); !available {
+		policy, err := a.readStoredPolicy(rctx, where, pluginID, id)
+		return policy, model.AsAppError(err)
+	}
 
 	// This read is independent of the gate above, so neither its result nor its
 	// failure is trusted without re-confirming ownership. In the
@@ -491,7 +512,7 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 	// normalization error — would disclose the collision. Reaching the window
 	// needs a cross-plugin resource-ID collision plus an owner or admin
 	// recreating mid-flight, so it is not adversary-reachable by the caller.
-	policy, appErr := acs.GetPolicy(rctx, id)
+	policy, appErr := acs.GetPluginPolicy(rctx, storedType, id)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return nil, pluginPolicyNotFoundError(where)
@@ -516,10 +537,10 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 // stored type equals resourceType; absent and type-mismatch fail closed with
 // the same 404.
 //
-// When the access control engine is unavailable (not registered, unlicensed,
-// or disabled) the row is deleted straight from the store so a plugin can
-// always clear a restriction; any registered engine then drops its caches.
-// Saves have no such fallback.
+// When the access control engine does not serve the policy type (not
+// registered, unlicensed, or disabled) the row is deleted straight from the
+// store so a plugin can always clear a restriction; any registered engine then
+// drops its caches. Saves have no such fallback.
 func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID, resourceType, id string) *model.AppError {
 	// Audit every attempt, including precondition failures.
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventDeletePluginAccessControlPolicy, model.AuditStatusFail)
@@ -556,8 +577,8 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 	// resource-ID collision plus an owner or admin recreating mid-flight, so it
 	// is not adversary-reachable by the calling plugin.
 	acs := a.Srv().ch.AccessControl
-	if acs == nil || !a.pluginAccessControlAvailable() {
-		// Mirrors enterprise DeletePolicy (store delete, then cache
+	if available, _ := a.pluginAccessControlMode(rctx, resourceType); !available {
+		// Mirrors enterprise DeletePluginPolicy (store delete, then cache
 		// invalidation), with a broader purge instead of a per-ID one.
 		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, id); err != nil {
 			return model.NewAppError(where, "app.pap.delete_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -565,7 +586,10 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 		if acs != nil {
 			acs.InvalidateAllPolicyCaches(rctx)
 		}
-	} else if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
+	} else if appErr := acs.DeletePluginPolicy(rctx, resourceType, id); appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return pluginPolicyNotFoundError(where)
+		}
 		return appErr
 	}
 
@@ -584,7 +608,30 @@ func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, act
 		return nil, model.AsAppError(err)
 	}
 
-	return a.CheckExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
+	return a.checkPluginExpression(rctx, "CheckPluginAccessControlExpression", actingUserID, resourceType, expression, false)
+}
+
+// checkPluginExpression runs the engine's plugin expression check as the
+// acting user. Without an engine serving resourceType there is nothing to
+// check against, so it answers 501 rather than guessing.
+func (a *App) checkPluginExpression(rctx request.CTX, where, actingUserID, resourceType, expression string, forSearch bool) ([]model.CELExpressionError, *model.AppError) {
+	if available, _ := a.pluginAccessControlMode(rctx, resourceType); !available {
+		return nil, pluginAccessControlUnavailableError(where)
+	}
+
+	errs, appErr := a.Srv().ch.AccessControl.CheckPluginExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), resourceType, expression, forSearch)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return errs, nil
+}
+
+func pluginAccessControlUnavailableError(where string) *model.AppError {
+	return model.NewAppError(where, "app.pap.plugin.unavailable", nil, "", http.StatusNotImplemented)
+}
+
+func pluginAccessControlConditionsRequireLicenseError(where string) *model.AppError {
+	return model.NewAppError(where, "app.pap.plugin.conditions_require_license", nil, "", http.StatusNotImplemented)
 }
 
 // CheckPluginAccessControlExpressionForSearch is CheckPluginAccessControlExpression
@@ -599,7 +646,7 @@ func (a *App) CheckPluginAccessControlExpressionForSearch(rctx request.CTX, plug
 		return nil, err
 	}
 
-	errs, appErr := a.CheckMembershipExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
+	errs, appErr := a.checkPluginExpression(rctx, "CheckPluginAccessControlExpressionForSearch", actingUserID, resourceType, expression, true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -624,7 +671,11 @@ func (a *App) QueryUsersForPluginAccessControlExpression(rctx request.CTX, plugi
 		limit = pluginAccessControlQueryLimitMax
 	}
 
-	users, total, appErr := a.TestExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression, model.SubjectSearchOptions{
+	if available, _ := a.pluginAccessControlMode(rctx, resourceType); !available {
+		return nil, pluginAccessControlUnavailableError("QueryUsersForPluginAccessControlExpression")
+	}
+
+	users, total, appErr := a.Srv().ch.AccessControl.QueryUsersForPluginExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), resourceType, expression, model.SubjectSearchOptions{
 		Term:   term,
 		Limit:  limit,
 		Cursor: model.SubjectCursor{TargetID: cursorID},
@@ -643,10 +694,12 @@ func (a *App) QueryUsersForPluginAccessControlExpression(rctx request.CTX, plugi
 // GetPluginAccessControlFieldsAutocomplete returns CPA fields for plugin
 // policy editor autocomplete. No resourceType scope check — field visibility
 // is attribute-level, enforced by the underlying method via the acting user.
+// Attributes only matter to attribute conditions, so it needs the full
+// attribute-based access control license and setting.
 func (a *App) GetPluginAccessControlFieldsAutocomplete(rctx request.CTX, pluginID, actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError) {
 	// The underlying method does not gate on the service itself.
-	if a.Srv().ch.AccessControl == nil {
-		return nil, model.NewAppError("GetPluginAccessControlFieldsAutocomplete", "app.pap.get_access_control_auto_complete.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	if a.Srv().ch.AccessControl == nil || !model.AttributeBasedAccessControlLicensed(a.Config(), a.License()) {
+		return nil, pluginAccessControlConditionsRequireLicenseError("GetPluginAccessControlFieldsAutocomplete")
 	}
 	if err := a.validatePluginActingUser(rctx, "GetPluginAccessControlFieldsAutocomplete", actingUserID); err != nil {
 		return nil, model.AsAppError(err)
@@ -678,6 +731,25 @@ func (a *App) GetPluginAccessControlVisualAST(rctx request.CTX, pluginID, acting
 	if err := a.validatePluginActingUser(rctx, "GetPluginAccessControlVisualAST", actingUserID); err != nil {
 		return nil, model.AsAppError(err)
 	}
+	if a.Srv().ch.AccessControl == nil || !model.AttributeBasedAccessControlLicensed(a.Config(), a.License()) {
+		return nil, pluginAccessControlConditionsRequireLicenseError("GetPluginAccessControlVisualAST")
+	}
 
 	return a.ExpressionToVisualAST(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
+}
+
+// pluginAccessControlCapabilityResourceType is the resource type used to ask
+// the engine for a plugin's capabilities. The mode depends only on the owning
+// plugin, so any well-formed type works.
+const pluginAccessControlCapabilityResourceType = "capabilities"
+
+// GetPluginAccessControlCapabilities reports what pluginID may do with its
+// access control policies right now. Both fields are false when the engine is
+// not registered.
+func (a *App) GetPluginAccessControlCapabilities(rctx request.CTX, pluginID string) *model.PluginAccessControlCapabilities {
+	available, conditionsAllowed := a.pluginAccessControlMode(rctx, pluginID+model.PluginAccessControlPolicyTypeSeparator+pluginAccessControlCapabilityResourceType)
+	return &model.PluginAccessControlCapabilities{
+		PoliciesAvailable:   available,
+		ConditionsAvailable: available && conditionsAllowed,
+	}
 }

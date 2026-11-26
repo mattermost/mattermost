@@ -12,8 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 // requirePluginRPCGobSafe gob-encodes v the way the plugin RPC layer encodes
@@ -36,7 +34,8 @@ func TestPluginAccessControlGobSafety(t *testing.T) {
 	actingUserID := th.BasicUser.Id
 
 	t.Run("fields autocomplete response including native attribute fields", func(t *testing.T) {
-		th.App.Srv().ch.AccessControl = &mocks.AccessControlServiceInterface{}
+		enablePluginAccessControl(t, th)
+		th.App.Srv().ch.AccessControl = pluginModeMock(true, true)
 
 		fields, appErr := th.App.GetPluginAccessControlFieldsAutocomplete(th.Context, testAgentsPluginID, actingUserID, "", 100)
 		require.Nil(t, appErr)
@@ -90,9 +89,9 @@ func TestPluginAccessControlGobSafety(t *testing.T) {
 	})
 
 	t.Run("query users empty result is non-nil at producer and gob-safe", func(t *testing.T) {
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := pluginModeMock(true, true)
 		th.App.Srv().ch.AccessControl = mockACS
-		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+		mockACS.On("QueryUsersForPluginExpression", mock.Anything, testAgentResourceType, mock.Anything, mock.Anything).
 			Return(([]*model.User)(nil), int64(0), nil).Once()
 
 		resp, appErr := th.App.QueryUsersForPluginAccessControlExpression(

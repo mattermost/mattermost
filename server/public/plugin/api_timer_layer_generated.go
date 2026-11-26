@@ -1924,6 +1924,13 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetAccessControlCapabilities() *model.PluginAccessControlCapabilities {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetAccessControlCapabilities()
+	api.recordTime(startTime, "GetAccessControlCapabilities", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RegisterEntityType(t)

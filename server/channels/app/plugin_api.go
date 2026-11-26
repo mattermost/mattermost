@@ -2265,6 +2265,10 @@ func (api *PluginAPI) GetAccessControlVisualAST(actingUserID, resourceType, expr
 	return api.app.GetPluginAccessControlVisualAST(api.ctx, api.id, actingUserID, resourceType, expression)
 }
 
+func (api *PluginAPI) GetAccessControlCapabilities() *model.PluginAccessControlCapabilities {
+	return api.app.GetPluginAccessControlCapabilities(api.ctx, api.id)
+}
+
 func (api *PluginAPI) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
 	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContextWithOptions(options), values, "", "", "")
 	if appErr != nil {

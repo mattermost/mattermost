@@ -180,7 +180,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// Channel/team UI GET masks values the caller cannot see, so mergeFromStore
 	// re-injects those hidden literals before persist.
 	var appErr *model.AppError
-	policy, appErr = a.enforceAccessControlPolicyWriteGuards(rctx, policy, callerID, true)
+	policy, appErr = a.enforceAccessControlPolicyWriteGuards(rctx, policy, callerID, true, true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -529,6 +529,10 @@ func saveForbiddenError(rctx request.CTX, where, internalReason string) *model.A
 //     so plugin saves pass mergeFromStore=false)
 //  3. rejectMaskedTokens — never persist the masking sentinel
 //
+// applyMasking=false skips all three: plugin policies limited to people-list
+// rules carry no attribute values, and the masking lookups need the full
+// attribute-based access control license.
+//
 // Non-sysadmins also can't write or replace a channel/team membership rule that
 // needs the Advanced editor (checkMembershipRuleEditable).
 //
@@ -546,10 +550,11 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 	policy *model.AccessControlPolicy,
 	callerID string,
 	mergeFromStore bool,
+	applyMasking bool,
 ) (*model.AccessControlPolicy, *model.AppError) {
 	mergedHidden := false
 
-	if a.Config().FeatureFlags.AttributeValueMasking {
+	if applyMasking && a.Config().FeatureFlags.AttributeValueMasking {
 		if callerID == "" {
 			return nil, model.NewAppError("enforceAccessControlPolicyWriteGuards", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
 		}

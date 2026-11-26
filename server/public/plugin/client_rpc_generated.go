@@ -10167,6 +10167,33 @@ func (s *apiRPCServer) GetAccessControlVisualAST(args *Z_GetAccessControlVisualA
 	return nil
 }
 
+type Z_GetAccessControlCapabilitiesArgs struct {
+}
+
+type Z_GetAccessControlCapabilitiesReturns struct {
+	A *model.PluginAccessControlCapabilities
+}
+
+func (g *apiRPCClient) GetAccessControlCapabilities() *model.PluginAccessControlCapabilities {
+	_args := &Z_GetAccessControlCapabilitiesArgs{}
+	_returns := &Z_GetAccessControlCapabilitiesReturns{}
+	if err := g.client.Call("Plugin.GetAccessControlCapabilities", _args, _returns); err != nil {
+		log.Printf("RPC call to GetAccessControlCapabilities API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetAccessControlCapabilities(args *Z_GetAccessControlCapabilitiesArgs, returns *Z_GetAccessControlCapabilitiesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetAccessControlCapabilities() *model.PluginAccessControlCapabilities
+	}); ok {
+		returns.A = hook.GetAccessControlCapabilities()
+	} else {
+		return encodableError(fmt.Errorf("API GetAccessControlCapabilities called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterEntityTypeArgs struct {
 	A *model.EntityType
 }
