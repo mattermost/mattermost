@@ -807,7 +807,7 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Stel uw status in naar offline"
+    "translation": "Stel je status in op offline"
   },
   {
     "id": "api.command_offline.name",
@@ -815,7 +815,7 @@
   },
   {
     "id": "api.command_offline.success",
-    "translation": "U bent nu offline"
+    "translation": "Je bent nu offline"
   },
   {
     "id": "api.command_online.desc",
@@ -930,10 +930,6 @@
     "translation": "Ongeldig {{.Name}} parameter."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Ongeldige sessietoken={{.Token}}, err={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Ongeldig of ontbrekende {{.Name}} parameter in request URL."
   },
@@ -963,7 +959,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Het kanaal voor het ontvangen van bulk e-mailberichten was vol. Verhoog a.u.b. de EmailBatchingBufferSize."
+    "translation": "De wachtrij voor het ontvangen van gebundelde e-mails was vol. Verhoog de EmailBatchingBufferSize."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -1460,7 +1456,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Kon de geheugenopslag limitatie niet laden. Controleer uw MemoryStoreSize configuratie instellingen."
+    "translation": "Kon de geheugenopslag voor rate limiting niet initialiseren. Controleer de configuratie-instelling MemoryStoreSize."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
@@ -1688,7 +1684,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authenticatie is toegevoegd aan uw account op {{ .SiteURL }}."
+    "translation": "Multi-factor authenticatie is toegevoegd aan je account op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1712,7 +1708,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "Uw wachtwoord is bijgewerkt"
+    "translation": "Je wachtwoord is bijgewerkt"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -1744,7 +1740,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Uw inlog methode is bijgewerkt"
+    "translation": "Je hebt je aanmeldmethode bijgewerkt"
   },
   {
     "id": "api.templates.signin_change_email.subject",
@@ -1768,7 +1764,7 @@
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "U heeft uw e-mailadres bijgewerkt"
+    "translation": "Je hebt je gebruikersnaam bijgewerkt"
   },
   {
     "id": "api.templates.username_change_subject",
@@ -1852,7 +1848,7 @@
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "Uw account is afgesloten doordat er te vaak een verkeerd wachtwoord is gegeven. Voer aub een wachtwoord reset uit."
+    "translation": "Je account is vergrendeld doordat er te vaak een verkeerd wachtwoord is ingevoerd. Stel je wachtwoord opnieuw in."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -1904,7 +1900,7 @@
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Deze server staat zelf aanmelden niet toe.  Neem contact op met uw systeembeheerder voor een uitnodiging."
+    "translation": "Deze server staat zelf aanmelden niet toe. Neem contact op met je beheerder voor een uitnodiging."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2036,7 +2032,7 @@
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": "U beschikt niet over de juiste rechten."
+    "translation": "Je beschikt niet over de juiste rechten."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2483,10 +2479,6 @@
     "translation": "Reaction CreateAt eigenschap mag niet nul zijn."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reaction EmojiName eigenschap is langer dan de maximaal toegestane lengte."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Mist vereiste team kenmerk: naam."
   },
@@ -2921,10 +2913,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Kan zoekresultaten van zoekresultaten niet verwerken"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3552,7 +3540,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Ongeldig maximaal aantal gebruikers per team bij team instellingen. Moet een getal groter dan 0 zijn."
+    "translation": "Ongeldig maximaal aantal kanalen per team bij teaminstellingen. Moet 0 (onbeperkt) of een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3564,7 +3552,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Ongeldig maximaal aantal gebruikers per team bij team instellingen. Moet een getal groter dan 0 zijn."
+    "translation": "Ongeldig maximaal aantal gebruikers per team bij teaminstellingen. Moet 0 (onbeperkt) of een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -4468,15 +4456,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 140+"
+    "translation": "Versie 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 146+"
+    "translation": "Versie 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 146+"
+    "translation": "Versie 156+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5383,10 +5371,6 @@
     "translation": "Fout bij het bewaren van de audit data."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Fout opgestreden bij het verwijderen van de audit data."
-  },
-  {
     "id": "app.audit.get.limit.app_error",
     "translation": "Grens bereikt voor opdelen in pagina's."
   },
@@ -5516,7 +5500,7 @@
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": "U kunt een bestaande CommandWebhook niet bijwerken."
+    "translation": "Je kunt een bestaande CommandWebhook niet bijwerken."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -5537,10 +5521,6 @@
   {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "Het toegangstoken kan niet worden verwijderd."
-  },
-  {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Kan de machtigingscode niet verwijderen."
   },
   {
     "id": "app.oauth.get_apps.find.app_error",
@@ -5565,10 +5545,6 @@
   {
     "id": "app.oauth.delete_app.app_error",
     "translation": "Er deed zich een fout voor tijdens het verwijderen van de OAuth2 App."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Gebruiker kan niet worden verwijderd."
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -5723,10 +5699,6 @@
     "translation": "Er is een probleem opgetreden tijdens het bijwerken van de voorkeuren."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Er is een probleem opgetreden tijdens het opzoeken van voorkeuren."
   },
@@ -5779,15 +5751,7 @@
     "translation": "Fout bij het bewaren van de IncomingWebhook."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Fout bij het verwijderen van de webhook."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Fout bij het verwijderen van de webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Fout bij het verwijderen van de webhook."
   },
   {
@@ -5883,10 +5847,6 @@
     "translation": "Kan het bericht niet opslaan."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Kan de te verwijderen berichten van de gebruiker niet selecteren."
-  },
-  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Kan de berichten niet per kanaal verwijderen."
   },
@@ -5933,10 +5893,6 @@
   {
     "id": "app.plugin_store.delete.app_error",
     "translation": "Kan de plugin sleutelwaarde niet verwijderen."
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Kan geen standaard teamlidmaatschap importeren omdat er geen nieuwe leden toegelaten zijn in dat team"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -6031,10 +5987,6 @@
     "translation": "Kan de bestandsinformatie niet bewaren."
   },
   {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Bijlagen van de gebruiker kunnen niet worden gewist."
-  },
-  {
     "id": "app.file_info.get_with_options.app_error",
     "translation": "Bestandsinformatie met opties kan niet worden opgehaald"
   },
@@ -6093,10 +6045,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Kan de vastgemaakte berichten niet vinden."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Fout bij het verwijderen van het kanaallid."
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -6173,10 +6121,6 @@
   {
     "id": "api.upgrade_to_enterprise.app_error",
     "translation": "Een upgrade naar de Mattermost Enterprise editie wordt reeds uitgevoerd."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS login is verboden."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
@@ -6803,10 +6747,6 @@
     "translation": "groepslid bestaat reeds"
   },
   {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
-  },
-  {
     "id": "app.group.no_rows",
     "translation": "geen overeenkomende groep gevonden"
   },
@@ -7164,7 +7104,7 @@
   },
   {
     "id": "api.templates.reset_body.subTitle",
-    "translation": "Klik op de knop hieronder om jouw wachtwoord te resetten. Als u dit niet heeft aangevraagd, kan je deze e-mail gerust negeren."
+    "translation": "Klik op de knop hieronder om je wachtwoord te resetten. Als je dit niet hebt aangevraagd, kun je deze e-mail gerust negeren."
   },
   {
     "id": "api.templates.reset_body.info",
@@ -7408,7 +7348,7 @@
   },
   {
     "id": "api.command_share.permission_required",
-    "translation": "U heeft `{{.Permission}} toestemming nodig om gedeelde kanalen te beheren."
+    "translation": "Je hebt het recht `{{.Permission}}` nodig om gedeelde kanalen te beheren."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -7589,10 +7529,6 @@
   {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Kon beveiligde verbindingen niet ophalen: {{.Error}}"
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Kon uitnodiging niet coderen: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -8126,24 +8062,8 @@
     "translation": "Ongeldige waarde voor decoder-concurrency {{.Value}}. Moet een positief getal of -1 zijn."
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Niet gelukt om de gebruikte bestandsopslag op te halen."
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "Niet gelukt om de gebruikte teams op te halen"
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Niet gelukt om het aan aantal teams op te halen"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Kan het team niet herstellen omdat de teamlimiet bereikt is"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Kan geen team aanmaken omdat de teamlimiet bereikt is"
   },
   {
     "id": "common.parse_error_int64",
@@ -8232,14 +8152,6 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "groepsnaam bestaat al als een gereserveerde naam"
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Fout bij het ophalen van het laatst toegankelijke bestand"
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Kan het bestand niet ophalen omdat dit bestand over de limiet van het cloud plan is."
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
@@ -8368,10 +8280,6 @@
   {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "Kan bestand niet uploaden. Bestand is te groot."
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portaal niet beschikbaar voor self-hosted signup."
   },
   {
     "id": "api.drafts.disabled.app_error",
@@ -8668,10 +8576,6 @@
   {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "Kan geïmporteerd kanaal niet archiveren."
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Reacties voor gebruiker kunnen niet worden verwijderd."
   },
   {
     "id": "humanize.list_join",
@@ -9788,10 +9692,6 @@
     }
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Kan geplande berichten voor gebruiker niet verwijderen."
-  },
-  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Onbekend Kanaal"
   },
@@ -9966,10 +9866,6 @@
   {
     "id": "api.user.reset_password_failed_attempts.permissions.app_error",
     "translation": "Je hebt geen toestemming om deze resource bij te werken."
-  },
-  {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Kan concepten voor gebruiker niet verwijderen."
   },
   {
     "id": "app.group.license_error",
@@ -10326,10 +10222,6 @@
   {
     "id": "ent.ldap.connection.test_failed",
     "translation": "LDAPverbindingstest mislukt: Server: {{.Server}}:{{.Port}}, Verbindingsbeveiliging {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, Publieke certificaatssleutel {{.PublicCertFilename}}, BindGebruikersnaam: {{.BindUsername}}. Fout: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Gedeelde Kanalen Service is ingeschakeld maar niet actief."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
@@ -14591,7 +14483,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Sitegezondheid vereist een Enterprise-licentie."
+    "translation": "Sitegezondheid vereist een Professional-licentie of hoger."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14639,7 +14531,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "De logconfiguratie bevat een pad voor een log- of auditbestand buiten de hoofdmap voor logbestanden. Controleer de serverlogs voor meer informatie."
+    "translation": "De logconfiguratie bevat een pad voor een log- of auditbestand buiten de hoofdmap voor logbestanden of binnen een map die de server beheert. Controleer de serverlogs voor meer informatie."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14707,7 +14599,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Schakel over naar https://push.mattermost.com (de Hosted Push Notification Service voor productie, inbegrepen bij Enterprise) of naar een zelf gehoste push-proxy."
+    "translation": "Laat PushNotificationServer verwijzen naar een push-proxy voor productie: een zelf gehoste Mattermost Push Proxy die je eigen builds van de mobiele apps bedient."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14740,5 +14632,1899 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Verbrand-na-lezen berichten kunnen niet als terugkerende geplande berichten worden verzonden."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "De functie voor rechtenacties op kanalen is niet ingeschakeld."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Het geüploade certificaat van de Identity Provider is geen geldig PEM-gecodeerd X.509-certificaat."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "De geüploade privésleutel van de Service Provider is geen geldige PEM-gecodeerde privésleutel."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Het geüploade openbare certificaat van de Service Provider is geen geldig PEM-gecodeerd X.509-certificaat."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Het geüploade bestand komt niet overeen met het opgeslagen certificaat of de opgeslagen privésleutel van de Service Provider. Schakel versleuteling uit om ze een voor een te vervangen."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Je hebt momenteel geen recht om dit kanaal te beheren."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Je hebt momenteel geen toegang tot dit kanaal."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Je hebt momenteel geen recht om in dit kanaal te schrijven."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Een enkel aanhalingsteken bij `{{.Near}}` wordt niet gesloten vóór ` --`. Sluit het, of gebruik dubbele aanhalingstekens als de waarde ` --` bevat."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Onverwachte tekst bij `{{.Near}}`. Zet een waarde met spaties tussen aanhalingstekens, en gebruik dubbele aanhalingstekens als de waarde ook een apostrof bevat."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Een aanhalingsteken bij `{{.Near}}` wordt nooit gesloten."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Kan de opgeslagen configuraties niet vergelijken."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Kan de opgeslagen configuratie niet vergelijken met de huidige."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Ongeldige of verlopen sessie."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Taken van dit type kunnen niet worden geannuleerd."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Er moet precies één bestand met een openbare pluginsleutel worden geüpload in het veld public_key."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Openbare pluginsleutel {{.Name}} is niet geconfigureerd."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Kan de geüploade openbare pluginsleutel niet verwerken."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Je hebt geen recht om een of meer van de gevraagde berichtattribuutwaarden in te stellen."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Verbrand-na-lezen berichten kunnen geen berichtattributen hebben."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Berichtattributen zijn niet ingeschakeld op deze server."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Een of meer berichtattribuutwaarden konden niet worden toegepast."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Alleen een beheerder van het kanaal, het team of het systeem waartoe het veld behoort, kan bij het aanmaken de rechten ervan instellen."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Alleen een systeembeheerder kan rechten instellen bij het aanmaken van een attribuutveld."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Dit attribuut is verwijderd."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Kan via deze API geen compliancegegevens opzoeken voor een v1-eigenschapsveld."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Je hebt geen recht om de compliancegegevens van dit eigenschapsveld te bekijken."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Alleen attributen die op elk team van toepassing zijn, kunnen kanalen zonder waarde weergeven of erover melden."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "De meldingen zijn niet verzonden, omdat kanaalbeheerders hier onlangs al over zijn geïnformeerd. Je kunt over {{.Count}} minuut een nieuwe melding versturen.",
+      "other": "De meldingen zijn niet verzonden, omdat kanaalbeheerders hier onlangs al over zijn geïnformeerd. Je kunt over {{.Count}} minuten een nieuwe melding versturen."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "De meldingen zijn niet verzonden, omdat kanaalbeheerders hier onlangs al over zijn geïnformeerd. Probeer het later opnieuw."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Je kunt de rechten van een eigenschapsveld niet zo wijzigen dat je het daarna zelf niet meer kunt bewerken."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Een ingediend beperkingenobject moet alle vijf rechtenniveaus instellen: waarde lezen, waarde schrijven, optie lezen, optie schrijven en veld schrijven."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Het ingediende rechtenobject is ongeldig."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Deze eigenschapsgroep ondersteunt het indienen van een rechtenobject niet."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Het rechtenobject moet systeembeheerders toestaan het veld te bewerken, dus het niveau voor veld schrijven kan niet 'geen' zijn."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Dit attribuut kan nog niet als verplicht worden gemarkeerd, omdat sommige actieve kanalen er geen waarde voor hebben. Stuur de kanaalbeheerders een melding en probeer het daarna opnieuw."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "De uitnodiging is verlopen. Vraag de externe site om een nieuwe uitnodiging."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "De externe site gaf een ongeldig antwoord."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "De uitnodiging bevat een ongeldig siteadres: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "De externe site heeft de uitnodiging geweigerd."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Kan de externe site op {{.URL}} niet bereiken."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Een upload vanaf een beveiligde verbinding kan een gedeeltelijk ontvangen bestand niet hervatten."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Te veel bronnen in één evaluatie van toegangscontrole; de limiet is {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Controleren op de nieuwste Mattermost-release is uitgeschakeld. Schakel de instelling Beveiligingswaarschuwingen inschakelen in om dit toe te staan."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Kan de kanaalbeheerders niet opzoeken."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Kan de kanalen zonder waarde voor dit attribuut niet opzoeken."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Kan de kanalen zonder waarde voor dit attribuut niet tellen."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Kan niet alle kanalen zonder waarde voor dit attribuut tellen."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Kan de lokale kanalen zonder waarde voor dit attribuut niet tellen."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Kan de kanalen zonder waarde voor dit attribuut niet weergeven."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Kan de externe kanalen zonder waarde voor dit attribuut niet opzoeken."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Kan de kanaalbeheerders en kanalen waarop dit attribuut van invloed is niet tellen."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Kan de kanaalbeheerders die een melding over dit attribuut moeten krijgen niet opzoeken."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _en nog {{.Count}} kanalen_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Stel een waarde in voor **{{.AttributeName}}** op deze kanalen die je beheert. De systeembeheerder wil dat elk kanaal een waarde heeft voordat dit attribuut verplicht kan worden gemaakt."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Je bent kanaalbeheerder van een kanaal waarvoor een verplicht kanaalattribuut ontbreekt. Stel een waarde in voor **{{.AttributeName}}**.",
+      "other": "Je bent kanaalbeheerder van kanalen waarvoor een verplicht kanaalattribuut ontbreekt. Stel een waarde in voor **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Kan de wachttijd voor meldingen over dit attribuut niet vastleggen."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Kan de opgeslagen configuraties niet ophalen."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Er is geen opgeslagen configuratie met deze ID."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Configuratiegeschiedenis is alleen beschikbaar als de configuratie in de database is opgeslagen."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Zoals geschreven: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Tijdstempel"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Kan geen gezondheidscontrole starten."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Er wordt al een gezondheidscontrole gestart. Probeer het zo meteen opnieuw."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Fout bij het importeren van bericht. Fout bij het opslaan van de prioriteit."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Fout bij het importeren van de teams van de gebruiker. Team niet gevonden."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Dit bestand voegt {{.Adding}} gebruikers toe aan team {{.Team}}, waardoor het {{.Total}} leden krijgt, maar TeamSettings.MaxUsersPerTeam is {{.Limit}}. Verhoog de limiet of stel deze in op 0 (geen limiet) voordat je importeert."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Kan het importbestand niet lezen om TeamSettings.MaxUsersPerTeam te controleren."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "De Acknowledgement-eigenschap AcknowledgedAt moet ingesteld zijn en mag niet vóór de CreateAt van het bericht liggen."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Vereiste Acknowledgement-eigenschap ontbreekt: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Bevestigingen van berichten vereisen een Priority waarvan RequestedAck op true staat."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "PersistentNotifications bij een bericht vereisen de dringende Priority."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Vereiste Priority-eigenschap ontbreekt: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction EmojiName eigenschap is ongeldig. Deze moet bestaan uit 1 tot 64 ASCII-letters en -cijfers, +, - of _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Alleen een systeembeheerder kan lidmaatschapsregels wijzigen die geavanceerde logica gebruiken. Bewerk ze in de systeemconsole."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Deze lidmaatschapsregel gebruikt een expressie die de lidmaatschapssynchronisatie niet kan evalueren. Herschrijf de regel met alleen vergelijkingen, &&, ||, in en de ondersteunde attribuutfuncties."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Deze lidmaatschapsregel gebruikt {{.Function}}, wat de lidmaatschapssynchronisatie niet kan evalueren. Herschrijf de regel met alleen vergelijkingen, &&, ||, in en de ondersteunde attribuutfuncties."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Kan niet bepalen of de actie een rechtenbeleid heeft"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Kan niet bepalen of het toegangsbeleid van de resource de actie regelt."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Er bestaat al een configuratiebestand met de naam {{.Name}}."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Het bestand is geen geldige openbare OpenPGP-sleutel."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Ongeldige naam voor openbare pluginsleutel: {{.Name}}. Namen mogen alleen letters, cijfers, '.', '_' en '-' bevatten."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Kan dit veld niet verwijderen omdat een gemaskeerd sjabloon de eigen waarden van elke persoon eruit leest. Wijzig of verwijder eerst de maskering van het sjabloon."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Het option.read-niveau ({{.FieldTier}}) van een gekoppeld veld mag niet ruimer zijn dan het niveau ({{.TemplateTier}}) van zijn sjabloon ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Een attribuut kan niet aan een OpenID Connect-claim worden gekoppeld zolang de attribuutsynchronisatie van OpenID Connect is uitgeschakeld."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Kan de globale attributen niet doorzoeken."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Dit veld is de bron van de eigen waarden voor zijn gemaskeerde sjabloon, dus het schrijfniveau voor waarden mag niet '{{.ValueWrite}}' zijn. Anders zouden de personen die het sjabloon filtert hun eigen waarden kunnen bewerken en zo kunnen uitbreiden wat ze kunnen zien."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Een attribuut dat vanuit OpenID Connect wordt gesynchroniseerd, kan niet ook vanuit AD/LDAP of SAML worden gesynchroniseerd."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Kan de eigenaren, toegangsmodus, beveiligings- of synchronisatie-instellingen van dit veld niet op deze manier wijzigen, omdat de rechten van het veld niet in die vorm kunnen worden uitgedrukt. Werk in plaats daarvan de rechten rechtstreeks bij."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Kan de toegangsmodus van dit veld niet wijzigen, omdat het gegevens bevat die de aanvrager niet mag lezen."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Kan niet bijwerken: gekoppeld veld {{.DependentID}} heeft option.read-niveau {{.DependentTier}}, wat ruimer zou zijn dan het nieuwe niveau {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Kan de rechten van dit veld niet in dezelfde update wijzigen als zijn rechtenniveaus, eigenaren, toegangsmodus, beveiligings- of synchronisatie-instellingen. Verstuur de wijziging in de ene of de andere vorm."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Kan niet bijwerken: gekoppeld veld {{.DependentID}} zou met deze maskering zijn eigen waarden leveren, maar het schrijfniveau voor waarden is '{{.ValueWrite}}'. Verlaag eerst het schrijfniveau voor waarden van dat veld naar admin of lager."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Kan dit veld niet ontkoppelen omdat een gemaskeerd sjabloon de eigen waarden van elke persoon eruit leest. Wijzig of verwijder eerst de maskering van het sjabloon."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Het account is gedeactiveerd en gedeeltelijk verwijderd. Je kunt het verwijderen veilig opnieuw uitvoeren om het af te ronden."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Deze ronde heeft het maximum van {{.Max}} berichten verwijderd. Het account is gedeactiveerd en gedeeltelijk verwijderd. Voer het verwijderen opnieuw uit om verder te gaan."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Kan het verwijderen van {{.Count}} gebruikers niet voltooien: {{.Usernames}}. Voer de opdracht opnieuw uit om verder te gaan."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Kan clusterverzoek niet verzenden"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML is niet correct geconfigureerd. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "De meest recente uitvoeringen staan nog in de wachtrij, zijn nog bezig of zijn geannuleerd, dus oudere uitvoeringen konden niet worden gecontroleerd."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Authenticatie"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Hoge beschikbaarheid"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Naleving"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Database"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Taken"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licenties"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Meldingen"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platform"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Zoeken"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Updates"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} op {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Gegevens verzameld"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Onbekend"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Gelicentieerd aan"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Laatst geëvalueerd"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Gegenereerd"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licentie"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Nog niet geëvalueerd"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Serverversie"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Site-URL"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "De evaluatie lijkt te zijn gestopt."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Deze instelling openen in de systeemconsole"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Details"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Documentatie lezen"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Zo los je het op"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Samenvatting"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Gedempt"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Opgelost"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Kon niet worden geëvalueerd"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritiek"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Info"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Waarschuwing"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritiek",
+      "other": "{{.Count}} kritiek"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} info",
+      "other": "{{.Count}} info"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Geen openstaande bevindingen."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "De eerste gezondheidscontrole wordt uitgevoerd binnen een uur nadat de functie is ingeschakeld."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} kon niet worden geëvalueerd",
+      "other": "{{.Count}} konden niet worden geëvalueerd"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} waarschuwing",
+      "other": "{{.Count}} waarschuwingen"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Gezondheidsrapport"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Er is geen actief doel voor auditlogs en deze werkruimte heeft {{.users}} geregistreerde gebruikers. Beheeracties, aanmeldingen en configuratiewijzigingen laten geen apart auditspoor achter. Dit is een lacune voor naleving en forensisch onderzoek, geen stabiliteitsrisico."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Als je organisatie auditvereisten heeft (financiële dienstverlening, gezondheidszorg, defensie, gereguleerde publieke sector), schakel dan auditlogging in via Systeemconsole > Voldoet aan > Auditlogging, of voeg een doel voor de auditniveaus toe aan ExperimentalAuditSettings.AdvancedLoggingJSON, en configureer rotatie. Anders kun je dit negeren."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Auditlogging uitgeschakeld"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress bindt poort {{.port}}, die lager is dan 1024. Op Linux kan een Mattermost-server die niet als root draait deze poort alleen binden via de bestandscapability CAP_NET_BIND_SERVICE op zijn binary. Een pakketupgrade vervangt de binary en wist die capability, waardoor de server na de volgende upgrade mogelijk niet start, met \"bind: permission denied\". De configuratie kan niet laten zien hoe de capability is toegekend, dus deze waarschuwing blijft staan, ook nadat je die via de systemd-unit hebt toegekend."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Voeg AmbientCapabilities=CAP_NET_BIND_SERVICE toe aan de systemd-unit van Mattermost, zodat de capability upgrades overleeft, of voer na elke upgrade opnieuw setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost uit. Je kunt ook een reverse proxy voor Mattermost plaatsen en Mattermost aan een hoge poort binden, zoals 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Server bindt rechtstreeks aan een geprivilegieerde poort"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "De leider adverteert {{.address}}. Andere knooppunten kunnen hem op dat adres niet bereiken, dus gossip vormt een cluster van één knooppunt en split-brainsituaties blijven verborgen."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Stel ClusterSettings.AdvertiseAddress in op het bereikbare IP-adres of de DNS-naam van het knooppunt, of laat het leeg om het adres van de netwerkinterface te gebruiken. Deze controle leest de configuratie van de leider, dus controleer de instelling op elk knooppunt."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress is niet bereikbaar vanaf andere knooppunten"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "De configuratie wordt op elk knooppunt in een bestand opgeslagen en kan in de systeemconsole worden gewijzigd. Een wijziging wordt op één knooppunt opgeslagen en zonder garantie naar de andere doorgestuurd; een knooppunt dat die doorgifte mist, houdt zijn eigen bestand, waardoor de configuraties van de knooppunten uit elkaar kunnen lopen."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Stel ClusterSettings.ReadOnlyConfig in op true en beheer de configuratie op elk knooppunt via het configuratiebestand of omgevingsvariabelen, of verplaats de configuratie naar de database."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig staat uit in een HA-cluster met bestandsconfiguratie"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption is false, dus het verkeer tussen clusterknooppunten is niet versleuteld."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Schakel gossipversleuteling in en herstart daarna alle knooppunten tegelijk tijdens een onderhoudsvenster. Knooppunten met en zonder versleuteling kunnen niet met elkaar communiceren, dus een rollende herstart splitst de cluster totdat het laatste knooppunt opnieuw is gestart."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Gossip in de HA-cluster is niet versleuteld"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Met {{.users}} geregistreerde gebruikers in HA betekent de standaard-LRU-cache in het geheugen dat elk knooppunt zijn eigen kopie bijhoudt en gossip gebruikt voor invalidatie. Mattermost raadt Redis aan vanaf 100.000 gebruikers om het verkeer voor cache-invalidatie op deze schaal te beperken."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Overweeg CacheSettings.CacheType in te stellen op redis, met CacheSettings.RedisAddress geconfigureerd. Redis vereist een licentie met de functie Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Overweeg op deze schaal de Redis-cachebackend"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "De beoogde HA-topologie draait niet echt. Eén knooppunt biedt geen failover en verbergt het risico op split-brain."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Controleer de gossipverbinding (ClusterSettings.GossipPort), de firewallregels en of alle app-knooppunten dezelfde ClusterName hebben. Een lege ClusterName houdt het knooppunt ook alleen: de server logt dan dat hoge beschikbaarheid is uitgeschakeld."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Hoge beschikbaarheid is ingeschakeld, maar er zit maar één knooppunt in de cluster"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Knooppunten in de cluster melden deze versies: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "De knooppunten zijn verdeeld over versies, zonder dat één versie vaker voorkomt dan de andere, dus het is niet duidelijk welke knooppunten verouderd zijn."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Dit knooppunt draait {{.version}}, terwijl de meeste knooppunten {{.majority}} draaien."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Tenzij er een upgrade bezig is, upgrade je elk knooppunt naar dezelfde versie en zorg je ervoor dat de knooppunten via gossip kunnen communiceren."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Meerdere Mattermost-versies gedetecteerd in de cluster"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory is leeg, dus nalevingsrapporten worden naar een nalevingsmap onder de werkmap van de server geschreven. Ze gaan verloren wanneer de server wordt geüpgraded of de container opnieuw wordt opgebouwd."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Stel Nalevingsrapport Map in Systeemconsole > Voldoet aan > Nalevingsmonitoring (ComplianceSettings.Directory) in op een blijvend, beschrijfbaar pad."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Nalevingsmonitoring ingeschakeld, maar Directory is leeg"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Elk knooppunt houdt een pool van maximaal MaxOpenConns verbindingen met de primaire database aan. Met {{.nodes}} knooppunten en MaxOpenConns={{.max_open}} kan een databasefailover tot {{.burst}} gelijktijdige verbindingspogingen naar de nieuw gepromoveerde primaire database veroorzaken, en de host in DataSource lijkt geen connection pooler te zijn. Als dat de max_connections van de database overschrijdt, weigert die verbindingen ('sorry, too many clients already') en duurt het herstel langer."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Dimensioneer elke laag op deze piek. De duurzaamste oplossing is SqlSettings.MaxOpenConns per knooppunt te verlagen en/of PgBouncer (transaction mode) vóór de database te plaatsen om pieken in herverbindingen op te vangen, in plaats van alleen max_connections te verhogen: elke verbinding kost databasegeheugen, dus een hoog plafond brengt het risico mee dat het geheugen opraakt. Als je max_connections verhoogt, houd dan ruimte boven de piek vrij voor replicatie, monitoring en beheersessies. Door knooppunten tijdens een failover gespreid te starten, blijft de piek ook onder het plafond."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Databasefailover kan een verbindingsstorm veroorzaken"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) is hoger ingesteld dan MaxOpenConns ({{.max_open}}). De database/sql-laag van Go begrenst de pool met inactieve verbindingen stilzwijgend op MaxOpenConns, dus de extra inactieve capaciteit heeft geen effect. Er is niets kapot, maar de waarde is misleidend en wijst er meestal op dat de pool is afgesteld zonder te weten dat het aantal inactieve verbindingen nooit groter kan zijn dan het aantal open verbindingen."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Stel MaxIdleConns in op een waarde die gelijk is aan of lager is dan MaxOpenConns (een gangbare richtlijn is 25-50% van MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns is groter dan MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Met {{.users}} gebruikers en MaxOpenConns={{.max_open}} kunnen verzoeken aan de appkant bij piekbelasting in een wachtrij komen. De huidige standaardwaarde is 100 (MaxIdleConns 50, een verhouding van 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Als je ziet dat verzoeken aan de appkant in een wachtrij komen, verhoog SqlSettings.MaxOpenConns dan op basis van de gemeten behoefte (de standaardwaarden 100/50 zijn het uitgangspunt). Het werkelijke databaseplafond is MaxOpenConns x knooppunten x gegevensbronnen, dus controleer of max_connections van de database dat totaal dekt voordat je de waarde verhoogt."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns is mogelijk laag voor dit aantal gebruikers"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas is leeg. Met {{.users}} gebruikers gaan alle leesbewerkingen naar de primaire database. Leesreplica's worden aanbevolen voor grotere installaties."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Overweeg een leesreplica in te richten en die toe te voegen aan SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Geen leesreplica's geconfigureerd"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Met {{.posts}} berichten en zoeken via de database vangen de primaire database en de replica's de volledige-tekstscans op. Dit veroorzaakt op deze schaal CPU-druk en time-outs bij het zoeken."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Met {{.posts}} berichten en zoeken via de database vangen de primaire database en de replica's de volledige-tekstscans op. Dit veroorzaakt op deze schaal CPU-druk en time-outs bij het zoeken. Je licentie omvat Elasticsearch, waarmee het zoeken volledig van de database wordt gehaald."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Configureer SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Geen zoekreplica en zoeken via Elasticsearch uitgeschakeld"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.in_use}} van de {{.max_open}} verbindingen met de primaire database zijn in gebruik ({{.percent}}%), op of boven 90% van MaxOpenConns. Nieuwe query's komen in een wachtrij en de HTTP-latentie stijgt."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Verhoog SqlSettings.MaxOpenConns en de max_connections van de database. Onderzoek ook langlopende query's."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Pool van de primaire database is bijna verzadigd"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} is lager dan de minimaal ondersteunde versie, {{.minimum}}. Mattermost start er nog wel op, maar niet-ondersteunde versies kunnen tot onverwacht gedrag leiden. Upgrade naar PostgreSQL {{.minimum}} of hoger."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Plan een upgrade. Nieuwere versies bieden ook betere prestaties voor parallelle query's en JSONB."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL-versie is lager dan de minimaal ondersteunde versie"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL voert momenteel een vacuum uit op de tabel Posts. Laat die vacuum eerst afronden voordat je beoordeelt of er nog een vacuum nodig is."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "De tabel Posts heeft naar schatting {{.dead_tuples}} dead tuples ({{.dead_percent}}% van naar schatting {{.estimated_rows}} rijen), hoewel de laatste vacuum op {{.last_vacuum}} was. Vacuum draait, maar kan ze waarschijnlijk niet verwijderen omdat iets het opruimen tegenhoudt, zoals een langlopende of idle-in-transaction-sessie, een inactief replication slot of een verlaten prepared transaction. Bloat van tabellen en indexen kan de prestaties van query's verslechteren en het schijfgebruik verhogen."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "De tabel Posts heeft naar schatting {{.dead_tuples}} dead tuples ({{.dead_percent}}% van naar schatting {{.estimated_rows}} rijen), en PostgreSQL heeft geen vacuum van deze tabel geregistreerd sinds de statistieken voor het laatst zijn gereset. Autovacuum lijkt deze tabel niet bij te houden. Bloat van tabellen en indexen kan de prestaties van query's verslechteren en het schijfgebruik verhogen."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "De tabel Posts heeft naar schatting {{.dead_tuples}} dead tuples ({{.dead_percent}}% van naar schatting {{.estimated_rows}} rijen), en de meest recente vacuum was {{.age_days}} dagen geleden, op {{.last_vacuum}}. Autovacuum lijkt deze tabel niet bij te houden. Bloat van tabellen en indexen kan de prestaties van query's verslechteren en het schijfgebruik verhogen."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Als pg_stat_progress_vacuum laat zien dat er een vacuum op Posts draait, laat die dan afronden, want een handmatige VACUUM starten annuleert hem. Als Posts onlangs een vacuum heeft gehad, zoek dan uit wat het opruimen tegenhoudt en beëindig of verwijder dat: langlopende of idle-in-transaction-sessies in pg_stat_activity, inactieve replication slots in pg_replication_slots en oude prepared transactions in pg_prepared_xacts. De volgende vacuum kan de dead tuples dan verwijderen. Als Posts niet recent een vacuum heeft gehad, controleer dan of autovacuum globaal en voor Posts is ingeschakeld, en zoek in de PostgreSQL-logs naar geannuleerde autovacuum-taken. Als autovacuum het niet bijhoudt, verlaag dan autovacuum_vacuum_scale_factor voor Posts en verhoog autovacuum_vacuum_cost_limit en autovacuum_work_mem voor zover de capaciteit dat toelaat, en plan daarna een gerichte VACUUM (ANALYZE) op Posts op een rustig moment. Vermijd VACUUM FULL, tenzij je rekening houdt met de exclusieve vergrendeling en de extra schijfruimte; indien beschikbaar is pg_repack een alternatief met minder vergrendeling."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Tabel Posts heeft veel dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout is ingesteld op {{.timeout}} seconden. Bij lange time-outs kunnen op hol geslagen query's de hele tijd vergrendelingen vasthouden, waardoor autovacuum, schemamigraties en schrijfbewerkingen op dezelfde rij worden geblokkeerd. Dit vergroot het risico op drukke databases zonder leesreplica's."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Verlaag SqlSettings.QueryTimeout naar 30. Onderzoek specifieke trage query's afzonderlijk in plaats van het globale plafond te verhogen."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout is hoog (standaard is 30s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas is ingesteld, maar geen enkele replica is bereikbaar, dus leesbewerkingen vallen terug op de primaire database."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Controleer de DSN van de replica, de bereikbaarheid via het netwerk en de authenticatie. Zoek in de serverlogs naar waarschuwingen over replicaverbindingen."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Leesreplica's geconfigureerd, maar geen enkele bereikbaar"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Elke SQL-instructie wordt gelogd. Dit is alleen bedoeld voor debuggen: als je het aan laat staan, raakt de schijf vol en worden querygegevens naar de logbestanden geschreven."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Stel SqlSettings.Trace in op false, tenzij je actief aan het debuggen bent."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace is ingeschakeld"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "De server draait op {{.os}}. Mattermost ondersteunt Linux voor productie; andere besturingssystemen zijn alleen geschikt voor ontwikkeling."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Verplaats de server naar een ondersteunde Linux-distributie."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Server draait niet op Linux"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Elk nieuw bericht wordt synchroon geïndexeerd met een eigen verzoek. Op drukke servers overbelast dit de zoekcluster en vertraagt het indexeren."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Verhoog LiveIndexingBatchSize naar een waarde tussen 10 en 20, en stem de waarde binnen dat bereik af op het waargenomen aantal berichten."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "LiveIndexingBatchSize van Elasticsearch is 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize is {{.size}}. Grote _bulk-verzoeken kunnen de http.max_content_length van de zoekcluster overschrijden en mislukken met 413-fouten, wat leidt tot nieuwe pogingen en een achterstand bij het indexeren."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Verlaag LiveIndexingBatchSize naar een waarde tussen 10 en 20, of verhoog http.max_content_length op de zoekcluster als zeer grote batches de bedoeling zijn."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "LiveIndexingBatchSize van Elasticsearch is hoger dan 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL verwijst naar {{.host}}, wat elk app-knooppunt naar zichzelf herleidt. Knooppunten zonder lokale zoekmachine kunnen niet indexeren of zoeken."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Stel ConnectionURL in op een hostnaam of DNS-naam van een service die elk app-knooppunt kan bereiken."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "ConnectionURL van Elasticsearch verwijst naar localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "De zoekcluster meldt de plugin analysis-icu niet. Het indexsjabloon voor berichten gebruikt de ICU-tokenizer en -normalizer, dus het indexeren van berichten kan zonder deze plugin mislukken."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "De pluginlijst is niet verzameld omdat de server de versie van de zoekcluster niet kon lezen."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Installeer de plugin analysis-icu op elk zoekknooppunt (elasticsearch-plugin install analysis-icu, of opensearch-plugin install analysis-icu) en herstart daarna de knooppunten. Het indexeren van berichten vereist deze plugin, niet alleen meertalig zoeken."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Zoekmachine mist de plugin analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "De verbindingstest met de zoekmachine is mislukt: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "De verbindingstest met de zoekmachine is mislukt en zoeken via de database is uitgeschakeld, dus zoeken levert geen resultaten op: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "De verbindingstest met de zoekmachine is mislukt op {{.nodes}}, terwijl de andere knooppunten de zoekmachine wel bereiken, dus zoeken en indexeren op die knooppunten kan mislukken. Controleer de netwerk-, firewall-, proxy- en DNS-instellingen op die knooppunten. Fout: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Controleer de bereikbaarheid, TLS en inloggegevens van ElasticsearchSettings.ConnectionURL. Controleer de status van de zoekcluster (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Server meldt een fout in de Elasticsearch-cluster"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification is true op een https-verbinding, dus de server valideert het certificaat van de zoekmachine niet. Dit is acceptabel op een vertrouwd intern netwerk, maar elders vervalt daarmee de bescherming tegen een man-in-the-middle-aanval."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Als het zoekeindpunt via een onvertrouwd pad loopt, installeer dan de CA ervan zodat het certificaat wordt gevalideerd, en stel SkipTLSVerification in op false. Bevestig op een vertrouwd intern netwerk dat de instelling bewust zo is gekozen."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch-verbinding slaat verificatie van het TLS-certificaat over"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} is nieuwer dan de ondersteunde hoofdversies ({{.min}} tot en met {{.max}}). Upgrade Mattermost naar een release die deze versie ondersteunt, of zet de zoekcluster terug naar een ondersteunde versie."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} is ouder dan de ondersteunde hoofdversies ({{.min}} tot en met {{.max}}). Upgrade de zoekcluster naar een ondersteunde versie."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "De versie van de zoekcluster is niet verzameld omdat de server geen verbinding heeft gemaakt met de zoekcluster."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "De backend of versie van de zoekmachine kon niet worden herkend."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Gebruik een hoofdversie van de zoekcluster die door deze Mattermost-versie wordt ondersteund."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Versie van de zoekmachine wordt niet ondersteund"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout is {{.value}} seconden. Deze instelling bepaalt hoe lang de export wacht op een verbinding met de SMTP-server van Global Relay, en bij minder dan 30 seconden mislukt de aflevering bij een trage verbinding."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Verhoog MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout naar minimaal 30 seconden. De standaardwaarde is 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "SMTPServerTimeout van Global Relay is lager dan 30 seconden"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Het volume met FileSettings.Directory heeft {{.available_gib}} GiB ({{.percent}}%) beschikbaar van {{.total_gib}} GiB. Bestandsuploads en andere bestandsbewerkingen kunnen mislukken wanneer het volume vol raakt."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Vergroot het volume onmiddellijk of verwijder niet-gerelateerde gegevens van het bestandssysteem; verwijder niet handmatig bestanden die door Mattermost worden beheerd uit FileSettings.Directory. Houd minstens 10% of 10 GiB beschikbaar, en nooit minder dan 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Schijf voor bestandsopslag is bijna vol"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Het volume met FileSettings.Directory heeft {{.available_gib}} GiB ({{.percent}}%) beschikbaar van {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Vergroot het volume of verwijder niet-gerelateerde gegevens van het bestandssysteem; verwijder niet handmatig bestanden die door Mattermost worden beheerd uit FileSettings.Directory. Houd minstens 10% of 10 GiB beschikbaar, en nooit minder dan 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Weinig schijfruimte voor bestandsopslag"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName is local terwijl ClusterSettings.Enable aan staat, en FileSettings.Directory is {{.directory}}. In een cluster moet deze map een gedeelde koppeling zijn (NFS, EFS, GlusterFS, CephFS) die op elk knooppunt op dezelfde manier is gekoppeld, anders zijn bestanden die naar één knooppunt zijn geüpload niet zichtbaar op de andere. De configuratie kan niet laten zien of de map gedeeld is, en een knooppunt kan slagen voor de verbindingstest van de bestandsopslag terwijl het naar zijn eigen lokale schijf schrijft."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Voer op elk app-knooppunt findmnt uit met het pad van FileSettings.Directory. Een relatief pad wordt herleid vanaf de werkmap van Mattermost, meestal /opt/mattermost. Elk knooppunt moet dezelfde externe bron tonen, en de Mattermost-gebruiker moet daar kunnen lezen en schrijven. Als de map geen gedeelde koppeling is, verplaats hem dan naar een gedeelde koppeling of zet FileSettings.DriverName op amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Lokale bestandsopslag in een cluster met hoge beschikbaarheid: controleer de gedeelde koppeling"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket is leeg, dus bestandsuploads mislukken."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Stel FileSettings.AmazonS3Bucket in, samen met de regio en het eindpunt."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3-bestandsopslag geselecteerd, maar de bucket is leeg"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL is false, dus bestanden gaan onversleuteld tussen de server en het S3-eindpunt."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Stel FileSettings.AmazonS3SSL in op true, tenzij het eindpunt alleen gewone HTTP ondersteunt."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL voor Amazon S3 uitgeschakeld"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "De server kon geen verbinding maken met zijn bestandsopslag: {{.error}}. Uploaden en downloaden van bestanden kan mislukken."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "De verbindingstest met de bestandsopslag is mislukt op {{.nodes}}, terwijl de andere knooppunten de opslag wel bereiken, dus uploaden en downloaden van bestanden via die knooppunten kan mislukken. Controleer de netwerk-, firewall-, proxy- en DNS-instellingen op die knooppunten. Controleer bij lokale opslag ook of de gedeelde map op die knooppunten is gekoppeld. Fout: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Controleer de instellingen voor bestandsopslag en gebruik daarna Verbinding testen in Systeemconsole > Omgeving > Bestandsopslag. Controleer bij lokale opslag of FileSettings.Directory bestaat en of de Mattermost-gebruiker ernaar kan schrijven. Controleer bij Amazon S3 de bucket, het eindpunt en de inloggegevens."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Verbindingstest van bestandsopslag mislukt"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "De laatst voltooide uitvoering van {{.job_type}} ({{.job_id}}) is geëindigd met een fout: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "De laatst voltooide uitvoering van {{.job_type}} ({{.job_id}}) is geëindigd met een fout, zonder een foutmelding vast te leggen."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Bekijk de fout van de taak en de serverlogs rond de starttijd van de mislukte uitvoering om de oorzaak te vinden. Veelvoorkomende oorzaken om uit te sluiten: databasebelasting, limieten van de verbindingspool, netwerk- of failovergebeurtenissen en time-outs van statements. Los het op, voer de taak opnieuw uit en controleer of die wordt voltooid. Totdat een uitvoering slaagt, wordt het werk van de taak (directorysynchronisatie, nalevingsexport, gegevensbewaring of zoekindexering) niet gedaan."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Laatste uitvoering van taak mislukt"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "De taak {{.job_type}} {{.job_id}} is bezig, maar heeft al {{.hours}} uur geen activiteit vastgelegd. Dit betekent meestal dat de worker halverwege is gestopt of dat de planner is vastgelopen."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "De taak {{.job_type}} {{.job_id}} is bezig, maar heeft al {{.days}} dagen geen activiteit vastgelegd. Dit betekent meestal dat de worker halverwege is gestopt of dat de planner is vastgelopen."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Annuleer de vastgelopen taak vanaf de bijbehorende pagina in de systeemconsole, met mmctl job cancel of via de API. Controleer de serverlogs rond de laatste activiteit van de taak en voer de taak daarna opnieuw uit."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Taak zit al meer dan 24 uur vast"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "De taak {{.job_type}} {{.job_id}} heeft geen voortgang gemeld en al meer dan een uur geen activiteit vastgelegd. Dit betekent meestal dat de worker is gestopt, in een deadlock is geraakt of zijn databaseverbinding is kwijtgeraakt vóór de eerste batch."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Annuleer de taak vanaf de bijbehorende pagina in de systeemconsole, met mmctl job cancel of via de API. Zoek in de serverlogs vanaf de starttijd van de taak naar panics of verbindingsfouten en voer de taak daarna opnieuw uit. Als het opnieuw gebeurt, maak dan een goroutineprofiel via /debug/pprof/goroutine op de metrics-server terwijl de taak vastzit."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Taak al meer dan een uur bezig zonder voortgang of activiteit"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute is {{.attribute}}. Mattermost koppelt elk account via dit attribuut aan de bijbehorende directory-vermelding, dus wanneer het e-mailadres van een gebruiker verandert (huwelijk, nieuwe huisstijl, overplaatsing naar een andere afdeling), verbreekt de koppeling en kan de gebruiker zijn bestaande account niet meer bereiken."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Zet IdAttribute op een stabiel attribuut zoals objectGUID (AD) of entryUUID (OpenLDAP) en migreer daarna de bestaande accounts met mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute is een e-mailattribuut"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Poort 636 verwacht volgens de conventie impliciete TLS (LDAPS), maar ConnectionSecurity is None of STARTTLS. Deze combinatie is meestal een configuratiefout, maar kan geldig zijn achter een proxy die TLS afhandelt. Controleer of aanmelden en synchroniseren via LDAP slagen."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Als aanmelden of synchroniseren via LDAP mislukt, stel ConnectionSecurity dan in op TLS voor poort 636. Als het werkt, hoeft er niets te veranderen."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP-poort 636 geconfigureerd zonder ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Poort 389 is volgens de conventie platte tekst of STARTTLS, terwijl impliciete TLS (LDAPS) volgens de conventie 636 gebruikt. Deze combinatie is meestal een configuratiefout, maar kan geldig zijn achter een proxy die TLS afhandelt of bij een bewust anders geconfigureerde server. Controleer of aanmelden en synchroniseren via LDAP slagen."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Als aanmelden of synchroniseren via LDAP mislukt, gebruik dan poort 636 voor TLS of zet ConnectionSecurity op STARTTLS voor poort 389. Als het werkt, hoeft er niets te veranderen."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP-poort 389 geconfigureerd met ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "De LDAP-test (verbinden, binden en een gebruikerszoekopdracht) is mislukt, dus aanmelden en synchroniseren via LDAP mislukken mogelijk."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "De LDAP-test (verbinden, binden en een gebruikerszoekopdracht) is mislukt op {{.nodes}}, terwijl de andere knooppunten de LDAP-server wel bereiken, dus aanmelden via LDAP kan op die knooppunten mislukken. Controleer de netwerk-, firewall-, proxy- en DNS-instellingen op die knooppunten."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Bekijk de foutdetails en controleer daarna LdapServer, LdapPort, ConnectionSecurity en de bind-inloggegevens, en of de Mattermost-servers de LDAP-server kunnen bereiken. Gebruik Verbinding testen op de AD/LDAP-pagina om opnieuw te controleren."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP-verbindingstest mislukt"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout is {{.timeout}} seconden. Krappe time-outs veroorzaken onterechte mislukte LDAP-aanmeldingen en -synchronisaties bij trage directory's."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Verhoog LdapSettings.QueryTimeout naar 60 seconden (de standaardwaarde)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout is korter dan 10 seconden"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} actieve gebruikersaccounts worden handmatig beheerd. Mattermost raadt single sign-on aan zodra een werkruimte meer dan 100 gebruikers heeft: handmatig accountbeheer op deze schaal leidt tot verouderde accounts, vertraging bij het aanmaken van accounts voor nieuwe medewerkers en achterstand bij het opruimen van accounts van vertrokken medewerkers, wat allemaal een risico voor beveiliging en licenties is."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Koppel Mattermost aan je identiteitsprovider: AD/LDAP als je een directory gebruikt, anders SAML of OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Meer dan 100 gebruikers zonder single sign-on"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost verifieert het TLS-certificaat van de LDAP-server niet, dus verbindingen met de directory zijn kwetsbaar voor man-in-the-middle-aanvallen. Dit is alleen acceptabel voor ontwikkeling en testen."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Installeer de CA-keten van de LDAP-server op de Mattermost-servers en stel SkipCertificateVerification in op false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification is ingeschakeld"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes is {{.interval_minutes}}, en recente LDAP-synchronisaties duurden gemiddeld {{.avg_run_seconds}} seconden, {{.duty_pct}}% van het interval. Lange synchronisaties met een kort interval houden de databasebelasting hoog en kunnen de vertraging van replica's vergroten."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Er is geen LDAP-synchronisatie met een meetbare duur gevonden."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Beperk LdapSettings.UserFilter en BaseDN om het doorlopen van de directory in te perken, of verleng SyncIntervalMinutes. Streef naar synchronisaties die minder dan 25% van het interval duren."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP-synchronisatie beslaat een groot deel van haar interval"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP-synchronisatie doorzoekt de directory vanaf BaseDN, dus als die leeg is, kan de synchronisatie de gebruikers die ze moet bijwerken niet vinden."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Stel LdapSettings.BaseDN in op de hoofdmap van de directory die je wilt synchroniseren."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP-synchronisatie ingeschakeld, maar BaseDN is leeg"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "De licentie is verlopen op {{.expires_at}}. De server verwijdert een verlopen licentie 10 dagen na het verlopen, en Enterprise-functies werken dan niet meer."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "De proeflicentie is verlopen op {{.expires_at}}. De server verwijdert een verlopen licentie 10 dagen na het verlopen, en Enterprise-functies werken dan niet meer."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Vraag een nieuwe licentie aan en upload die in Systeemconsole > Over > Editie en Licentie."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Licentie is verlopen"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "De licentie verloopt op {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "De proeflicentie verloopt op {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Vraag nu een nieuwe licentie aan, zodat je die in Systeemconsole > Over > Editie en Licentie kunt uploaden voordat de huidige verloopt."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Licentie verloopt binnen 30 dagen"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel is {{.level}}. Logbestanden op debugniveau groeien snel, en de extra details kunnen de inhoud van verzoeken bevatten. Dat is prima tijdens het oplossen van problemen, maar niet ideaal als vaste productie-instelling."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Als je niet actief problemen aan het oplossen bent, stel LogSettings.FileLevel dan in op INFO om de hoeveelheid logs te beperken."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Logbestand op debug- of traceniveau"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile is false, dus de server schrijft geen logbestand. Supportpakketten bevatten dan geen serverlogs, ook niet als een externe collector stdout of journald opvangt, en het oplossen van problemen met Mattermost Support duurt langer."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Stel LogSettings.EnableFile in op true. Dit werkt naast logging naar de console, dus een bestaande logcollector blijft werken."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Logging naar bestand uitgeschakeld"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging is true, dus mislukte verzoeken van inkomende webhooks worden met hun payload gelogd, die berichttekst kan bevatten."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Stel LogSettings.EnableWebhookDebugging in op false, tenzij je een probleem met een webhook aan het oplossen bent."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Webhook-payloads worden gelogd"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, dus @channel, @all en @here werken nog in kanalen met duizenden leden. Eén vermelding van het hele kanaal stuurt daar in één keer duizenden meldingen uit, wat pieken in de latentie veroorzaakt."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Verlaag TeamSettings.MaxNotificationsPerChannel naar 5000 of minder (de standaardwaarde is 1000). @channel, @all en @here worden uitgeschakeld zodra een kanaal zoveel leden heeft, dus overleg eerst met de teams die ze in grote kanalen gebruiken."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Vermeldingen van het hele kanaal toegestaan in zeer grote kanalen"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost legt geen prestatiegegevens vast, zoals databaseverbindingen, latentie van verzoeken en serverbelasting. Zonder die gegevens is er geen geschiedenis om op terug te kijken wanneer gebruikers traagheid melden, en niets om met Mattermost Support te delen."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Schakel Performantiemonitoring in de systeemconsole in en controleer of de Metrics-plugin is ingeschakeld onder Plugins > Plugin Beheer. De plugin bewaart 15 dagen aan metrics op de server, zonder dat Prometheus nodig is. Als je Prometheus gebruikt, laat het dan verwijzen naar de metrics-listener (standaard poort 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Prestatiemonitoring is uitgeschakeld"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "De memory working set van de container is {{.working_set}} MB van de limiet van {{.limit}} MB. Als die blijft groeien, kan de kernel de server of een pluginproces beëindigen."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Verminder het geheugengebruik van Mattermost en zijn plugins, of verhoog de geheugenlimiet van de container. Houd voldoende ruimte vrij voor pluginprocessen, de Go-runtime en pieken in het verkeer."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Geheugen van container bijna op"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "De container heeft sinds de start {{.kills}} out-of-memory-kills geregistreerd. Het beëindigde proces kan een plugin of een ander onderliggend proces zijn geweest; controleer de pluginlijst en de geheugenlimiet van de container."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Bekijk de pluginprocessen en containerlogs om te achterhalen wat er is beëindigd, en verminder daarna het geheugengebruik ervan of verhoog de geheugenlimiet van de container."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Een containerproces is beëindigd omdat het geheugen op was"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "De container is afgeknepen tijdens {{.throttled}} van de {{.periods}} CPU-planningsperioden. Aanhoudende CPU-throttling kan Mattermost traag maken, zelfs wanneer het CPU-gebruik van de host laag lijkt."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Verhoog de CPU-limit van de container, of verwijder de limit en behoud een CPU-request."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "CPU-throttling van container is hoog"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Het serverproces heeft {{.open}} van de {{.max}} bestandsdescriptors open. Zodra de limiet is bereikt, mislukken nieuwe verbindingen en bestandsbewerkingen."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Verhoog de limiet voor open bestanden: stel LimitNOFILE in de systemd-unit van Mattermost in, of verhoog de nofile-ulimit van de container, en herstart daarna de server."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Bestandsdescriptors bijna op"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "De geheugenlimiet van Go is {{.go_limit}} MB, maar de limiet van de container is {{.container_limit}} MB. De garbage collector gaat mogelijk niet harder werken voordat de kernel het proces beëindigt."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Stel GOMEMLIMIT in op ongeveer 80–90% van de geheugenlimiet van de container, zodat er ruimte overblijft voor geheugen buiten de Go-heap en voor pluginprocessen."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Geheugenlimiet van Go is gelijk aan of hoger dan de limiet van de container"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS is {{.go_max_procs}}, hoger dan de CPU-limit van de container van {{.cpu_limit}} CPU's. De extra uitvoerbare threads kunnen de CPU-throttling vergroten."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Verwijder de instelling GOMAXPROCS, zodat de Go-runtime de waarde afstemt op de CPU-limit van de container, en herstart daarna de server."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS overschrijdt de CPU-limit van de container"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "De gemiddelde hostbelasting over 15 minuten is {{.load}} bij {{.cores}} CPU-cores. Een aanhoudende belasting van twee of meer taken per core kan wijzen op druk op de CPU of de I/O."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Controleer het CPU-gebruik, de schijf-I/O en de actieve processen op het knooppunt, en voeg daarna capaciteit toe of verminder de werklast."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Hostbelasting is hoog"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "De host heeft {{.available}} MB beschikbaar van {{.total}} MB. Mattermost en andere processen kunnen worden beëindigd of traag worden als het beschikbare geheugen verder daalt."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Zoek de processen die het meeste geheugen gebruiken en verminder hun gebruik, of voeg geheugen toe aan de host. Bekijk het geheugengebruik van Mattermost en de plugins voordat je services herstart."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Geheugen van de host raakt op"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Dit knooppunt heeft zijn diagnostische gegevens voor de gezondheidscontrole niet teruggestuurd. Het is mogelijk uitgevallen, overbelast of afgesneden van de andere knooppunten. Totdat het reageert, behouden de overige bevindingen van dit knooppunt hun laatst bekende status."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Controleer of Mattermost op dit knooppunt draait, bekijk de logs en het CPU- en geheugengebruik ervan, en controleer of het de andere knooppunten kan bereiken via de gossippoort (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Een clusterknooppunt reageert niet"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "De verbindingstest met de OAuth/OIDC-provider is mislukt op elk rapporterend Mattermost-knooppunt, dus aanmelden via deze provider is waarschijnlijk niet mogelijk."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "De verbindingstest met de OAuth/OIDC-provider is mislukt op {{.nodes}}, terwijl de andere rapporterende knooppunten de provider wel kunnen bereiken. Aanmelden via deze provider kan op die knooppunten mislukken."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Bekijk de foutdetails, het discovery- of tokeneindpunt van de provider en de instellingen voor uitgaand netwerkverkeer, firewall, proxy en DNS. Controleer daarna of aanmelden via de provider werkt."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Verbindingstest met de OAuth/OIDC-provider mislukt"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Open server en registratie via e-mail zijn ingeschakeld terwijl e-mailverificatie uit staat, dus iedereen die deze server kan bereiken, kan een account aanmaken met een verzonnen e-mailadres en lid worden van open teams. Als open registratie de bedoeling is, demp dan deze bevinding."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Open server en registratie via e-mail zijn ingeschakeld terwijl e-mailverificatie uit staat. TeamSettings.RestrictCreationToDomains beperkt registratie tot bepaalde domeinen, maar Mattermost controleert alleen of het adres eindigt op een toegestaan domein, niet of de persoon eigenaar van het adres is. Iedereen die deze server kan bereiken, kan zich registreren onder een toegestaan domein en zich voordoen als collega. Als open registratie de bedoeling is, demp dan deze bevinding."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Stel EmailSettings.RequireEmailVerification in op true. Controleer eerst of SMTP werkt: bestaande gebruikers die hun e-mailadres nooit hebben geverifieerd, moeten dat bij hun volgende aanmelding doen. Als je geen open registratie wilt, stel TeamSettings.EnableOpenServer dan in op false; gebruikers kunnen nog steeds lid worden via uitnodigingslinks voor teams, dus e-mailverificatie blijft aanbevolen. Om registratie te beperken tot je organisatie, stel je TeamSettings.RestrictCreationToDomains in samen met e-mailverificatie; zonder verificatie kan die beperking worden omzeild."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Iedereen kan zich registreren met een niet-geverifieerd e-mailadres"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck is false, dus een plugin die crasht, wordt niet automatisch opnieuw gestart."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Stel PluginSettings.EnableHealthCheck in op true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Gezondheidscontrole van plugins uitgeschakeld"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Deze plugins zijn ingeschakeld, maar draaien niet: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "Controleer in Systeemconsole > Plugins > Plugin Beheer de status van elke vermelde plugin en probeer de plugin uit en weer in te schakelen. In het serverlog staat waarom een plugin niet kon starten of door de gezondheidscontrole van plugins is gestopt."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Ingeschakelde plugins draaien niet"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable is false, dus er draaien geen plugins. Dit past bij sommige afgeschermde installaties, maar is vaak onbedoeld."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Als dit onverwacht is, stel PluginSettings.Enable dan in op true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Plugins uitgeschakeld"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents staat op full, dus de berichttekst en de afzender worden opgenomen in de payload van de pushmelding, die via de push-proxy en de pushdiensten van Apple en Google gaat."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Stel EmailSettings.PushNotificationContents in op id_loaded voor maximale privacy bij pushmeldingen. Dan wordt alleen een bericht-ID verzonden en haalt de mobiele app de inhoud van het bericht op bij de server. Mobiele apparaten moeten de server dan kunnen bereiken wanneer er een melding binnenkomt, dus op servers die alleen via een VPN of intern netwerk bereikbaar zijn, kunnen meldingen geen berichtinhoud tonen. Als full een bewuste keuze is, demp dan deze bevinding."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Pushmeldingen bevatten de volledige berichttekst"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "De verbindingstest met de server voor pushmeldingen is mislukt: {{.error}}. Mobiele gebruikers ontvangen mogelijk geen pushmeldingen."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "De verbindingstest met de server voor pushmeldingen is mislukt op {{.nodes}}, terwijl de andere knooppunten de server wel bereiken. Pushmeldingen die door die knooppunten worden verzonden, kunnen mislukken. Controleer de netwerk-, firewall-, proxy- en DNS-instellingen op die knooppunten. Fout: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Controleer PushNotificationServer, de TLS-certificaten en de status van de push-proxy. Controleer of elk Mattermost-app-knooppunt de geconfigureerde host via HTTPS kan bereiken en verifieer daarna het eindpunt /version ervan."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Verbindingstest met de server voor pushmeldingen mislukt"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com is de test-push-proxy van Mattermost. Deze heeft geen SLA en een beperkte doorvoer, en is niet bedoeld voor productiegebruik. Je licentie omvat de Mattermost Hosted Push Notification Service: stel PushNotificationServer in op https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable is false bij {{.users}} geregistreerde gebruikers. Snelheidsbeperking beschermt de server tegen een stortvloed aan verzoeken en tegen misbruikende of slecht werkende clients; met zoveel gebruikers plus webhooks en botintegraties kan één verkeerd geconfigureerde client de API verzadigen. Volgens de documentatie van Mattermost is de ingebouwde snelheidsbeperking bedoeld voor kleinere installaties (tot een paar honderd gebruikers), dus op grotere schaal kan het afremmen van verzoeken vaak beter worden afgehandeld door een load balancer of API-gateway."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Zorg dat er een beperking van verzoeken is die bij deze schaal past: de ingebouwde snelheidsbeperking van Mattermost (Systeemconsole > Omgeving > Snelheidsbeperking) of een beperking in je load balancer of gateway."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "API-snelheidsbeperking is uitgeschakeld op een grote installatie"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize is {{.size}}, maar er zijn {{.users}} geregistreerde gebruikers. De snelheidsbeperking houdt hooguit zoveel clients bij; als de opslag vol is, laat die de client vallen die het langst niet is gezien, waarna het verzoekquotum van die client opnieuw begint. Een kleine opslag verzwakt dus de snelheidsbeperking."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Verhoog RateLimitSettings.MemoryStoreSize naar minstens het aantal geregistreerde gebruikers."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Geheugenopslag voor snelheidsbeperking is kleiner dan het aantal gebruikers"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds is {{.value}}. De taak voor gegevensbewaring pauzeert zo lang tussen verwijderbatches, zodat de database tijd heeft om live verkeer te verwerken. Bij minder dan 100 ms kunnen grote verwijderingen de database voor iedereen vertragen."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Verhoog DataRetentionSettings.TimeBetweenBatchesMilliseconds in de configuratie naar minstens 100 (de standaardwaarde)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds voor gegevensbewaring is lager dan 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "SAML-assertions worden op de SAML-laag onversleuteld verzonden. TLS beschermt de verbinding nog steeds, dus dit is geen tekortkoming in de basisbeveiliging, maar als je IdP versleuteling van assertions ondersteunt, voegt het inschakelen ervan een extra beveiligingslaag toe."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Als je IdP versleuteling van assertions ondersteunt, schakel SamlSettings.Encrypt dan in en configureer de privésleutel en het openbare certificaat van de serviceprovider."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Versleuteling van SAML-assertions is uitgeschakeld"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost identificeert SAML-accounts aan de hand van het e-mailadres, omdat IdAttribute leeg is of een e-mailattribuut aanwijst. Wanneer het e-mailadres van een gebruiker bij de IdP verandert, verbreekt de koppeling met het bestaande account van die gebruiker."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Configureer de IdP om een stabiele identificatie te sturen (zoals objectGUID of een onveranderlijke ID) en stel SamlSettings.IdAttribute daarna in op de naam van dat attribuut. Bestaande accounts gaan vanzelf over op de nieuwe identificatie: bij de volgende aanmelding van elke gebruiker vindt Mattermost het account via het e-mailadres en slaat het de nieuwe ID op."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute is leeg of een e-mailattribuut"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute is {{.attribute}}. Gebruikersnamen, uid's en user principal names worden vaak hergebruikt voor andere medewerkers, en wanneer dat gebeurt, erft de tweede persoon het Mattermost-account van de eerste."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Gebruik bij voorkeur een identificatie die nooit opnieuw wordt toegewezen, zoals objectGUID (AD) of een onveranderlijke ID (Microsoft Entra ID), en controleer het beleid van de IdP voor hergebruik van identificaties."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute kan bij de IdP opnieuw worden toegewezen"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "De SAML-controle van het IdP-certificaat en de IdP-URL is mislukt, dus aanmelden via SAML werkt waarschijnlijk niet."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "De SAML-controle van het IdP-certificaat en de IdP-URL is mislukt op {{.nodes}}, terwijl die op de andere knooppunten slaagt, dus aanmelden via SAML kan op die knooppunten mislukken. Zorg ervoor dat die knooppunten hetzelfde geldige IdP-certificaat hebben als de andere knooppunten."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Bekijk de foutdetails en corrigeer daarna het IdP-certificaat (IdpCertificateFile) of de IdP-URL (IdpURL) in de SAML-instellingen. Als het certificaat is verlopen, upload dan het huidige ondertekeningscertificaat van de IdP."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Controle van de SAML-configuratie mislukt"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO gebruikt het handtekeningalgoritme SHA-1, dat verouderd is. SSO werkt nu nog, maar sommige identiteitsproviders beginnen SHA-1 te weigeren. Plan deze verbetering van compatibiliteit en beveiliging dus in, vooral vóór een wijziging of upgrade van de IdP."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Stel SamlSettings.SignatureAlgorithm, wanneer het uitkomt en in overleg met je IdP, in op RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm is SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost accepteert SAML-antwoorden zonder de handtekening van je IdP te verifiëren, dus het kan een echt authenticatieantwoord niet onderscheiden van een vervalst antwoord."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Stel SamlSettings.Verify in op true en zorg ervoor dat AssertionConsumerServiceURL is ingesteld. Schakel dit in overleg met je IdP in en test het aanmelden, want voor verificatie moet het IdP-certificaat correct zijn geconfigureerd."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Verificatie van SAML-handtekeningen is uitgeschakeld"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "De werkruimte heeft {{.posts}} berichten en zoeken loopt via de database. Elasticsearch wordt aanbevolen bij meer dan 2.500.000 berichten en is vereist bij meer dan 5.000.000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Plan een Elasticsearch-implementatie vóór de volgende grote groeiperiode, of voordat het aantal berichten 5.000.000 bereikt."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Aantal berichten nadert de drempel voor Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "De werkruimte heeft {{.posts}} berichten en zoeken loopt via de database. Verwacht op deze schaal trage zoekopdrachten, time-outs en CPU-pieken in de database."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Implementeer Elasticsearch of OpenSearch, voer een volledige eerste indexering uit en schakel daarna EnableIndexing, EnableSearching en EnableAutocomplete in."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Elasticsearch is vereist bij meer dan 5.000.000 berichten"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Zoeken via de database is uitgeschakeld en zoeken via Elasticsearch staat uit. Zoekopdrachten leveren geen resultaten op. Zoeken met Elasticsearch of OpenSearch inschakelen herstelt het zoeken ook."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Zoeken via de database is uitgeschakeld en de licentie omvat Elasticsearch niet, dus Elasticsearch-instellingen hebben geen effect. Zoekopdrachten leveren geen resultaten op."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Stel SqlSettings.DisableDatabaseSearch in op false in config.json (of MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Zoeken is uitgeschakeld"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} gebruikers tellen mee voor de licentielimiet van {{.limit}} gebruikers, die nu is bereikt. De server maakt geen gebruikers aan en heractiveert geen gebruikers totdat er gebruikerslicenties vrijkomen of worden toegevoegd."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Koop extra gebruikerslicenties, of deactiveer gebruikers die geen toegang meer nodig hebben om gebruikerslicenties vrij te maken."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Gebruikerslimiet van de licentie bereikt"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} gebruikers tellen mee voor {{.seats}} gebruikerslicenties ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Als je meer gebruikers verwacht, plan dan extra gebruikerslicenties voordat de licentie vol is. Door gebruikers te deactiveren die geen toegang meer nodig hebben, komen er gebruikerslicenties vrij."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Gebruikerslicenties zijn bijna allemaal in gebruik"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} gebruikers tellen mee voor {{.seats}} gebruikerslicenties ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Koop extra gebruikerslicenties, of deactiveer gebruikers die geen toegang meer nodig hebben. Gedeactiveerde gebruikers nemen geen gebruikerslicentie in beslag."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Meer gebruikers dan gebruikerslicenties"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Sessies verlopen volgens een vast schema, ongeacht activiteit, dus actieve gebruikers worden afgemeld. De meeste installaties hebben er baat bij actieve gebruikers aangemeld te houden."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Schakel ServiceSettings.ExtendSessionLengthWithActivity in, tenzij je beveiligingsbeleid dat verbiedt."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity is uitgeschakeld"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "De verbindingstest met de SMTP-server is mislukt: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "De verbindingstest met de SMTP-server is mislukt op {{.nodes}}, terwijl de andere knooppunten de server wel bereiken. Controleer de netwerk-, firewall-, proxy- en DNS-instellingen op die knooppunten. Fout: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "E-mailmeldingen, uitnodigingen en e-mails om een wachtwoord opnieuw in te stellen worden mogelijk niet afgeleverd. Controleer de SMTP-server, de poort, de verbindingsbeveiliging en de inloggegevens in de systeemconsole, controleer of de Mattermost-server de SMTP-host kan bereiken en gebruik daarna Test Verbinding om dit te verifiëren."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Verbindingstest met de SMTP-server mislukt"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Nieuwste release onbekend: die kon niet worden opgehaald of staat niet in het Support Packet."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Nieuwste release niet gecontroleerd: Beveiligingswaarschuwingen inschakelen staat uit, dus de server haalt die niet op."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Deze versie staat niet in de releasetabel van deze build. Gebruik een nieuwere mmctl om een Support Packet van een nieuwere server te evalueren."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Serverversie onbekend of niet herkend."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Versie {{.version}} draait. De nieuwste release is {{.latest}}, twee of meer releases nieuwer."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Plan een upgrade naar de nieuwste release voordat de ondersteuning voor deze releasereeks afloopt, of stap over op een release met verlengde ondersteuning (ESR) voor een lager upgradetempo."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Meerdere releases achter op de nieuwste release"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Versie {{.version}} draait. De nieuwste release is {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Plan een upgrade naar de nieuwste release."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Er is een nieuwere release beschikbaar"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Mattermost {{.version}} draait. De ondersteuning voor deze releasereeks is beëindigd op {{.eol_date}}. Voor deze releasereeks verschijnen geen beveiligingspatches meer."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Mattermost {{.version}} draait, uit een oudere releasereeks die niet meer wordt ondersteund. Voor deze releasereeks verschijnen geen beveiligingspatches meer."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Mattermost {{.version}} draait, uit een oudere releasereeks die niet meer wordt ondersteund. Voor deze releasereeks verschijnen geen beveiligingspatches meer. De nieuwste ondersteunde release met verlengde ondersteuning (ESR) is {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Mattermost {{.version}} draait. De ondersteuning voor deze releasereeks is beëindigd op {{.eol_date}}. Voor deze releasereeks verschijnen geen beveiligingspatches meer. Upgrade naar de nieuwste release."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Mattermost {{.version}} draait. De ondersteuning voor deze releasereeks is beëindigd op {{.eol_date}}. Voor deze releasereeks verschijnen geen beveiligingspatches meer. De nieuwste ondersteunde release met verlengde ondersteuning (ESR) is {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Plan een gefaseerde upgrade naar een ondersteunde release met verlengde ondersteuning (ESR) of naar de nieuwste release. De ondersteunde versies staan op https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost-versie wordt niet meer ondersteund (end-of-life)"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Versie {{.version}} draait, uit de release met verlengde ondersteuning (ESR) {{.esr}}. Plan een upgrade vóór {{.eol_date}} om beveiligingspatches te blijven ontvangen."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Plan een upgrade naar de nieuwste release of naar de volgende release met verlengde ondersteuning (ESR)."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Einde van de ondersteuning van de release met verlengde ondersteuning (ESR) nadert"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Kanaaltoegangsacties in een rechtenbeleid kunnen alleen gelden voor de rol Systeemgebruiker, Systeemgast of Systeembeheerder."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Een kanaaltoegangsregel in een rechtenbeleid kan geen eigen rol opgeven. De rol van het beleid is van toepassing."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "De actie Kanaal beheren is alleen toegestaan in rechten- en kanaalbeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "De actie Leestoegang tot kanaal is alleen toegestaan in rechten- en kanaalbeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "De actie Schrijftoegang tot kanaal is alleen toegestaan in rechten- en kanaalbeleid."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Er is een interne fout opgetreden."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Het Redis-cachevoorvoegsel mag geen ':', '*', '?', '[', ']' of '\\' bevatten."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert en RedisTLSClientKey moeten samen worden ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Aanvullende scopes moeten OAuth-scopenamen zijn, gescheiden door spaties, met in totaal maximaal {{.MaxLength}} tekens."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Ongeldig veldfilter. Een veldnaam mag maximaal {{.MaxLength}} tekens lang zijn en mag niet leeg, \"level\" of \"timestamp\" zijn."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Ongeldig veldfilter. Een veldwaarde mag maximaal {{.MaxLength}} tekens lang zijn."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Ongeldig veldfilter. Elk veld moet tussen 1 en {{.MaxValues}} waarden hebben."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Ongeldig veldfilter. Er kan op maximaal {{.MaxKeys}} velden worden gefilterd."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Ongeldig zoekfilter. Het mag maximaal {{.MaxLength}} tekens lang zijn."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Kan de volgers van het draadje niet ophalen."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "De server ondersteunt het weergeven van pluginsleutels met opties niet."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Kan pluginsleutels met opties niet weergeven."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Ongeldige ID van draadje."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Ongeldige gebruikersid."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Het bericht is een antwoord, niet het hoofdbericht van een draadje."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Ongeldige bestandsmaker."
   }
 ]

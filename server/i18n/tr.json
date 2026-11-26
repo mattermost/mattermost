@@ -930,10 +930,6 @@
     "translation": "{{.Name}} parametresi geçersiz."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Oturum kodu geçersiz: {{.Token}}, Hata: {{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "İstek adresindeki {{.Name}} parametresi geçersiz."
   },
@@ -2483,10 +2479,6 @@
     "translation": "Tepki CreateAt özelliği sıfır olamaz."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Tepki EmojiName özelliği izin verilen uzunluğu aşıyor."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Zorunlu tepki özelliği eksik: EmojiName."
   },
@@ -2921,10 +2913,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Bu sunucu üzerine {{.Backend}} arama özelliği kapalı"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Arama sonuçları eşleşmeleri işlenemedi"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3552,7 +3540,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "En fazla takım kanalı sayısı takım ayarı geçersiz. Pozitif bir sayı olmalıdır."
+    "translation": "En fazla takım kanalı sayısı takım ayarı geçersiz. 0 (sınırsız) ya da pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3564,7 +3552,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "En fazla takım kullanıcısı sayısı takım ayarı geçersiz. Pozitif bir sayı olmalıdır."
+    "translation": "En fazla takım kullanıcısı sayısı takım ayarı geçersiz. 0 (sınırsız) ya da pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -5360,15 +5348,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 146+"
+    "translation": "Sürüm 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 146+"
+    "translation": "Sürüm 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 140+"
+    "translation": "Sürüm 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5441,10 +5429,6 @@
   {
     "id": "app.audit.save.saving.app_error",
     "translation": "Denetim kaydedilirken bir sorun çıktı."
-  },
-  {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Denetimler silinirken bir sorun çıktı."
   },
   {
     "id": "app.audit.get.limit.app_error",
@@ -5539,10 +5523,6 @@
     "translation": "Erişim kodu silinemedi."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Kimlik doğrulama kodu silinemedi."
-  },
-  {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "OAuth2 uygulamaları aranırken bir sorun çıktı."
   },
@@ -5565,10 +5545,6 @@
   {
     "id": "app.oauth.delete_app.app_error",
     "translation": "OAuth2 uygulaması silinirken bir sorun çıktı."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Kullanıcı silinemedi."
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -5731,10 +5707,6 @@
     "translation": "Ayarlar güncellenirken bir sorun çıktı."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Ayarlar silinirken bir sorun çıktı."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Ayarlar aranırken bir sorun çıktı."
   },
@@ -5795,15 +5767,7 @@
     "translation": "Gelen İnternet kancası kaydedilemedi."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "İnternet kancası silinemedi."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "İnternet kancası silinemedi."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "İnternet kancası silinemedi."
   },
   {
@@ -5883,10 +5847,6 @@
     "translation": "İleti kaydedilemedi."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Kullanıcının silinecek iletileri seçilemedi."
-  },
-  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Kanalın iletileri silinemedi."
   },
@@ -5929,10 +5889,6 @@
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
     "translation": "Yeni takım üyeliği eklenemedi"
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Bu takıma başka üye kabul edilmediğinden takım üyeliği içe aktarılamadı"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -6031,10 +5987,6 @@
     "translation": "Dosya bilgileri kaydedilemedi."
   },
   {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Kullanıcının ek dosyaları silinemedi."
-  },
-  {
     "id": "app.file_info.get_with_options.app_error",
     "translation": "Yola göre dosya bilgileri alınamadı"
   },
@@ -6065,10 +6017,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Sabitlenmiş iletiler bulunamadı."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Kanal üyesi silinemedi."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
@@ -6117,10 +6065,6 @@
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "Yalnızca sistem yöneticileri önceden karılmış parolalar ayarlayabilir."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "Müşteri site sunucusu oturum açmaya izin vermiyor."
   },
   {
     "id": "api.user.login_by_cws.invalid_token.app_error",
@@ -6823,10 +6767,6 @@
     "translation": "grup üyesi zaten var"
   },
   {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "\"{{.UserId}}\" kullanıcı kodlu grup üyesi çıkarılamadı."
-  },
-  {
     "id": "app.group.no_rows",
     "translation": "eşleşen bir grup bulunamadı"
   },
@@ -7301,10 +7241,6 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Ön bellek temizlenirken sorun çıktı"
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Davet şifrelenemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -8122,24 +8058,8 @@
     "translation": "Bir Cloud kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Takım sayısı alınamadı"
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "Takımların kullanım bilgileri alınamadı"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Takım sayısı sınırına ulaşıldığından takım geri yüklenemedi"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Takım sayısı sınırına ulaşıldığından takım eklenemedi"
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Depolama alanı kullanımı alınamadı."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -8228,14 +8148,6 @@
   {
     "id": "app.job.error",
     "translation": "Görev yürütülürken sorun çıktı."
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Erişilebilen son dosya alınırken sorun çıktı"
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Cloud tarifesinin sınırlarını aştığından dosya alınamadı."
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -8376,10 +8288,6 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Doğrulama sırasında roller alınırken sorun çıktı."
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
@@ -8600,10 +8508,6 @@
   {
     "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
     "translation": "Okunmamış ve anma iletileri denetlenemedi"
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Kullanıcının tepkileri silinemedi."
   },
   {
     "id": "api.user.login.remote_users.login.error",
@@ -9769,10 +9673,6 @@
     }
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Kullanıcının zamanlanmış iletileri silinemedi."
-  },
-  {
     "id": "app.scheduled_post.error_reason.user_missing",
     "translation": "Kullanıcı bulunamadı"
   },
@@ -10060,10 +9960,6 @@
     "translation": "Sorun bildirme e-posta adresi belirtilmelidir."
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Kullanıcının taslakları silinemedi."
-  },
-  {
     "id": "app.group.license_error",
     "translation": "LDAP lisansı gereklidir."
   },
@@ -10138,10 +10034,6 @@
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Kanal üyesi güncellemesi geçersiz: Bir kanal üyesinin her zaman bir kullanıcı şeması vardır."
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Paylaşılan kanallar hizmeti açık ancak etkin değil."
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
@@ -14591,7 +14483,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Site sağlığı sayfası için bir Enterprise lisansı gereklidir."
+    "translation": "Site sağlığı sayfası için Professional ya da üzeri bir lisans gereklidir."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14639,7 +14531,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Günlük yapılandırmasında, günlük kök klasörünün dışında kalan bir günlük ya da denetim dosyası yolu var. Ayrıntılar için sunucu günlüklerine bakın."
+    "translation": "Günlük yapılandırmasında, günlük kök klasörünün dışında ya da sunucunun yönettiği bir klasörün içinde kalan bir günlük ya da denetim dosyası yolu var. Ayrıntılar için sunucu günlüklerine bakın."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14707,7 +14599,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "https://push.mattermost.com (Enterprise ile birlikte gelen, üretim ortamına yönelik Hosted Push Notification Service hizmeti) ya da kendi barındırdığınız bir anında bildirim vekil sunucusu kullanın."
+    "translation": "PushNotificationServer ayarını üretim ortamına yönelik bir anında bildirim vekil sunucusuna yönlendirin: Mobil uygulamaların kendi derlemelerinize hizmet veren, kendi barındırdığınız bir Mattermost Push Proxy."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14740,5 +14632,1899 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Okunduğunda yok edilecek iletiler yinelenen zamanlanmış iletiler olarak gönderilemez."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Kanal izni işlemleri özelliği açılmamış."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Yüklenen kimlik hizmeti sağlayıcısı sertifikası geçerli bir PEM kodlamalı X.509 sertifikası değil."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Yüklenen hizmet sağlayıcı özel anahtarı geçerli bir PEM kodlamalı özel anahtar değil."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Yüklenen hizmet sağlayıcı herkese açık sertifikası geçerli bir PEM kodlamalı X.509 sertifikası değil."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Yüklenen dosya kayıtlı hizmet sağlayıcı sertifikası ya da özel anahtarı ile eşleşmiyor. Bunları tek tek değiştirmek için şifrelemeyi kapatın."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Şu anda bu kanalı yönetme izniniz yok."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Şu anda bu kanala erişiminiz yok."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Şu anda bu kanala yazma izniniz yok."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "`{{.Near}}` yakınındaki tek tırnak ` --` öncesinde kapatılmamış. Tırnağı kapatın ya da değer ` --` içeriyorsa çift tırnak kullanın."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "`{{.Near}}` yakınında beklenmeyen bir metin var. Boşluk içeren bir değeri tırnak içine alın. Değer kesme işareti de içeriyorsa çift tırnak kullanın."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "`{{.Near}}` yakınındaki bir tırnak kapatılmamış."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Kaydedilmiş yapılandırmalar karşılaştırılamadı."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Kaydedilmiş yapılandırma geçerli yapılandırma ile karşılaştırılamadı."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Oturum geçersiz ya da süresi dolmuş."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Bu türdeki görevler iptal edilemez."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "public_key alanına tam olarak bir uygulama eki herkese açık anahtar dosyası yüklenmelidir."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "{{.Name}} uygulama eki herkese açık anahtarı yapılandırılmamış."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Yüklenen uygulama eki herkese açık anahtarı işlenemedi."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "İstenen ileti özniteliği değerlerinden bir ya da birkaçını ayarlama izniniz yok."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Okunduğunda yok edilecek iletilerin ileti öznitelikleri olamaz."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "İleti öznitelikleri bu sunucuda açılmamış."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Bir ya da birkaç ileti özniteliği değeri uygulanamadı."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Bir alan oluşturulurken izinlerini yalnızca alanın bağlı olduğu kanalın, takımın ya da sistemin bir yöneticisi ayarlayabilir."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Bir öznitelik alanı oluşturulurken izinlerini yalnızca bir sistem yöneticisi ayarlayabilir."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Bu öznitelik silinmiş."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Bu API üzerinden bir v1 özellik alanının uyumluluk verileri aranamaz."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Bu özellik alanının uyumluluk verilerini görüntüleme izniniz yok."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Değeri eksik kanallar yalnızca tüm takımlara uygulanan öznitelikler için listelenebilir ya da bilgilendirilebilir."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Kanal yöneticileri yakın zamanda bu konuda bilgilendirildiğinden bildirimler gönderilmedi. {{.Count}} dakika sonra yeni bir bildirim gönderebilirsiniz.",
+      "other": "Kanal yöneticileri yakın zamanda bu konuda bilgilendirildiğinden bildirimler gönderilmedi. {{.Count}} dakika sonra yeni bir bildirim gönderebilirsiniz."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Kanal yöneticileri yakın zamanda bu konuda bilgilendirildiğinden bildirimler gönderilmedi. Lütfen bir süre sonra yeniden deneyin."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Bir özellik alanının izinlerini, alanı artık düzenleyemeyeceğiniz biçimde değiştiremezsiniz."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Gönderilen kısıtlamalar nesnesi beş izin düzeyinin tümünü ayarlamalıdır: değer okuma, değer yazma, seçenek okuma, seçenek yazma ve alan yazma."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Gönderilen izinler nesnesi geçersiz."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Bu özellik grubu bir izinler nesnesi gönderilmesini desteklemiyor."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "İzinler nesnesi sistem yöneticilerinin alanı düzenlemesine izin vermelidir, bu nedenle alan yazma düzeyi none olamaz."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Bazı etkin kanalların bu öznitelik için bir değeri olmadığından öznitelik henüz zorunlu olarak işaretlenemez. Kanal yöneticilerini bilgilendirip yeniden deneyin."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Davetin süresi dolmuş. Uzak siteden yeni bir davet isteyin."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Uzak site geçersiz bir yanıt döndürdü."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Davette geçersiz bir site adresi var: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Uzak site daveti reddetti."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "{{.URL}} adresindeki uzak site ile bağlantı kurulamadı."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Güvenli bağlantıdan yapılan bir yükleme, kısmen alınmış bir dosyayı sürdüremez."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Tek bir erişim denetimi değerlendirmesinde çok fazla kaynak var. Sınır: {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Son Mattermost sürümünün denetlenmesi kapatılmış. İzin vermek için \"Güvenlik uyarıları kullanılsın\" ayarını açın."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Kanal yöneticileri aranamadı."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Bu öznitelik için değeri eksik kanallar aranamadı."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Bu öznitelik için değeri eksik kanallar sayılamadı."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Bu öznitelik için değeri eksik tüm kanallar sayılamadı."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Bu öznitelik için değeri eksik yerel kanallar sayılamadı."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Bu öznitelik için değeri eksik kanallar listelenemedi."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Bu öznitelik için değeri eksik uzak kanallar aranamadı."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Bu öznitelikten etkilenen kanal yöneticileri ve kanallar sayılamadı."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Bu öznitelik hakkında bilgilendirilecek kanal yöneticileri aranamadı."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _ve {{.Count}} kanal daha_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Lütfen yönettiğiniz bu kanallar için bir **{{.AttributeName}}** değeri ayarlayın. Sistem yöneticisinin bu özniteliği zorunlu yapabilmesi için her kanalın bir değeri olması gerekir."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Zorunlu bir kanal özniteliği eksik olan bir kanalın kanal yöneticisisiniz. Lütfen bir **{{.AttributeName}}** değeri ayarlayın.",
+      "other": "Zorunlu bir kanal özniteliği eksik olan kanalların kanal yöneticisisiniz. Lütfen bir **{{.AttributeName}}** değeri ayarlayın."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Bu öznitelik için bildirim bekleme süresi ayrılamadı."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Kaydedilmiş yapılandırmalar alınamadı."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Bu kimliğe sahip bir kaydedilmiş yapılandırma yok."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Yapılandırma geçmişi yalnızca yapılandırma veri tabanında saklandığında kullanılabilir."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Yazıldığı gibi: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Zaman damgası"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Sağlık denetimi başlatılamadı."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Bir sağlık denetimi zaten başlatılıyor. Biraz sonra yeniden deneyin."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "İleti içe aktarılırken sorun çıktı. Öncelik kaydedilemedi."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Kullanıcı takımları içe aktarılırken sorun çıktı. Takım bulunamadı."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Bu dosya {{.Team}} takımına {{.Adding}} kullanıcı ekleyerek üye sayısını {{.Total}} yapıyor ancak TeamSettings.MaxUsersPerTeam değeri {{.Limit}}. İçe aktarmadan önce sınırı yükseltin ya da 0 (sınırsız) olarak ayarlayın."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "TeamSettings.MaxUsersPerTeam değerini denetlemek için içe aktarma dosyası okunamadı."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Onay AcknowledgedAt özelliği ayarlanmış olmalı ve iletinin CreateAt değerinden önce olmamalıdır."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Zorunlu Acknowledgement özelliği eksik: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "İleti onayları için RequestedAck değeri true olarak ayarlanmış bir Priority gereklidir."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "İletinin PersistentNotifications özelliği için Priority değeri acil (urgent) olmalıdır."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Zorunlu Priority özelliği eksik: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction EmojiName özelliği geçersiz. 1 ile 64 arasında ASCII harf ve rakam, +, - ya da _ karakterlerinden oluşmalıdır."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Gelişmiş mantık kullanan üyelik kurallarını yalnızca bir sistem yöneticisi değiştirebilir. Kuralları sistem panosundan düzenleyin."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Bu üyelik kuralı, üyelik eşitlemesinin değerlendiremeyeceği bir ifade kullanıyor. Kuralı yalnızca karşılaştırmalar, &&, ||, in ve desteklenen öznitelik işlevleri ile yeniden yazın."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Bu üyelik kuralı, üyelik eşitlemesinin değerlendiremeyeceği şu ögeyi kullanıyor: {{.Function}}. Kuralı yalnızca karşılaştırmalar, &&, ||, in ve desteklenen öznitelik işlevleri ile yeniden yazın."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "İşlemin bir izin ilkesi olup olmadığı belirlenemedi"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Kaynağın erişim ilkesinin işlemi yönetip yönetmediği belirlenemedi."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "{{.Name}} adında bir yapılandırma dosyası zaten var."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Dosya geçerli bir OpenPGP herkese açık anahtarı değil."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Uygulama eki herkese açık anahtar adı geçersiz: {{.Name}}. Adlarda yalnızca harf, rakam, '.', '_' ve '-' bulunabilir."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Maskelenmiş bir şablon her kişinin sahip olduğu değerleri bu alandan okuduğundan alan silinemez. Önce şablonun maskelemesini değiştirin ya da kaldırın."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Bağlantılı bir alanın option.read düzeyi ({{.FieldTier}}), şablonunun ({{.TemplateID}}) düzeyinden ({{.TemplateTier}}) daha geniş izinli olamaz."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "OpenID Connect öznitelik eşitlemesi kapalıyken bir öznitelik bir OpenID Connect talebine bağlanamaz."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Genel öznitelikler aranamadı."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Bu alan, maskelenmiş şablonunun sahip olunan değerler kaynağı olduğundan değer yazma düzeyi '{{.ValueWrite}}' olamaz. Aksi durumda şablonun süzdüğü kişiler sahip oldukları değerleri düzenleyerek görebildiklerini genişletebilir."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "OpenID Connect üzerinden eşitlenen bir öznitelik ayrıca AD/LDAP ya da SAML üzerinden eşitlenemez."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "İzinleri bu biçimde ifade edilemediğinden bu alanın sahipleri, erişim kipi, korumalı ya da eşitleme ayarları bu yolla değiştirilemez. Bunun yerine izinlerini doğrudan güncelleyin."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Bu alan, çağıranın okuyamayacağı veriler içerdiğinden erişim kipi değiştirilemez."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Güncellenemez: {{.DependentID}} bağlantılı alanının option.read düzeyi {{.DependentTier}} ve bu, yeni {{.NewTier}} düzeyini aşar."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Bu alanın izinleri ile izin düzeyleri, sahipleri, erişim kipi, korumalı ya da eşitleme ayarları aynı güncellemede değiştirilemez. Değişikliği bu iki biçimden yalnızca biriyle gönderin."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Güncellenemez: {{.DependentID}} bağlantılı alanı bu maskeleme ile kendi sahip olunan değerlerini sağlayacak ancak değer yazma düzeyi '{{.ValueWrite}}'. Önce bu alanın değer yazma düzeyini admin ya da daha altına düşürün."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Maskelenmiş bir şablon her kişinin sahip olduğu değerleri bu alandan okuduğundan alanın bağlantısı kaldırılamaz. Önce şablonun maskelemesini değiştirin ya da kaldırın."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Hesap etkisizleştirildi ve kısmen silindi. Silme işlemini yeniden yürütmek güvenlidir ve işlemi tamamlar."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Bu geçişte en fazla {{.Max}} ileti silindi. Hesap etkisizleştirildi ve kısmen silindi. Sürdürmek için silme işlemini yeniden yürütün."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "{{.Count}} kullanıcının silinmesi tamamlanamadı: {{.Usernames}}. Sürdürmek için komutu yeniden yürütün."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Küme isteği gönderilemedi"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML doğru yapılandırılmamış. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "En son yürütmeler kuyrukta bekliyor, yürütülüyor ya da iptal edilmiş olduğundan daha eski yürütmeler denetlenemedi."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Kimlik doğrulama"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Yüksek erişilebilirlik"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Uyumluluk"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Veri tabanı"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Görevler"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Lisans"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Bildirimler"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platform"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Arama"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Güncellemeler"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} ({{.Node}})"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Verilerin toplanma zamanı"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Bilinmiyor"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Lisans sahibi"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Son değerlendirme"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Oluşturulma zamanı"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Lisans"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Henüz değerlendirilmedi"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Sunucu sürümü"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Site adresi"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Değerlendirme durmuş görünüyor."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Bu ayarı sistem panosunda açın"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Ayrıntılar"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Belgeleri okuyun"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Nasıl düzeltilir"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Özet"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Sessize alınmış"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Çözülenler"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Değerlendirilemedi"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritik"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Bilgi"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Uyarı"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritik",
+      "other": "{{.Count}} kritik"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} bilgi",
+      "other": "{{.Count}} bilgi"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Açık bulgu yok."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "İlk sağlık denetimi, özellik açıldıktan sonraki bir saat içinde yürütülür."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} değerlendirilemedi",
+      "other": "{{.Count}} değerlendirilemedi"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} uyarı",
+      "other": "{{.Count}} uyarı"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Sağlık raporu"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Etkin bir denetim günlüğü hedefi yok ve bu çalışma alanında {{.users}} kayıtlı kullanıcı var. Yönetim işlemleri, oturum açmalar ve yapılandırma değişiklikleri için ayrı bir denetim kaydı tutulmuyor. Bu bir kararlılık riski değil, bir uyumluluk ve adli inceleme eksikliğidir."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Kuruluşunuzun denetim gereksinimleri varsa (finansal hizmetler, sağlık, savunma, düzenlemeye tabi kamu sektörü), Sistem panosu > Uyumluluk > Denetim günlüğü bölümünden denetim günlüğünü açın ya da ExperimentalAuditSettings.AdvancedLoggingJSON ayarına denetim düzeyleri için bir hedef ekleyin ve günlük döndürmeyi yapılandırın. Aksi durumda bu bulgu yok sayılabilir."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Denetim günlüğü kapalı"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress, 1024 altındaki {{.port}} bağlantı noktasını kullanıyor. Linux üzerinde root olarak çalışmayan bir Mattermost sunucusu bu bağlantı noktasını yalnızca çalıştırılabilir dosyasına verilmiş CAP_NET_BIND_SERVICE dosya yeteneği ile kullanabilir. Bir paket yükseltmesi çalıştırılabilir dosyayı değiştirip bu yeteneği temizler. Bu nedenle sunucu sonraki yükseltmeden sonra \"bind: permission denied\" hatasıyla başlatılamayabilir. Yapılandırma, yeteneğin nasıl verildiğini gösteremediğinden yeteneği systemd birimi üzerinden verdikten sonra da bu uyarı görüntülenmeyi sürdürür."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Yeteneğin yükseltmelerden sonra korunması için Mattermost systemd birimine AmbientCapabilities=CAP_NET_BIND_SERVICE ekleyin ya da her yükseltmeden sonra setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost komutunu yeniden yürütün. Bunun yerine Mattermost önüne bir ters vekil sunucu koyup Mattermost uygulamasını 8065 gibi yüksek bir bağlantı noktasına bağlayabilirsiniz."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Sunucu ayrıcalıklı bir bağlantı noktasını doğrudan kullanıyor"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Lider düğüm {{.address}} adresini duyuruyor. Diğer düğümler bu adresten lider düğüme erişemediğinden Gossip tek düğümlü bir küme oluşturur ve bölünmüş beyin (split brain) durumları gizlenir."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "ClusterSettings.AdvertiseAddress değerini düğümün erişilebilir IP adresi ya da DNS adı olarak ayarlayın ya da ağ arayüzü adresinin kullanılması için boş bırakın. Bu denetim lider düğümün yapılandırmasını okuduğundan ayarı her düğümde gözden geçirin."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress adresine diğer düğümlerden erişilemiyor"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Yapılandırma her düğümde bir dosyada saklanır ve sistem panosundan değiştirilebilir. Bir değişiklik bir düğüme kaydedilir ve diğer düğümlere olabildiğince aktarılır. Aktarımı kaçıran bir düğüm kendi dosyasını korur, bu nedenle düğümlerin yapılandırmaları zamanla birbirinden farklılaşabilir."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "ClusterSettings.ReadOnlyConfig değerini true olarak ayarlayın ve yapılandırmayı her düğümde yapılandırma dosyası ya da ortam değişkenleri ile yönetin ya da yapılandırmayı veri tabanına taşıyın."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "Dosya tabanlı yüksek erişilebilirlik kümesinde ClusterSettings.ReadOnlyConfig kapalı"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption değeri false olduğundan küme düğümleri arasındaki trafik şifrelenmiyor."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Gossip şifrelemesini açın, ardından bir bakım aralığında tüm düğümleri birlikte yeniden başlatın. Şifreleme kullanan ve kullanmayan düğümler birbiriyle iletişim kuramaz. Bu nedenle sıralı bir yeniden başlatma, son düğüm yeniden başlatılana kadar kümeyi böler."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Yüksek erişilebilirlik kümesindeki Gossip trafiği şifrelenmemiş"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Yüksek erişilebilirlik kipinde {{.users}} kayıtlı kullanıcı varken varsayılan bellek içi LRU ön belleği, her düğümün kendi kopyasını tutması ve geçersiz kılma için Gossip kullanması anlamına gelir. Mattermost, bu ölçekte ön bellek geçersiz kılma trafiğini azaltmak için 100.000 ve üzeri kullanıcıda Redis kullanılmasını önerir."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "CacheSettings.RedisAddress yapılandırılmışken CacheSettings.CacheType değerini redis olarak ayarlamayı değerlendirin. Redis için küme (Cluster) özelliğini içeren bir lisans gereklidir."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Bu ölçekte Redis ön bellek arka ucunu değerlendirin"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Planlanan yüksek erişilebilirlik topolojisi gerçekte çalışmıyor. Tek bir düğüm yük devretme sağlamaz ve bölünmüş beyin (split brain) riskini gizler."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Gossip bağlantısını (ClusterSettings.GossipPort), güvenlik duvarı kurallarını ve tüm uygulama düğümlerinin aynı ClusterName değerini kullandığını denetleyin. ClusterName boş olduğunda da düğüm tek başına kalır: Bu durumda sunucu, yüksek erişilebilirliğin kapatıldığını günlüğe kaydeder."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Yüksek erişilebilirlik açık ancak kümede yalnızca bir düğüm var"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Kümedeki düğümlerin bildirdiği sürümler: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Düğümler sürümler arasında bölünmüş ve hiçbir sürüm diğerlerinden daha yaygın değil. Bu nedenle hangi düğümlerin güncel olmadığı anlaşılamıyor."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Bu düğüm {{.version}} sürümünü çalıştırıyor ancak düğümlerin çoğu {{.majority}} sürümünü çalıştırıyor."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Sürmekte olan bir yükseltme yoksa tüm düğümleri aynı sürüme yükseltin ve düğümlerin Gossip üzerinden iletişim kurabildiğinden emin olun."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Kümede birden çok Mattermost sürümü algılandı"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory boş olduğundan uyumluluk raporları sunucunun çalışma klasörü altındaki bir uyumluluk klasörüne yazılıyor. Sunucu yükseltildiğinde ya da kapsayıcısı yeniden oluşturulduğunda bu raporlar kaybolur."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Sistem panosu > Uyumluluk > Uyumluluk izleme bölümündeki Uyumluluk raporu klasörü ayarını (ComplianceSettings.Directory) kalıcı ve yazılabilir bir yol olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Uyumluluk izleme açık ancak rapor klasörü boş"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Her düğüm birincil veri tabanına en fazla MaxOpenConns bağlantıdan oluşan bir havuz tutar. {{.nodes}} düğüm ve MaxOpenConns={{.max_open}} ile bir veri tabanı yük devretmesi, yeni birincil olan veri tabanına aynı anda en fazla {{.burst}} bağlantı girişimi yapılmasına yol açabilir ve DataSource sunucusu bir bağlantı havuzlayıcısına benzemiyor. Bu sayı veri tabanının max_connections değerini aşarsa veri tabanı bağlantıları reddeder ('sorry, too many clients already') ve kurtarma daha uzun sürer."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Her katmanı bu ani yüke göre boyutlandırın. En kalıcı çözüm, yalnızca max_connections değerini yükseltmek yerine düğüm başına SqlSettings.MaxOpenConns değerini düşürmek ve/veya yeniden bağlanma patlamalarını karşılamak için veri tabanının önüne PgBouncer (transaction kipi) koymaktır: Her bağlantı veri tabanı belleği harcar, bu nedenle yüksek bir üst sınır belleğin tükenmesi riskini doğurur. max_connections yükseltilirse çoğaltma, izleme ve yönetici oturumları için ani yükün üzerinde pay bırakın. Yük devretme sırasında düğümlerin başlatılmasını zamana yaymak da ani yükü üst sınırın altında tutar."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Veri tabanı yük devretmesi bir bağlantı fırtınasına yol açabilir"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) değeri MaxOpenConns ({{.max_open}}) değerinden yüksek. Go database/sql katmanı boştaki bağlantı havuzunu sessizce MaxOpenConns ile sınırlar, bu nedenle fazladan boşta kapasitenin bir etkisi olmaz. Bozuk bir şey yok ancak değer yanıltıcıdır ve genellikle havuzun, boştaki bağlantı sayısının açık bağlantı sayısını hiçbir zaman aşamayacağı bilinmeden ayarlandığını gösterir."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "MaxIdleConns değerini MaxOpenConns değerine eşit ya da daha düşük olarak ayarlayın (yaygın bir öneri MaxOpenConns değerinin %25-50 kadarıdır)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns değeri MaxOpenConns değerini aşıyor"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "{{.users}} kullanıcı ve MaxOpenConns={{.max_open}} ile ani yük altında uygulama tarafında istekler kuyruğa girebilir. Geçerli varsayılan değer 100 (MaxIdleConns 50, 2:1 oranı)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Uygulama tarafında istek kuyruğu gözlemlenirse SqlSettings.MaxOpenConns değerini izlenen gereksinime göre yükseltin (100/50 varsayılanları başlangıç noktasıdır). Gerçek veri tabanı üst sınırı MaxOpenConns x düğüm sayısı x veri kaynağı sayısı olduğundan, yükseltmeden önce veri tabanının max_connections değerinin bu toplamı karşıladığını doğrulayın."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns bu kullanıcı sayısı için düşük olabilir"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas boş. {{.users}} kullanıcı ile tüm okumalar birincil veri tabanına gidiyor. Daha büyük kurulumlar için okuma kopyaları önerilir."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Bir okuma kopyası hazırlayıp SqlSettings.DataSourceReplicas ayarına eklemeyi değerlendirin."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Yapılandırılmış bir okuma kopyası yok"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "{{.posts}} ileti ve veri tabanı araması ile birincil veri tabanı ve kopyalar tam metin taramalarını üstleniyor. Bu ölçekte bu durum işlemci yüküne ve arama zaman aşımlarına yol açar."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "{{.posts}} ileti ve veri tabanı araması ile birincil veri tabanı ve kopyalar tam metin taramalarını üstleniyor. Bu ölçekte bu durum işlemci yüküne ve arama zaman aşımlarına yol açar. Lisansınız, arama yükünü veri tabanından tamamen alan Elasticsearch özelliğini içeriyor."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "SqlSettings.DataSourceSearchReplicas ayarını yapılandırın."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Arama kopyası yok ve Elasticsearch araması kapalı"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.max_open}} birincil veri tabanı bağlantısından {{.in_use}} tanesi kullanımda (%{{.percent}}). Bu, MaxOpenConns değerinin %90 kadarı ya da üzeri. Yeni sorgular kuyruğa girer ve HTTP gecikmesi artar."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "SqlSettings.MaxOpenConns ve veri tabanının max_connections değerini yükseltin. Uzun süren sorguları da araştırın."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Birincil veri tabanı havuzu dolmak üzere"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}}, desteklenen en düşük sürüm olan {{.minimum}} sürümünün altında. Mattermost bu sürümde yine de başlar ancak desteklenmeyen sürümler beklenmedik davranışlara yol açabilir. PostgreSQL {{.minimum}} ya da üzeri bir sürüme yükseltin."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Bir yükseltme planlayın. Yeni sürümler ayrıca daha iyi paralel sorgu ve JSONB başarımı sunar."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL sürümü desteklenen en düşük sürümün altında"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL şu anda Posts tablosunda vacuum işlemi yürütüyor. Başka bir vacuum gerekip gerekmediğini değerlendirmeden önce bu vacuum işleminin bitmesini bekleyin."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Posts tablosu en son {{.last_vacuum}} zamanında vacuum işleminden geçmesine karşın tabloda tahmini {{.dead_tuples}} dead tuple var (tahmini {{.estimated_rows}} satırın %{{.dead_percent}} kadarı). Vacuum yürütülüyor ancak temizliği engelleyen bir şey olduğundan büyük olasılıkla bunları kaldıramıyor. Uzun süren ya da idle-in-transaction durumundaki bir oturum, etkin olmayan bir replication slot ya da terk edilmiş bir prepared transaction buna örnektir. Tablo ve dizin şişmesi sorgu başarımını düşürebilir ve disk kullanımını artırabilir."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Posts tablosunda tahmini {{.dead_tuples}} dead tuple var (tahmini {{.estimated_rows}} satırın %{{.dead_percent}} kadarı) ve PostgreSQL, istatistikleri en son sıfırlandığından beri tablonun vacuum işleminden geçtiğine ilişkin bir kayıt tutmuyor. Autovacuum bu tabloya yetişemiyor gibi görünüyor. Tablo ve dizin şişmesi sorgu başarımını düşürebilir ve disk kullanımını artırabilir."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Posts tablosunda tahmini {{.dead_tuples}} dead tuple var (tahmini {{.estimated_rows}} satırın %{{.dead_percent}} kadarı) ve tablonun en son vacuum işlemi {{.age_days}} gün önce, {{.last_vacuum}} zamanında yapıldı. Autovacuum bu tabloya yetişemiyor gibi görünüyor. Tablo ve dizin şişmesi sorgu başarımını düşürebilir ve disk kullanımını artırabilir."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "pg_stat_progress_vacuum, Posts üzerinde yürütülen bir vacuum gösteriyorsa bitmesini bekleyin, çünkü el ile bir VACUUM başlatmak onu iptal eder. Posts yakın zamanda vacuum işleminden geçtiyse temizliği engelleyen şeyi bulup sonlandırın ya da kaldırın: pg_stat_activity içindeki uzun süren ya da idle-in-transaction durumundaki oturumlar, pg_replication_slots içindeki etkin olmayan replication slot kayıtları ve pg_prepared_xacts içindeki eski prepared transaction kayıtları. Ardından sonraki vacuum, dead tuple kayıtlarını kaldırabilir. Posts yakın zamanda vacuum işleminden geçmediyse autovacuum özelliğinin genel olarak ve Posts için açık olduğunu doğrulayın ve PostgreSQL günlüklerinde iptal edilmiş autovacuum görevleri olup olmadığını denetleyin. autovacuum yetişemiyorsa Posts için autovacuum_vacuum_scale_factor değerini düşürün, kapasitenin izin verdiği ölçüde autovacuum_vacuum_cost_limit ve autovacuum_work_mem değerlerini yükseltin, ardından trafiğin düşük olduğu bir zamanda Posts üzerinde hedefli bir VACUUM (ANALYZE) zamanlayın. Özel kilidini ve gerektirdiği ek disk alanını planlamadıysanız VACUUM FULL kullanmaktan kaçının. Kullanılabiliyorsa pg_repack daha az kilit gerektiren bir seçenektir."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Posts tablosunda çok sayıda dead tuple var"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout değeri {{.timeout}} saniye olarak ayarlanmış. Uzun zaman aşımları, denetimden çıkmış sorguların kilitleri tüm süre boyunca tutmasına izin vererek autovacuum, şema geçişleri ve aynı satırı bekleyen yazma işlemlerini engeller. Bu durum okuma kopyası olmayan yoğun veri tabanlarında riski artırır."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "SqlSettings.QueryTimeout değerini 30 olarak düşürün. Genel üst sınırı yükseltmek yerine belirli yavaş sorguları ayrıca araştırın."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout yüksek (varsayılan değer 30 sn)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas ayarlanmış ancak erişilebilen bir kopya yok, bu nedenle okumalar birincil veri tabanına yönlendiriliyor."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Kopyanın DSN değerini, ağ erişilebilirliğini ve kimlik doğrulamasını doğrulayın. Kopya bağlantısı uyarıları için sunucu günlüklerine bakın."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Okuma kopyaları yapılandırılmış ancak hiçbirine erişilemiyor"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Her SQL deyimi günlüğe kaydediliyor. Bu özellik yalnızca hata ayıklama içindir: Açık bırakılırsa disk dolar ve sorgu içerikleri günlük dosyalarına yazılır."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Etkin olarak hata ayıklamıyorsanız SqlSettings.Trace değerini false olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace açık"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Sunucu {{.os}} üzerinde çalışıyor. Mattermost üretim ortamı için Linux destekler. Diğer işletim sistemleri yalnızca geliştirme için uygundur."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Sunucuyu desteklenen bir Linux dağıtımına taşıyın."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Sunucu Linux üzerinde çalışmıyor"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Her yeni ileti kendi isteğiyle eşzamanlı olarak dizine ekleniyor. Yoğun sunucularda bu durum arama kümesine aşırı yük bindirir ve dizine eklemeyi geciktirir."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "LiveIndexingBatchSize değerini 10 ile 20 arasına yükseltin ve gözlemlenen ileti hızına göre bu aralıkta ayarlayın."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize değeri 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize değeri {{.size}}. Büyük _bulk istekleri arama kümesinin http.max_content_length sınırını aşabilir ve 413 hatalarıyla başarısız olarak yeniden denemelere ve dizine ekleme gecikmesine yol açabilir."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "LiveIndexingBatchSize değerini 10 ile 20 arasına düşürün ya da çok büyük toplu işlemler bilerek kullanılıyorsa arama kümesindeki http.max_content_length değerini yükseltin."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize değeri 100 üzerinde"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL, her uygulama düğümünün kendisi olarak çözümlediği {{.host}} adresini gösteriyor. Yerel bir arama motoru olmayan düğümler dizine ekleme ya da arama yapamaz."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "ConnectionURL değerini tüm uygulama düğümlerinin erişebileceği bir sunucu adı ya da hizmet DNS adı olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch ConnectionURL localhost adresini gösteriyor"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Arama kümesi analysis-icu uygulama ekini bildirmiyor. İleti dizini şablonu ICU sözcük ayırıcısını ve normalleştiricisini kullandığından bu uygulama eki olmadan iletilerin dizine eklenmesi başarısız olabilir."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Sunucu arama kümesinin sürümünü okuyamadığından uygulama eki listesi toplanamadı."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "analysis-icu uygulama ekini tüm arama düğümlerine kurun (elasticsearch-plugin install analysis-icu ya da opensearch-plugin install analysis-icu), ardından düğümleri yeniden başlatın. Bu uygulama eki yalnızca çok dilli arama için değil, iletilerin dizine eklenmesi için de gereklidir."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Arama motorunda analysis-icu uygulama eki eksik"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Arama motoru bağlantı sınaması başarısız oldu: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Arama motoru bağlantı sınaması başarısız oldu ve veri tabanı araması kapalı olduğundan arama sonuç döndürmüyor: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Diğer düğümler arama motoruna erişebilirken şu düğümlerde bağlantı sınaması başarısız oldu: {{.nodes}}. Bu nedenle bu düğümlerde arama ve dizine ekleme başarısız olabilir. Bu düğümlerdeki ağ, güvenlik duvarı, vekil sunucu ve DNS ayarlarını denetleyin. Hata: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "ElasticsearchSettings.ConnectionURL erişilebilirliğini, TLS ayarlarını ve kimlik bilgilerini doğrulayın. Arama kümesinin sağlığını denetleyin (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Sunucu bir Elasticsearch kümesi hatası bildiriyor"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "Bir https bağlantısında SkipTLSVerification değeri true olduğundan sunucu arama motorunun sertifikasını doğrulamıyor. Bu durum güvenilir bir iç ağda kabul edilebilir ancak diğer ortamlarda ortadaki adam saldırılarına karşı korumayı ortadan kaldırır."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Arama uç noktasına güvenilir olmayan bir yol üzerinden erişiliyorsa sertifikanın doğrulanabilmesi için sertifika yetkilisini (CA) kurun ve SkipTLSVerification değerini false olarak ayarlayın. Güvenilir bir iç ağda ise ayarın bilerek yapıldığını doğrulayın."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch bağlantısı TLS sertifika doğrulamasını atlıyor"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}}, desteklenen ana sürümlerden ({{.min}} - {{.max}}) daha yeni. Mattermost uygulamasını bu sürümü destekleyen bir sürüme yükseltin ya da arama kümesini desteklenen bir sürüme geri döndürün."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}}, desteklenen ana sürümlerden ({{.min}} - {{.max}}) daha eski. Arama kümesini desteklenen bir sürüme yükseltin."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Sunucu arama kümesine bağlanamadığından arama kümesinin sürümü toplanamadı."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Arama motoru arka ucu ya da sürümü tanınamadı."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Arama kümesinde bu Mattermost sürümünün desteklediği bir ana sürüm kullanın."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Arama motoru sürümü desteklenmiyor"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout değeri {{.value}} saniye. Bu değer, dışa aktarmanın Global Relay SMTP sunucusuna bağlanmak için ne kadar bekleyeceğini sınırlar ve 30 saniyenin altında yavaş bir bağlantı teslimin başarısız olmasına yol açar."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout değerini en az 30 saniyeye yükseltin. Varsayılan değer 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout değeri 30 saniyenin altında"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "FileSettings.Directory klasörünü içeren birimde toplam {{.total_gib}} GiB alanın {{.available_gib}} GiB kadarı (%{{.percent}}) kullanılabilir durumda. Birim dolduğunda dosya yüklemeleri ve diğer dosya işlemleri başarısız olabilir."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Birimi hemen genişletin ya da birimin dosya sisteminden ilgisiz verileri kaldırın. FileSettings.Directory içinde Mattermost tarafından yönetilen dosyaları el ile silmeyin. En az %10 ya da 10 GiB alanı kullanılabilir durumda tutun ve kullanılabilir alanın hiçbir zaman 1 GiB altına düşmesine izin vermeyin."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Dosya depolama diski dolmak üzere"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "FileSettings.Directory klasörünü içeren birimde toplam {{.total_gib}} GiB alanın {{.available_gib}} GiB kadarı (%{{.percent}}) kullanılabilir durumda."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Birimi genişletin ya da birimin dosya sisteminden ilgisiz verileri kaldırın. FileSettings.Directory içinde Mattermost tarafından yönetilen dosyaları el ile silmeyin. En az %10 ya da 10 GiB alanı kullanılabilir durumda tutun ve kullanılabilir alanın hiçbir zaman 1 GiB altına düşmesine izin vermeyin."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Dosya depolama diskinde boş alan azaldı"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "ClusterSettings.Enable açıkken FileSettings.DriverName değeri local ve FileSettings.Directory değeri {{.directory}}. Bir kümede bu klasör, her düğüme aynı şekilde bağlanmış paylaşılan bir bağlama noktası (NFS, EFS, GlusterFS, CephFS) olmalıdır. Aksi durumda bir düğüme yüklenen dosyalar diğer düğümlerde görünmez. Yapılandırma klasörün paylaşılıp paylaşılmadığını gösteremez ve bir düğüm kendi yerel diskine yazarken de dosya depolama bağlantı sınamasını geçebilir."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Her uygulama düğümünde FileSettings.Directory yolu ile findmnt komutunu yürütün. Göreli bir yol, genellikle /opt/mattermost olan Mattermost çalışma klasörüne göre çözümlenir. Her düğüm aynı uzak kaynağı göstermeli ve Mattermost kullanıcısı bu konumda okuma ve yazma yapabilmelidir. Klasör paylaşılan bir bağlama noktası değilse paylaşılan bir bağlama noktasına taşıyın ya da FileSettings.DriverName değerini amazons3 olarak değiştirin."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Yüksek erişilebilirlik kümesinde yerel dosya depolama: Paylaşılan bağlama noktasını doğrulayın"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket boş olduğundan dosya yüklemeleri başarısız oluyor."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "FileSettings.AmazonS3Bucket değerini bölge ve uç nokta ile birlikte ayarlayın."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3 dosya depolama seçilmiş ancak depolama klasörü (bucket) boş"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL değeri false olduğundan dosyalar sunucu ile S3 uç noktası arasında şifrelenmeden aktarılıyor."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Uç nokta yalnızca düz HTTP desteklemiyorsa FileSettings.AmazonS3SSL değerini true olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3 SSL kapalı"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Sunucu dosya depolama alanına bağlanamadı: {{.error}}. Dosya yüklemeleri ve indirmeleri başarısız olabilir."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Diğer düğümler dosya depolama alanına erişebilirken şu düğümlerde bağlantı sınaması başarısız oldu: {{.nodes}}. Bu nedenle bu düğümler üzerinden yapılan dosya yüklemeleri ve indirmeleri başarısız olabilir. Bu düğümlerdeki ağ, güvenlik duvarı, vekil sunucu ve DNS ayarlarını denetleyin. Yerel depolama için paylaşılan klasörün bu düğümlere bağlanmış olduğunu da denetleyin. Hata: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Dosya depolama ayarlarını denetleyin, ardından Sistem panosu > Ortam > Dosya depolama alanı bölümündeki Bağlantıyı sına seçeneğini kullanın. Yerel depolama için FileSettings.Directory klasörünün var olduğunu ve Mattermost kullanıcısının bu klasöre yazabildiğini denetleyin. Amazon S3 için depolama klasörünü (bucket), uç noktayı ve kimlik bilgilerini denetleyin."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Dosya depolama bağlantı sınaması başarısız oldu"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Tamamlanan son {{.job_type}} yürütmesi ({{.job_id}}) bir hata ile sonlandı: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Tamamlanan son {{.job_type}} yürütmesi ({{.job_id}}) bir hata iletisi kaydetmeden hata ile sonlandı."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Nedeni bulmak için görevin hatasını ve başarısız yürütmenin başlangıç zamanındaki sunucu günlüklerini inceleyin. Olası yaygın nedenler: Veri tabanı yükü, bağlantı havuzu sınırları, ağ ya da yük devretme olayları ve deyim zaman aşımları. Sorunu çözün, ardından görevi yeniden yürütün ve tamamlandığını doğrulayın. Bir yürütme başarılı olana kadar görevin yaptığı iş (dizin eşitleme, uyumluluk dışa aktarma, verileri tutma ya da arama dizini oluşturma) yapılmaz."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Son görev yürütmesi başarısız oldu"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "{{.job_type}} görevi ({{.job_id}}) yürütülüyor olarak görünüyor ancak {{.hours}} saattir herhangi bir etkinlik kaydetmedi. Bu durum genellikle çalışan işlemin yürütme sırasında sonlandığı ya da zamanlayıcının takıldığı anlamına gelir."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "{{.job_type}} görevi ({{.job_id}}) yürütülüyor olarak görünüyor ancak {{.days}} gündür herhangi bir etkinlik kaydetmedi. Bu durum genellikle çalışan işlemin yürütme sırasında sonlandığı ya da zamanlayıcının takıldığı anlamına gelir."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Takılan görevi sistem panosundaki sayfasından, mmctl job cancel komutuyla ya da API üzerinden iptal edin. Görevin son etkinliği sırasındaki sunucu günlüklerini denetleyin, ardından görevi yeniden yürütün."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Görev 24 saatten uzun süredir yürütülüyor durumunda takılı"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "{{.job_type}} görevi ({{.job_id}}) bir saatten uzun süredir hiçbir ilerleme bildirmedi ve herhangi bir etkinlik kaydetmedi. Bu durum genellikle çalışan işlemin ilk toplu işlemden önce sonlandığı, kilitlendiği ya da veri tabanı bağlantısını kaybettiği anlamına gelir."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Görevi sistem panosundaki sayfasından, mmctl job cancel komutuyla ya da API üzerinden iptal edin. Görevin başlangıç zamanından itibaren sunucu günlüklerinde panic ya da bağlantı hataları olup olmadığını denetleyin, ardından görevi yeniden yürütün. Sorun yinelenirse görev takılıyken ölçümler sunucusundaki /debug/pprof/goroutine adresinden bir goroutine profili alın."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Görev bir saatten uzun süredir ilerleme ya da etkinlik olmadan yürütülüyor"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute değeri {{.attribute}}. Mattermost her hesabı dizindeki kaydına bu öznitelik ile bağlar. Bu nedenle bir kullanıcının e-posta adresi değiştiğinde (evlilik, marka değişikliği, bölüm değişikliği) bağlantı kopar ve kullanıcı var olan hesabına erişemez."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "IdAttribute değerini objectGUID (AD) ya da entryUUID (OpenLDAP) gibi değişmeyen bir öznitelik olarak değiştirin, ardından var olan hesapları mmctl ldap idmigrate komutuyla aktarın."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute bir e-posta özniteliği"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "636 numaralı bağlantı noktası geleneksel olarak örtük TLS (LDAPS) bekler ancak ConnectionSecurity değeri None ya da STARTTLS. Bu birleşim genellikle hatalı bir yapılandırmadır ancak TLS sonlandıran bir vekil sunucunun arkasında geçerli olabilir. LDAP ile oturum açma ve eşitlemenin başarılı olduğunu doğrulayın."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "LDAP ile oturum açma ya da eşitleme başarısız oluyorsa 636 numaralı bağlantı noktası için ConnectionSecurity değerini TLS olarak ayarlayın. Bunlar çalışıyorsa bir değişiklik yapmanız gerekmez."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP 636 numaralı bağlantı noktası ConnectionSecurity=TLS olmadan yapılandırılmış"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "389 numaralı bağlantı noktası geleneksel olarak düz metin ya da STARTTLS için kullanılır, örtük TLS (LDAPS) ise geleneksel olarak 636 numaralı bağlantı noktasını kullanır. Bu birleşim genellikle hatalı bir yapılandırmadır ancak TLS sonlandıran bir vekil sunucunun ya da bilerek yeniden yapılandırılmış bir sunucunun arkasında geçerli olabilir. LDAP ile oturum açma ve eşitlemenin başarılı olduğunu doğrulayın."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "LDAP ile oturum açma ya da eşitleme başarısız oluyorsa TLS için 636 numaralı bağlantı noktasını kullanın ya da 389 numaralı bağlantı noktası için ConnectionSecurity değerini STARTTLS olarak değiştirin. Bunlar çalışıyorsa bir değişiklik yapmanız gerekmez."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP 389 numaralı bağlantı noktası ConnectionSecurity=TLS ile yapılandırılmış"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "LDAP sınaması (bağlantı, bağlama ve bir kullanıcı araması) başarısız oldu. Bu nedenle LDAP ile oturum açma ve eşitleme başarısız oluyor olabilir."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "Diğer düğümler LDAP sunucusuna erişebilirken şu düğümlerde LDAP sınaması (bağlantı, bağlama ve bir kullanıcı araması) başarısız oldu: {{.nodes}}. Bu nedenle bu düğümlerde LDAP ile oturum açma başarısız olabilir. Bu düğümlerdeki ağ, güvenlik duvarı, vekil sunucu ve DNS ayarlarını denetleyin."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Hata ayrıntılarını inceleyin, ardından LdapServer, LdapPort, ConnectionSecurity ayarlarını ve bağlama kimlik bilgilerini doğrulayın ve Mattermost sunucularının LDAP sunucusuna erişebildiğinden emin olun. Yeniden denetlemek için AD/LDAP sayfasındaki Bağlantıyı sına seçeneğini kullanın."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP bağlantı sınaması başarısız oldu"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout değeri {{.timeout}} saniye. Kısa zaman aşımları, yavaş dizinlerde gereksiz LDAP oturum açma ve eşitleme hatalarına yol açar."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "LdapSettings.QueryTimeout değerini 60 saniyeye (varsayılan değer) yükseltin."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout değeri 10 saniyenin altında"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "Etkin kullanıcı hesabı sayısı: {{.users}}. Bu hesaplar el ile yönetiliyor. Mattermost, bir çalışma alanında 100'den fazla kullanıcı olduğunda tek oturum açma kullanılmasını önerir: Bu ölçekte el ile hesap yönetimi eskimiş hesaplara, başlamaya hazırlanma gecikmelerine ve işten ayrılanların hesaplarının unutulmasına yol açar. Bunların her biri bir güvenlik ve lisanslama riskidir."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Mattermost uygulamasını kimlik hizmeti sağlayıcınıza bağlayın: Bir dizin kullanıyorsanız AD/LDAP, kullanmıyorsanız SAML ya da OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "100'den fazla kullanıcı var ancak tek oturum açma kullanılmıyor"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost, LDAP sunucusunun TLS sertifikasını doğrulamıyor. Bu nedenle dizine yapılan bağlantılar ortadaki adam saldırılarına açık. Bu durum yalnızca geliştirme ve sınama için kabul edilebilir."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "LDAP sunucusunun sertifika yetkilisi (CA) zincirini Mattermost sunucularına kurun ve SkipCertificateVerification değerini false olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification açık"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes değeri {{.interval_minutes}}. Son LDAP eşitleme yürütmeleri ortalama {{.avg_run_seconds}} saniye sürdü. Bu, aralığın %{{.duty_pct}} kadarı. Kısa bir aralıkta uzun süren yürütmeler veri tabanı yükünü yüksek tutar ve kopya gecikmesini artırabilir."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Süresi ölçülebilen bir LDAP eşitleme yürütmesi bulunamadı."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Dizin taramasının kapsamını daraltmak için LdapSettings.UserFilter ve BaseDN değerlerini daraltın ya da SyncIntervalMinutes değerini uzatın. Eşitleme yürütmelerinin aralığın %25 kadarından kısa sürmesini hedefleyin."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP eşitlemesi aralığının büyük bölümünde yürütülüyor"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP eşitlemesi dizinde BaseDN konumundan başlayarak arama yapar. Bu nedenle BaseDN boş olduğunda eşitleme güncellemesi gereken kullanıcıları bulamaz."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "LdapSettings.BaseDN değerini eşitlemek istediğiniz dizin kökü olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP eşitlemesi açık ancak BaseDN boş"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Lisansın süresi {{.expires_at}} tarihinde doldu. Sunucu, süresi dolan bir lisansı süresinin dolmasından 10 gün sonra kaldırır ve Enterprise özellikleri çalışmayı durdurur."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Deneme lisansının süresi {{.expires_at}} tarihinde doldu. Sunucu, süresi dolan bir lisansı süresinin dolmasından 10 gün sonra kaldırır ve Enterprise özellikleri çalışmayı durdurur."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Yeni bir lisans alın ve Sistem panosu > Hakkında > Sürüm ve lisans bölümünden yükleyin."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Lisansın süresi doldu"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Lisansın süresi {{.expires_at}} tarihinde dolacak."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Deneme lisansının süresi {{.expires_at}} tarihinde dolacak."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Geçerli lisansın süresi dolmadan Sistem panosu > Hakkında > Sürüm ve lisans bölümünden yüklenebilmesi için şimdiden yeni bir lisans alın."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Lisansın süresi 30 gün içinde dolacak"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel değeri {{.level}}. Hata ayıklama düzeyindeki dosya günlüğü, günlük dosyalarının hızla büyümesine yol açar ve fazladan ayrıntılar istek içeriklerini de kapsayabilir. Bu durum sorun giderme sırasında sorun olmaz ancak kalıcı bir üretim ayarı olarak uygun değildir."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Etkin olarak sorun gidermiyorsanız günlük hacmini azaltmak için LogSettings.FileLevel değerini INFO olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Dosya günlüğü debug ya da trace düzeyinde"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile değeri false olduğundan sunucu bir günlük dosyası yazmıyor. Bu durumda dış bir toplayıcı stdout ya da journald çıktısını yakalasa bile Destek Paketleri sunucu günlüklerini içermez ve Mattermost Destek ekibi ile sorun gidermek daha uzun sürer."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "LogSettings.EnableFile değerini true olarak ayarlayın. Bu ayar konsol günlüğü ile birlikte çalışır. Böylece var olan bir günlük toplayıcı çalışmayı sürdürür."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Dosya günlüğü kapalı"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging değeri true olduğundan başarısız gelen internet kancası istekleri, ileti metnini içerebilen yükleri ile birlikte günlüğe kaydediliyor."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Bir internet kancası sorununu gidermiyorsanız LogSettings.EnableWebhookDebugging değerini false olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "İnternet kancası yükleri günlüğe kaydediliyor"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel değeri {{.limit}} olduğundan @channel, @all ve @here binlerce üyesi olan kanallarda da çalışıyor. Böyle bir kanalda tüm kanalı kapsayan tek bir anma aynı anda binlerce bildirim gönderilmesine ve gecikme sıçramalarına yol açar."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "TeamSettings.MaxNotificationsPerChannel değerini 5000 ya da daha düşük bir değere indirin (varsayılan değer 1000). Bir kanalın üye sayısı bu değere ulaştığında @channel, @all ve @here kullanılamaz. Bu nedenle önce büyük kanallarda bunları kullanan takımlarla görüşün."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Çok büyük kanallarda tüm kanalı kapsayan anmalara izin veriliyor"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost veri tabanı bağlantıları, istek gecikmesi ve sunucu yükü gibi başarım ölçümlerini kaydetmiyor. Bu ölçümler olmadan kullanıcılar yavaşlık bildirdiğinde geriye dönük incelenecek bir geçmiş ve Mattermost Destek ekibi ile paylaşılacak bir veri olmaz."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Sistem panosundan Başarım izleme seçeneğini açın ve Uygulama ekleri > Uygulama eki yönetimi bölümünde Metrics uygulama ekinin açık olduğunu denetleyin. Uygulama eki, Prometheus gerektirmeden ölçümleri 15 gün boyunca sunucuda tutar. Prometheus kullanıyorsanız ölçüm dinleyicisine (varsayılan olarak 8067 numaralı bağlantı noktası) yönlendirin."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Başarım izleme kapalı"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Kapsayıcının bellek çalışma kümesi {{.limit}} MB sınırının {{.working_set}} MB kadarı. Büyümeyi sürdürürse çekirdek sunucuyu ya da bir uygulama eki işlemini sonlandırabilir."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Mattermost ve uygulama eklerinin bellek kullanımını azaltın ya da kapsayıcı bellek sınırını yükseltin. Uygulama eki işlemleri, Go çalışma zamanı ve trafik sıçramaları için yeterli pay bırakın."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Kapsayıcı belleği tükenmek üzere"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "Kapsayıcı başlatıldığından beri bellek yetersizliği nedeniyle sonlandırılan işlem sayısı: {{.kills}}. Sonlandırılan işlem bir uygulama eki ya da başka bir alt işlem olabilir. Uygulama eki listesini ve kapsayıcı bellek sınırını gözden geçirin."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Neyin sonlandırıldığını belirlemek için uygulama eki işlemlerini ve kapsayıcı günlüklerini inceleyin, ardından bellek kullanımını azaltın ya da kapsayıcı bellek sınırını yükseltin."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Bir kapsayıcı işlemi bellek yetersizliği nedeniyle sonlandırıldı"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Kapsayıcı, {{.periods}} işlemci zamanlama döneminin {{.throttled}} tanesinde kısıtlandı. Sürekli işlemci kısıtlaması, ana makinenin işlemci kullanımı düşük görünse bile Mattermost uygulamasını yavaşlatabilir."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Kapsayıcının işlemci sınırını (CPU limit) yükseltin ya da bir işlemci isteğini (CPU request) koruyarak sınırı kaldırın."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Kapsayıcı işlemci kısıtlaması yüksek"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Sunucu işleminin açık dosya tanımlayıcısı sayısı: {{.open}} / {{.max}}. Sınıra ulaşıldığında yeni bağlantılar ve dosya işlemleri başarısız olur."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Açık dosya sınırını yükseltin: Mattermost systemd biriminde LimitNOFILE değerini ayarlayın ya da kapsayıcının nofile ulimit değerini yükseltin, ardından sunucuyu yeniden başlatın."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Dosya tanımlayıcıları tükenmek üzere"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Go bellek sınırı {{.go_limit}} MB ancak kapsayıcı sınırı {{.container_limit}} MB. Çöp toplayıcı, çekirdek işlemi sonlandırmadan önce daha yoğun çalışmaya başlamayabilir."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "GOMEMLIMIT değerini kapsayıcı bellek sınırının yaklaşık %80-90 kadarı olarak ayarlayın ve Go yığını dışındaki bellek ile uygulama eki işlemleri için pay bırakın."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go bellek sınırı kapsayıcı sınırına eşit ya da daha yüksek"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS değeri {{.go_max_procs}}. Bu değer, kapsayıcının işlemci sınırından ({{.cpu_limit}} işlemci) yüksek. Fazladan yürütülebilir iş parçacıkları işlemci kısıtlamasını artırabilir."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Go çalışma zamanının değeri kapsayıcının işlemci sınırına göre belirlemesi için GOMAXPROCS ayarını kaldırın, ardından sunucuyu yeniden başlatın."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS kapsayıcının işlemci sınırını aşıyor"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Ana makinenin 15 dakikalık ortalama yükü {{.load}}, işlemci çekirdeği sayısı {{.cores}}. Çekirdek başına iki ya da daha fazla görevlik sürekli yük, işlemci ya da G/Ç baskısına işaret edebilir."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Düğümdeki işlemci kullanımını, disk G/Ç işlemlerini ve çalışan işlemleri denetleyin, ardından kapasite ekleyin ya da iş yükünü azaltın."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Ana makine yükü yüksek"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Ana makinede toplam {{.total}} MB belleğin {{.available}} MB kadarı kullanılabilir durumda. Bellek azalmayı sürdürürse Mattermost ve diğer işlemler sonlandırılabilir ya da yavaşlayabilir."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "En çok bellek kullanan işlemleri bulup bellek kullanımlarını azaltın ya da ana makineye bellek ekleyin. Hizmetleri yeniden başlatmadan önce Mattermost ve uygulama eklerinin bellek kullanımını gözden geçirin."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Ana makinenin belleği azalıyor"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Bu düğüm sağlık denetimi için tanılama bilgilerini döndürmedi. Düğüm kapalı, aşırı yüklenmiş ya da diğer düğümlerle bağlantısı kesilmiş olabilir. Düğüm yanıt verene kadar diğer bulguları bilinen son durumlarını korur."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Bu düğümde Mattermost uygulamasının çalıştığını denetleyin, günlüklerini ve işlemci ile bellek kullanımını gözden geçirin ve düğümün diğer düğümlere gossip bağlantı noktası (ClusterSettings.GossipPort) üzerinden erişebildiğini doğrulayın."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Bir küme düğümü yanıt vermiyor"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "OAuth/OIDC hizmet sağlayıcı bağlantı sınaması, bildirim yapan tüm Mattermost düğümlerinde başarısız oldu. Bu nedenle bu hizmet sağlayıcı üzerinden oturum açılamıyor olabilir."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Bildirim yapan diğer düğümler hizmet sağlayıcıya erişebilirken şu düğümlerde OAuth/OIDC hizmet sağlayıcı bağlantı sınaması başarısız oldu: {{.nodes}}. Bu düğümlerde bu hizmet sağlayıcı üzerinden oturum açma başarısız olabilir."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Hata ayrıntılarını, hizmet sağlayıcının keşif ya da kod uç noktasını ve dışarı giden ağ, güvenlik duvarı, vekil sunucu ve DNS ayarlarını denetleyin. Ardından hizmet sağlayıcı üzerinden oturum açılabildiğini doğrulayın."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC hizmet sağlayıcı bağlantı sınaması başarısız oldu"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "E-posta doğrulaması kapalıyken herkese açık sunucu ve e-posta ile hesap açma açık. Bu nedenle bu sunucuya erişebilen herkes uydurma bir e-posta adresi ile hesap açabilir ve herkese açık takımlara katılabilir. Herkese açık hesap açma isteniyorsa bu bulguyu sessize alın."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "E-posta doğrulaması kapalıyken herkese açık sunucu ve e-posta ile hesap açma açık. TeamSettings.RestrictCreationToDomains hesap açmayı belirli etki alanları ile sınırlıyor ancak Mattermost yalnızca adresin izin verilen bir etki alanı ile bittiğini denetler, kişinin bu adresin sahibi olduğunu denetlemez. Bu sunucuya erişebilen herkes izin verilen bir etki alanı ile hesap açabilir ve bir iş arkadaşı gibi görünebilir. Herkese açık hesap açma isteniyorsa bu bulguyu sessize alın."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "EmailSettings.RequireEmailVerification değerini true olarak ayarlayın. Önce SMTP ayarlarının çalıştığını doğrulayın: E-posta adresini hiç doğrulamamış var olan kullanıcılar, bir sonraki oturum açışlarında adreslerini doğrulamak zorunda kalır. Herkese açık hesap açma istemiyorsanız TeamSettings.EnableOpenServer değerini false olarak ayarlayın. Kullanıcılar takım davet bağlantıları ile katılmayı sürdürebileceğinden e-posta doğrulaması yine de önerilir. Hesap açmayı kuruluşunuz ile sınırlamak için TeamSettings.RestrictCreationToDomains ayarını e-posta doğrulaması ile birlikte kullanın. Doğrulama olmadan bu sınırlama aşılabilir."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Herkes doğrulanmamış bir e-posta adresi ile hesap açabilir"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck değeri false olduğundan çöken bir uygulama eki kendiliğinden yeniden başlatılmaz."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "PluginSettings.EnableHealthCheck değerini true olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Uygulama eki sağlık denetimi kapalı"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Şu uygulama ekleri açık ancak çalışmıyor: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "Sistem panosu > Uygulama ekleri > Uygulama eki yönetimi bölümünde listelenen her uygulama ekinin durumunu denetleyin ve uygulama ekini kapatıp yeniden açmayı deneyin. Bir uygulama ekinin neden başlatılamadığı ya da uygulama eki sağlık denetimi tarafından neden durdurulduğu sunucu günlüğüne kaydedilir."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Açık uygulama ekleri çalışmıyor"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable değeri false olduğundan hiçbir uygulama eki çalışmıyor. Bu durum sıkı biçimde kısıtlanmış bazı kurulumlar için uygundur ancak çoğu zaman istenmeden yapılmıştır."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Bu durum beklenmiyorsa PluginSettings.Enable değerini true olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Uygulama ekleri kapalı"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents değeri full olduğundan ileti metni ve gönderen anında bildirim yüküne ekleniyor. Bu yük anında bildirim vekil sunucusu ile Apple ve Google anında bildirim hizmetleri üzerinden aktarılır."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "En yüksek anında bildirim gizliliği için EmailSettings.PushNotificationContents değerini id_loaded olarak ayarlayın. Yalnızca ileti kimliği gönderilir ve mobil uygulama ileti içeriğini sunucudan alır. Bu durumda bir bildirim geldiğinde mobil aygıtların sunucuya erişebilmesi gerekir. Bu nedenle yalnızca VPN ya da iç ağ üzerinden erişilebilen sunucularda bildirimler ileti içeriğini görüntüleyemez. full değeri bilerek seçildiyse bu bulguyu sessize alın."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Anında bildirimler ileti metninin tamamını içeriyor"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Anında bildirim sunucusu bağlantı sınaması başarısız oldu: {{.error}}. Mobil kullanıcılar anında bildirimleri alamayabilir."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Diğer düğümler anında bildirim sunucusuna erişebilirken şu düğümlerde bağlantı sınaması başarısız oldu: {{.nodes}}. Bu düğümlerin gönderdiği anında bildirimler başarısız olabilir. Bu düğümlerdeki ağ, güvenlik duvarı, vekil sunucu ve DNS ayarlarını denetleyin. Hata: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "PushNotificationServer ayarını, TLS sertifikalarını ve anında bildirim vekil sunucusunun sağlığını denetleyin. Tüm Mattermost uygulama düğümlerinin yapılandırılmış sunucuya HTTPS üzerinden erişebildiğini doğrulayın, ardından sunucunun /version uç noktasını denetleyin."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Anında bildirim sunucusu bağlantı sınaması başarısız oldu"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com, Mattermost sınama amaçlı anında bildirim vekil sunucusudur. Hizmet düzeyi sözleşmesi (SLA) yoktur, kapasitesi sınırlıdır ve üretim ortamında kullanılmak üzere tasarlanmamıştır. Lisansınız Mattermost Hosted Push Notification Service hizmetini içeriyor: PushNotificationServer değerini https://global.push.mattermost.com olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "Kayıtlı kullanıcı sayısı {{.users}} iken RateLimitSettings.Enable değeri false. Hız sınırlaması sunucuyu istek yağmurlarına ve kötü niyetli ya da hatalı çalışan istemcilere karşı korur. Bu kadar kullanıcı ile birlikte internet kancaları ve bot bütünleştirmeleri varken hatalı yapılandırılmış tek bir istemci API kapasitesini doldurabilir. Mattermost belgelerine göre yerleşik hız sınırlayıcı daha küçük kurulumlar (birkaç yüz kullanıcıya kadar) için tasarlanmıştır. Bu nedenle daha büyük ölçekte istek kısıtlaması çoğu zaman bir yük dengeleyici ya da API ağ geçidi üzerinde daha iyi yapılır."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Bu ölçeğe uygun bir istek kısıtlaması olduğundan emin olun: Mattermost yerleşik hız sınırlaması (Sistem panosu > Ortam > Hız sınırlaması) ya da yük dengeleyici veya ağ geçidi üzerinde."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Büyük bir kurulumda API hız sınırlaması kapalı"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize değeri {{.size}} ancak kayıtlı kullanıcı sayısı {{.users}}. Hız sınırlayıcı en fazla bu sayıda istemciyi izler. Depo dolduğunda en uzun süredir görülmeyen istemciyi çıkarır ve bu istemcinin istek kotası sıfırdan başlar. Bu nedenle küçük bir depo hız sınırlamasını zayıflatır."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "RateLimitSettings.MemoryStoreSize değerini en az kayıtlı kullanıcı sayısına yükseltin."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Hız sınırlaması bellek deposu kullanıcı sayısından küçük"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds değeri {{.value}}. Verileri tutma görevi, veri tabanına canlı trafiğe hizmet verecek zaman tanımak için silme toplu işlemleri arasında bu süre kadar bekler. 100 ms altında büyük silme işlemleri veri tabanını herkes için yavaşlatabilir."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Yapılandırmada DataRetentionSettings.TimeBetweenBatchesMilliseconds değerini en az 100 (varsayılan değer) olarak yükseltin."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "Verileri tutma TimeBetweenBatchesMilliseconds değeri 100 altında"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Onaylamalar SAML katmanında şifrelenmeden aktarılıyor. Bağlantı TLS ile korunmayı sürdürdüğünden bu temel bir güvenlik açığı değildir. Ancak kimlik hizmeti sağlayıcınız (IdP) onaylama şifrelemesini destekliyorsa bu özelliği açmak ek bir koruma katmanı sağlar."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Kimlik hizmeti sağlayıcınız (IdP) onaylama şifrelemesini destekliyorsa SamlSettings.Encrypt ayarını açın ve hizmet sağlayıcı kişisel anahtarını ve herkese açık sertifikasını yapılandırın."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "SAML onaylama şifrelemesi kapalı"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "IdAttribute boş olduğundan ya da bir e-posta özniteliğini belirttiğinden Mattermost SAML hesaplarını e-posta adresine göre eşleştiriyor. Bir kullanıcının e-posta adresi kimlik hizmeti sağlayıcıda (IdP) değiştiğinde var olan hesabı ile bağlantısı kopar."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Kimlik hizmeti sağlayıcıyı (IdP) değişmeyen bir tanımlayıcı (objectGUID ya da değiştirilemez bir kimlik gibi) gönderecek şekilde yapılandırın, ardından SamlSettings.IdAttribute değerini bu özniteliğin adı olarak ayarlayın. Var olan hesaplar yeni tanımlayıcıya kendiliğinden geçer: Her kullanıcının bir sonraki oturum açışında Mattermost hesabı e-posta adresine göre bulur ve yeni kimliği kaydeder."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute boş ya da bir e-posta özniteliği"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute değeri {{.attribute}}. Kullanıcı adları, uid değerleri ve kullanıcı asıl adları (UPN) çoğu zaman çalışanlar arasında yeniden kullanılır. Bu durumda ikinci kişi ilk kişinin Mattermost hesabını devralır."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "objectGUID (AD) ya da değiştirilemez bir kimlik (Microsoft Entra ID) gibi hiçbir zaman yeniden atanmayan bir tanımlayıcı kullanmayı yeğleyin ve kimlik hizmeti sağlayıcının (IdP) tanımlayıcıların yeniden kullanılmasına ilişkin ilkesini gözden geçirin."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute kimlik hizmeti sağlayıcıda (IdP) yeniden atanabilir"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "Kimlik hizmeti sağlayıcı (IdP) sertifikası ve adresinin SAML denetimi başarısız oldu. Bu nedenle SAML ile oturum açma büyük olasılıkla çalışmıyor."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "Kimlik hizmeti sağlayıcı (IdP) sertifikası ve adresinin SAML denetimi diğer düğümlerde başarılı olurken şu düğümlerde başarısız oldu: {{.nodes}}. Bu nedenle bu düğümlerde SAML ile oturum açma başarısız olabilir. Bu düğümlerde diğer düğümlerdeki ile aynı geçerli IdP sertifikasının bulunduğundan emin olun."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Hata ayrıntılarını inceleyin, ardından SAML ayarlarındaki IdP sertifikasını (IdpCertificateFile) ya da IdP adresini (IdpURL) düzeltin. Sertifikanın süresi dolduysa kimlik hizmeti sağlayıcının geçerli imzalama sertifikasını yükleyin."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "SAML yapılandırma denetimi başarısız oldu"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "Tek oturum açma (SSO), kullanımdan kaldırılmış SHA-1 imza algoritmasını kullanıyor. SSO şu anda çalışıyor ancak bazı kimlik hizmeti sağlayıcılar SHA-1 imzalarını reddetmeye başladı. Bu nedenle bu, özellikle kimlik hizmeti sağlayıcı (IdP) değişikliği ya da yükseltmesinden önce planlanması gereken bir uyumluluk ve güvenlik iyileştirmesidir."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Uygun olduğunda kimlik hizmeti sağlayıcınız (IdP) ile eşgüdüm içinde SamlSettings.SignatureAlgorithm değerini RSAwithSHA256 olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm değeri SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost SAML yanıtlarını kimlik hizmeti sağlayıcınızın (IdP) imzasını doğrulamadan kabul ediyor. Bu nedenle gerçek bir kimlik doğrulama yanıtını sahte bir yanıttan ayırt edemiyor."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "SamlSettings.Verify değerini true olarak ayarlayın ve AssertionConsumerServiceURL değerinin ayarlandığından emin olun. Doğrulama, IdP sertifikasının doğru yapılandırılmasını gerektirdiğinden bu ayarı kimlik hizmeti sağlayıcınız ile eşgüdüm içinde açın ve oturum açmayı sınayın."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "SAML imza doğrulaması kapalı"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Çalışma alanında {{.posts}} ileti var ve arama veri tabanı üzerinde yapılıyor. 2.500.000 iletinin üzerinde Elasticsearch önerilir, 5.000.000 iletinin üzerinde ise gereklidir."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Bir sonraki büyük büyüme döneminden ya da 5.000.000 ileti sayısına ulaşmadan önce bir Elasticsearch kurulumu planlayın."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "İleti sayısı Elasticsearch eşiğine yaklaşıyor"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Çalışma alanında {{.posts}} ileti var ve arama veri tabanı üzerinde yapılıyor. Bu ölçekte yavaş aramalar, zaman aşımları ve veri tabanı işlemci kullanımında sıçramalar beklenir."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Elasticsearch ya da OpenSearch kurun, ilk dizin oluşturma işlemini tam olarak yürütün, ardından EnableIndexing, EnableSearching ve EnableAutocomplete ayarlarını açın."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "5.000.000 iletinin üzerinde Elasticsearch gereklidir"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Veri tabanı araması kapalı ve Elasticsearch araması da kapalı. Aramalar sonuç döndürmüyor. Elasticsearch ya da OpenSearch ile aramanın açılması da aramayı yeniden kullanılabilir duruma getirir."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Veri tabanı araması kapalı ve lisans Elasticsearch özelliğini içermediğinden Elasticsearch ayarlarının bir etkisi yok. Aramalar sonuç döndürmüyor."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "config.json dosyasında SqlSettings.DisableDatabaseSearch değerini false olarak ayarlayın (ya da MM_SQLSETTINGS_DISABLEDATABASESEARCH=false kullanın)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Arama kapalı"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "Lisans sınırına sayılan kullanıcı sayısı {{.used}}, lisans sınırı {{.limit}} kullanıcı ve bu sınıra ulaşıldı. Koltuklar boşaltılana ya da yeni koltuklar eklenene kadar sunucu yeni kullanıcı eklemez ve kullanıcıları yeniden etkinleştirmez."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Ek koltuk satın alın ya da koltukları boşaltmak için artık erişmesi gerekmeyen kullanıcıları etkisizleştirin."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Lisanslı kullanıcı sınırına ulaşıldı"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.seats}} lisanslı koltuğa sayılan kullanıcı sayısı: {{.used}} (%{{.percent}})."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Daha fazla kullanıcı bekliyorsanız lisans dolmadan ek koltuklar planlayın. Artık erişmesi gerekmeyen kullanıcıları etkisizleştirmek koltukları boşaltır."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Lisanslı koltuklar dolmak üzere"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.seats}} lisanslı koltuğa sayılan kullanıcı sayısı: {{.used}} (%{{.percent}})."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Ek koltuk satın alın ya da artık erişmesi gerekmeyen kullanıcıları etkisizleştirin. Etkisizleştirilmiş kullanıcılar bir koltuk kullanmaz."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Kullanıcı sayısı lisanslı koltuk sayısından fazla"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Oturumlar etkinlikten bağımsız olarak sabit bir zamanda sona erdiğinden etkin kullanıcıların oturumu kapatılıyor. Çoğu kurulumda etkin kullanıcıların oturumlarının açık tutulması yararlıdır."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Güvenlik ilkeniz yasaklamıyorsa ServiceSettings.ExtendSessionLengthWithActivity ayarını açın."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity kapalı"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "SMTP sunucusu bağlantı sınaması başarısız oldu: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Diğer düğümler SMTP sunucusuna erişebilirken şu düğümlerde bağlantı sınaması başarısız oldu: {{.nodes}}. Bu düğümlerdeki ağ, güvenlik duvarı, vekil sunucu ve DNS ayarlarını denetleyin. Hata: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "E-posta bildirimleri, davetler ve parola sıfırlama e-postaları teslim edilemeyebilir. Sistem panosundan SMTP sunucusu, bağlantı noktası, bağlantı güvenliği ve kimlik bilgilerini denetleyin, Mattermost sunucusunun SMTP sunucusuna erişebildiğini doğrulayın, ardından denetlemek için Bağlantıyı sına seçeneğini kullanın."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTP sunucusu bağlantı sınaması başarısız oldu"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Son yayınlanan sürüm bilinmiyor: Alınamadı ya da pakette kaydedilmemiş."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Son yayınlanan sürüm denetlenmedi: Güvenlik uyarıları kullanılsın ayarı kapalı olduğundan sunucu son sürüm bilgisini almıyor."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Bu sürüm, bu derlemenin sürüm tablosunda bulunmuyor. Daha yeni bir sunucudan alınmış bir Destek Paketini değerlendirmek için daha yeni bir mmctl kullanın."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Sunucu sürümü bilinmiyor ya da tanınmıyor."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Çalışan sürüm: {{.version}}. Son sürüm: {{.latest}}. Son sürüm iki ya da daha fazla sürüm daha yeni."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Bu sürüm serisinin desteği sona ermeden son sürüme yükseltmeyi planlayın ya da daha seyrek yükseltme yapmak için bir Genişletilmiş Destek Sürümüne geçin."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Son sürümün birkaç sürüm gerisinde"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Çalışan sürüm: {{.version}}. Son sürüm: {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Son sürüme yükseltmeyi planlayın."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Daha yeni bir sürüm yayınlandı"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Çalışan sürüm: Mattermost {{.version}}. Bu sürüm serisinin desteği {{.eol_date}} tarihinde sona erdi. Bu sürüm serisi için güvenlik yamaları yayınlanmıyor."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Çalışan sürüm: Mattermost {{.version}}. Bu, artık desteklenmeyen eski bir sürüm serisi. Bu sürüm serisi için güvenlik yamaları yayınlanmıyor."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Çalışan sürüm: Mattermost {{.version}}. Bu, artık desteklenmeyen eski bir sürüm serisi. Bu sürüm serisi için güvenlik yamaları yayınlanmıyor. Desteklenen en yeni Genişletilmiş Destek Sürümü: {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Çalışan sürüm: Mattermost {{.version}}. Bu sürüm serisinin desteği {{.eol_date}} tarihinde sona erdi. Bu sürüm serisi için güvenlik yamaları yayınlanmıyor. Son sürüme yükseltin."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Çalışan sürüm: Mattermost {{.version}}. Bu sürüm serisinin desteği {{.eol_date}} tarihinde sona erdi. Bu sürüm serisi için güvenlik yamaları yayınlanmıyor. Desteklenen en yeni Genişletilmiş Destek Sürümü: {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Desteklenen bir Genişletilmiş Destek Sürümüne ya da son sürüme aşamalı bir yükseltme planlayın. Desteklenen sürümler https://docs.mattermost.com/product-overview/mattermost-server-releases.html adresinde listelenmiştir."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost sürümünün kullanım ömrü sona erdi"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Çalışan sürüm: {{.version}}, Genişletilmiş Destek Sürümü: {{.esr}}. Güvenlik yamalarını almayı sürdürmek için {{.eol_date}} tarihinden önce bir yükseltme planlayın."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Son sürüme ya da bir sonraki Genişletilmiş Destek Sürümüne yükseltme zamanlayın."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Genişletilmiş Destek Sürümünün kullanım ömrü sona ermek üzere"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "İzin ilkesindeki kanal erişimi eylemleri yalnızca Sistem kullanıcısı, Sistem konuğu ya da Sistem yöneticisi rolüne uygulanabilir."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "İzin ilkesindeki bir kanal erişimi kuralı kendi rolünü belirleyemez. İlkenin rolü uygulanır."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Kanal yönetimi eylemi yalnızca izin ve kanal ilkelerinde kullanılabilir."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Kanal okuma erişimi eylemi yalnızca izin ve kanal ilkelerinde kullanılabilir."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Kanal yazma erişimi eylemi yalnızca izin ve kanal ilkelerinde kullanılabilir."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Bir iç hata oluştu."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis ön belleği ön eki ':', '*', '?', '[', ']' ya da '\\' karakterlerini içeremez."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert ve RedisTLSClientKey birlikte ayarlanmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Ek kapsamlar, boşluklarla ayrılmış OAuth kapsam adlarından oluşmalı ve toplamda en fazla {{.MaxLength}} karakter uzunluğunda olmalıdır."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Alan süzgeci geçersiz. Bir alan adı en fazla {{.MaxLength}} karakter uzunluğunda olmalı ve boş, \"level\" ya da \"timestamp\" olamaz."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Alan süzgeci geçersiz. Bir alan değeri en fazla {{.MaxLength}} karakter uzunluğunda olmalıdır."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Alan süzgeci geçersiz. Her alanın 1 ile {{.MaxValues}} arasında değeri olmalıdır."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Alan süzgeci geçersiz. En fazla {{.MaxKeys}} alana göre süzülebilir."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Arama süzgeci geçersiz. En fazla {{.MaxLength}} karakter uzunluğunda olmalıdır."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Konuyu izleyen kullanıcılar alınamadı."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Sunucu, uygulama eki anahtarlarının seçeneklerle listelenmesini desteklemiyor."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Uygulama eki anahtarları seçeneklerle listelenemedi."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Konu kimliği geçersiz."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Kullanıcı kimliği geçersiz."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "İleti bir konunun kök iletisi değil, bir yanıt."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Dosyayı oluşturan kullanıcı geçersiz."
   }
 ]

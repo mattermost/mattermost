@@ -920,10 +920,6 @@
     "translation": "Parametrul {{.Name}} este invalid."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Jeton de sesiune invalid ={{.Token}}, err={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Invalid sau lipsește parametrul {{.Name}} în cererea URL."
   },
@@ -2472,10 +2468,6 @@
     "translation": "Reacţia CreateAt proprietatea trebuie să fie zero."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reacţia EmojiName proprietate este mai mare valoarea maximă permisă de lungime."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Lipsesc necesare reacţie proprietate: EmojiName."
   },
@@ -2862,10 +2854,6 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Nu a reuşit să-l indexaţi post"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Imposibil de analizat căutare rezultat meciuri"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3481,7 +3469,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Căsuțele maxime pentru fiecare echipă nu sunt valabile pentru setările echipei. Trebuie să fie un număr pozitiv."
+    "translation": "Numărul maxim de canale per echipă din setările echipei este nevalid. Trebuie să fie 0 (nelimitat) sau un număr pozitiv."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3493,7 +3481,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Utilizatorii maximi nevaluiți pentru fiecare echipă pentru setările echipei. Trebuie să fie un număr pozitiv."
+    "translation": "Numărul maxim de utilizatori per echipă din setările echipei este nevalid. Trebuie să fie 0 (nelimitat) sau un număr pozitiv."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -4345,15 +4333,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versiunea 60+"
+    "translation": "Versiunea 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versiunea 44+"
+    "translation": "Versiunea 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versiunea 61+"
+    "translation": "Versiunea 156+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5212,10 +5200,6 @@
     "translation": "Imposibil de șters imaginea mărcii, nu a fost găsită."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Am întâmpinat o eroare la ștergerea auditurilor."
-  },
-  {
     "id": "app.audit.get.limit.app_error",
     "translation": "Limita depășită pentru paginare."
   },
@@ -5376,10 +5360,6 @@
     "translation": "Imposibil de eliminat tokenul de acces."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Imposibil de eliminat codul de autorizare."
-  },
-  {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "A apărut o eroare la găsirea aplicațiilor OAuth2."
   },
@@ -5402,10 +5382,6 @@
   {
     "id": "app.oauth.delete_app.app_error",
     "translation": "A apărut o eroare la ștergerea aplicației OAuth2."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Imposibil de șters token."
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -5564,10 +5540,6 @@
     "translation": "Am întâlnit o eroare la actualizarea preferințelor."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Am întâmpinat o eroare la ștergerea preferințelor."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Am întâlnit o eroare la găsirea preferințelor."
   },
@@ -5632,15 +5604,7 @@
     "translation": "Imposibil de salvat IncomingWebhook."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "În imposibilitatea de a șterge webhook."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "În imposibilitatea de a șterge webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "În imposibilitatea de a șterge webhook."
   },
   {
@@ -5736,10 +5700,6 @@
     "translation": "Imposibil de salvat postarea."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Imposibil de selectat mesajele pe care trebuie să le ștergeți pentru utilizator."
-  },
-  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Nu se pot șterge postările după canal."
   },
@@ -5802,10 +5762,6 @@
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
     "translation": "Nu se poate crea noul membru al echipei"
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Imposibil de importat calitatea de membru al echipei, deoarece nu mai sunt membri în acea echipă"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -5894,10 +5850,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Imposibil de salvat informațiile despre fișier."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Imposibil de șters fișierele atașate ale utilizatorului."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6094,10 +6046,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Nu s-au găsit posturile fixate."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Nu se poate elimina membrul canalului."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
@@ -6298,10 +6246,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nu pot posta şterse canal."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "Accesul la bot este interzis."
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -6554,10 +6498,6 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "membru al grupului există deja"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Imposibil de eliminat membrul grupului cu ID-ul de utilizator „{{.UserId}}”."
   },
   {
     "id": "app.group.no_rows",
@@ -7054,10 +6994,6 @@
   {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Nu s-au putut prelua clustere la distanță: {{.Error}}"
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Nu s-a putut cripta invitația: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -7860,14 +7796,6 @@
     "translation": "Administratorul a fost deja notificat"
   },
   {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Nu se poate crea echipa, deoarece limita de echipe a fost atinsă"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Nu se poate restaura echipa, deoarece limita de echipe a fost atinsă"
-  },
-  {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Nu se poate rula comanda într-un canal șters."
   },
@@ -8042,10 +7970,6 @@
   {
     "id": "api.command_share.invite_remote_to_channel.error",
     "translation": "Nu se poate invita instanța la distanță la canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Serviciul Canale partajate este activat, dar nu este activ."
   },
   {
     "id": "api.config.patch_config.diff.app_error",
@@ -8866,10 +8790,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Serviciu disponibil doar în ediția Mattermost Enterprise"
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portalul nu este disponibil pentru înscrierea cu găzduire proprie."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -10404,10 +10324,6 @@
     "translation": "Schița a fost respinsă de plugin: {{.Reason}}"
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Nu s-au putut șterge schițele utilizatorului."
-  },
-  {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Nu s-a putut crea un director pentru imaginile emoji-urilor personalizate"
   },
@@ -10434,10 +10350,6 @@
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
     "translation": "Fișierul de export nu a fost găsit."
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Fișierul nu poate fi preluat deoarece depășește limita planului cloud."
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
@@ -10646,10 +10558,6 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Nu s-a putut actualiza starea jobului. Stare setată nevalidă"
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Eroare la preluarea ultimului fișier accesibil"
   },
   {
     "id": "app.last_accessible_post.app_error",
@@ -11512,10 +11420,6 @@
     "translation": "Valoarea proprietății nu a trecut validarea."
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Nu s-au putut șterge reacțiile utilizatorului."
-  },
-  {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Limita de reacții a fost atinsă pentru această postare."
   },
@@ -11780,10 +11684,6 @@
     }
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Nu s-au putut șterge postările programate ale utilizatorului."
-  },
-  {
     "id": "app.scheduled_post.private_channel",
     "translation": "Canal privat"
   },
@@ -11976,10 +11876,6 @@
     "translation": "Adăugarea membrului echipei a fost respinsă de plugin: {{.Reason}}"
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Nu s-a putut obține numărul de echipe"
-  },
-  {
     "id": "app.thread.get_threadmembers_for_export.app_error",
     "translation": "Nu s-au putut obține membrii firului pentru export."
   },
@@ -12026,10 +11922,6 @@
   {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Nu s-au putut genera informațiile despre fișier din datele încărcate."
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Nu s-a putut obține utilizarea spațiului de stocare."
   },
   {
     "id": "app.user.analytics_get_single_channel_guest_count.app_error",
@@ -14597,7 +14489,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Pagina „Sănătatea site-ului” necesită o licență Enterprise."
+    "translation": "Pagina „Sănătatea site-ului” necesită o licență Professional sau superioară."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14645,7 +14537,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Configurația de jurnalizare conține o cale de fișier jurnal sau de audit din afara directorului rădăcină pentru jurnale. Verificați jurnalele serverului pentru detalii."
+    "translation": "Configurația de jurnalizare conține o cale de fișier jurnal sau de audit din afara directorului rădăcină pentru jurnale sau dintr-un director gestionat de server. Verificați jurnalele serverului pentru detalii."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14713,7 +14605,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Treceți la https://push.mattermost.com (serviciul Hosted Push Notification Service de producție, inclus în Enterprise) sau la un proxy push auto-găzduit."
+    "translation": "Direcționați PushNotificationServer către un proxy push de producție: un Mattermost Push Proxy auto-găzduit, care deservește propriile dumneavoastră versiuni compilate ale aplicațiilor mobile."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14746,5 +14638,1905 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Mesajele cu autodistrugere la citire nu pot fi trimise ca postări programate recurente."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Funcționalitatea acțiunilor de permisiuni la nivel de canal nu este activată."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Certificatul furnizorului de identitate încărcat nu este un certificat X.509 valid, codificat PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Cheia privată a furnizorului de servicii încărcată nu este o cheie privată validă, codificată PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Certificatul public al furnizorului de servicii încărcat nu este un certificat X.509 valid, codificat PEM."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Fișierul încărcat nu corespunde certificatului sau cheii private stocate ale furnizorului de servicii. Dezactivați criptarea pentru a le înlocui pe rând."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Momentan nu aveți permisiunea de a gestiona acest canal."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Momentan nu aveți acces la acest canal."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Momentan nu aveți permisiunea de a scrie în acest canal."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "O ghilimea simplă de lângă `{{.Near}}` nu este închisă înainte de ` --`. Închideți-o sau folosiți ghilimele duble dacă valoarea conține ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Text neașteptat lângă `{{.Near}}`. Încadrați între ghilimele o valoare care conține spații și folosiți ghilimele duble dacă valoarea conține și un apostrof."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "O ghilimea de lângă `{{.Near}}` nu este închisă."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Compararea configurațiilor salvate nu a reușit."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Compararea configurației salvate cu cea curentă nu a reușit."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Sesiune nevalidă sau expirată."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Lucrările de acest tip nu pot fi anulate."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Trebuie încărcat exact un fișier de cheie publică a pluginului în câmpul public_key."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Cheia publică a pluginului {{.Name}} nu este configurată."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Cheia publică a pluginului încărcată nu a putut fi analizată."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Nu aveți permisiunea de a seta una sau mai multe dintre valorile solicitate ale atributelor de postare."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Postările cu autodistrugere la citire nu pot avea atribute de postare."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Atributele de postare nu sunt activate pe acest server."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Una sau mai multe valori ale atributelor de postare nu au putut fi aplicate."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Doar un administrator al canalului, al echipei sau al sistemului căruia îi aparține câmpul îi poate seta permisiunile la creare."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Doar un administrator de sistem poate seta permisiuni la crearea unui câmp de atribut."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Acest atribut a fost șters."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Nu se pot căuta datele de conformitate pentru un câmp de proprietate v1 prin acest API."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Nu aveți permisiunea de a vizualiza datele de conformitate ale acestui câmp de proprietate."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Doar atributele care se aplică tuturor echipelor pot lista sau notifica canalele cărora le lipsește o valoare."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Notificările nu au fost trimise deoarece administratorii canalelor au fost notificați recent despre acest lucru. Puteți trimite o altă notificare peste {{.Count}} minut.",
+      "few": "Notificările nu au fost trimise deoarece administratorii canalelor au fost notificați recent despre acest lucru. Puteți trimite o altă notificare peste {{.Count}} minute.",
+      "other": "Notificările nu au fost trimise deoarece administratorii canalelor au fost notificați recent despre acest lucru. Puteți trimite o altă notificare peste {{.Count}} de minute."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Notificările nu au fost trimise deoarece administratorii canalelor au fost notificați recent despre acest lucru. Vă rugăm să încercați din nou mai târziu."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Nu puteți modifica permisiunile unui câmp de proprietate într-un mod care v-ar împiedica să îl editați."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Un obiect de restricții trimis trebuie să seteze toate cele cinci niveluri de permisiune: citirea valorii, scrierea valorii, citirea opțiunilor, scrierea opțiunilor și scrierea câmpului."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Obiectul de permisiuni trimis nu este valid."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Acest grup de proprietăți nu acceptă trimiterea unui obiect de permisiuni."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Obiectul de permisiuni trebuie să le permită administratorilor de sistem să editeze câmpul, așa că nivelul de scriere a câmpului nu poate fi „none”."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Acest atribut nu poate fi marcat încă drept obligatoriu, deoarece unele canale active nu au o valoare pentru el. Notificați administratorii canalelor, apoi încercați din nou."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Invitația a expirat. Solicitați site-ului la distanță o nouă invitație."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Site-ul la distanță a returnat un răspuns nevalid."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Invitația conține o adresă de site nevalidă: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Site-ul la distanță a respins invitația."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Site-ul la distanță de la {{.URL}} nu a putut fi contactat."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Încărcarea de la o conexiune securizată nu poate relua un fișier primit parțial."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Prea multe resurse într-o singură evaluare a controlului accesului; limita este {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Verificarea celei mai recente versiuni Mattermost este dezactivată. Activați setarea „Activați alertele de securitate” pentru a o permite."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Nu s-au putut căuta administratorii canalelor."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Nu s-au putut căuta canalele cărora le lipsește o valoare pentru acest atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Nu s-au putut număra canalele cărora le lipsește o valoare pentru acest atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Nu s-au putut număra toate canalele cărora le lipsește o valoare pentru acest atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Nu s-au putut număra canalele locale cărora le lipsește o valoare pentru acest atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Nu s-au putut lista canalele cărora le lipsește o valoare pentru acest atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Nu s-au putut căuta canalele la distanță cărora le lipsește o valoare pentru acest atribut."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Nu s-au putut număra administratorii de canal și canalele afectate de acest atribut."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Nu s-au putut căuta administratorii de canal care trebuie notificați despre acest atribut."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _și alte canale ({{.Count}})_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Vă rugăm să setați o valoare pentru **{{.AttributeName}}** pe aceste canale pe care le gestionați. Administratorul de sistem are nevoie ca fiecare canal să aibă o valoare înainte ca acest atribut să poată deveni obligatoriu."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Sunteți administrator al unui canal căruia îi lipsește un atribut de canal obligatoriu. Vă rugăm să setați o valoare pentru **{{.AttributeName}}**.",
+      "few": "Sunteți administrator al unor canale cărora le lipsește un atribut de canal obligatoriu. Vă rugăm să setați o valoare pentru **{{.AttributeName}}**.",
+      "other": "Sunteți administrator al unor canale cărora le lipsește un atribut de canal obligatoriu. Vă rugăm să setați o valoare pentru **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Nu s-a putut rezerva perioada de așteptare a notificărilor pentru acest atribut."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Nu s-au putut obține configurațiile salvate."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Nicio configurație salvată nu are acest ID."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Istoricul configurației este disponibil doar când configurația este stocată în baza de date."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Așa cum a fost scris: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Marcaj temporal"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Nu s-a putut porni o rulare a verificării de sănătate."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "O rulare a verificării de sănătate este deja în curs de pornire. Încercați din nou peste câteva momente."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Eroare la importarea postării. Salvarea priorității nu a reușit."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Eroare la importarea echipelor utilizatorului. Echipa nu a fost găsită."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Utilizatori adăugați de acest fișier în echipa {{.Team}}: {{.Adding}}. Numărul total de membri ar ajunge la {{.Total}}, dar TeamSettings.MaxUsersPerTeam este {{.Limit}}. Măriți limita sau setați-o la 0 (fără limită) înainte de import."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Fișierul de import nu a putut fi citit pentru verificarea TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Proprietatea AcknowledgedAt a confirmării de primire trebuie setată și nu poate fi anterioară valorii CreateAt a postării."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Lipsește proprietatea obligatorie Acknowledgement: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Confirmările de primire ale postării necesită o proprietate Priority cu RequestedAck setat la true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Proprietatea PersistentNotifications a postării necesită o valoare Priority urgentă."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Lipsește proprietatea obligatorie Priority: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Proprietatea EmojiName a Reaction este nevalidă. Trebuie să conțină între 1 și 64 de litere și cifre ASCII, +, - sau _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Doar un administrator de sistem poate modifica regulile de apartenență care folosesc o logică avansată. Editați-le în Consola de sistem."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Această regulă de apartenență folosește o expresie pe care sincronizarea apartenenței nu o poate evalua. Rescrieți regula folosind doar comparații, &&, ||, in și funcțiile de atribute acceptate."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Această regulă de apartenență folosește {{.Function}}, pe care sincronizarea apartenenței nu o poate evalua. Rescrieți regula folosind doar comparații, &&, ||, in și funcțiile de atribute acceptate."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Nu s-a putut determina dacă acțiunea are o politică de permisiuni"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Nu s-a putut determina dacă politica de acces a resursei guvernează acțiunea."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Există deja un fișier de configurare numit {{.Name}}."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Fișierul nu este o cheie publică OpenPGP validă."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Nume nevalid pentru cheia publică a pluginului: {{.Name}}. Numele pot conține doar litere, cifre, '.', '_' și '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Acest câmp nu poate fi șters deoarece un șablon mascat citește din el valorile deținute de fiecare persoană. Modificați sau eliminați mai întâi mascarea șablonului."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Nivelul option.read ({{.FieldTier}}) al unui câmp legat nu poate fi mai permisiv decât nivelul ({{.TemplateTier}}) al șablonului său ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Un atribut nu poate fi legat de o revendicare OpenID Connect cât timp sincronizarea atributelor OpenID Connect este dezactivată."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Nu s-au putut căuta atributele globale."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Acest câmp este sursa valorilor deținute pentru șablonul său mascat, așa că nivelul său de scriere a valorii nu poate fi '{{.ValueWrite}}'. Altfel, persoanele filtrate de șablon și-ar putea edita propriile valori deținute și ar putea extinde ceea ce văd."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Un atribut sincronizat din OpenID Connect nu poate fi sincronizat și din AD/LDAP sau SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Proprietarii, modul de acces, setarea de protecție sau setările de sincronizare ale acestui câmp nu pot fi modificate în acest mod, deoarece permisiunile sale nu pot fi exprimate în acea formă. Actualizați direct permisiunile câmpului."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Modul de acces al acestui câmp nu poate fi modificat deoarece conține date pe care apelantul nu le poate citi."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Actualizarea nu este posibilă: câmpul legat {{.DependentID}} are nivelul option.read {{.DependentTier}}, care ar depăși noul nivel {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Nu puteți modifica în aceeași actualizare atât permisiunile acestui câmp, cât și nivelurile de permisiune, proprietarii, modul de acces, setarea de protecție sau setările de sincronizare. Trimiteți modificarea într-una dintre cele două forme."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Actualizarea nu este posibilă: câmpul legat {{.DependentID}} și-ar furniza propriile valori deținute cu această mascare, dar nivelul său de scriere a valorii este '{{.ValueWrite}}'. Coborâți mai întâi nivelul de scriere a valorii acelui câmp la admin sau mai jos."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Acest câmp nu poate fi deconectat deoarece un șablon mascat citește din el valorile deținute de fiecare persoană. Modificați sau eliminați mai întâi mascarea șablonului."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Contul a fost dezactivat și șters parțial. Repetarea ștergerii este sigură și o va finaliza."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Această rulare a șters numărul maxim de postări ({{.Max}}). Contul a fost dezactivat și șters parțial. Rulați din nou ștergerea pentru a continua."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Ștergerea nu a putut fi finalizată pentru unii utilizatori ({{.Count}}): {{.Usernames}}. Rulați din nou comanda pentru a continua."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Trimiterea cererii către cluster nu a reușit"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML nu este configurat corect. Vă rugăm să contactați administratorul de sistem."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "Cele mai recente rulări sunt încă în coadă, în desfășurare sau au fost anulate, așa că rulările mai vechi nu au putut fi verificate."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Autentificare"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Disponibilitate ridicată"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Conformitate"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Bază de date"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Sarcini"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licențiere"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Notificări"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platformă"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Căutare"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Actualizări"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} pe {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Data colectării"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Necunoscută"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licențiat pentru"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Ultima evaluare"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Generat la"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licență"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Încă nu a avut loc"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Versiunea serverului"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "URL-ul site-ului"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Evaluarea pare să se fi oprit."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Deschideți această setare în Consola de sistem"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Detalii"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Citiți documentația"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Cum se remediază"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Rezumat"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Ignorate"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Rezolvate"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Nu au putut fi evaluate"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Critic"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Info"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Avertisment"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} constatare critică",
+      "few": "{{.Count}} constatări critice",
+      "other": "{{.Count}} de constatări critice"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} constatare informativă",
+      "few": "{{.Count}} constatări informative",
+      "other": "{{.Count}} de constatări informative"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Nicio constatare deschisă."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Prima verificare de sănătate rulează în decurs de o oră de la activarea funcționalității."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} verificare nu a putut fi evaluată",
+      "few": "{{.Count}} verificări nu au putut fi evaluate",
+      "other": "{{.Count}} de verificări nu au putut fi evaluate"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} avertisment",
+      "few": "{{.Count}} avertismente",
+      "other": "{{.Count}} de avertismente"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Raport de sănătate"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Nicio destinație pentru jurnalul de audit nu este activă, deși acest spațiu de lucru are un număr de utilizatori înregistrați de {{.users}}. Acțiunile administrative, autentificările și modificările de configurare nu lasă un istoric de audit separat. Aceasta este o lacună de conformitate și de investigare criminalistică, nu un risc pentru stabilitate."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Dacă organizația dumneavoastră are cerințe de audit (servicii financiare, sănătate, apărare, sector public reglementat), activați jurnalizarea de audit în Consola de sistem > Conformitate > Jurnalizare de audit sau adăugați o destinație pentru nivelurile de audit în ExperimentalAuditSettings.AdvancedLoggingJSON și configurați rotația jurnalelor. În caz contrar, această constatare poate fi ignorată."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Jurnalizarea de audit este dezactivată"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress ascultă pe portul {{.port}}, care este sub 1024. Pe Linux, un server Mattermost care nu rulează ca root poate asculta pe acest port doar prin capabilitatea de fișier CAP_NET_BIND_SERVICE setată pe executabilul său. O actualizare a pachetului înlocuiește executabilul și elimină această capabilitate, așa că, după următoarea actualizare, serverul poate să nu pornească, cu eroarea „bind: permission denied”. Configurația nu poate arăta cum este acordată capabilitatea, așa că acest avertisment rămâne chiar și după ce o acordați prin unitatea systemd."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Adăugați AmbientCapabilities=CAP_NET_BIND_SERVICE în unitatea systemd a Mattermost, astfel încât capabilitatea să se păstreze după actualizări, sau rulați din nou setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost după fiecare actualizare. Alternativ, puneți un proxy invers în fața Mattermost și configurați Mattermost să asculte pe un port înalt, cum ar fi 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Serverul ascultă direct pe un port privilegiat"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Nodul lider anunță adresa {{.address}}. Celelalte noduri nu îl pot accesa la această adresă, așa că protocolul gossip formează un cluster cu un singur nod, iar situațiile de split-brain rămân ascunse."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Setați ClusterSettings.AdvertiseAddress la adresa IP sau la numele DNS prin care nodul este accesibil ori lăsați setarea goală pentru a folosi adresa interfeței de rețea. Această verificare citește configurația nodului lider, așa că verificați setarea pe fiecare nod."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress nu este accesibilă de pe celelalte noduri"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Configurația este stocată într-un fișier pe fiecare nod și poate fi modificată în Consola de sistem. O modificare este salvată pe un singur nod și transmisă celorlalte fără garanția livrării; un nod care nu o primește își păstrează propriul fișier, așa că configurațiile nodurilor pot ajunge să difere."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Setați ClusterSettings.ReadOnlyConfig la true și gestionați configurația prin fișierul de configurare sau prin variabilele de mediu de pe fiecare nod ori mutați configurația în baza de date."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig este dezactivată într-un cluster HA cu configurație în fișier"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption este false, așa că traficul dintre nodurile clusterului nu este criptat."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Activați criptarea gossip, apoi reporniți toate nodurile simultan, într-o fereastră de mentenanță. Nodurile cu criptare și cele fără criptare nu pot comunica între ele, așa că o repornire eșalonată împarte clusterul până când repornește ultimul nod."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Comunicarea gossip din clusterul HA nu este criptată"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Cu un număr de utilizatori înregistrați de {{.users}} în modul HA, memoria cache LRU implicită, păstrată în memorie, face ca fiecare nod să își mențină propria copie și să folosească gossip pentru invalidare. Mattermost recomandă Redis de la 100.000 de utilizatori în sus, pentru a reduce traficul de invalidare a memoriei cache la această scară."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Evaluați setarea CacheSettings.CacheType la redis, cu CacheSettings.RedisAddress configurat. Redis necesită o licență cu funcționalitatea Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "La scară mare, luați în considerare backendul de cache Redis"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Topologia HA dorită nu rulează de fapt. Un singur nod nu oferă failover și ascunde riscul de split-brain."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Verificați conectivitatea gossip (ClusterSettings.GossipPort), regulile de firewall și faptul că toate nodurile aplicației au același ClusterName. Un ClusterName gol lasă de asemenea nodul izolat: serverul înregistrează atunci în jurnal că disponibilitatea ridicată a fost dezactivată."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Disponibilitatea ridicată este activată, dar clusterul are un singur nod"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Nodurile din cluster raportează aceste versiuni: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Nodurile sunt împărțite între versiuni, fără ca vreo versiune să fie mai frecventă decât celelalte, așa că nu este clar care noduri sunt neactualizate."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Acest nod rulează {{.version}}, în timp ce majoritatea nodurilor rulează {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Dacă nu este în desfășurare o actualizare, actualizați toate nodurile la aceeași versiune și asigurați-vă că nodurile pot comunica prin gossip."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Au fost detectate mai multe versiuni Mattermost în cluster"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory este gol, așa că rapoartele de conformitate sunt scrise într-un folder compliance din directorul de lucru al serverului. Acestea se pierd când serverul este actualizat sau când containerul său este reconstruit."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Setați „Director de raport de conformitate” în Consola de sistem > Conformitate > Monitorizarea conformității (ComplianceSettings.Directory) la o cale persistentă, cu drept de scriere."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Monitorizarea conformității este activată, dar directorul de rapoarte este gol"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Fiecare nod păstrează un pool de conexiuni la serverul primar, cu cel mult MaxOpenConns conexiuni. Cu un număr de noduri de {{.nodes}} și MaxOpenConns={{.max_open}}, un failover al bazei de date poate genera un număr de încercări simultane de conectare la noul server primar de până la {{.burst}}, iar gazda din DataSource nu pare să fie un pool de conexiuni (connection pooler). Dacă acest număr depășește max_connections al bazei de date, aceasta respinge conexiunile („sorry, too many clients already”), iar recuperarea durează mai mult."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Dimensionați fiecare nivel în funcție de acest val de conexiuni. Cea mai durabilă soluție este să reduceți SqlSettings.MaxOpenConns pe nod și/sau să puneți PgBouncer (în modul transaction) în fața bazei de date pentru a absorbi valurile de reconectare, în loc să măriți doar max_connections: fiecare conexiune consumă memorie în baza de date, așa că o limită ridicată riscă epuizarea memoriei. Dacă măriți max_connections, păstrați o rezervă peste valul de conexiuni pentru replicare, monitorizare și sesiunile de administrare. Eșalonarea pornirii nodurilor în timpul unui failover menține, de asemenea, valul sub limită."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Failover-ul bazei de date poate provoca o avalanșă de conexiuni"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) este setat la o valoare mai mare decât MaxOpenConns ({{.max_open}}). Nivelul database/sql din Go limitează în mod silențios pool-ul de conexiuni inactive la MaxOpenConns, așa că această capacitate suplimentară nu are niciun efect. Nimic nu este defect, dar valoarea este înșelătoare și indică de obicei că pool-ul a fost ajustat fără a ști că numărul de conexiuni inactive nu poate depăși niciodată numărul de conexiuni deschise."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Setați MaxIdleConns la o valoare cel mult egală cu MaxOpenConns (o recomandare obișnuită este 25-50% din MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns depășește MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Cu un număr de utilizatori de {{.users}} și MaxOpenConns={{.max_open}}, cererile pot ajunge în coadă pe partea aplicației la vârfuri de încărcare. Valoarea implicită actuală este 100 (MaxIdleConns 50, un raport de 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Dacă observați cereri în coadă pe partea aplicației, măriți SqlSettings.MaxOpenConns în funcție de necesarul monitorizat (valorile implicite 100/50 sunt punctul de plecare). Limita reală pentru baza de date este MaxOpenConns x noduri x surse de date, așa că, înainte de a mări valoarea, confirmați că max_connections al bazei de date acoperă acest total."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns poate fi prea mic pentru acest număr de utilizatori"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas este gol. Cu un număr de utilizatori de {{.users}}, toate citirile ajung la serverul primar. Replicile de citire sunt recomandate pentru implementările mai mari."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Luați în considerare configurarea unei replici de citire și adăugarea ei în SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Nu sunt configurate replici de citire"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Cu un număr de postări de {{.posts}} și căutarea în baza de date, serverul primar și replicile preiau scanările full-text. Acest lucru provoacă încărcarea procesorului și expirarea căutărilor la această scară."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Cu un număr de postări de {{.posts}} și căutarea în baza de date, serverul primar și replicile preiau scanările full-text. Acest lucru provoacă încărcarea procesorului și expirarea căutărilor la această scară. Licența dumneavoastră include Elasticsearch, care mută complet căutarea în afara bazei de date."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Configurați SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Nu există o replică de căutare, iar căutarea Elasticsearch este dezactivată"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "Conexiuni la baza de date primară în uz: {{.in_use}} din {{.max_open}} ({{.percent}}%), adică cel puțin 90% din MaxOpenConns. Interogările noi vor aștepta în coadă, iar latența HTTP crește."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Măriți SqlSettings.MaxOpenConns și max_connections al bazei de date. Investigați, de asemenea, interogările de lungă durată."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Pool-ul bazei de date primare este aproape saturat"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} este sub versiunea minimă acceptată, {{.minimum}}. Mattermost încă pornește pe această versiune, dar versiunile neacceptate pot duce la un comportament neașteptat. Actualizați la PostgreSQL {{.minimum}} sau la o versiune ulterioară."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Planificați o actualizare. Versiunile mai noi oferă și performanțe mai bune pentru interogările paralele și JSONB."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "Versiunea PostgreSQL este sub versiunea minimă acceptată"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL rulează în prezent vacuum pe tabelul Posts. Lăsați acest vacuum să se încheie înainte de a evalua dacă este necesar încă un vacuum."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Numărul estimat de dead tuples din tabelul Posts este {{.dead_tuples}} ({{.dead_percent}}% din numărul estimat de rânduri, {{.estimated_rows}}), deși ultimul vacuum a avut loc la {{.last_vacuum}}. Vacuum rulează, dar cel mai probabil nu le poate elimina, deoarece ceva blochează curățarea, cum ar fi o sesiune de lungă durată sau idle-in-transaction, un replication slot inactiv sau un prepared transaction abandonat. Umflarea tabelelor și a indexurilor poate degrada performanța interogărilor și poate crește utilizarea discului."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Numărul estimat de dead tuples din tabelul Posts este {{.dead_tuples}} ({{.dead_percent}}% din numărul estimat de rânduri, {{.estimated_rows}}), iar PostgreSQL nu are nicio înregistrare a unui vacuum pe acest tabel de la ultima resetare a statisticilor. Se pare că autovacuum nu ține pasul cu acest tabel. Umflarea tabelelor și a indexurilor poate degrada performanța interogărilor și poate crește utilizarea discului."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Numărul estimat de dead tuples din tabelul Posts este {{.dead_tuples}} ({{.dead_percent}}% din numărul estimat de rânduri, {{.estimated_rows}}), iar cel mai recent vacuum a avut loc la {{.last_vacuum}} (zile trecute de atunci: {{.age_days}}). Se pare că autovacuum nu ține pasul cu acest tabel. Umflarea tabelelor și a indexurilor poate degrada performanța interogărilor și poate crește utilizarea discului."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Dacă pg_stat_progress_vacuum arată un vacuum în desfășurare pe Posts, lăsați-l să se încheie, deoarece pornirea unui VACUUM manual îl anulează. Dacă pe Posts a rulat recent un vacuum, găsiți ce blochează curățarea și încheiați sau eliminați cauza: sesiunile de lungă durată sau idle-in-transaction din pg_stat_activity, replication slots inactive din pg_replication_slots și prepared transactions vechi din pg_prepared_xacts. Următorul vacuum va putea apoi elimina dead tuples. Dacă pe Posts nu a rulat recent un vacuum, verificați că autovacuum este activat global și pentru Posts și căutați în jurnalele PostgreSQL joburi autovacuum anulate. Dacă autovacuum nu ține pasul, reduceți autovacuum_vacuum_scale_factor pentru Posts și măriți autovacuum_vacuum_cost_limit și autovacuum_work_mem în limita capacității disponibile, apoi programați un VACUUM (ANALYZE) țintit pe Posts într-o perioadă cu trafic redus. Evitați VACUUM FULL, cu excepția cazului în care țineți cont de blocarea sa exclusivă și de spațiul suplimentar pe disc de care are nevoie; dacă este disponibil, pg_repack este o alternativă cu blocare mai redusă."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Tabelul Posts are multe dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout este setat la {{.timeout}} (secunde). Timpii de expirare lungi permit interogărilor scăpate de sub control să țină blocări pe toată durata, blocând autovacuum, migrările de schemă și scrierile care așteaptă după același rând. Acest lucru amplifică riscul pe bazele de date încărcate fără replici de citire."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Reduceți SqlSettings.QueryTimeout la 30. Investigați separat interogările lente, în loc să ridicați limita globală."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout este mare (valoarea implicită este 30 s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas este setat, dar nicio replică nu este accesibilă, așa că citirile revin la serverul primar."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Verificați DSN-ul replicii, accesibilitatea în rețea și autentificarea. Căutați în jurnalele serverului avertismente privind conexiunea la replici."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Replicile de citire sunt configurate, dar niciuna nu este accesibilă"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Fiecare instrucțiune SQL este înregistrată în jurnal. Această opțiune este destinată doar depanării: dacă rămâne activată, umple discul și scrie conținutul interogărilor în fișierele jurnal."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Setați SqlSettings.Trace la false, cu excepția cazului în care depanați activ."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace este activat"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Serverul rulează pe {{.os}}. Mattermost acceptă Linux pentru producție; celelalte sisteme de operare sunt potrivite doar pentru dezvoltare."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Mutați serverul pe o distribuție Linux acceptată."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Serverul nu rulează pe Linux"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Fiecare postare nouă este indexată sincron, cu propria cerere. Pe serverele aglomerate, acest lucru supraîncarcă clusterul de căutare și întârzie indexarea."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Măriți LiveIndexingBatchSize la o valoare între 10 și 20 și ajustați-o în acest interval în funcție de rata de postare observată."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "LiveIndexingBatchSize pentru Elasticsearch este 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize este {{.size}}. Cererile _bulk mari pot depăși http.max_content_length al clusterului de căutare și pot eșua cu erori 413, provocând reîncercări și întârzieri la indexare."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Reduceți LiveIndexingBatchSize la o valoare între 10 și 20 sau măriți http.max_content_length pe clusterul de căutare dacă loturile foarte mari sunt intenționate."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "LiveIndexingBatchSize pentru Elasticsearch este peste 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL indică spre {{.host}}, pe care fiecare nod al aplicației îl rezolvă la el însuși. Nodurile fără un motor de căutare local nu pot indexa și nu pot căuta."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Setați ConnectionURL la un nume de gazdă sau la un nume DNS de serviciu pe care îl poate accesa fiecare nod al aplicației."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "ConnectionURL pentru Elasticsearch indică spre localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Clusterul de căutare nu raportează pluginul analysis-icu. Șablonul indexului de postări folosește tokenizerul și normalizatorul ICU, așa că indexarea postărilor poate eșua fără el."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Lista de pluginuri nu a fost colectată, deoarece serverul nu a putut citi versiunea clusterului de căutare."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Instalați pluginul analysis-icu pe fiecare nod de căutare (elasticsearch-plugin install analysis-icu sau opensearch-plugin install analysis-icu), apoi reporniți nodurile. Indexarea postărilor are nevoie de el, nu doar căutarea multilingvă."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Motorului de căutare îi lipsește pluginul analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Testul de conexiune la motorul de căutare a eșuat: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Testul de conexiune la motorul de căutare a eșuat, iar căutarea în baza de date este dezactivată, așa că nicio căutare nu returnează rezultate: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Testul de conexiune la motorul de căutare a eșuat pe {{.nodes}}, în timp ce celelalte noduri îl pot accesa, așa că este posibil ca pe aceste noduri căutarea și indexarea să eșueze. Verificați setările de rețea, firewall, proxy și DNS de pe aceste noduri. Eroare: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Verificați accesibilitatea ElasticsearchSettings.ConnectionURL, TLS și datele de autentificare. Verificați starea de sănătate a clusterului de căutare (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Serverul raportează o eroare a clusterului Elasticsearch"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification este true pe o conexiune https, așa că serverul nu validează certificatul motorului de căutare. Acest lucru este acceptabil într-o rețea internă de încredere, dar în alte situații elimină protecția împotriva unui atac man-in-the-middle."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Dacă endpointul de căutare se află pe o cale care nu este de încredere, instalați CA-ul său, astfel încât certificatul să fie validat, și setați SkipTLSVerification la false. Într-o rețea internă de încredere, confirmați că setarea este intenționată."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Conexiunea Elasticsearch omite verificarea certificatului TLS"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} este mai nou decât versiunile majore acceptate (de la {{.min}} la {{.max}}). Actualizați Mattermost la o versiune care îl acceptă sau readuceți clusterul de căutare la o versiune acceptată."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} este mai vechi decât versiunile majore acceptate (de la {{.min}} la {{.max}}). Actualizați clusterul de căutare la o versiune acceptată."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Versiunea clusterului de căutare nu a fost colectată, deoarece serverul nu s-a conectat la clusterul de căutare."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Backendul sau versiunea motorului de căutare nu au putut fi recunoscute."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Rulați o versiune majoră a clusterului de căutare pe care această versiune Mattermost o acceptă."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Versiunea motorului de căutare nu este acceptată"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout este setat la {{.value}} (secunde). Această setare limitează cât timp așteaptă exportul conectarea la serverul SMTP Global Relay, iar sub 30 de secunde o conexiune lentă face ca livrarea să eșueze."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Măriți MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout la cel puțin 30 de secunde. Valoarea implicită este 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "SMTPServerTimeout pentru Global Relay este sub 30 de secunde"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Volumul care conține FileSettings.Directory are disponibil {{.available_gib}} GiB ({{.percent}}%) din {{.total_gib}} GiB. Încărcările de fișiere și alte operațiuni cu fișiere pot eșua când volumul se umple."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Extindeți imediat volumul sau eliminați din sistemul său de fișiere datele care nu au legătură cu Mattermost; nu ștergeți manual din FileSettings.Directory fișierele gestionate de Mattermost. Păstrați disponibil cel puțin 10% sau 10 GiB și niciodată mai puțin de 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Discul pentru stocarea fișierelor este aproape plin"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Volumul care conține FileSettings.Directory are disponibil {{.available_gib}} GiB ({{.percent}}%) din {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Extindeți volumul sau eliminați din sistemul său de fișiere datele care nu au legătură cu Mattermost; nu ștergeți manual din FileSettings.Directory fișierele gestionate de Mattermost. Păstrați disponibil cel puțin 10% sau 10 GiB și niciodată mai puțin de 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Spațiul pe disc pentru stocarea fișierelor este redus"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName este local cu ClusterSettings.Enable activat, iar FileSettings.Directory este {{.directory}}. Într-un cluster, acest director trebuie să fie un volum partajat (NFS, EFS, GlusterFS, CephFS), montat identic pe fiecare nod; altfel, fișierele încărcate pe un nod nu sunt vizibile pe celelalte. Configurația nu poate arăta dacă directorul este partajat, iar un nod poate trece testul de conexiune la stocarea fișierelor în timp ce scrie pe propriul disc local."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Pe fiecare nod al aplicației, rulați findmnt cu calea din FileSettings.Directory. O cale relativă este rezolvată față de directorul de lucru al Mattermost, de obicei /opt/mattermost. Fiecare nod trebuie să afișeze aceeași sursă la distanță, iar utilizatorul Mattermost trebuie să poată citi și scrie acolo. Dacă directorul nu este un volum partajat, mutați-l pe unul sau schimbați FileSettings.DriverName la amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Stocare locală a fișierelor într-un cluster cu disponibilitate ridicată: confirmați volumul partajat"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket este gol, așa că încărcările de fișiere eșuează."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Setați FileSettings.AmazonS3Bucket, împreună cu regiunea și endpointul."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Stocarea fișierelor în Amazon S3 este selectată, dar bucketul nu este completat"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL este false, așa că fișierele circulă necriptate între server și endpointul S3."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Setați FileSettings.AmazonS3SSL la true, cu excepția cazului în care endpointul acceptă doar HTTP simplu."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL pentru Amazon S3 este dezactivat"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Serverul nu s-a putut conecta la stocarea fișierelor: {{.error}}. Încărcările și descărcările de fișiere pot eșua."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Testul de conexiune la stocarea fișierelor a eșuat pe {{.nodes}}, în timp ce celelalte noduri o pot accesa, așa că încărcările și descărcările de fișiere prin aceste noduri pot eșua. Verificați setările de rețea, firewall, proxy și DNS de pe aceste noduri. Pentru stocarea locală, verificați și dacă directorul partajat este montat pe ele. Eroare: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Verificați setările de stocare a fișierelor, apoi folosiți „Testați conexiunea” din Consola de sistem > Mediu > Stocarea fișierelor. Pentru stocarea locală, verificați dacă FileSettings.Directory există și dacă utilizatorul Mattermost poate scrie în el. Pentru Amazon S3, verificați bucketul, endpointul și datele de autentificare."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Testul de conexiune la stocarea fișierelor a eșuat"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Cea mai recentă rulare încheiată a sarcinii {{.job_type}} ({{.job_id}}) s-a terminat cu eroare: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Cea mai recentă rulare încheiată a sarcinii {{.job_type}} ({{.job_id}}) s-a terminat cu eroare, fără să înregistreze un mesaj de eroare."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Examinați eroarea sarcinii și jurnalele serverului de la momentul pornirii rulării eșuate pentru a găsi cauza. Cauze frecvente de exclus: încărcarea bazei de date, limitele pool-ului de conexiuni, evenimente de rețea sau de failover și expirarea instrucțiunilor. Remediați problema, apoi rulați din nou sarcina și confirmați că se finalizează. Până când o rulare reușește, activitatea sarcinii (sincronizarea directorului, exportul de conformitate, păstrarea datelor sau indexarea pentru căutare) nu este efectuată."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Cea mai recentă rulare a sarcinii a eșuat"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "Sarcina {{.job_type}} {{.job_id}} este în desfășurare, dar nu a înregistrat nicio activitate în ultimele ore (număr de ore: {{.hours}}). De obicei, aceasta înseamnă că procesul de lucru s-a oprit în timpul rulării sau că planificatorul este blocat."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "Sarcina {{.job_type}} {{.job_id}} este în desfășurare, dar nu a înregistrat nicio activitate în ultimele zile (număr de zile: {{.days}}). De obicei, aceasta înseamnă că procesul de lucru s-a oprit în timpul rulării sau că planificatorul este blocat."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Anulați sarcina blocată din pagina sa din Consola de sistem, cu mmctl job cancel sau prin API. Verificați jurnalele serverului din jurul ultimei activități a sarcinii, apoi rulați-o din nou."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Sarcină blocată în desfășurare de peste 24 de ore"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "Sarcina {{.job_type}} {{.job_id}} nu a raportat niciun progres și nu a înregistrat nicio activitate de mai mult de o oră. De obicei, aceasta înseamnă că procesul de lucru s-a oprit, a intrat într-un impas (deadlock) sau și-a pierdut conexiunea la baza de date înainte de primul lot."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Anulați sarcina din pagina sa din Consola de sistem, cu mmctl job cancel sau prin API. Căutați în jurnalele serverului, de la momentul pornirii sarcinii, erori de tip panic sau erori de conexiune, apoi rulați-o din nou. Dacă problema reapare, capturați un profil al goroutine-urilor de la /debug/pprof/goroutine pe serverul de metrici cât timp sarcina este blocată."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Sarcină în desfășurare fără progres sau activitate de mai mult de o oră"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute este {{.attribute}}. Mattermost leagă fiecare cont de intrarea sa din director prin acest atribut, așa că atunci când adresa de e-mail a unui utilizator se schimbă (căsătorie, schimbarea numelui companiei, mutarea în alt departament), legătura se rupe, iar utilizatorul nu își mai poate accesa contul existent."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Schimbați IdAttribute la un atribut stabil, cum ar fi objectGUID (AD) sau entryUUID (OpenLDAP), apoi migrați conturile existente cu mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "IdAttribute pentru LDAP este un atribut de e-mail"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Portul 636 presupune în mod convențional TLS implicit (LDAPS), dar ConnectionSecurity este None sau STARTTLS. Această combinație este de obicei o configurare greșită, dar poate fi validă în spatele unui proxy care termină conexiunea TLS. Verificați dacă autentificarea și sincronizarea LDAP reușesc."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Dacă autentificarea sau sincronizarea LDAP eșuează, setați ConnectionSecurity la TLS pentru portul 636. Dacă funcționează, nu este necesară nicio modificare."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "Portul LDAP 636 este configurat fără ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Portul 389 este folosit în mod convențional pentru text simplu sau STARTTLS, în timp ce TLS implicit (LDAPS) folosește în mod convențional portul 636. Această combinație este de obicei o configurare greșită, dar poate fi validă în spatele unui proxy care termină conexiunea TLS sau cu un server reconfigurat intenționat. Verificați dacă autentificarea și sincronizarea LDAP reușesc."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Dacă autentificarea sau sincronizarea LDAP eșuează, folosiți portul 636 pentru TLS sau schimbați ConnectionSecurity la STARTTLS pentru portul 389. Dacă funcționează, nu este necesară nicio modificare."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "Portul LDAP 389 este configurat cu ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "Testul LDAP (conectare, bind și o căutare de utilizatori) a eșuat, așa că autentificarea și sincronizarea LDAP pot eșua."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "Testul LDAP (conectare, bind și o căutare de utilizatori) a eșuat pe {{.nodes}}, în timp ce celelalte noduri pot accesa serverul LDAP, așa că autentificarea LDAP poate eșua pe aceste noduri. Verificați setările de rețea, firewall, proxy și DNS de pe aceste noduri."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Verificați detaliile erorii, apoi confirmați LdapServer, LdapPort, ConnectionSecurity și datele de autentificare pentru bind, precum și faptul că serverele Mattermost pot accesa serverul LDAP. Folosiți „Testați conexiunea” din pagina AD/LDAP pentru a verifica din nou."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "Testul de conexiune LDAP a eșuat"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout este setat la {{.timeout}} (secunde). Timpii de expirare prea scurți provoacă eșecuri false ale autentificării și sincronizării LDAP în cazul directoarelor lente."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Măriți LdapSettings.QueryTimeout la 60 de secunde (valoarea implicită)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "QueryTimeout pentru LDAP este sub 10 secunde"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "Conturile de utilizator active sunt gestionate manual (număr de conturi: {{.users}}). Mattermost recomandă autentificarea unică (single sign-on) de îndată ce un spațiu de lucru are peste 100 de utilizatori: gestionarea manuală a conturilor la această scară duce la conturi învechite, întârzieri la inițierea noilor utilizatori și conturi uitate active după plecarea utilizatorilor, fiecare dintre acestea fiind un risc de securitate și de licențiere."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Conectați Mattermost la furnizorul dumneavoastră de identitate: AD/LDAP dacă folosiți un director, altfel SAML sau OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Peste 100 de utilizatori fără autentificare unică (single sign-on)"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost nu verifică certificatul TLS al serverului LDAP, așa că conexiunile la director sunt expuse atacurilor man-in-the-middle. Acest lucru este acceptabil doar pentru dezvoltare și testare."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Instalați lanțul CA al serverului LDAP pe serverele Mattermost și setați SkipCertificateVerification la false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "SkipCertificateVerification pentru LDAP este activat"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes este {{.interval_minutes}}, iar rulările recente ale sincronizării LDAP au durat în medie {{.avg_run_seconds}} s, adică {{.duty_pct}}% din interval. Rulările lungi la un interval scurt mențin ridicată încărcarea bazei de date și pot mări întârzierea replicilor."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Nu a fost găsită nicio rulare a sincronizării LDAP cu o durată măsurabilă."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Restrângeți LdapSettings.UserFilter și BaseDN pentru a limita parcurgerea directorului sau măriți SyncIntervalMinutes. Urmăriți ca rulările sincronizării să dureze mai puțin de 25% din interval."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "Sincronizarea LDAP rulează o mare parte din intervalul său"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "Sincronizarea LDAP caută în director pornind de la BaseDN, așa că, dacă acesta este gol, sincronizarea nu găsește utilizatorii pe care ar trebui să îi actualizeze."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Setați LdapSettings.BaseDN la rădăcina directorului pe care doriți să o sincronizați."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "Sincronizarea LDAP este activată, dar BaseDN este gol"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Licența a expirat la {{.expires_at}}. Serverul elimină o licență expirată la 10 zile după expirare, iar funcționalitățile Enterprise nu mai funcționează."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Licența de probă a expirat la {{.expires_at}}. Serverul elimină o licență expirată la 10 zile după expirare, iar funcționalitățile Enterprise nu mai funcționează."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Obțineți o licență nouă și încărcați-o în Consola de sistem > Despre > Ediție și licență."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Licența a expirat"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Licența expiră la {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Licența de probă expiră la {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Obțineți acum o licență nouă, astfel încât să poată fi încărcată în Consola de sistem > Despre > Ediție și licență înainte ca licența actuală să expire."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Licența expiră în mai puțin de 30 de zile"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel este {{.level}}. Jurnalizarea în fișier la nivel de depanare mărește rapid fișierele jurnal, iar detaliile suplimentare pot include conținutul cererilor. Acest lucru este în regulă în timpul depanării, dar nu este ideal ca setare permanentă în producție."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Dacă nu depanați activ o problemă, setați LogSettings.FileLevel la INFO pentru a reduce volumul jurnalelor."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Jurnalizarea în fișier este la nivelul debug sau trace"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile este false, așa că serverul nu scrie niciun fișier jurnal. Pachetele de asistență (Support Packets) nu conțin atunci jurnale ale serverului, chiar dacă un colector extern preia stdout sau journald, iar depanarea împreună cu Mattermost Support durează mai mult."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Setați LogSettings.EnableFile la true. Această setare funcționează în paralel cu jurnalizarea în consolă, așa că un colector de jurnale existent continuă să funcționeze."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Jurnalizarea în fișier este dezactivată"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging este true, așa că cererile eșuate ale webhook-urilor de intrare sunt înregistrate în jurnal împreună cu conținutul lor, care poate include textul mesajelor."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Setați LogSettings.EnableWebhookDebugging la false, cu excepția cazului în care depanați un webhook."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Conținutul webhook-urilor este înregistrat în jurnal"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel este {{.limit}}, așa că @channel, @all și @here funcționează în continuare în canalele cu mii de membri. O singură mențiune la nivelul întregului canal generează acolo mii de notificări simultan, ceea ce provoacă vârfuri de latență."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Reduceți TeamSettings.MaxNotificationsPerChannel la 5000 sau mai puțin (valoarea implicită este 1000). @channel, @all și @here sunt dezactivate odată ce un canal atinge acest număr de membri, așa că discutați mai întâi cu echipele care le folosesc în canale mari."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Mențiunile la nivelul întregului canal sunt permise în canale foarte mari"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost nu înregistrează metrici de performanță, cum ar fi conexiunile la baza de date, latența cererilor și încărcarea serverului. Fără ele, nu există un istoric la care să vă puteți raporta când utilizatorii semnalează lentoare și nimic de trimis echipei Mattermost Support."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Activați „Monitorizarea performanței” în Consola de sistem și verificați dacă pluginul Metrics este activat în Pluginuri > Gestionare. Pluginul păstrează pe server metricile din ultimele 15 zile, fără a fi nevoie de Prometheus. Dacă folosiți Prometheus, direcționați-l către listenerul de metrici (implicit, portul 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Monitorizarea performanței este dezactivată"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Setul de lucru al memoriei containerului este {{.working_set}} MB din limita sa de {{.limit}} MB. Dacă acesta continuă să crească, kernelul poate opri forțat serverul sau procesul unui plugin."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Reduceți consumul de memorie al Mattermost și al pluginurilor sale sau măriți limita de memorie a containerului. Păstrați o rezervă suficientă pentru procesele pluginurilor, runtime-ul Go și vârfurile de trafic."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Memoria containerului este aproape epuizată"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "De la pornire, containerul a înregistrat procese oprite forțat din cauza lipsei de memorie (număr: {{.kills}}). Procesul oprit poate să fi fost un plugin sau un alt proces copil; examinați lista de pluginuri și limita de memorie a containerului."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Examinați procesele pluginurilor și jurnalele containerului pentru a identifica ce a fost oprit, apoi reduceți consumul său de memorie sau măriți limita de memorie a containerului."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Un proces din container a fost oprit forțat din cauza lipsei de memorie"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Containerul a fost limitat (throttled) într-o parte din perioadele de planificare CPU: {{.throttled}} din {{.periods}}. Limitarea susținută a CPU poate face ca Mattermost să fie lent chiar și atunci când utilizarea CPU a gazdei pare scăzută."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Măriți limita CPU a containerului sau eliminați limita, păstrând o cerere CPU (CPU request)."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Limitarea CPU a containerului este ridicată"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Descriptori de fișiere deschiși de procesul serverului: {{.open}} din {{.max}}. Odată ce atinge limita, conexiunile noi și operațiunile cu fișiere eșuează."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Măriți limita de fișiere deschise: setați LimitNOFILE în unitatea systemd a Mattermost sau măriți ulimit-ul nofile al containerului, apoi reporniți serverul."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Descriptorii de fișiere sunt aproape epuizați"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Limita de memorie Go este {{.go_limit}} MB, dar limita containerului este {{.container_limit}} MB. Este posibil ca garbage collectorul să nu își intensifice activitatea înainte ca kernelul să oprească forțat procesul."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Setați GOMEMLIMIT la aproximativ 80–90% din limita de memorie a containerului, lăsând o rezervă pentru memoria din afara heap-ului Go și pentru procesele pluginurilor."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Limita de memorie Go este egală cu sau mai mare decât limita containerului"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS este {{.go_max_procs}}, peste limita CPU a containerului ({{.cpu_limit}} CPU). Firele de execuție suplimentare gata de rulare pot mări limitarea CPU."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Eliminați setarea GOMAXPROCS, astfel încât runtime-ul Go să o dimensioneze în funcție de limita CPU a containerului, apoi reporniți serverul."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS depășește limita CPU a containerului"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Media încărcării gazdei pe 15 minute este {{.load}} (nuclee CPU: {{.cores}}). O încărcare susținută de două sau mai multe sarcini pe nucleu poate indica o presiune asupra CPU sau I/O."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Verificați utilizarea CPU, operațiunile I/O pe disc și procesele care rulează pe nod, apoi adăugați capacitate sau reduceți volumul de lucru."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Încărcarea gazdei este ridicată"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Gazda are disponibil {{.available}} MB din {{.total}} MB. Mattermost și alte procese pot fi oprite forțat sau pot deveni lente dacă memoria continuă să scadă."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Identificați și reduceți procesele care folosesc cea mai multă memorie sau adăugați memorie gazdei. Examinați consumul de memorie al Mattermost și al pluginurilor înainte de a reporni serviciile."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Memoria gazdei este pe terminate"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Acest nod nu și-a returnat diagnosticele pentru verificarea de sănătate. Este posibil să fie oprit, supraîncărcat sau izolat de celelalte noduri. Până când răspunde, celelalte constatări ale sale își păstrează ultima stare cunoscută."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Verificați dacă Mattermost rulează pe acest nod, examinați-i jurnalele și consumul de CPU și memorie și confirmați că poate accesa celelalte noduri pe portul gossip (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Un nod al clusterului nu răspunde"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Testul de conectivitate cu furnizorul OAuth/OIDC a eșuat pe toate nodurile Mattermost care au raportat, așa că autentificarea prin acest furnizor este probabil indisponibilă."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Testul de conectivitate cu furnizorul OAuth/OIDC a eșuat pe {{.nodes}}, în timp ce celelalte noduri care au raportat pot accesa furnizorul. Autentificarea prin acest furnizor poate eșua pe aceste noduri."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Verificați detaliile erorii, endpointul de descoperire sau de token al furnizorului și setările de rețea, firewall, proxy și DNS pentru traficul de ieșire. Apoi confirmați că autentificarea prin furnizor funcționează."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Testul de conectivitate cu furnizorul OAuth/OIDC a eșuat"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Serverul deschis și înregistrarea prin e-mail sunt activate, iar verificarea adresei de e-mail este dezactivată, așa că oricine poate accesa acest server își poate crea un cont cu o adresă de e-mail inventată și se poate alătura echipelor deschise. Dacă înregistrarea deschisă este intenționată, ignorați această constatare."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Serverul deschis și înregistrarea prin e-mail sunt activate, iar verificarea adresei de e-mail este dezactivată. TeamSettings.RestrictCreationToDomains limitează înregistrarea la anumite domenii, dar Mattermost verifică doar dacă adresa se termină cu un domeniu permis, nu și dacă persoana deține adresa. Oricine poate accesa acest server se poate înregistra cu un domeniu permis și poate părea un coleg. Dacă înregistrarea deschisă este intenționată, ignorați această constatare."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Setați EmailSettings.RequireEmailVerification la true. Confirmați mai întâi că SMTP funcționează: utilizatorii existenți care nu și-au verificat niciodată adresa de e-mail trebuie să o verifice la următoarea conectare. Dacă nu doriți înregistrare deschisă, setați TeamSettings.EnableOpenServer la false; utilizatorii se pot alătura în continuare prin linkuri de invitație în echipă, așa că verificarea adresei de e-mail rămâne recomandată. Pentru a limita înregistrarea la organizația dumneavoastră, setați TeamSettings.RestrictCreationToDomains împreună cu verificarea adresei de e-mail; fără verificare, restricția poate fi ocolită."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Oricine se poate înregistra cu o adresă de e-mail neverificată"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck este false, așa că un plugin care se blochează nu este repornit automat."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Setați PluginSettings.EnableHealthCheck la true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Verificarea stării pluginurilor este dezactivată"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Aceste pluginuri sunt activate, dar nu rulează: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "În Consola de sistem > Pluginuri > Gestionare, verificați starea fiecărui plugin din listă și încercați să îl dezactivați și să îl activați din nou. Jurnalul serverului înregistrează motivul pentru care un plugin nu a pornit sau a fost oprit de verificarea stării pluginurilor."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Pluginurile activate nu rulează"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable este false, așa că niciun plugin nu rulează. Acest lucru se potrivește unor implementări strict restricționate, dar adesea nu este intenționat."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Dacă acest lucru este neașteptat, setați PluginSettings.Enable la true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Pluginurile sunt dezactivate"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents este setat la full, așa că textul mesajului și expeditorul sunt incluse în conținutul notificării push, care trece prin proxy-ul push și prin serviciile push Apple și Google."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Pentru confidențialitate maximă a notificărilor push, setați EmailSettings.PushNotificationContents la id_loaded. Se trimite doar ID-ul mesajului, iar aplicația mobilă preia conținutul mesajului de pe server. Dispozitivele mobile trebuie atunci să poată accesa serverul când sosește o notificare, așa că pe serverele accesibile doar printr-un VPN sau o rețea internă notificările nu pot afișa conținutul mesajelor. Dacă full este o alegere deliberată, ignorați această constatare."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Notificările push includ textul complet al mesajelor"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Testul de conexiune la serverul de notificări push a eșuat: {{.error}}. Este posibil ca utilizatorii de pe mobil să nu primească notificări push."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Testul de conexiune la serverul de notificări push a eșuat pe {{.nodes}}, în timp ce celelalte noduri îl pot accesa. Notificările push trimise de aceste noduri pot eșua. Verificați setările de rețea, firewall, proxy și DNS de pe aceste noduri. Eroare: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Verificați PushNotificationServer, certificatele TLS și starea proxy-ului push. Confirmați că fiecare nod al aplicației Mattermost poate accesa gazda configurată prin HTTPS, apoi verificați endpointul său /version."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Testul de conexiune la serverul de notificări push a eșuat"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com este proxy-ul push de test al Mattermost. Nu are SLA, are un debit limitat și nu este destinat utilizării în producție. Licența dumneavoastră include serviciul Mattermost Hosted Push Notification Service: setați PushNotificationServer la https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable este false, iar numărul de utilizatori înregistrați este {{.users}}. Limitarea ratei protejează serverul împotriva avalanșelor de cereri și a clienților abuzivi sau defectuoși; cu atât de mulți utilizatori, plus webhook-uri și integrări de tip bot, un singur client configurat greșit poate satura API-ul. Documentația Mattermost precizează că limitatorul de rată integrat este destinat implementărilor mai mici (până la câteva sute de utilizatori), așa că la scară mai mare limitarea cererilor este adesea mai bine gestionată la nivelul unui load balancer sau al unui gateway API."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Asigurați-vă că există o limitare a cererilor potrivită acestei scări, fie prin limitarea ratei integrată în Mattermost (Consola de sistem > Mediu > Evaluați setările de limită), fie la nivelul load balancerului sau al gateway-ului."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Limitarea ratei API este dezactivată pe o instanță mare"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize este {{.size}}, dar numărul de utilizatori înregistrați este {{.users}}. Limitatorul de rată urmărește cel mult acest număr de clienți; când spațiul de stocare este plin, îl elimină pe cel văzut cel mai demult, a cărui cotă de cereri începe apoi de la zero, așa că un spațiu de stocare mic slăbește limitarea ratei."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Măriți RateLimitSettings.MemoryStoreSize la cel puțin numărul de utilizatori înregistrați."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Spațiul de stocare în memorie pentru limitarea ratei este mai mic decât numărul de utilizatori"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds este {{.value}}. Sarcina de păstrare a datelor face această pauză între loturile de ștergere pentru a lăsa bazei de date timp să deservească traficul curent. Sub 100 ms, ștergerile mari pot încetini baza de date pentru toată lumea."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Măriți DataRetentionSettings.TimeBetweenBatchesMilliseconds în configurație la cel puțin 100 (valoarea implicită)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds pentru păstrarea datelor este sub 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Aserțiunile circulă necriptate la nivelul SAML. TLS protejează în continuare conexiunea, așa că aceasta nu este o deficiență de securitate de bază, dar dacă IdP-ul dumneavoastră acceptă criptarea aserțiunilor, activarea acesteia adaugă un nivel suplimentar de protecție."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Dacă IdP-ul dumneavoastră acceptă criptarea aserțiunilor, activați SamlSettings.Encrypt și configurați cheia privată și certificatul public ale furnizorului de servicii."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Criptarea aserțiunilor SAML este dezactivată"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost identifică conturile SAML după adresa de e-mail, fie pentru că IdAttribute este gol, fie pentru că indică un atribut de e-mail. Când adresa de e-mail a unui utilizator se schimbă la IdP, legătura cu contul său existent se rupe."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Configurați IdP-ul să trimită un identificator stabil (cum ar fi objectGUID sau un ID imuabil), apoi setați SamlSettings.IdAttribute la numele acelui atribut. Conturile existente trec automat la noul identificator: la următoarea conectare a fiecărui utilizator, Mattermost găsește contul după adresa de e-mail și stochează noul ID."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "IdAttribute pentru SAML este gol sau este un atribut de e-mail"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute este {{.attribute}}. Numele de utilizator, uid-urile și numele principale de utilizator (UPN) sunt adesea refolosite de la un angajat la altul, iar când se întâmplă acest lucru, a doua persoană moștenește contul Mattermost al primei persoane."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Preferați un identificator care nu este niciodată reatribuit, cum ar fi objectGUID (AD) sau un ID imuabil (Microsoft Entra ID), și examinați politica IdP-ului privind reutilizarea identificatorilor."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "IdAttribute pentru SAML poate fi reatribuit la IdP"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "Verificarea SAML a certificatului IdP și a URL-ului IdP a eșuat, așa că autentificarea SAML este probabil nefuncțională."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "Verificarea SAML a certificatului IdP și a URL-ului IdP a eșuat pe {{.nodes}}, în timp ce pe celelalte noduri reușește, așa că autentificarea SAML poate eșua pe aceste noduri. Asigurați-vă că aceste noduri au același certificat IdP valid ca celelalte noduri."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Verificați detaliile erorii, apoi corectați certificatul IdP (IdpCertificateFile) sau URL-ul IdP (IdpURL) în setările SAML. Dacă certificatul a expirat, încărcați certificatul de semnare actual al IdP-ului."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Verificarea configurației SAML a eșuat"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO folosește algoritmul de semnătură SHA-1, care este învechit. SSO funcționează în prezent, dar unii furnizori de identitate încep să respingă SHA-1, așa că aceasta este o îmbunătățire de compatibilitate și securitate de planificat, mai ales înainte de orice schimbare sau actualizare a IdP-ului."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Când este convenabil și în coordonare cu IdP-ul dumneavoastră, setați SamlSettings.SignatureAlgorithm la RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SignatureAlgorithm pentru SAML este SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost acceptă răspunsurile SAML fără a verifica semnătura IdP-ului dumneavoastră, așa că nu poate deosebi un răspuns de autentificare autentic de unul falsificat."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Setați SamlSettings.Verify la true și asigurați-vă că AssertionConsumerServiceURL este setat. Activați verificarea în coordonare cu IdP-ul dumneavoastră și testați autentificarea, deoarece verificarea necesită ca certificatul IdP să fie configurat corect."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Verificarea semnăturii SAML este dezactivată"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Numărul de postări din spațiul de lucru este {{.posts}}, iar căutarea rulează pe baza de date. Elasticsearch este recomandat peste 2.500.000 de postări și obligatoriu peste 5.000.000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Planificați o implementare Elasticsearch înainte de următoarea perioadă de creștere importantă sau înainte de a atinge 5.000.000 de postări."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Numărul de postări se apropie de pragul pentru Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Numărul de postări din spațiul de lucru este {{.posts}}, iar căutarea rulează pe baza de date. La această scară, căutările vor fi lente, vor expira, iar procesorul bazei de date va avea vârfuri de încărcare."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Implementați Elasticsearch sau OpenSearch, rulați o indexare inițială completă, apoi activați EnableIndexing, EnableSearching și EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Elasticsearch este obligatoriu peste 5.000.000 de postări"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Căutarea în baza de date este dezactivată, iar căutarea prin Elasticsearch este oprită. Căutările nu returnează niciun rezultat. Activarea căutării prin Elasticsearch sau OpenSearch restabilește de asemenea căutarea."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Căutarea în baza de date este dezactivată, iar licența nu include Elasticsearch, așa că setările Elasticsearch nu au niciun efect. Căutările nu returnează niciun rezultat."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Setați SqlSettings.DisableDatabaseSearch la false în config.json (sau MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Căutarea este dezactivată"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "Utilizatori luați în calcul pentru limita licenței: {{.used}} din {{.limit}}. Limita a fost atinsă. Serverul nu creează și nu reactivează utilizatori până când nu sunt eliberate sau adăugate locuri."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Achiziționați locuri suplimentare sau dezactivați utilizatorii care nu mai au nevoie de acces, pentru a elibera locuri."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Limita de utilizatori a licenței a fost atinsă"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "Utilizatori care ocupă locuri licențiate: {{.used}} din {{.seats}} ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Dacă vă așteptați la mai mulți utilizatori, planificați locuri suplimentare înainte ca licența să se ocupe complet. Dezactivarea utilizatorilor care nu mai au nevoie de acces eliberează locuri."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Locurile licențiate sunt aproape ocupate"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "Utilizatori care ocupă locuri licențiate: {{.used}} din {{.seats}} ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Achiziționați locuri suplimentare sau dezactivați utilizatorii care nu mai au nevoie de acces. Utilizatorii dezactivați nu ocupă niciun loc."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Mai mulți utilizatori decât locuri licențiate"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Sesiunile expiră după un program fix, indiferent de activitate, așa că utilizatorii activi sunt deconectați. Majoritatea implementărilor au de câștigat dacă utilizatorii activi rămân conectați."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Activați ServiceSettings.ExtendSessionLengthWithActivity, cu excepția cazului în care politica dumneavoastră de securitate interzice acest lucru."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity este dezactivat"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Testul de conexiune la serverul SMTP a eșuat: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Testul de conexiune la serverul SMTP a eșuat pe {{.nodes}}, în timp ce celelalte noduri îl pot accesa. Verificați setările de rețea, firewall, proxy și DNS de pe aceste noduri. Eroare: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Este posibil ca notificările prin e-mail, invitațiile și e-mailurile de resetare a parolei să nu fie livrate. Verificați serverul SMTP, portul, securitatea conexiunii și datele de autentificare în Consola de sistem, confirmați că serverul Mattermost poate accesa gazda SMTP, apoi folosiți „Conexiune de test” pentru verificare."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Testul de conexiune la serverul SMTP a eșuat"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Cea mai recentă versiune este necunoscută: nu a putut fi preluată sau pachetul nu o înregistrează."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Cea mai recentă versiune nu a fost verificată: „Activați alertele de securitate” este dezactivată, așa că serverul nu o preia."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Această versiune nu se află în tabelul de versiuni al acestei compilări. Pentru a evalua un Support Packet de la un server mai nou, folosiți o versiune mai nouă de mmctl."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Versiunea serverului este necunoscută sau nu este recunoscută."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Rulează {{.version}}. Cea mai recentă versiune este {{.latest}}, mai nouă cu două sau mai multe versiuni."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Planificați o actualizare la cea mai recentă versiune înainte ca suportul pentru această serie de versiuni să se încheie sau treceți la o versiune cu suport extins, pentru un ritm mai lent al actualizărilor."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Cu mai multe versiuni în urma celei mai recente versiuni"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Rulează {{.version}}. Cea mai recentă versiune este {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Planificați o actualizare la cea mai recentă versiune."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Este disponibilă o versiune mai nouă"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Rulează Mattermost {{.version}}. Suportul pentru această serie de versiuni s-a încheiat pe {{.eol_date}}. Pentru această serie de versiuni nu se mai publică corecții de securitate."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Rulează Mattermost {{.version}}, o serie de versiuni mai veche care nu mai este suportată. Pentru această serie de versiuni nu se mai publică corecții de securitate."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Rulează Mattermost {{.version}}, o serie de versiuni mai veche care nu mai este suportată. Pentru această serie de versiuni nu se mai publică corecții de securitate. Cea mai nouă versiune cu suport extins aflată încă în suport este {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Rulează Mattermost {{.version}}. Suportul pentru această serie de versiuni s-a încheiat pe {{.eol_date}}. Pentru această serie de versiuni nu se mai publică corecții de securitate. Actualizați la cea mai recentă versiune."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Rulează Mattermost {{.version}}. Suportul pentru această serie de versiuni s-a încheiat pe {{.eol_date}}. Pentru această serie de versiuni nu se mai publică corecții de securitate. Cea mai nouă versiune cu suport extins aflată încă în suport este {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Planificați o actualizare în etape la o versiune cu suport extins aflată în suport sau la cea mai recentă versiune. Versiunile aflate în suport sunt listate la https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Versiunea Mattermost a ajuns la sfârșitul ciclului de viață"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Rulează {{.version}} din versiunea cu suport extins {{.esr}}. Planificați o actualizare înainte de {{.eol_date}} pentru a primi în continuare corecții de securitate."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Programați o actualizare la cea mai recentă versiune sau la următoarea versiune cu suport extins."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Versiunea cu suport extins se apropie de sfârșitul ciclului de viață"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Acțiunile de acces la canal dintr-o politică de permisiuni se pot aplica doar rolurilor System User, System Guest sau System Admin."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "O regulă de acces la canal dintr-o politică de permisiuni nu își poate specifica propriul rol. Se aplică rolul politicii."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Acțiunea „Gestionare canal” este permisă doar în politicile de permisiuni și în politicile de canal."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Acțiunea „Acces de citire la canal” este permisă doar în politicile de permisiuni și în politicile de canal."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Acțiunea „Acces de scriere la canal” este permisă doar în politicile de permisiuni și în politicile de canal."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "A apărut o eroare internă."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Prefixul cache-ului Redis nu trebuie să conțină ':', '*', '?', '[', ']' sau '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert și RedisTLSClientKey trebuie setate împreună."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Domeniile de acces suplimentare trebuie să fie nume de domenii de acces OAuth separate prin spații, cu cel mult {{.MaxLength}} caractere în total."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Filtru de câmp nevalid. Numele unui câmp trebuie să aibă cel mult {{.MaxLength}} caractere și nu poate fi gol, \"level\" sau \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Filtru de câmp nevalid. Valoarea unui câmp trebuie să aibă cel mult {{.MaxLength}} caractere."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Filtru de câmp nevalid. Fiecare câmp trebuie să aibă între 1 și {{.MaxValues}} valori."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Filtru de câmp nevalid. Se poate filtra după cel mult {{.MaxKeys}} câmpuri."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Filtru de căutare nevalid. Trebuie să aibă cel mult {{.MaxLength}} caractere."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Nu s-au putut obține urmăritorii firului."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Serverul nu acceptă listarea cheilor pluginului cu opțiuni."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Nu s-au putut lista cheile pluginului cu opțiuni."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Id de fir nevalid."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Id de utilizator nevalid."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Postarea este un răspuns, nu postarea principală a unui fir."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Creator de fișier nevalid."
   }
 ]

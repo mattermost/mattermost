@@ -930,10 +930,6 @@
     "translation": "Parâmetro {{.Name}} inválido."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Token de sessão inválido={{.Token}}, err={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Parâmetro {{.Name}} inválido ou ausente na URL de requisição."
   },
@@ -2483,10 +2479,6 @@
     "translation": "A propriedade CreateAt da Reação não pode ser zero."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "A propriedade EmojiName da Reação é maior que o comprimento máximo permitido."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Propriedade obrigatória da Reação não foi informada: EmojiName."
   },
@@ -2921,10 +2913,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} A pesquisa está desativada neste servidor"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Não foi possível analisar correspondências de resultado de pesquisa"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3544,7 +3532,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Inválido máximo de canais por equipe em configurações de equipe. Deve ser um número positivo."
+    "translation": "Máximo de canais por equipe inválido nas configurações de equipe. Deve ser 0 (ilimitado) ou um número positivo."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3556,7 +3544,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Inválido máximo de usuários por equipe em configurações de equipe. Deve ser um número positivo."
+    "translation": "Máximo de usuários por equipe inválido nas configurações de equipe. Deve ser 0 (ilimitado) ou um número positivo."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -4416,15 +4404,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versão 115+"
+    "translation": "Versão 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versão 118+"
+    "translation": "Versão 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versão 118+"
+    "translation": "Versão 156+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5339,10 +5327,6 @@
     "translation": "Encontramos um erro ao salvar o audits."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Encontramos um erro ao deletar o audits."
-  },
-  {
     "id": "app.audit.get.limit.app_error",
     "translation": "Limite excedido para paginação."
   },
@@ -5503,10 +5487,6 @@
     "translation": "Não foi possível remover o token de acesso."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Não conseguimos remover o código de autorização."
-  },
-  {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "Ocorreu um erro ao encontrar os Apps OAuth2."
   },
@@ -5529,10 +5509,6 @@
   {
     "id": "app.oauth.delete_app.app_error",
     "translation": "Ocorreu um erro ao excluir o App OAuth2."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Não é possível excluir o token."
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -5643,10 +5619,6 @@
     "translation": "Encontramos um erro enquanto atualizava as preferências."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Encontramos um erro enquanto excluiamos as preferências."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Encontramos um erro ao procurar as preferências."
   },
@@ -5691,15 +5663,7 @@
     "translation": "Não foi possível salvar o webhook de entrada."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Não foi possível excluir o webhook."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Não foi possível excluir o webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Não foi possível excluir o webhook."
   },
   {
@@ -5847,10 +5811,6 @@
     "translation": "Não foi possível salvar a Publicação."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Não foi possível selecionar as publicações para excluir do usuário."
-  },
-  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Não foi possível excluir as publicações pelo canal."
   },
@@ -5957,10 +5917,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Não foi possível salvar as informações do arquivo."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Não foi possível excluir anexos do usuário."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6219,10 +6175,6 @@
     "translation": "Não foi possível encontrar as publicações pinadas."
   },
   {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Não foi possível remover o membro do canal."
-  },
-  {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Não foi possível obter a contagem de postagens fixadas do canal."
   },
@@ -6367,10 +6319,6 @@
     "translation": "Não foi possível contar as equipes."
   },
   {
-    "id": "api.user.login_cws.license.error",
-    "translation": "O login CWS é proibido."
-  },
-  {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
     "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. A assinatura digital do arquivo binário baixado não pôde ser verificada."
   },
@@ -6405,10 +6353,6 @@
   {
     "id": "app.post.search.app_error",
     "translation": "Erro ao pesquisar publicações"
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Não é possível importar membros a equipe porque nenhum outro membro é permitido nessa equipe"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -6753,10 +6697,6 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "membro do grupo já existe"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Não foi possível remover o membro do grupo com UserID \"{{.UserId}}\"."
   },
   {
     "id": "app.group.no_rows",
@@ -7279,10 +7219,6 @@
     "translation": "Não foi possível buscar conexões seguras: {{.Error}}"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Não foi possível criptografar o convite: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.desc",
     "translation": "Convide conexões seguras para comunicação entre as instâncias do Mattermost."
   },
@@ -7609,14 +7545,6 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Não foi possível restaurar a equipe porque o limite de equipes foi atingido"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Não foi possível criar equipe porque o limite de equipes foi atingido"
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -8129,10 +8057,6 @@
   {
     "id": "api.saml.invalid_email_token.app_error",
     "translation": "Token de e-mail inválido"
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal indisponível para registro auto-hospedado."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
@@ -8743,10 +8667,6 @@
     "translation": "Não foi possível atualizar o membro do canal, o limite de tamanho das propriedades de notificação foi excedido."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Não foi possível buscar o arquivo porque ele ultrapassou o limite do plano de cloud."
-  },
-  {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "Não foi possível arquivar o canal importado."
   },
@@ -8833,10 +8753,6 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Não foi possível atualizar o status do trabalho. Status inválido definido"
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Erro ao buscar o último arquivo acessível"
   },
   {
     "id": "app.plugin.subpath_parse.app_error",
@@ -8983,10 +8899,6 @@
     "translation": "Ocorreu um erro ao atualizar a conexão oauth de saída: {{ .Error }}"
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Não foi possível obter a contagem de equipes"
-  },
-  {
     "id": "app.session.get_lru_sessions.app_error",
     "translation": "Não foi possível obter as sessões usadas menos recentemente."
   },
@@ -9025,10 +8937,6 @@
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "ID de postagem inválido."
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Não foi possível excluir reações do usuário."
   },
   {
     "id": "app.report.date_range.all_time",
@@ -9133,10 +9041,6 @@
     }
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Não foi possível excluir publicações agendadas para o usuário."
-  },
-  {
     "id": "app.scheduled_post.private_channel",
     "translation": "Canal privado"
   },
@@ -9183,10 +9087,6 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "Não foi possível marcar todos os tópicos como lidos pelo canal"
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Falha ao obter o uso do armazenamento."
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
@@ -9655,10 +9555,6 @@
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
     "translation": "Não é possível convidar usuários convidados para esse canal porque ele tem restrições de acesso com base nos atributos do usuário."
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "O serviço de Canais Compartilhados está ativado, mas não está ativo."
   },
   {
     "id": "api.access_control.assign.team_group_constrained",
@@ -11353,10 +11249,6 @@
   {
     "id": "app.draft.upsert.rejected_by_plugin",
     "translation": "Rascunho rejeitado pelo plugin: {{.Reason}}"
-  },
-  {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Não foi possível excluir os rascunhos do usuário."
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
@@ -14588,7 +14480,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "O painel de integridade do site requer uma licença Enterprise."
+    "translation": "O painel de integridade do site requer uma licença Professional ou superior."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14636,7 +14528,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "A configuração de logs contém um caminho de arquivo de log ou de auditoria fora do diretório raiz de logs. Verifique os logs do servidor para mais detalhes."
+    "translation": "A configuração de logs contém um caminho de arquivo de log ou de auditoria fora do diretório raiz de logs ou dentro de um diretório gerenciado pelo servidor. Verifique os logs do servidor para mais detalhes."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14704,7 +14596,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Mude para https://push.mattermost.com (o Hosted Push Notification Service de produção incluído no Enterprise) ou para um proxy de push auto-hospedado."
+    "translation": "Aponte PushNotificationServer para um proxy de push de produção: um Mattermost Push Proxy auto-hospedado que atenda às suas próprias builds dos aplicativos móveis."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14737,5 +14629,1899 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Mensagens com autodestruição após leitura não podem ser enviadas como publicações agendadas recorrentes."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "O recurso de ações de permissão de canal não está ativado."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "O certificado do Provedor de Identidade enviado não é um certificado X.509 válido codificado em PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "A chave privada do Provedor de Serviços enviada não é uma chave privada válida codificada em PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "O certificado público do Provedor de Serviços enviado não é um certificado X.509 válido codificado em PEM."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "O arquivo enviado não corresponde ao certificado ou à chave privada armazenados do Provedor de Serviços. Desative a criptografia para substituí-los um de cada vez."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "No momento, você não tem permissão para gerenciar este canal."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "No momento, você não tem acesso a este canal."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "No momento, você não tem permissão para escrever neste canal."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Uma aspa simples perto de `{{.Near}}` não é fechada antes de ` --`. Feche-a ou use aspas duplas se o valor contiver ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Texto inesperado perto de `{{.Near}}`. Coloque entre aspas um valor que contenha espaços e use aspas duplas se o valor também contiver um apóstrofo."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Uma aspa perto de `{{.Near}}` nunca é fechada."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Falha ao comparar as configurações salvas."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Falha ao comparar a configuração salva com a atual."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Sessão inválida ou expirada."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Trabalhos deste tipo não podem ser cancelados."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Exatamente um arquivo de chave pública de plugin deve ser enviado no campo public_key."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "A chave pública de plugin {{.Name}} não está configurada."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Não foi possível analisar a chave pública de plugin enviada."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Você não tem permissão para definir um ou mais dos valores de atributos de publicação solicitados."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Publicações com autodestruição após leitura não podem ter atributos de publicação."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Os atributos de publicação não estão ativados neste servidor."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Um ou mais valores de atributos de publicação não puderam ser aplicados."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Somente um administrador do canal, da equipe ou do sistema ao qual o campo pertence pode definir as permissões dele ao criá-lo."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Somente um administrador do sistema pode definir permissões ao criar um campo de atributo."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Este atributo foi excluído."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Não é possível consultar dados de conformidade de um campo de propriedade v1 por meio desta API."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Você não tem permissão para ver os dados de conformidade deste campo de propriedade."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Somente atributos que se aplicam a todas as equipes podem listar ou notificar canais sem valor."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "As notificações não foram enviadas porque os administradores de canal foram notificados sobre isso recentemente. Você pode enviar outra notificação em {{.Count}} minuto.",
+      "other": "As notificações não foram enviadas porque os administradores de canal foram notificados sobre isso recentemente. Você pode enviar outra notificação em {{.Count}} minutos."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "As notificações não foram enviadas porque os administradores de canal foram notificados sobre isso recentemente. Tente novamente mais tarde."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Você não pode alterar as permissões de um campo de propriedade de uma forma que impeça você de editá-lo."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Um objeto de restrições enviado deve definir todos os cinco níveis de permissão: leitura de valor, escrita de valor, leitura de opção, escrita de opção e escrita de campo."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "O objeto de permissões enviado é inválido."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Este grupo de propriedades não aceita o envio de um objeto de permissões."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "O objeto de permissões deve permitir que os administradores do sistema editem o campo; portanto, o nível de escrita de campo não pode ser nenhum."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Este atributo ainda não pode ser marcado como obrigatório porque alguns canais ativos não têm um valor para ele. Notifique os administradores de canal e tente novamente."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "O convite expirou. Peça um novo convite ao site remoto."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "O site remoto retornou uma resposta inválida."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "O convite contém um endereço de site inválido: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "O site remoto rejeitou o convite."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Não foi possível acessar o site remoto em {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Um upload de uma conexão segura não pode retomar um arquivo recebido parcialmente."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Recursos demais em uma única avaliação de controle de acesso; o limite é {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "A verificação da versão mais recente do Mattermost está desativada. Ative a configuração Ativar Alertas de Segurança para permiti-la."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Não foi possível consultar os administradores de canal."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Não foi possível consultar os canais sem valor para este atributo."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Não foi possível contar os canais sem valor para este atributo."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Não foi possível contar todos os canais sem valor para este atributo."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Não foi possível contar os canais locais sem valor para este atributo."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Não foi possível listar os canais sem valor para este atributo."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Não foi possível consultar os canais remotos sem valor para este atributo."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Não foi possível contar os administradores de canal e os canais afetados por este atributo."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Não foi possível consultar os administradores de canal a serem notificados sobre este atributo."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _e mais {{.Count}} canais_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Defina um valor para **{{.AttributeName}}** nestes canais que você gerencia. O administrador do sistema precisa que todos os canais tenham um valor antes que este atributo possa se tornar obrigatório."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Você é administrador de um canal que não tem um atributo de canal obrigatório. Defina um valor para **{{.AttributeName}}**.",
+      "other": "Você é administrador de canais que não têm um atributo de canal obrigatório. Defina um valor para **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Não foi possível reservar o período de espera das notificações para este atributo."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Não foi possível obter as configurações salvas."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Nenhuma configuração salva tem este ID."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "O histórico de configuração só está disponível quando a configuração é armazenada no banco de dados."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Conforme escrito: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Data e hora"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Não foi possível iniciar uma execução da verificação de integridade."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Uma execução da verificação de integridade já está sendo iniciada. Tente novamente em instantes."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Erro ao importar publicação. Falha ao salvar a prioridade."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Erro ao importar as equipes do usuário. Equipe não encontrada."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Este arquivo adiciona {{.Adding}} usuários à equipe {{.Team}}, totalizando {{.Total}} membros, mas TeamSettings.MaxUsersPerTeam é {{.Limit}}. Aumente o limite ou defina-o como 0 (sem limite) antes de importar."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Não foi possível ler o arquivo de importação para verificar TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "A propriedade AcknowledgedAt de Acknowledgement deve estar definida e não pode ser anterior ao CreateAt da publicação."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Propriedade obrigatória de Acknowledgement ausente: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Confirmações de publicação exigem uma Priority com RequestedAck definido como true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "PersistentNotifications de publicação exigem a Priority urgente."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Propriedade obrigatória de Priority ausente: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "A propriedade EmojiName de Reaction é inválida. Ela deve ter de 1 a 64 letras e números ASCII, +, - ou _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Somente um administrador do sistema pode alterar regras de associação que usam lógica avançada. Edite-as no Console do Sistema."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Esta regra de associação usa uma expressão que a sincronização de associação não consegue avaliar. Reescreva a regra usando apenas comparações, &&, ||, in e as funções de atributo compatíveis."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Esta regra de associação usa {{.Function}}, que a sincronização de associação não consegue avaliar. Reescreva a regra usando apenas comparações, &&, ||, in e as funções de atributo compatíveis."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Falha ao determinar se a ação tem uma política de permissão"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Falha ao determinar se a política de acesso do recurso rege a ação."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Já existe um arquivo de configuração chamado {{.Name}}."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "O arquivo não é uma chave pública OpenPGP válida."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Nome de chave pública de plugin inválido: {{.Name}}. Os nomes podem conter apenas letras, números, '.', '_' e '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Não é possível excluir este campo porque um modelo mascarado lê dele os valores de cada usuário. Primeiro, altere ou remova o mascaramento do modelo."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "O nível option.read de um campo vinculado ({{.FieldTier}}) não pode ser mais permissivo que o nível ({{.TemplateTier}}) do seu modelo ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Um atributo não pode ser vinculado a uma claim do OpenID Connect enquanto a sincronização de atributos do OpenID Connect estiver desativada."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Não foi possível pesquisar os atributos globais."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Este campo é a origem dos valores do usuário para o seu modelo mascarado, portanto seu nível de escrita de valor não pode ser '{{.ValueWrite}}'. Caso contrário, as pessoas filtradas pelo modelo poderiam editar os próprios valores e ampliar o que podem ver."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Um atributo sincronizado do OpenID Connect não pode também ser sincronizado do AD/LDAP ou SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Não é possível alterar dessa forma os proprietários, o modo de acesso ou as configurações de proteção ou sincronização deste campo, porque as permissões dele não podem ser expressas nesse formato. Em vez disso, atualize as permissões diretamente."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Não é possível alterar o modo de acesso deste campo porque ele contém dados que o solicitante talvez não possa ler."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Não é possível atualizar: o campo vinculado {{.DependentID}} está no nível option.read {{.DependentTier}}, que excederia o novo nível {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Não é possível alterar, na mesma atualização, as permissões deste campo e também seus níveis de permissão, proprietários, modo de acesso ou configurações de proteção ou sincronização. Envie a alteração em um formato ou no outro."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Não é possível atualizar: com este mascaramento, o campo vinculado {{.DependentID}} forneceria os próprios valores do usuário, mas seu nível de escrita de valor é '{{.ValueWrite}}'. Primeiro, reduza o nível de escrita de valor desse campo para admin ou inferior."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Não é possível desvincular este campo porque um modelo mascarado lê dele os valores de cada usuário. Primeiro, altere ou remova o mascaramento do modelo."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "A conta foi desativada e parcialmente excluída. É seguro executar a exclusão novamente, e isso a concluirá."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Esta execução excluiu o máximo de {{.Max}} publicações. A conta foi desativada e parcialmente excluída. Execute a exclusão novamente para continuar."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Não foi possível concluir a exclusão de {{.Count}} usuários: {{.Usernames}}. Execute o comando novamente para continuar."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Falha ao enviar a solicitação do cluster"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "O SAML não está configurado corretamente. Entre em contato com o administrador do sistema."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "As execuções mais recentes ainda estão na fila ou em andamento, ou foram canceladas, por isso não foi possível verificar as execuções mais antigas."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Autenticação"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Alta disponibilidade"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Conformidade"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Banco de dados"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Tarefas"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licenciamento"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Notificações"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Plataforma"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Pesquisa"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Atualizações"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} em {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Dados coletados"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Desconhecido"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licenciado para"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Última avaliação"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Gerado em"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licença"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Ainda não avaliado"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Versão do servidor"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "URL do site"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "A avaliação parece ter parado."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Abrir esta configuração no Console do Sistema"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Detalhes"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Ler a documentação"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Como corrigir"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Resumo"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Silenciados"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Resolvidos"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Não foi possível avaliar"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Crítico"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Informativo"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Aviso"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} crítico",
+      "other": "{{.Count}} críticos"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} informativo",
+      "other": "{{.Count}} informativos"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Nenhum achado aberto."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "A primeira verificação de integridade é executada em até uma hora após a ativação do recurso."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} não pôde ser avaliado",
+      "other": "{{.Count}} não puderam ser avaliados"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} aviso",
+      "other": "{{.Count}} avisos"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Relatório de integridade"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Nenhum destino de log de auditoria está ativo e este espaço de trabalho tem {{.users}} usuários registrados. Ações administrativas, logins e alterações de configuração não deixam uma trilha de auditoria separada. Esta é uma lacuna de conformidade e de investigação forense, não um risco de estabilidade."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Se a sua organização tiver requisitos de auditoria (serviços financeiros, saúde, defesa, setor público regulamentado), ative o registro de auditoria em Console do Sistema > Conformidade > Registro de Auditoria, ou adicione um destino para os níveis de auditoria em ExperimentalAuditSettings.AdvancedLoggingJSON, e configure a rotação. Caso contrário, isso pode ser ignorado."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Registro de auditoria desativado"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress vincula a porta {{.port}}, que está abaixo de 1024. No Linux, um servidor Mattermost que não é executado como root só pode vincular essa porta por meio da capability de arquivo CAP_NET_BIND_SERVICE em seu binário. Uma atualização de pacote substitui o binário e remove essa capability, portanto o servidor pode não iniciar após a próxima atualização, com \"bind: permission denied\". A configuração não consegue mostrar como a capability é concedida, por isso este aviso permanece mesmo depois que você a concede pela unidade do systemd."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Adicione AmbientCapabilities=CAP_NET_BIND_SERVICE à unidade do systemd do Mattermost para que a capability sobreviva às atualizações, ou execute novamente setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost após cada atualização. Como alternativa, coloque um proxy reverso na frente do Mattermost e vincule o Mattermost a uma porta alta, como 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "O servidor vincula diretamente uma porta privilegiada"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "O líder anuncia {{.address}}. Os outros nós não conseguem alcançá-lo nesse endereço, então o gossip forma um cluster de um só nó e situações de split-brain ficam ocultas."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Defina ClusterSettings.AdvertiseAddress como o endereço IP ou nome DNS acessível do nó, ou deixe-o vazio para usar o endereço da interface de rede. Esta verificação lê a configuração do líder, portanto revise a configuração em todos os nós."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress não está acessível a partir de outros nós"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "A configuração é armazenada em um arquivo em cada nó e pode ser alterada no Console do Sistema. Uma alteração é salva em um nó e enviada aos outros na base do melhor esforço; um nó que não recebe o envio mantém o próprio arquivo, então as configurações dos nós podem divergir."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Defina ClusterSettings.ReadOnlyConfig como true e gerencie a configuração pelo arquivo de configuração ou por variáveis de ambiente em todos os nós, ou mova a configuração para o banco de dados."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig está desativado em um cluster de alta disponibilidade baseado em arquivo"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption é false, portanto o tráfego entre os nós do cluster não é criptografado."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Ative a criptografia do gossip e reinicie todos os nós juntos em uma janela de manutenção. Nós com e sem criptografia não conseguem se comunicar, então uma reinicialização gradual divide o cluster até que o último nó seja reiniciado."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "O gossip do cluster de alta disponibilidade não é criptografado"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Com {{.users}} usuários registrados em alta disponibilidade, o cache LRU padrão em memória faz com que cada nó mantenha a própria cópia e use o gossip para invalidação. O Mattermost recomenda o Redis a partir de 100.000 usuários para reduzir o tráfego de invalidação de cache nessa escala."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Avalie definir CacheSettings.CacheType como redis, com CacheSettings.RedisAddress configurado. O Redis requer uma licença com o recurso Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Em grande escala, considere o backend de cache Redis"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "A topologia de alta disponibilidade pretendida não está realmente em execução. Um único nó não oferece failover e oculta o risco de split-brain."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Verifique a conectividade do gossip (ClusterSettings.GossipPort), as regras de firewall e se todos os nós de aplicação compartilham o mesmo ClusterName. Um ClusterName vazio também mantém o nó isolado: nesse caso, o servidor registra que a alta disponibilidade foi desativada."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "A alta disponibilidade está ativada, mas há apenas um nó no cluster"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Os nós do cluster relatam estas versões: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Os nós estão divididos entre versões, sem nenhuma versão mais comum que as outras, então não está claro quais nós estão desatualizados."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Este nó executa a versão {{.version}}, enquanto a maioria dos nós executa a {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "A menos que uma atualização esteja em andamento, atualize todos os nós para a mesma versão e verifique se os nós conseguem se comunicar via gossip."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Várias versões do Mattermost detectadas no cluster"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory está vazio, portanto os relatórios de conformidade são gravados em uma pasta compliance no diretório de trabalho do servidor. Eles são perdidos quando o servidor é atualizado ou o contêiner dele é recriado."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Defina Diretório de Relatórios de conformidade em Console do Sistema > Conformidade > Monitoramento de Conformidade (ComplianceSettings.Directory) como um caminho persistente e gravável."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Monitoramento de conformidade ativado, mas Directory está vazio"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Cada nó mantém um pool de até MaxOpenConns conexões com o primário. Com {{.nodes}} nós e MaxOpenConns={{.max_open}}, um failover do banco de dados pode produzir até {{.burst}} tentativas de conexão simultâneas com o primário recém-promovido, e o host de DataSource não parece ser um pooler de conexões. Se isso exceder o max_connections do banco de dados, ele rejeitará conexões ('sorry, too many clients already') e a recuperação levará mais tempo."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Dimensione todas as camadas para esse pico. A correção mais duradoura é reduzir SqlSettings.MaxOpenConns por nó e/ou colocar o PgBouncer (modo de transação) na frente do banco de dados para absorver os picos de reconexão, em vez de apenas aumentar max_connections: cada conexão consome memória do banco de dados, então um limite alto corre o risco de esgotar a memória. Se max_connections for aumentado, mantenha uma folga acima do pico para replicação, monitoramento e sessões administrativas. Escalonar a inicialização dos nós durante um failover também mantém o pico abaixo do limite."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "O failover do banco de dados pode causar uma tempestade de conexões"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) está definido com um valor maior que MaxOpenConns ({{.max_open}}). A camada database/sql do Go limita silenciosamente o pool ocioso a MaxOpenConns, então a capacidade ociosa extra não tem efeito. Nada está quebrado, mas o valor é enganoso e geralmente indica que o pool foi ajustado sem saber que as conexões ociosas nunca podem exceder as abertas."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Defina MaxIdleConns com um valor igual ou inferior a MaxOpenConns (uma diretriz comum é de 25-50% de MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns excede MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Com {{.users}} usuários e MaxOpenConns={{.max_open}}, pode haver enfileiramento de requisições no lado da aplicação sob picos de carga. O padrão atual é 100 (MaxIdleConns 50, uma proporção de 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Se for observado enfileiramento de requisições no lado da aplicação, aumente SqlSettings.MaxOpenConns com base na necessidade monitorada (os padrões 100/50 são a referência). O limite real do banco de dados é MaxOpenConns x nós x fontes de dados, portanto confirme que o max_connections do banco de dados cobre esse total antes de aumentá-lo."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns pode estar baixo para esta base de usuários"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas está vazio. Com {{.users}} usuários, todas as leituras vão para o primário. Réplicas de leitura são recomendadas para implantações maiores."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Considere provisionar uma réplica de leitura e adicioná-la a SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Nenhuma réplica de leitura configurada"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Com {{.posts}} publicações e pesquisa no banco de dados, o primário e as réplicas absorvem as varreduras de texto completo. Isso causa pressão na CPU e tempos limite de pesquisa nessa escala."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Com {{.posts}} publicações e pesquisa no banco de dados, o primário e as réplicas absorvem as varreduras de texto completo. Isso causa pressão na CPU e tempos limite de pesquisa nessa escala. Sua licença inclui o Elasticsearch, que tira totalmente a pesquisa do banco de dados."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Configure SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Nenhuma réplica de pesquisa e pesquisa do Elasticsearch desativada"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.in_use}} de {{.max_open}} conexões do banco de dados primário estão em uso ({{.percent}}%), no mínimo 90% de MaxOpenConns. Novas consultas entrarão em fila e a latência HTTP aumentará."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Aumente SqlSettings.MaxOpenConns e o max_connections do banco de dados. Investigue também as consultas de longa duração."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Pool do banco de dados primário perto da saturação"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "O PostgreSQL {{.version}} está abaixo da versão mínima compatível, {{.minimum}}. O Mattermost ainda inicia com ele, mas versões não compatíveis podem causar comportamentos inesperados. Atualize para o PostgreSQL {{.minimum}} ou posterior."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Planeje uma atualização. As versões mais recentes também trazem melhor desempenho em consultas paralelas e em JSONB."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "A versão do PostgreSQL está abaixo da mínima compatível"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "O PostgreSQL está executando o vacuum na tabela Posts no momento. Deixe esse vacuum terminar antes de avaliar se outro vacuum é necessário."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "A tabela Posts tem cerca de {{.dead_tuples}} dead tuples ({{.dead_percent}}% de cerca de {{.estimated_rows}} linhas), embora o último vacuum tenha sido em {{.last_vacuum}}. O vacuum está em execução, mas muito provavelmente não consegue removê-los porque algo está retendo a limpeza, como uma sessão de longa duração ou idle-in-transaction, um replication slot inativo ou uma prepared transaction abandonada. O inchaço de tabelas e índices pode degradar o desempenho das consultas e aumentar o uso de disco."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "A tabela Posts tem cerca de {{.dead_tuples}} dead tuples ({{.dead_percent}}% de cerca de {{.estimated_rows}} linhas), e o PostgreSQL não tem registro de vacuum nela desde a última redefinição das estatísticas. O autovacuum não parece estar dando conta desta tabela. O inchaço de tabelas e índices pode degradar o desempenho das consultas e aumentar o uso de disco."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "A tabela Posts tem cerca de {{.dead_tuples}} dead tuples ({{.dead_percent}}% de cerca de {{.estimated_rows}} linhas), e o vacuum mais recente foi há {{.age_days}} dias, em {{.last_vacuum}}. O autovacuum não parece estar dando conta desta tabela. O inchaço de tabelas e índices pode degradar o desempenho das consultas e aumentar o uso de disco."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Se pg_stat_progress_vacuum mostrar um vacuum em execução em Posts, deixe-o terminar, pois iniciar um VACUUM manual o cancela. Se Posts passou por vacuum recentemente, encontre o que está retendo a limpeza e encerre-o ou remova-o: sessões de longa duração ou idle-in-transaction em pg_stat_activity, replication slots inativos em pg_replication_slots e prepared transactions antigas em pg_prepared_xacts. O próximo vacuum poderá então remover os dead tuples. Se Posts não passou por vacuum recentemente, verifique se o autovacuum está ativado globalmente e para Posts, e procure jobs de autovacuum cancelados nos logs do PostgreSQL. Se o autovacuum não der conta, reduza autovacuum_vacuum_scale_factor para Posts e aumente autovacuum_vacuum_cost_limit e autovacuum_work_mem conforme a capacidade permitir; depois, agende um VACUUM (ANALYZE) direcionado em Posts em um período de pouco tráfego. Evite VACUUM FULL, a menos que você planeje o bloqueio exclusivo e o espaço em disco extra que ele exige; se disponível, pg_repack é uma alternativa com menos bloqueio."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "A tabela Posts tem muitos dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout está definido como {{.timeout}} segundos. Tempos limite longos permitem que consultas descontroladas mantenham bloqueios durante todo o período, bloqueando o autovacuum, as migrações de esquema e os gravadores que aguardam a mesma linha. Isso agrava o risco em bancos de dados movimentados sem réplicas de leitura."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Reduza SqlSettings.QueryTimeout para 30. Investigue separadamente as consultas lentas específicas, em vez de aumentar o limite global."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout está alto (o padrão é 30s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas está definido, mas nenhuma réplica está acessível, portanto as leituras estão voltando para o primário."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Verifique o DSN da réplica, a acessibilidade pela rede e a autenticação. Procure avisos de conexão com réplicas nos logs do servidor."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Réplicas de leitura configuradas, mas nenhuma acessível"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Todas as instruções SQL são registradas em log. Isso se destina apenas à depuração: deixá-lo ativado enche o disco e grava o conteúdo das consultas nos arquivos de log."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Defina SqlSettings.Trace como false, a menos que esteja depurando ativamente."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace está ativado"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "O servidor é executado em {{.os}}. O Mattermost oferece suporte ao Linux para produção; outros sistemas operacionais são adequados apenas para desenvolvimento."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Mova o servidor para uma distribuição Linux compatível."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "O servidor não está sendo executado no Linux"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Cada nova publicação é indexada de forma síncrona, com uma requisição própria. Em servidores movimentados, isso sobrecarrega o cluster de pesquisa e atrasa a indexação."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Aumente LiveIndexingBatchSize para um valor entre 10 e 20 e ajuste dentro desse intervalo com base na taxa de publicações observada."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "LiveIndexingBatchSize do Elasticsearch é 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize é {{.size}}. Requisições _bulk grandes podem exceder o http.max_content_length do cluster de pesquisa e falhar com erros 413, causando novas tentativas e atraso na indexação."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Reduza LiveIndexingBatchSize para um valor entre 10 e 20 ou aumente http.max_content_length no cluster de pesquisa se lotes muito grandes forem intencionais."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "LiveIndexingBatchSize do Elasticsearch está acima de 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL aponta para {{.host}}, que cada nó de aplicação resolve para si mesmo. Nós sem um mecanismo de pesquisa local não conseguem indexar nem pesquisar."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Defina ConnectionURL como um nome de host ou nome DNS de serviço que todos os nós de aplicação consigam alcançar."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "ConnectionURL do Elasticsearch aponta para localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "O cluster de pesquisa não relata o plugin analysis-icu. O modelo de índice de publicações usa o tokenizador e o normalizador ICU, portanto a indexação de publicações pode falhar sem ele."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "A lista de plugins não foi coletada porque o servidor não conseguiu ler a versão do cluster de pesquisa."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Instale o plugin analysis-icu em todos os nós de pesquisa (elasticsearch-plugin install analysis-icu ou opensearch-plugin install analysis-icu) e reinicie os nós. A indexação de publicações depende dele, não apenas a pesquisa multilíngue."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "O mecanismo de pesquisa não tem o plugin analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "O teste de conexão com o mecanismo de pesquisa falhou: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "O teste de conexão com o mecanismo de pesquisa falhou e a pesquisa no banco de dados está desativada, portanto a pesquisa não retorna resultados: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "O teste de conexão com o mecanismo de pesquisa falhou em {{.nodes}}, enquanto os outros nós o alcançam, portanto a pesquisa e a indexação nesses nós podem falhar. Verifique as configurações de rede, firewall, proxy e DNS nesses nós. Erro: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Verifique a acessibilidade, o TLS e as credenciais de ElasticsearchSettings.ConnectionURL. Verifique a integridade do cluster de pesquisa (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "O servidor relata um erro no cluster do Elasticsearch"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification é true em uma conexão https, portanto o servidor não valida o certificado do mecanismo de pesquisa. Isso é aceitável em uma rede interna confiável, mas remove a proteção contra ataques man-in-the-middle em outros cenários."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Se o endpoint de pesquisa estiver em um caminho não confiável, instale a CA dele para que o certificado seja validado e defina SkipTLSVerification como false. Em uma rede interna confiável, confirme que a configuração é intencional."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "A conexão com o Elasticsearch ignora a verificação do certificado TLS"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} é mais recente que as versões principais compatíveis ({{.min}} a {{.max}}). Atualize o Mattermost para uma versão que ofereça suporte a ela ou retorne o cluster de pesquisa para uma versão compatível."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} é mais antiga que as versões principais compatíveis ({{.min}} a {{.max}}). Atualize o cluster de pesquisa para uma versão compatível."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "A versão do cluster de pesquisa não foi coletada porque o servidor não se conectou ao cluster de pesquisa."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Não foi possível reconhecer o backend ou a versão do mecanismo de pesquisa."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Execute uma versão principal do cluster de pesquisa compatível com esta versão do Mattermost."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "A versão do mecanismo de pesquisa não é compatível"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout é de {{.value}} segundos. Ele limita quanto tempo a exportação espera para se conectar ao servidor SMTP do Global Relay, e com menos de 30 segundos uma conexão lenta faz a entrega falhar."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Aumente MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout para pelo menos 30 segundos. O padrão é 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "SMTPServerTimeout do Global Relay está abaixo de 30 segundos"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "O volume que contém FileSettings.Directory tem {{.available_gib}} GiB ({{.percent}}%) disponíveis de {{.total_gib}} GiB. Envios de arquivos e outras operações de arquivo podem falhar quando o volume encher."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Expanda o volume imediatamente ou remova dados não relacionados do seu sistema de arquivos; não exclua manualmente arquivos gerenciados pelo Mattermost em FileSettings.Directory. Mantenha pelo menos 10% ou 10 GiB disponíveis, e nunca menos de 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "O disco de armazenamento de arquivos está quase cheio"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "O volume que contém FileSettings.Directory tem {{.available_gib}} GiB ({{.percent}}%) disponíveis de {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Expanda o volume ou remova dados não relacionados do seu sistema de arquivos; não exclua manualmente arquivos gerenciados pelo Mattermost em FileSettings.Directory. Mantenha pelo menos 10% ou 10 GiB disponíveis, e nunca menos de 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Pouco espaço no disco de armazenamento de arquivos"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName é local com ClusterSettings.Enable ativado, e FileSettings.Directory é {{.directory}}. Em um cluster, esse diretório deve ser uma montagem compartilhada (NFS, EFS, GlusterFS, CephFS) montada de forma idêntica em todos os nós; caso contrário, os arquivos enviados a um nó não ficam visíveis nos outros. A configuração não consegue mostrar se o diretório é compartilhado, e um nó pode passar no teste de conexão do armazenamento de arquivos enquanto grava em seu próprio disco local."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Em cada nó de aplicação, execute findmnt com o caminho de FileSettings.Directory. Um caminho relativo é resolvido a partir do diretório de trabalho do Mattermost, geralmente /opt/mattermost. Todos os nós devem mostrar a mesma origem remota, e o usuário do Mattermost deve conseguir ler e gravar nela. Se o diretório não for uma montagem compartilhada, mova-o para uma ou altere FileSettings.DriverName para amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Armazenamento de arquivos local em um cluster de alta disponibilidade: confirme a montagem compartilhada"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket está vazio, portanto os envios de arquivos falham."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Defina FileSettings.AmazonS3Bucket, junto com a região e o endpoint."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Armazenamento de arquivos no Amazon S3 selecionado, mas o bucket está em branco"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL é false, portanto os arquivos trafegam sem criptografia entre o servidor e o endpoint do S3."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Defina FileSettings.AmazonS3SSL como true, a menos que o endpoint suporte apenas HTTP simples."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL do Amazon S3 desativado"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "O servidor não conseguiu se conectar ao seu armazenamento de arquivos: {{.error}}. Envios e downloads de arquivos podem falhar."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "O teste de conexão com o armazenamento de arquivos falhou em {{.nodes}}, enquanto os outros nós o alcançam, portanto envios e downloads de arquivos por esses nós podem falhar. Verifique as configurações de rede, firewall, proxy e DNS nesses nós. Para armazenamento local, verifique também se o diretório compartilhado está montado neles. Erro: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Verifique as configurações de armazenamento de arquivos e depois use Testar Conexão em Console do Sistema > Ambiente > Armazenamento de Arquivo. Para armazenamento local, verifique se FileSettings.Directory existe e se o usuário do Mattermost pode gravar nele. Para o Amazon S3, verifique o bucket, o endpoint e as credenciais."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "O teste de conexão com o armazenamento de arquivos falhou"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "A última execução concluída de {{.job_type}} ({{.job_id}}) terminou com erro: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "A última execução concluída de {{.job_type}} ({{.job_id}}) terminou com erro sem registrar uma mensagem de erro."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Revise o erro da tarefa e os logs do servidor no horário de início da execução que falhou para encontrar a causa. Causas comuns a descartar: carga no banco de dados, limites do pool de conexões, eventos de rede ou de failover e tempos limite de instruções. Resolva o problema, execute a tarefa novamente e confirme que ela é concluída. Até que uma execução tenha sucesso, o trabalho da tarefa (sincronização de diretório, exportação de conformidade, retenção de dados ou indexação de pesquisa) não está sendo feito."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "A última execução da tarefa falhou"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "A tarefa {{.job_type}} {{.job_id}} está em andamento, mas não registra atividade há {{.hours}} horas. Isso geralmente significa que o worker parou no meio da execução ou que o agendador está travado."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "A tarefa {{.job_type}} {{.job_id}} está em andamento, mas não registra atividade há {{.days}} dias. Isso geralmente significa que o worker parou no meio da execução ou que o agendador está travado."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Cancele a tarefa travada na página dela no Console do Sistema, com mmctl job cancel ou pela API. Verifique os logs do servidor próximos à última atividade da tarefa e depois execute-a novamente."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Tarefa travada em andamento há mais de 24 horas"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "A tarefa {{.job_type}} {{.job_id}} não informou nenhum progresso e não registra atividade há mais de uma hora. Isso geralmente significa que o worker parou, entrou em deadlock ou perdeu a conexão com o banco de dados antes do primeiro lote."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Cancele a tarefa na página dela no Console do Sistema, com mmctl job cancel ou pela API. Verifique nos logs do servidor, a partir do horário de início da tarefa, se há panics ou erros de conexão e depois execute-a novamente. Se o problema se repetir, capture um perfil de goroutines em /debug/pprof/goroutine no servidor de métricas enquanto a tarefa estiver travada."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Tarefa em andamento sem progresso nem atividade há mais de uma hora"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute é {{.attribute}}. O Mattermost vincula cada conta à sua entrada no diretório por esse atributo, então, quando o e-mail de um usuário muda (casamento, mudança de marca, troca de departamento), o vínculo se rompe e o usuário não consegue mais acessar a conta existente."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Altere IdAttribute para um atributo estável, como objectGUID (AD) ou entryUUID (OpenLDAP), e depois migre as contas existentes com mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "O IdAttribute do LDAP é um atributo de e-mail"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "A porta 636 normalmente espera TLS implícito (LDAPS), mas ConnectionSecurity é None ou STARTTLS. Essa combinação geralmente é um erro de configuração, mas pode ser válida atrás de um proxy que termina o TLS. Verifique se o login e a sincronização do LDAP estão funcionando."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Se o login ou a sincronização do LDAP estiverem falhando, defina ConnectionSecurity como TLS para a porta 636. Se estiverem funcionando, nenhuma alteração é necessária."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "Porta 636 do LDAP configurada sem ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "A porta 389 normalmente é usada para texto simples ou STARTTLS, enquanto o TLS implícito (LDAPS) normalmente usa a 636. Essa combinação geralmente é um erro de configuração, mas pode ser válida atrás de um proxy que termina o TLS ou de um servidor reconfigurado de propósito. Verifique se o login e a sincronização do LDAP estão funcionando."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Se o login ou a sincronização do LDAP estiverem falhando, use a porta 636 para TLS ou altere ConnectionSecurity para STARTTLS na porta 389. Se estiverem funcionando, nenhuma alteração é necessária."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "Porta 389 do LDAP configurada com ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "O teste do LDAP (conexão, bind e uma pesquisa de usuário) falhou, portanto o login e a sincronização do LDAP podem estar falhando."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "O teste do LDAP (conexão, bind e uma pesquisa de usuário) falhou em {{.nodes}}, enquanto os outros nós alcançam o servidor LDAP, portanto o login pelo LDAP pode falhar nesses nós. Verifique as configurações de rede, firewall, proxy e DNS nesses nós."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Verifique os detalhes do erro e depois confirme LdapServer, LdapPort, ConnectionSecurity e as credenciais de bind, e se os servidores Mattermost conseguem alcançar o servidor LDAP. Use Testar Conexão na página AD/LDAP para verificar novamente."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "O teste de conexão do LDAP falhou"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout é de {{.timeout}} segundos. Tempos limite curtos demais causam falhas espúrias de login e sincronização do LDAP em diretórios lentos."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Aumente LdapSettings.QueryTimeout para 60 segundos (o padrão)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "QueryTimeout do LDAP está abaixo de 10 segundos"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} contas de usuário ativas são gerenciadas manualmente. O Mattermost recomenda o login único (SSO) quando um espaço de trabalho tem mais de 100 usuários: o gerenciamento manual de contas nessa escala leva a contas obsoletas, atrasos no onboarding e desvios no desligamento, e cada um deles é um risco de segurança e de licenciamento."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Conecte o Mattermost ao seu provedor de identidade: AD/LDAP se você mantém um diretório; caso contrário, SAML ou OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Mais de 100 usuários sem login único (SSO)"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "O Mattermost não verifica o certificado TLS do servidor LDAP, portanto as conexões com o diretório estão expostas a ataques man-in-the-middle. Isso só é aceitável em desenvolvimento e testes."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Instale a cadeia de CA do servidor LDAP nos servidores Mattermost e defina SkipCertificateVerification como false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "SkipCertificateVerification do LDAP está ativado"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes é {{.interval_minutes}}, e as execuções recentes da sincronização do LDAP levaram em média {{.avg_run_seconds}} segundos, {{.duty_pct}}% do intervalo. Execuções longas em um intervalo curto mantêm a carga no banco de dados elevada e podem aumentar o atraso das réplicas."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Nenhuma execução da sincronização do LDAP com duração mensurável foi encontrada."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Restrinja LdapSettings.UserFilter e BaseDN para limitar a varredura do diretório, ou aumente SyncIntervalMinutes. Procure manter as execuções da sincronização abaixo de 25% do intervalo."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "A sincronização do LDAP ocupa grande parte do seu intervalo"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "A sincronização do LDAP pesquisa o diretório a partir de BaseDN; portanto, com ele vazio, a sincronização não consegue encontrar os usuários que deveria atualizar."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Defina LdapSettings.BaseDN como a raiz do diretório que você deseja sincronizar."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "Sincronização do LDAP ativada, mas BaseDN está vazio"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "A licença expirou em {{.expires_at}}. O servidor remove uma licença expirada 10 dias após o vencimento, e os recursos Enterprise param de funcionar."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "A licença de avaliação expirou em {{.expires_at}}. O servidor remove uma licença expirada 10 dias após o vencimento, e os recursos Enterprise param de funcionar."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Obtenha uma nova licença e envie-a em Console do Sistema > Sobre > Edição e Licença."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "A licença expirou"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "A licença expira em {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "A licença de avaliação expira em {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Obtenha uma nova licença agora, para que ela possa ser enviada em Console do Sistema > Sobre > Edição e Licença antes que a atual expire."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "A licença expira em menos de 30 dias"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel é {{.level}}. O log em arquivo no nível de depuração faz os arquivos de log crescerem rapidamente, e o detalhe extra pode incluir payloads de requisições. Isso é aceitável durante a solução de problemas, mas não é ideal como configuração permanente de produção."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Se você não estiver solucionando problemas ativamente, defina LogSettings.FileLevel como INFO para reduzir o volume de logs."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Log em arquivo no nível debug ou trace"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile é false, portanto o servidor não grava nenhum arquivo de log. Assim, os Pacotes de Suporte não contêm logs do servidor, mesmo que um coletor externo capture o stdout ou o journald, e a solução de problemas com o Suporte do Mattermost leva mais tempo."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Defina LogSettings.EnableFile como true. Isso funciona junto com o log no console, portanto um coletor de logs existente continua funcionando."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Log em arquivo desativado"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging é true, portanto as requisições de webhook de entrada que falham são registradas com o payload, que pode conter o texto de mensagens."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Defina LogSettings.EnableWebhookDebugging como false, a menos que você esteja solucionando problemas de um webhook."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Os payloads de webhooks são registrados em log"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel é {{.limit}}, portanto @channel, @all e @here ainda funcionam em canais com milhares de membros. Uma única menção a todo o canal ali dispara milhares de notificações de uma vez, o que causa picos de latência."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Reduza TeamSettings.MaxNotificationsPerChannel para 5000 ou menos (o padrão é 1000). @channel, @all e @here são desativados quando um canal atinge esse número de membros, então consulte antes as equipes que os usam em canais grandes."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Menções a todo o canal permitidas em canais muito grandes"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "O Mattermost não está registrando métricas de desempenho, como conexões com o banco de dados, latência de requisições e carga do servidor. Sem elas, não há histórico para consultar quando os usuários relatam lentidão, nem nada para compartilhar com o Suporte do Mattermost."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Ative o Monitoramento de Performance no Console do Sistema e verifique se o plugin Metrics está habilitado em Plugins > Gerenciamento de Plugin. O plugin mantém 15 dias de métricas no servidor, sem necessidade de Prometheus. Se você usa o Prometheus, aponte-o para o listener de métricas (porta 8067 por padrão)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "O monitoramento de desempenho está desativado"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "O working set de memória do contêiner é de {{.working_set}} MB de seu limite de {{.limit}} MB. Se continuar crescendo, o kernel pode encerrar o servidor ou um processo de plugin."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Reduza o uso de memória do Mattermost e de seus plugins, ou aumente o limite de memória do contêiner. Mantenha margem suficiente para os processos de plugins, o runtime do Go e os picos de tráfego."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Memória do contêiner quase esgotada"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "O contêiner registrou {{.kills}} encerramentos por falta de memória (OOM kills) desde que foi iniciado. O processo encerrado pode ter sido um plugin ou outro processo filho; revise a lista de plugins e o limite de memória do contêiner."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Revise os processos de plugins e os logs do contêiner para identificar o que foi encerrado e, em seguida, reduza o uso de memória dele ou aumente o limite de memória do contêiner."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Um processo do contêiner foi encerrado por falta de memória"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "O contêiner sofreu throttling em {{.throttled}} de {{.periods}} períodos de agendamento de CPU. Um throttling de CPU contínuo pode deixar o Mattermost lento mesmo quando o uso de CPU do host parece baixo."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Aumente o limite de CPU do contêiner, ou remova o limite mantendo uma requisição de CPU."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Throttling de CPU do contêiner elevado"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "O processo do servidor tem {{.open}} de {{.max}} descritores de arquivo abertos. Quando atingir o limite, novas conexões e operações de arquivo falharão."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Aumente o limite de arquivos abertos: defina LimitNOFILE na unidade do systemd do Mattermost, ou aumente o ulimit nofile do contêiner, e depois reinicie o servidor."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Descritores de arquivo quase esgotados"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "O limite de memória do Go é de {{.go_limit}} MB, mas o limite do contêiner é de {{.container_limit}} MB. O coletor de lixo pode não intensificar seu trabalho antes que o kernel encerre o processo."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Defina GOMEMLIMIT para cerca de 80–90% do limite de memória do contêiner, deixando margem para a memória fora do heap do Go e para os processos de plugins."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "O limite de memória do Go é igual ou superior ao limite do contêiner"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS é {{.go_max_procs}}, acima do limite de CPU do contêiner de {{.cpu_limit}} CPUs. As threads executáveis extras podem aumentar o throttling de CPU."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Remova a definição de GOMAXPROCS para que o runtime do Go o ajuste ao limite de CPU do contêiner e depois reinicie o servidor."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS excede o limite de CPU do contêiner"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "A carga média do host em 15 minutos é {{.load}} em {{.cores}} núcleos de CPU. Uma carga contínua de duas ou mais tarefas por núcleo pode indicar pressão de CPU ou de E/S."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Verifique o uso de CPU, a E/S de disco e os processos em execução no nó e, em seguida, adicione capacidade ou reduza a carga de trabalho."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "A carga do host está alta"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "O host tem {{.available}} MB disponíveis de {{.total}} MB. O Mattermost e outros processos podem ser encerrados ou ficar lentos se a memória continuar diminuindo."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Encontre e reduza os processos que mais usam memória, ou adicione memória ao host. Revise o uso de memória do Mattermost e dos plugins antes de reiniciar os serviços."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "A memória do host está acabando"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Este nó não retornou seus diagnósticos para a verificação de integridade. Ele pode estar fora do ar, sobrecarregado ou isolado dos outros nós. Até que ele responda, suas outras descobertas mantêm o último estado conhecido."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Verifique se o Mattermost está em execução neste nó, revise os logs e o uso de CPU e memória dele, e confirme que ele consegue alcançar os outros nós pela porta de gossip (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Um nó do cluster não está respondendo"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "A verificação de conectividade com o provedor OAuth/OIDC falhou em todos os nós do Mattermost que enviaram relatório, portanto o login por esse provedor provavelmente está indisponível."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "A verificação de conectividade com o provedor OAuth/OIDC falhou em {{.nodes}}, enquanto os outros nós que enviaram relatório conseguem alcançar o provedor. O login por esse provedor pode falhar nesses nós."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Verifique os detalhes do erro, o endpoint de descoberta ou de token do provedor e as configurações de rede de saída, firewall, proxy e DNS. Em seguida, confirme o login pelo provedor."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "A verificação de conectividade com o provedor OAuth/OIDC falhou"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "O servidor aberto e o cadastro por e-mail estão ativados enquanto a verificação de e-mail está desativada, portanto qualquer pessoa que consiga acessar este servidor pode criar uma conta com um endereço de e-mail inventado e participar de equipes abertas. Se o cadastro aberto for intencional, silencie esta descoberta."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "O servidor aberto e o cadastro por e-mail estão ativados enquanto a verificação de e-mail está desativada. TeamSettings.RestrictCreationToDomains limita o cadastro a alguns domínios, mas o Mattermost verifica apenas se o endereço termina em um domínio permitido, não se a pessoa é dona dele. Qualquer pessoa que consiga acessar este servidor pode se cadastrar com um domínio permitido e se passar por um colega. Se o cadastro aberto for intencional, silencie esta descoberta."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Defina EmailSettings.RequireEmailVerification como true. Antes, confirme que o SMTP funciona: os usuários existentes que nunca verificaram o endereço de e-mail precisarão verificá-lo no próximo login. Se você não quiser cadastro aberto, defina TeamSettings.EnableOpenServer como false; os usuários ainda podem entrar por links de convite de equipe, portanto a verificação de e-mail continua recomendada. Para limitar o cadastro à sua organização, defina TeamSettings.RestrictCreationToDomains junto com a verificação de e-mail; sem a verificação, essa restrição pode ser contornada."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Qualquer pessoa pode se cadastrar com um endereço de e-mail não verificado"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck é false, portanto um plugin que trava não é reiniciado automaticamente."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Defina PluginSettings.EnableHealthCheck como true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Verificação de integridade de plugins desativada"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Estes plugins estão habilitados, mas não estão em execução: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "Em Console do Sistema > Plugins > Gerenciamento de Plugin, verifique o status de cada plugin listado e tente desabilitá-lo e habilitá-lo novamente. O log do servidor registra por que um plugin não conseguiu iniciar ou foi interrompido pela verificação de integridade de plugins."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Plugins habilitados não estão em execução"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable é false, portanto nenhum plugin é executado. Isso atende a algumas implantações restritas, mas muitas vezes não é intencional."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Se isso for inesperado, defina PluginSettings.Enable como true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Plugins desativados"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents está definido como full, portanto o texto da mensagem e o remetente são incluídos no payload de push, que passa pelo proxy de push e pelos serviços de push da Apple e do Google."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Para máxima privacidade nas notificações push, defina EmailSettings.PushNotificationContents como id_loaded. Apenas o ID da mensagem é enviado, e o aplicativo móvel busca o conteúdo da mensagem no servidor. Os dispositivos móveis então precisam conseguir alcançar o servidor quando uma notificação chega; por isso, em servidores acessíveis apenas por VPN ou rede interna, as notificações não podem mostrar o conteúdo da mensagem. Se full for uma escolha deliberada, silencie esta descoberta."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "As notificações push incluem o texto completo da mensagem"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "O teste de conexão com o servidor de notificações push falhou: {{.error}}. Os usuários de dispositivos móveis podem não receber notificações push."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "O teste de conexão com o servidor de notificações push falhou em {{.nodes}}, enquanto os outros nós o alcançam. As notificações push enviadas por esses nós podem falhar. Verifique as configurações de rede, firewall, proxy e DNS nesses nós. Erro: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Verifique PushNotificationServer, os certificados TLS e a integridade do proxy de push. Confirme que cada nó de aplicação do Mattermost consegue alcançar o host configurado por HTTPS e depois verifique o endpoint /version dele."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "O teste de conexão com o servidor de notificações push falhou"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com é o proxy de push de teste do Mattermost. Ele não tem SLA, tem capacidade limitada e não se destina a uso em produção. Sua licença inclui o Mattermost Hosted Push Notification Service: defina PushNotificationServer como https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable é false com {{.users}} usuários registrados. A limitação de taxa protege o servidor contra inundações de requisições e clientes abusivos ou com mau funcionamento; com tantos usuários, além de webhooks e integrações de bots, um único cliente mal configurado pode saturar a API. O Mattermost documenta seu limitador de taxa integrado como destinado a implantações menores (até algumas centenas de usuários), portanto em escala maior a limitação de requisições costuma ser mais bem tratada em um balanceador de carga ou gateway de API."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Certifique-se de que há uma limitação de requisições adequada a esta escala, seja a limitação de taxa integrada do Mattermost (Console do Sistema > Ambiente > Limite de Velocidade), seja no seu balanceador de carga ou gateway."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "A limitação de taxa da API está desativada em uma instância grande"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize é {{.size}}, mas há {{.users}} usuários registrados. O limitador de taxa acompanha no máximo essa quantidade de clientes; quando fica cheio, descarta o visto há mais tempo, cuja cota de requisições então recomeça, portanto um armazenamento pequeno enfraquece a limitação de taxa."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Aumente RateLimitSettings.MemoryStoreSize para pelo menos o número de usuários registrados."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "O armazenamento em memória da limitação de taxa é menor que o número de usuários"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds é {{.value}}. A tarefa de retenção de dados faz essa pausa entre lotes de exclusão para dar ao banco de dados tempo de atender ao tráfego real. Abaixo de 100 ms, exclusões grandes podem deixar o banco de dados lento para todos."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Aumente DataRetentionSettings.TimeBetweenBatchesMilliseconds para pelo menos 100 (o padrão) na configuração."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds da retenção de dados está abaixo de 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "As asserções trafegam sem criptografia na camada SAML. O TLS ainda protege a conexão, portanto isso não é uma falha de segurança básica, mas, se o seu IdP suportar criptografia de asserções, ativá-la adiciona uma camada extra de defesa."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Se o seu IdP suportar criptografia de asserções, ative SamlSettings.Encrypt e configure a chave privada e o certificado público do provedor de serviços."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "A criptografia de asserções SAML está desativada"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "O Mattermost identifica as contas SAML pelo endereço de e-mail, seja porque IdAttribute está vazio, seja porque indica um atributo de e-mail. Quando o e-mail de um usuário muda no IdP, o vínculo com a conta existente dele se rompe."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Configure o IdP para enviar um identificador estável (como objectGUID ou um ID imutável) e depois defina SamlSettings.IdAttribute com o nome desse atributo. As contas existentes passam para o novo identificador automaticamente: no próximo login de cada usuário, o Mattermost encontra a conta pelo e-mail e armazena o novo ID."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "O IdAttribute do SAML está vazio ou é um atributo de e-mail"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute é {{.attribute}}. Nomes de usuário, uids e nomes principais de usuário (UPN) costumam ser reutilizados entre funcionários e, quando isso acontece, a segunda pessoa herda a conta do Mattermost da primeira."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Prefira um identificador que nunca seja reatribuído, como objectGUID (AD) ou um ID imutável (Microsoft Entra ID), e revise a política do IdP sobre reutilização de identificadores."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "O IdAttribute do SAML pode ser reatribuído no IdP"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "A verificação SAML do certificado e da URL do IdP falhou, portanto o login por SAML provavelmente não está funcionando."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "A verificação SAML do certificado e da URL do IdP falhou em {{.nodes}}, enquanto passa nos outros nós, portanto o login por SAML pode falhar nesses nós. Certifique-se de que esses nós tenham o mesmo certificado válido do IdP que os outros nós."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Verifique os detalhes do erro e depois corrija o certificado do IdP (IdpCertificateFile) ou a URL do IdP (IdpURL) nas configurações de SAML. Se o certificado expirou, envie o certificado de assinatura atual do IdP."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "A verificação da configuração SAML falhou"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "O SSO usa o algoritmo de assinatura SHA-1, que está obsoleto. O SSO funciona hoje, mas alguns provedores de identidade estão começando a rejeitar o SHA-1, portanto esta é uma melhoria de compatibilidade e segurança a ser planejada, especialmente antes de qualquer troca ou atualização do IdP."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Quando for conveniente, e em coordenação com o seu IdP, defina SamlSettings.SignatureAlgorithm como RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SignatureAlgorithm do SAML é SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "O Mattermost aceita respostas SAML sem verificar a assinatura do seu IdP, portanto não consegue distinguir uma resposta de autenticação genuína de uma forjada."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Defina SamlSettings.Verify como true e certifique-se de que AssertionConsumerServiceURL está definido. Ative isso em coordenação com o seu IdP e teste o login, pois a verificação exige que o certificado do IdP esteja configurado corretamente."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "A verificação de assinatura SAML está desativada"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "O espaço de trabalho tem {{.posts}} publicações, e a pesquisa é executada no banco de dados. O Elasticsearch é recomendado acima de 2.500.000 publicações e obrigatório acima de 5.000.000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Planeje uma implantação do Elasticsearch antes do próximo período de grande crescimento, ou antes de atingir 5.000.000 publicações."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "O número de publicações está se aproximando do limite do Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "O espaço de trabalho tem {{.posts}} publicações, e a pesquisa é executada no banco de dados. Nessa escala, espere pesquisas lentas, tempos limite esgotados e picos de CPU no banco de dados."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Implante o Elasticsearch ou o OpenSearch, execute uma indexação inicial completa e depois ative EnableIndexing, EnableSearching e EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "O Elasticsearch é obrigatório acima de 5.000.000 publicações"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "A pesquisa no banco de dados está desativada e a pesquisa pelo Elasticsearch está desligada. As pesquisas não retornam resultados. Ativar a pesquisa com o Elasticsearch ou o OpenSearch também restaura a pesquisa."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "A pesquisa no banco de dados está desativada e a licença não inclui o Elasticsearch, portanto as configurações do Elasticsearch não têm efeito. As pesquisas não retornam resultados."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Defina SqlSettings.DisableDatabaseSearch como false no config.json (ou MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "A pesquisa está desativada"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} usuários contam para o limite da licença de {{.limit}} usuários, que agora foi atingido. O servidor não cria nem reativa usuários até que assentos sejam liberados ou adicionados."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Compre assentos adicionais ou desative usuários que não precisam mais de acesso para liberar assentos."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Limite de usuários licenciados atingido"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} usuários contam para {{.seats}} assentos licenciados ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Se você espera mais usuários, planeje assentos adicionais antes que a licença fique cheia. Desativar usuários que não precisam mais de acesso libera assentos."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Os assentos licenciados estão quase esgotados"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} usuários contam para {{.seats}} assentos licenciados ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Compre assentos adicionais ou desative usuários que não precisam mais de acesso. Usuários desativados não ocupam assento."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Mais usuários do que assentos licenciados"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "As sessões expiram em um prazo fixo, independentemente da atividade, portanto usuários ativos são desconectados. A maioria das implantações se beneficia de manter os usuários ativos conectados."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Ative ServiceSettings.ExtendSessionLengthWithActivity, a menos que a sua política de segurança o proíba."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity está desativado"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "O teste de conexão com o servidor SMTP falhou: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "O teste de conexão com o servidor SMTP falhou em {{.nodes}}, enquanto os outros nós o alcançam. Verifique as configurações de rede, firewall, proxy e DNS nesses nós. Erro: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Notificações por e-mail, convites e e-mails de redefinição de senha podem não ser entregues. Verifique o servidor SMTP, a porta, a segurança da conexão e as credenciais no Console do Sistema, confirme que o servidor Mattermost consegue alcançar o host SMTP e depois use Testar a Conexão para verificar."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "O teste de conexão com o servidor SMTP falhou"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Versão mais recente desconhecida: não foi possível obtê-la, ou o pacote não a registra."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Versão mais recente não verificada: Ativar Alertas de Segurança está desativado, portanto o servidor não a obtém."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Esta versão não está na tabela de versões desta build. Para avaliar um Pacote de Suporte de um servidor mais recente, use um mmctl mais recente."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Versão do servidor desconhecida ou não reconhecida."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Executando {{.version}}. A mais recente é {{.latest}}, duas ou mais versões à frente."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Planeje uma atualização para a versão mais recente antes que o suporte a esta linha de versão termine, ou migre para uma Versão de Suporte Estendido para um ritmo de atualização mais lento."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Várias versões atrás da versão mais recente"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Executando {{.version}}. A mais recente é {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Planeje uma atualização para a versão mais recente."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Uma versão mais recente está disponível"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Executando o Mattermost {{.version}}. O suporte a esta linha de versão terminou em {{.eol_date}}. Nenhuma correção de segurança é lançada para esta linha de versão."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Executando o Mattermost {{.version}}, uma linha de versão antiga que não é mais suportada. Nenhuma correção de segurança é lançada para esta linha de versão."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Executando o Mattermost {{.version}}, uma linha de versão antiga que não é mais suportada. Nenhuma correção de segurança é lançada para esta linha de versão. A Versão de Suporte Estendido suportada mais recente é a {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Executando o Mattermost {{.version}}. O suporte a esta linha de versão terminou em {{.eol_date}}. Nenhuma correção de segurança é lançada para esta linha de versão. Atualize para a versão mais recente."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Executando o Mattermost {{.version}}. O suporte a esta linha de versão terminou em {{.eol_date}}. Nenhuma correção de segurança é lançada para esta linha de versão. A Versão de Suporte Estendido suportada mais recente é a {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Planeje uma atualização em etapas para uma Versão de Suporte Estendido suportada ou para a versão mais recente. As versões suportadas estão listadas em https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "A versão do Mattermost chegou ao fim do ciclo de vida"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Executando {{.version}} na Versão de Suporte Estendido {{.esr}}. Planeje uma atualização antes de {{.eol_date}} para continuar recebendo correções de segurança."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Agende uma atualização para a versão mais recente ou para a próxima Versão de Suporte Estendido."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "A Versão de Suporte Estendido está chegando ao fim do ciclo de vida"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "As ações de acesso ao canal em uma política de permissão só podem se aplicar à função Usuário do Sistema, Convidado do Sistema ou Administrador do Sistema."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Uma regra de acesso ao canal em uma política de permissão não pode especificar sua própria função. Aplica-se a função da política."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "A ação Gerenciar Canal só é permitida em políticas de permissão e de canal."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "A ação Acesso de Leitura ao Canal só é permitida em políticas de permissão e de canal."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "A ação Acesso de Escrita ao Canal só é permitida em políticas de permissão e de canal."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Ocorreu um erro interno."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "O prefixo de cache do Redis não deve conter ':', '*', '?', '[', ']' ou '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert e RedisTLSClientKey devem ser definidos juntos."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Os escopos adicionais devem ser nomes de escopo OAuth separados por espaços, com no máximo {{.MaxLength}} caracteres no total."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Filtro de campo inválido. O nome de um campo deve ter no máximo {{.MaxLength}} caracteres e não pode ser vazio, \"level\" ou \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Filtro de campo inválido. O valor de um campo deve ter no máximo {{.MaxLength}} caracteres."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Filtro de campo inválido. Cada campo deve ter entre 1 e {{.MaxValues}} valores."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Filtro de campo inválido. É possível filtrar por no máximo {{.MaxKeys}} campos."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Filtro de pesquisa inválido. Ele deve ter no máximo {{.MaxLength}} caracteres."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Não foi possível obter os seguidores do tópico."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "O servidor não oferece suporte à listagem de chaves de plugin com opções."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Não foi possível listar as chaves do plugin com opções."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Id de tópico inválido."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Id de usuário inválido."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "A publicação é uma resposta, não a publicação raiz de um tópico."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Criador de arquivo inválido."
   }
 ]

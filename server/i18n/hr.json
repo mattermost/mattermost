@@ -793,15 +793,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 153+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
@@ -1512,14 +1512,6 @@
     "translation": "Greška pri obradi zahtjeva prema CWS-u."
   },
   {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Nije moguće stvoriti tim jer je dosegnuto ograničenje broja timova"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Nije moguće vratiti tim jer je dosegnuto ograničenje broja timova"
-  },
-  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integracije su ograničene samo na administratore."
   },
@@ -2060,10 +2052,6 @@
     "translation": "Prikazno ime za sigurnu vezu"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Nije moguće šifrirati pozivnicu: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Nije moguće dohvatiti sigurne veze: {{.Error}}"
   },
@@ -2324,10 +2312,6 @@
     "translation": "Usluga dijeljenih kanala je isključena."
   },
   {
-    "id": "api.command_share.service_inactive",
-    "translation": "Usluga dijeljenih kanala je uključena, ali nije aktivna."
-  },
-  {
     "id": "api.command_share.share_channel.error",
     "translation": "Nije moguće dijeliti ovaj kanal: {{.Error}}"
   },
@@ -2438,10 +2422,6 @@
   {
     "id": "api.context.invalid_param.app_error",
     "translation": "Nevaljan parametar {{.Name}}."
-  },
-  {
-    "id": "api.context.invalid_token.error",
-    "translation": "Nevaljani token sesije={{.Token}}, greška={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -4056,10 +4036,6 @@
     "translation": "Usluga je dostupna samo u izdanju Mattermost Enterprise"
   },
   {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal nije dostupan za registraciju na vlastitom serveru."
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Slanje e-mailova o skorom isteku licence nije uspjelo"
   },
@@ -5240,10 +5216,6 @@
     "translation": "Nije moguće raščlaniti podatke za autentifikaciju iz korisničkog objekta usluge {{.Service}}."
   },
   {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS prijava nije dopuštena."
-  },
-  {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP nije dostupan na ovom serveru."
   },
@@ -5716,10 +5688,6 @@
     "translation": "Premašeno je ograničenje za straničenje."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Došlo je do greške pri brisanju zapisa revizije."
-  },
-  {
     "id": "app.audit.save.saving.app_error",
     "translation": "Došlo je do greške pri spremanju zapisa revizije."
   },
@@ -6118,10 +6086,6 @@
   {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Nije moguće izbrisati kanal."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Nije moguće ukloniti člana kanala."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -6956,10 +6920,6 @@
     "translation": "Dodatak je odbio skicu: {{.Reason}}"
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Nije moguće izbrisati skice korisnika."
-  },
-  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Ograničavač broja zahtjeva nije postavljen."
   },
@@ -7088,10 +7048,6 @@
     "translation": "Dodavanje datoteke u zip arhivu tijekom izvoza nije uspjelo."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Nije moguće dohvatiti datoteku jer premašuje ograničenje tvog Cloud plana."
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Uklanjanje traženih datoteka iz baze podataka nije uspjelo"
   },
@@ -7130,10 +7086,6 @@
   {
     "id": "app.file_info.not_found",
     "translation": "Datoteka nije pronađena u spremištu datoteka na navedenoj putanji."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Nije moguće izbrisati privitke korisnika."
   },
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
@@ -7190,10 +7142,6 @@
   {
     "id": "app.group.no_rows",
     "translation": "nije pronađena odgovarajuća grupa"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Nije moguće ukloniti člana grupe s UserID-om \"{{.UserId}}\"."
   },
   {
     "id": "app.group.uniqueness_error",
@@ -7444,10 +7392,6 @@
     "translation": "Nije moguće uvesti članstva u timovima"
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Nije moguće uvesti članstvo u timu jer u tom timu nisu dopušteni novi članovi"
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Nije moguće spremiti postavke teme za tim"
   },
@@ -7650,10 +7594,6 @@
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
     "translation": "Svojstvo CreateAt objekta Reaction ne smije biti nula."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Svojstvo EmojiName objekta Reaction dulje je od najveće dopuštene duljine."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
@@ -7888,10 +7828,6 @@
     "translation": "Nije moguće ažurirati stanje zadatka. Postavljeno je nevaljano stanje"
   },
   {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Greška pri dohvaćanju zadnje dostupne datoteke"
-  },
-  {
     "id": "app.last_accessible_post.app_error",
     "translation": "Greška pri dohvaćanju zadnje dostupne objave"
   },
@@ -8094,10 +8030,6 @@
   {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "Došlo je do greške pri traženju OAuth2 aplikacija."
-  },
-  {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Nije moguće ukloniti autorizacijski kod."
   },
   {
     "id": "app.oauth.remove_access_data.app_error",
@@ -8732,10 +8664,6 @@
     "translation": "Nije moguće izbrisati objave prema kanalu."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Nije moguće odabrati objave korisnika za brisanje."
-  },
-  {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Trajno brisanje objave nije uspjelo."
   },
@@ -8842,10 +8770,6 @@
   {
     "id": "app.preference.get_category.app_error",
     "translation": "Došlo je do greške pri traženju postavki."
-  },
-  {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Došlo je do greške pri brisanju postavki."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -9212,10 +9136,6 @@
     "translation": "Nije moguće dohvatiti reakcije za objavu."
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Nije moguće izbrisati reakcije korisnika."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Nije moguće spremiti reakciju."
   },
@@ -9522,10 +9442,6 @@
       "few": "Slanje {{.Count}} zakazane poruke nije uspjelo.",
       "other": "Slanje {{.Count}} zakazanih poruka nije uspjelo."
     }
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Nije moguće izbrisati zakazane poruke korisnika."
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -9968,10 +9884,6 @@
     "translation": "Nije moguće utvrditi pripada li korisnik popisu timova."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Nije moguće dohvatiti broj timova"
-  },
-  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Nije moguće spremiti uvjete korištenja."
   },
@@ -10100,10 +10012,6 @@
     "translation": "Ažuriranje sesije prijenosa nije uspjelo."
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Dohvaćanje iskorištenosti pohrane nije uspjelo."
-  },
-  {
     "id": "app.user.analytics_daily_active_users.app_error",
     "translation": "Nije moguće dohvatiti aktivne korisnike u traženom razdoblju."
   },
@@ -10218,10 +10126,6 @@
   {
     "id": "app.user.permanent_delete.app_error",
     "translation": "Nije moguće izbrisati postojeći račun."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Nije moguće izbrisati korisnika."
   },
   {
     "id": "app.user.promote_guest.user_update.app_error",
@@ -10552,15 +10456,7 @@
     "translation": "Nije moguće izbrisati webhook."
   },
   {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Nije moguće izbrisati webhook."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Nije moguće izbrisati webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
     "translation": "Nije moguće izbrisati webhook."
   },
   {
@@ -10998,10 +10894,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Pretraga putem {{.Backend}} isključena je na ovom serveru"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Raščlanjivanje podudaranja u rezultatima pretrage nije uspjelo"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -12693,7 +12585,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Neispravan najveći broj kanala po timu u postavkama tima. Mora biti pozitivan broj."
+    "translation": "Neispravan najveći broj kanala po timu u postavkama tima. Mora biti 0 (neograničeno) ili pozitivan broj."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -12717,7 +12609,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Neispravan najveći broj korisnika po timu u postavkama tima. Mora biti pozitivan broj."
+    "translation": "Neispravan najveći broj korisnika po timu u postavkama tima. Mora biti 0 (neograničeno) ili pozitivan broj."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -14605,7 +14497,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Funkcija Zdravlje sustava zahtijeva Enterprise licencu."
+    "translation": "Funkcija Zdravlje sustava zahtijeva licencu Professional ili višu."
   },
   {
     "id": "api.team.set_team_icon.seek.app_error",
@@ -14649,7 +14541,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Konfiguracija zapisivanja sadrži putanju datoteke zapisnika ili revizijskog zapisnika izvan korijenskog direktorija za zapisnike. Pojedinosti potraži u zapisnicima servera."
+    "translation": "Konfiguracija zapisivanja sadrži putanju datoteke zapisnika ili revizijskog zapisnika izvan korijenskog direktorija za zapisnike ili unutar direktorija kojim upravlja server. Pojedinosti potraži u zapisnicima servera."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14717,7 +14609,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Prijeđi na https://push.mattermost.com (produkcijsku uslugu Hosted Push Notification Service koja je uključena u Enterprise) ili na vlastiti push proxy."
+    "translation": "Usmjeri PushNotificationServer na produkcijski push proxy: vlastiti Mattermost Push Proxy za mobilne aplikacije koje sam izrađuješ."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14746,5 +14638,1905 @@
   {
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL koristi http:// (ne https://)"
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Funkcija radnji dozvola kanala nije uključena."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Preneseni certifikat pružatelja identiteta nije valjani X.509 certifikat kodiran u formatu PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Preneseni privatni ključ pružatelja usluge nije valjani privatni ključ kodiran u formatu PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Preneseni javni certifikat pružatelja usluge nije valjani X.509 certifikat kodiran u formatu PEM."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Prenesena datoteka ne odgovara spremljenom certifikatu ili privatnom ključu pružatelja usluge. Isključi šifriranje da bi ih zamijenio/la jedan po jedan."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Trenutačno nemaš dozvolu za upravljanje ovim kanalom."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Trenutačno nemaš pristup ovom kanalu."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Trenutačno nemaš dozvolu za pisanje u ovom kanalu."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Jednostruki navodnik blizu `{{.Near}}` nije zatvoren prije ` --`. Zatvori ga ili koristi dvostruke navodnike ako vrijednost sadrži ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Neočekivani tekst blizu `{{.Near}}`. Vrijednost koja sadrži razmake stavi u navodnike, a ako sadrži i apostrof, koristi dvostruke navodnike."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Navodnik blizu `{{.Near}}` nije nigdje zatvoren."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Usporedba spremljenih konfiguracija nije uspjela."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Usporedba spremljene konfiguracije s trenutačnom nije uspjela."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Nevaljana ili istekla sesija."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Zadatke ove vrste nije moguće otkazati."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "U polje public_key mora se prenijeti točno jedna datoteka javnog ključa dodatka."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Javni ključ dodatka {{.Name}} nije konfiguriran."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Nije moguće raščlaniti preneseni javni ključ dodatka."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Nemaš dozvolu za postavljanje jedne ili više traženih vrijednosti atributa objave."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Objave koje se brišu nakon čitanja ne mogu imati atribute objave."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Atributi objave nisu uključeni na ovom serveru."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Jednu ili više vrijednosti atributa objave nije bilo moguće primijeniti."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Samo administrator kanala, tima ili sustava kojem polje pripada može postaviti njegove dozvole pri stvaranju polja."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Samo administrator sustava može postaviti dozvole pri stvaranju polja atributa."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Ovaj atribut je izbrisan."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Putem ovog API-ja nije moguće dohvatiti podatke o usklađenosti za polje svojstva verzije v1."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Nemaš dozvolu za pregled podataka o usklađenosti ovog polja svojstva."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Samo za atribute koji se primjenjuju na sve timove moguće je ispisati kanale kojima nedostaje vrijednost ili ih obavijestiti."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Obavijesti nisu poslane jer su administratori kanala nedavno obaviješteni o ovome. Novu obavijest možeš poslati za {{.Count}} minutu.",
+      "few": "Obavijesti nisu poslane jer su administratori kanala nedavno obaviješteni o ovome. Novu obavijest možeš poslati za {{.Count}} minute.",
+      "other": "Obavijesti nisu poslane jer su administratori kanala nedavno obaviješteni o ovome. Novu obavijest možeš poslati za {{.Count}} minuta."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Obavijesti nisu poslane jer su administratori kanala nedavno obaviješteni o ovome. Pokušaj ponovo kasnije."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Ne možeš promijeniti dozvole polja svojstva tako da ga više ne možeš uređivati."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Poslani objekt ograničenja mora postaviti svih pet razina dozvola: čitanje vrijednosti, pisanje vrijednosti, čitanje opcija, pisanje opcija i pisanje polja."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Poslani objekt dozvola nije valjan."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Ova grupa svojstava ne podržava slanje objekta dozvola."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Objekt dozvola mora administratorima sustava omogućiti uređivanje polja, pa razina pisanja polja ne može biti „none”."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Ovaj atribut još se ne može označiti kao obavezan jer neki aktivni kanali nemaju vrijednost za njega. Obavijesti administratore kanala, a zatim pokušaj ponovo."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Pozivnica je istekla. Zatraži novu pozivnicu od udaljenog servera."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Udaljeni server vratio je nevaljani odgovor."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Pozivnica sadrži nevaljanu adresu servera: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Udaljeni server odbio je pozivnicu."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Nije moguće pristupiti udaljenom serveru na adresi {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Prijenos sa sigurne veze ne može nastaviti djelomično primljenu datoteku."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Previše resursa u jednoj procjeni kontrole pristupa; ograničenje je {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Provjera najnovijeg Mattermost izdanja je isključena. Da bi se dopustila, uključi postavku Omogući sigurnosna upozorenja."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Nije moguće dohvatiti administratore kanala."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Nije moguće dohvatiti kanale kojima nedostaje vrijednost za ovaj atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Nije moguće prebrojati kanale kojima nedostaje vrijednost za ovaj atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Nije moguće prebrojati sve kanale kojima nedostaje vrijednost za ovaj atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Nije moguće prebrojati lokalne kanale kojima nedostaje vrijednost za ovaj atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Nije moguće ispisati kanale kojima nedostaje vrijednost za ovaj atribut."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Nije moguće dohvatiti udaljene kanale kojima nedostaje vrijednost za ovaj atribut."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Nije moguće prebrojati administratore kanala i kanale na koje utječe ovaj atribut."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Nije moguće dohvatiti administratore kanala koje treba obavijestiti o ovom atributu."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _i još kanala: {{.Count}}_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Postavi vrijednost za **{{.AttributeName}}** na ovim kanalima kojima upravljaš. Administrator sustava treba vrijednost na svakom kanalu prije nego što ovaj atribut može postati obavezan."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Administrator si kanala kojem nedostaje obavezni atribut kanala. Postavi vrijednost za **{{.AttributeName}}**.",
+      "few": "Administrator si kanala kojima nedostaje obavezni atribut kanala. Postavi vrijednost za **{{.AttributeName}}**.",
+      "other": "Administrator si kanala kojima nedostaje obavezni atribut kanala. Postavi vrijednost za **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Nije moguće rezervirati razdoblje čekanja obavijesti za ovaj atribut."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Nije moguće dohvatiti spremljene konfiguracije."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Nijedna spremljena konfiguracija nema ovaj ID."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Povijest konfiguracije dostupna je samo kad je konfiguracija pohranjena u bazi podataka."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Kako je napisano: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Vremenska oznaka"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Nije moguće pokrenuti provjeru zdravlja sustava."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Provjera zdravlja sustava već se pokreće. Pokušaj ponovo za trenutak."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Greška pri uvozu objave. Spremanje prioriteta nije uspjelo."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Greška pri uvozu timova korisnika. Tim nije pronađen."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Broj korisnika koje ova datoteka dodaje u tim {{.Team}}: {{.Adding}}. Ukupan broj članova tada bi bio {{.Total}}, ali TeamSettings.MaxUsersPerTeam iznosi {{.Limit}}. Prije uvoza povećaj ograničenje ili ga postavi na 0 (bez ograničenja)."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Nije moguće pročitati datoteku za uvoz radi provjere postavke TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Svojstvo AcknowledgedAt objekta Acknowledgement mora biti postavljeno i ne smije biti prije CreateAt objave."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Nedostaje obavezno svojstvo objekta Acknowledgement: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Potvrde objave zahtijevaju objekt Priority sa svojstvom RequestedAck postavljenim na true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Svojstvo PersistentNotifications objave zahtijeva hitni prioritet (Priority)."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Nedostaje obavezno svojstvo objekta Priority: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Svojstvo EmojiName objekta Reaction nije valjano. Mora sadržavati od 1 do 64 ASCII slova i brojke, +, - ili _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Samo administrator sustava može mijenjati pravila članstva koja koriste naprednu logiku. Uredi ih u Konzoli sustava."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Ovo pravilo članstva koristi izraz koji sinkronizacija članstva ne može procijeniti. Prepiši pravilo koristeći samo usporedbe, &&, ||, in i podržane funkcije atributa."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Ovo pravilo članstva koristi {{.Function}}, što sinkronizacija članstva ne može procijeniti. Prepiši pravilo koristeći samo usporedbe, &&, ||, in i podržane funkcije atributa."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Nije moguće utvrditi ima li radnja politiku dozvola"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Nije moguće utvrditi odnosi li se politika pristupa resursa na radnju."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Konfiguracijska datoteka s imenom {{.Name}} već postoji."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Datoteka nije valjani OpenPGP javni ključ."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Nevaljano ime javnog ključa dodatka {{.Name}}. Imena smiju sadržavati samo slova, brojke, '.', '_' i '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Ovo polje nije moguće izbrisati jer maskirani predložak iz njega čita vlastite vrijednosti svake osobe. Najprije promijeni ili ukloni maskiranje predloška."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Razina option.read povezanog polja ({{.FieldTier}}) ne smije biti propusnija od razine {{.TemplateTier}} njegova predloška ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Atribut se ne može povezati s OpenID Connect tvrdnjom dok je sinkronizacija atributa iz usluge OpenID Connect isključena."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Nije moguće pretražiti globalne atribute."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Ovo je polje izvor vlastitih vrijednosti za svoj maskirani predložak, pa njegova razina pisanja vrijednosti ne može biti '{{.ValueWrite}}'. Osobe koje predložak filtrira inače bi mogle uređivati svoje vlastite vrijednosti i proširiti ono što mogu vidjeti."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Atribut sinkroniziran iz usluge OpenID Connect ne može se istodobno sinkronizirati iz AD/LDAP-a ili SAML-a."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Vlasnike, način pristupa, zaštićenost ni postavke sinkronizacije ovog polja nije moguće promijeniti na ovaj način jer se njegove dozvole ne mogu izraziti u tom obliku. Umjesto toga izravno ažuriraj njegove dozvole."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Način pristupa ovog polja nije moguće promijeniti jer sadrži podatke koje pozivatelj možda ne smije čitati."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Ažuriranje nije moguće: povezano polje {{.DependentID}} ima razinu option.read {{.DependentTier}}, koja bi premašila novu razinu {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "U istom ažuriranju nije moguće promijeniti i dozvole ovog polja i njegove razine dozvola, vlasnike, način pristupa, zaštićenost ili postavke sinkronizacije. Pošalji promjenu u jednom ili drugom obliku."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Ažuriranje nije moguće: povezano polje {{.DependentID}} uz ovo bi maskiranje davalo svoje vlastite vrijednosti, ali njegova razina pisanja vrijednosti je '{{.ValueWrite}}'. Najprije snizi razinu pisanja vrijednosti tog polja na admin ili nižu."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Ovo polje nije moguće odspojiti jer maskirani predložak iz njega čita vlastite vrijednosti svake osobe. Najprije promijeni ili ukloni maskiranje predloška."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Račun je deaktiviran i djelomično izbrisan. Ponovno pokretanje brisanja je sigurno i dovršit će ga."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Ovaj je prolaz izbrisao najveći dopušteni broj objava ({{.Max}}). Račun je deaktiviran i djelomično izbrisan. Ponovno pokreni brisanje za nastavak."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Nije moguće dovršiti brisanje korisnika ({{.Count}}): {{.Usernames}}. Ponovno pokreni naredbu za nastavak."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Slanje zahtjeva klasteru nije uspjelo"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML nije ispravno konfiguriran. Obrati se administratoru sustava."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "Najnovija izvođenja još su u redu čekanja ili u tijeku ili su otkazana, pa starija izvođenja nije bilo moguće provjeriti."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Autentifikacija"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Visoka dostupnost"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Usklađenost"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Baza podataka"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Zadaci"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licenciranje"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Obavijesti"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platforma"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Pretraga"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Ažuriranja"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} na čvoru {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Podaci prikupljeni"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Nepoznato"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licencirano za"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Zadnja provjera"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Generirano"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licenca"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Još nije provjereno"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Verzija servera"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "URL web stranice"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Čini se da su se provjere zaustavile."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Otvori ovu postavku u Konzoli sustava"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Detalji"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Pročitaj dokumentaciju"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Kako to popraviti"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Sažetak"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Utišano"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Riješeno"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Nije bilo moguće provjeriti"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritično"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Informacija"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Upozorenje"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritičan nalaz",
+      "few": "{{.Count}} kritična nalaza",
+      "other": "{{.Count}} kritičnih nalaza"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} informativni nalaz",
+      "few": "{{.Count}} informativna nalaza",
+      "other": "{{.Count}} informativnih nalaza"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Nema otvorenih nalaza."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Prva provjera zdravlja sustava izvodi se unutar sat vremena od uključivanja funkcije."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} nije bilo moguće provjeriti",
+      "few": "{{.Count}} nije bilo moguće provjeriti",
+      "other": "{{.Count}} nije bilo moguće provjeriti"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} upozorenje",
+      "few": "{{.Count}} upozorenja",
+      "other": "{{.Count}} upozorenja"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Izvješće o zdravlju sustava"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Nijedno odredište revizijskog zapisnika nije aktivno, a broj registriranih korisnika u ovom radnom prostoru iznosi {{.users}}. Administrativne radnje, prijave i promjene konfiguracije ne ostavljaju zaseban revizijski trag. Riječ je o nedostatku za usklađenost i forenziku, a ne o riziku za stabilnost."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Ako tvoja organizacija ima zahtjeve za reviziju (financijske usluge, zdravstvo, obrana, regulirani javni sektor), uključi revizijsko zapisivanje u Konzoli sustava > Usklađenost > Zapisivanje revizije ili dodaj odredište za razine revizije u ExperimentalAuditSettings.AdvancedLoggingJSON te konfiguriraj rotaciju. U suprotnom ovo možeš zanemariti."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Revizijsko zapisivanje je isključeno"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress veže port {{.port}}, koji je ispod 1024. Na Linuxu Mattermost server koji se ne izvodi kao root može vezati ovaj port samo putem datotečne sposobnosti (capability) CAP_NET_BIND_SERVICE na svojoj izvršnoj datoteci. Nadogradnja paketa zamjenjuje izvršnu datoteku i briše tu sposobnost, pa se server nakon sljedeće nadogradnje možda neće pokrenuti, uz grešku „bind: permission denied”. Iz konfiguracije se ne vidi kako je sposobnost dodijeljena, pa ovo upozorenje ostaje i nakon što je dodijeliš putem systemd jedinice."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Dodaj AmbientCapabilities=CAP_NET_BIND_SERVICE u systemd jedinicu za Mattermost kako bi sposobnost preživjela nadogradnje ili nakon svake nadogradnje ponovno pokreni setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost. Druga je mogućnost postaviti obrnuti proxy ispred Mattermost servera i vezati server na visoki port, poput 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Server izravno veže privilegirani port"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Vodeći čvor oglašava adresu {{.address}}. Ostali čvorovi ga na toj adresi ne mogu dosegnuti, pa gossip formira klaster s jednim čvorom, a podjele klastera (split brain) ostaju skrivene."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Postavi ClusterSettings.AdvertiseAddress na dostupnu IP adresu ili DNS ime čvora ili ga ostavi praznim kako bi se koristila adresa mrežnog sučelja. Ova provjera čita konfiguraciju vodećeg čvora, pa provjeri postavku na svakom čvoru."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress nije dostupan s drugih čvorova"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Konfiguracija je pohranjena u datoteci na svakom čvoru i može se mijenjati u Konzoli sustava. Promjena se sprema na jednom čvoru i prosljeđuje ostalima bez jamstva isporuke; čvor koji propusti promjenu zadržava vlastitu datoteku, pa se konfiguracije čvorova mogu razići."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Postavi ClusterSettings.ReadOnlyConfig na true i upravljaj konfiguracijom putem konfiguracijske datoteke ili varijabli okruženja na svakom čvoru ili premjesti konfiguraciju u bazu podataka."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig je isključen u HA klasteru s konfiguracijom u datoteci"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption je false, pa promet između čvorova klastera nije šifriran."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Uključi šifriranje gossip prometa, a zatim ponovno pokreni sve čvorove zajedno tijekom razdoblja održavanja. Čvorovi sa šifriranjem i bez njega ne mogu međusobno komunicirati, pa postupno ponovno pokretanje dijeli klaster dok se ne pokrene posljednji čvor."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Gossip promet HA klastera nije šifriran"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Broj registriranih korisnika je {{.users}}, a u HA načinu rada zadana LRU predmemorija u memoriji znači da svaki čvor održava vlastitu kopiju i koristi gossip za poništavanje. Mattermost preporučuje Redis od 100.000 korisnika naviše kako bi se pri ovom opsegu smanjio promet za poništavanje predmemorije."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Razmotri postavljanje CacheSettings.CacheType na redis uz konfiguriran CacheSettings.RedisAddress. Redis zahtijeva licencu s funkcijom Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Pri velikom opsegu razmotri Redis kao pozadinski sustav predmemorije"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Planirana HA topologija zapravo nije pokrenuta. Jedan čvor ne pruža preuzimanje u slučaju kvara (failover) i skriva rizik od podjele klastera (split-brain)."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Provjeri gossip povezivost (ClusterSettings.GossipPort), pravila vatrozida i dijele li svi aplikacijski čvorovi isti ClusterName. Prazan ClusterName također drži čvor izoliranim: server tada u zapisnik upisuje da je visoka dostupnost isključena."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Visoka dostupnost je uključena, ali u klasteru je samo jedan čvor"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Čvorovi u klasteru prijavljuju ove verzije: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Čvorovi su podijeljeni između verzija i nijedna verzija nije zastupljenija od ostalih, pa nije jasno koji su čvorovi zastarjeli."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Ovaj čvor koristi verziju {{.version}}, dok većina čvorova koristi {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Osim ako je nadogradnja u tijeku, nadogradi sve čvorove na istu verziju i provjeri mogu li čvorovi komunicirati putem gossip protokola."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "U klasteru je otkriveno više Mattermost verzija"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory je prazan, pa se izvješća o usklađenosti zapisuju u mapu za usklađenost u radnom direktoriju servera. Gube se kada se server nadogradi ili kada se njegov kontejner ponovno izgradi."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Postavi Direktorij izvješća o usklađenosti u Konzoli sustava > Usklađenost > Praćenje usklađenosti (ComplianceSettings.Directory) na trajnu putanju u koju je moguće pisati."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Praćenje usklađenosti je uključeno, ali direktorij (Directory) je prazan"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Svaki čvor održava skup od najviše MaxOpenConns veza prema primarnoj bazi podataka. Uz broj čvorova {{.nodes}} i MaxOpenConns={{.max_open}}, broj istodobnih pokušaja povezivanja s novopromoviranom primarnom bazom nakon preuzimanja u slučaju kvara (failover) može doseći {{.burst}}, a host u DataSource ne izgleda kao posrednik za skupljanje veza (connection pooler). Ako to premašuje max_connections baze podataka, ona odbija veze („sorry, too many clients already”) i oporavak traje dulje."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Dimenzioniraj svaki sloj prema ovom naletu. Najtrajnije je rješenje smanjiti SqlSettings.MaxOpenConns po čvoru i/ili postaviti PgBouncer (u transakcijskom načinu) ispred baze podataka kako bi apsorbirao nalete ponovnog povezivanja, umjesto da samo povećaš max_connections: svaka veza troši memoriju baze podataka, pa visoka gornja granica nosi rizik od nestanka memorije. Ako povećaš max_connections, ostavi rezervu iznad naleta za replikaciju, nadzor i administratorske sesije. Postupno pokretanje čvorova tijekom preuzimanja u slučaju kvara također drži nalet ispod gornje granice."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Preuzimanje u slučaju kvara baze podataka može izazvati nalet veza"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) postavljen je na veću vrijednost od MaxOpenConns ({{.max_open}}). Sloj database/sql jezika Go tiho ograničava skup neaktivnih veza na MaxOpenConns, pa dodatni kapacitet neaktivnih veza nema učinka. Ništa nije pokvareno, ali vrijednost zavarava i obično znači da je skup podešen bez znanja da broj neaktivnih veza nikad ne može premašiti broj otvorenih."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Postavi MaxIdleConns na vrijednost jednaku MaxOpenConns ili manju (uobičajena je smjernica 25–50 % od MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns premašuje MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Uz broj korisnika {{.users}} i MaxOpenConns={{.max_open}}, pri naletima opterećenja moguće je stvaranje reda čekanja zahtjeva na strani aplikacije. Trenutačna zadana vrijednost je 100 (MaxIdleConns 50, omjer 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Ako primijetiš red čekanja zahtjeva na strani aplikacije, povećaj SqlSettings.MaxOpenConns prema izmjerenoj potrebi (zadane vrijednosti 100/50 su polazište). Stvarna gornja granica za bazu podataka je MaxOpenConns x čvorovi x izvori podataka, pa prije povećanja provjeri pokriva li max_connections baze podataka taj ukupni broj."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns je možda prenizak za ovaj broj korisnika"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas je prazan. Uz broj korisnika {{.users}} sva čitanja idu na primarnu bazu. Replike za čitanje preporučuju se za veće instalacije."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Razmotri postavljanje replike za čitanje i njezino dodavanje u SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Nisu konfigurirane replike za čitanje"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Uz broj objava {{.posts}} i pretragu u bazi podataka, primarna baza i replike preuzimaju skeniranja punog teksta. To pri ovom opsegu uzrokuje opterećenje procesora i istek vremena pretrage."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Uz broj objava {{.posts}} i pretragu u bazi podataka, primarna baza i replike preuzimaju skeniranja punog teksta. To pri ovom opsegu uzrokuje opterećenje procesora i istek vremena pretrage. Tvoja licenca uključuje Elasticsearch, koji pretragu u potpunosti preuzima s baze podataka."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Konfiguriraj SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Nema replike za pretragu, a Elasticsearch pretraga je isključena"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "U upotrebi je {{.in_use}} od {{.max_open}} veza s primarnom bazom podataka ({{.percent}} %), što je 90 % od MaxOpenConns ili više. Novi upiti čekat će u redu, a HTTP latencija raste."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Povećaj SqlSettings.MaxOpenConns i max_connections baze podataka. Istraži i dugotrajne upite."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Skup veza primarne baze podataka blizu je zasićenja"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} je ispod najniže podržane verzije, {{.minimum}}. Mattermost se i dalje pokreće na njoj, ali nepodržane verzije mogu dovesti do neočekivanog ponašanja. Nadogradi na PostgreSQL {{.minimum}} ili noviji."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Planiraj nadogradnju. Novije verzije donose i bolje performanse paralelnih upita i JSONB-a."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "Verzija PostgreSQL-a niža je od najniže podržane"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL trenutačno izvodi vacuum nad tablicom Posts. Pričekaj da taj vacuum završi prije nego što procijeniš je li potreban još jedan."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "U tablici Posts procijenjeni broj dead tuples iznosi {{.dead_tuples}}, što je {{.dead_percent}} % procijenjenog broja redaka ({{.estimated_rows}}), iako je nad njom nedavno izveden vacuum (zadnji: {{.last_vacuum}}). Vacuum se izvodi, ali ih najvjerojatnije ne može ukloniti jer nešto zadržava čišćenje, primjerice dugotrajna sesija ili sesija u stanju idle-in-transaction, neaktivan replication slot ili napušteni prepared transaction. Napuhavanje tablice i indeksa može pogoršati performanse upita i povećati zauzeće diska."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "U tablici Posts procijenjeni broj dead tuples iznosi {{.dead_tuples}}, što je {{.dead_percent}} % procijenjenog broja redaka ({{.estimated_rows}}), a PostgreSQL nema zapis o vacuumu nad njom otkako je statistika zadnji put poništena. Čini se da Autovacuum ne stiže obrađivati ovu tablicu. Napuhavanje tablice i indeksa može pogoršati performanse upita i povećati zauzeće diska."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "U tablici Posts procijenjeni broj dead tuples iznosi {{.dead_tuples}}, što je {{.dead_percent}} % procijenjenog broja redaka ({{.estimated_rows}}), a zadnji vacuum nad njom izveden je prije {{.age_days}} dana ({{.last_vacuum}}). Čini se da Autovacuum ne stiže obrađivati ovu tablicu. Napuhavanje tablice i indeksa može pogoršati performanse upita i povećati zauzeće diska."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Ako pg_stat_progress_vacuum pokazuje da se nad tablicom Posts izvodi vacuum, pusti ga da završi jer ga pokretanje ručnog VACUUM-a otkazuje. Ako je nad tablicom Posts nedavno izveden vacuum, pronađi što zadržava čišćenje pa to završi ili ukloni: dugotrajne sesije ili sesije u stanju idle-in-transaction u pg_stat_activity, neaktivne replication slotove u pg_replication_slots i stare prepared transactions u pg_prepared_xacts. Sljedeći vacuum tada može ukloniti dead tuples. Ako nad tablicom Posts nije nedavno izveden vacuum, provjeri je li autovacuum uključen globalno i za Posts te u zapisnicima PostgreSQL-a potraži otkazane autovacuum poslove. Ako autovacuum ne stiže, smanji autovacuum_vacuum_scale_factor za Posts i povećaj autovacuum_vacuum_cost_limit i autovacuum_work_mem koliko kapacitet dopušta, a zatim zakaži ciljani VACUUM (ANALYZE) nad tablicom Posts u razdoblju slabog prometa. Izbjegavaj VACUUM FULL osim ako ne planiraš njegovo isključivo zaključavanje i dodatni prostor na disku; ako je dostupan, pg_repack je alternativa s manje zaključavanja."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Tablica Posts ima mnogo dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout je postavljen na {{.timeout}} s. Dugačka ograničenja vremena omogućuju odbjeglim upitima da drže zaključavanja tijekom cijelog trajanja i tako blokiraju autovacuum, migracije sheme i zapisivanja koja čekaju na isti redak. To dodatno povećava rizik na opterećenim bazama podataka bez replika za čitanje."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Smanji SqlSettings.QueryTimeout na 30. Pojedinačne spore upite istraži zasebno umjesto da povećavaš globalnu gornju granicu."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout je visok (zadano je 30 s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas je postavljen, ali nijedna replika nije dostupna, pa se čitanja vraćaju na primarnu bazu."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Provjeri DSN replike, mrežnu dostupnost i autentifikaciju. U zapisnicima servera potraži upozorenja o vezi s replikom."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Replike za čitanje su konfigurirane, ali nijedna nije dostupna"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Zapisuje se svaka SQL naredba. To je namijenjeno samo otklanjanju pogrešaka: ako ostane uključeno, puni disk i zapisuje sadržaj upita u datoteke zapisnika."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Postavi SqlSettings.Trace na false, osim ako aktivno otklanjaš pogreške."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace je uključen"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Server se izvodi na sustavu {{.os}}. Mattermost za produkciju podržava Linux; ostali operacijski sustavi prikladni su samo za razvoj."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Premjesti server na podržanu distribuciju Linuxa."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Server se ne izvodi na Linuxu"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Svaka nova objava indeksira se sinkrono, vlastitim zahtjevom. Na opterećenim serverima to preopterećuje klaster za pretragu i usporava indeksiranje."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Povećaj LiveIndexingBatchSize na vrijednost između 10 i 20 i podešavaj je unutar tog raspona prema uočenoj učestalosti objava."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize je 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize je {{.size}}. Veliki _bulk zahtjevi mogu premašiti http.max_content_length klastera za pretragu i završiti greškom 413, što uzrokuje ponovne pokušaje i kašnjenje indeksiranja."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Smanji LiveIndexingBatchSize na vrijednost između 10 i 20 ili povećaj http.max_content_length na klasteru za pretragu ako su vrlo veliki skupovi namjerni."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize je veći od 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL upućuje na {{.host}}, što svaki aplikacijski čvor razrješava u samog sebe. Čvorovi bez lokalne tražilice ne mogu indeksirati ni pretraživati."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Postavi ConnectionURL na ime hosta ili DNS ime usluge koje mogu dosegnuti svi aplikacijski čvorovi."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch ConnectionURL upućuje na localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Klaster za pretragu ne prijavljuje dodatak analysis-icu. Predložak indeksa objava koristi ICU tokenizator i normalizator, pa indeksiranje objava bez njega može zakazati."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Popis dodataka nije prikupljen jer server nije mogao pročitati verziju klastera za pretragu."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Instaliraj dodatak analysis-icu na svaki čvor za pretragu (elasticsearch-plugin install analysis-icu ili opensearch-plugin install analysis-icu), a zatim ponovno pokreni čvorove. Potreban je za indeksiranje objava, a ne samo za višejezičnu pretragu."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Tražilici nedostaje dodatak analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Test veze s tražilicom nije uspio: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Test veze s tražilicom nije uspio, a pretraga u bazi podataka je isključena, pa pretraga ne vraća rezultate: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Test veze s tražilicom nije uspio na čvorovima {{.nodes}}, dok je ostali čvorovi dosežu, pa pretraga i indeksiranje na tim čvorovima mogu zakazati. Provjeri postavke mreže, vatrozida, proxyja i DNS-a na tim čvorovima. Greška: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Provjeri dostupnost ElasticsearchSettings.ConnectionURL, TLS i vjerodajnice. Provjeri stanje klastera za pretragu (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Server prijavljuje grešku Elasticsearch klastera"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification je true na https vezi, pa server ne provjerava certifikat tražilice. To je prihvatljivo na pouzdanoj internoj mreži, ali drugdje uklanja zaštitu od napada man-in-the-middle."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Ako je krajnja točka pretrage na nepouzdanom mrežnom putu, instaliraj njezin CA kako bi se certifikat mogao provjeriti i postavi SkipTLSVerification na false. Na pouzdanoj internoj mreži potvrdi da je postavka namjerna."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch veza preskače provjeru TLS certifikata"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} noviji je od podržanih glavnih verzija (od {{.min}} do {{.max}}). Nadogradi Mattermost na izdanje koje ga podržava ili vrati klaster za pretragu na podržanu verziju."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} stariji je od podržanih glavnih verzija (od {{.min}} do {{.max}}). Nadogradi klaster za pretragu na podržanu verziju."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Verzija klastera za pretragu nije prikupljena jer se server nije povezao s klasterom za pretragu."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Pozadinski sustav ili verziju tražilice nije bilo moguće prepoznati."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Koristi glavnu verziju klastera za pretragu koju podržava ova Mattermost verzija."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Verzija tražilice nije podržana"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout je {{.value}} s. Ograničava koliko dugo izvoz čeka na povezivanje sa SMTP serverom Global Relay, a uz manje od 30 sekundi spora veza uzrokuje neuspjelu isporuku."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Povećaj MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout na najmanje 30 sekundi. Zadana vrijednost je 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout je kraći od 30 sekundi"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Na volumenu koji sadrži FileSettings.Directory dostupno je {{.available_gib}} GiB ({{.percent}} %) od {{.total_gib}} GiB. Prijenos datoteka i druge operacije s datotekama mogu zakazati kada se volumen popuni."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Odmah proširi volumen ili ukloni nepovezane podatke iz njegova datotečnog sustava; ne briši ručno datoteke kojima upravlja Mattermost iz FileSettings.Directory. Ostavi dostupno najmanje 10 % ili 10 GiB, a nikad manje od 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Disk za pohranu datoteka gotovo je pun"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Na volumenu koji sadrži FileSettings.Directory dostupno je {{.available_gib}} GiB ({{.percent}} %) od {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Proširi volumen ili ukloni nepovezane podatke iz njegova datotečnog sustava; ne briši ručno datoteke kojima upravlja Mattermost iz FileSettings.Directory. Ostavi dostupno najmanje 10 % ili 10 GiB, a nikad manje od 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Na disku za pohranu datoteka ponestaje prostora"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName je local uz uključen ClusterSettings.Enable, a FileSettings.Directory je {{.directory}}. U klasteru ovaj direktorij mora biti dijeljeni montirani sustav (NFS, EFS, GlusterFS, CephFS), montiran jednako na svakom čvoru, inače datoteke prenesene na jedan čvor nisu vidljive na ostalima. Iz konfiguracije se ne vidi je li direktorij dijeljen, a čvor može proći test veze s pohranom datoteka dok zapisuje na vlastiti lokalni disk."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Na svakom aplikacijskom čvoru pokreni findmnt s putanjom iz FileSettings.Directory. Relativna putanja razrješava se u odnosu na radni direktorij Mattermost servera, obično /opt/mattermost. Svaki čvor mora prikazati isti udaljeni izvor, a korisnik pod kojim se izvodi Mattermost mora ondje moći čitati i pisati. Ako direktorij nije dijeljeni montirani sustav, premjesti ga na takav sustav ili promijeni FileSettings.DriverName u amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Lokalna pohrana datoteka u klasteru visoke dostupnosti: potvrdi dijeljeno montiranje"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket je prazan, pa prijenos datoteka ne uspijeva."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Postavi FileSettings.AmazonS3Bucket, zajedno s regijom i krajnjom točkom."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Odabrana je pohrana datoteka Amazon S3, ali bucket je prazan"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL je false, pa se datoteke između servera i S3 krajnje točke prenose nešifrirano."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Postavi FileSettings.AmazonS3SSL na true, osim ako krajnja točka podržava samo običan HTTP."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3 SSL je isključen"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Server se nije mogao povezati sa svojom pohranom datoteka: {{.error}}. Prijenos i preuzimanje datoteka mogu zakazati."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Test veze s pohranom datoteka nije uspio na čvorovima {{.nodes}}, dok je ostali čvorovi dosežu, pa prijenos i preuzimanje datoteka putem tih čvorova mogu zakazati. Provjeri postavke mreže, vatrozida, proxyja i DNS-a na tim čvorovima. Kod lokalne pohrane provjeri i je li dijeljeni direktorij na njima montiran. Greška: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Provjeri postavke pohrane datoteka, a zatim upotrijebi „Testiraj vezu” u Konzoli sustava > Okruženje > Pohrana datoteka. Kod lokalne pohrane provjeri postoji li FileSettings.Directory i može li korisnik pod kojim se izvodi Mattermost pisati u njega. Kod Amazon S3 provjeri bucket, krajnju točku i vjerodajnice."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Test veze s pohranom datoteka nije uspio"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Zadnje dovršeno izvođenje zadatka {{.job_type}} ({{.job_id}}) završilo je greškom: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Zadnje dovršeno izvođenje zadatka {{.job_type}} ({{.job_id}}) završilo je greškom bez zapisane poruke o grešci."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Pregledaj grešku zadatka i zapisnike servera iz vremena početka neuspjelog izvođenja da pronađeš uzrok. Uobičajeni uzroci koje treba isključiti: opterećenje baze podataka, ograničenja skupa veza, mrežni događaji ili preuzimanje u slučaju kvara te istek vremena naredbi. Riješi problem, a zatim ponovno pokreni zadatak i provjeri je li se dovršio. Dok jedno izvođenje ne uspije, posao zadatka (sinkronizacija direktorija, izvoz za usklađenost, zadržavanje podataka ili indeksiranje za pretragu) ne obavlja se."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Zadnje izvođenje zadatka nije uspjelo"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "Zadatak {{.job_type}} {{.job_id}} je u tijeku, ali već {{.hours}} h nije zabilježio nikakvu aktivnost. To obično znači da je izvršitelj prestao raditi usred izvođenja ili da je planer zaglavio."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "Zadatak {{.job_type}} {{.job_id}} je u tijeku, ali nije zabilježio nikakvu aktivnost u razdoblju od {{.days}} dana. To obično znači da je izvršitelj prestao raditi usred izvođenja ili da je planer zaglavio."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Otkaži zaglavljeni zadatak na njegovoj stranici u Konzoli sustava, naredbom mmctl job cancel ili putem API-ja. Provjeri zapisnike servera oko zadnje aktivnosti zadatka, a zatim ga ponovno pokreni."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Zadatak je zaglavio u tijeku dulje od 24 sata"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "Zadatak {{.job_type}} {{.job_id}} nije prijavio napredak i nije zabilježio nikakvu aktivnost dulje od sat vremena. To obično znači da je izvršitelj prestao raditi, zapao u zastoj (deadlock) ili izgubio vezu s bazom podataka prije prve serije."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Otkaži zadatak na njegovoj stranici u Konzoli sustava, naredbom mmctl job cancel ili putem API-ja. U zapisnicima servera od vremena početka zadatka potraži panic greške ili greške veze, a zatim ga ponovno pokreni. Ako se problem ponovi, dok je zadatak zaglavljen snimi goroutine profil s /debug/pprof/goroutine na serveru za metrike."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Zadatak je u tijeku bez napretka i aktivnosti dulje od sat vremena"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute je {{.attribute}}. Mattermost putem ovog atributa povezuje svaki račun s njegovim unosom u direktoriju, pa kada se korisniku promijeni e-mail adresa (brak, promjena imena tvrtke, premještaj u drugi odjel), veza se prekida i korisnik više ne može pristupiti svom postojećem računu."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Promijeni IdAttribute u stabilan atribut, poput objectGUID (AD) ili entryUUID (OpenLDAP), a zatim migriraj postojeće račune naredbom mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute je atribut e-mail adrese"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Port 636 uobičajeno očekuje implicitni TLS (LDAPS), ali ConnectionSecurity je None ili STARTTLS. Ta je kombinacija obično pogrešna konfiguracija, ali može biti valjana iza proxyja koji završava TLS. Provjeri uspijevaju li LDAP prijava i sinkronizacija."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Ako LDAP prijava ili sinkronizacija ne uspijevaju, postavi ConnectionSecurity na TLS za port 636. Ako rade, promjena nije potrebna."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP port 636 konfiguriran je bez ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Port 389 uobičajeno se koristi za nešifrirani promet ili STARTTLS, dok implicitni TLS (LDAPS) uobičajeno koristi port 636. Ta je kombinacija obično pogrešna konfiguracija, ali može biti valjana iza proxyja koji završava TLS ili uz namjerno drukčije konfiguriran server. Provjeri uspijevaju li LDAP prijava i sinkronizacija."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Ako LDAP prijava ili sinkronizacija ne uspijevaju, koristi port 636 za TLS ili promijeni ConnectionSecurity u STARTTLS za port 389. Ako rade, promjena nije potrebna."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP port 389 konfiguriran je s ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "LDAP test (povezivanje, bind i pretraga korisnika) nije uspio, pa LDAP prijava i sinkronizacija možda ne uspijevaju."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "LDAP test (povezivanje, bind i pretraga korisnika) nije uspio na čvorovima {{.nodes}}, dok ostali čvorovi dosežu LDAP server, pa LDAP prijava na tim čvorovima može zakazati. Provjeri postavke mreže, vatrozida, proxyja i DNS-a na tim čvorovima."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Provjeri pojedinosti greške, a zatim potvrdi LdapServer, LdapPort, ConnectionSecurity i vjerodajnice za bind te mogu li Mattermost serveri dosegnuti LDAP server. Za ponovnu provjeru upotrijebi „Testiraj vezu” na stranici AD/LDAP."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP test veze nije uspio"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout je {{.timeout}} s. Kratka ograničenja vremena uzrokuju lažne neuspjehe LDAP prijave i sinkronizacije sa sporim direktorijima."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Povećaj LdapSettings.QueryTimeout na 60 sekundi (zadana vrijednost)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout je kraći od 10 sekundi"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "Broj aktivnih korisničkih računa kojima se upravlja ručno: {{.users}}. Mattermost preporučuje jedinstvenu prijavu (SSO) čim radni prostor ima više od 100 korisnika: ručno upravljanje računima pri ovom opsegu dovodi do zastarjelih računa, kašnjenja pri uvođenju novih korisnika i propusta pri odlasku korisnika, a svako od toga predstavlja sigurnosni i licencni rizik."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Poveži Mattermost sa svojim pružateljem identiteta: s AD/LDAP-om ako koristiš direktorij, a inače sa SAML-om ili OpenID Connectom."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Više od 100 korisnika bez jedinstvene prijave (SSO)"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost ne provjerava TLS certifikat LDAP servera, pa su veze s direktorijem izložene napadima man-in-the-middle. To je prihvatljivo samo za razvoj i testiranje."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Instaliraj CA lanac LDAP servera na Mattermost servere i postavi SkipCertificateVerification na false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification je uključen"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes je {{.interval_minutes}}, a nedavna izvođenja LDAP sinkronizacije u prosjeku su trajala {{.avg_run_seconds}} s, što je {{.duty_pct}} % intervala. Dugotrajna izvođenja uz kratak interval drže opterećenje baze podataka povišenim i mogu povećati zaostajanje replika."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Nije pronađeno nijedno izvođenje LDAP sinkronizacije s mjerljivim trajanjem."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Suzi LdapSettings.UserFilter i BaseDN kako bi se ograničio obilazak direktorija ili produlji SyncIntervalMinutes. Cilj je da izvođenja sinkronizacije traju kraće od 25 % intervala."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP sinkronizacija traje velik dio svojeg intervala"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP sinkronizacija pretražuje direktorij počevši od vrijednosti BaseDN, pa dok je ona prazna, sinkronizacija ne može pronaći korisnike koje treba ažurirati."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Postavi LdapSettings.BaseDN na korijen direktorija koji želiš sinkronizirati."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP sinkronizacija je uključena, ali BaseDN je prazan"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Licenca je istekla {{.expires_at}}. Server uklanja isteklu licencu 10 dana nakon isteka i funkcije Enterprise prestaju raditi."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Probna licenca je istekla {{.expires_at}}. Server uklanja isteklu licencu 10 dana nakon isteka i funkcije Enterprise prestaju raditi."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Nabavi novu licencu i prenesi je u Konzoli sustava > O programu > Izdanje i licenca."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Licenca je istekla"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Licenca istječe {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Probna licenca istječe {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Nabavi novu licencu odmah, kako bi se mogla prenijeti u Konzoli sustava > O programu > Izdanje i licenca prije isteka trenutačne."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Licenca istječe u roku od 30 dana"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel je {{.level}}. Zapisivanje u datoteku na razini debug brzo povećava datoteke zapisnika, a dodatne pojedinosti mogu uključivati sadržaj zahtjeva. To je u redu tijekom otklanjanja problema, ali nije idealno kao trajna produkcijska postavka."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Ako ne otklanjaš aktivno probleme, postavi LogSettings.FileLevel na INFO kako bi se smanjio obujam zapisnika."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Zapisivanje u datoteku na razini debug ili trace"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile je false, pa server ne zapisuje datoteku zapisnika. Paketi podrške tada ne sadrže zapisnike servera, čak i ako vanjski sakupljač bilježi stdout ili journald, a otklanjanje problema s Mattermost podrškom traje dulje."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Postavi LogSettings.EnableFile na true. To radi uz zapisivanje u konzolu, pa postojeći sakupljač zapisnika nastavlja raditi."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Zapisivanje u datoteku je isključeno"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging je true, pa se neuspjeli zahtjevi dolaznih webhookova zapisuju zajedno sa sadržajem, koji može uključivati tekst poruka."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Postavi LogSettings.EnableWebhookDebugging na false, osim ako otklanjaš probleme s webhookom."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Sadržaj webhookova se zapisuje"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel je {{.limit}}, pa @channel, @all i @here i dalje rade u kanalima s tisućama članova. Jedno spominjanje cijelog kanala ondje odjednom šalje tisuće obavijesti, što uzrokuje skokove latencije."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Smanji TeamSettings.MaxNotificationsPerChannel na 5000 ili manje (zadano je 1000). @channel, @all i @here isključuju se čim kanal dosegne toliko članova, pa se najprije dogovori s timovima koji ih koriste u velikim kanalima."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Spominjanja cijelog kanala dopuštena su u vrlo velikim kanalima"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost ne bilježi metrike performansi, poput veza s bazom podataka, latencije zahtjeva i opterećenja servera. Bez njih nema povijesti koju možeš pregledati kada korisnici prijave sporost, ni podataka koje možeš podijeliti s Mattermost podrškom."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "U Konzoli sustava uključi nadzor performansi i provjeri je li dodatak Metrics uključen u Dodaci > Upravljanje dodacima. Dodatak čuva metrike za 15 dana na serveru, bez potrebe za Prometheusom. Ako koristiš Prometheus, usmjeri ga na slušatelja metrika (zadano port 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Nadzor performansi je isključen"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Radni skup memorije kontejnera iznosi {{.working_set}} MB od ograničenja od {{.limit}} MB. Ako nastavi rasti, kernel može ugasiti server ili proces dodatka."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Smanji potrošnju memorije Mattermost servera i njegovih dodataka ili povećaj ograničenje memorije kontejnera. Ostavi dovoljno rezerve za procese dodataka, Go runtime i skokove prometa."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Memorija kontejnera gotovo je potrošena"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "Broj procesa koje je kontejner od pokretanja ugasio zbog nedostatka memorije (OOM): {{.kills}}. Ugašeni proces možda je bio dodatak ili neki drugi podređeni proces; pregledaj popis dodataka i ograničenje memorije kontejnera."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Pregledaj procese dodataka i zapisnike kontejnera da utvrdiš što je ugašeno, a zatim smanji njegovu potrošnju memorije ili povećaj ograničenje memorije kontejnera."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Proces u kontejneru ugašen je zbog nedostatka memorije"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Kontejner je bio prigušen tijekom {{.throttled}} od {{.periods}} razdoblja raspoređivanja CPU-a. Dugotrajno prigušivanje CPU-a može usporiti Mattermost čak i kada se korištenje CPU-a na hostu čini niskim."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Povećaj ograničenje CPU-a kontejnera (CPU limit) ili ukloni ograničenje i zadrži zahtjev za CPU (CPU request)."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Prigušivanje CPU-a kontejnera je visoko"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Proces servera ima otvoreno {{.open}} od {{.max}} deskriptora datoteka. Kad dosegne ograničenje, nove veze i operacije s datotekama ne uspijevaju."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Povećaj ograničenje otvorenih datoteka: postavi LimitNOFILE u systemd jedinici za Mattermost ili povećaj nofile ulimit kontejnera, a zatim ponovno pokreni server."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Deskriptori datoteka gotovo su potrošeni"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Ograničenje memorije za Go iznosi {{.go_limit}} MB, ali ograničenje kontejnera je {{.container_limit}} MB. Sakupljač smeća (garbage collector) možda neće pojačati rad prije nego što kernel ugasi proces."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Postavi GOMEMLIMIT na približno 80–90 % ograničenja memorije kontejnera i ostavi rezervu za memoriju izvan Go heapa i za procese dodataka."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Ograničenje memorije za Go jednako je ograničenju kontejnera ili veće od njega"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS je {{.go_max_procs}}, što je iznad ograničenja CPU-a kontejnera ({{.cpu_limit}} CPU). Dodatne niti spremne za izvođenje mogu povećati prigušivanje CPU-a."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Ukloni postavku GOMAXPROCS kako bi je Go runtime prilagodio ograničenju CPU-a kontejnera, a zatim ponovno pokreni server."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS premašuje ograničenje CPU-a kontejnera"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Prosječno 15-minutno opterećenje hosta iznosi {{.load}}, a broj CPU jezgri je {{.cores}}. Trajno opterećenje od dva ili više zadataka po jezgri može upućivati na pritisak na CPU ili I/O."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Provjeri iskorištenost CPU-a, disk I/O i pokrenute procese na čvoru, a zatim dodaj kapacitet ili smanji opterećenje."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Opterećenje hosta je visoko"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Host ima dostupno {{.available}} MB od {{.total}} MB. Ako se dostupna memorija nastavi smanjivati, Mattermost i drugi procesi mogu biti ugašeni ili usporeni."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Pronađi procese koji troše najviše memorije i smanji njihovu potrošnju ili dodaj memoriju hostu. Prije ponovnog pokretanja usluga pregledaj potrošnju memorije Mattermost servera i dodataka."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Hostu ponestaje memorije"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Ovaj čvor nije vratio svoju dijagnostiku za provjeru zdravlja sustava. Možda je ugašen, preopterećen ili odvojen od ostalih čvorova. Dok ne odgovori, njegovi ostali nalazi zadržavaju zadnje poznato stanje."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Provjeri izvodi li se Mattermost na ovom čvoru, pregledaj njegove zapisnike i potrošnju CPU-a i memorije te potvrdi da može dosegnuti ostale čvorove na gossip portu (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Čvor klastera ne odgovara"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Provjera povezivosti s OAuth/OIDC pružateljem nije uspjela ni na jednom Mattermost čvoru koji je poslao podatke, pa prijava putem ovog pružatelja vjerojatno nije dostupna."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Provjera povezivosti s OAuth/OIDC pružateljem nije uspjela na čvorovima {{.nodes}}, dok ostali čvorovi koji su poslali podatke mogu dosegnuti pružatelja. Prijava putem ovog pružatelja na tim čvorovima može zakazati."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Provjeri pojedinosti greške, krajnju točku za otkrivanje ili tokene kod pružatelja te postavke odlazne mreže, vatrozida, proxyja i DNS-a. Zatim potvrdi da prijava putem pružatelja radi."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Provjera povezivosti s OAuth/OIDC pružateljem nije uspjela"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Otvoreni server i registracija e-mail adresom uključeni su dok je provjera e-mail adrese isključena, pa svatko tko može dosegnuti ovaj server može stvoriti račun s izmišljenom e-mail adresom i pridružiti se otvorenim timovima. Ako je otvorena registracija namjerna, utišaj ovaj nalaz."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Otvoreni server i registracija e-mail adresom uključeni su dok je provjera e-mail adrese isključena. TeamSettings.RestrictCreationToDomains ograničava registraciju na određene domene, ali Mattermost provjerava samo završava li adresa dopuštenom domenom, a ne i je li osoba vlasnik adrese. Svatko tko može dosegnuti ovaj server može se registrirati pod dopuštenom domenom i predstavljati se kao kolega. Ako je otvorena registracija namjerna, utišaj ovaj nalaz."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Postavi EmailSettings.RequireEmailVerification na true. Prije toga provjeri radi li SMTP: postojeći korisnici koji nikad nisu potvrdili svoju e-mail adresu morat će je potvrditi pri sljedećoj prijavi. Ako ne želiš otvorenu registraciju, postavi TeamSettings.EnableOpenServer na false; korisnici se i dalje mogu pridružiti putem poveznica za pozivnicu u tim, pa se provjera e-mail adrese i dalje preporučuje. Da ograničiš registraciju na svoju organizaciju, postavi TeamSettings.RestrictCreationToDomains zajedno s provjerom e-mail adrese; bez provjere to se ograničenje može zaobići."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Svatko se može registrirati s nepotvrđenom e-mail adresom"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck je false, pa se dodatak koji se sruši ne pokreće automatski ponovno."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Postavi PluginSettings.EnableHealthCheck na true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Provjera zdravlja dodataka je isključena"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Ovi dodaci su uključeni, ali se ne izvode: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "U Konzoli sustava > Dodaci > Upravljanje dodacima provjeri stanje svakog navedenog dodatka i pokušaj ga isključiti pa ponovno uključiti. Zapisnik servera bilježi zašto se dodatak nije pokrenuo ili zašto ga je provjera zdravlja dodataka zaustavila."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Uključeni dodaci se ne izvode"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable je false, pa se nijedan dodatak ne izvodi. To odgovara nekim strogo zaključanim instalacijama, ali je često nenamjerno."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Ako to nije očekivano, postavi PluginSettings.Enable na true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Dodaci su isključeni"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents je postavljen na full, pa su tekst poruke i pošiljatelj uključeni u sadržaj push obavijesti, koji prolazi kroz push proxy te Appleove i Googleove push usluge."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Za najveću privatnost push obavijesti postavi EmailSettings.PushNotificationContents na id_loaded. Šalje se samo ID poruke, a mobilna aplikacija dohvaća sadržaj poruke sa servera. Mobilni uređaji tada moraju moći dosegnuti server kad stigne obavijest, pa na serverima dostupnima samo putem VPN-a ili interne mreže obavijesti ne mogu prikazati sadržaj poruke. Ako je full namjeran odabir, utišaj ovaj nalaz."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Push obavijesti uključuju cijeli tekst poruke"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Test veze sa serverom za push obavijesti nije uspio: {{.error}}. Korisnici mobilnih uređaja možda neće primati push obavijesti."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Test veze sa serverom za push obavijesti nije uspio na čvorovima {{.nodes}}, dok ga ostali čvorovi dosežu. Push obavijesti koje šalju ti čvorovi mogu zakazati. Provjeri postavke mreže, vatrozida, proxyja i DNS-a na tim čvorovima. Greška: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Provjeri PushNotificationServer, TLS certifikate i stanje push proxyja. Potvrdi da svaki Mattermost aplikacijski čvor može dosegnuti konfigurirani host putem HTTPS-a, a zatim provjeri njegovu krajnju točku /version."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Test veze sa serverom za push obavijesti nije uspio"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com je testni Mattermost push proxy. Nema SLA, ima ograničenu propusnost i nije namijenjen produkcijskoj upotrebi. Tvoja licenca uključuje uslugu Mattermost Hosted Push Notification Service: postavi PushNotificationServer na https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable je false, a broj registriranih korisnika je {{.users}}. Ograničavanje broja zahtjeva štiti server od poplave zahtjeva i zlonamjernih ili neispravnih klijenata; uz ovoliko korisnika te webhookove i integracije botova jedan pogrešno konfiguriran klijent može zasititi API. Prema Mattermost dokumentaciji, ugrađeni ograničivač broja zahtjeva namijenjen je manjim instalacijama (do nekoliko stotina korisnika), pa je pri većem opsegu ograničavanje zahtjeva često bolje rješavati na balanseru opterećenja ili API pristupniku."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Pobrini se da postoji ograničavanje zahtjeva prikladno ovom opsegu, bilo ugrađeno Mattermost ograničavanje broja zahtjeva (Konzola sustava > Okruženje > Ograničavanje broja zahtjeva) bilo na balanseru opterećenja ili pristupniku."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Ograničavanje broja API zahtjeva isključeno je na velikoj instanci"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize je {{.size}}, a broj registriranih korisnika je {{.users}}. Ograničivač broja zahtjeva prati najviše ovoliko klijenata; kada se popuni, odbacuje klijenta kojeg najdulje nije vidio, čija kvota zahtjeva tada kreće ispočetka, pa mala pohrana slabi ograničavanje broja zahtjeva."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Povećaj RateLimitSettings.MemoryStoreSize barem na broj registriranih korisnika."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Memorijska pohrana za ograničavanje broja zahtjeva manja je od broja korisnika"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds je {{.value}}. Zadatak zadržavanja podataka toliko dugo pauzira između serija brisanja kako bi baza podataka imala vremena posluživati promet uživo. Uz manje od 100 ms velika brisanja mogu usporiti bazu podataka za sve."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "U konfiguraciji povećaj DataRetentionSettings.TimeBetweenBatchesMilliseconds na najmanje 100 (zadana vrijednost)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds za zadržavanje podataka manji je od 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Tvrdnje (assertions) putuju nešifrirane na razini SAML-a. TLS i dalje štiti vezu, pa ovo nije osnovni sigurnosni propust, ali ako tvoj IdP podržava šifriranje tvrdnji, njegovo uključivanje dodaje dubinsku obranu."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Ako tvoj IdP podržava šifriranje tvrdnji, uključi SamlSettings.Encrypt i konfiguriraj privatni ključ i javni certifikat pružatelja usluge."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Šifriranje SAML tvrdnji je isključeno"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost identificira SAML račune po e-mail adresi, bilo zato što je IdAttribute prazan ili zato što navodi atribut e-mail adrese. Kada se korisniku promijeni e-mail adresa kod IdP-a, veza s njegovim postojećim računom prekida se."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Konfiguriraj IdP da šalje stabilan identifikator (poput objectGUID ili nepromjenjivog ID-a), a zatim postavi SamlSettings.IdAttribute na ime tog atributa. Postojeći računi sami prelaze na novi identifikator: pri sljedećoj prijavi svakog korisnika Mattermost pronalazi račun po e-mail adresi i sprema novi ID."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute je prazan ili je atribut e-mail adrese"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute je {{.attribute}}. Korisnička imena, uid-ovi i user principal names često se ponovno dodjeljuju drugim zaposlenicima, a kad se to dogodi, druga osoba nasljeđuje Mattermost račun prve osobe."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Prednost daj identifikatoru koji se nikad ne dodjeljuje ponovno, poput objectGUID (AD) ili nepromjenjivog ID-a (Microsoft Entra ID), i pregledaj pravila IdP-a o ponovnoj upotrebi identifikatora."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute može se ponovno dodijeliti kod IdP-a"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "SAML provjera certifikata i URL-a IdP-a nije uspjela, pa SAML prijava vjerojatno ne radi."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "SAML provjera certifikata i URL-a IdP-a nije uspjela na čvorovima {{.nodes}}, dok na ostalim čvorovima prolazi, pa SAML prijava na tim čvorovima može zakazati. Provjeri imaju li ti čvorovi isti valjani certifikat IdP-a kao ostali čvorovi."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Provjeri pojedinosti greške, a zatim ispravi certifikat IdP-a (IdpCertificateFile) ili URL IdP-a (IdpURL) u SAML postavkama. Ako je certifikat istekao, prenesi trenutačni certifikat za potpisivanje IdP-a."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Provjera SAML konfiguracije nije uspjela"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO koristi algoritam potpisa SHA-1, koji je zastario. SSO danas radi, ali neki pružatelji identiteta počinju odbijati SHA-1, pa je ovo poboljšanje kompatibilnosti i sigurnosti koje treba zakazati, osobito prije bilo kakve promjene ili nadogradnje IdP-a."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Kad ti odgovara, i u koordinaciji sa svojim IdP-om, postavi SamlSettings.SignatureAlgorithm na RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm je SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost prihvaća SAML odgovore bez provjere potpisa tvog IdP-a, pa ne može razlikovati pravi odgovor autentifikacije od krivotvorenog."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Postavi SamlSettings.Verify na true i provjeri je li AssertionConsumerServiceURL postavljen. Uključi to u koordinaciji sa svojim IdP-om i testiraj prijavu jer provjera zahtijeva ispravno konfiguriran certifikat IdP-a."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Provjera SAML potpisa je isključena"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Broj objava u radnom prostoru je {{.posts}}, a pretraga se izvodi nad bazom podataka. Elasticsearch se preporučuje iznad 2.500.000 objava, a obavezan je iznad 5.000.000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Planiraj uvođenje Elasticsearch klastera prije sljedećeg razdoblja velikog rasta ili prije dosezanja 5.000.000 objava."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Broj objava približava se pragu za Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Broj objava u radnom prostoru je {{.posts}}, a pretraga se izvodi nad bazom podataka. Pri ovom opsegu očekuj spore pretrage, isteke vremena i skokove opterećenja CPU-a baze podataka."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Uvedi Elasticsearch ili OpenSearch, pokreni potpuno početno indeksiranje, a zatim uključi EnableIndexing, EnableSearching i EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Elasticsearch je obavezan iznad 5.000.000 objava"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Pretraga u bazi podataka je isključena, kao i Elasticsearch pretraživanje. Pretrage ne vraćaju rezultate. Uključivanje pretraživanja putem Elasticsearch ili OpenSearch klastera također vraća pretragu."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Pretraga u bazi podataka je isključena, a licenca ne uključuje Elasticsearch, pa Elasticsearch postavke nemaju učinka. Pretrage ne vraćaju rezultate."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Postavi SqlSettings.DisableDatabaseSearch na false u config.json (ili MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Pretraga je isključena"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "Broj korisnika koji se ubrajaju u ograničenje licence ({{.used}}) dosegnuo je to ograničenje ({{.limit}}). Server ne stvara niti ponovno aktivira korisnike dok se korisnička mjesta ne oslobode ili dodaju."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Kupi dodatna korisnička mjesta ili deaktiviraj korisnike kojima pristup više nije potreban kako bi se oslobodila mjesta."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Dosegnuto je licencirano ograničenje broja korisnika"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "Korisnici koji zauzimaju korisničko mjesto: {{.used}}; licencirana korisnička mjesta: {{.seats}} ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Ako očekuješ više korisnika, planiraj dodatna korisnička mjesta prije nego što se licenca popuni. Deaktiviranjem korisnika kojima pristup više nije potreban oslobađaju se mjesta."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Licencirana korisnička mjesta gotovo su popunjena"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "Korisnici koji zauzimaju korisničko mjesto: {{.used}}; licencirana korisnička mjesta: {{.seats}} ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Kupi dodatna korisnička mjesta ili deaktiviraj korisnike kojima pristup više nije potreban. Deaktivirani korisnici ne zauzimaju korisničko mjesto."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Više korisnika nego licenciranih korisničkih mjesta"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Sesije istječu prema fiksnom rasporedu bez obzira na aktivnost, pa se aktivni korisnici odjavljuju. Većini instalacija koristi da aktivni korisnici ostanu prijavljeni."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Uključi ServiceSettings.ExtendSessionLengthWithActivity, osim ako to zabranjuju tvoja sigurnosna pravila."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity je isključen"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Test veze sa SMTP serverom nije uspio: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Test veze sa SMTP serverom nije uspio na čvorovima {{.nodes}}, dok ga ostali čvorovi dosežu. Provjeri postavke mreže, vatrozida, proxyja i DNS-a na tim čvorovima. Greška: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "E-mail obavijesti, pozivnice i e-mailovi za ponovno postavljanje lozinke možda se neće isporučiti. U Konzoli sustava provjeri SMTP server, port, sigurnost veze i vjerodajnice, potvrdi da Mattermost server može dosegnuti SMTP host, a zatim to provjeri gumbom „Testiraj vezu”."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Test veze sa SMTP serverom nije uspio"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Najnovije izdanje nije poznato: nije ga bilo moguće dohvatiti ili nije zabilježeno u paketu podrške."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Najnovije izdanje nije provjereno: postavka Omogući sigurnosna upozorenja je isključena, pa ga server ne dohvaća."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Ova verzija nije u tablici izdanja ugrađenoj u ovaj program. Za procjenu paketa podrške s novijeg servera koristi noviji mmctl."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Verzija servera nije poznata ili nije prepoznata."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Pokrenuta je verzija {{.version}}. Najnovije izdanje je {{.latest}}, novije za dva ili više izdanja."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Planiraj nadogradnju na najnovije izdanje prije nego što prestane podrška za ovu liniju izdanja ili prijeđi na izdanje s produljenom podrškom radi rjeđih nadogradnji."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Server zaostaje nekoliko izdanja za najnovijim izdanjem"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Pokrenuta je verzija {{.version}}. Najnovije izdanje je {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Planiraj nadogradnju na najnovije izdanje."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Dostupno je novije izdanje"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Pokrenut je Mattermost {{.version}}. Podrška za ovu liniju izdanja prestala je {{.eol_date}}. Za ovu liniju izdanja više ne izlaze sigurnosne zakrpe."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Pokrenut je Mattermost {{.version}}, starija linija izdanja koja više nije podržana. Za ovu liniju izdanja više ne izlaze sigurnosne zakrpe."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Pokrenut je Mattermost {{.version}}, starija linija izdanja koja više nije podržana. Za ovu liniju izdanja više ne izlaze sigurnosne zakrpe. Najnovije podržano izdanje s produljenom podrškom je {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Pokrenut je Mattermost {{.version}}. Podrška za ovu liniju izdanja prestala je {{.eol_date}}. Za ovu liniju izdanja više ne izlaze sigurnosne zakrpe. Nadogradi na najnovije izdanje."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Pokrenut je Mattermost {{.version}}. Podrška za ovu liniju izdanja prestala je {{.eol_date}}. Za ovu liniju izdanja više ne izlaze sigurnosne zakrpe. Najnovije podržano izdanje s produljenom podrškom je {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Planiraj postupnu nadogradnju na podržano izdanje s produljenom podrškom ili na najnovije izdanje. Podržane verzije navedene su na https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost verzija dosegla je kraj životnog vijeka"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Pokrenuta je verzija {{.version}} na izdanju s produljenom podrškom {{.esr}}. Planiraj nadogradnju prije {{.eol_date}} kako bi server i dalje primao sigurnosne zakrpe."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Zakaži nadogradnju na najnovije izdanje ili na sljedeće izdanje s produljenom podrškom."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Izdanje s produljenom podrškom bliži se kraju životnog vijeka"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Radnje pristupa kanalu u pravilu dozvola mogu se odnositi samo na ulogu Korisnik sustava, Gost sustava ili Administrator sustava."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Pravilo pristupa kanalu unutar pravila dozvola ne može navesti vlastitu ulogu. Primjenjuje se uloga pravila dozvola."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Radnja Upravljanje kanalom dopuštena je samo na pravilima dozvola i pravilima kanala."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Radnja Pristup kanalu za čitanje dopuštena je samo na pravilima dozvola i pravilima kanala."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Radnja Pristup kanalu za pisanje dopuštena je samo na pravilima dozvola i pravilima kanala."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Došlo je do interne greške."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Prefiks Redis predmemorije ne smije sadržavati ':', '*', '?', '[', ']' ni '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert i RedisTLSClientKey moraju se postaviti zajedno."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Dodatni opsezi moraju biti nazivi OAuth opsega odvojeni razmacima, ukupno najviše {{.MaxLength}} znakova."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Neispravan filtar polja. Naziv polja može imati najviše {{.MaxLength}} znakova i ne smije biti prazan, „level” ni „timestamp”."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Neispravan filtar polja. Vrijednost polja može imati najviše {{.MaxLength}} znakova."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Neispravan filtar polja. Svako polje mora imati od 1 do {{.MaxValues}} vrijednosti."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Neispravan filtar polja. Može se filtrirati po najviše {{.MaxKeys}} polja."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Neispravan filtar pretrage. Može imati najviše {{.MaxLength}} znakova."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Nije moguće dohvatiti pratitelje niti."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Server ne podržava ispisivanje ključeva dodatka s opcijama."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Nije moguće ispisati ključeve dodatka s opcijama."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Neispravan ID niti."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Neispravan ID korisnika."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Objava je odgovor, a ne korijenska objava niti."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Neispravan stvaratelj datoteke."
   }
 ]
