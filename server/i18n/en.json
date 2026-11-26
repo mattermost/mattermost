@@ -2476,6 +2476,11 @@
     "description": "Display name of the /shrug slash command in the slash command autocomplete list."
   },
   {
+    "id": "api.command_test.permission.app_error",
+    "translation": "You don't have enough permissions to run this command.",
+    "description": "Ephemeral error when a user without system admin permission runs any /test slash command subcommand other than help. Only shown when testing commands are enabled."
+  },
+  {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config.",
     "description": "Admin API error when merging the stored configuration with restricted defaults fails while reading the config; 'config' is the server configuration."

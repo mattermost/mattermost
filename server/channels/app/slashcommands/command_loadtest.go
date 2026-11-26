@@ -155,6 +155,14 @@ func (lt *LoadTestProvider) doCommand(a *app.App, rctx request.CTX, args *model.
 		return &model.CommandResponse{}, nil
 	}
 
+	if message == "" || strings.HasPrefix(message, "help") {
+		return lt.HelpCommand(args, message), nil
+	}
+
+	if !a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem) {
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_test.permission.app_error")}, nil
+	}
+
 	if strings.HasPrefix(message, "setup") {
 		return lt.SetupCommand(a, rctx, args, message)
 	}

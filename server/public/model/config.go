@@ -430,7 +430,7 @@ type ServiceSettings struct {
 	EnableLinkPreviews                     *bool    `access:"site_posts"`
 	EnablePermalinkPreviews                *bool    `access:"site_posts"`
 	RestrictLinkPreviews                   *string  `access:"site_posts"`
-	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable,manage_system_write"`
 	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
