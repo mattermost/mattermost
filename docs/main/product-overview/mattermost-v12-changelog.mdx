@@ -34,16 +34,13 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
- - **Changes to Enterprise Advanced Plans:**
+ - **Changes to Enterprise Plans:**
    - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting to specify the TLS CA certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientCert`` configuration setting to specify the TLS client certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientKey`` configuration setting to specify the TLS client key for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSSkipVerify`` configuration setting to skip TLS verification for Redis connections.
- - **Changes to Enterprise Plans:**
-   - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting.
  - **Changes to All Plans:**
-   - Under ``SSOSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting.
    - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
@@ -237,6 +234,10 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
 
 ### API Changes
  - Added ``POST /api/v4/properties/groups/access_control/attributes/search`` (``searchGlobalAttributeListing``) API endpoint. The Global Attributes page now loads with a single request.
+ - Added ``GET /api/v4/properties/groups/{group_name}/{object_type}/fields/missing_values/summary`` (``getPropertyFieldsComplianceSummary``) API endpoint.
+ - Added ``GET /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values`` (``getPropertyFieldMissingValues``) API endpoint.
+ - Added ``POST /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values/notify`` (``notifyPropertyFieldMissingValues``) API endpoint.
+ - Added ``GET /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values/summary`` (``getPropertyFieldComplianceSummary``) API endpoint.
  - Added an optional ``search`` field to ``POST /api/v4/logs/query`` that searches each node's log file on the server.
  - Added support for setting post attribute values when creating a post: ``POST /api/v4/posts`` accepts them in ``metadata.property_values``, and they are returned in the response and the posted websocket event. Available behind the ``PostAttributes`` feature flag.
  - ``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` and ``direction=down`` now includes replies deleted since ``fromUpdateAt``, returned with ``delete_at`` set and without their message or metadata.
@@ -252,6 +253,13 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Removed the ``First-Inaccessible-File-Time`` response header from file and post endpoints.
 
 ### Audit Log Event Changes
+ - Added ``AuditEventGetPropertyFieldComplianceSummary`` audit log event.
+ - Added ``AuditEventGetPropertyFieldMissingValues`` audit log event.
+ - Added ``AuditEventGetPropertyFieldsComplianceSummary`` audit log event.
+ - Added ``AuditEventLocalAddPluginPublicKey`` audit log event.
+ - Added ``AuditEventLocalDeletePluginPublicKey`` audit log event.
+ - Added ``AuditEventNotifyPropertyFieldMissingValues`` audit log event.
+ - Added ``AuditEventSearchGlobalAttributeListing`` audit log event.
  - Added ``meta.user_created`` to ``completeSaml`` and ``completeOAuth`` audit events to indicate JIT account provisioning.
 
 ### Go Version
