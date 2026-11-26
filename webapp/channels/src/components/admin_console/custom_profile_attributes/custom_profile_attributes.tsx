@@ -30,14 +30,14 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
-const msg = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.customProfileAttributes.title', defaultMessage: 'User attributes sync'},
     subtitle: {id: 'admin.customProfileAttributes.subtitle', defaultMessage: 'You can add or remove user attributes on the <link>Attribute Management</link> page.'},
 });
 
 // The settings pages that mount this component must index these, since a
 // custom setting contributes no text to the System Console search on its own.
-export const searchableStrings: SearchableStrings = Object.values(msg);
+export const searchableStrings: SearchableStrings = Object.values(messages);
 
 type AttributeHelpTextProps = {
     attributeKey: ExternalSource;
@@ -190,11 +190,11 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
         <div className='custom-profile-attributes'>
             <SettingsGroup
                 id={props.id}
-                title={msg.title}
+                title={messages.title}
                 container={false}
                 subtitle={
                     <FormattedMessage
-                        {...msg.subtitle}
+                        {...messages.subtitle}
                         values={{
                             link: (msg) => (
                                 <Link
