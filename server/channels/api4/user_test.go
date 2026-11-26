@@ -12988,6 +12988,38 @@ func TestSessionAttributesProxyDeviceIDIsRequestScoped(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+
+	t.Run("a cookie-authenticated upgrade that fails device ID consistency is rejected", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.EnforceDeviceIDConsistency = true })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.EnforceDeviceIDConsistency = false })
+		})
+
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		viaManagedProxy := model.NewAPIv4Client(proxyServer.URL)
+		viaManagedProxy.SetToken(client.AuthToken)
+		_, _, err = viaManagedProxy.GetMe(context.Background(), "")
+		require.NoError(t, err)
+
+		otherProxy := newDeviceProxy(t, "other-device")
+		wsURL := "ws" + strings.TrimPrefix(otherProxy.URL, "http") + model.APIURLSuffix + "/websocket"
+		conn, httpResp, err := websocket.DefaultDialer.Dial(wsURL, http.Header{
+			"Cookie": {model.SessionCookieToken + "=" + client.AuthToken},
+		})
+		if conn != nil {
+			t.Cleanup(func() { conn.Close() })
+		}
+		require.Error(t, err)
+		require.NotNil(t, httpResp)
+		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
+
+		_, resp, err := client.GetMe(context.Background(), "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func awaitWebSocketEvent(t *testing.T, client *model.WebSocketClient, eventType model.WebsocketEventType) *model.WebSocketEvent {

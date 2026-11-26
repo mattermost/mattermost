@@ -56,6 +56,17 @@ func (api *API) InitWebSocket() {
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
+	// ProcessSessionAttributesRequest runs in web.Handler before this handler and may
+	// have revoked the session on a device ID mismatch (leaving no request attributes).
+	if token := c.AppContext.Session().Token; token != "" &&
+		*c.App.Config().AccessControlSettings.EnforceDeviceIDConsistency &&
+		app.RequestSessionAttributes(c.AppContext) == nil {
+		if _, err := c.App.GetSession(token); err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SocketMaxMessageSizeKb,
 		WriteBufferSize: model.SocketMaxMessageSizeKb,
