@@ -176,6 +176,61 @@ func IsPluginAccessControlPolicyType(policyType string) bool {
 	return ok
 }
 
+// PluginAccessControlAllTiersAllowed reports whether pluginID may use plugin
+// access control policies on any license tier (behind the
+// PluginAccessControlAllTiers feature flag).
+func PluginAccessControlAllTiersAllowed(pluginID string) bool {
+	switch pluginID {
+	case "com.mattermost.conflux":
+		return true
+	default:
+		return false
+	}
+}
+
+// AttributeBasedAccessControlLicensed reports whether the full attribute-based
+// access control surface is available: an Enterprise Advanced license and
+// AccessControlSettings.EnableAttributeBasedAccessControl turned on. Safe to
+// call with a nil cfg or license.
+func AttributeBasedAccessControlLicensed(cfg *Config, license *License) bool {
+	if cfg == nil || !MinimumEnterpriseAdvancedLicense(license) {
+		return false
+	}
+	enabled := cfg.AccessControlSettings.EnableAttributeBasedAccessControl
+	return enabled != nil && *enabled
+}
+
+// PluginAccessControlCapabilities describes what a plugin may currently do for
+// its own access control policy types. PoliciesAvailable means it may save,
+// read, delete, and evaluate policies; ConditionsAvailable means those
+// policies may also use attribute conditions rather than only people-list
+// rules ("true" or user.id in [...]).
+type PluginAccessControlCapabilities struct {
+	PoliciesAvailable   bool `json:"policies_available"`
+	ConditionsAvailable bool `json:"conditions_available"`
+}
+
+// PluginAccessControlMode reports how policies of policyType may be used under
+// the given config and license. Policies are available when
+// AttributeBasedAccessControlLicensed holds (conditions allowed), or when the
+// PluginAccessControlAllTiers flag is on and the owning plugin is allow-listed
+// (people-list rules only). It does not check that an engine is ready to serve
+// the request; callers must also require that (core: the AccessControl service
+// is non-nil; enterprise: the engine is initialized).
+func PluginAccessControlMode(cfg *Config, license *License, policyType string) (available, conditionsAllowed bool) {
+	pluginID, _, ok := SplitPluginAccessControlPolicyType(policyType)
+	if !ok {
+		return false, false
+	}
+	if AttributeBasedAccessControlLicensed(cfg, license) {
+		return true, true
+	}
+	if cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PluginAccessControlAllTiers && PluginAccessControlAllTiersAllowed(pluginID) {
+		return true, false
+	}
+	return false, false
+}
+
 // PluginOwnsAccessControlPolicyType reports whether policyType is a
 // well-formed plugin policy type whose plugin-ID prefix is pluginID. The
 // prefix is the entire ownership check. The comparison is exact: the stored

@@ -139,6 +139,58 @@ func (_m *AccessControlServiceInterface) CheckMembershipExpression(rctx request.
 	return r0, r1
 }
 
+// CheckPluginExpression provides a mock function with given fields: rctx, policyType, expression, forSearch
+func (_m *AccessControlServiceInterface) CheckPluginExpression(rctx request.CTX, policyType string, expression string, forSearch bool) ([]model.CELExpressionError, *model.AppError) {
+	ret := _m.Called(rctx, policyType, expression, forSearch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckPluginExpression")
+	}
+
+	var r0 []model.CELExpressionError
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool) ([]model.CELExpressionError, *model.AppError)); ok {
+		return rf(rctx, policyType, expression, forSearch)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool) []model.CELExpressionError); ok {
+		r0 = rf(rctx, policyType, expression, forSearch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.CELExpressionError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, bool) *model.AppError); ok {
+		r1 = rf(rctx, policyType, expression, forSearch)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeletePluginPolicy provides a mock function with given fields: rctx, policyType, id
+func (_m *AccessControlServiceInterface) DeletePluginPolicy(rctx request.CTX, policyType string, id string) *model.AppError {
+	ret := _m.Called(rctx, policyType, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePluginPolicy")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
+		r0 = rf(rctx, policyType, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeletePolicy provides a mock function with given fields: rctx, id
 func (_m *AccessControlServiceInterface) DeletePolicy(rctx request.CTX, id string) *model.AppError {
 	ret := _m.Called(rctx, id)
@@ -157,6 +209,36 @@ func (_m *AccessControlServiceInterface) DeletePolicy(rctx request.CTX, id strin
 	}
 
 	return r0
+}
+
+// EvaluatePluginResource provides a mock function with given fields: rctx, accessRequest
+func (_m *AccessControlServiceInterface) EvaluatePluginResource(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError) {
+	ret := _m.Called(rctx, accessRequest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluatePluginResource")
+	}
+
+	var r0 model.AccessDecision
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) (model.AccessDecision, *model.AppError)); ok {
+		return rf(rctx, accessRequest)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) model.AccessDecision); ok {
+		r0 = rf(rctx, accessRequest)
+	} else {
+		r0 = ret.Get(0).(model.AccessDecision)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.AccessRequest) *model.AppError); ok {
+		r1 = rf(rctx, accessRequest)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // ExpressionToVisualAST provides a mock function with given fields: rctx, expression
@@ -214,6 +296,38 @@ func (_m *AccessControlServiceInterface) GetChannelMembersToRemove(rctx request.
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(rctx, channelID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPluginPolicy provides a mock function with given fields: rctx, policyType, id
+func (_m *AccessControlServiceInterface) GetPluginPolicy(rctx request.CTX, policyType string, id string) (*model.AccessControlPolicy, *model.AppError) {
+	ret := _m.Called(rctx, policyType, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginPolicy")
+	}
+
+	var r0 *model.AccessControlPolicy
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.AccessControlPolicy, *model.AppError)); ok {
+		return rf(rctx, policyType, id)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AccessControlPolicy); ok {
+		r0 = rf(rctx, policyType, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
+		r1 = rf(rctx, policyType, id)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -510,6 +624,34 @@ func (_m *AccessControlServiceInterface) OnPropertyFieldOptionsChanged(rctx requ
 	_m.Called(rctx, fieldID)
 }
 
+// PluginPolicyMode provides a mock function with given fields: rctx, policyType
+func (_m *AccessControlServiceInterface) PluginPolicyMode(rctx request.CTX, policyType string) (bool, bool) {
+	ret := _m.Called(rctx, policyType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PluginPolicyMode")
+	}
+
+	var r0 bool
+	var r1 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, bool)); ok {
+		return rf(rctx, policyType)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, policyType)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) bool); ok {
+		r1 = rf(rctx, policyType)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	return r0, r1
+}
+
 // QueryUsersForExpression provides a mock function with given fields: rctx, expression, opts
 func (_m *AccessControlServiceInterface) QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	ret := _m.Called(rctx, expression, opts)
@@ -540,6 +682,84 @@ func (_m *AccessControlServiceInterface) QueryUsersForExpression(rctx request.CT
 
 	if rf, ok := ret.Get(2).(func(request.CTX, string, model.SubjectSearchOptions) *model.AppError); ok {
 		r2 = rf(rctx, expression, opts)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
+// QueryUsersForPluginExpression provides a mock function with given fields: rctx, policyType, expression, opts
+func (_m *AccessControlServiceInterface) QueryUsersForPluginExpression(rctx request.CTX, policyType string, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	ret := _m.Called(rctx, policyType, expression, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for QueryUsersForPluginExpression")
+	}
+
+	var r0 []*model.User
+	var r1 int64
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)); ok {
+		return rf(rctx, policyType, expression, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.SubjectSearchOptions) []*model.User); ok {
+		r0 = rf(rctx, policyType, expression, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, model.SubjectSearchOptions) int64); ok {
+		r1 = rf(rctx, policyType, expression, opts)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, string, model.SubjectSearchOptions) *model.AppError); ok {
+		r2 = rf(rctx, policyType, expression, opts)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
+// QueryUsersForPluginResource provides a mock function with given fields: rctx, policyType, resourceID, action, opts
+func (_m *AccessControlServiceInterface) QueryUsersForPluginResource(rctx request.CTX, policyType string, resourceID string, action string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	ret := _m.Called(rctx, policyType, resourceID, action, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for QueryUsersForPluginResource")
+	}
+
+	var r0 []*model.User
+	var r1 int64
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)); ok {
+		return rf(rctx, policyType, resourceID, action, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, model.SubjectSearchOptions) []*model.User); ok {
+		r0 = rf(rctx, policyType, resourceID, action, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, model.SubjectSearchOptions) int64); ok {
+		r1 = rf(rctx, policyType, resourceID, action, opts)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, string, string, model.SubjectSearchOptions) *model.AppError); ok {
+		r2 = rf(rctx, policyType, resourceID, action, opts)
 	} else {
 		if ret.Get(2) != nil {
 			r2 = ret.Get(2).(*model.AppError)
@@ -609,6 +829,38 @@ func (_m *AccessControlServiceInterface) ResourcePolicyGovernsAction(rctx reques
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
 		r1 = rf(rctx, resourceID, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SavePluginPolicy provides a mock function with given fields: rctx, policy
+func (_m *AccessControlServiceInterface) SavePluginPolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	ret := _m.Called(rctx, policy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SavePluginPolicy")
+	}
+
+	var r0 *model.AccessControlPolicy
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)); ok {
+		return rf(rctx, policy)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) *model.AccessControlPolicy); ok {
+		r0 = rf(rctx, policy)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.AccessControlPolicy) *model.AppError); ok {
+		r1 = rf(rctx, policy)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

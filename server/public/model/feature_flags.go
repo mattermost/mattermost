@@ -70,6 +70,11 @@ type FeatureFlags struct {
 	// the webapp doesn't offer them, and rules already stored aren't enforced.
 	ChannelPermissionActions bool
 
+	// FEATURE_FLAG_REMOVAL: PluginAccessControlAllTiers - Remove this when the feature is GA.
+	// Lets allow-listed plugins save and evaluate people-list access policies
+	// without an Enterprise Advanced license. See PluginAccessControlMode.
+	PluginAccessControlAllTiers bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -240,6 +245,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ChannelPermissionActions = false
+	f.PluginAccessControlAllTiers = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 

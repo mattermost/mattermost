@@ -2227,3 +2227,103 @@ func TestCreateBurnOnReadPostAction(t *testing.T) {
 		require.Nil(t, policy.accessPolicyVersionV0_4())
 	})
 }
+
+func TestPluginAccessControlAllTiersAllowed(t *testing.T) {
+	require.True(t, PluginAccessControlAllTiersAllowed("com.mattermost.conflux"))
+	for _, id := range []string{"", "com.mattermost.other", "com.mattermost.conflux2", "COM.MATTERMOST.CONFLUX", "com.mattermost.conflux:page", " com.mattermost.conflux"} {
+		require.False(t, PluginAccessControlAllTiersAllowed(id), id)
+	}
+}
+
+func TestAttributeBasedAccessControlLicensed(t *testing.T) {
+	cfgWith := func(enabled *bool) *Config {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = enabled
+		return cfg
+	}
+	on, off := new(true), new(false)
+
+	t.Run("nil cfg", func(t *testing.T) {
+		require.False(t, AttributeBasedAccessControlLicensed(nil, &License{SkuShortName: LicenseShortSkuEnterpriseAdvanced}))
+	})
+	t.Run("nil license", func(t *testing.T) {
+		require.False(t, AttributeBasedAccessControlLicensed(cfgWith(on), nil))
+	})
+	t.Run("nil setting", func(t *testing.T) {
+		require.False(t, AttributeBasedAccessControlLicensed(cfgWith(nil), &License{SkuShortName: LicenseShortSkuEnterpriseAdvanced}))
+	})
+
+	skus := []struct {
+		sku      string
+		licensed bool
+	}{
+		{"", false},
+		{"unknown", false},
+		{LicenseShortSkuProfessional, false},
+		{LicenseShortSkuEnterprise, false},
+		{LicenseShortSkuEnterpriseAdvanced, true},
+		// Entry shares the Enterprise Advanced tier, so MinimumEnterpriseAdvancedLicense accepts it.
+		{LicenseShortSkuMattermostEntry, true},
+	}
+	for _, tc := range skus {
+		t.Run("sku "+tc.sku, func(t *testing.T) {
+			license := &License{SkuShortName: tc.sku}
+			require.Equal(t, tc.licensed, AttributeBasedAccessControlLicensed(cfgWith(on), license))
+			require.False(t, AttributeBasedAccessControlLicensed(cfgWith(off), license))
+			require.False(t, AttributeBasedAccessControlLicensed(cfgWith(nil), license))
+		})
+	}
+}
+
+func TestPluginAccessControlMode(t *testing.T) {
+	const (
+		conflux = "com.mattermost.conflux:page"
+		other   = "com.example.other:page"
+	)
+	ea := &License{SkuShortName: LicenseShortSkuEnterpriseAdvanced}
+	enterprise := &License{SkuShortName: LicenseShortSkuEnterprise}
+
+	cfg := func(flag, abac bool) *Config {
+		c := &Config{}
+		c.SetDefaults()
+		c.FeatureFlags.PluginAccessControlAllTiers = flag
+		c.AccessControlSettings.EnableAttributeBasedAccessControl = new(abac)
+		return c
+	}
+
+	tests := []struct {
+		name       string
+		cfg        *Config
+		license    *License
+		policyType string
+		available  bool
+		conditions bool
+	}{
+		{"non-plugin type, licensed", cfg(true, true), ea, AccessControlPolicyTypeChannel, false, false},
+		{"empty type", cfg(true, true), ea, "", false, false},
+		{"malformed plugin type", cfg(true, true), ea, "com.mattermost.conflux:", false, false},
+		{"licensed, flag off", cfg(false, true), ea, conflux, true, true},
+		{"licensed, flag on", cfg(true, true), ea, conflux, true, true},
+		{"licensed, other plugin, flag off", cfg(false, true), ea, other, true, true},
+		{"licensed, other plugin, flag on", cfg(true, true), ea, other, true, true},
+		{"EA, config off, flag on, allow-listed", cfg(true, false), ea, conflux, true, false},
+		{"EA, config off, flag on, other plugin", cfg(true, false), ea, other, false, false},
+		{"EA, config off, flag off", cfg(false, false), ea, conflux, false, false},
+		{"enterprise, flag on, allow-listed", cfg(true, true), enterprise, conflux, true, false},
+		{"enterprise, flag on, other plugin", cfg(true, true), enterprise, other, false, false},
+		{"enterprise, flag off", cfg(false, true), enterprise, conflux, false, false},
+		{"no license, flag on, allow-listed", cfg(true, true), nil, conflux, true, false},
+		{"no license, flag on, other plugin", cfg(true, true), nil, other, false, false},
+		{"no license, flag off", cfg(false, false), nil, conflux, false, false},
+		{"nil cfg, EA", nil, ea, conflux, false, false},
+		{"nil feature flags", &Config{}, nil, conflux, false, false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			available, conditions := PluginAccessControlMode(tc.cfg, tc.license, tc.policyType)
+			require.Equal(t, tc.available, available)
+			require.Equal(t, tc.conditions, conditions)
+		})
+	}
+}
