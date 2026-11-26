@@ -107,7 +107,6 @@ type SqlStoreStores struct {
 	channelBookmarks           store.ChannelBookmarkStore
 	channelGuard               store.ChannelGuardStore
 	scheduledPost              store.ScheduledPostStore
-	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
@@ -303,7 +302,6 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.channelGuard = newSqlChannelGuardStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
-	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
@@ -930,10 +928,6 @@ func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 
 func (ss *SqlStore) ChannelGuard() store.ChannelGuardStore {
 	return ss.stores.channelGuard
-}
-
-func (ss *SqlStore) View() store.ViewStore {
-	return ss.stores.view
 }
 
 func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {

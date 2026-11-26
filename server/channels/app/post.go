@@ -1626,39 +1626,6 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	return postList, nil
 }
 
-// GetPostsForView returns posts for a specific view. Currently returns all channel posts.
-// TODO: In the future, this will filter posts based on the view's configuration (e.g., property values, sort order).
-func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
-		return nil, appErr
-	}
-
-	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts_for_view.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	var appErr *model.AppError
-	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, appErr
-	}
-
-	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
-
-	return postList, nil
-}
-
 func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	options := model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}
 	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {

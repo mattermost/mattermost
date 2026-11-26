@@ -1,11 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {BOARDS_COLOR_TOKEN_NAMES} from '@mattermost/types/properties_board';
-
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
-import {COLOR_DESCRIPTOR} from 'utils/board_property_colors';
+/**
+ * Background colours of the option-chip palette, keyed by the token name that is
+ * stored on a property option's `color`. Foregrounds are derived, see PALETTE_COLORS.
+ */
+export const PROPERTY_OPTION_PALETTE_COLORS = {
+    default: '#f0f0f1',
+    brown: '#f1d9bb',
+    orange: '#f8cfb9',
+    yellow: '#f4eead',
+    green: '#c5e6bb',
+    blue: '#aec9f5',
+    purple: '#dfcaff',
+    pink: '#f9d2e6',
+    red: '#f3a4a0',
+} as const;
+
+export type PropertyOptionPaletteToken = keyof typeof PROPERTY_OPTION_PALETTE_COLORS;
+
+export const PROPERTY_OPTION_PALETTE_TOKENS = Object.keys(PROPERTY_OPTION_PALETTE_COLORS) as PropertyOptionPaletteToken[];
 
 export type OptionChipColors = {
     backgroundColor: string;
@@ -40,14 +56,14 @@ const SEMANTIC_COLORS = new Map<string, OptionChipColors>([
 ]);
 
 /**
- * The boards palette, with each foreground *derived* from its background rather
+ * The option palette, with each foreground *derived* from its background rather
  * than hand-authored. Nine backgrounds and nine foregrounds drift apart the first
  * time someone tweaks a pastel; a derivation cannot. Both are opaque hex, so the
  * pair holds its contrast in every theme.
  */
-const BOARDS_COLORS = new Map<string, OptionChipColors>(
-    BOARDS_COLOR_TOKEN_NAMES.map((token) => {
-        const backgroundColor = COLOR_DESCRIPTOR[token].color;
+const PALETTE_COLORS = new Map<string, OptionChipColors>(
+    PROPERTY_OPTION_PALETTE_TOKENS.map((token) => {
+        const backgroundColor = PROPERTY_OPTION_PALETTE_COLORS[token];
 
         return [token, {backgroundColor, color: getContrastingSimpleColor(backgroundColor)}];
     }),
@@ -63,5 +79,5 @@ export function resolveOptionChipColors(colorName?: string): OptionChipColors {
         return NEUTRAL;
     }
 
-    return SEMANTIC_COLORS.get(colorName) ?? BOARDS_COLORS.get(colorName) ?? NEUTRAL;
+    return SEMANTIC_COLORS.get(colorName) ?? PALETTE_COLORS.get(colorName) ?? NEUTRAL;
 }

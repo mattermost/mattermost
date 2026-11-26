@@ -184,13 +184,11 @@ func TestMissingRequiredChannelAttributes(t *testing.T) {
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
 		for name, channel := range map[string]*model.Channel{
-			"archived":      {Id: model.NewId(), Type: model.ChannelTypeOpen, DeleteAt: model.GetMillis()},
-			"direct":        {Id: model.NewId(), Type: model.ChannelTypeDirect},
-			"group":         {Id: model.NewId(), Type: model.ChannelTypeGroup},
-			"open board":    {Id: model.NewId(), Type: model.ChannelTypeOpenBoard},
-			"private board": {Id: model.NewId(), Type: model.ChannelTypePrivateBoard},
-			"space":         {Id: model.NewId(), Type: model.ChannelTypeSpace},
-			"nil":           nil,
+			"archived": {Id: model.NewId(), Type: model.ChannelTypeOpen, DeleteAt: model.GetMillis()},
+			"direct":   {Id: model.NewId(), Type: model.ChannelTypeDirect},
+			"group":    {Id: model.NewId(), Type: model.ChannelTypeGroup},
+			"space":    {Id: model.NewId(), Type: model.ChannelTypeSpace},
+			"nil":      nil,
 		} {
 			t.Run(name, func(t *testing.T) {
 				missing, err := th.App.missingRequiredChannelAttributes(th.Context, channel)

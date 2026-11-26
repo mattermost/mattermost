@@ -179,8 +179,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
                 for (const seed of seeds) {
-                    // Re-rooted `has` probe on the name cell's testid+text, mirroring the
-                    // established row-lookup pattern (see board_attributes.ts's rowByName).
+                    // Re-rooted `has` probe on the name cell's testid+text
                     const row = systemConsolePage.page.locator('tr', {
                         has: systemConsolePage.page
                             .getByTestId('global-attribute-name')

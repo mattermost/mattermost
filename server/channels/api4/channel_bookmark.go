@@ -12,11 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func rejectExternallyManagedBookmarkWrite(op string) *model.AppError {
-	return model.NewAppError(op, "api.channel.bookmark.board.readonly.app_error", nil,
-		"bookmark type is managed outside the channel bookmarks API", http.StatusBadRequest)
-}
-
 // stripBookmarkFileInfoIfDenied redacts FileInfo (and the mini_preview it carries) from every
 // bookmark in bookmarks when the requesting session is denied the download_file_attachment
 // action for channelID. All bookmarks are assumed to belong to the same channel, so a single
@@ -91,11 +86,6 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", channelBookmark)
-
-	if model.IsExternallyManagedChannelBookmarkType(channelBookmark.Type) {
-		c.Err = rejectExternallyManagedBookmarkWrite("createChannelBookmark")
-		return
-	}
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -248,11 +238,6 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	// The channel bookmark should belong to the same channel specified in the URL
 	if originalChannelBookmark.ChannelId != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
-		return
-	}
-
-	if model.IsExternallyManagedChannelBookmarkType(originalChannelBookmark.Type) {
-		c.Err = rejectExternallyManagedBookmarkWrite("updateChannelBookmark")
 		return
 	}
 
@@ -474,10 +459,6 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	// The channel bookmark should belong to the same channel specified in the URL
 	if oldBookmark.ChannelId != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
-		return
-	}
-	if model.IsExternallyManagedChannelBookmarkType(oldBookmark.Type) {
-		c.Err = rejectExternallyManagedBookmarkWrite("deleteChannelBookmark")
 		return
 	}
 	auditRec.AddEventPriorState(oldBookmark)

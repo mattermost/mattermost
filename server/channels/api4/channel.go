@@ -18,17 +18,6 @@ import (
 
 const maxListSize = 1000
 
-// rejectBoardChannelByID returns true and sets c.Err if the channel ID belongs
-// to a board channel. Board channels must use the /boards endpoints, not /channels.
-// Use this on write endpoints to give a clear error instead of a 404.
-func rejectBoardChannelByID(c *Context, channelId string) bool {
-	if _, err := c.App.GetBoardChannel(c.AppContext, channelId); err == nil {
-		c.Err = model.NewAppError("", "api.channel.board_channel.app_error", nil, "board channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
-		return true
-	}
-	return false
-}
-
 // rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
 // to a space channel. Space channels must use the spaces API, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
@@ -131,11 +120,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	channel := &req.Channel
-
-	if channel.IsBoard() {
-		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
-		return
-	}
 
 	if channel.IsSpace() {
 		c.SetInvalidParamWithDetails("type", "cannot create space channels via /channels endpoint")
@@ -2307,13 +2291,6 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if view.ChannelId != "" && rejectBoardChannelByID(c, view.ChannelId) {
-		return
-	}
-	if view.PrevChannelId != "" && rejectBoardChannelByID(c, view.PrevChannelId) {
-		return
-	}
-
 	// The client's detection point for losing access mid-session, so the channel being
 	// opened reports its denial, before ViewChannel can move the read marker. The
 	// previous channel is only being left behind, so dropping it is enough.
@@ -2431,10 +2408,6 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
@@ -2473,10 +2446,6 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
@@ -2510,10 +2479,6 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2560,10 +2525,6 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -3494,10 +3455,6 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

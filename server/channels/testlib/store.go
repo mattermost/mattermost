@@ -42,7 +42,6 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "RestrictUnauthenticatedWebappPluginsMigrationComplete").Return(&model.System{Name: "RestrictUnauthenticatedWebappPluginsMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
-	systemStore.On("GetByName", "boards_property_setup_done").Return(&model.System{Name: "boards_property_setup_done", Value: "v1"}, nil)
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "v2"}, nil)
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "session_attributes_setup_done").Return(&model.System{Name: "session_attributes_setup_done", Value: "true"}, nil)
@@ -160,13 +159,11 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	accessControlGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	contentFlaggingGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1}
 	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
-	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	sessionAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2}
 
 	groupsByName[accessControlGroup.Name] = accessControlGroup
 	groupsByName[contentFlaggingGroup.Name] = contentFlaggingGroup
 	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup
-	groupsByName[boardsGroup.Name] = boardsGroup
 	groupsByName[sessionAttributesGroup.Name] = sessionAttributesGroup
 
 	propertyGroupStore.On("Register", mock.AnythingOfType("*model.PropertyGroup")).Return(
@@ -195,7 +192,6 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Get", model.AccessControlPropertyGroupName).Return(accessControlGroup, nil)
 	propertyGroupStore.On("Get", model.ContentFlaggingGroupName).Return(contentFlaggingGroup, nil)
 	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
-	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
 
 	// The access control hook resolves a field's group by ID to read its
@@ -230,13 +226,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore.On("GetFieldByName", mock.Anything, managedCategoryGroup.ID, "", model.ManagedCategoryPropertyFieldName).Return(managedCategoryField, nil)
 	propertyFieldStore.On("GetFieldByNameForObjectType", mock.Anything, managedCategoryGroup.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName).Return(managedCategoryField, nil)
 
-	boardField := &model.PropertyField{ID: model.NewId(), GroupID: boardsGroup.ID, Name: model.BoardsPropertyFieldNameBoard}
-	propertyFieldStore.On("GetFieldByName", mock.Anything, boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
 	propertyFieldStore.On("GetFieldByName", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
 	propertyFieldStore.On("GetFieldByNameForObjectType", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
-
-	viewStore := mocks.ViewStore{}
-	mockStore.On("View").Return(&viewStore)
 
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)

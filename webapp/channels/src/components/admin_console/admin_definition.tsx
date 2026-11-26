@@ -54,7 +54,6 @@ import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
-import BoardAttributes, {searchableStrings as boardAttributesSearchableStrings} from './board_attributes';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
@@ -682,19 +681,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'UserAttributesRedirect',
                     component: UserAttributesRedirect,
-                },
-            },
-            board_attributes: {
-                url: 'system_attributes/board_attributes',
-                title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
-                searchableStrings: boardAttributesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'IntegratedBoards'),
-                )),
-                schema: {
-                    id: 'BoardAttributes',
-                    component: BoardAttributes,
                 },
             },
             classification_attribute: {

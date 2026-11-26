@@ -20,7 +20,7 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 	th := Setup(t)
 	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
 
-	boardsGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2})
+	sessionAttributesGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
 	th.service.AddHook(NewAccessControlHook(th.service, nil, defaultLadderCheckerForTests, nil))
@@ -29,32 +29,32 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 	// row written before this whole effort shipped is in: legacy columns set,
 	// no Permissions object at all.
 	legacyField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:         boardsGroup.ID,
-		Name:            model.BoardsPropertyFieldAssignee,
-		Type:            model.PropertyFieldTypeUser,
-		ObjectType:      model.PropertyFieldObjectTypePost,
+		GroupID:         sessionAttributesGroup.ID,
+		Name:            model.SessionAttributesPropertyFieldIPAddress,
+		Type:            model.PropertyFieldTypeText,
+		ObjectType:      model.PropertyFieldObjectTypeSession,
 		TargetType:      string(model.PropertyFieldTargetLevelSystem),
 		Protected:       true,
 		PermissionField: model.NewPointer(model.PermissionLevelNone),
 	})
 	require.Nil(t, legacyField.Permissions)
 
-	require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, boardsGroup.ID, model.BoardsPropertyGroupName))
+	require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, sessionAttributesGroup.ID, model.SessionAttributesPropertyGroupName))
 
-	converted, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, legacyField.ID)
+	converted, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, legacyField.ID)
 	require.NoError(t, err)
 	require.NotNil(t, converted.Permissions)
-	require.NotNil(t, converted.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
-		"converted field should carry the boards service grant")
+	require.NotNil(t, converted.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.SessionAttributesPropertyGroupName, "", model.PropertyActionFieldWrite),
+		"converted field should carry the session_attributes service grant")
 
 	t.Run("is idempotent", func(t *testing.T) {
-		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, boardsGroup.ID, model.BoardsPropertyGroupName))
+		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, sessionAttributesGroup.ID, model.SessionAttributesPropertyGroupName))
 
-		again, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, legacyField.ID)
+		again, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, legacyField.ID)
 		require.NoError(t, err)
 		serviceGrants := 0
 		for _, grant := range again.Permissions.Grants {
-			if grant.Identity == (model.Identity{Type: model.PropertyOwnerTypeService, ID: model.BoardsPropertyGroupName}) {
+			if grant.Identity == (model.Identity{Type: model.PropertyOwnerTypeService, ID: model.SessionAttributesPropertyGroupName}) {
 				serviceGrants++
 			}
 		}
@@ -63,18 +63,18 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 
 	t.Run("the owning subsystem can write the converted field", func(t *testing.T) {
 		toUpdate := *converted
-		_, _, _, err := th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, []*model.PropertyField{&toUpdate})
+		_, _, _, err := th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, []*model.PropertyField{&toUpdate})
 		require.NoError(t, err)
 	})
 
 	t.Run("a different subsystem is refused field.write on it", func(t *testing.T) {
 		toUpdate := *converted
-		_, _, _, err := th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), boardsGroup.ID, []*model.PropertyField{&toUpdate})
+		_, _, _, err := th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDManagedCategorySystem), sessionAttributesGroup.ID, []*model.PropertyField{&toUpdate})
 		require.Error(t, err)
 	})
 
 	t.Run("revoking the grant takes the access away", func(t *testing.T) {
-		current, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, legacyField.ID)
+		current, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, legacyField.ID)
 		require.NoError(t, err)
 
 		revoked := *current.Permissions
@@ -85,21 +85,21 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 		// call the hook would let the subsystem itself make, since that would
 		// let a machine caller un-revoke its own access. Write it straight to
 		// the store, the way the API's own permissions write would land it.
-		_, err = th.dbStore.PropertyField().Update(boardsGroup.ID, []*model.PropertyField{current}, map[string]int64{current.ID: current.UpdateAt})
+		_, err = th.dbStore.PropertyField().Update(sessionAttributesGroup.ID, []*model.PropertyField{current}, map[string]int64{current.ID: current.UpdateAt})
 		require.NoError(t, err)
 
-		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, []*model.PropertyField{current})
+		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, []*model.PropertyField{current})
 		require.Error(t, err, "revoking the service grant must actually take the access away")
 
 		// A subsequent boot or migration run must not restore the revoked grant.
-		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, boardsGroup.ID, model.BoardsPropertyGroupName))
+		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, sessionAttributesGroup.ID, model.SessionAttributesPropertyGroupName))
 
-		afterBoot, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, legacyField.ID)
+		afterBoot, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, legacyField.ID)
 		require.NoError(t, err)
-		require.Nil(t, afterBoot.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
+		require.Nil(t, afterBoot.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.SessionAttributesPropertyGroupName, "", model.PropertyActionFieldWrite),
 			"ConvertSystemOwnedFields must not re-add a revoked grant")
 
-		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, []*model.PropertyField{current})
+		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, []*model.PropertyField{current})
 		require.Error(t, err, "subsystem must still be refused after subsequent ConvertSystemOwnedFields run")
 	})
 
@@ -108,26 +108,26 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 		propertyPermissionsBackfillPageSize = 1
 		t.Cleanup(func() { propertyPermissionsBackfillPageSize = orig })
 
-		// Created after the assignee field, so with one field per page it is
+		// Created after the ip_address field, so with one field per page it is
 		// only reached on the second page.
 		laterField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:         boardsGroup.ID,
-			Name:            model.BoardsPropertyFieldStatus,
-			Type:            model.PropertyFieldTypeSelect,
-			ObjectType:      model.PropertyFieldObjectTypePost,
+			GroupID:         sessionAttributesGroup.ID,
+			Name:            model.SessionAttributesPropertyFieldClientIPAddress,
+			Type:            model.PropertyFieldTypeText,
+			ObjectType:      model.PropertyFieldObjectTypeSession,
 			TargetType:      string(model.PropertyFieldTargetLevelSystem),
 			Protected:       true,
 			PermissionField: model.NewPointer(model.PermissionLevelNone),
 		})
 		require.Nil(t, laterField.Permissions)
 
-		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, boardsGroup.ID, model.BoardsPropertyGroupName))
+		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, sessionAttributesGroup.ID, model.SessionAttributesPropertyGroupName))
 
-		converted, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, laterField.ID)
+		converted, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), sessionAttributesGroup.ID, laterField.ID)
 		require.NoError(t, err)
 		require.NotNil(t, converted.Permissions)
-		require.NotNil(t, converted.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
-			"a field on a later page should carry the boards service grant too")
+		require.NotNil(t, converted.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.SessionAttributesPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"a field on a later page should carry the session_attributes service grant too")
 	})
 
 	t.Run("leaves a field in a version 1 group alone", func(t *testing.T) {

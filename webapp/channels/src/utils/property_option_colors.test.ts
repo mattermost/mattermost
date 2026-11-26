@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {BOARDS_COLOR_TOKEN_NAMES} from '@mattermost/types/properties_board';
-
-import {COLOR_DESCRIPTOR} from 'utils/board_property_colors';
-
-import {resolveOptionChipColors} from './property_option_colors';
+import {PROPERTY_OPTION_PALETTE_COLORS, PROPERTY_OPTION_PALETTE_TOKENS, resolveOptionChipColors} from './property_option_colors';
 
 const NEUTRAL = {
     backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
@@ -31,22 +27,22 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('resolveOptionChipColors', () => {
-    describe('boards palette tokens', () => {
-        it.each(BOARDS_COLOR_TOKEN_NAMES)('uses the %s token background from COLOR_DESCRIPTOR', (token) => {
-            expect(resolveOptionChipColors(token).backgroundColor).toBe(COLOR_DESCRIPTOR[token].color);
+    describe('palette tokens', () => {
+        it.each(PROPERTY_OPTION_PALETTE_TOKENS)('uses the %s token background from the palette', (token) => {
+            expect(resolveOptionChipColors(token).backgroundColor).toBe(PROPERTY_OPTION_PALETTE_COLORS[token]);
         });
 
         // The whole reason the foreground is derived rather than hand-authored:
         // nine backgrounds and nine foregrounds drift, a derivation cannot.
         // Both are opaque hex, so this holds in every theme.
-        it.each(BOARDS_COLOR_TOKEN_NAMES)('clears WCAG AA 4.5:1 for the %s token', (token) => {
+        it.each(PROPERTY_OPTION_PALETTE_TOKENS)('clears WCAG AA 4.5:1 for the %s token', (token) => {
             const {backgroundColor, color} = resolveOptionChipColors(token);
 
             expect(contrastRatio(color, backgroundColor)).toBeGreaterThanOrEqual(4.5);
         });
 
         it('derives black or white, never a theme variable', () => {
-            for (const token of BOARDS_COLOR_TOKEN_NAMES) {
+            for (const token of PROPERTY_OPTION_PALETTE_TOKENS) {
                 expect(resolveOptionChipColors(token).color).toMatch(/^#[0-9A-Fa-f]{6}$/);
             }
         });
@@ -81,8 +77,7 @@ describe('resolveOptionChipColors', () => {
 
         // Nothing on the server constrains `option.color` for all groups so one
         // feature's palette can reach another feature's renderer. The chip still
-        // renders and stays legible, so it falls back and says nothing, matching
-        // `normalizeColor` in utils/board_property_colors.
+        // renders and stays legible, so it falls back and says nothing.
         it('falls to neutral for an unrecognised token', () => {
             expect(resolveOptionChipColors('chartreuse')).toEqual(NEUTRAL);
         });

@@ -30,7 +30,6 @@ export const defaultFeatureFlags: Record<string, string> = {
     EnforceLogPathRoot: 'false',
     Entities: 'false',
     HealthDashboard: 'true',
-    IntegratedBoards: 'false',
     ManagedChannelCategories: 'false',
     MmBlocksEnabled: 'true',
     MobileEphemeralMode: 'false',

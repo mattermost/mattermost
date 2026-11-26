@@ -131,7 +131,6 @@ func collectFieldEvents(t *testing.T, client *model.WebSocketClient, n int) map[
 func TestPropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.PropertyFieldGraph = true
 	}).InitBasic(t)
 
@@ -919,7 +918,6 @@ func TestPropertyFieldOptionsAudit(t *testing.T) {
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
 		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.PropertyFieldGraph = true
 	})
 

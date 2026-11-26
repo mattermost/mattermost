@@ -30,7 +30,8 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, rctx, ss) })
 	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, rctx, ss) })
 	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, rctx, ss) })
-	t.Run("BoardBookmarkSaveAndGet", func(t *testing.T) { testBoardBookmarkSaveAndGet(t, rctx, ss, s) })
+	t.Run("LinkBookmarkPersistsNullTargetID", func(t *testing.T) { testLinkBookmarkPersistsNullTargetID(t, rctx, ss, s) })
+	t.Run("LegacyBoardBookmarkRowDoesNotBreakOtherBookmarks", func(t *testing.T) { testLegacyBoardBookmarkRowDoesNotBreakOtherBookmarks(t, rctx, ss, s) })
 }
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -564,35 +565,11 @@ func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testBoardBookmarkSaveAndGet(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testLinkBookmarkPersistsNullTargetID(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Helper()
 
 	channelID := model.NewId()
 	userID := model.NewId()
-	boardChannelID := model.NewId()
-	linkPath := "/team/boards/" + boardChannelID
-
-	bookmark := &model.ChannelBookmark{
-		ChannelId:   channelID,
-		OwnerId:     userID,
-		DisplayName: "Engineering Roadmap",
-		LinkUrl:     linkPath,
-		Type:        model.ChannelBookmarkBoard,
-		TargetId:    boardChannelID,
-	}
-
-	saved, err := ss.ChannelBookmark().Save(bookmark, true)
-	require.NoError(t, err)
-	require.NotNil(t, saved)
-	assert.Equal(t, model.ChannelBookmarkBoard, saved.Type)
-	assert.Equal(t, boardChannelID, saved.TargetId)
-	assert.Equal(t, linkPath, saved.LinkUrl)
-
-	loaded, err := ss.ChannelBookmark().Get(saved.Id, false)
-	require.NoError(t, err)
-	assert.Equal(t, model.ChannelBookmarkBoard, loaded.Type)
-	assert.Equal(t, boardChannelID, loaded.TargetId)
-	assert.Equal(t, linkPath, loaded.LinkUrl)
 
 	linkBookmark := &model.ChannelBookmark{
 		ChannelId:   channelID,
@@ -610,4 +587,76 @@ func testBoardBookmarkSaveAndGet(t *testing.T, _ request.CTX, ss store.Store, s 
 		linkSaved.Id)
 	require.NoError(t, err)
 	assert.Equal(t, 1, count, "link bookmarks must persist SQL NULL for targetid")
+}
+
+// Servers upgraded from builds with Integrated Boards can still hold channelbookmarks rows with
+// type 'board'. Those rows must not break listing or reordering the channel's other bookmarks.
+func testLegacyBoardBookmarkRowDoesNotBreakOtherBookmarks(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	t.Helper()
+
+	channelID := model.NewId()
+	userID := model.NewId()
+	legacyID := model.NewId()
+	legacyTargetID := model.NewId()
+	now := model.GetMillis()
+
+	first, err := ss.ChannelBookmark().Save(&model.ChannelBookmark{
+		ChannelId:   channelID,
+		OwnerId:     userID,
+		DisplayName: "First",
+		LinkUrl:     "https://example.com/first",
+		Type:        model.ChannelBookmarkLink,
+	}, true)
+	require.NoError(t, err)
+
+	_, err = s.GetMaster().Exec(
+		`INSERT INTO channelbookmarks
+			(id, createat, updateat, deleteat, channelid, ownerid, fileinfoid, displayname, sortorder, linkurl, imageurl, emoji, type, targetid)
+		VALUES (?, ?, ?, 0, ?, ?, '', 'Legacy board', 1, ?, '', '', 'board', ?)`,
+		legacyID, now, now, channelID, userID, "/team/boards/"+legacyTargetID, legacyTargetID)
+	require.NoError(t, err)
+
+	last, err := ss.ChannelBookmark().Save(&model.ChannelBookmark{
+		ChannelId:   channelID,
+		OwnerId:     userID,
+		DisplayName: "Last",
+		LinkUrl:     "https://example.com/last",
+		Type:        model.ChannelBookmarkLink,
+	}, true)
+	require.NoError(t, err)
+
+	ids := func(bookmarks []*model.ChannelBookmarkWithFileInfo) []string {
+		out := make([]string, 0, len(bookmarks))
+		for _, b := range bookmarks {
+			out = append(out, b.Id)
+		}
+		return out
+	}
+
+	t.Run("list returns the legacy row alongside other bookmarks", func(t *testing.T) {
+		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelID, 0)
+		require.NoError(t, err)
+		assert.Equal(t, []string{first.Id, legacyID, last.Id}, ids(bookmarks))
+		assert.Equal(t, model.ChannelBookmarkType("board"), bookmarks[1].Type)
+		assert.Equal(t, legacyTargetID, bookmarks[1].TargetId)
+	})
+
+	t.Run("reordering another bookmark succeeds", func(t *testing.T) {
+		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(last.Id, channelID, 0)
+		require.NoError(t, err)
+		assert.Equal(t, []string{last.Id, first.Id, legacyID}, ids(bookmarks))
+	})
+
+	t.Run("reordering the legacy row itself succeeds", func(t *testing.T) {
+		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(legacyID, channelID, 0)
+		require.NoError(t, err)
+		assert.Equal(t, []string{legacyID, last.Id, first.Id}, ids(bookmarks))
+	})
+
+	t.Run("legacy row can be deleted", func(t *testing.T) {
+		require.NoError(t, ss.ChannelBookmark().Delete(legacyID, false))
+		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelID, 0)
+		require.NoError(t, err)
+		assert.Equal(t, []string{last.Id, first.Id}, ids(bookmarks))
+	})
 }

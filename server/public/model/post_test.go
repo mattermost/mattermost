@@ -79,10 +79,6 @@ func TestPostIsValid(t *testing.T) {
 	o.Type = PostCustomTypePrefix + "type"
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)
-
-	o.Type = PostTypeCard
-	appErr = o.IsValid(maxPostSize)
-	require.Nil(t, appErr)
 }
 
 func TestAccessControlTeamPostTypes(t *testing.T) {

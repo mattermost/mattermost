@@ -35,7 +35,7 @@ type SqlChannelStore struct {
 
 // messageChannelTypes is the allow-list of channel types that participate in
 // regular messaging. Lookups, lists, and search use this so that any newly
-// introduced non-message channel type (e.g. boards) is excluded by default.
+// introduced non-message channel type (e.g. spaces) is excluded by default.
 var messageChannelTypes = []model.ChannelType{
 	model.ChannelTypeOpen,
 	model.ChannelTypePrivate,
@@ -678,10 +678,6 @@ func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChann
 		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
 	}
 
-	if channel.IsBoard() {
-		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
-	}
-
 	var newChannel *model.Channel
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -777,42 +773,6 @@ func (s SqlChannelStore) SaveDirectChannel(rctx request.CTX, directChannel *mode
 	}
 
 	return newChannel, nil
-}
-
-func (s SqlChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (_ *model.Channel, _ *model.View, err error) {
-	if channel.DeleteAt != 0 {
-		return nil, nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
-	}
-	if !channel.IsBoard() {
-		return nil, nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
-	}
-	if view == nil {
-		return nil, nil, store.NewErrInvalidInput("View", "nil", "view is required for board channels")
-	}
-
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	newChannel, err := s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-	if err != nil {
-		return newChannel, nil, err
-	}
-
-	// Do NOT call upsertPublicChannelT — boards must not appear in PublicChannels
-
-	view.ChannelId = newChannel.Id
-	if vErr := s.stores.view.(*SqlViewStore).saveViewT(transaction, view); vErr != nil {
-		return nil, nil, vErr
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, nil, errors.Wrap(err, "commit_transaction")
-	}
-
-	return newChannel, view, nil
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
@@ -1031,24 +991,6 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, er
 			return nil, store.NewErrNotFound("Channel", id)
 		}
 		return nil, errors.Wrapf(err, "failed to find channel with id = %s", id)
-	}
-
-	return &ch, nil
-}
-
-func (s SqlChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
-	ch := model.Channel{}
-	query := s.tableSelectQuery.Where(sq.And{
-		sq.Eq{"Id": id},
-		sq.Eq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
-	})
-
-	err := s.GetReplica().GetBuilder(&ch, query)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Channel", id)
-		}
-		return nil, errors.Wrapf(err, "failed to find board channel with id = %s", id)
 	}
 
 	return &ch, nil

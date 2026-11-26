@@ -12,8 +12,6 @@ import (
 func TestSystemOwnedFieldGrant(t *testing.T) {
 	t.Run("grants field.write, option.read and option.write to a group's own builtin field", func(t *testing.T) {
 		cases := []struct{ groupName, fieldName string }{
-			{BoardsPropertyGroupName, BoardsPropertyFieldAssignee},
-			{BoardsPropertyGroupName, BoardsPropertyFieldStatus},
 			{ManagedCategoryPropertyGroupName, ManagedCategoryPropertyFieldName},
 			{SessionAttributesPropertyGroupName, SessionAttributesPropertyFieldIPAddress},
 		}
@@ -27,8 +25,8 @@ func TestSystemOwnedFieldGrant(t *testing.T) {
 	})
 
 	t.Run("grants nothing to a field its migration does not seed", func(t *testing.T) {
-		require.Nil(t, SystemOwnedFieldGrant(BoardsPropertyGroupName, "custom_field"))
-		require.Nil(t, SystemOwnedFieldGrant("some_other_group", BoardsPropertyFieldAssignee))
+		require.Nil(t, SystemOwnedFieldGrant(ManagedCategoryPropertyGroupName, "custom_field"))
+		require.Nil(t, SystemOwnedFieldGrant("some_other_group", ManagedCategoryPropertyFieldName))
 	})
 
 	t.Run("every session attribute system field is covered", func(t *testing.T) {

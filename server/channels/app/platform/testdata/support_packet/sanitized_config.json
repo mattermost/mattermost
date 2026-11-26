@@ -747,7 +747,6 @@
         "BurnOnRead": false,
         "EnableAIPluginBridge": false,
         "EnableAIRecaps": false,
-        "IntegratedBoards": false,
         "EnableDocs": false,
         "ProductRail": false,
         "CJKSearch": false,

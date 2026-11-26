@@ -50,11 +50,6 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
-	postCardTypeCheckWithContext(where, c, scheduledPost.Type)
-	if c.Err != nil {
-		return
-	}
-
 	// Validate burn-on-read restrictions for scheduled post
 	post := &model.Post{
 		ChannelId: scheduledPost.ChannelId,

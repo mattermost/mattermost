@@ -651,18 +651,6 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
-func (c *Client4) boardsRoute() clientRoute {
-	return newClientRoute("boards")
-}
-
-func (c *Client4) viewsRoute(channelId string) clientRoute {
-	return c.channelRoute(channelId).Join("views")
-}
-
-func (c *Client4) viewRoute(channelId, viewId string) clientRoute {
-	return c.viewsRoute(channelId).Join(viewId)
-}
-
 func (c *Client4) clientPerfMetricsRoute() clientRoute {
 	return newClientRoute("client_perf")
 }
@@ -2869,18 +2857,6 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 // satisfy its own required attributes.
 func (c *Client4) CreateChannelWithPropertyValues(ctx context.Context, req *ChannelCreateRequest) (*Channel, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), req)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*Channel](r)
-}
-
-// CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
-// or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
-// on the server; otherwise the route is not registered and returns 404.
-func (c *Client4) CreateBoard(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.boardsRoute(), channel)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8093,112 +8069,6 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
-}
-
-// CreateView creates a view for a channel.
-func (c *Client4) CreateView(ctx context.Context, channelId string, view *View) (*View, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.viewsRoute(channelId), view)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*View](r)
-}
-
-// GetView gets a single view by ID.
-func (c *Client4) GetView(ctx context.Context, channelId, viewId string) (*View, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.viewRoute(channelId, viewId), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*View](r)
-}
-
-// GetViewsForChannel lists views for a channel with page-based pagination.
-func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, *Response, error) {
-	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), c.viewQueryValues(opts...), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*View](r)
-}
-
-// GetViewsForChannelWithCount lists views for a channel with page-based pagination and total count.
-func (c *Client4) GetViewsForChannelWithCount(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, int64, *Response, error) {
-	query := c.viewQueryValues(opts...)
-	query.Set("include_total_count", c.boolString(true))
-
-	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), query, "")
-	if err != nil {
-		return nil, 0, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	vwc, resp, err := DecodeJSONFromResponse[*ViewsWithCount](r)
-	if err != nil {
-		return nil, 0, resp, err
-	}
-	return vwc.Views, vwc.TotalCount, resp, nil
-}
-
-func (c *Client4) viewQueryValues(opts ...ViewQueryOpts) url.Values {
-	query := url.Values{}
-	if len(opts) > 0 {
-		o := opts[0]
-		if o.PerPage > 0 {
-			query.Set("per_page", strconv.Itoa(o.PerPage))
-		}
-		if o.Page > 0 {
-			query.Set("page", strconv.Itoa(o.Page))
-		}
-	}
-	return query
-}
-
-// GetPostsForView gets a page of posts for a specific view (board) in a channel.
-// TODO: Pagination will change once we support filtering/sorting by property values.
-func (c *Client4) GetPostsForView(ctx context.Context, channelId, viewId string, page, perPage int) (*PostList, *Response, error) {
-	values := url.Values{}
-	values.Set("page", strconv.Itoa(page))
-	values.Set("per_page", strconv.Itoa(perPage))
-	r, err := c.doAPIGetWithQuery(ctx, c.viewRoute(channelId, viewId).Join("posts"), values, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*PostList](r)
-}
-
-// UpdateView patches a view.
-func (c *Client4) UpdateView(ctx context.Context, channelId, viewId string, patch *ViewPatch) (*View, *Response, error) {
-	r, err := c.doAPIPatchJSON(ctx, c.viewRoute(channelId, viewId), patch)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*View](r)
-}
-
-// DeleteView soft-deletes a view.
-func (c *Client4) DeleteView(ctx context.Context, channelId, viewId string) (*Response, error) {
-	r, err := c.doAPIDelete(ctx, c.viewRoute(channelId, viewId))
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
-// UpdateViewSortOrder moves a view to a new position within its channel.
-func (c *Client4) UpdateViewSortOrder(ctx context.Context, channelId, viewId string, sortOrder int64) ([]*View, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.viewRoute(channelId, viewId).Join("sort_order"), sortOrder)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*View](r)
 }
 
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {

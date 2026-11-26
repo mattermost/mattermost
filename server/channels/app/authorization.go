@@ -540,7 +540,7 @@ func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string
 		return true, member
 	}
 
-	if (channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard) && !*a.Config().ComplianceSettings.Enable {
+	if (channel.Type == model.ChannelTypeOpen) && !*a.Config().ComplianceSettings.Enable {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel), false
 	}
 
@@ -568,7 +568,7 @@ func (a *App) hasPermissionToResolveChannelMentionRBAC(rctx request.CTX, userID 
 		return true
 	}
 
-	if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard {
+	if channel.Type == model.ChannelTypeOpen {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel)
 	}
 
@@ -585,7 +585,7 @@ func (a *App) hasPermissionToChannelMemberCountRBAC(rctx request.CTX, userID str
 		return true
 	}
 
-	if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard {
+	if channel.Type == model.ChannelTypeOpen {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionListTeamChannels)
 	}
 

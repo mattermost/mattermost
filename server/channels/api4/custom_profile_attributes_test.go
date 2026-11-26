@@ -2059,7 +2059,6 @@ func TestPatchCPAValuesForBotTarget(t *testing.T) {
 func TestBotWritesOwnCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
 		*cfg.ServiceSettings.EnableUserAccessTokens = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -2162,9 +2161,7 @@ func TestBotWritesOwnCPAValues(t *testing.T) {
 // their own value on a regular CPA field via the generic property API.
 func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	field := &model.PropertyField{
@@ -2223,9 +2220,7 @@ func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 // generic property API.
 func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	managedField := &model.PropertyField{
@@ -2307,9 +2302,7 @@ func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 // map level. Compare the explicit set of fields that should match instead.
 func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("create via CPA API, read via generic API", func(t *testing.T) {
@@ -2425,9 +2418,7 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 // generic properties API; these cases fail if that mapping drops those fields.
 func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("ListCPAFields preserves sort_order ordering", func(t *testing.T) {
@@ -2930,7 +2921,6 @@ func TestUserValuesTargetAccessAudit(t *testing.T) {
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
 		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
-		cfg.FeatureFlags.IntegratedBoards = true
 	})
 	th.App.Srv().SetLicense(license)
 	th.LoginBasic(t)

@@ -47,13 +47,6 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	}
 }
 
-func postCardTypeCheckWithContext(where string, c *Context, postType string) {
-	if appErr := app.PostCardTypeCheckWithApp(where, c.App, postType); appErr != nil {
-		appErr.Where = where
-		c.Err = appErr
-	}
-}
-
 // postBurnOnReadCheckWithContext runs the channel/participant checks and then
 // the ABAC create_burn_on_read_post policy check.
 //

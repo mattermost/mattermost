@@ -41,13 +41,9 @@ describe('bookmarkHasLinkUrl', () => {
         expect(bookmarkHasLinkUrl(makeBookmark({type: 'link', link_url: 'https://example.com'}))).toBe(true);
     });
 
-    test('returns true for board bookmarks with link_url', () => {
-        expect(bookmarkHasLinkUrl(makeBookmark({type: 'board', link_url: '/team/boards/abc123'}))).toBe(true);
-    });
-
     test('returns false when link_url is missing', () => {
         expect(bookmarkHasLinkUrl(makeBookmark({type: 'link', link_url: ''}))).toBe(false);
-        expect(bookmarkHasLinkUrl(makeBookmark({type: 'board', link_url: undefined}))).toBe(false);
+        expect(bookmarkHasLinkUrl(makeBookmark({type: 'link', link_url: undefined}))).toBe(false);
     });
 
     test('returns false for file bookmarks regardless of link_url', () => {
@@ -74,14 +70,6 @@ describe('shouldOpenBookmarkInNewTab', () => {
         expect(shouldOpenBookmarkInNewTab(bookmark, 'http://localhost')).toBe(true);
         expect(mockedShouldOpenInNewTab).toHaveBeenCalledWith('https://external.example', 'http://localhost');
     });
-
-    test('delegates to shouldOpenInNewTab for board bookmarks', () => {
-        const bookmark = makeBookmark({type: 'board', link_url: '/team/boards/abc'});
-        mockedShouldOpenInNewTab.mockReturnValue(false);
-
-        expect(shouldOpenBookmarkInNewTab(bookmark, 'http://localhost')).toBe(false);
-        expect(mockedShouldOpenInNewTab).toHaveBeenCalledWith('/team/boards/abc', 'http://localhost');
-    });
 });
 
 describe('copyBookmarkLink', () => {
@@ -94,13 +82,6 @@ describe('copyBookmarkLink', () => {
         copyBookmarkLink(makeBookmark({type: 'link', link_url: 'https://example.com/doc'}));
 
         expect(copyToClipboard).toHaveBeenCalledWith('https://example.com/doc');
-        expect(getFileDownloadUrl).not.toHaveBeenCalled();
-    });
-
-    test('copies link_url for board bookmarks', () => {
-        copyBookmarkLink(makeBookmark({type: 'board', link_url: '/team/boards/abc'}));
-
-        expect(copyToClipboard).toHaveBeenCalledWith('/team/boards/abc');
         expect(getFileDownloadUrl).not.toHaveBeenCalled();
     });
 

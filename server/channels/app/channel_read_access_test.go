@@ -1238,28 +1238,6 @@ func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 			},
 		},
 		{
-			name: "views",
-			events: []model.WebsocketEventType{
-				model.WebsocketEventViewCreated,
-				model.WebsocketEventViewUpdated,
-				model.WebsocketEventViewSorted,
-				model.WebsocketEventViewDeleted,
-			},
-			run: func(t *testing.T, h *channelReadAccessHarness) {
-				created, appErr := h.th.App.CreateView(h.rctx, makeTestView(h.th.BasicChannel.Id, h.th.BasicUser.Id), "")
-				require.Nil(t, appErr)
-
-				_, appErr = h.th.App.UpdateView(h.rctx, created,
-					&model.ViewPatch{Title: model.NewPointer("Renamed view")}, "")
-				require.Nil(t, appErr)
-
-				_, appErr = h.th.App.UpdateViewSortOrder(h.rctx, created.Id, h.th.BasicChannel.Id, 0, "")
-				require.Nil(t, appErr)
-
-				require.Nil(t, h.th.App.DeleteView(h.rctx, created, ""))
-			},
-		},
-		{
 			name: "channel properties",
 			events: []model.WebsocketEventType{
 				model.WebsocketEventPropertyFieldCreated,

@@ -4,10 +4,8 @@
 package app
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"os"
 	"reflect"
 
@@ -35,8 +33,6 @@ const (
 	contentFlaggingMigrationVersion                  = "v5"
 	managedCategorySetupDoneKey                      = "managed_category_setup_done"
 	managedCategoryMigrationVersion                  = "v2"
-	boardsPropertySetupDoneKey                       = "boards_property_setup_done"
-	boardsPropertyMigrationVersion                   = "v2"
 	cpaDisplayNameBackfillKey                        = "cpa_display_name_backfill_done"
 	cpaToGlobalAttributesMigrationKey                = "cpa_to_global_attributes_migration_done"
 	sessionAttributesMinDurationMigrationKey         = "session_attributes_min_duration_migration_done"
@@ -812,184 +808,6 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
-func (s *Server) doSetupBoardsProperties() error {
-	var nfErr *store.ErrNotFound
-	data, err := s.Store().System().GetByName(boardsPropertySetupDoneKey)
-	if err != nil && !errors.As(err, &nfErr) {
-		return fmt.Errorf("could not query boards migration: %w", err)
-	}
-
-	if data != nil && data.Value == boardsPropertyMigrationVersion {
-		return nil
-	}
-
-	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2})
-	if err != nil {
-		return fmt.Errorf("failed to register boards property group: %w", err)
-	}
-	// Must run before this migration's own hook-gated reads and writes below:
-	// a field from before the permissions object existed has none yet, and the
-	// hook refuses that outright, before ever consulting this migration's own
-	// caller identity or grant.
-	if convertErr := s.propertyService.ConvertSystemOwnedFields(request.EmptyContext(s.Log()), group.ID, model.BoardsPropertyGroupName); convertErr != nil {
-		return fmt.Errorf("failed to convert existing boards properties: %w", convertErr)
-	}
-
-	existingProperties, err := s.propertyService.SearchPropertyFields(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-	if err != nil {
-		return fmt.Errorf("failed to search for existing boards properties: %w", err)
-	}
-
-	existingPropertiesMap := map[string]*model.PropertyField{}
-	for _, property := range existingProperties {
-		existingPropertiesMap[property.Name] = property
-	}
-
-	// Default colours seeded by name. Used both when creating the Status field
-	// from scratch and when upgrading an existing v1 install (where we layer
-	// these colours onto the already-persisted options without rewriting their
-	// IDs — see mergeBoardsStatusColors below).
-	statusColorByName := map[string]string{
-		model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
-		model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
-		model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
-	}
-
-	expectedPropertiesMap := map[string]*model.PropertyField{
-		model.BoardsPropertyFieldAssignee: {
-			GroupID:         group.ID,
-			Name:            model.BoardsPropertyFieldAssignee,
-			Type:            model.PropertyFieldTypeUser,
-			ObjectType:      model.PropertyFieldObjectTypePost,
-			TargetType:      string(model.PropertyFieldTargetLevelSystem),
-			Protected:       true,
-			PermissionField: model.NewPointer(model.PermissionLevelNone),
-		},
-		model.BoardsPropertyFieldStatus: {
-			GroupID:         group.ID,
-			Name:            model.BoardsPropertyFieldStatus,
-			Type:            model.PropertyFieldTypeSelect,
-			ObjectType:      model.PropertyFieldObjectTypePost,
-			TargetType:      string(model.PropertyFieldTargetLevelSystem),
-			Protected:       true,
-			PermissionField: model.NewPointer(model.PermissionLevelNone),
-			Attrs: map[string]any{
-				"options": []map[string]string{
-					{"name": model.BoardsStatusOptionTodo, "color": model.BoardsStatusColorTodo},
-					{"name": model.BoardsStatusOptionInProgress, "color": model.BoardsStatusColorInProgress},
-					{"name": model.BoardsStatusOptionComplete, "color": model.BoardsStatusColorComplete},
-				},
-			},
-		},
-	}
-
-	var propertiesToUpdate []*model.PropertyField
-	var propertiesToCreate []*model.PropertyField
-
-	for name, expectedProperty := range expectedPropertiesMap {
-		if _, exists := existingPropertiesMap[name]; exists {
-			property := existingPropertiesMap[name]
-			property.Type = expectedProperty.Type
-			property.Protected = expectedProperty.Protected
-			property.PermissionField = expectedProperty.PermissionField
-
-			if name == model.BoardsPropertyFieldStatus {
-				// Status options already exist (with server-generated IDs from the v1
-				// seed). NewPropertyOptionsFromFieldAttrs regenerates IDs for any
-				// options missing one, so a wholesale attrs replacement would orphan
-				// every reference. Layer colours onto the existing options by name
-				// and preserve their IDs.
-				property.Attrs = mergeBoardsStatusColors(property.Attrs, statusColorByName)
-			} else {
-				property.Attrs = expectedProperty.Attrs
-			}
-
-			propertiesToUpdate = append(propertiesToUpdate, property)
-		} else {
-			propertiesToCreate = append(propertiesToCreate, expectedProperty)
-		}
-	}
-
-	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(s.systemCallerContext(model.CallerIDBoardsSystem), property); err != nil {
-			// Another server may have won the race and created this field
-			// concurrently (e.g. parallel tests sharing a database pool).
-			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, "", property.ObjectType, property.Name); retryErr != nil {
-				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
-			}
-		}
-	}
-
-	if len(propertiesToUpdate) > 0 {
-		if _, _, _, err := s.propertyService.UpdatePropertyFields(s.systemCallerContext(model.CallerIDBoardsSystem), group.ID, propertiesToUpdate); err != nil {
-			// Another server may have won the race and updated these fields
-			// concurrently (e.g. parallel tests sharing a database pool).
-			// Both servers write the same expected values, so tolerate the
-			// conflict but propagate any other error.
-			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
-				return fmt.Errorf("failed to update boards property fields: %w", err)
-			}
-		}
-	}
-
-	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: boardsPropertyMigrationVersion}); err != nil {
-		return fmt.Errorf("failed to save boards setup done flag in system store %w", err)
-	}
-
-	return nil
-}
-
-// mergeBoardsStatusColors layers a name→color map onto the existing options
-// stored in `attrs`, preserving every existing option's ID. Used during the
-// v1 → v2 boards migration so previously-seeded Status options gain colours
-// without having their server-generated IDs regenerated (which would orphan
-// any card references). Options whose name isn't in `colorByName` are left
-// untouched; admins who renamed seeded options stay in control.
-func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string]string) model.StringInterface {
-	if attrs == nil {
-		return attrs
-	}
-	rawOptions, ok := attrs["options"]
-	if !ok {
-		// No options to colour. This is also the branch a field whose option list
-		// was withheld from the read for exceeding
-		// model.PropertyFieldMaxHydratedOptions takes, and returning attrs untouched
-		// is right for it too: they still carry the marker that tells the store to
-		// leave the field's options alone, so nothing is recoloured and nothing is
-		// lost. The seeded Status field has three options, so that is a guard
-		// against a hand-edited field rather than a case this migration meets.
-		return attrs
-	}
-
-	// attrs is model.StringInterface (map[string]any), so after JSON
-	// deserialisation rawOptions is []any of map[string]any. Round-trip
-	// to []map[string]any so the loop below can index each option by
-	// key without an outer .(map[string]any) assertion per element.
-	encoded, err := json.Marshal(rawOptions)
-	if err != nil {
-		mlog.Warn("Skipping boards Status colour merge: failed to marshal existing options", mlog.Err(err))
-		return attrs
-	}
-	var options []map[string]any
-	if err := json.Unmarshal(encoded, &options); err != nil {
-		mlog.Warn("Skipping boards Status colour merge: failed to unmarshal existing options", mlog.Err(err))
-		return attrs
-	}
-
-	for i, opt := range options {
-		name, _ := opt["name"].(string)
-		if color, found := colorByName[name]; found {
-			options[i]["color"] = color
-		}
-	}
-
-	out := make(model.StringInterface, len(attrs))
-	maps.Copy(out, attrs)
-	out["options"] = options
-	return out
-}
-
 // syncSessionAttributeOptions replaces the persisted select options on an
 // already-seeded session attribute field with the ones the schema declares.
 // Each existing option's ID is reused by name so IDs stay stable across
@@ -1037,8 +855,10 @@ func syncSessionAttributeOptions(current, expected *model.PropertyField) error {
 
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
 func (s *Server) seedSessionAttributeFields(groupID string) error {
-	// Must run before this migration's own hook-gated reads and writes below --
-	// see the identical comment in doSetupBoardsProperties.
+	// Must run before this migration's own hook-gated reads and writes below:
+	// a field from before the permissions object existed has none yet, and the
+	// hook refuses that outright, before ever consulting this migration's own
+	// caller identity or grant.
 	if err := s.propertyService.ConvertSystemOwnedFields(request.EmptyContext(s.Log()), groupID, model.SessionAttributesPropertyGroupName); err != nil {
 		return fmt.Errorf("failed to convert existing session attribute fields: %w", err)
 	}
@@ -1198,7 +1018,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	// on every branch including the already-migrated fast path: a field from
 	// before the permissions object existed has none yet, and the hook
 	// refuses that outright, before ever consulting this migration's own
-	// caller identity or grant. See the identical comment in doSetupBoardsProperties.
+	// caller identity or grant.
 	if convertErr := s.propertyService.ConvertSystemOwnedFields(request.EmptyContext(s.Log()), group.ID, model.ManagedCategoryPropertyGroupName); convertErr != nil {
 		return fmt.Errorf("failed to convert existing managed category properties: %w", convertErr)
 	}
@@ -1598,7 +1418,6 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Restrict Unauthenticated Webapp Plugins Config Migration", s.doRestrictUnauthenticatedWebappPluginsConfigMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
-		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
 		{"Session Attributes Minimum Duration Migration", s.doSessionAttributesMinDurationMigration},

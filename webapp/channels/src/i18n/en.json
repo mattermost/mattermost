@@ -2519,142 +2519,6 @@
     "defaultMessage": "No billing history yet",
     "description": "Heading of the billing summary empty state when no invoices exist yet."
   },
-  "admin.board_attributes.add_attribute": {
-    "defaultMessage": "Add attribute",
-    "description": "Link-style button under the Boards attributes table in the System Console; adds a new attribute row."
-  },
-  "admin.board_attributes.delete_modal.confirm": {
-    "defaultMessage": "Are you sure you want to delete this board attribute? This cannot be undone.",
-    "description": "Body text of the confirmation modal shown before deleting a board attribute; warns the action is irreversible."
-  },
-  "admin.board_attributes.delete_modal.title": {
-    "defaultMessage": "Delete board attribute",
-    "description": "Title of the confirmation modal shown before deleting a board attribute. 'Delete' is a verb."
-  },
-  "admin.board_attributes.dot_menu.delete": {
-    "defaultMessage": "Delete attribute",
-    "description": "Destructive item in a board attribute row's options menu; deletes the attribute. 'Delete' is a verb."
-  },
-  "admin.board_attributes.dot_menu.duplicate": {
-    "defaultMessage": "Duplicate",
-    "description": "Item in a board attribute row's options menu; creates a copy of the attribute. 'Duplicate' is a verb."
-  },
-  "admin.board_attributes.dot_menu.label": {
-    "defaultMessage": "Select an action",
-    "description": "Accessibility label for the per-row '...' actions menu in the System Console Boards attributes table."
-  },
-  "admin.board_attributes.page_title": {
-    "defaultMessage": "Board Attributes",
-    "description": "Page title in the System Console header for the Board Attributes settings page (Boards product)."
-  },
-  "admin.board_attributes.section_subtitle": {
-    "defaultMessage": "Customize the attributes available by default in cards across every board on the system.",
-    "description": "Subtitle under the Board Attributes section heading, explaining these are default card attributes for all boards."
-  },
-  "admin.board_attributes.section_title": {
-    "defaultMessage": "Board Attributes",
-    "description": "Section heading on the Board Attributes admin page (Boards product)."
-  },
-  "admin.board_attributes.table.actions": {
-    "defaultMessage": "Actions",
-    "description": "Column header of the Boards attributes admin table for the column holding per-row action buttons."
-  },
-  "admin.board_attributes.table.actions.protected_tooltip": {
-    "defaultMessage": "System attribute — cannot be modified",
-    "description": "Tooltip on the disabled actions button in the board attributes table of the System Console for protected system attributes; the em dash separates the reason."
-  },
-  "admin.board_attributes.table.filter_type": {
-    "defaultMessage": "Attribute type",
-    "description": "Placeholder of the search/filter text input inside the attribute type dropdown menu; filters the list of available types."
-  },
-  "admin.board_attributes.table.property": {
-    "defaultMessage": "Attribute",
-    "description": "Column header of the Boards attributes admin table for the attribute name column; 'Attribute' is a noun (a board property field)."
-  },
-  "admin.board_attributes.table.property_name.input.name": {
-    "defaultMessage": "Attribute Name",
-    "description": "Accessible label for the editable attribute-name text input in the board attributes table of the System Console."
-  },
-  "admin.board_attributes.table.select_type.date": {
-    "defaultMessage": "Date",
-    "description": "Menu option in the attribute type dropdown; a date-valued board property type."
-  },
-  "admin.board_attributes.table.select_type.multi_select": {
-    "defaultMessage": "Multi-select",
-    "description": "Menu option in the attribute type dropdown; a property type allowing multiple selected options."
-  },
-  "admin.board_attributes.table.select_type.select": {
-    "defaultMessage": "Select",
-    "description": "Menu option in the attribute type dropdown; 'Select' is a noun here, a single-choice dropdown property type."
-  },
-  "admin.board_attributes.table.select_type.text": {
-    "defaultMessage": "Text",
-    "description": "Menu option in the attribute type dropdown; a free-text property type."
-  },
-  "admin.board_attributes.table.select_type.user": {
-    "defaultMessage": "User",
-    "description": "Menu option in the attribute type dropdown; a property type whose value is a person/user."
-  },
-  "admin.board_attributes.table.type": {
-    "defaultMessage": "Type",
-    "description": "Column header of the Boards attributes admin table for the attribute's data type (text, select, date, etc.)."
-  },
-  "admin.board_attributes.table.validation.name_required": {
-    "defaultMessage": "Please enter an attribute name.",
-    "description": "Inline validation error shown under an attribute name cell when the admin leaves the name empty."
-  },
-  "admin.board_attributes.table.validation.name_taken": {
-    "defaultMessage": "Attribute name already taken.",
-    "description": "Inline validation error under an attribute name cell when the entered name is already used by another attribute."
-  },
-  "admin.board_attributes.table.validation.name_unique": {
-    "defaultMessage": "Attribute names must be unique.",
-    "description": "Inline validation error under an attribute name cell when two attributes share the same name."
-  },
-  "admin.board_attributes.table.validation.values_unique": {
-    "defaultMessage": "Values must be unique.",
-    "description": "Inline validation error under the option chips of a board attribute when two option values have the same name."
-  },
-  "admin.board_attributes.table.values": {
-    "defaultMessage": "Values",
-    "description": "Column header of the Boards attributes admin table for the column listing an attribute's option values (chips)."
-  },
-  "admin.board_attributes.type_menu.label": {
-    "defaultMessage": "Select type",
-    "description": "Accessibility label for the dropdown menu used to pick a board attribute's type."
-  },
-  "admin.board_attributes.values.add_value": {
-    "defaultMessage": "Add value",
-    "description": "Tooltip and accessibility label for the '+' button that adds a new option value chip to a select-type board attribute."
-  },
-  "admin.board_attributes.values.colors_header": {
-    "defaultMessage": "Colors",
-    "description": "Small uppercase section heading inside the option chip's edit menu, above the list of selectable chip colors."
-  },
-  "admin.board_attributes.values.delete": {
-    "defaultMessage": "Delete",
-    "description": "Destructive menu item inside an option chip's edit menu; deletes that option value."
-  },
-  "admin.board_attributes.values.delete_option": {
-    "defaultMessage": "Delete option {name}",
-    "description": "Accessible label (aria-label) of the delete button for an attribute option in the board attributes editor; {name} is the option's name."
-  },
-  "admin.board_attributes.values.option_menu_label": {
-    "defaultMessage": "Edit option",
-    "description": "Accessibility label for the popup menu opened by clicking an option value chip; contains rename input, delete, and color choices."
-  },
-  "admin.board_attributes.values.protected_tooltip": {
-    "defaultMessage": "System attribute options cannot be modified",
-    "description": "Tooltip shown over the read-only option chips of a protected system-managed board attribute."
-  },
-  "admin.board_attributes.values.rename_duplicate": {
-    "defaultMessage": "A value with this name already exists.",
-    "description": "Inline error under the rename input in an option chip's menu when the typed name duplicates another option."
-  },
-  "admin.board_attributes.values.rename_placeholder": {
-    "defaultMessage": "Option name",
-    "description": "Placeholder of the text input used to rename an option value inside the chip's edit menu."
-  },
   "admin.burn_on_read_feature_discovery.description": {
     "defaultMessage": "With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.",
     "description": "Marketing description on the feature-discovery (upsell) page for burn-on-read messages, shown to admins whose license does not include the feature."
@@ -15451,10 +15315,6 @@
     "defaultMessage": "Billing & Account",
     "description": "Category heading in the System Console left navigation sidebar, grouping billing and subscription pages; compact space."
   },
-  "admin.sidebar.board_attributes": {
-    "defaultMessage": "Board Attributes",
-    "description": "Navigation item in the System Console sidebar; opens the Boards product attributes page; compact space."
-  },
   "admin.sidebar.channels": {
     "defaultMessage": "Channels",
     "description": "Navigation item in the System Console sidebar under User Management; opens the channel management page; 'Channels' are chat channels (noun); compact space."
@@ -16202,14 +16062,6 @@
   "admin.system_properties.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the confirmation modal for deleting a user attribute; {name} is the attribute's display name."
-  },
-  "admin.system_properties.details.saving_changes": {
-    "defaultMessage": "Saving configuration…",
-    "description": "In-progress label on the save panel of System Console attribute pages while configuration is being written; ends with an ellipsis."
-  },
-  "admin.system_properties.details.saving_changes_error": {
-    "defaultMessage": "There was an error while saving the configuration",
-    "description": "Error message shown on the System Console user attributes (system properties) page when saving the configuration fails."
   },
   "admin.system_properties.user_properties.add_property": {
     "defaultMessage": "Add attribute",
@@ -29906,42 +29758,6 @@
   "property_fields.user_attribute_fields.required": {
     "defaultMessage": "This attribute is required.",
     "description": "Inline validation error under a user or bot attribute input when a required attribute is left empty."
-  },
-  "property_option.color.blue": {
-    "defaultMessage": "Blue",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.brown": {
-    "defaultMessage": "Brown",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.default": {
-    "defaultMessage": "Default",
-    "description": "The default (no specific color) option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.green": {
-    "defaultMessage": "Green",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.orange": {
-    "defaultMessage": "Orange",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.pink": {
-    "defaultMessage": "Pink",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.purple": {
-    "defaultMessage": "Purple",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.red": {
-    "defaultMessage": "Red",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
-  },
-  "property_option.color.yellow": {
-    "defaultMessage": "Yellow",
-    "description": "Color name option in the color picker for board attribute value labels in the System Console."
   },
   "public_private_selector.private.description": {
     "defaultMessage": "Only invited members",

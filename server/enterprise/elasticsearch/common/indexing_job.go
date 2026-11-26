@@ -442,10 +442,6 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 		if post.Type == model.PostTypeBurnOnRead {
 			continue
 		}
-		// FIXME(IntegratedBoardMVP): Temporarily excluded
-		if post.Type == model.PostTypeCard {
-			continue
-		}
 
 		if post.DeleteAt == 0 {
 			searchPost := ESPostFromPostForIndexing(post, worker.jobServer.Config().FeatureFlags.MmBlocksEnabled)

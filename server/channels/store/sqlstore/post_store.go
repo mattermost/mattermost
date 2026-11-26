@@ -2359,8 +2359,6 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
-		// FIXME(IntegratedBoardMVP): Temporarily excluded
-		Where(sq.NotEq{"q2.Type": model.PostTypeCard}).
 		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 

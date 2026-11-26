@@ -64,14 +64,6 @@ func postReadSites() []postReadSite {
 				return fmt.Sprintf("/posts/%s/thread", th.BasicPost.Id)
 			},
 		},
-		{
-			name: "getPostsForView",
-			path: func(t *testing.T, th *postPropertyTestHelper) string {
-				view, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, makeTestViewForAPI(t))
-				require.NoError(t, err)
-				return fmt.Sprintf("/channels/%s/views/%s/posts", th.BasicChannel.Id, view.Id)
-			},
-		},
 	}
 }
 
@@ -79,7 +71,6 @@ func setupPostReadLicenseTest(t *testing.T) *postPropertyTestHelper {
 	t.Helper()
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PostAttributes = true
-		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	return &postPropertyTestHelper{TestHelper: th}
 }
@@ -135,8 +126,9 @@ func TestPostReadPropertyGroupLicenseGate(t *testing.T) {
 
 			t.Run("unlicensed with a v2 group other than access_control is not gated", func(t *testing.T) {
 				th.App.Srv().SetLicense(nil)
+				otherGroup := th.registerPSAv2Group(t)
 
-				status, _ := getStatus(t, th, withGroupName(path, model.BoardsPropertyGroupName))
+				status, _ := getStatus(t, th, withGroupName(path, otherGroup.Name))
 				assert.Equal(t, http.StatusOK, status)
 			})
 		})
