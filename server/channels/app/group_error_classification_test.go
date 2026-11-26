@@ -147,3 +147,211 @@ func TestGroupStoreErrorClassification(t *testing.T) {
 		}, []tc{nfCase("app.group.no_rows"), plainCase("app.update_error")})
 	})
 }
+
+func TestGroupSyncableAndMemberStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	groupMock := &storemocks.GroupStore{}
+	userMock := &storemocks.UserStore{}
+	channelMock := &storemocks.ChannelStore{}
+	teamMock := &storemocks.TeamStore{}
+	mockStore.On("Group").Return(groupMock)
+	mockStore.On("User").Return(userMock)
+	mockStore.On("Channel").Return(channelMock)
+	mockStore.On("Team").Return(teamMock)
+
+	notFound := fmt.Errorf("query: %w", store.NewErrNotFound("Group", model.NewId()))
+	invalid := fmt.Errorf("query: %w", store.NewErrInvalidInput("Group", "id", "x"))
+	plain := errors.New("db down")
+	appErr := model.NewAppError("Store", "app.custom.error", nil, "", http.StatusTeapot)
+	wrappedAppErr := fmt.Errorf("wrap: %w", appErr)
+
+	check := func(t *testing.T, got *model.AppError, id string, status int) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, id, got.Id)
+		assert.Equal(t, status, got.StatusCode)
+	}
+
+	t.Run("isUniqueToUsernames", func(t *testing.T) {
+		userMock.On("GetByUsername", "missing").Return(nil, notFound).Once()
+		assert.Nil(t, th.App.isUniqueToUsernames("missing"))
+
+		userMock.On("GetByUsername", "taken").Return(&model.User{}, nil).Once()
+		check(t, th.App.isUniqueToUsernames("taken"), "app.group.username_conflict", http.StatusBadRequest)
+
+		userMock.On("GetByUsername", "broken").Return(nil, plain).Once()
+		check(t, th.App.isUniqueToUsernames("broken"), model.NoTranslation, http.StatusInternalServerError)
+	})
+
+	t.Run("UpsertGroupSyncable lookup", func(t *testing.T) {
+		gs := model.NewGroupTeam("gid", "tid", false)
+		groupMock.On("GetGroupSyncable", "gid", "tid", model.GroupSyncableTypeTeam).Return(nil, plain).Once()
+		_, err := th.App.UpsertGroupSyncable(gs)
+		check(t, err, "app.select_error", http.StatusInternalServerError)
+	})
+
+	t.Run("UpsertGroupSyncable create", func(t *testing.T) {
+		gs := model.NewGroupTeam("gid", "tid", false)
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{wrappedAppErr, "app.custom.error", http.StatusTeapot},
+			{notFound, "store.sql_channel.get.existing.app_error", http.StatusNotFound},
+			{plain, "app.insert_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("GetGroupSyncable", "gid", "tid", model.GroupSyncableTypeTeam).Return(nil, notFound).Once()
+			groupMock.On("CreateGroupSyncable", gs).Return(nil, c.err).Once()
+			_, err := th.App.UpsertGroupSyncable(gs)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("UpsertGroupSyncable update", func(t *testing.T) {
+		gs := model.NewGroupTeam("gid", "tid", false)
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{wrappedAppErr, "app.custom.error", http.StatusTeapot},
+			{plain, "app.update_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("GetGroupSyncable", "gid", "tid", model.GroupSyncableTypeTeam).Return(&model.GroupSyncable{}, nil).Once()
+			groupMock.On("UpdateGroupSyncable", gs).Return(nil, c.err).Once()
+			_, err := th.App.UpsertGroupSyncable(gs)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("UpsertGroupSyncable channel parents", func(t *testing.T) {
+		gs := model.NewGroupChannel("gid", "cid", false)
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{notFound, "app.channel.get.existing.app_error", http.StatusNotFound},
+			{plain, "app.channel.get.find.app_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("GetGroupSyncable", "gid", "cid", model.GroupSyncableTypeChannel).Return(nil, notFound).Once()
+			channelMock.On("Get", "cid", true).Return(nil, c.err).Once()
+			_, err := th.App.UpsertGroupSyncable(gs)
+			check(t, err, c.id, c.status)
+		}
+
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{notFound, "app.team.get.find.app_error", http.StatusNotFound},
+			{plain, "app.team.get.finding.app_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("GetGroupSyncable", "gid", "cid", model.GroupSyncableTypeChannel).Return(nil, notFound).Once()
+			channelMock.On("Get", "cid", true).Return(&model.Channel{TeamId: "tid"}, nil).Once()
+			teamMock.On("Get", "tid").Return(nil, c.err).Once()
+			_, err := th.App.UpsertGroupSyncable(gs)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("GetGroupSyncable", func(t *testing.T) {
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{notFound, "app.group.no_rows", http.StatusNotFound},
+			{plain, "app.select_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("GetGroupSyncable", "gid", "sid", model.GroupSyncableTypeTeam).Return(nil, c.err).Once()
+			_, err := th.App.GetGroupSyncable("gid", "sid", model.GroupSyncableTypeTeam)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("UpdateGroupSyncable", func(t *testing.T) {
+		gs := model.NewGroupTeam("gid", "tid", false)
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{wrappedAppErr, "app.custom.error", http.StatusTeapot},
+			{plain, "app.update_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("UpdateGroupSyncable", gs).Return(nil, c.err).Once()
+			_, err := th.App.UpdateGroupSyncable(gs)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	deleteCases := []struct {
+		err    error
+		id     string
+		status int
+	}{
+		{notFound, "app.group.no_rows", http.StatusNotFound},
+		{invalid, "app.group.group_syncable_already_deleted", http.StatusBadRequest},
+		{plain, "app.update_error", http.StatusInternalServerError},
+	}
+
+	t.Run("DeleteGroupSyncable", func(t *testing.T) {
+		for _, c := range deleteCases {
+			groupMock.On("DeleteGroupSyncable", "gid", "sid", model.GroupSyncableTypeChannel).Return(nil, c.err).Once()
+			_, err := th.App.DeleteGroupSyncable("gid", "sid", model.GroupSyncableTypeChannel)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("DeleteGroupSyncable team channels", func(t *testing.T) {
+		for _, c := range deleteCases {
+			groupMock.On("DeleteGroupSyncable", "gid", "tid", model.GroupSyncableTypeTeam).
+				Return(&model.GroupSyncable{GroupId: "gid", SyncableId: "tid", Type: model.GroupSyncableTypeTeam}, nil).Once()
+			groupMock.On("GetAllGroupSyncablesByGroupId", "gid", model.GroupSyncableTypeChannel).
+				Return([]*model.GroupSyncable{{GroupId: "gid", SyncableId: "cid", Type: model.GroupSyncableTypeChannel}}, nil).Once()
+			groupMock.On("DeleteGroupSyncable", "gid", "cid", model.GroupSyncableTypeChannel).Return(nil, c.err).Once()
+			_, err := th.App.DeleteGroupSyncable("gid", "tid", model.GroupSyncableTypeTeam)
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("UpsertGroupMembers", func(t *testing.T) {
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{wrappedAppErr, "app.custom.error", http.StatusTeapot},
+			{invalid, "app.group.uniqueness_error", http.StatusBadRequest},
+			{notFound, "app.group.user_not_found", http.StatusBadRequest},
+			{plain, "app.update_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("UpsertMembers", "gid", []string{"uid"}).Return(nil, c.err).Once()
+			_, err := th.App.UpsertGroupMembers("gid", []string{"uid"})
+			check(t, err, c.id, c.status)
+		}
+	})
+
+	t.Run("DeleteGroupMembers", func(t *testing.T) {
+		for _, c := range []struct {
+			err    error
+			id     string
+			status int
+		}{
+			{wrappedAppErr, "app.custom.error", http.StatusTeapot},
+			{invalid, "app.group.uniqueness_error", http.StatusBadRequest},
+			{notFound, "app.group.user_not_found", http.StatusBadRequest},
+			{plain, "app.update_error", http.StatusInternalServerError},
+		} {
+			groupMock.On("DeleteMembers", "gid", []string{"uid"}).Return(nil, c.err).Once()
+			_, err := th.App.DeleteGroupMembers("gid", []string{"uid"})
+			check(t, err, c.id, c.status)
+		}
+	})
+}
