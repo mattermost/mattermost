@@ -15,7 +15,7 @@ const LITERALS_AND_COMMENTS = new RegExp(LITERAL_OR_COMMENT, 'g');
 const USER_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\s*\.\s*attributes(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
 
 // Also matches a presence test such as `"os_platform" in user.session`, ahead of the literal alternative.
-const SESSION_ATTRIBUTE_REFERENCE = new RegExp(String.raw`(?:"([^"\\\n\r]*)"|'([^'\\\n\r]*)')\s+in\s+user\s*\.\s*session(?!\s*[.[\w])|${LITERAL_OR_COMMENT}|user\s*\.\s*session(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
+const SESSION_ATTRIBUTE_REFERENCE = new RegExp(String.raw`(?:"([^"\\\n\r]*)"|'([^'\\\n\r]*)')\s*in\s+user\s*\.\s*session(?!\s*[.[\w])|${LITERAL_OR_COMMENT}|user\s*\.\s*session(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
 
 // A single-segment `user.<name>` selector such as `user.email`; `attributes` and `session` are namespaces, not fields.
 const NATIVE_USER_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|(?<![\w.])user\s*(?:\.\s*(\w+)|\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');

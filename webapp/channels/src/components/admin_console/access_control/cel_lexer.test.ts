@@ -80,6 +80,7 @@ describe('referencedSessionAttributeNames', () => {
         ['user.attributes.A == "x" && user.email == "a@b.c"', []],
         ['', []],
         ['"Platform" in user.session && user.attributes.A == "x"', ['Platform']],
+        ['"Platform"in user.session', ['Platform']],
         ["'Platform' in user . session || user.session.B == \"y\"", ['Platform', 'B']],
         ['"x" in user.session.Tags', ['Tags']],
         ['user.attributes.A == "\\"Platform\\" in user.session"', []],
