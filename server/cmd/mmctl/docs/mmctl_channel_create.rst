@@ -11,6 +11,10 @@ Synopsis
 
 Create a channel.
 
+When the server requires channel attributes, pass each value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.
+
 ::
 
   mmctl channel create [flags]
@@ -22,19 +26,21 @@ Examples
 
     channel create --team myteam --name mynewchannel --display-name "My New Channel"
     channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private
+    channel create --team myteam --name ops --display-name "Ops" --attribute "Classification=Secret" --attribute "Region=EMEA" --attribute "Region=APAC"
 
 Options
 ~~~~~~~
 
 ::
 
-      --display-name string   Channel Display Name
-      --header string         Channel header
-  -h, --help                  help for create
-      --name string           Channel Name
-      --private               Create a private channel.
-      --purpose string        Channel purpose
-      --team string           Team name or ID
+      --attribute stringArray   Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute
+      --display-name string     Channel Display Name
+      --header string           Channel header
+  -h, --help                    help for create
+      --name string             Channel Name
+      --private                 Create a private channel.
+      --purpose string          Channel purpose
+      --team string             Team name or ID
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

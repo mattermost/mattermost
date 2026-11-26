@@ -511,6 +511,13 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
+	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
+	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertyFieldOptions = api.BaseRoutes.PropertyField.PathPrefix("/options").Subrouter()
+	api.BaseRoutes.PropertyFieldsSearch = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/fields/search").Subrouter()
+	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.BaseRoutes.HealthFindings = api.BaseRoutes.APIRoot.PathPrefix("/health/findings").Subrouter()
 
 	api.InitUserLocal()
@@ -534,6 +541,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitJobLocal()
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
+	api.InitPropertiesLocal()
 	api.InitAccessControlPolicyLocal()
 	api.InitStatusLocal()
 	api.InitHealthDashboardLocal()

@@ -147,6 +147,15 @@ func Print(v any) {
 	PrintT("{{printf \"%+v\" .}}", v)
 }
 
+// statLine pluralizes the parent command's name, which is already plural for
+// commands like "channel attributes list".
+func statLine(count int, entity, container string) string {
+	if !strings.HasSuffix(entity, "s") {
+		entity += "s"
+	}
+	return fmt.Sprintf("There are %d %s%s", count, entity, container)
+}
+
 // Flush writes the elements accumulated in the printer
 func Flush() error {
 	if printer.Quiet {
@@ -228,7 +237,7 @@ func Flush() error {
 		if container != "" {
 			container = fmt.Sprintf(" on %s", container)
 		}
-		fmt.Fprintf(printer.eWriter, "There are %d %ss%s\n", len(printer.Lines), entity, container)
+		fmt.Fprintln(printer.eWriter, statLine(len(printer.Lines), entity, container))
 	}
 
 	return nil

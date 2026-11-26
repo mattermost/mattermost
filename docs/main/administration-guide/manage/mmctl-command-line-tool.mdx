@@ -833,6 +833,10 @@ Manage channels.
 > Child Commands  
 > - [mmctl channel add](#mmctl-channel-add) - (Deprecated) Add a user to a channel
 > - [mmctl channel archive](#mmctl-channel-archive) - Archive a channel
+> - [mmctl channel attributes](#mmctl-channel-attributes) - Manage channel attribute values
+> - [mmctl channel attributes fields](#mmctl-channel-attributes-fields) - List the channel attributes
+> - [mmctl channel attributes list](#mmctl-channel-attributes-list) - List a channel's attribute values
+> - [mmctl channel attributes set](#mmctl-channel-attributes-set) - Set attribute values on a channel
 > - [mmctl channel create](#mmctl-channel-create) - Create a channel
 > - [mmctl channel delete](#mmctl-channel-delete) - Delete a channel
 > - [mmctl channel list](#mmctl-channel-list) - List all channels on specified teams
@@ -932,11 +936,169 @@ mmctl channel add myteam:mychannel user@example.com username
 --suppress-warnings            disables printing warning messages
 ```
 
+### mmctl channel attributes
+
+**Description**
+
+Show the channel attributes defined on the server and list or set the values a channel holds. See [Channel attributes](/administration-guide/manage/admin/channel-attributes) for how attributes are defined.
+
+> Child Commands  
+> - [mmctl channel attributes fields](#mmctl-channel-attributes-fields) - List the channel attributes
+> - [mmctl channel attributes list](#mmctl-channel-attributes-list) - List a channel's attribute values
+> - [mmctl channel attributes set](#mmctl-channel-attributes-set) - Set attribute values on a channel
+
+**Options**
+
+``` sh
+-h, --help   help for attributes
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+### mmctl channel attributes fields
+
+**Description**
+
+List the channel attributes you can see, with their type, whether they're required, and their options. Use these names and options with `--attribute`.
+
+**Format**
+
+``` sh
+mmctl channel attributes fields [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl channel attributes fields
+mmctl channel attributes fields --json
+```
+
+**Options**
+
+``` sh
+-h, --help   help for fields
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+### mmctl channel attributes list
+
+**Description**
+
+List the attribute values a channel holds. Channel can be specified by `[team]:[channel]` (e.g., `myteam:mychannel`), or by channel ID.
+
+**Format**
+
+``` sh
+mmctl channel attributes list [channel] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl channel attributes list myteam:mychannel
+mmctl channel attributes list myteam:mychannel --json
+```
+
+**Options**
+
+``` sh
+-h, --help   help for list
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+### mmctl channel attributes set
+
+**Description**
+
+Set attribute values on a channel. Channel can be specified by `[team]:[channel]` (e.g., `myteam:mychannel`), or by channel ID.
+
+Pass each value with `--attribute "<attribute>=<value>"`. The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first `=`, so a value may contain `=` and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat `--attribute` to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run [mmctl channel attributes fields](#mmctl-channel-attributes-fields) to see the attributes and their options.
+
+**Format**
+
+``` sh
+mmctl channel attributes set [channel] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl channel attributes set myteam:mychannel --attribute "Classification=Secret"
+mmctl channel attributes set myteam:mychannel --attribute "Region=EMEA" --attribute "Region=APAC"
+mmctl channel attributes set myteam:mychannel --attribute "Notes=Review in Q3, then archive"
+```
+
+**Options**
+
+``` sh
+--attribute stringArray   Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute
+-h, --help                help for set
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
 ### mmctl channel create
 
 **Description**
 
 Create a channel.
+
+When the server requires channel attributes, pass their values with `--attribute`. Pass each value with `--attribute "<attribute>=<value>"`. The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first `=`, so a value may contain `=` and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat `--attribute` to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run [mmctl channel attributes fields](#mmctl-channel-attributes-fields) to see the attributes and their options.
 
 **Format**
 
@@ -949,11 +1111,13 @@ mmctl channel create [flags]
 ``` sh
 mmctl channel create --team myteam --name mynewchannel --display-name "My New Channel"
 mmctl channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private
+mmctl channel create --team myteam --name ops --display-name "Ops" --attribute "Classification=Secret" --attribute "Region=EMEA" --attribute "Region=APAC"
 ```
 
 **Options**
 
 ``` sh
+--attribute stringArray   Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute
 --display-name string   Channel Display Name
 --header string         Channel header
 -h, --help              help for create
@@ -1112,6 +1276,10 @@ mmctl channel make-private myteam:mychannel
 
 Change the Public/Private type of a channel. Channel can be specified by `[team]:[channel]` (e.g., `myteam:mychannel`), or by channel ID.
 
+When the server requires channel attributes, pass their values with `--attribute`, which can be used only together with `--private`. Pass each value with `--attribute "<attribute>=<value>"`. The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first `=`, so a value may contain `=` and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat `--attribute` to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run [mmctl channel attributes fields](#mmctl-channel-attributes-fields) to see the attributes and their options.
+
 **Format**
 
 ``` sh
@@ -1122,12 +1290,14 @@ mmctl channel modify [channel] [flags]
 
 ``` sh
 mmctl channel modify myteam:mychannel --private
+mmctl channel modify myteam:mychannel --private --attribute "Classification=Secret"
 mmctl channel modify channelId --public
 ```
 
 **Options**
 
 ``` sh
+--attribute stringArray   Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute
 -h, --help  help for modify
 --private   Convert the channel to a private channel
 --public    Convert the channel to a public channel
@@ -1350,6 +1520,10 @@ mmctl channel search --team myteam mychannel
 
 Unarchive a previously archived channel. Channels can be specified by `[team]:[channel]` (e.g., `myteam:mychannel`), or by channel ID.
 
+When the server requires channel attributes, pass their values with `--attribute`. The values are applied to every channel listed. Pass each value with `--attribute "<attribute>=<value>"`. The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first `=`, so a value may contain `=` and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat `--attribute` to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run [mmctl channel attributes fields](#mmctl-channel-attributes-fields) to see the attributes and their options.
+
 **Format**
 
 ``` sh
@@ -1360,11 +1534,13 @@ mmctl channel unarchive [channels] [flags]
 
 ``` sh
 mmctl channel unarchive myteam:mychannel
+mmctl channel unarchive myteam:mychannel myteam:otherchannel --attribute "Classification=Secret"
 ```
 
 **Options**
 
 ``` sh
+--attribute stringArray   Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute
 -h, --help   help for unarchive
 ```
 

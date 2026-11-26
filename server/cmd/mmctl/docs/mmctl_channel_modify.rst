@@ -12,6 +12,12 @@ Synopsis
 Change the Public/Private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
 
+When the server requires channel attributes, --attribute can be used only together with --private, to make a public channel private. To set the values of a channel that is already private, use "mmctl channel attributes set".
+
+Pass each attribute value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
+
+An attribute that holds one value (select, text) can be passed only once. Repeat --attribute to set several values on a multiselect or graph attribute. A graph value is the name or ID of one of its nodes. The values you pass replace any value the channel already holds for those attributes. Run "mmctl channel attributes fields" to see the attributes and their options.
+
 ::
 
   mmctl channel modify [channel] [flags]
@@ -22,6 +28,7 @@ Examples
 ::
 
     channel modify myteam:mychannel --private
+    channel modify myteam:mychannel --private --attribute "Classification=Secret"
     channel modify channelId --public
 
 Options
@@ -29,9 +36,10 @@ Options
 
 ::
 
-  -h, --help      help for modify
-      --private   Convert the channel to a private channel
-      --public    Convert the channel to a public channel
+      --attribute stringArray   Attribute value to set, as "<attribute>=<value>". Repeat the flag to set several attributes or several values of a multiselect or graph attribute
+  -h, --help                    help for modify
+      --private                 Convert the channel to a private channel
+      --public                  Convert the channel to a public channel
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

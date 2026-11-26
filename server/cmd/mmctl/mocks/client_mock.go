@@ -236,6 +236,22 @@ func (mr *MockClientMockRecorder) CreateChannel(ctx, channel any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChannel", reflect.TypeOf((*MockClient)(nil).CreateChannel), ctx, channel)
 }
 
+// CreateChannelWithPropertyValues mocks base method.
+func (m *MockClient) CreateChannelWithPropertyValues(ctx context.Context, req *model.ChannelCreateRequest) (*model.Channel, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateChannelWithPropertyValues", ctx, req)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateChannelWithPropertyValues indicates an expected call of CreateChannelWithPropertyValues.
+func (mr *MockClientMockRecorder) CreateChannelWithPropertyValues(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChannelWithPropertyValues", reflect.TypeOf((*MockClient)(nil).CreateChannelWithPropertyValues), ctx, req)
+}
+
 // CreateCommand mocks base method.
 func (m *MockClient) CreateCommand(ctx context.Context, cmd *model.Command) (*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1488,6 +1504,38 @@ func (mr *MockClientMockRecorder) GetPrivateChannelsForTeam(ctx, teamID, page, p
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrivateChannelsForTeam", reflect.TypeOf((*MockClient)(nil).GetPrivateChannelsForTeam), ctx, teamID, page, perPage, etag)
 }
 
+// GetPropertyFieldOptions mocks base method.
+func (m *MockClient) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPropertyFieldOptions", ctx, groupName, objectType, fieldID, cursorCreateAt, cursorID, perPage)
+	ret0, _ := ret[0].(*model.PropertyFieldOptionPage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPropertyFieldOptions indicates an expected call of GetPropertyFieldOptions.
+func (mr *MockClientMockRecorder) GetPropertyFieldOptions(ctx, groupName, objectType, fieldID, cursorCreateAt, cursorID, perPage any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPropertyFieldOptions", reflect.TypeOf((*MockClient)(nil).GetPropertyFieldOptions), ctx, groupName, objectType, fieldID, cursorCreateAt, cursorID, perPage)
+}
+
+// GetPropertyValues mocks base method.
+func (m *MockClient) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search model.PropertyValueSearch) ([]*model.PropertyValue, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPropertyValues", ctx, groupName, objectType, targetID, search)
+	ret0, _ := ret[0].([]*model.PropertyValue)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPropertyValues indicates an expected call of GetPropertyValues.
+func (mr *MockClientMockRecorder) GetPropertyValues(ctx, groupName, objectType, targetID, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPropertyValues", reflect.TypeOf((*MockClient)(nil).GetPropertyValues), ctx, groupName, objectType, targetID, search)
+}
+
 // GetPublicChannelsForTeam mocks base method.
 func (m *MockClient) GetPublicChannelsForTeam(ctx context.Context, teamID string, page, perPage int, etag string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2090,6 +2138,22 @@ func (mr *MockClientMockRecorder) PatchConfig(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchConfig", reflect.TypeOf((*MockClient)(nil).PatchConfig), arg0, arg1)
 }
 
+// PatchPropertyValues mocks base method.
+func (m *MockClient) PatchPropertyValues(ctx context.Context, groupName, objectType, targetID string, items []model.PropertyValuePatchItem) ([]*model.PropertyValue, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchPropertyValues", ctx, groupName, objectType, targetID, items)
+	ret0, _ := ret[0].([]*model.PropertyValue)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// PatchPropertyValues indicates an expected call of PatchPropertyValues.
+func (mr *MockClientMockRecorder) PatchPropertyValues(ctx, groupName, objectType, targetID, items any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchPropertyValues", reflect.TypeOf((*MockClient)(nil).PatchPropertyValues), ctx, groupName, objectType, targetID, items)
+}
+
 // PatchRole mocks base method.
 func (m *MockClient) PatchRole(ctx context.Context, roleID string, patch *model.RolePatch) (*model.Role, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2351,6 +2415,22 @@ func (mr *MockClientMockRecorder) RestoreChannel(ctx, channelID any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreChannel", reflect.TypeOf((*MockClient)(nil).RestoreChannel), ctx, channelID)
 }
 
+// RestoreChannelWithPropertyValues mocks base method.
+func (m *MockClient) RestoreChannelWithPropertyValues(ctx context.Context, channelId string, values []model.PropertyValuePatchItem) (*model.Channel, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreChannelWithPropertyValues", ctx, channelId, values)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RestoreChannelWithPropertyValues indicates an expected call of RestoreChannelWithPropertyValues.
+func (mr *MockClientMockRecorder) RestoreChannelWithPropertyValues(ctx, channelId, values any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreChannelWithPropertyValues", reflect.TypeOf((*MockClient)(nil).RestoreChannelWithPropertyValues), ctx, channelId, values)
+}
+
 // RestoreGroup mocks base method.
 func (m *MockClient) RestoreGroup(ctx context.Context, groupID, etag string) (*model.Group, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2446,6 +2526,22 @@ func (mr *MockClientMockRecorder) RotateUserAccessToken(ctx, tokenID, expiresAt 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RotateUserAccessToken", reflect.TypeOf((*MockClient)(nil).RotateUserAccessToken), ctx, tokenID, expiresAt)
 }
 
+// SearchPropertyFields mocks base method.
+func (m *MockClient) SearchPropertyFields(ctx context.Context, groupName string, search model.PropertyFieldSearch) ([]*model.PropertyField, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchPropertyFields", ctx, groupName, search)
+	ret0, _ := ret[0].([]*model.PropertyField)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SearchPropertyFields indicates an expected call of SearchPropertyFields.
+func (mr *MockClientMockRecorder) SearchPropertyFields(ctx, groupName, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPropertyFields", reflect.TypeOf((*MockClient)(nil).SearchPropertyFields), ctx, groupName, search)
+}
+
 // SearchTeams mocks base method.
 func (m *MockClient) SearchTeams(ctx context.Context, search *model.TeamSearch) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2536,6 +2632,22 @@ func (m *MockClient) UpdateChannelPrivacy(ctx context.Context, channelID string,
 func (mr *MockClientMockRecorder) UpdateChannelPrivacy(ctx, channelID, privacy any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChannelPrivacy", reflect.TypeOf((*MockClient)(nil).UpdateChannelPrivacy), ctx, channelID, privacy)
+}
+
+// UpdateChannelPrivacyWithPropertyValues mocks base method.
+func (m *MockClient) UpdateChannelPrivacyWithPropertyValues(ctx context.Context, channelId string, privacy model.ChannelType, values []model.PropertyValuePatchItem) (*model.Channel, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateChannelPrivacyWithPropertyValues", ctx, channelId, privacy, values)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateChannelPrivacyWithPropertyValues indicates an expected call of UpdateChannelPrivacyWithPropertyValues.
+func (mr *MockClientMockRecorder) UpdateChannelPrivacyWithPropertyValues(ctx, channelId, privacy, values any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChannelPrivacyWithPropertyValues", reflect.TypeOf((*MockClient)(nil).UpdateChannelPrivacyWithPropertyValues), ctx, channelId, privacy, values)
 }
 
 // UpdateCommand mocks base method.

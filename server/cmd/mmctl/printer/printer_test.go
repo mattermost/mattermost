@@ -183,3 +183,8 @@ func TestPrintWarningSanitizes(t *testing.T) {
 	assert.NotContains(t, string(*ew), "pwned")
 	assert.Contains(t, string(*ew), "bad warning")
 }
+
+func TestStatLine(t *testing.T) {
+	assert.Equal(t, "There are 2 channels on http://localhost:8065/", statLine(2, "channel", " on http://localhost:8065/"))
+	assert.Equal(t, "There are 0 attributes", statLine(0, "attributes", ""))
+}
