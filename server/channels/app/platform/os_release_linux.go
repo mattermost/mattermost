@@ -12,8 +12,6 @@ import (
 	"os"
 	"strings"
 
-	"golang.org/x/sys/unix"
-
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -83,14 +81,6 @@ func unquoteOSReleaseValue(value string) string {
 		return value[1 : len(value)-1]
 	}
 	return value
-}
-
-func getKernelRelease() (*string, error) {
-	var uname unix.Utsname
-	if err := unix.Uname(&uname); err != nil {
-		return nil, err
-	}
-	return new(unix.ByteSliceToString(uname.Release[:])), nil
 }
 
 func getRunningInContainer(installationType string) (*bool, error) {
