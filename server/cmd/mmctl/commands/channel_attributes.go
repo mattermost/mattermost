@@ -249,7 +249,10 @@ func (r *channelAttributeResolver) listOptions(field *model.PropertyField) ([]*m
 }
 
 // findOption matches typed against the option IDs, then the exact names, then
-// the names ignoring case when exactly one option matches.
+// the names ignoring case when exactly one option matches. An ID that matches
+// nothing is passed through for the server to judge: masking hides options the
+// caller doesn't hold, yet the server still lets them set one where no value is
+// stored.
 func (r *channelAttributeResolver) findOption(field *model.PropertyField, fieldTyped, typed string) (*model.PropertyFieldOption, error) {
 	options, err := r.optionsOf(field)
 	if err != nil {
@@ -278,6 +281,9 @@ func (r *channelAttributeResolver) findOption(field *model.PropertyField, fieldT
 
 	switch len(matches) {
 	case 0:
+		if model.IsValidId(typed) {
+			return &model.PropertyFieldOption{ID: typed, Name: typed}, nil
+		}
 		return nil, fmt.Errorf("unknown option %q for attribute %q; the options are: %s", typed, fieldTyped, strings.Join(optionNames(options), ", "))
 	case 1:
 		return matches[0], nil
@@ -691,7 +697,9 @@ func isMissingRequiredError(err error) bool {
 // required attributes the caller didn't pass, taken from the fields the server
 // returns to this caller. Pass the channel's ID when the channel exists, so
 // attributes it already holds aren't named. With nothing to name, only the
-// server's message is left.
+// server's message is left. The list can name too many: the server leaves out
+// fields the caller can't set or that aren't licensed, and without permissions
+// in the payload a masked field the channel holds reads as missing.
 //
 // A nil resolver means the command ran without --attribute and nothing was
 // looked up before the request; the fields are fetched now. If they can't be
@@ -742,14 +750,17 @@ func missingRequiredHint(c client.Client, resolver *channelAttributeResolver, er
 		return err
 	}
 
-	return fmt.Errorf("%w\nRequired channel attributes not passed: %s\nPass each one with --attribute \"<attribute>=<value>\". Run \"mmctl channel attributes fields\" to see them.", err, strings.Join(names, ", "))
+	return fmt.Errorf("%w\nRequired channel attributes that may be missing: %s\nPass each one with --attribute \"<attribute>=<value>\". Run \"mmctl channel attributes fields\" to see them.", err, strings.Join(names, ", "))
 }
 
 // verifySaved reads the channel's values once and checks that every field that
-// was sent holds what was sent, leaving out masked fields, which the read may
-// not show. A server that predates the request body ignores
-// it and answers success. A 403 on the read is a warning, not a failure. done is the past tense of what happened to the
-// channel: "created", "updated" or "unarchived".
+// was sent holds what was sent, because a server that predates the request body
+// ignores it and answers success. Masked fields are left out, as the read may
+// not show them. A field whose masking the server didn't report (it serves
+// permissions only when property field permissions are enabled) that reads back
+// missing or narrowed can't be told apart from an ignored write, so it is a
+// warning, as is a 403 on the read. done is the past tense of what happened to
+// the channel: "created", "updated" or "unarchived".
 func verifySaved(c client.Client, resolver *channelAttributeResolver, channelID string, sent []model.PropertyValuePatchItem, done string) error {
 	values, err := listChannelAttributeValues(c, channelID)
 	if err != nil {
@@ -768,15 +779,40 @@ func verifySaved(c client.Client, resolver *channelAttributeResolver, channelID 
 		stored[value.FieldID] = value.Value
 	}
 
+	var unverified []string
 	for _, item := range sent {
-		if isMasked(resolver.fieldByID(item.FieldID)) {
+		field := resolver.fieldByID(item.FieldID)
+		if isMasked(field) || jsonEqual(stored[item.FieldID], item.Value) {
 			continue
 		}
-		if !jsonEqual(stored[item.FieldID], item.Value) {
-			return fmt.Errorf("the channel was %s, but the server didn't save the attribute values; the server may be older than this mmctl", done)
+		if field != nil && field.Permissions == nil && readsBackNarrowed(stored[item.FieldID], item.Value) {
+			unverified = append(unverified, field.Name)
+			continue
 		}
+		return fmt.Errorf("the channel was %s, but the server didn't save the attribute values; the server may be older than this mmctl", done)
+	}
+	if len(unverified) > 0 {
+		printer.PrintError(fmt.Sprintf("Warning: the channel was %s, but the values of %s could not be checked: the server either hides them from you or is older than this mmctl and ignored them", done, strings.Join(unverified, ", ")))
 	}
 	return nil
+}
+
+// readsBackNarrowed reports whether saved is what a masked read of sent can
+// show: nothing, or only some of the values of a multi-value field.
+func readsBackNarrowed(saved, sent json.RawMessage) bool {
+	if model.IsEmptyPropertyValue(saved) {
+		return true
+	}
+	var savedIDs, sentIDs []string
+	if json.Unmarshal(saved, &savedIDs) != nil || json.Unmarshal(sent, &sentIDs) != nil {
+		return false
+	}
+	for _, id := range savedIDs {
+		if !slices.Contains(sentIDs, id) {
+			return false
+		}
+	}
+	return true
 }
 
 func jsonEqual(a, b json.RawMessage) bool {

@@ -159,6 +159,7 @@ func (s *MmctlUnitTestSuite) TestChannelAttributeResolver() {
 		s.Require().NotContains(err.Error(), "aren't enabled")
 	})
 
+	hiddenOptionID := model.NewId()
 	successes := []struct {
 		name string
 		args []attributeArg
@@ -198,6 +199,14 @@ func (s *MmctlUnitTestSuite) TestChannelAttributeResolver() {
 				{Field: "Region", Value: "APAC"},
 			},
 			want: [][2]string{{f.region.ID, `["` + optionIDOf(f.region, "APAC") + `","` + optionIDOf(f.region, "EMEA") + `"]`}},
+		},
+		{
+			name: "an option ID the caller can't see is passed through",
+			args: []attributeArg{{Field: "Program", Value: hiddenOptionID}, {Field: "Region", Value: "EMEA"}, {Field: "Region", Value: hiddenOptionID}},
+			want: [][2]string{
+				{f.program.ID, `"` + hiddenOptionID + `"`},
+				{f.region.ID, `["` + optionIDOf(f.region, "EMEA") + `","` + hiddenOptionID + `"]`},
+			},
 		},
 		{
 			name: "text is a JSON string",
@@ -779,7 +788,7 @@ func (s *MmctlUnitTestSuite) TestMissingRequiredHint() {
 
 		err := missingRequiredHint(s.client, resolver, missingRequired, nil, channelID)
 		s.Require().ErrorIs(err, missingRequired)
-		s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+		s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Program\n")
 	})
 
 	s.Run("an empty stored value still counts as missing", func() {
@@ -787,7 +796,7 @@ func (s *MmctlUnitTestSuite) TestMissingRequiredHint() {
 		expectValues(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`""`)})
 
 		err := missingRequiredHint(s.client, resolver, missingRequired, nil, channelID)
-		s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+		s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Classification, Program\n")
 	})
 
 	s.Run("a masked field the channel may hold isn't named", func() {
@@ -805,7 +814,7 @@ func (s *MmctlUnitTestSuite) TestMissingRequiredHint() {
 		resolver := newResolver()
 
 		err := missingRequiredHint(s.client, resolver, missingRequired, nil, "")
-		s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+		s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Classification, Program\n")
 	})
 
 	s.Run("an error that isn't the missing attributes one is returned untouched", func() {
@@ -855,8 +864,59 @@ func (s *MmctlUnitTestSuite) TestVerifySavedSkipsMaskedFields() {
 	})
 
 	s.Run("an unmasked value that reads back absent still fails", func() {
+		f.classification.Permissions = &model.Permissions{}
+		defer func() { f.classification.Permissions = nil }()
 		expectValues(&model.PropertyValue{FieldID: f.program.ID, Value: json.RawMessage(`"` + borealis + `"`)})
 		s.Require().ErrorContains(verifySaved(s.client, resolver, channelID, sent, "created"), "the server didn't save the attribute values")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestVerifySavedWithoutPermissions() {
+	f := newChannelAttributeFixture()
+	s.expectChannelAttributeFieldSearch(f.fields())
+	resolver, err := newChannelAttributeResolver(s.client)
+	s.Require().NoError(err)
+
+	channelID := model.NewId()
+	secret := optionIDOf(f.classification, "Secret")
+	emea := optionIDOf(f.region, "EMEA")
+	apac := optionIDOf(f.region, "APAC")
+	sent := []model.PropertyValuePatchItem{
+		{FieldID: f.classification.ID, Value: json.RawMessage(`"` + secret + `"`)},
+		{FieldID: f.region.ID, Value: json.RawMessage(`["` + emea + `","` + apac + `"]`)},
+	}
+	expectValues := func(values ...*model.PropertyValue) {
+		s.client.
+			EXPECT().
+			GetPropertyValues(context.TODO(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeChannel, channelID, model.PropertyValueSearch{PerPage: channelAttributeValuesPageSize}).
+			Return(values, &model.Response{}, nil).
+			Times(1)
+	}
+
+	s.Run("values that read back missing or narrowed warn and succeed", func() {
+		printer.Clean()
+		expectValues(&model.PropertyValue{FieldID: f.region.ID, Value: json.RawMessage(`["` + apac + `"]`)})
+
+		s.Require().NoError(verifySaved(s.client, resolver, channelID, sent, "updated"))
+		s.Equal([]string{"Warning: the channel was updated, but the values of Classification, Region could not be checked: the server either hides them from you or is older than this mmctl and ignored them"}, printer.GetErrorLines())
+	})
+
+	s.Run("values that read back in full need no warning", func() {
+		printer.Clean()
+		expectValues(
+			&model.PropertyValue{FieldID: f.classification.ID, Value: sent[0].Value},
+			&model.PropertyValue{FieldID: f.region.ID, Value: sent[1].Value},
+		)
+
+		s.Require().NoError(verifySaved(s.client, resolver, channelID, sent, "updated"))
+		s.Empty(printer.GetErrorLines())
+	})
+
+	s.Run("a different value still fails", func() {
+		printer.Clean()
+		expectValues(&model.PropertyValue{FieldID: f.classification.ID, Value: json.RawMessage(`"` + optionIDOf(f.classification, "Unclassified") + `"`)})
+
+		s.Require().ErrorContains(verifySaved(s.client, resolver, channelID, sent, "updated"), "the server didn't save the attribute values")
 	})
 }
 
@@ -954,6 +1014,8 @@ func (s *MmctlUnitTestSuite) TestChannelAttributeGraph() {
 	})
 
 	s.Run("read-back compares graph arrays", func() {
+		field.Permissions = &model.Permissions{}
+		defer func() { field.Permissions = nil }()
 		resolver := newResolver()
 		channelID := model.NewId()
 		sent := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(`["` + company + `","` + engineering + `"]`)}}

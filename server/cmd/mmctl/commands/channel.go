@@ -91,7 +91,7 @@ var ModifyChannelCmd = &cobra.Command{
 	Long: `Change the Public/Private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
 
-When the server requires channel attributes, --attribute can be used only together with --private.
+When the server requires channel attributes, --attribute can be used only together with --private, to make a public channel private. To set the values of a channel that is already private, use "mmctl channel attributes set".
 
 Pass each attribute value with --attribute "<attribute>=<value>". The attribute can be its name or its ID, and a select value can be an option name or option ID. Quote the argument when it contains spaces. The text splits on the first "=", so a value may contain "=" and commas.
 
@@ -429,6 +429,12 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		return errors.New("you can only change the type of public/private channels")
+	}
+
+	// The server only takes values while it converts the channel, so on a
+	// private channel they would be dropped.
+	if len(attributes) > 0 && channel.Type == model.ChannelTypePrivate {
+		return errors.Errorf(`channel %q is already private; set its attribute values with "mmctl channel attributes set"`, args[0])
 	}
 
 	privacy := model.ChannelTypeOpen

@@ -469,6 +469,19 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			s.Require().Error(err)
 		})
 
+		s.Run("an already private channel with the flag is an error before any write", func() {
+			printer.Clean()
+			private := &model.Channel{Id: model.NewId(), Name: "ops", Type: model.ChannelTypePrivate}
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), private.Id).
+				Return(private, &model.Response{}, nil).
+				Times(1)
+
+			err := modifyChannelCmdF(s.client, newModifyCmd(false, true, "Classification=Secret"), []string{private.Id})
+			s.Require().EqualError(err, `channel "`+private.Id+`" is already private; set its attribute values with "mmctl channel attributes set"`)
+		})
+
 		s.Run("a missing attribute error names the required attributes the channel lacks", func() {
 			printer.Clean()
 			expectChannel()
@@ -485,7 +498,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			err := modifyChannelCmdF(s.client, newModifyCmd(false, true, "Classification=Secret"), []string{channel.Id})
 			s.Require().Error(err)
 			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Program\n")
 		})
 
 		s.Run("without the flag a missing attribute error skips the attributes the channel holds", func() {
@@ -511,7 +524,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			s.Require().Error(err)
 			s.Require().Contains(err.Error(), "failed to update channel (")
 			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Program\n")
 			s.Require().NotContains(err.Error(), "Classification")
 		})
 
@@ -552,6 +565,8 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.Run("a read-back that doesn't hold the values is an error", func() {
 			printer.Clean()
+			f.classification.Permissions = &model.Permissions{}
+			defer func() { f.classification.Permissions = nil }()
 			expectChannel()
 			s.expectChannelAttributeFieldSearch(f.fields())
 			s.client.
@@ -2282,7 +2297,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			s.Require().Error(err)
 			s.Require().Contains(err.Error(), "Unable to unarchive channel 'first'")
 			s.Require().NotContains(err.Error(), "'second'")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Program\n")
 			s.Require().Len(printer.GetErrorLines(), 1)
 		})
 
@@ -2309,8 +2324,8 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			s.Require().Error(err)
 			s.Require().Contains(err.Error(), "Unable to unarchive channel 'first'")
 			s.Require().Contains(err.Error(), "Unable to unarchive channel 'second'")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Classification, Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Program\n")
 			s.Require().Len(printer.GetErrorLines(), 2)
 		})
 
@@ -2350,6 +2365,8 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.Run("a read-back that doesn't hold the values is a failure of that channel", func() {
 			printer.Clean()
+			f.classification.Permissions = &model.Permissions{}
+			defer func() { f.classification.Permissions = nil }()
 			s.expectChannelAttributeFieldSearch(f.fields())
 			expectChannels(first)
 			s.client.
@@ -3728,7 +3745,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			err := createChannelCmdF(s.client, newCreateCmd("Classification=Secret"), nil)
 			s.Require().Error(err)
 			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Program\n")
 			s.Require().NotContains(err.Error(), "Classification,")
 			s.Require().Contains(err.Error(), `Run "mmctl channel attributes fields"`)
 			s.Require().Empty(printer.GetLines())
@@ -3783,7 +3800,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			err := createChannelCmdF(s.client, newCreateCmd(), nil)
 			s.Require().Error(err)
 			s.Require().Contains(err.Error(), "This channel is missing required attributes.")
-			s.Require().Contains(err.Error(), "Required channel attributes not passed: Classification, Program\n")
+			s.Require().Contains(err.Error(), "Required channel attributes that may be missing: Classification, Program\n")
 			s.Require().Empty(printer.GetLines())
 		})
 
@@ -3823,6 +3840,8 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.Run("a read-back that doesn't hold the values still reports the creation and is an error", func() {
 			printer.Clean()
+			f.classification.Permissions = &model.Permissions{}
+			defer func() { f.classification.Permissions = nil }()
 			expectTeam()
 			s.expectChannelAttributeFieldSearch(f.fields())
 			s.client.

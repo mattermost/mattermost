@@ -147,7 +147,7 @@ func (s *MmctlE2ETestSuite) TestChannelAttributeValues() {
 		err := createChannelCmdF(c, s.newChannelAttributeCreateCmd(name), nil)
 		s.Require().Error(err)
 		s.CheckErrorID(err, missingRequiredAttributesErrorID)
-		s.Require().Contains(err.Error(), "Required channel attributes not passed: ")
+		s.Require().Contains(err.Error(), "Required channel attributes that may be missing: ")
 		s.Require().Contains(err.Error(), field.Name)
 		s.Require().Empty(printer.GetLines())
 
@@ -326,7 +326,7 @@ func (s *MmctlE2ETestSuite) TestModifyChannelAttributeValues() {
 
 		err := modifyChannelCmdF(c, s.newChannelAttributeModifyCmd(), []string{s.th.BasicTeam.Name + ":" + channel.Name})
 		s.Require().Error(err)
-		s.Require().Contains(err.Error(), "Required channel attributes not passed: ")
+		s.Require().Contains(err.Error(), "Required channel attributes that may be missing: ")
 		s.Require().Contains(err.Error(), field.Name)
 
 		current, appErr := s.th.App.GetChannel(s.th.Context, channel.Id)
@@ -346,6 +346,15 @@ func (s *MmctlE2ETestSuite) TestModifyChannelAttributeValues() {
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.ChannelTypePrivate, current.Type)
 		s.Require().JSONEq(`"`+options["Alpha"]+`"`, string(s.channelAttributeValue(channel.Id, field.ID)))
+	})
+
+	s.RunForSystemAdminAndLocal("modify --private with --attribute on a private channel is refused before any write", func(c client.Client) {
+		channel := s.th.CreateChannelWithClientAndTeam(s.T(), s.th.SystemAdminClient, model.ChannelTypePrivate, s.th.BasicTeam.Id)
+		field, _ := s.createChannelAttribute(model.PropertyFieldTypeSelect, adminLevel, false, "Alpha")
+
+		err := modifyChannelCmdF(c, s.newChannelAttributeModifyCmd(field.Name+"=Alpha"), []string{s.th.BasicTeam.Name + ":" + channel.Name})
+		s.Require().ErrorContains(err, `is already private; set its attribute values with "mmctl channel attributes set"`)
+		s.Require().Nil(s.channelAttributeValue(channel.Id, field.ID))
 	})
 
 	s.RunForSystemAdminAndLocal("modify --public with --attribute is refused before any request", func(c client.Client) {
@@ -392,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelAttributeValues() {
 
 		err := unarchiveChannelsCmdF(c, newTestCmd(s.T(), UnarchiveChannelCmd), targets(channels))
 		s.Require().Error(err)
-		s.Require().Contains(err.Error(), "Required channel attributes not passed: ")
+		s.Require().Contains(err.Error(), "Required channel attributes that may be missing: ")
 		s.Require().Contains(err.Error(), field.Name)
 
 		for _, channel := range channels {
