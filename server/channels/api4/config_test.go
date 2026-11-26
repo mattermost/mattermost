@@ -1365,6 +1365,88 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
 	})
 
+	t.Run("Should not be able to modify PluginSettings.MarketplaceURL with a sparse patch if EnableUploads is disabled", func(t *testing.T) {
+		oldURL := "hello.com"
+		newURL := "new.com"
+
+		originalUploads := *th.App.Config().PluginSettings.EnableUploads
+		originalURL := *th.App.Config().PluginSettings.MarketplaceURL
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.EnableUploads = originalUploads
+				*cfg.PluginSettings.MarketplaceURL = originalURL
+			})
+		})
+
+		// The patch only carries MarketplaceURL. It leaves out EnableUploads, so
+		// the guard has to use the running EnableUploads value.
+		sparsePatch := func() *model.Config {
+			return &model.Config{PluginSettings: model.PluginSettings{
+				MarketplaceURL: new(newURL),
+			}}
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = false
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		_, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), sparsePatch())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Equal(t, oldURL, *th.App.Config().PluginSettings.MarketplaceURL)
+
+		// Re-sending the running value is not a change and must still succeed.
+		unchangedPatch := &model.Config{PluginSettings: model.PluginSettings{
+			MarketplaceURL: new(oldURL),
+		}}
+		_, _, err = th.SystemAdminClient.PatchConfig(context.Background(), unchangedPatch)
+		require.NoError(t, err)
+		assert.Equal(t, oldURL, *th.App.Config().PluginSettings.MarketplaceURL)
+
+		// Allowing uploads
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		updatedConfig, _, err := th.SystemAdminClient.PatchConfig(context.Background(), sparsePatch())
+		require.NoError(t, err)
+		assert.Equal(t, newURL, *updatedConfig.PluginSettings.MarketplaceURL)
+		assert.Equal(t, newURL, *th.App.Config().PluginSettings.MarketplaceURL)
+	})
+
+	t.Run("Should not use the patch's EnableUploads to decide whether MarketplaceURL can change", func(t *testing.T) {
+		oldURL := "hello.com"
+		newURL := "new.com"
+
+		originalUploads := *th.App.Config().PluginSettings.EnableUploads
+		originalURL := *th.App.Config().PluginSettings.MarketplaceURL
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.EnableUploads = originalUploads
+				*cfg.PluginSettings.MarketplaceURL = originalURL
+			})
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = false
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		// Claiming EnableUploads is true in the patch must not unlock MarketplaceURL.
+		// Both the toggle and the URL change are rejected.
+		patch := &model.Config{PluginSettings: model.PluginSettings{
+			EnableUploads:  new(true),
+			MarketplaceURL: new(newURL),
+		}}
+		_, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.False(t, *th.App.Config().PluginSettings.EnableUploads)
+		assert.Equal(t, oldURL, *th.App.Config().PluginSettings.MarketplaceURL)
+	})
+
 	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
 		// Mirror the behavior of the full update endpoint (TestUpdateConfig):
 		// changes to this field are silently preserved, not rejected.
@@ -1377,6 +1459,36 @@ func TestPatchConfig(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldPublicKeys, updatedConfig.PluginSettings.SignaturePublicKeyFiles)
 		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+	})
+
+	t.Run("Should keep PluginSettings.SignaturePublicKeyFiles when a sparse patch only carries it", func(t *testing.T) {
+		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+
+		patch := &model.Config{PluginSettings: model.PluginSettings{
+			SignaturePublicKeyFiles: []string{"new_signature"},
+		}}
+		updatedConfig, _, err := th.SystemAdminClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+		assert.Equal(t, oldPublicKeys, updatedConfig.PluginSettings.SignaturePublicKeyFiles)
+		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+	})
+
+	t.Run("Local client should be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PluginSettings.SignaturePublicKeyFiles = oldPublicKeys
+			})
+		})
+
+		patch := &model.Config{PluginSettings: model.PluginSettings{
+			SignaturePublicKeyFiles: []string{"new_signature"},
+		}}
+		updatedConfig, resp, err := th.LocalClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, []string{"new_signature"}, updatedConfig.PluginSettings.SignaturePublicKeyFiles)
+		assert.Equal(t, []string{"new_signature"}, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
@@ -1535,6 +1647,284 @@ func TestPatchConfig(t *testing.T) {
 		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-b")
 		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
 		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
+	})
+}
+
+// TestConfigPinnedFieldsProtectedInBothHandlers checks that each security-pinned
+// setting is protected by both REST config-write handlers, so a setting that is
+// protected in one cannot be changed through the other.
+func TestConfigPinnedFieldsProtectedInBothHandlers(t *testing.T) {
+	th := Setup(t)
+
+	testCases := []struct {
+		name string
+		// setup puts the running config in the state the protection depends on.
+		setup func(cfg *model.Config)
+		// change proposes a new value for exactly one pinned setting. It must
+		// work on both a full config and an empty, sparse one.
+		change func(cfg *model.Config)
+		// value reads the pinned setting from a config.
+		value func(cfg *model.Config) any
+		// patchRejected is whether a patch that changes the setting fails with
+		// 403. A patch silently keeps the running SignaturePublicKeyFiles, as an
+		// update does.
+		patchRejected bool
+	}{
+		{
+			name:          "PluginSettings.EnableUploads",
+			setup:         func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = false },
+			change:        func(cfg *model.Config) { cfg.PluginSettings.EnableUploads = new(true) },
+			value:         func(cfg *model.Config) any { return *cfg.PluginSettings.EnableUploads },
+			patchRejected: true,
+		},
+		{
+			name:   "PluginSettings.SignaturePublicKeyFiles",
+			setup:  func(cfg *model.Config) { cfg.PluginSettings.SignaturePublicKeyFiles = []string{"running.crt"} },
+			change: func(cfg *model.Config) { cfg.PluginSettings.SignaturePublicKeyFiles = []string{"attacker.crt"} },
+			value:  func(cfg *model.Config) any { return cfg.PluginSettings.SignaturePublicKeyFiles },
+		},
+		{
+			name:          "ImportSettings.Directory",
+			setup:         func(cfg *model.Config) { cfg.ImportSettings.Directory = new("./running-import") },
+			change:        func(cfg *model.Config) { cfg.ImportSettings.Directory = new("./attacker-import") },
+			value:         func(cfg *model.Config) any { return *cfg.ImportSettings.Directory },
+			patchRejected: true,
+		},
+		{
+			name: "PluginSettings.MarketplaceURL",
+			setup: func(cfg *model.Config) {
+				*cfg.PluginSettings.EnableUploads = false
+				cfg.PluginSettings.MarketplaceURL = new("https://running.example.com")
+			},
+			change: func(cfg *model.Config) {
+				cfg.PluginSettings.MarketplaceURL = new("https://attacker.example.com")
+			},
+			value:         func(cfg *model.Config) any { return *cfg.PluginSettings.MarketplaceURL },
+			patchRejected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(tc.setup)
+			before := tc.value(th.App.Config())
+
+			t.Run("update keeps the running value", func(t *testing.T) {
+				cfg := th.App.Config().Clone()
+				tc.change(cfg)
+				require.NotEqual(t, before, tc.value(cfg), "the test case must propose a different value")
+
+				_, _, err := th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+				require.NoError(t, err)
+				assert.Equal(t, before, tc.value(th.App.Config()))
+			})
+
+			t.Run("patch keeps the running value", func(t *testing.T) {
+				patch := &model.Config{}
+				tc.change(patch)
+
+				_, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), patch)
+				if tc.patchRejected {
+					require.Error(t, err)
+					CheckForbiddenStatus(t, resp)
+				} else {
+					require.NoError(t, err)
+					CheckOKStatus(t, resp)
+				}
+				assert.Equal(t, before, tc.value(th.App.Config()))
+			})
+		})
+	}
+}
+
+func TestPinSecuritySensitiveConfig(t *testing.T) {
+	type pinnedValues struct {
+		enableUploads  bool
+		publicKeyFiles []string
+		importDir      string
+		marketplaceURL string
+	}
+
+	newConfig := func(v pinnedValues) *model.Config {
+		return &model.Config{
+			PluginSettings: model.PluginSettings{
+				EnableUploads:           new(v.enableUploads),
+				SignaturePublicKeyFiles: v.publicKeyFiles,
+				MarketplaceURL:          new(v.marketplaceURL),
+			},
+			ImportSettings: model.ImportSettings{
+				Directory: new(v.importDir),
+			},
+		}
+	}
+	read := func(cfg *model.Config) pinnedValues {
+		return pinnedValues{
+			enableUploads:  *cfg.PluginSettings.EnableUploads,
+			publicKeyFiles: cfg.PluginSettings.SignaturePublicKeyFiles,
+			importDir:      *cfg.ImportSettings.Directory,
+			marketplaceURL: *cfg.PluginSettings.MarketplaceURL,
+		}
+	}
+
+	running := pinnedValues{
+		enableUploads:  false,
+		publicKeyFiles: []string{"running.crt"},
+		importDir:      "./running-import",
+		marketplaceURL: "https://running.example.com",
+	}
+	uploadsEnabled := running
+	uploadsEnabled.enableUploads = true
+
+	testCases := []struct {
+		name       string
+		running    pinnedValues
+		next       pinnedValues
+		wantPinned []string
+		wantNext   pinnedValues
+	}{
+		{
+			name:    "nothing changed",
+			running: running,
+			next:    running,
+			// No pinned names, and next keeps every running value.
+			wantNext: running,
+		},
+		{
+			name:       "EnableUploads toggled on",
+			running:    running,
+			next:       pinnedValues{true, running.publicKeyFiles, running.importDir, running.marketplaceURL},
+			wantPinned: []string{"PluginSettings.EnableUploads"},
+			wantNext:   running,
+		},
+		{
+			name:       "EnableUploads toggled off",
+			running:    uploadsEnabled,
+			next:       pinnedValues{false, running.publicKeyFiles, running.importDir, running.marketplaceURL},
+			wantPinned: []string{"PluginSettings.EnableUploads"},
+			wantNext:   uploadsEnabled,
+		},
+		{
+			name:       "SignaturePublicKeyFiles replaced",
+			running:    running,
+			next:       pinnedValues{false, []string{"attacker.crt"}, running.importDir, running.marketplaceURL},
+			wantPinned: []string{pinnedSignaturePublicKeyFiles},
+			wantNext:   running,
+		},
+		{
+			name:       "SignaturePublicKeyFiles appended",
+			running:    running,
+			next:       pinnedValues{false, []string{"running.crt", "attacker.crt"}, running.importDir, running.marketplaceURL},
+			wantPinned: []string{pinnedSignaturePublicKeyFiles},
+			wantNext:   running,
+		},
+		{
+			name:       "SignaturePublicKeyFiles emptied",
+			running:    running,
+			next:       pinnedValues{false, []string{}, running.importDir, running.marketplaceURL},
+			wantPinned: []string{pinnedSignaturePublicKeyFiles},
+			wantNext:   running,
+		},
+		{
+			name:       "SignaturePublicKeyFiles missing",
+			running:    running,
+			next:       pinnedValues{false, nil, running.importDir, running.marketplaceURL},
+			wantPinned: []string{pinnedSignaturePublicKeyFiles},
+			wantNext:   running,
+		},
+		{
+			name:       "ImportSettings.Directory changed",
+			running:    running,
+			next:       pinnedValues{false, running.publicKeyFiles, "./attacker-import", running.marketplaceURL},
+			wantPinned: []string{"ImportSettings.Directory"},
+			wantNext:   running,
+		},
+		{
+			name:       "MarketplaceURL changed while uploads are disabled",
+			running:    running,
+			next:       pinnedValues{false, running.publicKeyFiles, running.importDir, "https://attacker.example.com"},
+			wantPinned: []string{"PluginSettings.MarketplaceURL"},
+			wantNext:   running,
+		},
+		{
+			name:     "MarketplaceURL changed while uploads are enabled",
+			running:  uploadsEnabled,
+			next:     pinnedValues{true, running.publicKeyFiles, running.importDir, "https://new.example.com"},
+			wantNext: pinnedValues{true, running.publicKeyFiles, running.importDir, "https://new.example.com"},
+		},
+		{
+			// The running EnableUploads decides, not the one in next. Claiming
+			// uploads are enabled must not unlock MarketplaceURL.
+			name:       "next EnableUploads does not unlock MarketplaceURL",
+			running:    running,
+			next:       pinnedValues{true, running.publicKeyFiles, running.importDir, "https://attacker.example.com"},
+			wantPinned: []string{"PluginSettings.EnableUploads", "PluginSettings.MarketplaceURL"},
+			wantNext:   running,
+		},
+		{
+			// The other direction: disabling uploads in next must not lock
+			// MarketplaceURL while uploads are enabled in the running config.
+			name:       "next EnableUploads does not lock MarketplaceURL",
+			running:    uploadsEnabled,
+			next:       pinnedValues{false, running.publicKeyFiles, running.importDir, "https://new.example.com"},
+			wantPinned: []string{"PluginSettings.EnableUploads"},
+			wantNext:   pinnedValues{true, running.publicKeyFiles, running.importDir, "https://new.example.com"},
+		},
+		{
+			name:    "every pinned setting changed",
+			running: running,
+			next:    pinnedValues{true, []string{"attacker.crt"}, "./attacker-import", "https://attacker.example.com"},
+			wantPinned: []string{
+				"PluginSettings.EnableUploads",
+				pinnedSignaturePublicKeyFiles,
+				"ImportSettings.Directory",
+				"PluginSettings.MarketplaceURL",
+			},
+			wantNext: running,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			next := newConfig(tc.next)
+
+			pinned := pinSecuritySensitiveConfig(newConfig(tc.running), next)
+
+			assert.Equal(t, tc.wantPinned, pinned)
+			assert.Equal(t, tc.wantNext, read(next))
+		})
+	}
+
+	t.Run("an empty key list is not a change from a missing one", func(t *testing.T) {
+		runningWithoutKeys := running
+		runningWithoutKeys.publicKeyFiles = nil
+		nextWithEmptyKeys := runningWithoutKeys
+		nextWithEmptyKeys.publicKeyFiles = []string{}
+
+		pinned := pinSecuritySensitiveConfig(newConfig(runningWithoutKeys), newConfig(nextWithEmptyKeys))
+		assert.Empty(t, pinned)
+	})
+
+	t.Run("a pinned key list does not share memory with the running config", func(t *testing.T) {
+		runningCfg := newConfig(running)
+		runningCfg.PluginSettings.SignaturePublicKeyFiles = []string{"running.crt"}
+		next := newConfig(pinnedValues{false, []string{"attacker.crt"}, running.importDir, running.marketplaceURL})
+
+		pinned := pinSecuritySensitiveConfig(runningCfg, next)
+		require.Equal(t, []string{pinnedSignaturePublicKeyFiles}, pinned)
+
+		runningCfg.PluginSettings.SignaturePublicKeyFiles[0] = "mutated.crt"
+		assert.Equal(t, []string{"running.crt"}, next.PluginSettings.SignaturePublicKeyFiles)
+	})
+
+	t.Run("a pinned pointer does not share memory with the running config", func(t *testing.T) {
+		runningCfg := newConfig(running)
+		next := newConfig(pinnedValues{true, running.publicKeyFiles, running.importDir, running.marketplaceURL})
+
+		pinned := pinSecuritySensitiveConfig(runningCfg, next)
+		require.Equal(t, []string{"PluginSettings.EnableUploads"}, pinned)
+
+		*runningCfg.PluginSettings.EnableUploads = true
+		assert.False(t, *next.PluginSettings.EnableUploads)
 	})
 }
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -231,21 +232,9 @@ func mergeConfigUpdate(c *Context, where string, appCfg, cfg *model.Config) (*mo
 		return nil, model.NewAppError(where, "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Do not allow plugin uploads to be toggled through the API
-	*cfg.PluginSettings.EnableUploads = *appCfg.PluginSettings.EnableUploads
-
-	// Do not allow certificates to be changed through the API
-	// This shallow-copies the slice header. So be careful if there are concurrent
-	// modifications to the slice.
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
-
-	// Do not allow import directory to be changed through the API
-	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
-
-	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
-	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
-		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
-	}
+	// Security-pinned settings cannot be changed through the API. A full update
+	// silently keeps the running values for them.
+	pinSecuritySensitiveConfig(appCfg, cfg)
 
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License().IsCloud() {
@@ -336,32 +325,6 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return writeFilter(c, structField)
 	}
 
-	// Do not allow plugin uploads to be toggled through the API
-	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
-		return
-	}
-
-	// Do not allow certificates to be changed through the API. Mirror the full
-	// update endpoint by silently preserving the existing value rather than
-	// rejecting the request.
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
-
-	// Do not allow import directory to be changed through the API
-	if cfg.ImportSettings.Directory != nil && *cfg.ImportSettings.Directory != *appCfg.ImportSettings.Directory {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
-		return
-	}
-
-	// Do not allow marketplace URL to be toggled if plugin uploads are disabled.
-	if cfg.PluginSettings.MarketplaceURL != nil && cfg.PluginSettings.EnableUploads != nil {
-		// Breaking it down to 2 conditions to make it simple.
-		if *cfg.PluginSettings.MarketplaceURL != *appCfg.PluginSettings.MarketplaceURL && !*cfg.PluginSettings.EnableUploads {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
-			return
-		}
-	}
-
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License().IsCloud() {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
@@ -388,6 +351,21 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	// Security-pinned settings cannot be changed through the API. Checking the
+	// merged result rather than the patch means a sparse patch cannot skip a
+	// guard by leaving a related field out.
+	pinned := pinSecuritySensitiveConfig(appCfg, updatedCfg)
+
+	// Like updateConfig, a patch silently keeps the running SignaturePublicKeyFiles.
+	// A change to any other pinned setting rejects the patch.
+	rejected := slices.DeleteFunc(pinned, func(name string) bool {
+		return name == pinnedSignaturePublicKeyFiles
+	})
+	if len(rejected) > 0 {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": strings.Join(rejected, ", ")}, "", http.StatusForbidden)
 		return
 	}
 
@@ -684,6 +662,70 @@ func newReadableConfigFilter(c *Context) func(*model.Config) (*model.Config, *mo
 
 		return cloudFiltered, nil
 	}
+}
+
+// pinnedSignaturePublicKeyFiles is the name pinSecuritySensitiveConfig reports for
+// PluginSettings.SignaturePublicKeyFiles.
+const pinnedSignaturePublicKeyFiles = "PluginSettings.SignaturePublicKeyFiles"
+
+// pinSecuritySensitiveConfig is the single definition of the settings that REST
+// (non-local) config writes must never change. Every REST handler that writes
+// config must apply it, so a setting protected in one cannot be changed through
+// another. Local mode has its own handlers and is deliberately not subject to it.
+//
+// The pinned settings control which plugin binaries the server will install and
+// run, or where it reads import data from:
+//   - PluginSettings.EnableUploads
+//   - PluginSettings.SignaturePublicKeyFiles
+//   - ImportSettings.Directory
+//   - PluginSettings.MarketplaceURL, which may only change while the running
+//     EnableUploads is true. The running value is used, never the one in next.
+//
+// next must be the complete config that would be saved, for example the result
+// of merging a PUT or PATCH body onto running. Each pinned setting that differs
+// from running is reset in next to the running value, and the dotted names of
+// those settings are returned in a fixed order. The caller decides whether a
+// change is ignored, as updateConfig does, or rejects the request.
+func pinSecuritySensitiveConfig(running, next *model.Config) []string {
+	var pinned []string
+
+	if pinPointerValue(&next.PluginSettings.EnableUploads, running.PluginSettings.EnableUploads) {
+		pinned = append(pinned, "PluginSettings.EnableUploads")
+	}
+
+	if !slices.Equal(next.PluginSettings.SignaturePublicKeyFiles, running.PluginSettings.SignaturePublicKeyFiles) {
+		// Clone rather than share the slice so later changes to either config
+		// cannot affect the other. Clone preserves nil-ness.
+		next.PluginSettings.SignaturePublicKeyFiles = slices.Clone(running.PluginSettings.SignaturePublicKeyFiles)
+		pinned = append(pinned, pinnedSignaturePublicKeyFiles)
+	}
+
+	if pinPointerValue(&next.ImportSettings.Directory, running.ImportSettings.Directory) {
+		pinned = append(pinned, "ImportSettings.Directory")
+	}
+
+	if !model.SafeDereference(running.PluginSettings.EnableUploads) &&
+		pinPointerValue(&next.PluginSettings.MarketplaceURL, running.PluginSettings.MarketplaceURL) {
+		pinned = append(pinned, "PluginSettings.MarketplaceURL")
+	}
+
+	return pinned
+}
+
+// pinPointerValue resets *next to a copy of running when their values differ,
+// and reports whether it did. A nil pointer compares as the zero value, and a
+// nil running pointer is reproduced as nil.
+func pinPointerValue[T comparable](next **T, running *T) bool {
+	if model.SafeDereference(*next) == model.SafeDereference(running) {
+		return false
+	}
+
+	if running == nil {
+		*next = nil
+	} else {
+		*next = new(*running)
+	}
+	return true
 }
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
