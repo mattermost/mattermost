@@ -261,19 +261,24 @@ func (ps *PropertyService) AddHook(hook PropertyHook) {
 	ps.hooks = append(ps.hooks, hook)
 }
 
-// valueContentValidator is implemented by hooks that can check the contents of
-// values without a write.
-type valueContentValidator interface {
-	ValidateValueContents(rctx request.CTX, values []*model.PropertyValue) error
+// valueWriteValidator is implemented by hooks that can run, without writing,
+// the checks a value write makes that don't depend on whether the target takes
+// values or on the caller's permission tier there.
+type valueWriteValidator interface {
+	ValidateValueWrite(rctx request.CTX, values []*model.PropertyValue) error
 }
 
-// ValidatePropertyValueContents runs the content checks of every hook that has
-// them against values, writing nothing, so a bad value can be refused before a
-// step that has to come first. It returns the error the write would.
-func (ps *PropertyService) ValidatePropertyValueContents(rctx request.CTX, values []*model.PropertyValue) error {
+// ValidatePropertyValueWrite runs those checks of every hook against values,
+// in hook order and writing nothing, so a write that has to follow another step
+// can be refused before that step. Values must carry their target. It returns
+// the error the write would.
+func (ps *PropertyService) ValidatePropertyValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
+	if len(values) == 0 {
+		return nil
+	}
 	for _, hook := range ps.hooks {
-		if v, ok := hook.(valueContentValidator); ok {
-			if err := v.ValidateValueContents(rctx, values); err != nil {
+		if v, ok := hook.(valueWriteValidator); ok {
+			if err := v.ValidateValueWrite(rctx, values); err != nil {
 				return err
 			}
 		}
