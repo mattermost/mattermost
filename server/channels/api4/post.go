@@ -1223,6 +1223,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if appErr := c.App.CheckPostEditPluginRouteActions(c.AppContext, originalPost, post.GetProps()); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	post.Id = c.Params.PostId
 
 	rpost, isMemberForPreviews, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), &model.UpdatePostOptions{SafeUpdate: false})
@@ -1283,6 +1288,13 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		checkEditFileAttachmentPermission(c, *post.FileIds, originalPost)
 		if c.Err != nil {
+			return
+		}
+	}
+
+	if post.Props != nil {
+		if appErr := c.App.CheckPostEditPluginRouteActions(c.AppContext, originalPost, *post.Props); appErr != nil {
+			c.Err = appErr
 			return
 		}
 	}

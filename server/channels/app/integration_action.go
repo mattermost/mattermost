@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -206,6 +207,90 @@ func (a *App) actionURLIsPluginRoute(rawURL string) bool {
 	}
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	return strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins"))
+}
+
+// CheckPostEditPluginRouteActions rejects a client edit that adds or changes a
+// plugin-route action on a post whose plugin-route actions are dispatched,
+// unless the editor is the post's bot author.
+func (a *App) CheckPostEditPluginRouteActions(rctx request.CTX, oldPost *model.Post, newProps model.StringInterface) *model.AppError {
+	updated := &model.Post{}
+	updated.SetProps(newProps)
+
+	existing := a.pluginRouteActions(oldPost)
+	changed := false
+	for _, action := range a.pluginRouteActions(updated) {
+		if !slices.Contains(existing, action) {
+			changed = true
+			break
+		}
+	}
+	if !changed {
+		return nil
+	}
+
+	dispatch, appErr := a.storedPostDispatchesPluginAction(rctx, oldPost)
+	if appErr != nil {
+		return appErr
+	}
+	if !dispatch {
+		return nil
+	}
+
+	if rctx.Session().UserId == oldPost.UserId {
+		editor, appErr := a.GetUser(rctx, oldPost.UserId)
+		if appErr != nil {
+			return appErr
+		}
+		if editor.IsBot {
+			return nil
+		}
+	}
+
+	return model.NewAppError("CheckPostEditPluginRouteActions", "api.post.update_post.plugin_route_actions.app_error", nil, "", http.StatusBadRequest)
+}
+
+// pluginRouteActions returns the JSON of each attachment action and
+// mm_blocks_actions entry on post that a click sends to a plugin route.
+func (a *App) pluginRouteActions(post *model.Post) []string {
+	var actions []string
+	add := func(v any) {
+		if b, err := json.Marshal(v); err == nil {
+			actions = append(actions, string(b))
+		}
+	}
+
+	for _, attachment := range post.Attachments() {
+		for _, action := range attachment.Actions {
+			if action != nil && action.Integration != nil && a.actionURLIsPluginRoute(action.Integration.URL) {
+				add(struct {
+					Attachment *model.PostAction
+				}{action})
+			}
+		}
+	}
+
+	raw := post.GetProp(model.PostPropsMmBlocksActions)
+	if raw == nil {
+		return actions
+	}
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return actions
+	}
+	var entries map[string]json.RawMessage
+	if json.Unmarshal(encoded, &entries) != nil {
+		return actions
+	}
+	for id := range entries {
+		spec := post.GetMmBlocksActionSpec(id)
+		if spec != nil && spec.Type == model.MmBlocksActionTypeExternal && a.actionURLIsPluginRoute(spec.URL) {
+			add(struct {
+				MmBlocksID string
+				Spec       *model.MmBlocksActionSpec
+			}{id, spec})
+		}
+	}
+	return actions
 }
 
 // DoActionRequest performs an HTTP POST request to an integration's action endpoint.

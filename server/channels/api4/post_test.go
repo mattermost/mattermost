@@ -2610,6 +2610,80 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestEditPostPluginRouteActions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+	})
+
+	attachments := func(actionURL string) []*model.MessageAttachment {
+		return []*model.MessageAttachment{{
+			Text: "hello",
+			Actions: []*model.PostAction{{
+				Id:          "action1",
+				Type:        model.PostActionTypeButton,
+				Name:        "action",
+				Integration: &model.PostActionIntegration{URL: actionURL},
+			}},
+		}}
+	}
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	webhookPost, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "interactive", "", "", "",
+		model.StringInterface{model.PostPropsAttachments: attachments("/plugins/myplugin/one")}, "", "", nil, false)
+	require.Nil(t, appErr)
+	require.Equal(t, th.BasicUser.Id, webhookPost.UserId)
+	require.Equal(t, "true", webhookPost.GetProp(model.PostPropsFromWebhook))
+
+	storedAction := func(t *testing.T, postID string) string {
+		t.Helper()
+		stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, postID, false)
+		require.NoError(t, err)
+		action := stored.GetAction("action1")
+		require.NotNil(t, action)
+		require.NotNil(t, action.Integration)
+		return action.Integration.URL
+	}
+
+	t.Run("update changing a plugin action on a webhook post is rejected", func(t *testing.T) {
+		update := webhookPost.Clone()
+		update.SetProps(model.StringInterface{model.PostPropsAttachments: attachments("/plugins/myplugin/two")})
+		_, resp, err := client.UpdatePost(context.Background(), webhookPost.Id, update)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.update_post.plugin_route_actions.app_error")
+		assert.Equal(t, "/plugins/myplugin/one", storedAction(t, webhookPost.Id))
+	})
+
+	t.Run("patch changing a plugin action on a webhook post is rejected", func(t *testing.T) {
+		props := model.StringInterface{model.PostPropsAttachments: attachments("/plugins/myplugin/two")}
+		_, resp, err := client.PatchPost(context.Background(), webhookPost.Id, &model.PostPatch{Props: &props})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.update_post.plugin_route_actions.app_error")
+		assert.Equal(t, "/plugins/myplugin/one", storedAction(t, webhookPost.Id))
+	})
+
+	t.Run("message-only patch on a webhook post is allowed", func(t *testing.T) {
+		patched, _, err := client.PatchPost(context.Background(), webhookPost.Id, &model.PostPatch{Message: model.NewPointer("edited")})
+		require.NoError(t, err)
+		assert.Equal(t, "edited", patched.Message)
+		assert.Equal(t, "/plugins/myplugin/one", storedAction(t, webhookPost.Id))
+	})
+
+	t.Run("update adding a plugin action on an ordinary post is allowed", func(t *testing.T) {
+		post := th.CreatePost(t)
+		post.SetProps(model.StringInterface{model.PostPropsAttachments: attachments("/plugins/myplugin/two")})
+		_, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+		assert.Equal(t, "/plugins/myplugin/two", storedAction(t, post.Id))
+	})
+}
+
 func TestPatchPost(t *testing.T) {
 	mainHelper.Parallel(t)
 

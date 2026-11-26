@@ -53,6 +53,12 @@ func GetCommandProvider(name string) CommandProvider {
 }
 
 func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+	return a.createCommandPost(rctx, post, response, skipSlackParsing, false)
+}
+
+// createCommandPost saves the response post. fromPlugin is set only when the
+// response came from a plugin's ExecuteCommand hook.
+func (a *App) createCommandPost(rctx request.CTX, post *model.Post, response *model.CommandResponse, skipSlackParsing, fromPlugin bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
 	} else {
@@ -114,6 +120,7 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 			TriggerWebhooks:     true,
 			SetOnline:           true,
 			FromIncomingWebhook: fromWebhook,
+			FromPlugin:          fromPlugin,
 			OverrideUsername:    overrideUsername,
 			OverrideIconURL:     overrideIconURL,
 			OverrideIconEmoji:   overrideIconEmoji,
@@ -281,7 +288,7 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(rctx, cmd, args, response, true)
+		return a.handleCommandResponse(rctx, cmd, args, response, true, true)
 	}
 
 	// Custom commands can override built ins
@@ -659,6 +666,10 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 }
 
 func (a *App) HandleCommandResponse(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+	return a.handleCommandResponse(rctx, command, args, response, builtIn, false)
+}
+
+func (a *App) handleCommandResponse(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn, fromPlugin bool) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	if args.Command != "" {
 		parts := strings.Split(args.Command, " ")
@@ -667,7 +678,7 @@ func (a *App) HandleCommandResponse(rctx request.CTX, command *model.Command, ar
 	}
 
 	var lastError *model.AppError
-	_, err := a.HandleCommandResponsePost(rctx, command, args, response, builtIn)
+	_, err := a.handleCommandResponsePost(rctx, command, args, response, builtIn, fromPlugin)
 
 	if err != nil {
 		rctx.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
@@ -676,7 +687,7 @@ func (a *App) HandleCommandResponse(rctx request.CTX, command *model.Command, ar
 
 	if response.ExtraResponses != nil {
 		for _, resp := range response.ExtraResponses {
-			_, err := a.HandleCommandResponsePost(rctx, command, args, resp, builtIn)
+			_, err := a.handleCommandResponsePost(rctx, command, args, resp, builtIn, fromPlugin)
 
 			if err != nil {
 				rctx.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
@@ -693,6 +704,10 @@ func (a *App) HandleCommandResponse(rctx request.CTX, command *model.Command, ar
 }
 
 func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+	return a.handleCommandResponsePost(rctx, command, args, response, builtIn, false)
+}
+
+func (a *App) handleCommandResponsePost(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn, fromPlugin bool) (*model.Post, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
@@ -741,7 +756,7 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 		response.Attachments = a.ProcessMessageAttachments(rctx, response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
+	if _, err := a.createCommandPost(rctx, post, response, response.SkipSlackParsing, fromPlugin); err != nil {
 		return post, err
 	}
 

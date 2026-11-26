@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
@@ -1394,11 +1395,23 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 			"net/http"
 			"os"
 
+			"github.com/mattermost/mattermost/server/public/model"
 			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {
 			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			return p.API.RegisterCommand(&model.Command{Trigger: "routebutton"})
+		}
+
+		func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			return &model.CommandResponse{
+				ResponseType: model.CommandResponseTypeInChannel,
+				Text:         "interactive",
+			}, nil
 		}
 
 		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
@@ -1534,6 +1547,16 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 			name:       "plugin relative plugin route",
 			author:     "plugin",
 			expectCall: true,
+		},
+		{
+			name:       "plugin slash command response relative plugin route",
+			author:     "plugin-command",
+			expectCall: true,
+		},
+		{
+			name:       "built-in slash command response relative plugin route",
+			author:     "builtin-command",
+			expectCall: false,
 		},
 		{
 			name:       "oauth app relative plugin route",
@@ -1698,6 +1721,30 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				require.Equal(t, "true", created.GetProp(model.PostPropsFromPlugin))
 				require.False(t, th.BasicUser.IsBot)
 				postID = created.Id
+			case "plugin-command", "builtin-command":
+				args := &model.CommandArgs{
+					TeamId:    th.BasicTeam.Id,
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+					Command:   "/routebutton",
+				}
+				if tc.author == "plugin-command" {
+					_, cmdErr := th.App.ExecuteCommand(th.Context, args)
+					require.Nil(t, cmdErr)
+				} else {
+					_, cmdErr := th.App.HandleCommandResponse(th.Context, &model.Command{Trigger: "routebutton"}, args, &model.CommandResponse{
+						ResponseType: model.CommandResponseTypeInChannel,
+						Text:         "interactive",
+					}, true)
+					require.Nil(t, cmdErr)
+				}
+				posts, postsErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
+				require.Nil(t, postsErr)
+				require.Len(t, posts.Order, 1)
+				created := posts.Posts[posts.Order[0]]
+				require.Equal(t, th.BasicUser.Id, created.UserId)
+				require.Equal(t, "interactive", created.Message)
+				postID = created.Id
 			case "oauth":
 				oauthCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, IsOAuth: true})
 				created, _, createErr := th.App.CreatePostAsUser(oauthCtx, &model.Post{
@@ -1794,9 +1841,12 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromBot))
 			case "webhook":
 				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromWebhook))
-			case "plugin":
+			case "plugin", "plugin-command":
 				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromPlugin))
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
+			case "builtin-command":
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromPlugin))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromWebhook))
 			case "oauth":
 				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromOAuthApp))
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
@@ -1845,6 +1895,184 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 			if appErr == nil {
 				t.Errorf("DoPostActionWithCookie returned no error")
 			}
+		})
+	}
+}
+
+func TestCheckPostEditPluginRouteActions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+
+	pluginAction := func(id, actionURL string) *model.PostAction {
+		return &model.PostAction{
+			Id:   id,
+			Type: model.PostActionTypeButton,
+			Name: "action",
+			Integration: &model.PostActionIntegration{
+				URL:     actionURL,
+				Context: map[string]any{"step": "one"},
+			},
+		}
+	}
+	attachmentProps := func(actions ...*model.PostAction) model.StringInterface {
+		return model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{{Text: "hello", Actions: actions}},
+		}
+	}
+	// roundTrip stores props the way they come back from the database or a
+	// REST request body.
+	roundTrip := func(t *testing.T, props model.StringInterface) model.StringInterface {
+		t.Helper()
+		var out model.StringInterface
+		require.NoError(t, json.Unmarshal([]byte(model.StringInterfaceToJSON(props)), &out))
+		return out
+	}
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	webhookPost, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "interactive", "", "", "", nil, "", "", nil, false)
+	require.Nil(t, appErr)
+	require.Equal(t, "true", webhookPost.GetProp(model.PostPropsFromWebhook))
+	webhookPost.SetProps(roundTrip(t, model.StringInterface{
+		model.PostPropsFromWebhook: "true",
+		model.PostPropsAttachments: attachmentProps(pluginAction("a1", "/plugins/myplugin/one"))[model.PostPropsAttachments],
+	}))
+
+	userPost := th.CreatePost(t, th.BasicChannel)
+	userPost.SetProps(roundTrip(t, attachmentProps(pluginAction("a1", "/plugins/myplugin/one"))))
+
+	botUser := setupBotInChannel(t, th)
+	botPost, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		Message:   "interactive",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    botUser.Id,
+	}, "", true)
+	require.Nil(t, appErr)
+	botPost.SetProps(roundTrip(t, model.StringInterface{
+		model.PostPropsFromBot:     "true",
+		model.PostPropsAttachments: attachmentProps(pluginAction("a1", "/plugins/myplugin/one"))[model.PostPropsAttachments],
+	}))
+
+	userCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+	botCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id})
+
+	changedContext := pluginAction("a1", "/plugins/myplugin/one")
+	changedContext.Integration.Context = map[string]any{"step": "two"}
+
+	testCases := []struct {
+		name      string
+		rctx      request.CTX
+		oldPost   *model.Post
+		newProps  model.StringInterface
+		expectErr bool
+	}{
+		{
+			name:     "unchanged plugin action on webhook post",
+			rctx:     userCtx,
+			oldPost:  webhookPost,
+			newProps: attachmentProps(pluginAction("a1", "/plugins/myplugin/one")),
+		},
+		{
+			name:     "attachment text change keeps plugin action",
+			rctx:     userCtx,
+			oldPost:  webhookPost,
+			newProps: model.StringInterface{model.PostPropsAttachments: []*model.MessageAttachment{{Text: "edited", Actions: []*model.PostAction{pluginAction("a1", "/plugins/myplugin/one")}}}},
+		},
+		{
+			name:     "plugin action removed",
+			rctx:     userCtx,
+			oldPost:  webhookPost,
+			newProps: model.StringInterface{},
+		},
+		{
+			name:      "plugin action url changed on webhook post",
+			rctx:      userCtx,
+			oldPost:   webhookPost,
+			newProps:  attachmentProps(pluginAction("a1", "/plugins/myplugin/two")),
+			expectErr: true,
+		},
+		{
+			name:      "plugin action context changed on webhook post",
+			rctx:      userCtx,
+			oldPost:   webhookPost,
+			newProps:  attachmentProps(changedContext),
+			expectErr: true,
+		},
+		{
+			name:      "plugin action added on webhook post",
+			rctx:      userCtx,
+			oldPost:   webhookPost,
+			newProps:  attachmentProps(pluginAction("a1", "/plugins/myplugin/one"), pluginAction("a2", "/plugins/myplugin/two")),
+			expectErr: true,
+		},
+		{
+			name:      "duplicate action id placed first on webhook post",
+			rctx:      userCtx,
+			oldPost:   webhookPost,
+			newProps:  attachmentProps(pluginAction("a1", "/plugins/myplugin/two"), pluginAction("a1", "/plugins/myplugin/one")),
+			expectErr: true,
+		},
+		{
+			name:      "existing action changed to siteurl plugin route",
+			rctx:      userCtx,
+			oldPost:   webhookPost,
+			newProps:  attachmentProps(pluginAction("a1", "http://localhost:8065/plugins/myplugin/two")),
+			expectErr: true,
+		},
+		{
+			name:    "mm_blocks plugin action added on webhook post",
+			rctx:    userCtx,
+			oldPost: webhookPost,
+			newProps: model.StringInterface{
+				model.PostPropsAttachments: attachmentProps(pluginAction("a1", "/plugins/myplugin/one"))[model.PostPropsAttachments],
+				model.PostPropsMmBlocksActions: map[string]any{
+					"b1": map[string]any{"type": model.MmBlocksActionTypeExternal, "url": "/plugins/myplugin/two"},
+				},
+			},
+			expectErr: true,
+		},
+		{
+			name:     "external action changed on webhook post",
+			rctx:     userCtx,
+			oldPost:  webhookPost,
+			newProps: attachmentProps(pluginAction("a1", "/plugins/myplugin/one"), pluginAction("a2", "https://example.com/action")),
+		},
+		{
+			name:     "plugin action changed on ordinary user post",
+			rctx:     userCtx,
+			oldPost:  userPost,
+			newProps: attachmentProps(pluginAction("a1", "/plugins/myplugin/two")),
+		},
+		{
+			name:     "bot changes plugin action on its own post",
+			rctx:     botCtx,
+			oldPost:  botPost,
+			newProps: attachmentProps(pluginAction("a1", "/plugins/myplugin/two")),
+		},
+		{
+			name:      "another user changes plugin action on bot post",
+			rctx:      userCtx,
+			oldPost:   botPost,
+			newProps:  attachmentProps(pluginAction("a1", "/plugins/myplugin/two")),
+			expectErr: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			appErr := th.App.CheckPostEditPluginRouteActions(tc.rctx, tc.oldPost, roundTrip(t, tc.newProps))
+			if tc.expectErr {
+				require.NotNil(t, appErr)
+				assert.Equal(t, "api.post.update_post.plugin_route_actions.app_error", appErr.Id)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+				return
+			}
+			require.Nil(t, appErr)
 		})
 	}
 }
