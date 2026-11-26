@@ -77,15 +77,15 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
 		ChannelID:   channelID,
 		TeamID:      channel.TeamId,
-		PerPage:     model.PostAttributesMaxFields + 1,
+		PerPage:     model.PostAttributesMaxApplicableFields + 1,
 	})
 	if appErr != nil {
 		return appErr
 	}
 
-	// Over the bound means the post field cap was bypassed and the page may be truncated, so the
+	// Over the bound means a field cap was bypassed and the page may be truncated, so the
 	// value set below would be silently incomplete. Report unavailable rather than partial.
-	if len(fields) > model.PostAttributesMaxFields {
+	if len(fields) > model.PostAttributesMaxApplicableFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.field_bound_exceeded.app_error",
 			nil, "applicable field count exceeds the per-post bound", http.StatusInternalServerError)
 	}
@@ -108,13 +108,13 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 	values, appErr := a.SearchPropertyValues(rctx, groupID, model.PropertyValueSearchOpts{
 		TargetType: model.PropertyValueTargetTypePost,
 		TargetIDs:  postIDs,
-		PerPage:    len(postIDs)*model.PostAttributesMaxFields + 1,
+		PerPage:    len(postIDs)*model.PostAttributesMaxApplicableFields + 1,
 	})
 	if appErr != nil {
 		return appErr
 	}
 
-	if len(values) > len(postIDs)*model.PostAttributesMaxFields {
+	if len(values) > len(postIDs)*model.PostAttributesMaxApplicableFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.value_bound_exceeded.app_error",
 			nil, "value count exceeds the per-page bound", http.StatusInternalServerError)
 	}
