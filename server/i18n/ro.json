@@ -14817,7 +14817,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Verificarea celei mai recente versiuni Mattermost este dezactivată. Activați setarea „Activați alertele de securitate” pentru a o permite."
+    "translation": "Verificarea celei mai recente versiuni Mattermost este dezactivată. Activați setarea „Verificați actualizările de securitate și de versiune” pentru a o permite."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15205,7 +15205,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Prima verificare de sănătate rulează în decurs de o oră de la activarea funcționalității."
+    "translation": "Nicio verificare de sănătate nu a rulat încă."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16381,7 +16381,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Cea mai recentă versiune nu a fost verificată: „Activați alertele de securitate” este dezactivată, așa că serverul nu o preia."
+    "translation": "Cea mai recentă versiune nu a fost verificată: setarea „Verificați actualizările de securitate și de versiune” este dezactivată, așa că serverul nu o preia."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16538,5 +16538,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Creator de fișier nevalid."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Adresa URL a site-ului furnizată pentru inițiere nu este validă. Trebuie să fie o adresă URL http sau https fără cale, de exemplu https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Raportul de sănătate nu a putut fi exportat."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Atributele de postare necesită o licență Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Lipsesc valori ale atributelor canalului în:{{.ChannelList}}\n\nSunteți administrator de canal acolo. Deschideți canalul și selectați **Adăugați valori** sau setați-le în **Informații despre canal**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) necesită: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "ID-ul de plugin {{.ID}} este rezervat pentru serverul de bază și nu poate fi instalat sau încărcat."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Cu un număr de utilizatori înregistrați de {{.users}}, acest server rulează pe un singur nod, fără disponibilitate ridicată. Arhitecturile de referință Mattermost recomandă disponibilitatea ridicată de la peste 200 de utilizatori, așa că planificați-o înainte ca o defecțiune a unui nod sau o actualizare să scoată spațiul de lucru offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Rulați cel puțin două noduri de aplicație în spatele unui echilibrator de încărcare, cu o bază de date partajată și o stocare de fișiere partajată, apoi activați ClusterSettings.Enable cu același ClusterName pe fiecare nod."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Luați în considerare configurarea disponibilității ridicate"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Cu un număr de utilizatori înregistrați de {{.users}}, acest server rulează pe un singur nod, fără disponibilitate ridicată. Orice defecțiune, repornire sau actualizare a nodului scoate offline întregul spațiu de lucru. Arhitecturile de referință Mattermost impun disponibilitatea ridicată la această scară."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Rulați cel puțin două noduri de aplicație în spatele unui echilibrator de încărcare, cu o bază de date partajată și o stocare de fișiere partajată, apoi activați ClusterSettings.Enable cu același ClusterName pe fiecare nod."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Disponibilitatea ridicată nu este activată la această scară"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper este true, așa că informațiile detaliate despre erori sunt afișate utilizatorilor și clienților. Această setare este destinată exclusiv dezvoltării."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Setați ServiceSettings.EnableDeveloper la false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper este activată"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-mailul nu este configurat, așa că e-mailurile, cum ar fi cele pentru resetarea parolei și notificările, nu vor fi livrate."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Niciun server de e-mail nu răspunde la adresa SMTP implicită localhost:10025 pe {{.nodes}}, așa că e-mailurile trimise de aceste noduri, cum ar fi cele pentru resetarea parolei și notificările, nu vor fi livrate. Celelalte noduri ajung la un server de e-mail la această adresă. Eroare: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configurați un server SMTP în Consola de sistem. Dacă acest server nu trebuie să trimită e-mailuri, dezactivați notificările prin e-mail, invitațiile prin e-mail și verificarea e-mailului, apoi ignorați această constatare. Păstrați activată conectarea cu e-mail sau cu nume de utilizator: fără acestea, utilizatorii care nu se conectează prin SSO nu se pot conecta."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Serverul SMTP nu este configurat"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting este true, așa că modul de testare expune comenzi și endpointuri de test destinate exclusiv dezvoltării."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Setați ServiceSettings.EnableTesting la false, apoi reporniți serverul. Unele endpointuri de test sunt eliminate doar la repornire."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting este activată"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections este true, așa că serverul nu verifică certificatele TLS ale conexiunilor HTTPS de ieșire, cum ar fi webhook-urile de ieșire, comenzile slash, schimburile de tokenuri OAuth, previzualizările linkurilor și descărcările de pluginuri. Oricine se află pe calea de rețea poate citi sau modifica acest trafic, inclusiv tokenurile OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Adăugați certificatul CA intern în depozitul de încredere al sistemului pe fiecare server Mattermost, apoi setați ServiceSettings.EnableInsecureOutgoingConnections la false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Verificarea certificatelor TLS este dezactivată pentru conexiunile de ieșire"
   }
 ]

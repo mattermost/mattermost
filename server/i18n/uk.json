@@ -14827,7 +14827,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Перевірку наявності останнього випуску Mattermost вимкнено. Увімкніть «Увімкнути сповіщення про безпеку», щоб дозволити її."
+    "translation": "Перевірку наявності останнього випуску Mattermost вимкнено. Увімкніть параметр «Перевіряти наявність оновлень безпеки та нових випусків», щоб дозволити її."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15218,7 +15218,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Перша перевірка працездатності виконується протягом години після ввімкнення функції."
+    "translation": "Перевірка працездатності ще не виконувалася."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16396,7 +16396,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Останній випуск не перевірено: «Увімкнути сповіщення про безпеку» вимкнено, тому сервер його не отримує."
+    "translation": "Останній випуск не перевірено: параметр «Перевіряти наявність оновлень безпеки та нових випусків» вимкнено, тому сервер його не отримує."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16553,5 +16553,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Недійсний автор файлу."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL-адреса сайту, надана для адаптації, недійсна. Це має бути URL-адреса з протоколом HTTP або HTTPS без шляху, наприклад https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Не вдалося експортувати звіт про працездатність."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Атрибути допису потребують ліцензії Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Відсутні значення атрибутів каналу в:{{.ChannelList}}\n\nВи адміністратор цих каналів. Відкрийте канал і виберіть **Додати значення** або задайте їх на панелі **Інформація про канал**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) потребує: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Ідентифікатор плагіна {{.ID}} зарезервовано для ядра сервера, тому його не можна встановити або завантажити."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Зареєстрованих користувачів: {{.users}}, а цей сервер працює на одному вузлі без високої доступності. Еталонні архітектури Mattermost рекомендують високу доступність для понад 200 користувачів, тож сплануйте її, перш ніж збій або оновлення вузла зробить робочий простір недоступним."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Запустіть щонайменше два вузли застосунку за балансувальником навантаження зі спільною базою даних і спільним файловим сховищем, а потім увімкніть ClusterSettings.Enable з однаковим ClusterName на кожному вузлі."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Розгляньте можливість налаштування високої доступності"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Зареєстрованих користувачів: {{.users}}, а цей сервер працює на одному вузлі без високої доступності. Будь-який збій, перезапуск чи оновлення вузла робить увесь робочий простір недоступним. Еталонні архітектури Mattermost вимагають високої доступності за такого масштабу."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Запустіть щонайменше два вузли застосунку за балансувальником навантаження зі спільною базою даних і спільним файловим сховищем, а потім увімкніть ClusterSettings.Enable з однаковим ClusterName на кожному вузлі."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Високу доступність не ввімкнено за такого масштабу"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper має значення true, тому користувачам і клієнтам показується детальна інформація про помилки. Цей параметр призначений лише для розробки."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Установіть для ServiceSettings.EnableDeveloper значення false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper увімкнено"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Електронну пошту не налаштовано, тому листи, як-от для скидання пароля та сповіщення, не доставлятимуться."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "За типовою адресою SMTP localhost:10025 на вузлах {{.nodes}} не відповідає жоден поштовий сервер, тому листи, які надсилають ці вузли, як-от для скидання пароля та сповіщення, не доставлятимуться. Інші вузли знаходять поштовий сервер за цією адресою. Помилка: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Налаштуйте SMTP-сервер у системній консолі. Якщо цей сервер не має надсилати електронну пошту, вимкніть сповіщення електронною поштою, запрошення електронною поштою та підтвердження електронної пошти, а потім заглушіть цей результат перевірки. Залиште ввімкненим вхід за електронною поштою або ім’ям користувача: без них користувачі, які не входять через SSO, не зможуть увійти."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-сервер не налаштовано"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting має значення true, тому режим тестування відкриває тестові команди й кінцеві точки, призначені лише для розробки."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Установіть для ServiceSettings.EnableTesting значення false, а потім перезапустіть сервер. Деякі тестові кінцеві точки видаляються лише після перезапуску."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting увімкнено"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections має значення true, тому сервер не перевіряє TLS-сертифікати у вихідних HTTPS-з’єднаннях, як-от вихідних вебхуках, швидких командах, обміні токенами OAuth, попередньому перегляді посилань і завантаженні плагінів. Будь-хто на мережевому шляху може прочитати або змінити цей трафік, зокрема токени OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Додайте сертифікат внутрішнього центру сертифікації до системного сховища довірених сертифікатів на кожному сервері Mattermost, а потім установіть для ServiceSettings.EnableInsecureOutgoingConnections значення false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Перевірку TLS-сертифікатів вимкнено для вихідних з’єднань"
   }
 ]

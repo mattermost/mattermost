@@ -14827,7 +14827,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Naujausio Mattermost leidimo tikrinimas išjungtas. Kad jį leistumėte, įjunkite nustatymą „Įgalinti saugos įspėjimus“."
+    "translation": "Naujausios Mattermost laidos tikrinimas išjungtas. Įjunkite nustatymą „Tikrinti saugos ir laidų atnaujinimus“, kad tai būtų leidžiama."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15218,7 +15218,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Pirmoji būklės patikra atliekama per valandą nuo funkcijos įjungimo."
+    "translation": "Dar neatlikta nė viena būklės patikra."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16396,7 +16396,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Naujausia laida netikrinta: nustatymas „Įgalinti saugos įspėjimus“ išjungtas, todėl serveris jos negauna."
+    "translation": "Naujausia laida netikrinta: nustatymas „Tikrinti saugos ir laidų atnaujinimus“ išjungtas, todėl serveris jos negauna."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16553,5 +16553,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Netinkamas failo kūrėjas."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Pradiniam supažindinimui pateiktas svetainės URL netinkamas. Jis turi būti http arba https URL be kelio, pvz., https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Nepavyko eksportuoti būklės ataskaitos."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Pranešimų atributams reikia Enterprise licencijos."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Šiuose kanaluose trūksta kanalo atributų reikšmių:{{.ChannelList}}\n\nŠiuose kanaluose esate kanalo administratorius. Atidarykite kanalą ir pasirinkite **Pridėti reikšmes** arba nustatykite jas skiltyje **Kanalo informacija**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) reikia nustatyti: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Papildinio ID {{.ID}} rezervuotas pagrindiniam serveriui, todėl jo negalima įdiegti ar įkelti."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Kai registruotų naudotojų yra {{.users}}, šis serveris veikia viename mazge be aukšto prieinamumo. Mattermost etaloninės architektūros rekomenduoja aukštą prieinamumą, kai naudotojų yra daugiau nei 200, todėl pasirūpinkite juo iš anksto, kad mazgo gedimas ar atnaujinimas nepadarytų darbo srities nepasiekiamos."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Paleiskite bent du programos mazgus už apkrovos balansavimo įrenginio su bendra duomenų baze ir bendra failų saugykla, tada kiekviename mazge įjunkite ClusterSettings.Enable su tuo pačiu ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Apsvarstykite galimybę sukonfigūruoti aukštą prieinamumą"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Kai registruotų naudotojų yra {{.users}}, šis serveris veikia viename mazge be aukšto prieinamumo. Bet koks mazgo gedimas, paleidimas iš naujo ar atnaujinimas padaro visą darbo sritį nepasiekiamą. Tokiu mastu Mattermost etaloninės architektūros reikalauja aukšto prieinamumo."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Paleiskite bent du programos mazgus už apkrovos balansavimo įrenginio su bendra duomenų baze ir bendra failų saugykla, tada kiekviename mazge įjunkite ClusterSettings.Enable su tuo pačiu ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Tokiu mastu aukštas prieinamumas neįjungtas"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper yra true, todėl naudotojams ir klientams rodoma išsami informacija apie klaidas. Šis nustatymas skirtas tik kūrimui."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Nustatykite ServiceSettings.EnableDeveloper į false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper įjungtas"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "El. paštas nesukonfigūruotas, todėl el. laiškai, pvz., slaptažodžio atkūrimo laiškai ir pranešimai, nebus pristatyti."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Numatytuoju SMTP adresu localhost:10025 mazguose {{.nodes}} neatsako joks pašto serveris, todėl tų mazgų siunčiami el. laiškai, pvz., slaptažodžio atkūrimo laiškai ir pranešimai, nebus pristatyti. Kiti mazgai tuo adresu pasiekia pašto serverį. Klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Sistemos konsolėje sukonfigūruokite SMTP serverį. Jei šis serveris neturėtų siųsti el. laiškų, išjunkite el. pašto pranešimus, kvietimus el. paštu ir el. pašto patvirtinimą, tada nutildykite šį pastebėjimą. Palikite įjungtą prisijungimą el. paštu ar naudotojo vardu: be jų naudotojai, kurie neprisijungia per SSO, negalės prisijungti."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP serveris nesukonfigūruotas"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting yra true, todėl testavimo režimas atveria testavimo komandas ir galinius taškus, skirtus tik kūrimui."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Nustatykite ServiceSettings.EnableTesting į false, tada iš naujo paleiskite serverį. Kai kurie testavimo galiniai taškai pašalinami tik paleidus iš naujo."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting įjungtas"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections yra true, todėl serveris netikrina TLS sertifikatų siunčiamuosiuose HTTPS ryšiuose, pvz., siunčiamųjų žiniatinklio kablių, pasvirojo brūkšnio komandų, OAuth prieigos raktų mainų, nuorodų peržiūrų ir papildinių atsisiuntimų. Bet kas tinklo kelyje gali skaityti arba keisti šį srautą, įskaitant OAuth prieigos raktus."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Kiekviename Mattermost serveryje įtraukite vidinės CA sertifikatą į sistemos patikimų sertifikatų saugyklą, tada nustatykite ServiceSettings.EnableInsecureOutgoingConnections į false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Siunčiamųjų ryšių TLS sertifikatų patikra išjungta"
   }
 ]

@@ -14810,7 +14810,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "La vérification de la dernière version de Mattermost est désactivée. Activez « Activer les alertes de sécurité » pour l'autoriser."
+    "translation": "La vérification de la dernière version de Mattermost est désactivée. Activez « Vérifier les mises à jour de sécurité et de version » pour l'autoriser."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15195,7 +15195,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "La première vérification de santé s'exécute dans l'heure qui suit l'activation de la fonctionnalité."
+    "translation": "Aucune vérification de santé n'a encore été exécutée."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16369,7 +16369,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Dernière version non vérifiée : le paramètre Activer les alertes de sécurité est désactivé, le serveur ne la récupère donc pas."
+    "translation": "Dernière version non vérifiée : « Vérifier les mises à jour de sécurité et de version » est désactivé, le serveur ne la récupère donc pas."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16526,5 +16526,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Créateur de fichier invalide."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "L'URL du site fournie lors de l'intégration n'est pas valide. Il doit s'agir d'une URL http ou https sans chemin, par exemple https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Impossible d'exporter le rapport de santé."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Les attributs de message nécessitent une licence Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Des valeurs d'attributs de canal sont manquantes dans :{{.ChannelList}}\n\nVous y êtes administrateur de canal. Ouvrez le canal et sélectionnez **Ajouter des valeurs**, ou définissez-les dans **Informations du canal**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) nécessite : {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "L'identifiant de plugin {{.ID}} est réservé au serveur principal et ne peut être ni installé ni chargé."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Avec {{.users}} utilisateurs inscrits, ce serveur fonctionne sur un seul nœud, sans haute disponibilité. Les architectures de référence de Mattermost recommandent la haute disponibilité au-delà de 200 utilisateurs : prévoyez-la avant qu'une panne de nœud ou une mise à niveau ne mette l'espace de travail hors ligne."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Exécutez au moins deux nœuds applicatifs derrière un répartiteur de charge, avec une base de données partagée et un stockage de fichiers partagé, puis activez ClusterSettings.Enable avec le même ClusterName sur chaque nœud."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Envisagez de mettre en place la haute disponibilité"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Avec {{.users}} utilisateurs inscrits, ce serveur fonctionne sur un seul nœud, sans haute disponibilité. Toute panne, tout redémarrage ou toute mise à niveau d'un nœud met l'ensemble de l'espace de travail hors ligne. Les architectures de référence de Mattermost exigent la haute disponibilité à cette échelle."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Exécutez au moins deux nœuds applicatifs derrière un répartiteur de charge, avec une base de données partagée et un stockage de fichiers partagé, puis activez ClusterSettings.Enable avec le même ClusterName sur chaque nœud."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "La haute disponibilité n'est pas activée à cette échelle"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper est à true : des informations d'erreur détaillées sont donc affichées aux utilisateurs et aux clients. Ce paramètre est destiné uniquement au développement."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Définissez ServiceSettings.EnableDeveloper sur false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper est activé"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "L'envoi d'e-mails n'est pas configuré : les e-mails, comme les réinitialisations de mot de passe et les notifications, ne seront donc pas distribués."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Aucun serveur de messagerie ne répond à l'adresse SMTP par défaut localhost:10025 sur {{.nodes}} : les e-mails envoyés par ces nœuds, comme les réinitialisations de mot de passe et les notifications, ne seront donc pas distribués. Les autres nœuds joignent un serveur de messagerie à cette adresse. Erreur : {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configurez un serveur SMTP dans la console système. Si ce serveur ne doit pas envoyer d'e-mails, désactivez les notifications par e-mail, les invitations par e-mail et la vérification des adresses e-mail, puis masquez ce constat. Laissez activées les connexions par e-mail et par nom d'utilisateur : sans elles, les utilisateurs qui ne se connectent pas via SSO ne peuvent pas se connecter."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Le serveur SMTP n'est pas configuré"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting est à true : le mode test expose donc des commandes et des points de terminaison de test destinés uniquement au développement."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Définissez ServiceSettings.EnableTesting sur false, puis redémarrez le serveur. Certains points de terminaison de test ne sont supprimés qu'au redémarrage."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting est activé"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections est à true : le serveur ne vérifie donc pas les certificats TLS des connexions HTTPS sortantes, telles que les webhooks sortants, les commandes slash, les échanges de jetons OAuth, les aperçus de liens et les téléchargements de plugins. Toute personne située sur le chemin réseau peut lire ou modifier ce trafic, y compris les jetons OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Ajoutez le certificat de l'autorité de certification (CA) interne au magasin de certificats de confiance du système sur chaque serveur Mattermost, puis définissez ServiceSettings.EnableInsecureOutgoingConnections sur false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "La vérification des certificats TLS est désactivée pour les connexions sortantes"
   }
 ]

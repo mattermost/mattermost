@@ -14827,7 +14827,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Sprawdzanie najnowszej wersji Mattermost jest wyłączone. Aby na to zezwolić, włącz ustawienie Włącz alerty bezpieczeństwa."
+    "translation": "Sprawdzanie najnowszego wydania Mattermost jest wyłączone. Włącz ustawienie „Sprawdzaj aktualizacje bezpieczeństwa i wydań”, aby na to zezwolić."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15218,7 +15218,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Pierwsza kontrola kondycji zostanie przeprowadzona w ciągu godziny od włączenia tej funkcji."
+    "translation": "Żadna kontrola kondycji nie została jeszcze przeprowadzona."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16396,7 +16396,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Nie sprawdzono najnowszego wydania: ustawienie Włącz alerty bezpieczeństwa jest wyłączone, więc serwer go nie pobiera."
+    "translation": "Nie sprawdzono najnowszego wydania: ustawienie „Sprawdzaj aktualizacje bezpieczeństwa i wydań” jest wyłączone, więc serwer go nie pobiera."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16553,5 +16553,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Nieprawidłowy twórca pliku."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Adres URL witryny podany podczas onboardingu jest nieprawidłowy. Musi to być adres URL http lub https bez ścieżki, np. https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Nie można wyeksportować raportu kondycji."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Atrybuty postów wymagają licencji Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Brakuje wartości atrybutów kanału w następujących kanałach:{{.ChannelList}}\n\nJesteś w nich administratorem kanału. Otwórz kanał i wybierz **Dodaj wartości** lub ustaw je w panelu **Informacje o kanale**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) wymaga: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Identyfikator wtyczki {{.ID}} jest zarezerwowany dla rdzenia serwera i nie można go zainstalować ani wczytać."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Ten serwer działa na jednym węźle bez wysokiej dostępności, a liczba zarejestrowanych użytkowników wynosi {{.users}}. Architektury referencyjne Mattermost zalecają wysoką dostępność powyżej 200 użytkowników, więc zaplanuj ją, zanim awaria węzła lub aktualizacja sprawi, że obszar roboczy będzie offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Uruchom co najmniej dwa węzły aplikacji za modułem równoważenia obciążenia, ze wspólną bazą danych i wspólnym magazynem plików, a następnie włącz ClusterSettings.Enable z tą samą wartością ClusterName na każdym węźle."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Rozważ skonfigurowanie wysokiej dostępności"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Ten serwer działa na jednym węźle bez wysokiej dostępności, a liczba zarejestrowanych użytkowników wynosi {{.users}}. Każda awaria węzła, ponowne uruchomienie lub aktualizacja sprawia, że cały obszar roboczy jest offline. Architektury referencyjne Mattermost wymagają wysokiej dostępności przy tej skali."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Uruchom co najmniej dwa węzły aplikacji za modułem równoważenia obciążenia, ze wspólną bazą danych i wspólnym magazynem plików, a następnie włącz ClusterSettings.Enable z tą samą wartością ClusterName na każdym węźle."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Wysoka dostępność nie jest włączona przy tej skali"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "Ustawienie ServiceSettings.EnableDeveloper ma wartość true, więc użytkownicy i klienci widzą szczegółowe informacje o błędach. To ustawienie jest przeznaczone wyłącznie do celów programistycznych."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Ustaw ServiceSettings.EnableDeveloper na false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "Ustawienie ServiceSettings.EnableDeveloper jest włączone"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Poczta e-mail nie jest skonfigurowana, więc wiadomości e-mail, takie jak resetowanie hasła i powiadomienia, nie będą dostarczane."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Pod domyślnym adresem SMTP localhost:10025 na węzłach {{.nodes}} nie odpowiada żaden serwer pocztowy, więc wiadomości e-mail wysyłane przez te węzły, takie jak resetowanie hasła i powiadomienia, nie będą dostarczane. Pozostałe węzły łączą się pod tym adresem z serwerem pocztowym. Błąd: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Skonfiguruj serwer SMTP w Konsoli systemowej. Jeśli ten serwer nie powinien wysyłać wiadomości e-mail, wyłącz powiadomienia e-mail, zaproszenia e-mail i weryfikację adresu e-mail, a następnie wycisz ten problem. Pozostaw włączone logowanie za pomocą adresu e-mail lub nazwy użytkownika: bez nich użytkownicy, którzy nie logują się przez SSO, nie będą mogli się zalogować."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Serwer SMTP nie jest skonfigurowany"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "Ustawienie ServiceSettings.EnableTesting ma wartość true, więc tryb testowy udostępnia testowe polecenia i punkty końcowe przeznaczone wyłącznie do celów programistycznych."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Ustaw ServiceSettings.EnableTesting na false, a następnie uruchom ponownie serwer. Niektóre testowe punkty końcowe są usuwane dopiero po ponownym uruchomieniu."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "Ustawienie ServiceSettings.EnableTesting jest włączone"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "Ustawienie ServiceSettings.EnableInsecureOutgoingConnections ma wartość true, więc serwer nie weryfikuje certyfikatów TLS w wychodzących połączeniach HTTPS, takich jak webhooki wychodzące, polecenia po ukośniku, wymiana tokenów OAuth, podglądy linków i pobieranie wtyczek. Każdy na ścieżce sieciowej może odczytać lub zmienić ten ruch, w tym tokeny OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Dodaj certyfikat wewnętrznego urzędu certyfikacji (CA) do systemowego magazynu zaufanych certyfikatów na każdym serwerze Mattermost, a następnie ustaw ServiceSettings.EnableInsecureOutgoingConnections na false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Weryfikacja certyfikatów TLS jest wyłączona dla połączeń wychodzących"
   }
 ]

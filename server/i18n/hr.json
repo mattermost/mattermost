@@ -14817,7 +14817,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Provjera najnovijeg Mattermost izdanja je isključena. Da bi se dopustila, uključi postavku Omogući sigurnosna upozorenja."
+    "translation": "Provjera najnovijeg Mattermost izdanja je isključena. Uključi postavku „Provjeravaj sigurnosna ažuriranja i nova izdanja” da je omogućiš."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15205,7 +15205,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Prva provjera zdravlja sustava izvodi se unutar sat vremena od uključivanja funkcije."
+    "translation": "Još nije pokrenuta nijedna provjera zdravlja."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16381,7 +16381,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Najnovije izdanje nije provjereno: postavka Omogući sigurnosna upozorenja je isključena, pa ga server ne dohvaća."
+    "translation": "Najnovije izdanje nije provjereno: postavka „Provjeravaj sigurnosna ažuriranja i nova izdanja” je isključena, pa ga server ne dohvaća."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16538,5 +16538,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Neispravan stvaratelj datoteke."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL web stranice naveden za uvođenje nije valjan. Mora biti http ili https URL bez putanje, npr. https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Nije moguće izvesti izvješće o zdravlju."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Atributi objave zahtijevaju Enterprise licencu."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Nedostaju vrijednosti atributa kanala u:{{.ChannelList}}\n\nTamo si administrator kanala. Otvori kanal i odaberi **Dodaj vrijednosti** ili ih postavi u **Informacije o kanalu**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) – potrebno: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "ID dodatka {{.ID}} rezerviran je za jezgru servera i ne može se instalirati ni učitati."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Registriranih korisnika: {{.users}}. Ovaj server radi na jednom čvoru bez visoke dostupnosti. Referentne arhitekture tvrtke Mattermost preporučuju visoku dostupnost iznad 200 korisnika, pa je isplaniraj prije nego što zbog kvara ili nadogradnje čvora radni prostor ostane offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Pokreni barem dva aplikacijska čvora iza balansera opterećenja, sa zajedničkom bazom podataka i zajedničkom pohranom datoteka, a zatim uključi ClusterSettings.Enable s istim ClusterName na svakom čvoru."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Razmisli o postavljanju visoke dostupnosti"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Registriranih korisnika: {{.users}}. Ovaj server radi na jednom čvoru bez visoke dostupnosti. Zbog svakog kvara, ponovnog pokretanja ili nadogradnje čvora cijeli radni prostor ostaje offline. Referentne arhitekture tvrtke Mattermost zahtijevaju visoku dostupnost pri ovom opsegu."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Pokreni barem dva aplikacijska čvora iza balansera opterećenja, sa zajedničkom bazom podataka i zajedničkom pohranom datoteka, a zatim uključi ClusterSettings.Enable s istim ClusterName na svakom čvoru."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Visoka dostupnost nije uključena pri ovom opsegu"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper ima vrijednost true, pa se korisnicima i klijentima prikazuju detaljne informacije o greškama. Ova je postavka namijenjena samo za razvoj."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Postavi ServiceSettings.EnableDeveloper na false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "Postavka ServiceSettings.EnableDeveloper je uključena"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-mail nije konfiguriran, pa se e-mailovi poput poništavanja lozinke i obavijesti neće isporučivati."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Na čvorovima {{.nodes}} nijedan server e-pošte ne odgovara na zadanoj SMTP adresi localhost:10025, pa se e-mailovi koje ti čvorovi šalju, poput poništavanja lozinke i obavijesti, neće isporučiti. Ostali čvorovi na toj adresi dosežu server e-pošte. Greška: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Konfiguriraj SMTP server u Konzoli sustava. Ako ovaj server ne bi trebao slati e-poštu, isključi e-mail obavijesti, e-mail pozivnice i provjeru e-maila, a zatim utišaj ovaj nalaz. Ostavi uključenu prijavu e-mailom ili korisničkim imenom: bez njih se korisnici koji se ne prijavljuju putem SSO-a ne mogu prijaviti."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP server nije konfiguriran"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting ima vrijednost true, pa način testiranja izlaže testne naredbe i krajnje točke namijenjene samo za razvoj."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Postavi ServiceSettings.EnableTesting na false, a zatim ponovno pokreni server. Neke se testne krajnje točke uklanjaju tek pri ponovnom pokretanju."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "Postavka ServiceSettings.EnableTesting je uključena"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections ima vrijednost true, pa server ne provjerava TLS certifikate na odlaznim HTTPS vezama, poput odlaznih webhookova, naredbi s kosom crtom, razmjena OAuth tokena, pregleda poveznica i preuzimanja dodataka. Svatko na mrežnoj putanji može čitati ili mijenjati taj promet, uključujući OAuth tokene."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Dodaj interni CA certifikat u sistemsko spremište pouzdanih certifikata na svakom Mattermost serveru, a zatim postavi ServiceSettings.EnableInsecureOutgoingConnections na false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Provjera TLS certifikata isključena je za odlazne veze"
   }
 ]

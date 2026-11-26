@@ -14810,7 +14810,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Controleren op de nieuwste Mattermost-release is uitgeschakeld. Schakel de instelling Beveiligingswaarschuwingen inschakelen in om dit toe te staan."
+    "translation": "Controleren op de nieuwste Mattermost-release is uitgeschakeld. Schakel Controleren op beveiligings- en releaseupdates in om dit toe te staan."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15195,7 +15195,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "De eerste gezondheidscontrole wordt uitgevoerd binnen een uur nadat de functie is ingeschakeld."
+    "translation": "Er is nog geen gezondheidscontrole uitgevoerd."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16369,7 +16369,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Nieuwste release niet gecontroleerd: Beveiligingswaarschuwingen inschakelen staat uit, dus de server haalt die niet op."
+    "translation": "Nieuwste release niet gecontroleerd: Controleren op beveiligings- en releaseupdates staat uit, dus de server haalt deze niet op."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16526,5 +16526,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Ongeldige bestandsmaker."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "De Site URL die voor de verwelkoming is opgegeven, is ongeldig. Het moet een http- of https-URL zonder pad zijn, zoals https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Kan het gezondheidsrapport niet exporteren."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Voor berichtattributen is een Enterprise-licentie vereist."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Er ontbreken waarden voor kanaalattributen in:{{.ChannelList}}\n\nJe bent daar kanaalbeheerder. Open het kanaal en selecteer **Waarden toevoegen**, of stel ze in via **Kanaalinfo**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) vereist: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin-ID {{.ID}} is gereserveerd voor de kernserver en kan niet worden geïnstalleerd of geladen."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Met {{.users}} geregistreerde gebruikers draait deze server op één knooppunt zonder hoge beschikbaarheid. De referentiearchitecturen van Mattermost raden hoge beschikbaarheid aan boven 200 gebruikers, dus plan dit voordat een knooppuntstoring of upgrade de werkruimte offline haalt."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Draai minstens twee app-knooppunten achter een load balancer, met een gedeelde database en gedeelde bestandsopslag, en schakel daarna ClusterSettings.Enable in met dezelfde ClusterName op elk knooppunt."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Overweeg hoge beschikbaarheid in te stellen"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Met {{.users}} geregistreerde gebruikers draait deze server op één knooppunt zonder hoge beschikbaarheid. Elke storing, herstart of upgrade van het knooppunt haalt de hele werkruimte offline. De referentiearchitecturen van Mattermost vereisen hoge beschikbaarheid op deze schaal."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Draai minstens twee app-knooppunten achter een load balancer, met een gedeelde database en gedeelde bestandsopslag, en schakel daarna ClusterSettings.Enable in met dezelfde ClusterName op elk knooppunt."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Hoge beschikbaarheid is niet ingeschakeld op deze schaal"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper staat op true, dus gedetailleerde foutinformatie wordt aan gebruikers en clients getoond. Deze instelling is alleen bedoeld voor ontwikkeling."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Stel ServiceSettings.EnableDeveloper in op false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper is ingeschakeld"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-mail is niet geconfigureerd, dus e-mails zoals wachtwoordherstel en meldingen worden niet bezorgd."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Op {{.nodes}} reageert geen mailserver op het standaard-SMTP-adres localhost:10025, dus e-mails die deze knooppunten versturen, zoals wachtwoordherstel en meldingen, worden niet bezorgd. De andere knooppunten bereiken daar wel een mailserver. Fout: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configureer een SMTP-server in de Systeemconsole. Als deze server geen e-mail hoort te versturen, schakel dan e-mailmeldingen, e-mailuitnodigingen en e-mailverificatie uit en demp daarna deze bevinding. Laat aanmelden met e-mail of gebruikersnaam ingeschakeld: zonder deze opties kunnen gebruikers die zich niet via SSO aanmelden, zich niet aanmelden."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-server is niet geconfigureerd"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting staat op true, dus de testmodus stelt testopdrachten en endpoints beschikbaar die alleen bedoeld zijn voor ontwikkeling."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Stel ServiceSettings.EnableTesting in op false en herstart daarna de server. Sommige test-endpoints worden pas bij een herstart verwijderd."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting is ingeschakeld"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections staat op true, dus de server controleert geen TLS-certificaten bij uitgaande HTTPS-verbindingen, zoals uitgaande webhooks, slash-opdrachten, uitwisselingen van OAuth-tokens, linkvoorbeelden en plugin-downloads. Iedereen op het netwerkpad kan dat verkeer lezen of wijzigen, inclusief OAuth-tokens."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Voeg het interne CA-certificaat toe aan de vertrouwensopslag van het systeem op elke Mattermost-server en stel daarna ServiceSettings.EnableInsecureOutgoingConnections in op false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Verificatie van TLS-certificaten is uitgeschakeld voor uitgaande verbindingen"
   }
 ]

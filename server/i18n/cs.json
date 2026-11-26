@@ -14827,7 +14827,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Kontrola nejnovější verze Mattermost je vypnutá. Chcete-li ji povolit, zapněte nastavení Povolit bezpečnostní upozornění."
+    "translation": "Kontrola nejnovějšího vydání Mattermost je vypnutá. Chcete-li ji povolit, zapněte nastavení Kontrolovat bezpečnostní aktualizace a nové verze."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15218,7 +15218,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "První kontrola stavu proběhne do hodiny od zapnutí funkce."
+    "translation": "Zatím neproběhla žádná kontrola stavu."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16396,7 +16396,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Nejnovější vydání nebylo zkontrolováno: nastavení Povolit bezpečnostní upozornění je vypnuté, takže jej server nenačítá."
+    "translation": "Nejnovější vydání nebylo zkontrolováno: nastavení Kontrolovat bezpečnostní aktualizace a nové verze je vypnuté, takže ho server nenačítá."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16553,5 +16553,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Neplatný tvůrce souboru."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL stránky zadaná pro onboarding je neplatná. Musí to být adresa URL http nebo https bez cesty, například https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Zprávu o stavu se nepodařilo exportovat."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Atributy příspěvku vyžadují licenci Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Chybí hodnoty atributů kanálu v těchto kanálech:{{.ChannelList}}\n\nV těchto kanálech jste správcem kanálu. Otevřete kanál a vyberte **Přidat hodnoty**, nebo hodnoty nastavte v panelu **Informace o kanálu**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) vyžaduje: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "ID pluginu {{.ID}} je vyhrazeno pro jádro serveru a nelze jej nainstalovat ani načíst."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "S {{.users}} registrovanými uživateli běží tento server na jediném uzlu bez vysoké dostupnosti. Referenční architektury Mattermost doporučují vysokou dostupnost od 200 uživatelů, proto ji naplánujte dříve, než selhání uzlu nebo upgrade vyřadí pracovní prostor z provozu."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Provozujte alespoň dva aplikační uzly za nástrojem pro vyrovnávání zátěže se sdílenou databází a sdíleným úložištěm souborů a poté na každém uzlu zapněte ClusterSettings.Enable se stejným ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Zvažte nastavení vysoké dostupnosti"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "S {{.users}} registrovanými uživateli běží tento server na jediném uzlu bez vysoké dostupnosti. Jakékoli selhání uzlu, restart nebo upgrade vyřadí z provozu celý pracovní prostor. Referenční architektury Mattermost při tomto rozsahu vysokou dostupnost vyžadují."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Provozujte alespoň dva aplikační uzly za nástrojem pro vyrovnávání zátěže se sdílenou databází a sdíleným úložištěm souborů a poté na každém uzlu zapněte ClusterSettings.Enable se stejným ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Při tomto rozsahu není zapnutá vysoká dostupnost"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper má hodnotu true, takže se uživatelům a klientům zobrazují podrobné informace o chybách. Toto nastavení je určeno pouze pro vývoj."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Nastavte ServiceSettings.EnableDeveloper na false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper je zapnuté"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-mail není nastaven, takže e-maily, jako je obnovení hesla a oznámení, nebudou doručovány."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Na výchozí adrese SMTP localhost:10025 neodpovídá na uzlech {{.nodes}} žádný poštovní server, takže e-maily odesílané těmito uzly, jako je obnovení hesla a oznámení, nebudou doručeny. Ostatní uzly se k poštovnímu serveru na této adrese připojí. Chyba: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Nastavte server SMTP v Systémové konzoli. Pokud tento server nemá odesílat e-maily, vypněte e-mailová oznámení, e-mailové pozvánky a ověřování e-mailu a poté toto zjištění ztlumte. Přihlašování e-mailem nebo uživatelským jménem ponechte zapnuté: bez něj se uživatelé, kteří se nepřihlašují přes SSO, nebudou moci přihlásit."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Server SMTP není nastaven"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting má hodnotu true, takže testovací režim zpřístupňuje testovací příkazy a koncové body určené pouze pro vývoj."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Nastavte ServiceSettings.EnableTesting na false a poté restartujte server. Některé testovací koncové body se odstraní až po restartu."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting je zapnuté"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections má hodnotu true, takže server neověřuje certifikáty TLS u odchozích připojení HTTPS, jako jsou odchozí webhooky, lomítkové příkazy, výměny tokenů OAuth, náhledy odkazů a stahování pluginů. Kdokoli na síťové trase může tento provoz číst nebo měnit, včetně tokenů OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Přidejte certifikát interní certifikační autority (CA) do systémového úložiště důvěryhodných certifikátů na každém serveru Mattermost a poté nastavte ServiceSettings.EnableInsecureOutgoingConnections na false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Ověřování certifikátů TLS je u odchozích připojení vypnuté"
   }
 ]

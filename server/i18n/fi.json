@@ -14807,7 +14807,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Uusimman Mattermost-julkaisun tarkistaminen on poistettu käytöstä. Salli se ottamalla käyttöön asetus Ota käyttöön turvallisuushälytykset."
+    "translation": "Uusimman Mattermost-version tarkistaminen on poistettu käytöstä. Salli se ottamalla käyttöön asetus \"Tarkista tietoturva- ja versiopäivitykset\"."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15192,7 +15192,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Ensimmäinen kuntotarkistus suoritetaan tunnin kuluessa ominaisuuden käyttöönotosta."
+    "translation": "Kuntotarkistusta ei ole vielä suoritettu."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16366,7 +16366,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Uusinta julkaisua ei tarkistettu: asetus Ota käyttöön turvallisuushälytykset on pois käytöstä, joten palvelin ei hae sitä."
+    "translation": "Uusinta versiota ei tarkistettu: asetus \"Tarkista tietoturva- ja versiopäivitykset\" on pois käytöstä, joten palvelin ei hae sitä."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16523,5 +16523,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Virheellinen tiedoston luoja."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Perehdytyksessä annettu sivuston URL-osoite on virheellinen. Sen on oltava http- tai https-URL-osoite ilman polkua, esimerkiksi https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Kuntoraporttia ei voitu viedä."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Viestiattribuutit edellyttävät Enterprise-lisenssiä."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Kanavan attribuuttien arvoja puuttuu seuraavista kanavista:{{.ChannelList}}\n\nOlet niissä kanavan ylläpitäjä. Avaa kanava ja valitse **Lisää arvot**, tai aseta arvot kohdassa **Kanavan tiedot**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) puuttuu: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Lisäosan tunnus {{.ID}} on varattu ydinpalvelimelle, eikä sitä voi asentaa tai ladata."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Rekisteröityneitä käyttäjiä on {{.users}}, mutta tämä palvelin toimii yhdellä solmulla ilman korkeaa käytettävyyttä. Mattermostin viitearkkitehtuurit suosittelevat korkeaa käytettävyyttä yli 200 käyttäjän ympäristöissä, joten suunnittele se ennen kuin solmun vikaantuminen tai päivitys katkaisee työtilan käytön."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Aja vähintään kahta sovellussolmua kuormantasaajan takana jaetulla tietokannalla ja jaetulla tiedostotallennustilalla, ja ota sitten ClusterSettings.Enable käyttöön samalla ClusterName-arvolla jokaisessa solmussa."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Harkitse korkean käytettävyyden käyttöönottoa"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Rekisteröityneitä käyttäjiä on {{.users}}, mutta tämä palvelin toimii yhdellä solmulla ilman korkeaa käytettävyyttä. Mikä tahansa solmun vikaantuminen, uudelleenkäynnistys tai päivitys katkaisee koko työtilan käytön. Mattermostin viitearkkitehtuurit edellyttävät korkeaa käytettävyyttä tässä mittakaavassa."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Aja vähintään kahta sovellussolmua kuormantasaajan takana jaetulla tietokannalla ja jaetulla tiedostotallennustilalla, ja ota sitten ClusterSettings.Enable käyttöön samalla ClusterName-arvolla jokaisessa solmussa."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Korkea käytettävyys ei ole käytössä tässä mittakaavassa"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper on true, joten käyttäjille ja asiakassovelluksille näytetään yksityiskohtaisia virhetietoja. Tämä asetus on tarkoitettu vain kehityskäyttöön."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Aseta ServiceSettings.EnableDeveloper-arvoksi false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper on käytössä"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Sähköpostia ei ole määritetty, joten sähköposteja, kuten salasanan palautuksia ja ilmoituksia, ei toimiteta."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Oletusarvoisessa SMTP-osoitteessa localhost:10025 ei vastaa sähköpostipalvelinta solmuissa {{.nodes}}, joten näiden solmujen lähettämiä sähköposteja, kuten salasanan palautuksia ja ilmoituksia, ei toimiteta. Muut solmut tavoittavat siellä sähköpostipalvelimen. Virhe: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Määritä SMTP-palvelin järjestelmäkonsolissa. Jos tämän palvelimen ei pidä lähettää sähköpostia, poista käytöstä sähköposti-ilmoitukset, sähköpostikutsut ja sähköpostiosoitteen vahvistus ja mykistä sitten tämä havainto. Pidä kirjautuminen sähköpostiosoitteella tai käyttäjänimellä käytössä: muuten käyttäjät, jotka eivät kirjaudu sisään SSO:n kautta, eivät voi kirjautua sisään."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-palvelinta ei ole määritetty"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting on true, joten testitila paljastaa testikomentoja ja -päätepisteitä, jotka on tarkoitettu vain kehityskäyttöön."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Aseta ServiceSettings.EnableTesting-arvoksi false ja käynnistä sitten palvelin uudelleen. Jotkin testipäätepisteet poistuvat vasta uudelleenkäynnistyksessä."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting on käytössä"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections on true, joten palvelin ei tarkista TLS-varmenteita lähtevissä HTTPS-yhteyksissä, kuten lähtevissä webhookeissa, kauttaviivakomennoissa, OAuth-tunnusten vaihdoissa, linkkien esikatseluissa ja lisäosien latauksissa. Kuka tahansa verkkoyhteyden varrella voi lukea tai muuttaa tätä liikennettä, OAuth-tunnukset mukaan lukien."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Lisää sisäisen varmentajan (CA) varmenne järjestelmän luottamussäilöön jokaisella Mattermost-palvelimella ja aseta sitten ServiceSettings.EnableInsecureOutgoingConnections-arvoksi false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "TLS-varmenteiden tarkistus on pois käytöstä lähtevissä yhteyksissä"
   }
 ]

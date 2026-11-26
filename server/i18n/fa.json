@@ -14807,7 +14807,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "بررسی آخرین نسخه Mattermost غیرفعال است. برای مجاز کردن آن، «فعال کردن هشدارهای امنیتی» را روشن کنید."
+    "translation": "بررسی آخرین نسخهٔ Mattermost غیرفعال است. برای مجاز کردن آن، «بررسی به‌روزرسانی‌های امنیتی و نسخه‌های جدید» را روشن کنید."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15192,7 +15192,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "نخستین بررسی سلامت ظرف یک ساعت پس از فعال‌سازی این قابلیت اجرا می‌شود."
+    "translation": "هنوز هیچ بررسی سلامتی اجرا نشده است."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16366,7 +16366,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "آخرین نسخه بررسی نشد: «فعال کردن هشدارهای امنیتی» خاموش است، بنابراین سرور آن را دریافت نمی‌کند."
+    "translation": "آخرین نسخه بررسی نشد: «بررسی به‌روزرسانی‌های امنیتی و نسخه‌های جدید» خاموش است، بنابراین سرور آن را دریافت نمی‌کند."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16523,5 +16523,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "سازنده فایل نامعتبر است."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL سایت ارائه‌شده برای آشناسازی اولیه نامعتبر است. این URL باید با http یا https و بدون مسیر باشد، مانند https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "خروجی گرفتن از گزارش سلامت ممکن نشد."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "ویژگی‌های پست به مجوز Enterprise نیاز دارند."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "مقادیر ویژگی‌های کانال در این کانال‌ها وارد نشده‌اند:{{.ChannelList}}\n\nشما مدیر کانال این کانال‌ها هستید. کانال را باز کنید و **افزودن مقادیر** را انتخاب کنید، یا مقادیر را در **اطلاعات کانال** تنظیم کنید."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) نیاز دارد به: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "شناسهٔ افزونهٔ {{.ID}} برای هستهٔ سرور رزرو شده است و نمی‌توان آن را نصب یا بارگذاری کرد."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "با {{.users}} کاربر ثبت‌نام‌شده، این سرور روی یک گرهٔ واحد و بدون در دسترس بودن بالا اجرا می‌شود. معماری‌های مرجع Mattermost در دسترس بودن بالا را برای بیش از 200 کاربر توصیه می‌کنند، پس پیش از آنکه خرابی یک گره یا یک ارتقا فضای کاری را آفلاین کند، برای آن برنامه‌ریزی کنید."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "دست‌کم دو گرهٔ برنامه را پشت یک متعادل‌کنندهٔ بار، با پایگاه دادهٔ مشترک و فضای ذخیره‌سازی فایل مشترک اجرا کنید، سپس ClusterSettings.Enable را با ClusterName یکسان روی همهٔ گره‌ها فعال کنید."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "راه‌اندازی در دسترس بودن بالا را در نظر بگیرید"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "با {{.users}} کاربر ثبت‌نام‌شده، این سرور روی یک گرهٔ واحد و بدون در دسترس بودن بالا اجرا می‌شود. هر خرابی، راه‌اندازی مجدد یا ارتقای گره، کل فضای کاری را آفلاین می‌کند. معماری‌های مرجع Mattermost در این مقیاس در دسترس بودن بالا را الزامی می‌دانند."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "دست‌کم دو گرهٔ برنامه را پشت یک متعادل‌کنندهٔ بار، با پایگاه دادهٔ مشترک و فضای ذخیره‌سازی فایل مشترک اجرا کنید، سپس ClusterSettings.Enable را با ClusterName یکسان روی همهٔ گره‌ها فعال کنید."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "در دسترس بودن بالا در این مقیاس فعال نیست"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper برابر با true است، بنابراین اطلاعات دقیق خطا به کاربران و کلاینت‌ها نشان داده می‌شود. این تنظیم فقط برای توسعه در نظر گرفته شده است."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "ServiceSettings.EnableDeveloper را روی false تنظیم کنید."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper فعال است"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "ایمیل پیکربندی نشده است، بنابراین ایمیل‌هایی مانند بازنشانی رمز عبور و اعلان‌ها تحویل داده نمی‌شوند."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "هیچ سرور ایمیلی در نشانی پیش‌فرض SMTP یعنی localhost:10025 روی {{.nodes}} پاسخ نمی‌دهد، بنابراین ایمیل‌هایی که این گره‌ها ارسال می‌کنند، مانند بازنشانی رمز عبور و اعلان‌ها، تحویل داده نمی‌شوند. گره‌های دیگر در آن نشانی به یک سرور ایمیل دسترسی دارند. خطا: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "یک سرور SMTP را در کنسول سیستم پیکربندی کنید. اگر این سرور نباید ایمیل ارسال کند، اعلان‌های ایمیلی، دعوت‌نامه‌های ایمیلی و تأیید ایمیل را خاموش کنید، سپس این یافته را بی‌صدا کنید. ورود با ایمیل یا نام کاربری را روشن نگه دارید: بدون آن‌ها، کاربرانی که از طریق SSO وارد نمی‌شوند نمی‌توانند وارد شوند."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "سرور SMTP پیکربندی نشده است"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting برابر با true است، بنابراین حالت آزمایشی دستورها و نقاط پایانی آزمایشی‌ای را در دسترس قرار می‌دهد که فقط برای توسعه در نظر گرفته شده‌اند."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "ServiceSettings.EnableTesting را روی false تنظیم کنید، سپس سرور را راه‌اندازی مجدد کنید. برخی نقاط پایانی آزمایشی فقط با راه‌اندازی مجدد حذف می‌شوند."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting فعال است"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections برابر با true است، بنابراین سرور گواهی‌های TLS را در اتصال‌های HTTPS خروجی، مانند وب‌هوک‌های خروجی، دستورهای اسلش، تبادل توکن OAuth، پیش‌نمایش پیوندها و دانلود افزونه‌ها، تأیید نمی‌کند. هر کسی در مسیر شبکه می‌تواند این ترافیک، از جمله توکن‌های OAuth، را بخواند یا تغییر دهد."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "گواهی CA داخلی را به مخزن گواهی‌های مورد اعتماد سیستم در همهٔ سرورهای Mattermost اضافه کنید، سپس ServiceSettings.EnableInsecureOutgoingConnections را روی false تنظیم کنید."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "تأیید گواهی TLS برای اتصال‌های خروجی خاموش است"
   }
 ]

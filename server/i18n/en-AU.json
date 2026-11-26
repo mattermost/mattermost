@@ -14810,7 +14810,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Checking for the latest Mattermost release is disabled. Turn on Enable Security Alerts to allow it."
+    "translation": "Checking for the latest Mattermost release is disabled. Turn on Check for Security and Release Updates to allow it."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15195,7 +15195,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "The first health check runs within an hour of enabling the feature."
+    "translation": "No health check has run yet."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16369,7 +16369,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Latest release not checked: Enable Security Alerts is off, so the server does not fetch it."
+    "translation": "Latest release not checked: Check for Security and Release Updates is off, so the server does not fetch it."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16526,5 +16526,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Invalid file creator."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "The Site URL provided for onboarding is invalid. It must be an http or https URL without a path, such as https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Unable to export the health report."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Post attributes require an Enterprise licence."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Channel attribute values are missing in:{{.ChannelList}}\n\nYou're a channel admin there. Open the channel and select **Add values**, or set them in **Channel Info**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) needs: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Mattermost's reference architectures recommend high availability above 200 users, so plan for it before a node failure or upgrade takes the workspace offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Consider setting up high availability"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "With {{.users}} registered users, this server runs on a single node without high availability. Any node failure, restart or upgrade takes the whole workspace offline. Mattermost's reference architectures require high availability at this scale."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Run at least two app nodes behind a load balancer, with a shared database and shared file storage, then enable ClusterSettings.Enable with the same ClusterName on every node."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "High availability is not enabled at this scale"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper is true, so detailed error information is shown to users and clients. This setting is intended for development only."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableDeveloper to false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper is enabled"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Email isn't configured, so emails such as password resets and notifications won't be delivered."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "No mail server answers at the default SMTP address localhost:10025 on {{.nodes}}, so emails those nodes send, such as password resets and notifications, won't be delivered. The other nodes reach a mail server there. Error: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configure an SMTP server in the System Console. If this server should not send email, turn off email notifications, email invitations and email verification, then mute this finding. Keep sign-in with email or username on: without them, users who don't sign in through SSO can't sign in."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP server is not configured"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting is true, so testing mode exposes test commands and endpoints that are intended for development only."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Set ServiceSettings.EnableTesting to false, then restart the server. Some test endpoints are only removed on restart."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting is enabled"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections is true, so the server does not verify TLS certificates on outgoing HTTPS connections such as outgoing webhooks, slash commands, OAuth token exchanges, link previews and plugin downloads. Anyone on the network path can read or change that traffic, including OAuth tokens."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Add the internal CA certificate to the system trust store on every Mattermost server, then set ServiceSettings.EnableInsecureOutgoingConnections to false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "TLS certificate verification is off for outgoing connections"
   }
 ]

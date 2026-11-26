@@ -14810,7 +14810,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Die Suche nach der neuesten Mattermost-Version ist deaktiviert. Aktiviere „Sicherheitswarnungen aktivieren“, um sie zu erlauben."
+    "translation": "Die Suche nach der neuesten Mattermost-Version ist deaktiviert. Aktiviere dazu „Auf Sicherheits- und Versionsupdates prüfen“."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15195,7 +15195,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Die erste Zustandsprüfung wird innerhalb einer Stunde nach dem Aktivieren der Funktion ausgeführt."
+    "translation": "Es wurde noch keine Zustandsprüfung ausgeführt."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16369,7 +16369,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Neueste Version nicht geprüft: „Sicherheitsbenachrichtigungen aktivieren“ ist ausgeschaltet, daher ruft der Server sie nicht ab."
+    "translation": "Neueste Version nicht geprüft: „Auf Sicherheits- und Versionsupdates prüfen“ ist ausgeschaltet, daher ruft der Server sie nicht ab."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16526,5 +16526,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Ungültiger Dateiersteller."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Die für das Onboarding angegebene Site-URL ist ungültig. Erforderlich ist eine http- oder https-URL ohne Pfad, zum Beispiel https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Der Zustandsbericht konnte nicht exportiert werden."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Nachrichtenattribute erfordern eine Enterprise-Lizenz."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Werte für Kanalattribute fehlen in:{{.ChannelList}}\n\nDu bist dort Kanaladministrator. Öffne den Kanal und wähle **Werte hinzufügen** oder lege sie in **Kanalinfo** fest."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) benötigt: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Die Plugin-ID {{.ID}} ist für den Kernserver reserviert und kann nicht installiert oder geladen werden."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Mit {{.users}} registrierten Benutzern läuft dieser Server auf einem einzelnen Knoten ohne Hochverfügbarkeit. Die Referenzarchitekturen von Mattermost empfehlen Hochverfügbarkeit ab mehr als 200 Benutzern. Plane sie daher ein, bevor ein Knotenausfall oder ein Upgrade den Arbeitsbereich offline nimmt."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Betreibe mindestens zwei App-Knoten hinter einem Load Balancer mit einer gemeinsamen Datenbank und einem gemeinsamen Dateispeicher und aktiviere dann ClusterSettings.Enable mit demselben ClusterName auf jedem Knoten."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Einrichtung von Hochverfügbarkeit erwägen"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Mit {{.users}} registrierten Benutzern läuft dieser Server auf einem einzelnen Knoten ohne Hochverfügbarkeit. Jeder Knotenausfall, jeder Neustart und jedes Upgrade nimmt den gesamten Arbeitsbereich offline. Die Referenzarchitekturen von Mattermost setzen in dieser Größenordnung Hochverfügbarkeit voraus."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Betreibe mindestens zwei App-Knoten hinter einem Load Balancer mit einer gemeinsamen Datenbank und einem gemeinsamen Dateispeicher und aktiviere dann ClusterSettings.Enable mit demselben ClusterName auf jedem Knoten."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Hochverfügbarkeit ist bei dieser Größenordnung nicht aktiviert"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper ist true, daher werden Benutzern und Clients detaillierte Fehlerinformationen angezeigt. Diese Einstellung ist nur für die Entwicklung vorgesehen."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Setze ServiceSettings.EnableDeveloper auf false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper ist aktiviert"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-Mail ist nicht konfiguriert, daher werden E-Mails wie Passwortzurücksetzungen und Benachrichtigungen nicht zugestellt."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Unter der Standard-SMTP-Adresse localhost:10025 antwortet auf {{.nodes}} kein Mailserver, daher werden E-Mails, die diese Knoten senden, wie Passwortzurücksetzungen und Benachrichtigungen, nicht zugestellt. Die anderen Knoten erreichen dort einen Mailserver. Fehler: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Konfiguriere einen SMTP-Server in der Systemkonsole. Wenn dieser Server keine E-Mails senden soll, schalte E-Mail-Benachrichtigungen, E-Mail-Einladungen und die E-Mail-Verifizierung aus und schalte diesen Befund dann stumm. Lass die Anmeldung mit E-Mail oder Benutzername eingeschaltet: Ohne sie können sich Benutzer, die sich nicht über SSO anmelden, nicht anmelden."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-Server ist nicht konfiguriert"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting ist true, daher stellt der Testmodus Testbefehle und Endpunkte bereit, die nur für die Entwicklung vorgesehen sind."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Setze ServiceSettings.EnableTesting auf false und starte dann den Server neu. Einige Test-Endpunkte werden erst beim Neustart entfernt."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting ist aktiviert"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections ist true, daher überprüft der Server keine TLS-Zertifikate bei ausgehenden HTTPS-Verbindungen, etwa für ausgehende Webhooks, Slash-Befehle, OAuth-Token-Austausch, Linkvorschauen und Plugin-Downloads. Jeder auf dem Netzwerkpfad kann diesen Datenverkehr mitlesen oder verändern, einschließlich OAuth-Tokens."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Füge das interne CA-Zertifikat auf jedem Mattermost-Server dem Vertrauensspeicher des Systems hinzu und setze dann ServiceSettings.EnableInsecureOutgoingConnections auf false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "TLS-Zertifikatsprüfung ist für ausgehende Verbindungen ausgeschaltet"
   }
 ]

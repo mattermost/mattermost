@@ -14797,7 +14797,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Tính năng kiểm tra phiên bản Mattermost mới nhất đang bị tắt. Hãy bật Kích hoạt cảnh báo bảo mật để cho phép."
+    "translation": "Tính năng kiểm tra phiên bản Mattermost mới nhất đang bị tắt. Hãy bật Kiểm tra cập nhật bảo mật và bản phát hành để cho phép."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15179,7 +15179,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Lần kiểm tra tình trạng đầu tiên sẽ chạy trong vòng một giờ sau khi bật tính năng."
+    "translation": "Chưa có lần kiểm tra tình trạng nào được chạy."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16351,7 +16351,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Chưa kiểm tra bản phát hành mới nhất: Kích hoạt cảnh báo bảo mật đang tắt, nên máy chủ không tải thông tin này."
+    "translation": "Chưa kiểm tra phiên bản mới nhất: Kiểm tra cập nhật bảo mật và bản phát hành đang tắt, nên máy chủ không tải thông tin này."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16508,5 +16508,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Người tạo tệp không hợp lệ."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL trang web được cung cấp cho quá trình hướng dẫn bắt đầu không hợp lệ. URL phải là URL http hoặc https không có đường dẫn, chẳng hạn như https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Không thể xuất báo cáo tình trạng."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Thuộc tính bài đăng yêu cầu giấy phép Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Đang thiếu giá trị thuộc tính kênh trong:{{.ChannelList}}\n\nBạn là quản trị viên kênh tại đó. Hãy mở kênh và chọn **Thêm giá trị**, hoặc đặt các giá trị trong **Thông tin kênh**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) cần: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "ID plugin {{.ID}} được dành riêng cho máy chủ lõi và không thể cài đặt hoặc tải."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Với {{.users}} người dùng đã đăng ký, máy chủ này đang chạy trên một nút duy nhất mà không có tính sẵn sàng cao. Các kiến trúc tham chiếu của Mattermost khuyến nghị tính sẵn sàng cao khi có trên 200 người dùng, vì vậy hãy lên kế hoạch triển khai trước khi sự cố của một nút hoặc một lần nâng cấp khiến không gian làm việc bị ngoại tuyến."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Chạy ít nhất hai nút ứng dụng phía sau một bộ cân bằng tải, với cơ sở dữ liệu dùng chung và bộ lưu trữ tệp dùng chung, sau đó bật ClusterSettings.Enable với cùng một ClusterName trên mọi nút."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Cân nhắc thiết lập tính sẵn sàng cao"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Với {{.users}} người dùng đã đăng ký, máy chủ này đang chạy trên một nút duy nhất mà không có tính sẵn sàng cao. Bất kỳ sự cố, lần khởi động lại hoặc nâng cấp nào của nút cũng sẽ khiến toàn bộ không gian làm việc bị ngoại tuyến. Các kiến trúc tham chiếu của Mattermost yêu cầu tính sẵn sàng cao ở quy mô này."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Chạy ít nhất hai nút ứng dụng phía sau một bộ cân bằng tải, với cơ sở dữ liệu dùng chung và bộ lưu trữ tệp dùng chung, sau đó bật ClusterSettings.Enable với cùng một ClusterName trên mọi nút."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Tính sẵn sàng cao chưa được bật ở quy mô này"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper đang là true, nên thông tin lỗi chi tiết được hiển thị cho người dùng và ứng dụng khách. Cài đặt này chỉ dành cho mục đích phát triển."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Đặt ServiceSettings.EnableDeveloper thành false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper đang được bật"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Email chưa được cấu hình, nên các email như đặt lại mật khẩu và thông báo sẽ không được gửi đi."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Không có máy chủ thư nào phản hồi tại địa chỉ SMTP mặc định localhost:10025 trên {{.nodes}}, nên các email mà những nút đó gửi, chẳng hạn như đặt lại mật khẩu và thông báo, sẽ không được gửi đến nơi. Các nút khác kết nối được tới một máy chủ thư tại địa chỉ đó. Lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Cấu hình máy chủ SMTP trong Bảng điều khiển Hệ thống. Nếu máy chủ này không cần gửi email, hãy tắt thông báo qua email, lời mời qua email và xác minh email, rồi ẩn phát hiện này. Hãy giữ bật đăng nhập bằng email hoặc tên người dùng: nếu không, những người dùng không đăng nhập qua SSO sẽ không thể đăng nhập."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Máy chủ SMTP chưa được cấu hình"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting đang là true, nên chế độ kiểm thử để lộ các lệnh và điểm cuối kiểm thử vốn chỉ dành cho mục đích phát triển."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Đặt ServiceSettings.EnableTesting thành false, sau đó khởi động lại máy chủ. Một số điểm cuối kiểm thử chỉ bị gỡ bỏ khi khởi động lại."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting đang được bật"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections đang là true, nên máy chủ không xác minh chứng chỉ TLS trên các kết nối HTTPS đi, chẳng hạn như webhook đi, lệnh gạch chéo, trao đổi mã thông báo OAuth, bản xem trước liên kết và tải xuống plugin. Bất kỳ ai trên đường truyền mạng đều có thể đọc hoặc thay đổi lưu lượng đó, bao gồm cả mã thông báo OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Thêm chứng chỉ CA nội bộ vào kho tin cậy của hệ thống trên mọi máy chủ Mattermost, sau đó đặt ServiceSettings.EnableInsecureOutgoingConnections thành false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Xác minh chứng chỉ TLS đang tắt đối với các kết nối đi"
   }
 ]

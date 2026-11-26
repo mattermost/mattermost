@@ -14797,7 +14797,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Mattermostの最新リリースの確認は無効になっています。確認できるようにするには、「セキュリティーアラートを有効にする」をオンにしてください。"
+    "translation": "最新のMattermostリリースの確認は無効になっています。確認を許可するには、「セキュリティーとリリースの更新を確認する」を有効にしてください。"
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15179,7 +15179,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "最初のヘルスチェックは、機能を有効にしてから1時間以内に実行されます。"
+    "translation": "まだヘルスチェックは実行されていません。"
   },
   {
     "id": "health.report.summary.unknown",
@@ -16351,7 +16351,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "最新リリースは確認されていません: 「セキュリティーアラートを有効にする」がオフのため、サーバーは最新リリースを取得しません。"
+    "translation": "最新リリースは確認されていません: 「セキュリティーとリリースの更新を確認する」がオフのため、サーバーは最新リリースを取得しません。"
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16508,5 +16508,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "不正なファイル作成者です。"
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "オンボーディングで指定されたサイトURLが無効です。https://chat.example.com のような、パスを含まない http または https のURLである必要があります。"
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "ヘルスレポートをエクスポートできませんでした。"
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "投稿属性を使用するには、Enterpriseライセンスが必要です。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "次のチャンネルでチャンネル属性の値が設定されていません:{{.ChannelList}}\n\nあなたはこれらのチャンネルのチャンネル管理者です。チャンネルを開いて **値を追加** を選択するか、**チャンネル情報** で値を設定してください。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) 設定が必要な属性: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "プラグインID {{.ID}} はコアサーバー用に予約されているため、インストールまたは読み込みできません。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "このサーバーには {{.users}} 人の登録ユーザーがいますが、高可用構成ではなく単一ノードで動作しています。Mattermostのリファレンスアーキテクチャでは、200ユーザーを超える場合に高可用構成を推奨しています。ノードの障害やアップグレードでワークスペースがオフラインになる前に、導入を計画してください。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "ロードバランサーの背後で少なくとも2つのアプリケーションノードを実行し、データベースとファイルストレージを共有したうえで、すべてのノードで同じ ClusterName を設定して ClusterSettings.Enable を有効にしてください。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "高可用構成の導入を検討してください"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "このサーバーには {{.users}} 人の登録ユーザーがいますが、高可用構成ではなく単一ノードで動作しています。ノードの障害、再起動、アップグレードのいずれでも、ワークスペース全体がオフラインになります。Mattermostのリファレンスアーキテクチャでは、この規模では高可用構成が必須です。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "ロードバランサーの背後で少なくとも2つのアプリケーションノードを実行し、データベースとファイルストレージを共有したうえで、すべてのノードで同じ ClusterName を設定して ClusterSettings.Enable を有効にしてください。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "この規模で高可用構成が有効になっていません"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper が true のため、詳細なエラー情報がユーザーとクライアントに表示されます。この設定は開発専用です。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "ServiceSettings.EnableDeveloper を false に設定してください。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper が有効です"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "メールが設定されていないため、パスワードのリセットや通知などのメールは配信されません。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "{{.nodes}} では既定のSMTPアドレス localhost:10025 で応答するメールサーバーがないため、これらのノードが送信するパスワードのリセットや通知などのメールは配信されません。他のノードはこのアドレスでメールサーバーに接続できます。エラー: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "システムコンソールでSMTPサーバーを設定してください。このサーバーからメールを送信しない場合は、メール通知、メールでの招待、メールアドレスの確認をオフにしてから、この検出事項をミュートしてください。メールアドレスまたはユーザー名でのログインはオンのままにしてください。オフにすると、SSOでログインしないユーザーはログインできなくなります。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTPサーバーが設定されていません"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting が true のため、テストモードにより開発専用のテストコマンドとエンドポイントが公開されています。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "ServiceSettings.EnableTesting を false に設定してから、サーバーを再起動してください。一部のテストエンドポイントは再起動するまで削除されません。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting が有効です"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections が true のため、サーバーは外向きのウェブフック、スラッシュコマンド、OAuthトークンの交換、リンクプレビュー、プラグインのダウンロードなどの外向きのHTTPS接続でTLS証明書を検証しません。ネットワーク経路上の誰もが、OAuthトークンを含むその通信を読み取ったり改ざんしたりできます。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "すべてのMattermostサーバーのシステムトラストストアに内部CA証明書を追加してから、ServiceSettings.EnableInsecureOutgoingConnections を false に設定してください。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "外向きの接続でTLS証明書の検証がオフになっています"
   }
 ]

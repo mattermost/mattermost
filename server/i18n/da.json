@@ -14807,7 +14807,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Søgning efter den seneste Mattermost-udgivelse er deaktiveret. Slå Aktivér sikkerhedsadvarsler til for at tillade det."
+    "translation": "Søgning efter den seneste Mattermost-udgivelse er deaktiveret. Slå Søg efter sikkerheds- og udgivelsesopdateringer til for at tillade det."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15192,7 +15192,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Den første tilstandskontrol kører inden for en time, efter funktionen er aktiveret."
+    "translation": "Der er endnu ikke kørt nogen tilstandskontrol."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16366,7 +16366,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Seneste udgivelse er ikke kontrolleret: Aktivér sikkerhedsadvarsler er slået fra, så serveren henter den ikke."
+    "translation": "Seneste udgivelse er ikke kontrolleret: Søg efter sikkerheds- og udgivelsesopdateringer er slået fra, så serveren henter den ikke."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16523,5 +16523,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Ugyldig filopretter."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Den Site URL, der er angivet til onboarding, er ugyldig. Den skal være en http- eller https-URL uden sti, f.eks. https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Kan ikke eksportere tilstandsrapporten."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Beskedattributter kræver en Enterprise-licens."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Der mangler værdier for kanalattributter i:{{.ChannelList}}\n\nDu er kanaladministrator der. Åbn kanalen, og vælg **Tilføj værdier**, eller angiv dem i **Kanalinfo**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) mangler: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin-ID'et {{.ID}} er reserveret til kerneserveren og kan ikke installeres eller indlæses."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Med {{.users}} registrerede brugere kører denne server på en enkelt node uden høj tilgængelighed. Mattermosts referencearkitekturer anbefaler høj tilgængelighed ved mere end 200 brugere, så planlæg det, før en nodefejl eller en opgradering gør arbejdsområdet offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Kør mindst to applikationsnoder bag en load balancer med en delt database og delt fillagring, og aktivér derefter ClusterSettings.Enable med samme ClusterName på alle noder."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Overvej at konfigurere høj tilgængelighed"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Med {{.users}} registrerede brugere kører denne server på en enkelt node uden høj tilgængelighed. Enhver nodefejl, genstart eller opgradering gør hele arbejdsområdet offline. Mattermosts referencearkitekturer kræver høj tilgængelighed i denne skala."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Kør mindst to applikationsnoder bag en load balancer med en delt database og delt fillagring, og aktivér derefter ClusterSettings.Enable med samme ClusterName på alle noder."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Høj tilgængelighed er ikke aktiveret i denne skala"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper er true, så detaljerede fejloplysninger vises for brugere og klienter. Denne indstilling er kun beregnet til udvikling."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Sæt ServiceSettings.EnableDeveloper til false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper er aktiveret"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-mail er ikke konfigureret, så e-mails som nulstilling af adgangskode og notifikationer bliver ikke leveret."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Ingen mailserver svarer på standard-SMTP-adressen localhost:10025 på {{.nodes}}, så e-mails, som disse noder sender, f.eks. nulstilling af adgangskode og notifikationer, bliver ikke leveret. De andre noder når en mailserver der. Fejl: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Konfigurer en SMTP-server i Systemkonsollen. Hvis serveren ikke skal sende e-mail, så slå e-mailnotifikationer, e-mailinvitationer og e-mailbekræftelse fra, og dæmp derefter dette fund. Lad login med e-mail eller brugernavn være slået til: Uden dem kan brugere, der ikke logger ind via SSO, ikke logge ind."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-serveren er ikke konfigureret"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting er true, så testtilstanden eksponerer testkommandoer og -endpoints, der kun er beregnet til udvikling."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Sæt ServiceSettings.EnableTesting til false, og genstart derefter serveren. Nogle test-endpoints fjernes først ved genstart."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting er aktiveret"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections er true, så serveren verificerer ikke TLS-certifikater på udgående HTTPS-forbindelser såsom udgående webhooks, slash-kommandoer, udveksling af OAuth-tokens, linkforhåndsvisninger og download af plugins. Alle på netværksstien kan læse eller ændre denne trafik, herunder OAuth-tokens."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Tilføj det interne CA-certifikat til systemets tillidslager på hver Mattermost-server, og sæt derefter ServiceSettings.EnableInsecureOutgoingConnections til false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Verificering af TLS-certifikater er slået fra for udgående forbindelser"
   }
 ]

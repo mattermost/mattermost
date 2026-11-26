@@ -14810,7 +14810,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Son Mattermost sürümünün denetlenmesi kapatılmış. İzin vermek için \"Güvenlik uyarıları kullanılsın\" ayarını açın."
+    "translation": "En son Mattermost sürümünün denetlenmesi kapatılmış. Buna izin vermek için \"Güvenlik ve sürüm güncellemeleri denetlensin\" ayarını açın."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15195,7 +15195,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "İlk sağlık denetimi, özellik açıldıktan sonraki bir saat içinde yürütülür."
+    "translation": "Henüz bir sağlık denetimi yürütülmedi."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16369,7 +16369,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Son yayınlanan sürüm denetlenmedi: Güvenlik uyarıları kullanılsın ayarı kapalı olduğundan sunucu son sürüm bilgisini almıyor."
+    "translation": "En son sürüm denetlenmedi: \"Güvenlik ve sürüm güncellemeleri denetlensin\" ayarı kapalı olduğundan sunucu en son sürümü almıyor."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16526,5 +16526,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Dosyayı oluşturan kullanıcı geçersiz."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Başlamaya hazırlanma için belirtilen site adresi geçersiz. Adres, https://chat.example.com gibi yol içermeyen bir http ya da https adresi olmalıdır."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Sağlık raporu dışa aktarılamadı."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "İleti öznitelikleri için bir Enterprise lisansı gereklidir."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Şu kanallarda kanal özniteliği değerleri eksik:{{.ChannelList}}\n\nBu kanalların kanal yöneticisisiniz. Kanalı açıp **Değerleri ekle** düğmesine tıklayın ya da değerleri **Bilgiler** panelinden ayarlayın."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) için gerekenler: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "{{.ID}} uygulama eki kimliği çekirdek sunucu için ayrılmış olduğundan kurulamaz ya da yüklenemez."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Kayıtlı kullanıcı sayısı {{.users}} olan bu sunucu, yüksek erişilebilirlik olmadan tek bir düğüm üzerinde çalışıyor. Mattermost başvuru mimarileri 200 kullanıcının üzerinde yüksek erişilebilirlik önerir. Bu nedenle bir düğüm arızası ya da yükseltme çalışma alanını çevrim dışı bırakmadan önce yüksek erişilebilirliği planlayın."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Bir yük dengeleyicinin arkasında, paylaşılan bir veri tabanı ve paylaşılan dosya depolama ile en az iki uygulama düğümü çalıştırın, ardından her düğümde aynı ClusterName değeriyle ClusterSettings.Enable ayarını açın."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Yüksek erişilebilirlik kurmayı değerlendirin"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Kayıtlı kullanıcı sayısı {{.users}} olan bu sunucu, yüksek erişilebilirlik olmadan tek bir düğüm üzerinde çalışıyor. Herhangi bir düğüm arızası, yeniden başlatma ya da yükseltme tüm çalışma alanını çevrim dışı bırakır. Mattermost başvuru mimarileri bu ölçekte yüksek erişilebilirliği zorunlu tutar."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Bir yük dengeleyicinin arkasında, paylaşılan bir veri tabanı ve paylaşılan dosya depolama ile en az iki uygulama düğümü çalıştırın, ardından her düğümde aynı ClusterName değeriyle ClusterSettings.Enable ayarını açın."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Bu ölçekte yüksek erişilebilirlik açık değil"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper değeri true olduğundan kullanıcılara ve istemcilere ayrıntılı hata bilgileri gösteriliyor. Bu ayar yalnızca geliştirme için tasarlanmıştır."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "ServiceSettings.EnableDeveloper değerini false olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper açık"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-posta yapılandırılmamış olduğundan parola sıfırlama ve bildirimler gibi e-postalar teslim edilmeyecek."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "{{.nodes}} düğümlerinde varsayılan localhost:10025 SMTP adresinde yanıt veren bir e-posta sunucusu yok. Bu nedenle bu düğümlerin gönderdiği parola sıfırlama ve bildirimler gibi e-postalar teslim edilmeyecek. Diğer düğümler bu adresteki bir e-posta sunucusuna erişebiliyor. Hata: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Sistem panosundan bir SMTP sunucusu yapılandırın. Bu sunucunun e-posta göndermemesi gerekiyorsa e-posta bildirimlerini, e-posta davetlerini ve e-posta doğrulamasını kapatın, ardından bu bulguyu sessize alın. E-posta adresi ya da kullanıcı adı ile oturum açmayı açık bırakın: Bunlar olmadan SSO ile oturum açmayan kullanıcılar oturum açamaz."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP sunucusu yapılandırılmamış"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting değeri true olduğundan sınama kipi, yalnızca geliştirme için tasarlanmış sınama komutlarını ve uç noktalarını kullanıma açıyor."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "ServiceSettings.EnableTesting değerini false olarak ayarlayın, ardından sunucuyu yeniden başlatın. Bazı sınama uç noktaları yalnızca yeniden başlatıldığında kaldırılır."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting açık"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections değeri true olduğundan sunucu; giden internet kancaları, bölü komutları, OAuth kodu değişimleri, bağlantı ön izlemeleri ve uygulama eki indirmeleri gibi giden HTTPS bağlantılarındaki TLS sertifikalarını doğrulamıyor. Ağ yolu üzerindeki herkes, OAuth kodları da dahil olmak üzere bu trafiği okuyabilir ya da değiştirebilir."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Her Mattermost sunucusunda iç sertifika yetkilisinin (CA) sertifikasını sistem güven deposuna ekleyin, ardından ServiceSettings.EnableInsecureOutgoingConnections değerini false olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Giden bağlantılarda TLS sertifika doğrulaması kapalı"
   }
 ]

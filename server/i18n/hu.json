@@ -14807,7 +14807,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "A legújabb Mattermost-kiadás ellenőrzése le van tiltva. Az engedélyezéséhez kapcsolja be a Biztonsági riasztások engedélyezése beállítást."
+    "translation": "A legfrissebb Mattermost-kiadás keresése le van tiltva. Az engedélyezéséhez kapcsolja be a Biztonsági és kiadási frissítések keresése beállítást."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15192,7 +15192,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Az első állapot-ellenőrzés a funkció engedélyezése után egy órán belül lefut."
+    "translation": "Még egyetlen állapot-ellenőrzés sem futott le."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16366,7 +16366,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "A legújabb kiadás nincs ellenőrizve: a Biztonsági riasztások engedélyezése beállítás ki van kapcsolva, ezért a szerver nem kéri le."
+    "translation": "A legfrissebb kiadás nincs ellenőrizve: a Biztonsági és kiadási frissítések keresése beállítás ki van kapcsolva, ezért a szerver nem kéri le."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16523,5 +16523,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Érvénytelen fájllétrehozó."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "A bevezetéshez megadott Rendszer URL érvénytelen. Útvonal nélküli http vagy https URL-nek kell lennie, például https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Nem sikerült exportálni az állapotjelentést."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "A bejegyzés-attribútumokhoz Enterprise licenc szükséges."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Hiányoznak a csatornaattribútumok értékei a következő csatornákon:{{.ChannelList}}\n\nÖn ezeken a csatornákon csatorna admin. Nyissa meg a csatornát, és válassza az **Értékek hozzáadása** lehetőséget, vagy állítsa be az értékeket a **Csatornainformáció** panelen."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) – beállítandó: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "A bővítmény azonosítója ({{.ID}}) a központi szerver számára van fenntartva, ezért nem telepíthető és nem tölthető be."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Regisztrált felhasználók száma: {{.users}}. Ez a szerver egyetlen csomóponton fut, magas rendelkezésreállás nélkül. A Mattermost referenciaarchitektúrái 200 felhasználó felett magas rendelkezésreállást javasolnak, ezért tervezze meg, mielőtt egy csomópont meghibásodása vagy egy frissítés nem elérhetővé teszi a munkaterületet."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Futtasson legalább két alkalmazáscsomópontot egy terheléselosztó mögött, közös adatbázissal és közös fájltárolóval, majd engedélyezze a ClusterSettings.Enable beállítást minden csomóponton ugyanazzal a ClusterName értékkel."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Fontolja meg a magas rendelkezésreállás beállítását"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Regisztrált felhasználók száma: {{.users}}. Ez a szerver egyetlen csomóponton fut, magas rendelkezésreállás nélkül. Bármely csomópont meghibásodása, újraindítása vagy frissítése a teljes munkaterületet nem elérhetővé teszi. A Mattermost referenciaarchitektúrái ekkora méretnél megkövetelik a magas rendelkezésreállást."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Futtasson legalább két alkalmazáscsomópontot egy terheléselosztó mögött, közös adatbázissal és közös fájltárolóval, majd engedélyezze a ClusterSettings.Enable beállítást minden csomóponton ugyanazzal a ClusterName értékkel."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "A magas rendelkezésreállás nincs engedélyezve ekkora méretnél"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "A ServiceSettings.EnableDeveloper értéke true, ezért a részletes hibainformációk megjelennek a felhasználók és a kliensek számára. Ez a beállítás csak fejlesztési célra szolgál."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Állítsa a ServiceSettings.EnableDeveloper értékét false-ra."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "A ServiceSettings.EnableDeveloper engedélyezve van"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Az e-mail nincs beállítva, ezért az e-mailek, például a jelszó-visszaállítások és az értesítések, nem lesznek kézbesítve."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Az alapértelmezett localhost:10025 SMTP-címen egyetlen levelezőszerver sem válaszol a következő csomópontokon: {{.nodes}}. Ezért az ezen csomópontok által küldött e-mailek, például a jelszó-visszaállítások és az értesítések, nem lesznek kézbesítve. A többi csomópont elér ott egy levelezőszervert. Hiba: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Állítson be egy SMTP-szervert a rendszerkonzolban. Ha ennek a szervernek nem kell e-mailt küldenie, kapcsolja ki az e-mail-értesítéseket, az e-mail-meghívókat és az e-mail-ellenőrzést, majd némítsa el ezt a megállapítást. Az e-mail-címmel vagy felhasználónévvel történő bejelentkezést hagyja bekapcsolva: ezek nélkül azok a felhasználók, akik nem SSO-n keresztül jelentkeznek be, nem tudnak bejelentkezni."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Az SMTP-szerver nincs beállítva"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "A ServiceSettings.EnableTesting értéke true, ezért a tesztelési mód olyan tesztparancsokat és végpontokat tesz elérhetővé, amelyek csak fejlesztési célra szolgálnak."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Állítsa a ServiceSettings.EnableTesting értékét false-ra, majd indítsa újra a szervert. Egyes tesztvégpontok csak újraindításkor szűnnek meg."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "A ServiceSettings.EnableTesting engedélyezve van"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "A ServiceSettings.EnableInsecureOutgoingConnections értéke true, ezért a szerver nem ellenőrzi a TLS-tanúsítványokat a kimenő HTTPS-kapcsolatokon, például a kimenő webhookoknál, a perjel parancsoknál, az OAuth-tokencseréknél, a link-előnézeteknél és a bővítményletöltéseknél. A hálózati útvonalon bárki elolvashatja vagy módosíthatja ezt a forgalmat, beleértve az OAuth-tokeneket is."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Adja hozzá a belső CA-tanúsítványt a rendszer megbízható tanúsítványtárolójához minden Mattermost-szerveren, majd állítsa a ServiceSettings.EnableInsecureOutgoingConnections értékét false-ra."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "A TLS-tanúsítványok ellenőrzése ki van kapcsolva a kimenő kapcsolatoknál"
   }
 ]

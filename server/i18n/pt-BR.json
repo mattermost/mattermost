@@ -14807,7 +14807,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "A verificação da versão mais recente do Mattermost está desativada. Ative a configuração Ativar Alertas de Segurança para permiti-la."
+    "translation": "A verificação da versão mais recente do Mattermost está desativada. Ative \"Verificar Atualizações de Segurança e de Versão\" para permiti-la."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15192,7 +15192,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "A primeira verificação de integridade é executada em até uma hora após a ativação do recurso."
+    "translation": "Nenhuma verificação de integridade foi executada ainda."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16366,7 +16366,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Versão mais recente não verificada: Ativar Alertas de Segurança está desativado, portanto o servidor não a obtém."
+    "translation": "Versão mais recente não verificada: \"Verificar Atualizações de Segurança e de Versão\" está desativado, portanto o servidor não a obtém."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16523,5 +16523,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Criador de arquivo inválido."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "A URL do Site informada para o onboarding é inválida. Ela deve ser uma URL http ou https sem caminho, como https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Não foi possível exportar o relatório de integridade."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Atributos de publicação exigem uma licença Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Faltam valores de atributos de canal em:{{.ChannelList}}\n\nVocê é administrador de canal nesses canais. Abra o canal e selecione **Adicionar valores** ou defina-os em **Informações do Canal**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) precisa de: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "O ID de plugin {{.ID}} é reservado para o servidor principal e não pode ser instalado nem carregado."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Com {{.users}} usuários registrados, este servidor é executado em um único nó, sem alta disponibilidade. As arquiteturas de referência do Mattermost recomendam alta disponibilidade acima de 200 usuários; portanto, planeje-a antes que uma falha de nó ou uma atualização deixe o espaço de trabalho fora do ar."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Execute pelo menos dois nós de aplicação atrás de um balanceador de carga, com um banco de dados compartilhado e um armazenamento de arquivos compartilhado, e então ative ClusterSettings.Enable com o mesmo ClusterName em todos os nós."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Considere configurar a alta disponibilidade"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Com {{.users}} usuários registrados, este servidor é executado em um único nó, sem alta disponibilidade. Qualquer falha, reinicialização ou atualização de nó deixa todo o espaço de trabalho fora do ar. As arquiteturas de referência do Mattermost exigem alta disponibilidade nesta escala."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Execute pelo menos dois nós de aplicação atrás de um balanceador de carga, com um banco de dados compartilhado e um armazenamento de arquivos compartilhado, e então ative ClusterSettings.Enable com o mesmo ClusterName em todos os nós."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "A alta disponibilidade não está ativada nesta escala"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper é true, portanto informações detalhadas de erro são mostradas aos usuários e clientes. Esta configuração destina-se apenas ao desenvolvimento."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Defina ServiceSettings.EnableDeveloper como false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper está ativado"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "O email não está configurado, portanto emails como redefinições de senha e notificações não serão entregues."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Nenhum servidor de email responde no endereço SMTP padrão localhost:10025 em {{.nodes}}, portanto os emails enviados por esses nós, como redefinições de senha e notificações, não serão entregues. Os outros nós alcançam um servidor de email nesse endereço. Erro: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Configure um servidor SMTP no Console do Sistema. Se este servidor não deve enviar emails, desative as notificações por email, os convites por email e a verificação de email e, em seguida, silencie este achado. Mantenha ativado o login com email ou nome de usuário: sem eles, os usuários que não fazem login por SSO não conseguem fazer login."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "O servidor SMTP não está configurado"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting é true, portanto o modo de teste expõe comandos e endpoints de teste que se destinam apenas ao desenvolvimento."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Defina ServiceSettings.EnableTesting como false e reinicie o servidor. Alguns endpoints de teste só são removidos na reinicialização."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting está ativado"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections é true, portanto o servidor não verifica certificados TLS em conexões HTTPS de saída, como webhooks de saída, comandos slash, trocas de tokens OAuth, visualizações de links e downloads de plugins. Qualquer pessoa no caminho de rede pode ler ou alterar esse tráfego, incluindo os tokens OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Adicione o certificado da CA interna ao repositório de confiança do sistema em todos os servidores Mattermost e, em seguida, defina ServiceSettings.EnableInsecureOutgoingConnections como false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "A verificação de certificados TLS está desativada para conexões de saída"
   }
 ]

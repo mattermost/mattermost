@@ -14797,7 +14797,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "检查最新 Mattermost 版本的功能已禁用。请开启“启用安全警报”以允许此操作。"
+    "translation": "检查最新 Mattermost 版本的功能已禁用。请开启“检查安全和版本更新”以允许此操作。"
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15179,7 +15179,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "首次健康检查将在启用该功能后一小时内运行。"
+    "translation": "尚未运行过健康检查。"
   },
   {
     "id": "health.report.summary.unknown",
@@ -16351,7 +16351,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "未检查最新版本：“启用安全警报”已关闭，因此服务器不会获取最新版本。"
+    "translation": "未检查最新版本：“检查安全和版本更新”已关闭，因此服务器不会获取最新版本。"
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16508,5 +16508,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "文件创建者无效。"
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "为引导流程提供的站点 URL 无效。它必须是不含路径的 http 或 https URL，例如 https://chat.example.com。"
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "无法导出健康报告。"
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "消息属性需要 Enterprise 许可证。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "以下频道缺少频道属性值：{{.ChannelList}}\n\n您是这些频道的频道管理员。请打开频道并选择 **添加值**，或在 **频道信息** 中设置它们。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})（{{.TeamDisplayName}}）需要：{{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "插件 ID {{.ID}} 为核心服务器保留，无法安装或加载。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "此服务器有 {{.users}} 名注册用户，但运行在单个节点上，没有高可用性。Mattermost 的参考架构建议在超过 200 名用户时启用高可用性，因此请在节点故障或升级导致工作区离线之前做好规划。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "在负载均衡器后运行至少两个应用节点，并使用共享数据库和共享文件存储，然后在每个节点上启用 ClusterSettings.Enable 并设置相同的 ClusterName。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "建议设置高可用性"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "此服务器有 {{.users}} 名注册用户，但运行在单个节点上，没有高可用性。任何节点故障、重启或升级都会导致整个工作区离线。在此规模下，Mattermost 的参考架构要求启用高可用性。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "在负载均衡器后运行至少两个应用节点，并使用共享数据库和共享文件存储，然后在每个节点上启用 ClusterSettings.Enable 并设置相同的 ClusterName。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "此规模下未启用高可用性"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper 为 true，因此会向用户和客户端显示详细的错误信息。此设置仅用于开发。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "将 ServiceSettings.EnableDeveloper 设置为 false。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper 已启用"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "未配置电子邮件，因此密码重置和通知等电子邮件将无法送达。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "{{.nodes}} 上的默认 SMTP 地址 localhost:10025 没有邮件服务器响应，因此这些节点发送的电子邮件（例如密码重置和通知）将无法送达。其他节点可以在该地址连接到邮件服务器。错误：{{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "请在系统控制台中配置 SMTP 服务器。如果此服务器不应发送电子邮件，请关闭电子邮件通知、电子邮件邀请和电子邮件验证，然后将此检查结果静音。请保持开启使用电子邮件或用户名登录：否则，不通过 SSO 登录的用户将无法登录。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "未配置 SMTP 服务器"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting 为 true，因此测试模式会暴露仅用于开发的测试命令和端点。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "将 ServiceSettings.EnableTesting 设置为 false，然后重启服务器。某些测试端点只有在重启后才会被移除。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting 已启用"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections 为 true，因此服务器不会验证传出 HTTPS 连接的 TLS 证书，例如传出 Webhook、斜杠命令、OAuth 令牌交换、链接预览和插件下载。网络路径上的任何人都可以读取或篡改这些流量，包括 OAuth 令牌。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "将内部 CA 证书添加到每台 Mattermost 服务器的系统信任存储中，然后将 ServiceSettings.EnableInsecureOutgoingConnections 设置为 false。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "传出连接的 TLS 证书验证已关闭"
   }
 ]

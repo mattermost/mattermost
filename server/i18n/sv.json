@@ -14810,7 +14810,7 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Sökning efter den senaste Mattermost-versionen är inaktiverad. Aktivera Enable Security Alerts för att tillåta det."
+    "translation": "Kontroll av den senaste Mattermost-versionen är inaktiverad. Aktivera ”Sök efter säkerhets- och versionsuppdateringar” för att tillåta den."
   },
   {
     "id": "app.channel.get_channel_admins.app_error",
@@ -15195,7 +15195,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "Den första hälsokontrollen körs inom en timme efter att funktionen har aktiverats."
+    "translation": "Ingen hälsokontroll har körts ännu."
   },
   {
     "id": "health.report.summary.unknown",
@@ -16369,7 +16369,7 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Den senaste versionen kontrollerades inte: Aktivera säkerhetslarm är avstängt, så servern hämtar den inte."
+    "translation": "Senaste versionen har inte kontrollerats: ”Sök efter säkerhets- och versionsuppdateringar” är avstängd, så servern hämtar den inte."
   },
   {
     "id": "health.rule.version.unknown.line",
@@ -16526,5 +16526,105 @@
   {
     "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
     "translation": "Ogiltig filskapare."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Den Site URL som angavs för onboarding är ogiltig. Den måste vara en http- eller https-URL utan sökväg, till exempel https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Kunde inte exportera hälsorapporten."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Meddelandeattribut kräver en Enterprise-licens."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Värden för kanalattribut saknas i:{{.ChannelList}}\n\nDu är kanaladministratör där. Öppna kanalen och välj **Lägg till värden**, eller ange dem i **Information om kanalen**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) behöver: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin-ID:t {{.ID}} är reserverat för kärnservern och kan inte installeras eller läsas in."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Med {{.users}} registrerade användare körs den här servern på en enda nod utan hög tillgänglighet. Mattermosts referensarkitekturer rekommenderar hög tillgänglighet över 200 användare, så planera för det innan ett nodfel eller en uppgradering gör att arbetsytan går offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Kör minst två applikationsnoder bakom en lastbalanserare, med en delad databas och delad fillagring, och aktivera sedan ClusterSettings.Enable med samma ClusterName på varje nod."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Överväg att konfigurera hög tillgänglighet"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Med {{.users}} registrerade användare körs den här servern på en enda nod utan hög tillgänglighet. Varje nodfel, omstart eller uppgradering gör att hela arbetsytan går offline. Mattermosts referensarkitekturer kräver hög tillgänglighet i den här skalan."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Kör minst två applikationsnoder bakom en lastbalanserare, med en delad databas och delad fillagring, och aktivera sedan ClusterSettings.Enable med samma ClusterName på varje nod."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Hög tillgänglighet är inte aktiverad i den här skalan"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper är true, så detaljerad felinformation visas för användare och klienter. Den här inställningen är endast avsedd för utveckling."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Sätt ServiceSettings.EnableDeveloper till false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper är aktiverad"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-post är inte konfigurerad, så e-post som lösenordsåterställningar och notifieringar levereras inte."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Ingen e-postserver svarar på SMTP-standardadressen localhost:10025 på {{.nodes}}, så e-post som dessa noder skickar, som lösenordsåterställningar och notifieringar, levereras inte. De andra noderna når en e-postserver där. Fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Konfigurera en SMTP-server i systemkonsolen. Om den här servern inte ska skicka e-post stänger du av e-postnotifieringar, e-postinbjudningar och e-postverifiering och mjutar sedan den här avvikelsen. Låt inloggning med e-post eller användarnamn vara aktiverad: utan dem kan användare som inte loggar in via SSO inte logga in."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-servern är inte konfigurerad"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting är true, så testläget exponerar testkommandon och slutpunkter som endast är avsedda för utveckling."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Sätt ServiceSettings.EnableTesting till false och starta sedan om servern. Vissa testslutpunkter tas bort först vid omstart."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting är aktiverad"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections är true, så servern verifierar inte TLS-certifikat för utgående HTTPS-anslutningar som utgående webhooks, slash-kommandon, utbyten av OAuth-token, länkförhandsvisningar och nedladdningar av plugins. Vem som helst längs nätverksvägen kan läsa eller ändra den trafiken, inklusive OAuth-token."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Lägg till den interna certifikatutfärdarens certifikat i systemets förtroendearkiv på varje Mattermost-server och sätt sedan ServiceSettings.EnableInsecureOutgoingConnections till false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Verifiering av TLS-certifikat är avstängd för utgående anslutningar"
   }
 ]
