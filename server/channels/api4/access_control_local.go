@@ -6,20 +6,24 @@ package api4
 import "net/http"
 
 func (api *API) InitAccessControlPolicyLocal() {
-	api.BaseRoutes.AccessControlPolicies.Handle("", api.APILocal(createAccessControlPolicy)).Methods(http.MethodPut)
-	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APILocal(searchAccessControlPolicies)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APILocal(setActiveStatus)).Methods(http.MethodPut)
+	requireEA := func(h handlerFunc) http.Handler {
+		return api.APILocal(h, handlerParamRequireEnterpriseAdvanced)
+	}
 
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APILocal(checkExpression)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APILocal(testExpression)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APILocal(validateExpressionAgainstRequester)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APILocal(getFieldsAutocomplete)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APILocal(convertToVisualAST)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("", requireEA(createAccessControlPolicy)).Methods(http.MethodPut)
+	api.BaseRoutes.AccessControlPolicies.Handle("/search", requireEA(searchAccessControlPolicies)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/activate", requireEA(setActiveStatus)).Methods(http.MethodPut)
 
-	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(getAccessControlPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(deleteAccessControlPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APILocal(assignAccessPolicy)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APILocal(unassignAccessPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APILocal(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APILocal(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", requireEA(checkExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", requireEA(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", requireEA(validateExpressionAgainstRequester)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", requireEA(getFieldsAutocomplete)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", requireEA(convertToVisualAST)).Methods(http.MethodPost)
+
+	api.BaseRoutes.AccessControlPolicy.Handle("", requireEA(getAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("", requireEA(deleteAccessControlPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.AccessControlPolicy.Handle("/assign", requireEA(assignAccessPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", requireEA(unassignAccessPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", requireEA(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", requireEA(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 }

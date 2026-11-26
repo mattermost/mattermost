@@ -314,6 +314,9 @@ type AccessControlPolicySearch struct {
 	Scope   string   `json:"scope,omitempty"`
 	ScopeID string   `json:"scope_id,omitempty"`
 	Actions []string `json:"actions"`
+	// ExcludePluginTypes drops plugin-owned policies (types "<pluginID>:<resourceType>").
+	// It is server-set only, never read from a request, so admin surfaces cannot list them.
+	ExcludePluginTypes bool `json:"-"`
 }
 
 type AccessControlPolicyCursor struct {

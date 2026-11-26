@@ -20,6 +20,10 @@ type APIHandlerOption string
 
 const (
 	handlerParamFileAPI = APIHandlerOption("fileAPI")
+
+	// handlerParamRequireEnterpriseAdvanced answers 501 unless the server holds an
+	// Enterprise Advanced license. It runs after authentication, inside the handler.
+	handlerParamRequireEnterpriseAdvanced = APIHandlerOption("requireEnterpriseAdvanced")
 )
 
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
@@ -282,6 +286,16 @@ func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {
 		switch option {
 		case handlerParamFileAPI:
 			handler.FileAPI = true
+		case handlerParamRequireEnterpriseAdvanced:
+			// Wrapping HandleFunc here keeps HandlerName, which metrics label by.
+			inner := handler.HandleFunc
+			handler.HandleFunc = func(c *Context, w http.ResponseWriter, r *http.Request) {
+				if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+					c.Err = model.NewAppError(handler.HandlerName, "api.license.upgrade_needed.app_error", nil, "", http.StatusNotImplemented)
+					return
+				}
+				inner(c, w, r)
+			}
 		}
 	}
 }

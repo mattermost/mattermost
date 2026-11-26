@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // shouldRedactExpressions reports whether raw CEL expressions should be masked for this caller.
@@ -57,25 +58,47 @@ func requirePolicyChannelManagementAccess(c *Context, channelID string, hasManag
 	return requireChannelManagementAccessByID(c, channelID)
 }
 
+// rejectPluginOwnedPolicy answers with the same 404 a missing policy gets when
+// policyID is stored as a plugin-owned policy, so admin routes never reach
+// app or enterprise code with a plugin policy ID and cannot reveal one. It
+// reports whether the request was rejected. An unreadable type is an error
+// and also rejects the request.
+func rejectPluginOwnedPolicy(c *Context, policyID string) bool {
+	owned, appErr := c.App.IsPluginOwnedAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		c.Err = appErr
+		return true
+	}
+	if owned {
+		c.Err = model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, store.NewErrNotFound("AccessControlPolicy", policyID).Error(), http.StatusNotFound)
+		return true
+	}
+	return false
+}
+
 func (api *API) InitAccessControlPolicy() {
-	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
-	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)
+	requireEA := func(h handlerFunc) http.Handler {
+		return api.APISessionRequired(h, handlerParamRequireEnterpriseAdvanced)
+	}
 
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate_users", api.APISessionRequired(simulatePolicyForUsers)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("", requireEA(createAccessControlPolicy)).Methods(http.MethodPut)
+	api.BaseRoutes.AccessControlPolicies.Handle("/search", requireEA(searchAccessControlPolicies)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/activate", requireEA(setActiveStatus)).Methods(http.MethodPut)
 
-	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APISessionRequired(updateActiveStatus)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", requireEA(checkExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", requireEA(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate_users", requireEA(simulatePolicyForUsers)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", requireEA(validateExpressionAgainstRequester)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", requireEA(getFieldsAutocomplete)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", requireEA(convertToVisualAST)).Methods(http.MethodPost)
+
+	api.BaseRoutes.AccessControlPolicy.Handle("", requireEA(getAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("", requireEA(deleteAccessControlPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.AccessControlPolicy.Handle("/activate", requireEA(updateActiveStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/assign", requireEA(assignAccessPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", requireEA(unassignAccessPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", requireEA(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", requireEA(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 
 	api.BaseRoutes.AccessControlDecisions.Handle("/actions/search", api.APISessionRequired(searchAccessControlDecisionActions)).Methods(http.MethodPost)
 }
@@ -296,6 +319,10 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	policyID := c.Params.PolicyId
 
+	if rejectPluginOwnedPolicy(c, policyID) {
+		return
+	}
+
 	// Extract optional channelId from query parameters for context
 	channelID := r.URL.Query().Get("channelId")
 
@@ -370,6 +397,10 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 	policyID := c.Params.PolicyId
+
+	if rejectPluginOwnedPolicy(c, policyID) {
+		return
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -968,6 +999,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	policyID := c.Params.PolicyId
 
+	if rejectPluginOwnedPolicy(c, policyID) {
+		return
+	}
+
 	// Check if user has system admin permission OR channel-specific permission for this policy
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
@@ -1042,6 +1077,12 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
 		c.SetInvalidParamWithErr("request", jsonErr)
 		return
+	}
+
+	for _, entry := range list.Entries {
+		if rejectPluginOwnedPolicy(c, entry.ID) {
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventSetActiveStatus, model.AuditStatusFail)
@@ -1119,6 +1160,10 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	policyID := c.Params.PolicyId
+
+	if rejectPluginOwnedPolicy(c, policyID) {
+		return
+	}
 
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`
@@ -1230,6 +1275,10 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	policyID := c.Params.PolicyId
+
+	if rejectPluginOwnedPolicy(c, policyID) {
+		return
+	}
 
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`
@@ -1343,6 +1392,10 @@ func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *htt
 	}
 	policyID := c.Params.PolicyId
 
+	if rejectPluginOwnedPolicy(c, policyID) {
+		return
+	}
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
 		teamID := r.URL.Query().Get("team_id")
@@ -1400,6 +1453,10 @@ func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *htt
 func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectPluginOwnedPolicy(c, c.Params.PolicyId) {
 		return
 	}
 

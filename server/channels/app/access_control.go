@@ -106,6 +106,23 @@ func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor mod
 	}
 }
 
+// IsPluginOwnedAccessControlPolicy reports whether the row stored under id has a
+// plugin policy type. It reads the type straight from the store, so the answer
+// does not depend on the ABAC engine. A missing row is not plugin-owned; a store
+// failure is returned so callers can deny.
+func (a *App) IsPluginOwnedAccessControlPolicy(rctx request.CTX, id string) (bool, *model.AppError) {
+	if !model.IsValidId(id) {
+		return false, nil
+	}
+	types, err := a.Srv().Store().AccessControlPolicy().GetTypesByIDs(rctx, []string{id})
+	if err != nil {
+		return false, model.NewAppError("IsPluginOwnedAccessControlPolicy", "app.pap.get_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	policyType, ok := types[id]
+	// Same test as the store's ExcludePluginTypes filter: core types never contain the separator.
+	return ok && strings.Contains(policyType, model.PluginAccessControlPolicyTypeSeparator), nil
+}
+
 func (a *App) GetAccessControlPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -682,7 +699,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		return appErr
 	}
 
-	// ABAC is gated at route registration; only check masking here.
+	// The ABAC license guard sits on the route registration; only check masking here.
 	if a.Config().FeatureFlags.AttributeValueMasking {
 		session := rctx.Session()
 		if session != nil {
@@ -2001,6 +2018,9 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 	if acs == nil {
 		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
+
+	// Plugin-owned policies are never listed through admin search.
+	opts.ExcludePluginTypes = true
 
 	policies, total, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, opts)
 	if err != nil {

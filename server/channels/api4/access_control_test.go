@@ -3974,7 +3974,7 @@ func TestGetAccessControlPolicyLocalModeTagsCaller(t *testing.T) {
 // and does not go through the mocked AccessControl engine.
 func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	// Setup() only clears the read-only guard on feature flags when it is handed a
 	// config updater, so do it explicitly before flipping one.
 	th.ConfigStore.SetReadOnlyFF(false)

@@ -707,6 +707,13 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(condition)
 	}
 
+	if opts.ExcludePluginTypes {
+		// Plugin policy types always contain ':' and core types never do.
+		condition := sq.Expr("Type NOT LIKE '%:%'")
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
 	if opts.ParentID != "" {
 		condition := importsPolicyExpr(opts.ParentID)
 		query = query.Where(condition)

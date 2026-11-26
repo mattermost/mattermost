@@ -233,6 +233,58 @@ func testAccessControlPolicyStorePluginPolicy(t *testing.T, rctx request.CTX, ss
 		require.Equal(t, policy.ID, results[0].ID)
 	})
 
+	t.Run("SearchPolicies with ExcludePluginTypes hides it", func(t *testing.T) {
+		coreID := model.NewId()
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       coreID,
+			Name:     "Core Parent " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{"*"},
+				Expression: "true",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, coreID))
+		})
+
+		ids := []string{policy.ID, coreID}
+		for _, includeChildren := range []bool{false, true} {
+			results, total, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+				IDs:                ids,
+				IncludeChildren:    includeChildren,
+				ExcludePluginTypes: true,
+				Limit:              10,
+			})
+			require.NoError(t, err)
+			require.EqualValues(t, 1, total)
+			require.Len(t, results, 1)
+			require.Equal(t, coreID, results[0].ID)
+
+			results, total, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+				IDs:             ids,
+				IncludeChildren: includeChildren,
+				Limit:           10,
+			})
+			require.NoError(t, err)
+			require.EqualValues(t, 2, total)
+			require.Len(t, results, 2)
+		}
+
+		results, total, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Type:               testPluginPolicyType,
+			ExcludePluginTypes: true,
+			Limit:              10,
+		})
+		require.NoError(t, err)
+		require.EqualValues(t, 0, total)
+		require.Empty(t, results)
+	})
+
 	t.Run("Delete removes it", func(t *testing.T) {
 		require.NoError(t, ss.AccessControlPolicy().Delete(rctx, policy.ID))
 
