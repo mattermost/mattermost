@@ -1158,17 +1158,18 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
 }
 
-// ValidateValueContents runs the checks a value write makes on what is being
-// written -- shape per field type, required-ness and that every named option
-// exists -- without the authorization and change-policy checks, which depend on
-// where the values will be stored. It lets a caller that can only write after
-// another step refuse a bad value before taking that step.
-func (h *AccessControlAttributeValidationHook) ValidateValueContents(rctx request.CTX, values []*model.PropertyValue) error {
+// ValidateValueWrite runs the content and change-policy checks of a value
+// write without writing. The direct-channel refusal is left to the write: it is
+// what a caller converting a group message has to change the channel for first.
+func (h *AccessControlAttributeValidationHook) ValidateValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
 		return nil
 	}
-	_, err := h.validateValueContents(rctx, values)
-	return err
+	fieldMap, err := h.validateValueContents(rctx, values)
+	if err != nil {
+		return err
+	}
+	return h.validateChangePolicy(rctx, values[0].GroupID, values, fieldMap)
 }
 
 func (h *AccessControlAttributeValidationHook) validateValueContents(rctx request.CTX, values []*model.PropertyValue) (map[string]*model.PropertyField, error) {

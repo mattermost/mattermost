@@ -861,6 +861,41 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 	return values, nil
 }
 
+// ValidateValueWrite runs the masking check of a value write without writing:
+// a caller who can't see the whole of a stored value may not replace it. The
+// permission gate is left to the write, since a tier can depend on the target's
+// current shape, such as a group message about to become a channel.
+func (h *AccessControlHook) ValidateValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
+	if len(values) == 0 {
+		return nil
+	}
+	enforced, err := h.isGroupEnforced(values[0].GroupID)
+	if err != nil || !enforced {
+		return err
+	}
+
+	fieldMap, err := h.getFieldsForValues(rctx, values)
+	if err != nil {
+		return err
+	}
+
+	callerID := h.extractCallerID(rctx)
+	mc := newMaskingContext()
+	for _, value := range values {
+		field, exists := fieldMap[value.FieldID]
+		if !exists {
+			return fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
+		}
+		if field.Permissions == nil {
+			continue
+		}
+		if err := h.checkValueWriteVisibility(rctx, mc, field, callerID, value.TargetID); err != nil {
+			return fmt.Errorf("field %s: %w", value.FieldID, err)
+		}
+	}
+	return nil
+}
+
 // PreDeletePropertyValue enforces write access before deleting a value.
 func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) (err error) {
 	enforced, err := h.isGroupEnforced(groupID)

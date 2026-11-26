@@ -743,6 +743,88 @@ func TestConvertGroupMessageToChannelRequiredAttributes(t *testing.T) {
 		assert.False(t, inChannelsCategory(t, th, th.BasicUser.Id, team.Id, gm.Id))
 	})
 
+	// The group message already holds a value that conversion would rewrite.
+	// requireRefusedBeforeConversion checks the write's refusal came before the
+	// type change rather than from the revert after it.
+	requireRefusedBeforeConversion := func(t *testing.T, th *TestHelper, gm *model.Channel, team *model.Team, members []string, field *model.PropertyField) {
+		t.Helper()
+		current, appErr := th.App.GetChannel(th.Context, gm.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, gm.UpdateAt, current.UpdateAt)
+		requireStillGM(t, th, gm, members)
+		member, appErr := th.App.GetChannelMember(th.Context, gm.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.False(t, member.SchemeAdmin)
+		stored := storedValues(t, th, field, gm)
+		require.Len(t, stored, 1)
+		assert.JSONEq(t, `"OLD"`, string(stored[0].Value))
+		assert.Zero(t, conversionPosts(t, th, gm))
+		assert.False(t, inChannelsCategory(t, th, th.BasicUser.Id, team.Id, gm.Id))
+	}
+
+	t.Run("a value the field's change policy refuses over the group message's is refused before the conversion", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		gm, team, ctx := newGM(t, th)
+		members := memberIDsOf(t, th, gm)
+		field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
+		field.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyNever
+		_, err := th.App.Srv().Store().PropertyField().Update(field.GroupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+		setChannelPropertyValue(t, th, field.GroupID, field.ID, gm.Id, `"OLD"`)
+
+		converted, appErr := th.App.ConvertGroupMessageToChannel(ctx, th.BasicUser.Id, conversion(gm, team,
+			model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"NEW"`)}))
+		assert.Nil(t, converted)
+		requireResolveError(t, appErr, "app.property_value.change_policy.never.app_error", http.StatusForbidden)
+
+		requireRefusedBeforeConversion(t, th, gm, team, members, field)
+	})
+
+	t.Run("a value masking hides from the converter is refused before the conversion", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		gm, team, ctx := newGM(t, th)
+		members := memberIDsOf(t, th, gm)
+		// Masking reaches a channel field only through a masked template. With no
+		// mask_by_field_id the holdings are the channel field's own user values,
+		// and the converter has none, so what the group message holds is hidden
+		// from them.
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		template, err := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "t_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: model.PropertyValueTargetTypeSystem,
+		})
+		require.NoError(t, err)
+		admin := model.PermissionLevelAdmin
+		sysadmin := model.PermissionLevelSysadmin
+		field, err := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              "f_" + model.NewId(),
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			TargetType:        model.PropertyValueTargetTypeSystem,
+			LinkedFieldID:     &template.ID,
+			PermissionField:   &sysadmin,
+			PermissionValues:  &admin,
+			PermissionOptions: &sysadmin,
+			Attrs:             model.StringInterface{model.PropertyFieldAttrDisplayName: "Program"},
+		})
+		require.NoError(t, err)
+		template.Permissions = &model.Permissions{Masking: &model.Masking{}}
+		_, err = th.App.Srv().Store().PropertyField().Update(template.GroupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+		setChannelPropertyValue(t, th, field.GroupID, field.ID, gm.Id, `"OLD"`)
+
+		converted, appErr := th.App.ConvertGroupMessageToChannel(ctx, th.BasicUser.Id, conversion(gm, team,
+			model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"NEW"`)}))
+		assert.Nil(t, converted)
+		requireResolveError(t, appErr, "app.property.access_denied.app_error", http.StatusForbidden)
+
+		requireRefusedBeforeConversion(t, th, gm, team, members, field)
+	})
+
 	t.Run("a required attribute a person can't write doesn't stop the conversion", func(t *testing.T) {
 		th := setupMissingAttributes(t)
 		gm, team, ctx := newGM(t, th)
