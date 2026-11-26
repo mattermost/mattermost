@@ -873,6 +873,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			map[string]string{
 				"DiagnosticId":                     "",
 				"EnforceMultifactorAuthentication": "false",
+				"EnableGuestAccounts":              "false",
 			},
 			[]string{
 				"WebsocketURL",
@@ -884,7 +885,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"FileLevel",
 				"IsFipsEnabled",
 				"SupportEmail",
-				"EnableGuestAccounts",
+				"HideGuestTags",
 			},
 		},
 		{
