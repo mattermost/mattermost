@@ -1539,6 +1539,22 @@ Possible `action` values:
 
 The report reflects a single run. If you re-import the same file, a user created as a shell on the first run is matched on the second and no longer appears in the report, while a membership for a team or channel that's still missing is reported again. The count and report path recorded on the import job are specific to each run, and a run that finds no unmatched users records no report. An earlier `.unmatched-users.csv` file isn't removed or overwritten when a later run has nothing to report, so a file left on disk may reflect a previous run rather than the latest one. Check the count on the import job to see whether the current run produced a report.
 
+## Shared Channels remote users
+
+An export from a server that uses [Shared Channels](/administration-guide/onboard/connected-workspaces) can include remote users, which are users synced from a connected server. Their usernames have the form `name:remote`, for example `admin:connection-to-remote-server`. Local accounts can't have a colon in their username, so the import can't recreate these users without their remote connection.
+
+Remote users are skipped rather than imported:
+
+- No account or shell account is created for them, and they aren't counted toward team member limits.
+- They don't appear in the [unmatched users report](#unmatched-users-report).
+- The server log records a `Skipping Shared Channels remote user` warning for each one.
+
+If a remote user already exists on the destination server with the same username (for example, when re-importing into the server the export came from), their content is imported and attributed to them as usual. If they don't exist, content that depends on them is skipped without failing the import:
+
+- Posts and replies they authored, including any replies and reactions on those posts.
+- Their reactions, flags, acknowledgements, and thread follows on other users' posts.
+- Any direct message or group message channel they're a member of, along with all its posts. The whole channel is skipped so that a group message doesn't collapse into a direct message between its remaining local members.
+
 ## Common issues
 
 Run the bulk import command as the *mattermost* user. Running it as *root* or any other user will cause issues with file permissions on imported attachments.

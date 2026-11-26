@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Delete an import file
+Delete an import file. Provide only the file name as shown by "import list available", not a path.
 
 ::
 

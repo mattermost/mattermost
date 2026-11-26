@@ -43,7 +43,7 @@ import {canQuoteFromPost} from 'selectors/drafts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {canEditPostAttributeValue, isChannelPropertyAdmin} from 'components/post_attributes/permissions';
+import {canEditPostAttributeValue, getCurrentUserSystemRoles, isChannelPropertyAdmin} from 'components/post_attributes/permissions';
 import {hasPostAttributeContent} from 'components/post_attributes/utils';
 
 import {isArchivedChannel} from 'utils/channel_utils';
@@ -135,10 +135,11 @@ function makeMapStateToProps() {
             const postValues = state.entities.properties.values.byTargetId[post.id];
             const isSysAdmin = isCurrentUserSystemAdmin(state);
             const isChanAdmin = channel ? isChannelPropertyAdmin(state, channel) : false;
+            const userRoles = getCurrentUserSystemRoles(state);
             hasPostAttributes = hasPostAttributeContent(
                 postAttributeFields,
                 (fieldId) => postValues?.[fieldId],
-                (field) => canEditPostAttributeValue(field, post, userId, isSysAdmin, isChanAdmin),
+                (field) => canEditPostAttributeValue(field, post, userId, userRoles, isSysAdmin, isChanAdmin),
             );
         }
 

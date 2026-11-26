@@ -74,7 +74,7 @@ const TaskItems = styled.div`
         font-size: 12px;
         color: var(--link-color);
         padding: 12px 24px 0;
-        font-weight: bold;
+        font-weight: 600;
         cursor: pointer;
         display: block;
         :hover{
@@ -114,7 +114,7 @@ const Button = styled.button<{open: boolean}>(({open}) => {
             display: ${open ? 'none' : 'block'};
             border-radius: 12px;
             color: var(--button-color);
-            font-weight: bold;
+            font-weight: 600;
             font-size: 11px;
             line-height: 16px;
             bottom: 22px;

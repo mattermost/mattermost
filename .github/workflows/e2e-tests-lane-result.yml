@@ -110,10 +110,12 @@ jobs:
         with:
           context-name: ${{ inputs.context_name }}
       - name: ci/publish-result
-        id: result
+        id: publish
         # The diagnostic summary runs even on cancellation. A cancelled lane
         # must leave its current pending status (or a newer owner's result) alone.
         if: ${{ !cancelled() && inputs.composite_identity_json != '' }}
+        # A failed publication is tried once more below; the retry decides the job.
+        continue-on-error: true
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
         with:
           composite-identity: ${{ inputs.composite_identity_json }}
@@ -130,6 +132,65 @@ jobs:
           target-url: ${{ inputs.report_url }}
           triage-status-context: ${{ steps.lanes.outputs.aggregate }}
           triage-lanes: ${{ steps.lanes.outputs.lanes }}
+      # The GITHUB_TOKEN quota is shared by every workflow in the repository; a burst of merges has
+      # exhausted it and left a green lane red. Wait for the quota to reset when that is close, else
+      # back off briefly. The wait counts against this job's timeout, while it holds the SHA lock.
+      - name: ci/wait-for-github-api
+        if: ${{ !cancelled() && steps.publish.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_WAIT_SECONDS: "900"
+          BACKOFF_SECONDS: "60"
+        run: |
+          WAIT="$BACKOFF_SECONDS"
+          # /rate_limit itself does not count against the quota.
+          if CORE=$(gh api rate_limit --jq '.resources.core | "\(.remaining) \(.reset)"'); then
+            read -r REMAINING RESET <<< "$CORE"
+            echo "GitHub API quota: ${REMAINING} requests left, resets at $(date -u -d "@${RESET}" +%H:%M:%SZ)"
+            if [ "$REMAINING" -eq 0 ]; then
+              UNTIL_RESET=$(( RESET - $(date +%s) + 5 ))
+              if [ "$UNTIL_RESET" -gt "$MAX_WAIT_SECONDS" ]; then
+                echo "::warning::The GitHub API quota resets in $(( UNTIL_RESET / 60 )) minutes, beyond the $(( MAX_WAIT_SECONDS / 60 )) this job may wait; retrying after the usual backoff."
+              elif [ "$UNTIL_RESET" -gt "$WAIT" ]; then
+                WAIT="$UNTIL_RESET"
+              fi
+            fi
+          fi
+          echo "Retrying the publication in ${WAIT}s"
+          sleep "$WAIT"
+      # Same inputs as ci/publish-result (the wiring test keeps them equal). Publishing again is safe: a run
+      # may rewrite the status it owns.
+      - name: ci/publish-result-retry
+        id: publish-retry
+        if: ${{ !cancelled() && steps.publish.outcome == 'failure' }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
+        with:
+          composite-identity: ${{ inputs.composite_identity_json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ inputs.summary_ok && 'success' || 'failure' }}
+          verify-reports: "true"
+          execution-success: ${{ inputs.execution_success }}
+          report-wait-seconds: "60"
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          description: ${{ inputs.description || 'E2E results unavailable or incomplete; triage is checking why' }}
+          target-url: ${{ inputs.report_url }}
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
+      # The outputs of whichever attempt ran last. An attempt that failed wrote none.
+      - name: ci/publish-result-outputs
+        id: result
+        if: ${{ !cancelled() }}
+        env:
+          STATE: ${{ steps.publish.outputs.state || steps.publish-retry.outputs.state }}
+          REPORTS_COMPLETE: ${{ steps.publish.outputs.reports-complete || steps.publish-retry.outputs.reports-complete }}
+          PUBLISHED: ${{ steps.publish.outputs.published || steps.publish-retry.outputs.published }}
+        run: |
+          {
+            echo "state=${STATE}"
+            echo "reports-complete=${REPORTS_COMPLETE}"
+            echo "published=${PUBLISHED}"
+          } >> "$GITHUB_OUTPUT"
       # Answers from earlier runs on the same PR (the same commit on master), so a
       # re-run does not pay for the same question twice. The file also keeps this
       # lane's AI spend on the PR, for the per-PR budget (pr-budget-usd, $2 by
@@ -197,8 +258,17 @@ jobs:
         with:
           path: e2e-triage-answers.json
           key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(inputs.composite_identity_json).gh_pr_number && format('pr{0}', fromJSON(inputs.composite_identity_json).gh_pr_number) || fromJSON(inputs.composite_identity_json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      # A green lane that published has already refreshed the summary in that publication, and triage
+      # did not run to change it since. Likewise, when triage ran on a listed PR lane in enforce mode
+      # and confirms it published the aggregate itself (aggregate-published == 'true', separate from
+      # published == 'true' which only reflects the lane verdict), triage already settled the summary
+      # with its own status overlay; refreshing again would re-read stale GitHub commit statuses and
+      # risk reverting e2e-test/triage. Gating on aggregate-published keeps ci/refresh-lane-summary
+      # running as a fallback whenever triage's aggregate update fails or skips, as well as before
+      # mattermost-test-automation-toolkit exposes aggregate-published (with lastWritten verdict overlay),
+      # since an unset output evaluates to '' != 'true'.
       - name: ci/refresh-lane-summary
-        if: ${{ !cancelled() && inputs.composite_identity_json != '' }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') && !(steps.triage.outcome == 'success' && steps.triage.outputs.effective-mode == 'enforce' && steps.triage.outputs.aggregate-published == 'true' && steps.lanes.outputs.triage-lanes != '') }}
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
         with:
           composite-identity: ${{ inputs.composite_identity_json }}

@@ -1368,6 +1368,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                         config: {
                             FeatureFlagPostAttributes: flag,
                         },
+                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
                     },
                     properties: {
                         fields: {
@@ -1376,8 +1377,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                         },
                         values: {byTargetId: {}, byFieldId: {}},
                         groups: {
-                            byId: {[attributesGroupId]: {id: attributesGroupId, name: 'post_attributes'}},
-                            byName: {post_attributes: {id: attributesGroupId, name: 'post_attributes'}},
+                            byId: {[attributesGroupId]: {id: attributesGroupId, name: 'access_control'}},
+                            byName: {access_control: {id: attributesGroupId, name: 'access_control'}},
                         },
                     },
                 },
@@ -1830,6 +1831,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     config: {
                         FeatureFlagPostAttributes: 'true',
                     },
+                    license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
                 },
                 properties: {
                     fields: {
@@ -1838,8 +1840,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     },
                     values: {byTargetId: {}, byFieldId: {}},
                     groups: {
-                        byId: {[groupId]: {id: groupId, name: 'post_attributes'}},
-                        byName: {post_attributes: {id: groupId, name: 'post_attributes'}},
+                        byId: {[groupId]: {id: groupId, name: 'access_control'}},
+                        byName: {access_control: {id: groupId, name: 'access_control'}},
                     },
                 },
             },
