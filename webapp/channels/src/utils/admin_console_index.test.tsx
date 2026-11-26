@@ -87,6 +87,27 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('Sync History')).toContain('authentication/ldap');
     });
 
+    it('should index the user attributes sync section on every page that renders it', () => {
+        const pages = ['authentication/ldap', 'authentication/openid', 'authentication/saml'];
+
+        const englishIdx = generateIndex(AdminDefinition, createIntl({locale: 'en', messages: {}, defaultLocale: 'en'}), {});
+        expect(englishIdx.search('User attributes sync')).toEqual(expect.arrayContaining(pages));
+
+        // Words no other setting uses, so only the section's own strings can match them
+        const intl = createIntl({
+            locale: 'fr',
+            defaultLocale: 'en',
+            onError: () => {},
+            messages: {
+                'admin.customProfileAttributes.title': 'Synchronisation des attributs',
+                'admin.customProfileAttributes.subtitle': 'Ajoutez des attributs sur la page <link>Gestion des attributs</link>.',
+            },
+        });
+        const idx = generateIndex(AdminDefinition, intl, {});
+        expect(idx.search('Synchronisation des attributs').sort()).toEqual(pages);
+        expect(idx.search('Gestion des attributs').sort()).toEqual(pages);
+    });
+
     xit('should generate a index where I can search in other language', () => {
         const intl = createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'});
 
