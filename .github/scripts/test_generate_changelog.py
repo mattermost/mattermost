@@ -1614,8 +1614,22 @@ class PrepareFactsTest(unittest.TestCase):
         place, rows = gc.prepare_facts([], "Allowed 0 for ``TeamSettings.MaxUsersPerTeam``, now the default.", "a", "b",
                                        show=show, plan_of=lambda fact: ("All", "test"))
         self.assertNotIn("TeamSettings.MaxUsersPerTeam", [fact["ident"] for fact in place])
+        _, noted, _ = gc.changelog_facts.parse_checker_lines("Added ``CacheSettings.RedisEnableTLS`` configuration setting.", "x#1")
+        place_noted, _ = gc.prepare_facts(noted, "", "a", "b", show=show, plan_of=lambda fact: ("All", "test"))
+        self.assertIn("The default value is ``false``.", gc.changelog_facts.bullet(place_noted[0]))
         self.assertIn("CacheSettings.RedisEnableTLS", [fact["ident"] for fact in place])
-        self.assertEqual(rows, [])
+        self.assertEqual([(row["ident"], row["placed"], row["basis"]) for row in rows],
+                         [("TeamSettings.MaxUsersPerTeam", "stated in a release note's text", "code")])
+
+    def test_should_not_place_an_endpoint_line_the_previous_router_already_had(self):
+        import test_changelog_facts as fx
+        line = "Added ``POST /api/v4/logs/query`` (``queryLogs``) API endpoint."
+        _, facts, _ = gc.changelog_facts.parse_checker_lines(line, "mattermost/mattermost#39646")
+        routes = {"a": {("/api/v4/logs/query", "queryLogs", "POST")}, "b": {("/api/v4/logs/query", "queryLogs", "POST")}}
+        place, rows = gc.prepare_facts(facts, "", "a", "b", show=fx.repo({"a": fx.V12_1, "b": fx.V12_1}),
+                                       endpoints=routes.get)
+        self.assertEqual(place, [])
+        self.assertIn("already in the previous release's router", rows[0]["detail"])
 
 
 if __name__ == "__main__":

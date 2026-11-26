@@ -331,16 +331,23 @@ def _setting_structs(config_src: str) -> set[str]:
     return set(config_groups(config_src))
 
 
-def contradicted(fact: dict, base_ref: str, head_ref: str, show) -> str | None:
+def contradicted(fact: dict, base_ref: str, head_ref: str, show, endpoints=None) -> str | None:
     """Why a checker line is wrong about the release, or None.
 
     The checker compares a PR with the branch it was opened from, which can be older
     than the previous release: it then reports a setting or event the previous release
-    already shipped as added.
+    already shipped as added. ``endpoints(ref)`` gives the router's ``(path, handler, method)``
+    routes at a ref, for checking API lines; without it they are not checked.
     """
-    if not base_ref or not head_ref or fact["kind"] not in ("config", "audit"):
+    if not base_ref or not head_ref or fact["kind"] not in ("config", "audit", "api"):
         return None
-    if fact["kind"] == "config":
+    if fact["kind"] == "api":
+        if endpoints is None:
+            return None
+        base = {(path, method) for path, _, method in endpoints(base_ref)}
+        head = {(path, method) for path, _, method in endpoints(head_ref)}
+        key = (fact["path"], fact["method"])
+    elif fact["kind"] == "config":
         base = config_fields(show(base_ref, CONFIG_PATH) or "")
         head = config_fields(show(head_ref, CONFIG_PATH) or "")
         key = (fact["group"], fact["field"])
@@ -349,6 +356,9 @@ def contradicted(fact: dict, base_ref: str, head_ref: str, show) -> str | None:
         head = audit_events(show(head_ref, AUDIT_EVENTS_PATH))
         key = fact["ident"]
     if fact["verb"] == "Added" and key in base:
+        if fact["kind"] == "api":
+            return ("already in the previous release's router (a local-mode registration of an existing endpoint "
+                    "reads the same; say so in the note's text)")
         return "already in the previous release"
     if fact["verb"] == "Added" and key not in head:
         return "not on the release branch"
@@ -573,6 +583,17 @@ def render_facts(facts: list[dict], ids: dict) -> str:
     def marked(text, group):
         return f"{text} [[{','.join(ids[id(f)] for f in group)}]]"
 
+    # The same change named by two PRs (a cherry-pick and its original) is one bullet carrying both.
+    by_text: dict[str, list[dict]] = {}
+    for fact in facts:
+        if fact["kind"] != "min_version":
+            by_text.setdefault(bullet(fact), []).append(fact)
+    same = {id(fact): group for group in by_text.values() for fact in group}
+    facts = [fact for fact in facts if fact["kind"] == "min_version" or same[id(fact)][0] is fact]
+
+    def marked_one(fact):
+        return marked(bullet(fact), same[id(fact)])
+
     config = [f for f in facts if f["kind"] in ("config", "config_default")]
     minimums = [f for f in facts if f["kind"] == "min_version"]
     audits = [f for f in facts if f["kind"] == "audit"]
@@ -586,8 +607,8 @@ def render_facts(facts: list[dict], ids: dict) -> str:
             planned = [f for f in config if f.get("plan", "All") == plan and not _is_removal(f)]
             if planned:
                 out.append(f" - {PLAN_LABELS[plan]}")
-                out += [f"   - {marked(bullet(f), [f])}" for f in sorted(planned, key=_config_order)]
-        out += [f" - {marked(bullet(f), [f])}" for f in sorted(config, key=_config_order) if _is_removal(f)]
+                out += [f"   - {marked_one(f)}" for f in sorted(planned, key=_config_order)]
+        out += [f" - {marked_one(f)}" for f in sorted(config, key=_config_order) if _is_removal(f)]
     if minimums:
         out += ["", "#### Important Upgrade Notes"]
         out += [f" - {marked(text, group)}" for text, group in _min_version_bullets(minimums)]
@@ -596,7 +617,7 @@ def render_facts(facts: list[dict], ids: dict) -> str:
             out += ["", f"### {title}"]
             order = (lambda f: (f["verb"] != "Added", f["path"], f["method"])) if title == "API Changes" else \
                 (lambda f: (f["verb"] != "Added", f["ident"]))
-            out += [f" - {marked(bullet(f), [f])}" for f in sorted(group, key=order)]
+            out += [f" - {marked_one(f)}" for f in sorted(group, key=order)]
     return ("\n".join(out).strip() + "\n") if out else ""
 
 

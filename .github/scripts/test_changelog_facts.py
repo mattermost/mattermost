@@ -402,6 +402,15 @@ class RenderTest(unittest.TestCase):
         ])
 
 
+class DuplicateTest(unittest.TestCase):
+    def test_should_write_one_bullet_for_an_endpoint_two_prs_name(self):
+        first = cf.api_fact("Removed", "PUT", "/api/v4/cloud/customer", "updateCloudCustomer", "mattermost/mattermost#39519")
+        second = cf.api_fact("Removed", "PUT", "/api/v4/cloud/customer", "updateCloudCustomer", "mattermost/mattermost#39523")
+        text = cf.render_facts([first, second], {id(first): "N1", id(second): "N2"})
+        self.assertEqual(text.count("/api/v4/cloud/customer"), 1)
+        self.assertIn("API endpoint. [[N1,N2]]", text)
+
+
 class MentionedTest(unittest.TestCase):
     def test_should_recognise_a_fact_a_reviewer_or_developer_already_wrote(self):
         setting = cf.config_fact("Added", "CacheSettings", "RedisEnableTLS", "x")

@@ -2054,7 +2054,8 @@ def render_status(readiness: dict) -> list[str]:
             plan = f", {row['plan']} plan ({row['plan_basis']})" if row.get("plan") else ""
             basis = "found in code, not in a release note" if row["basis"] == "code" else row["basis"]
             icon = "✅" if row["placed"] else "⚠️"
-            lines.append(f"- {icon} {kinds[row['kind']]} `{row['ident']}` from {who}: {where}{plan}. Basis: {basis}.")
+            verb = {"Raised": "raised", "Lowered": "lowered", "Changed": "changed"}.get(row.get("verb"), (row.get("verb") or "").lower())
+            lines.append(f"- {icon} {verb} {kinds[row['kind']]} `{row['ident']}` from {who}: {where}{plan}. Basis: {basis}.")
         if unplaced:
             lines += ["", f"{len(unplaced)} not placed; check each against the release before adding it by hand."]
         lines.append("")
@@ -2643,14 +2644,14 @@ def _fact_row(fact: dict, detail: str = "") -> dict:
         pr = fact["source"]
     elif pr and not isinstance(pr, str):
         pr = f"{DOCS_REPO}#{pr}"
-    return {"kind": fact["kind"], "ident": fact["ident"], "source": fact["source"], "pr": pr,
+    return {"kind": fact["kind"], "verb": fact.get("verb"), "ident": fact["ident"], "source": fact["source"], "pr": pr,
             "basis": fact.get("basis", "release note"), "plan": fact.get("plan"),
             "plan_basis": fact.get("plan_basis"), "placed": None, "detail": detail}
 
 
 def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, head_ref: str,
                   entry_text: str | None = None, included: set | frozenset = frozenset(),
-                  show=None, commits_for=None, plan_of=None) -> tuple[list[dict], list[dict]]:
+                  show=None, commits_for=None, plan_of=None, endpoints=None) -> tuple[list[dict], list[dict]]:
     """Decide which config, audit, API and minimum-version facts to place, and report on every one.
 
     ``note_facts`` come from config-change-checker lines in release notes. One the release
@@ -2669,7 +2670,7 @@ def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, he
     valid = []
     for fact in note_facts:
         try:
-            reason = changelog_facts.contradicted(fact, base_ref, head_ref, show)
+            reason = changelog_facts.contradicted(fact, base_ref, head_ref, show, endpoints)
         except RuntimeError as err:
             print(f"::warning title=Checker line not verified::{fact['ident']}: {err}")
             reason = None
@@ -2686,8 +2687,14 @@ def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, he
         print(f"::warning title=Code not read for config, audit and minimum-version changes::{err}")
         code = []
     known = {(fact["kind"], fact["ident"]) for fact in note_facts}
-    missing = [fact for fact in code
-               if (fact["kind"], fact["ident"]) not in known and not changelog_facts.mentioned(fact, developer_text)]
+    missing = []
+    for fact in code:
+        if (fact["kind"], fact["ident"]) in known:
+            continue
+        if changelog_facts.mentioned(fact, developer_text):
+            rows.append({**_fact_row({**fact, "basis": "code"}), "placed": "stated in a release note's text"})
+            continue
+        missing.append(fact)
     if missing and commits_for:
         try:
             changelog_facts.find_prs(missing, commits_for)
@@ -2718,6 +2725,15 @@ def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, he
             rows.append({**_fact_row(fact), "placed": "already in the entry"})
             continue
         place.append(fact)
+    if head_ref and any(fact["kind"] == "config" and fact["verb"] == "Added" and not fact.get("default") for fact in place):
+        try:
+            defaults = changelog_facts.config_defaults(show(head_ref, changelog_facts.CONFIG_PATH) or "")
+        except RuntimeError as err:
+            print(f"::warning title=Setting defaults not read::{err}")
+            defaults = {}
+        for fact in place:
+            if fact["kind"] == "config" and fact["verb"] == "Added" and not fact.get("default"):
+                fact["default"] = defaults.get((fact["group"], fact["field"]))
     for fact in place:
         if fact["kind"] in ("config", "config_default") and plan_of:
             try:
@@ -2986,6 +3002,7 @@ def main():
             entry_text=_entry_text(content, version_short) if mode == "update" else None,
             included=included | withheld,
             commits_for=(lambda path: branch_commits(path, branch, cut)) if base_ref and head_ref else None,
+            endpoints=endpoints_at,
             plan_of=fact_plan_lookup(head_ref or docs_ref),
         )
     for note in all_notes:
