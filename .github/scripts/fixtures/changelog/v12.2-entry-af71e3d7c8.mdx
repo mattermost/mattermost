@@ -18,16 +18,13 @@
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
- - **Changes to Enterprise Advanced Plans:**
+ - **Changes to Enterprise and Enterprise Advanced plans:**
    - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting to enable TLS for Redis connections. See the [Redis: Secure Redis connections with TLS](https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls) documentation for details.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSCA`` configuration setting to specify the TLS CA certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientCert`` configuration setting to specify the TLS client certificate for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSClientKey`` configuration setting to specify the TLS client key for Redis connections.
    - Under ``CacheSettings`` in ``config.json``, added ``RedisTLSSkipVerify`` configuration setting to skip TLS verification for Redis connections.
- - **Changes to Enterprise Plans:**
-   - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting.
- - **Changes to All Plans:**
-   - Under ``SSOSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting.
+ - **Changes to All plans:**
    - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
@@ -38,7 +35,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
  - Sending email and testing the SMTP connection now return an error when SMTP Connection Security is set to STARTTLS and the SMTP server does not accept STARTTLS.
  - Starting with this release, FIPS builds reject SAML responses that use SHA-1, including RSA-OAEP key encryption with SHA-1 and SHA-1 signatures and digests, and the login fails. If your identity provider encrypts SAML assertions, configure it with RSA-OAEP-11 (``http://www.w3.org/2009/xmlenc11#rsa-oaep``), digest method SHA-256 (``http://www.w3.org/2001/04/xmlenc#sha256``), and MGF1-SHA256 (``http://www.w3.org/2009/xmlenc11#mgf1sha256``) set explicitly. See the [SAML Keycloak documentation](https://docs.mattermost.com/administration-guide/onboard/sso-saml-keycloak) for details. Non-FIPS builds are not affected.
  - Replaced the deprecated ``golang.org/x/crypto/openpgp`` library with ``github.com/ProtonMail/go-crypto`` for plugin signature verification and Team Edition to Enterprise upgrades. Plugin signatures and Team Edition to Enterprise upgrade signatures that use the SHA-1 hash algorithm, or that are made with a DSA key or an RSA key shorter than 2048 bits, are now rejected. Plugin signatures are also rejected if the signing key is expired, its self-signature lacks a signing key flag, or the signature uses the MD5 or RIPEMD-160 hash algorithms. Plugins signed with an admin-configured key using SHA-1 must be re-signed with SHA-256 or stronger; plugins signed with a DSA or short RSA key must be re-signed with a new key.
- - In High Availability deployments using Redis, cluster messages are now sent on a channel namespaced by ``CacheSettings.RedisCachePrefix``. Deployments that already set a prefix will not exchange cluster messages between old and new versions during a rolling upgrade.
+ - In High Availability deployments using Redis, nodes now exchange cluster messages on a Redis pub/sub channel named ``<prefix>:cluster``, where ``<prefix>`` is ``CacheSettings.RedisCachePrefix``, instead of on a shared ``cluster`` channel. This lets several Mattermost deployments share one Redis instance. If ``RedisCachePrefix`` is empty, nothing changes. If it is set, upgraded nodes and nodes still on an earlier version don't receive each other's cluster messages, such as real-time websocket events, until every node is upgraded.
  - Reserved the plugin ID ``com.mattermost.server``, including case variants, for the core server. Existing plugins with this ID will no longer load, and new installations and development reattachment are rejected.
  - Raised the minimum session attribute time-to-live and grace period to 1 minute. Existing session attributes configured with a TTL or grace period under 1 minute are migrated to 1 minute, and the 30-second option has been removed from the System Console.
 
@@ -138,6 +135,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Server Logs live tail in the System Console now fetches only new log entries, briefly highlights them, and holds them behind a "new entries" button while the admin is reading elsewhere in the list.
  - Added documentation on [turning off Elasticsearch indexing before a large bulk permanent channel delete](https://docs.mattermost.com/deployment-guide/scale/enterprise-search#should-i-turn-off-indexing-before-a-large-bulk-permanent-channel-delete), and that leftover search documents do not require a full index purge.
  - Updated advanced logging configuration.
+ - Improved validation of cluster support packet requests.
 
 #### mmctl
  - ``mmctl system`` commands now propagate context, so Ctrl+C and SIGTERM cancel in-flight API calls cleanly.
@@ -220,6 +218,10 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
 
 ### API Changes
  - Added ``POST /api/v4/properties/groups/access_control/attributes/search`` (``searchGlobalAttributeListing``) API endpoint. The Global Attributes page now loads with a single request.
+ - Added ``GET /api/v4/properties/groups/{group_name}/{object_type}/fields/missing_values/summary`` (``getPropertyFieldsComplianceSummary``) API endpoint.
+ - Added ``GET /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values`` (``getPropertyFieldMissingValues``) API endpoint.
+ - Added ``POST /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values/notify`` (``notifyPropertyFieldMissingValues``) API endpoint.
+ - Added ``GET /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values/summary`` (``getPropertyFieldComplianceSummary``) API endpoint.
  - Added an optional ``search`` field to ``POST /api/v4/logs/query`` that searches each node's log file on the server.
  - Added support for setting post attribute values when creating a post: ``POST /api/v4/posts`` accepts them in ``metadata.property_values``, and they are returned in the response and the posted websocket event. Available behind the ``PostAttributes`` feature flag.
  - ``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` and ``direction=down`` now includes replies deleted since ``fromUpdateAt``, returned with ``delete_at`` set and without their message or metadata.
@@ -235,6 +237,13 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Removed the ``First-Inaccessible-File-Time`` response header from file and post endpoints.
 
 ### Audit Log Event Changes
+ - Added ``AuditEventGetPropertyFieldComplianceSummary`` audit log event.
+ - Added ``AuditEventGetPropertyFieldMissingValues`` audit log event.
+ - Added ``AuditEventGetPropertyFieldsComplianceSummary`` audit log event.
+ - Added ``AuditEventLocalAddPluginPublicKey`` audit log event.
+ - Added ``AuditEventLocalDeletePluginPublicKey`` audit log event.
+ - Added ``AuditEventNotifyPropertyFieldMissingValues`` audit log event.
+ - Added ``AuditEventSearchGlobalAttributeListing`` audit log event.
  - Added ``meta.user_created`` to ``completeSaml`` and ``completeOAuth`` audit events to indicate JIT account provisioning.
 
 ### Go Version

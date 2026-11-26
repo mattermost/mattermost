@@ -255,7 +255,24 @@ def clean_rewrite(rewrite: str, original: str) -> str | None:
     for link in re.findall(r"\[[^\]]*\]\([^)]*\)", original):
         if link not in text:
             text = f"{text} {link}"
-    return text
+    return mdx_safe(text)
+
+
+# Inline code and link destinations, which MDX doesn't read as JSX.
+_MDX_PROTECTED_RE = re.compile(r"``[^`]*``|`[^`]*`|\]\([^)]*\)")
+
+
+def mdx_safe(text: str) -> str:
+    """Escape what MDX would read as a JSX expression, as the generator does for its own text: a
+    bare ``{`` outside inline code and links. A reviewer applies a suggestion in one click, and an
+    unfinished ``{`` breaks the docs build. (``<`` never gets here: clean_rewrite refuses it.)"""
+    parts, last = [], 0
+    for match in _MDX_PROTECTED_RE.finditer(text):
+        parts.append(re.sub(r"(?<!\\)\{", r"\\{", text[last:match.start()]))
+        parts.append(match.group(0))
+        last = match.end()
+    parts.append(re.sub(r"(?<!\\)\{", r"\\{", text[last:]))
+    return "".join(parts)
 
 
 def changelog_note_is_weak(text: str) -> bool:
@@ -339,14 +356,45 @@ def suggestion_metrics(api, repo: str, number: int, content: str | None, version
             "suggestions_dismissed": dismissed, "suggestions_pending": len(suggestions) - accepted - dismissed}
 
 
+def diff_lines(api, repo: str, number: int, path: str) -> set | None:
+    """The head-side line numbers of ``path`` the PR's diff shows (added and context lines), which
+    are the only ones a review comment can anchor to. None when the PR's files can't be read, so
+    the caller tries anyway and GitHub decides."""
+    try:
+        files = api.paginate(f"/repos/{repo}/pulls/{number}/files", per_page=100) or []
+    except ApiError:
+        return None
+    patch = next((f.get("patch") for f in files if f.get("filename") == path), None)
+    if patch is None:
+        return set()
+    lines, number_at = set(), 0
+    for line in patch.split("\n"):
+        hunk = re.match(r"^@@ -\S+ \+(\d+)", line)
+        if hunk:
+            number_at = int(hunk.group(1))
+        elif line.startswith("-"):
+            continue
+        elif number_at:
+            lines.add(number_at)
+            number_at += 1
+    return lines
+
+
 def suggest_rewrites(api, source_api, number: int, head_sha: str, content: str | None, report: dict, version: str,
                      rewrite=rewrite_with_claude, repo: str = REPO) -> dict:
     """Comment a rewrite on each weak bullet that has no suggestion yet. Never edits the entry."""
     done = {s["source"] for s in bot_suggestions(api, repo, number)}
     path = changelog_release.changelog_path(version)
+    anchors = diff_lines(api, repo, number, path)
     posted = skipped = 0
     for bullet in weak_bullets(report, content, version):
         if bullet["source"] in done:
+            continue
+        if anchors is not None and bullet["line"] not in anchors:
+            # GitHub only takes a review comment on a line the PR's diff shows: a bullet already on
+            # master, outside every hunk, can't carry a suggestion.
+            skipped += 1
+            print(f"Line {bullet['line']} of {bullet['source']}'s bullet is outside the PR diff; no suggestion")
             continue
         if bullet["source"].partition("#")[0] != repo:
             # A private repo's title and description would go to the model and, rewritten, into a
@@ -391,14 +439,35 @@ def add_working_days(start: date, days: int) -> date:
     return day
 
 
+def _day(value: str) -> date:
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+
+
 def rc1_date(api, version: str, repo: str = REPO) -> date | None:
+    """When ``vX.Y.0-rc1`` was tagged, not when the commit it points at was made, which can be days
+    earlier. An annotated tag gives its tagger date; a lightweight tag has no date of its own, so
+    its GitHub release's creation date is used, then, failing both, the commit's date."""
+    tag = f"{version}-rc1"
     try:
-        found = api.get(f"/repos/{repo}/commits/{urllib.parse.quote(f'{version}-rc1', safe='')}")
+        ref = api.get(f"/repos/{repo}/git/ref/tags/{urllib.parse.quote(tag, safe='')}")
     except ApiError as err:
         if err.status in (404, 422):
             return None
         raise
-    return datetime.fromisoformat(found["commit"]["committer"]["date"].replace("Z", "+00:00")).date()
+    target = ref.get("object") or {}
+    if target.get("type") == "tag":
+        annotated = api.get(f"/repos/{repo}/git/tags/{target['sha']}")
+        if (annotated.get("tagger") or {}).get("date"):
+            return _day(annotated["tagger"]["date"])
+    try:
+        release = api.get(f"/repos/{repo}/releases/tags/{urllib.parse.quote(tag, safe='')}")
+        if release.get("created_at"):
+            return _day(release["created_at"])
+    except ApiError as err:
+        if err.status != 404:
+            raise
+    commit = api.get(f"/repos/{repo}/commits/{urllib.parse.quote(tag, safe='')}")
+    return _day(commit["commit"]["committer"]["date"])
 
 
 def blocking_failures(report: dict) -> list[str]:

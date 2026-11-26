@@ -900,19 +900,36 @@ def _write_outputs(outputs: dict) -> None:
 #
 # The changelog groups new settings by plan. The plan is read from the code and the docs in
 # this repo, never from the model: a System Console gate that names a plan, else the
-# PlanAvailability badge of the setting's own section in the configuration docs. Settings with
-# neither, or with only a license-feature gate (which names a feature, not a plan), go under
-# All Plans as "plan not confirmed" for a person to check.
+# PlanAvailability badge of the setting's own section in the configuration docs, else a
+# System Console license-feature gate, read as the plan that feature first comes with
+# (FEATURE_PLANS). Settings with none of these go under All plans as "plan not confirmed"
+# for a person to check.
 
 PLAN_ORDER = ("Enterprise Advanced", "Enterprise", "Professional", "All")
+# Each heading names every plan that gets the setting, as published entries word them.
 PLAN_HEADINGS = {
-    "Enterprise Advanced": "**Changes to Enterprise Advanced Plans:**",
-    "Enterprise": "**Changes to Enterprise Plans:**",
-    # Earlier entries never use a Professional-only heading: a Professional feature is on every
-    # plan from Professional up, which is how they word it.
-    "Professional": "**Changes to Professional, Enterprise, and Enterprise Advanced Plans:**",
-    "All": "**Changes to All Plans:**",
+    "Enterprise Advanced": "**Changes to Enterprise Advanced plan:**",
+    "Enterprise": "**Changes to Enterprise and Enterprise Advanced plans:**",
+    "Professional": "**Changes to Professional, Enterprise, and Enterprise Advanced plans:**",
+    "All": "**Changes to All plans:**",
 }
+
+
+def heading_plan(line: str) -> str | None:
+    """The plan a config.json plan heading names: the first (least restricted) plan it lists.
+
+    Older wordings ("Changes to Enterprise Plans:", "Changes to all plans:") read the same, so a
+    later run adds to an existing heading instead of writing a second one.
+    """
+    match = re.match(r"^\s*[-*+]\s+\*\*Changes to (.+?) [Pp]lans?:?\*\*:?\s*$", line)
+    if not match:
+        return None
+    name = match.group(1).strip().lower()
+    for prefix, plan in (("all", "All"), ("professional", "Professional"),
+                         ("enterprise advanced", "Enterprise Advanced"), ("enterprise", "Enterprise")):
+        if name.startswith(prefix):
+            return plan
+    return None
 # docs/site/src/components/PlanAvailability: the lowest plan each badge includes.
 BADGE_PLANS = {
     "ent-adv": "Enterprise Advanced", "ent-plus": "Enterprise", "ent-cloud-dedicated": "Enterprise",
@@ -921,6 +938,18 @@ BADGE_PLANS = {
     "entry-adv": "Enterprise Advanced", "entry-ent": "Enterprise",
 }
 _SKU_PLANS = {"EnterpriseAdvanced": "Enterprise Advanced", "Enterprise": "Enterprise", "Professional": "Professional"}
+# The license features the System Console gates settings on, and the plan each first comes with.
+# Cloud is a deployment, not a plan, so it is not listed.
+FEATURE_PLANS = {
+    "Cluster": "Enterprise", "Elasticsearch": "Enterprise", "Compliance": "Enterprise",
+    "DataRetention": "Enterprise", "MessageExport": "Enterprise", "CustomTermsOfService": "Enterprise",
+    "SharedChannels": "Enterprise", "Announcement": "Enterprise", "LDAPGroups": "Enterprise",
+    "IDLoadedPushNotifications": "Enterprise", "EmailNotificationContents": "Enterprise",
+    "LockTeammateNameDisplay": "Enterprise", "CustomPermissionsSchemes": "Enterprise",
+    "LDAP": "Professional", "SAML": "Professional", "MFA": "Professional", "GoogleOAuth": "Professional",
+    "Office365OAuth": "Professional", "OpenId": "Professional", "GuestAccounts": "Professional",
+    "GuestAccountsPermissions": "Professional",
+}
 ADMIN_DEFINITION = "webapp/channels/src/components/admin_console/admin_definition.tsx"
 CONFIGURE_DOCS = "docs/main/administration-guide/configure"
 # Gates that require a plan: hidden unless the license is at least that tier.
@@ -965,7 +994,9 @@ class PlanResolver:
         if not keys:
             return [], []
         start = keys[0]
-        end = next((i for i in range(start + 1, len(lines)) if re.search(r"\bkey:\s*'", lines[i])), len(lines))
+        # The setting's own definition ends at the next setting or, for the last one on its page,
+        # at the next page: that page's gates are not this setting's.
+        end = next((i for i in range(start + 1, len(lines)) if re.search(r"\b(?:key|url):\s*'", lines[i])), len(lines))
         page = next((i for i in range(start, -1, -1) if re.search(r"\burl:\s*'", lines[i])), None)
         header_end = next((i for i in range(page, start) if "schema:" in lines[i]), start) if page is not None else start
         text = "\n".join(lines[start:end] + (lines[page:header_end] if page is not None else []))
@@ -975,12 +1006,14 @@ class PlanResolver:
     def docs_badge(self, section: str, name: str) -> tuple[str | None, bool, str]:
         """(badge slug, whether it is the setting's own section's rather than the page's, page)."""
         found = None
-        for path in self.docs:
-            lines = (self.read(path) or "").split("\n")
-            hits = [i for i, line in enumerate(lines) if f"<code>{name}</code>" in line]
-            best = next((i for i in hits if f"<code>{section}</code>" in lines[i]), hits[0] if hits else None)
-            if best is None:
-                continue
+        pages = [(path, (self.read(path) or "").split("\n")) for path in self.docs]
+        # The exact section and name on any page outranks the name alone: two pages can each
+        # document a setting called Enable.
+        exact = [(path, lines, i) for path, lines in pages for i, line in enumerate(lines)
+                 if f"<code>{name}</code>" in line and f"<code>{section}</code>" in line]
+        named = [(path, lines, next(i for i, line in enumerate(lines) if f"<code>{name}</code>" in line))
+                 for path, lines in pages if any(f"<code>{name}</code>" in line for line in lines)]
+        for path, lines, best in (exact[:1] or named):
             heads, page_badge = [], None
             for i, line in enumerate(lines[:best]):
                 heading = re.match(r"^(#{1,6}) ", line)
@@ -1014,6 +1047,12 @@ class PlanResolver:
             return {"setting": key, "plan": plan, "confirmed": not entry,
                     "basis": f"the {slug} badge in {os.path.basename(path)}"
                              + (" (also on Entry, which has no heading of its own)" if entry else "")}
+        known = [FEATURE_PLANS[feature] for feature in features if feature in FEATURE_PLANS]
+        if known:
+            plan = min(known, key=PLAN_ORDER.index)
+            listed = ", ".join(sorted({f for f in features if FEATURE_PLANS.get(f) == plan}))
+            return {"setting": key, "plan": plan, "confirmed": True,
+                    "basis": f"the System Console's {listed} license feature, which comes with {plan}"}
         if features:
             why = f"the System Console needs the {', '.join(sorted(set(features)))} license feature, which names no plan"
         elif path:

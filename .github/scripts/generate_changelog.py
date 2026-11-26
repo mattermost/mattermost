@@ -121,7 +121,7 @@ Here are your instructions:
              - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
            - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database.
 
-          Write every new setting under a single " - **Changes to All Plans:**" bullet, in the "Under ``Section`` in ``config.json``, added ``Setting`` configuration setting ..." form: the plan groupings are worked out afterwards from the code, so never guess a plan. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
+          Write every new setting under a single " - **Changes to All plans:**" bullet, in the "Under ``Section`` in ``config.json``, added ``Setting`` configuration setting ..." form: the plan groupings are worked out afterwards from the code, so never guess a plan. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
         - `#### Important Upgrade Notes` — changes an administrator must act on or know about when upgrading: minimum version requirement changes for browsers, OS, or clients, defaults that change, settings or inputs that are now rejected. Example: "Updated minimum Edge and Chrome versions to 146+."
     - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. The line immediately after the `### Improvements` heading — with NO blank line between them — must be `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK`; it is replaced automatically with a Markdown link). Then a blank line, then the first `####` subsection heading. It must look exactly like this:
 
@@ -1507,8 +1507,13 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
     for block in _top_level_blocks(new_lines):
         head, children = block[0], block[1:]
         target = None
+        head_plan = changelog_release.heading_plan(head) if title == "config.json" else None
         for index in range(start, end + inserted):
-            if _is_top_level(lines[index], top_indent) and lines[index].strip() == head.strip():
+            if not _is_top_level(lines[index], top_indent):
+                continue
+            # A plan heading matches the entry's heading for the same plan however it is worded,
+            # so an entry written before the wording changed doesn't get a second one.
+            if lines[index].strip() == head.strip() or (head_plan and changelog_release.heading_plan(lines[index]) == head_plan):
                 target = index
                 break
         if target is None and title == "Database Schema Changes" and children:
@@ -1538,6 +1543,13 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
         else:
             block = _align_to_indent(block, top_indent)
             at = _last_content_line(lines, start, end + inserted) + 1
+            if head_plan:
+                # Plan headings most restricted first; removed settings stay after them.
+                rank = changelog_release.PLAN_ORDER.index(head_plan)
+                later = [i for i in range(start + 1, end + inserted) if _is_top_level(lines[i], top_indent)
+                         and (changelog_release.heading_plan(lines[i]) is None
+                              or changelog_release.PLAN_ORDER.index(changelog_release.heading_plan(lines[i])) > rank)]
+                at = later[0] if later else at
             lines[at:at] = block
             inserted += len(block)
     return inserted
@@ -2030,7 +2042,7 @@ def render_status(readiness: dict) -> list[str]:
                      "System Console or the configuration docs.")
         for item in unconfirmed:
             lines.append(_status_item("needs_review", f"`{item['setting']}`",
-                                      f"plan not confirmed: {item['basis']}. Listed under {item['plan']} Plans; "
+                                      f"plan not confirmed: {item['basis']}. Listed under {item['plan']} plans; "
                                       "move it if it belongs to another plan"))
         lines.append("")
     lines += ["### Sections no developer note fills", ""]
@@ -2211,8 +2223,9 @@ _RELEASE_NOTE_BLOCK_RE = re.compile(r"```release-note\b", re.IGNORECASE)
 
 def with_release_note_section(body: str) -> str:
     """``body`` with the template's Release Note section (``NONE``), added when it has none.
-    It goes above the changelog-sources list, which stays last."""
-    if _RELEASE_NOTE_BLOCK_RE.search(body or ""):
+    It goes above the changelog-sources list, which stays last. A block inside an HTML comment
+    (the template's example) doesn't count, as it doesn't for release_note_blocks."""
+    if _RELEASE_NOTE_BLOCK_RE.search(re.sub(r"<!--.*?-->", "", body or "", flags=re.DOTALL)):
         return body
     sources = _SOURCES_COMMENT_RE.search(body or "")
     if sources:
@@ -2615,8 +2628,9 @@ def plan_resolver():
 def group_config_plans(text: str, resolver=None, report: list | None = None) -> str:
     """Regroup the settings under ``#### config.json`` by plan, from the code and docs
     (``changelog_release.PlanResolver``), never from the model: Enterprise Advanced,
-    Enterprise, Professional (and up), then All Plans, each heading only when it has
-    settings. A setting whose plan can't be worked out goes under All Plans and into
+    Enterprise, Professional (and up), then All plans, each heading naming every plan that
+    gets the setting (``PLAN_HEADINGS``) and only when it has settings. A setting whose plan
+    can't be worked out goes under All plans and into
     ``report`` (``CONFIG_PLANS``) as "plan not confirmed". The description paragraph comes
     first and top-level bullets that aren't plan labels (removed settings) last, as they were.
     """
@@ -3130,7 +3144,9 @@ def main():
 
     benchmark_action = ""
     if content is not None:
-        content, benchmark_action = apply_benchmark(content, version_short, benchmark)
+        # The blog line is only written when this creates ### Improvements, as create mode does.
+        content, benchmark_action = apply_benchmark(
+            content, version_short, benchmark, f"See {blog_post_link()} on the highlights in our latest release.")
         if benchmark_action in ("added", "marked"):
             print(f"🔁 Benchmarking line for {version_short} set from the performance comparison"
                   if benchmark["notes"] else f"⏳ Benchmarking line for {version_short} marked pending")

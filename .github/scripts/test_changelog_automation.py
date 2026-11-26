@@ -108,6 +108,22 @@ def rewrite(facts, text, reason):
     return "Fixed an issue where the sidebar kept its collapsed state after switching teams."
 
 
+class SuggestionSafetyTest(unittest.TestCase):
+    def test_a_bare_brace_in_a_rewrite_is_escaped_for_mdx(self):
+        text = ca.clean_rewrite("Added a retry setting named {retry count for failed jobs, set with ``{\"retries\": 3}``.",
+                                "Retry stuff.")
+        self.assertEqual(text, "Added a retry setting named \\{retry count for failed jobs, set with ``{\"retries\": 3}``.")
+
+    def test_no_suggestion_on_a_line_outside_the_pr_diff(self):
+        api = comments_api()
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/files")] = [
+            {"filename": FILE, "patch": "@@ -40,3 +40,4 @@\n context\n+added\n context\n context"}]
+        self.assertEqual(ca.diff_lines(api, "mattermost/mattermost", 50, FILE), {40, 41, 42, 43})
+        result = ca.suggest_rewrites(api, source_api(), 50, "headsha", CHANGELOG, REPORT, VERSION, rewrite)
+        self.assertEqual((result["posted"], result["skipped"]), (0, 1))
+        self.assertFalse(api.calls_to("POST", "/repos/mattermost/mattermost/pulls/50/comments"))
+
+
 class SuggestionTest(unittest.TestCase):
     def suggest(self, api, report=REPORT, content=CHANGELOG, rewriter=rewrite):
         return ca.suggest_rewrites(api, source_api(), 50, "headsha", content, report, VERSION, rewriter)
@@ -247,7 +263,9 @@ class SuggestionTest(unittest.TestCase):
 class ReadyTest(unittest.TestCase):
     def api(self, rc1="2026-11-02T12:00:00Z", ready_events=()):
         api = FakeApi()
-        api.routes[("GET", "/repos/mattermost/mattermost/commits/v12.2.0-rc1")] = {"commit": {"committer": {"date": rc1}}}
+        # An annotated tag, as the release process pushes them.
+        api.routes[("GET", "/repos/mattermost/mattermost/git/ref/tags/v12.2.0-rc1")] = {"object": {"type": "tag", "sha": "t1"}}
+        api.routes[("GET", "/repos/mattermost/mattermost/git/tags/t1")] = {"tagger": {"date": rc1}}
         api.routes[("GET", "/repos/mattermost/mattermost/issues/50/events")] = [{"event": e} for e in ready_events]
         return api
 
@@ -266,6 +284,20 @@ class ReadyTest(unittest.TestCase):
         api = self.api(rc1="2026-10-30T12:00:00Z")
         self.assertFalse(self.decide(api, today=date(2026, 10, 31))[0])
         self.assertTrue(self.decide(api, today=date(2026, 11, 2))[0])
+
+    def test_the_deadline_counts_from_the_tag_not_the_older_commit_it_points_at(self):
+        api = self.api(rc1="2026-11-02T12:00:00Z")
+        api.routes[("GET", "/repos/mattermost/mattermost/commits/v12.2.0-rc1")] = {"commit": {"committer": {"date": "2026-10-20T12:00:00Z"}}}
+        self.assertEqual(ca.rc1_date(api, VERSION), date(2026, 11, 2))
+        self.assertEqual(self.decide(api, today=date(2026, 11, 2)), (False, "it is marked ready from 2026-11-03"))
+
+    def test_a_lightweight_tag_uses_its_release_date_then_the_commit_date(self):
+        api = FakeApi()
+        api.routes[("GET", "/repos/mattermost/mattermost/git/ref/tags/v12.2.0-rc1")] = {"object": {"type": "commit", "sha": "c1"}}
+        api.routes[("GET", "/repos/mattermost/mattermost/commits/v12.2.0-rc1")] = {"commit": {"committer": {"date": "2026-10-20T12:00:00Z"}}}
+        self.assertEqual(ca.rc1_date(api, VERSION), date(2026, 10, 20))
+        api.routes[("GET", "/repos/mattermost/mattermost/releases/tags/v12.2.0-rc1")] = {"created_at": "2026-11-02T09:00:00Z"}
+        self.assertEqual(ca.rc1_date(api, VERSION), date(2026, 11, 2))
 
     def test_no_rc1_tag_no_ready(self):
         api = FakeApi()
@@ -1140,12 +1172,13 @@ class WorkflowTest(unittest.TestCase):
 
     def test_only_the_merge_trigger_runs_on_the_release_event(self):
         jobs = workflow_jobs(self.text)
-        for name, job in jobs.items():
-            condition = re.search(r"\n    if: ([^\n]+)", job)
-            if name == "merge-on-release":
-                continue
-            self.assertFalse(condition and "github.event_name == 'release'" in condition.group(1)
-                             and "!=" not in condition.group(1), name)
+        self.assertEqual([name for name in jobs if runs_on_release(name, jobs)], ["merge-on-release"])
+
+    def test_a_job_with_only_a_repository_check_counts_as_running_on_release(self):
+        jobs = workflow_jobs("\njobs:\n  extra:\n    if: github.repository == 'mattermost/mattermost'\n    runs-on: x\n"
+                             "  after:\n    needs: extra\n    runs-on: x\n"
+                             "  scheduled:\n    if: github.event_name == 'schedule'\n    runs-on: x\n")
+        self.assertEqual([name for name in jobs if runs_on_release(name, jobs)], ["extra", "after"])
 
     def test_the_changelog_pr_is_labelled_release_note_none_only(self):
         step = self.text[self.text.index("- name: Label the changelog PR release-note-none"):]
@@ -1174,6 +1207,60 @@ def workflow_jobs(text: str) -> dict:
     body = text[text.index("\njobs:\n") + len("\njobs:\n"):]
     parts = re.split(r"(?m)^  ([A-Za-z0-9_-]+):\s*$", body)
     return {parts[i]: parts[i + 1] for i in range(1, len(parts) - 1, 2)}
+
+
+def _split_top(text: str, operator: str) -> list[str]:
+    """``text`` split on ``operator`` outside parentheses."""
+    parts, depth, last, i = [], 0, 0, 0
+    while i < len(text):
+        depth += {"(": 1, ")": -1}.get(text[i], 0)
+        if depth == 0 and text.startswith(operator, i):
+            parts.append(text[last:i])
+            last = i = i + len(operator)
+            continue
+        i += 1
+    return [part.strip() for part in parts + [text[last:]]]
+
+
+def _closes_at_end(text: str) -> bool:
+    """Whether the parenthesis opening ``text`` is the one closing it."""
+    depth = 0
+    for i, char in enumerate(text):
+        depth += {"(": 1, ")": -1}.get(char, 0)
+        if depth == 0:
+            return i == len(text) - 1
+    return False
+
+
+def excludes_release(condition: str) -> bool:
+    """Whether a workflow ``if:`` is false for the release event: some ``&&`` term is, where an
+    ``||`` term is false only when all its branches are. A term naming another event, or the master
+    branch (a release event's ref is its tag), is false on a release; anything else may be true."""
+    condition = condition.strip()
+    while condition.startswith("(") and condition.endswith(")") and _closes_at_end(condition):
+        condition = condition[1:-1].strip()
+    terms = _split_top(condition, "&&")
+    if len(terms) > 1:
+        return any(excludes_release(term) for term in terms)
+    branches = _split_top(condition, "||")
+    if len(branches) > 1:
+        return all(excludes_release(branch) for branch in branches)
+    return bool(re.fullmatch(r"github\.event_name != 'release'|github\.event_name == '(?!release')[a-z_]+'"
+                             r"|github\.ref == 'refs/heads/[^']+'|github\.event\.schedule == '[^']+'", condition))
+
+
+def runs_on_release(name: str, jobs: dict, seen: frozenset = frozenset()) -> bool:
+    """Whether job ``name`` can run when a release is published: its ``if:`` doesn't exclude the
+    release event, and no job it needs is kept off it (a skipped need skips it)."""
+    job = jobs[name]
+    condition = re.search(r"\n    if: ([^\n]+)", job)
+    if condition and excludes_release(condition.group(1)):
+        return False
+    needs = re.search(r"\n    needs: \[?([^\]\n]+)\]?", job)
+    for need in (n.strip() for n in needs.group(1).split(",")) if needs else ():
+        if need in jobs and need not in seen and not runs_on_release(need, jobs, seen | {name}):
+            return False
+    return True
 
 
 def uncommented(text: str) -> str:

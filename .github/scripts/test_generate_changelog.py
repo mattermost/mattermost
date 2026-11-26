@@ -1524,6 +1524,24 @@ class V122FixesTest(unittest.TestCase):
         self.assertEqual(gc.with_release_note_section(updated), updated)  # once
         self.assertEqual(gc.parse_sources_comment(updated), {"mattermost/mattermost#1"})
 
+    def test_a_release_note_block_only_inside_a_comment_does_not_count(self):
+        body = ("Changelog.\n\n<!--\n```release-note\nAdded new API endpoints.\n```\n-->\n\n"
+                + gc.render_pr_body("", {"mattermost/mattermost#1"}).strip() + "\n")
+        updated = gc.with_release_note_section(body)
+        self.assertIn(gc.RELEASE_NOTE_SECTION, updated)
+        self.assertLess(updated.index(gc.RELEASE_NOTE_SECTION), updated.index("<!-- changelog-sources:"))
+
+    def test_update_mode_writes_the_blog_line_when_it_creates_improvements(self):
+        entry = ("## Release v12.2 - x\n\n**Release day: TBD**\n\n### Bug Fixes\n - Fixed.\n\n"
+                 "### Go Version\n - Go.\n\n## Release v12.1 - y\n")
+        out, action = gc.apply_benchmark(entry, "v12.2", {"notes": [], "gap": {}}, "See [this blog post](https://x) on the highlights.")
+        self.assertEqual(action, "marked")
+        self.assertIn("### Improvements\nSee [this blog post](https://x) on the highlights.\n\n#### Performance\n", out)
+        with open(gc.__file__, encoding="utf-8") as f:
+            source = f.read()
+        update_call = source[source.index("    benchmark_action = \"\"\n"):source.index("if benchmark_action in")]
+        self.assertIn("blog_post_link()", update_call, "update mode passes the blog line, as create mode does")
+
     # 2. Docs links: a page only on its own PR's bullet, one "See the" per bullet
     def test_each_pr_s_page_goes_on_its_own_bullet(self):
         # N1: #39474's note (Redis TLS). #39433's notes: N2 (pre-auth plugins), and its config-checker
@@ -1653,14 +1671,33 @@ class V122FixesTest(unittest.TestCase):
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "changelog"
 REPO_ROOT = Path(__file__).resolve().parents[2]
-# The v12.2 entry as the first auto run wrote it plus the earlier review edits (5d6de28), and
-# after Amy's review (494e7ad): settings by plan, Important Upgrade Notes, the <Important> block.
+# The v12.2 entry as the first auto run wrote it plus the earlier review edits (5d6de28), and as
+# reviewed on mattermost/mattermost#40345 (af71e3d7): settings by plan with headings that name every
+# plan, Important Upgrade Notes, the <Important> block, the audit events and endpoints added, and
+# the two settings that shipped in v12.1 taken out.
 V122_BEFORE = (FIXTURES / "v12.2-entry-5d6de28299.mdx").read_text()
-V122_REVIEWED = (FIXTURES / "v12.2-entry-494e7ad854.mdx").read_text()
+V122_REVIEWED = (FIXTURES / "v12.2-entry-af71e3d7c8.mdx").read_text()
+# config-change-checker wrote these into #38637's note, but both shipped in v12.1. The release-diff
+# check that drops such lines comes with mattermost/mattermost#40396; here they are taken out first.
+V122_SHIPPED_IN_V12_1 = ("``EnableFileIndexing``", "``AdditionalScopes``")
+# The PM is confirming the Redis TLS plan. The configuration docs badge the whole Redis cache
+# backend section ent-adv, so the generator says Enterprise Advanced; #40345 says Enterprise for now.
+V122_REDIS_PENDING = (" - **Changes to Enterprise Advanced plan:**", " - **Changes to Enterprise and Enterprise Advanced plans:**")
 
 
 def _upgrade_impact(entry: str) -> str:
     return entry[entry.index("### Upgrade Impact"):entry.index("### Improvements")]
+
+
+def _config_json(entry: str) -> str:
+    section = entry[entry.index("#### config.json"):]
+    return section[:re.search(r"\n#{2,4} |\n<Important>", section).start()]
+
+
+def _v122_generated(resolver, report) -> str:
+    before = "\n".join(line for line in V122_BEFORE.split("\n") if not any(s in line for s in V122_SHIPPED_IN_V12_1))
+    out = gc.group_config_plans(gc.rename_upgrade_notes(before), resolver, report)
+    return gc.apply_upgrade_important(out, "v12.2", gc.previous_feature_release("v12.2.0", "v12.1.0"))[0]
 
 
 class V122ReviewTest(unittest.TestCase):
@@ -1669,34 +1706,33 @@ class V122ReviewTest(unittest.TestCase):
     def setUp(self):
         self.resolver = gc.changelog_release.PlanResolver(root=str(REPO_ROOT))
 
-    def test_the_reviewed_entry_is_what_the_generator_now_writes(self):
-        report = []
-        out = gc.group_config_plans(gc.rename_upgrade_notes(V122_BEFORE), self.resolver, report)
-        out, action = gc.apply_upgrade_important(out, "v12.2", gc.previous_feature_release("v12.2.0", "v12.1.0"))
-        self.assertEqual(action, "added")
-        self.assertEqual(out, V122_REVIEWED)
+    def test_the_generator_writes_the_reviewed_config_json(self):
+        out = _v122_generated(self.resolver, [])
+        # One known difference, the Redis TLS heading, until the PM confirms the plan: then either
+        # #40345 or the docs badge changes, this fixture is refreshed, and the two sections are equal.
+        self.assertEqual(_config_json(out).replace(*V122_REDIS_PENDING), _config_json(V122_REVIEWED))
+        self.assertIn(V122_REDIS_PENDING[0], _config_json(out))
+        self.assertIn("<Important>", _upgrade_impact(out))
+        self.assertIn("#### Important Upgrade Notes", _upgrade_impact(out))
 
     # 1. config.json by plan
     def test_v12_2_settings_by_plan(self):
         report = []
-        out = gc.group_config_plans(V122_BEFORE, self.resolver, report)
-        self.assertEqual(_upgrade_impact(out).split("#### Compatibility")[0],
-                         _upgrade_impact(V122_REVIEWED).split("#### Important Upgrade Notes")[0])
-        plans = {item["setting"].split(".")[-1]: item["plan"] for item in report}
+        _v122_generated(self.resolver, report)
+        plans = {item["setting"].split(".")[-1]: (item["plan"], item["confirmed"]) for item in report}
         self.assertEqual(plans, {
-            "RedisEnableTLS": "Enterprise Advanced", "RedisTLSCA": "Enterprise Advanced",
-            "RedisTLSClientCert": "Enterprise Advanced", "RedisTLSClientKey": "Enterprise Advanced",
-            "RedisTLSSkipVerify": "Enterprise Advanced", "EnableFileIndexing": "Enterprise",
-            "AdditionalScopes": "All", "RestrictUnauthenticatedWebappPlugins": "All", "PreviewLandingPath": "All"})
-        self.assertEqual(sorted(item["setting"] for item in report if not item["confirmed"]),
-                         ["CloudSettings.PreviewLandingPath", "SSOSettings.AdditionalScopes"])
+            "RedisEnableTLS": ("Enterprise Advanced", True), "RedisTLSCA": ("Enterprise Advanced", True),
+            "RedisTLSClientCert": ("Enterprise Advanced", True), "RedisTLSClientKey": ("Enterprise Advanced", True),
+            "RedisTLSSkipVerify": ("Enterprise Advanced", True), "RestrictUnauthenticatedWebappPlugins": ("All", True),
+            "PreviewLandingPath": ("All", False)})
+        self.assertIn("the ent-adv badge", next(i["basis"] for i in report if i["setting"].endswith("RedisEnableTLS")))
 
     def test_headings_only_when_non_empty_and_removed_settings_last(self):
         text = ("#### config.json\nNew setting options were added.\n - **Changes to All plans:**\n"
                 "   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting. [[N1]]\n"
                 " - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database. [[N2]]\n")
         out = gc.group_config_plans(text, self.resolver, [])
-        self.assertEqual(out, "#### config.json\nNew setting options were added.\n - **Changes to Enterprise Advanced Plans:**\n"
+        self.assertEqual(out, "#### config.json\nNew setting options were added.\n - **Changes to Enterprise Advanced plan:**\n"
                               "   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting. [[N1]]\n"
                               " - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database. [[N2]]\n")
 
@@ -1709,7 +1745,58 @@ class V122ReviewTest(unittest.TestCase):
         unknown = resolver.plan("XSettings", "Nowhere")
         self.assertEqual((unknown["plan"], unknown["confirmed"]), ("All", False))
         text = "#### config.json\n - **Changes to All plans:**\n   - Under ``XSettings`` in ``config.json``, added ``Gated``. [[N1]]\n"
-        self.assertIn(" - **Changes to Professional, Enterprise, and Enterprise Advanced Plans:**\n", gc.group_config_plans(text, resolver, []))
+        self.assertIn(" - **Changes to Professional, Enterprise, and Enterprise Advanced plans:**\n", gc.group_config_plans(text, resolver, []))
+
+    def test_a_license_feature_gate_gives_that_feature_s_plan(self):
+        admin = ("  page: {\n    url: 'environment/cache',\n    isHidden: it.any(\n      it.not(it.licensedForFeature('Cluster')),\n    ),\n"
+                 "    schema: {\n      settings: [\n        {\n          key: 'CacheSettings.RedisEnableTLS',\n        },\n      ],\n    },\n  },\n"
+                 "  other: {\n    url: 'site/y',\n    isHidden: it.not(it.licensedForFeature('OpenId')),\n"
+                 "    schema: {settings: [{key: 'OpenIdSettings.Scope'}]},\n  },\n")
+        resolver = gc.changelog_release.PlanResolver(read={gc.changelog_release.ADMIN_DEFINITION: admin}.get, docs=[])
+        result = resolver.plan("CacheSettings", "RedisEnableTLS")
+        self.assertEqual((result["plan"], result["confirmed"]), ("Enterprise", True))
+        self.assertIn("Cluster license feature, which comes with Enterprise", result["basis"])
+        self.assertEqual(resolver.plan("OpenIdSettings", "Scope")["plan"], "Professional")
+        unknown = gc.changelog_release.PlanResolver(read={gc.changelog_release.ADMIN_DEFINITION: admin.replace("'Cluster'", "'Cloud'")}.get,
+                                                    docs=[]).plan("CacheSettings", "RedisEnableTLS")
+        self.assertEqual((unknown["plan"], unknown["confirmed"]), ("All", False))
+
+    def test_the_last_setting_on_a_page_doesn_t_take_the_next_page_s_gate(self):
+        admin = ("  first: {\n    url: 'site/a',\n    schema: {\n      settings: [\n        {\n          key: 'ASettings.Last',\n"
+                 "        },\n      ],\n    },\n  },\n  second: {\n    url: 'site/b',\n"
+                 "    isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),\n    schema: {settings: [{key: 'BSettings.X'}]},\n  },\n")
+        resolver = gc.changelog_release.PlanResolver(read={gc.changelog_release.ADMIN_DEFINITION: admin}.get, docs=[])
+        self.assertEqual(resolver.console_gates("ASettings", "Last"), ([], []))
+        self.assertEqual(resolver.console_gates("BSettings", "X")[0], ["Enterprise Advanced"])
+
+    def test_the_docs_badge_comes_from_the_exact_section_on_any_page(self):
+        pages = {
+            "a.mdx": "## X settings\n<PlanAvailability slug=\"ent-adv\" />\n\n#### Enable\n<code>XSettings</code> <code>Enable</code>\n",
+            "b.mdx": "## Y settings\n<PlanAvailability slug=\"pro-plus\" />\n\n#### Enable\n<code>YSettings</code> <code>Enable</code>\n",
+        }
+        resolver = gc.changelog_release.PlanResolver(read=pages.get, docs=["a.mdx", "b.mdx"])
+        self.assertEqual(resolver.docs_badge("YSettings", "Enable")[:2], ("pro-plus", True))
+        self.assertEqual(resolver.plan("YSettings", "Enable")["plan"], "Professional")
+        self.assertEqual(resolver.docs_badge("ZSettings", "Enable")[0], "ent-adv")  # no exact match: the name alone
+
+    def test_older_heading_wordings_name_the_same_plan(self):
+        self.assertEqual([gc.changelog_release.heading_plan(f" - {h}") for h in gc.changelog_release.PLAN_HEADINGS.values()],
+                         list(gc.changelog_release.PLAN_ORDER))
+        for old, plan in ((" - **Changes to Enterprise Advanced Plans:**", "Enterprise Advanced"),
+                          (" - **Changes to Enterprise Plans:**", "Enterprise"), (" - **Changes to all plans:**", "All")):
+            self.assertEqual(gc.changelog_release.heading_plan(old), plan)
+
+    def test_a_later_run_adds_to_an_existing_heading_worded_the_old_way(self):
+        entry = ("## Release v12.2 - x\n\n### Upgrade Impact\n\n#### config.json\nNew setting options.\n"
+                 " - **Changes to Enterprise Plans:**\n   - Existing setting.\n - **Changes to All Plans:**\n   - Another.\n"
+                 " - Removed ``A.B`` configuration setting.\n\n### Bug Fixes\n - Fixed.\n")
+        fragment = ("### Upgrade Impact\n#### config.json\n - **Changes to Enterprise Advanced plan:**\n   - New advanced.\n"
+                    " - **Changes to Enterprise and Enterprise Advanced plans:**\n   - New enterprise.\n")
+        config = gc.merge_into_entry(entry, "v12.2", fragment).split("#### config.json\n", 1)[1].split("\n\n", 1)[0]
+        self.assertEqual(config.splitlines()[1:], [
+            " - **Changes to Enterprise Advanced plan:**", "   - New advanced.",
+            " - **Changes to Enterprise Plans:**", "   - Existing setting.", "   - New enterprise.",
+            " - **Changes to All Plans:**", "   - Another.", " - Removed ``A.B`` configuration setting."])
 
     def test_the_report_lists_settings_whose_plan_isn_t_confirmed(self):
         status = "\n".join(gc.render_status({"preflight": [], "notes": {"prs_merged": 0, "with_notes": 0, "intentional": 0, "missing": 0},
@@ -1723,7 +1810,7 @@ class V122ReviewTest(unittest.TestCase):
         self.assertIn("1 of 2 new setting(s) grouped by a plan", status)
         self.assertIn("`CloudSettings.PreviewLandingPath`", status)
         self.assertIn("plan not confirmed: no configuration docs entry or System Console license check found. "
-                      "Listed under All Plans", status)
+                      "Listed under All plans", status)
 
     # 2. Important Upgrade Notes
     def test_generated_text_uses_the_new_name(self):
