@@ -125,10 +125,10 @@ Here are your instructions:
           (Write the real version number in place of VERSION. The summary bullet uses one space; each change uses three.)
         - `#### config.json` — configuration settings. Added and removed settings, and changed defaults, are listed here automatically from the code, so do not write bullets for them. Only a note that describes a new option or value of an existing setting goes here, nested under the plan label the setting needs, in this exact shape (no blank line between the heading and the description paragraph, or between the paragraph and the first bullet):
           New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
-           - **Changes to All Plans:**
+           - **Changes to All plans:**
              - Under ``ServiceSettings`` in ``config.json``, added a ``brotli`` option to the ``WebserverMode`` configuration setting.
 
-          The plan labels are exactly "**Changes to Enterprise Advanced Plans:**", "**Changes to Enterprise Plans:**", "**Changes to Professional Plans:**" and "**Changes to All Plans:**", in that order. Plan bullets use one space; the settings beneath them use three.
+          The plan labels are exactly "**Changes to Enterprise Advanced plan:**", "**Changes to Enterprise and Enterprise Advanced plans:**", "**Changes to Professional, Enterprise, and Enterprise Advanced plans:**" and "**Changes to All plans:**", in that order (most restricted first). Plan bullets use one space; the settings beneath them use three.
         - `#### Important Upgrade Notes` — what administrators must know or do when upgrading: minimum version requirement changes for browsers, OS, databases or clients (e.g. "Updated the minimum supported Chrome and Edge versions to 156+."), changed defaults, and anything that is now rejected, required or checked.
     - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. The line immediately after the `### Improvements` heading — with NO blank line between them — must be `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK`; it is replaced automatically with a Markdown link). Then a blank line, then the first `####` subsection heading. It must look exactly like this:
 
@@ -198,7 +198,7 @@ Here are your instructions:
 
 11.  **Focus:** Output only the section content (headings and bullet points). Do not include the release version header line or any introductory or concluding remarks from yourself.
 
-12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All Plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
+12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
 13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing. A developer's note about a schema change listed under `#### Database Schema Changes` (its PR added that migration, or the note names it) goes into that migration's bullet, carrying both IDs: never write a second bullet for it in another section. Never write a migration number (such as ``000238``) or migration file name anywhere outside `#### Database Schema Changes`.
 
@@ -1325,7 +1325,8 @@ H4_ORDER = {
 # Earlier names of a subsection, so an entry written before the rename still gets its bullets.
 SUBSECTION_ALIASES = {"Important Upgrade Notes": ("Compatibility",)}
 
-# "**Changes to Enterprise Advanced plan:**", "**Changes to All Plans:**": the plan a label names.
+# "**Changes to Enterprise and Enterprise Advanced plans:**": the plan a label names, which is the
+# first (least restricted) plan it lists. Older labels ("Changes to Enterprise Plans:") read the same.
 _PLAN_LABEL_RE = re.compile(r"^\s*[-*+]\s+\*\*Changes to (.+?) [Pp]lans?:?\*\*:?\s*$")
 
 
@@ -1334,8 +1335,12 @@ def _plan_of(line: str) -> str | None:
     match = _PLAN_LABEL_RE.match(line)
     if not match:
         return None
-    name = match.group(1).strip()
-    return next((plan for plan in changelog_facts.PLANS if plan.lower() == name.lower()), name)
+    name = match.group(1).strip().lower()
+    for prefix, plan in (("all", "All"), ("professional", "Professional"),
+                         ("enterprise advanced", "Enterprise Advanced"), ("enterprise", "Enterprise")):
+        if name.startswith(prefix):
+            return plan
+    return match.group(1).strip()
 
 
 def _config_rank(line: str) -> int:

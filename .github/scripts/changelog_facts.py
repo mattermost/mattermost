@@ -32,7 +32,13 @@ ADMIN_CONSOLE_DIR = "webapp/channels/src/components/admin_console"
 
 # Plans, highest first: the order the config.json section lists them in.
 PLANS = ("Enterprise Advanced", "Enterprise", "Professional", "All")
-PLAN_LABELS = {plan: f"**Changes to {plan} Plans:**" for plan in PLANS}
+# Each label names every plan that gets the setting, as published entries do.
+PLAN_LABELS = {
+    "Enterprise Advanced": "**Changes to Enterprise Advanced plan:**",
+    "Enterprise": "**Changes to Enterprise and Enterprise Advanced plans:**",
+    "Professional": "**Changes to Professional, Enterprise, and Enterprise Advanced plans:**",
+    "All": "**Changes to All plans:**",
+}
 
 CONFIG_DESCRIPTION = (
     "New setting options were added to ``config.json``. Below is a list of the additions and their default "

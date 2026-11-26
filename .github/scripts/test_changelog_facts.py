@@ -390,10 +390,10 @@ class RenderTest(unittest.TestCase):
         self.assertEqual(text.split("\n")[:3], ["### Upgrade Impact", "", "#### config.json"])
         lines = text.split("\n")[4:]
         self.assertEqual(lines[:6], [
-            " - **Changes to Enterprise Advanced Plans:**",
+            " - **Changes to Enterprise Advanced plan:**",
             "   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS`` configuration setting. "
             "The default value is ``false``. [[N3]]",
-            " - **Changes to All Plans:**",
+            " - **Changes to All plans:**",
             "   - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` "
             "configuration setting. The default value is ``true``. [[N1]]",
             "   - Under ``TeamSettings`` in ``config.json``, changed the default value of ``MaxUsersPerTeam`` "

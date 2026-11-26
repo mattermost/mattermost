@@ -846,9 +846,9 @@ class MainTest(unittest.TestCase):
         self.assertIsNone(rows["ElasticsearchSettings.EnableFileIndexing"]["placed"])
 
         config = content.split("#### config.json\n", 1)[1].split("<Important>", 1)[0]
-        self.assertLess(config.index("**Changes to Enterprise Advanced Plans:**"), config.index("**Changes to All Plans:**"))
-        self.assertLess(config.index("RedisEnableTLS"), config.index("**Changes to All Plans:**"))
-        self.assertGreater(config.index("PreviewLandingPath"), config.index("**Changes to All Plans:**"))
+        self.assertLess(config.index("**Changes to Enterprise Advanced plan:**"), config.index("**Changes to All plans:**"))
+        self.assertLess(config.index("RedisEnableTLS"), config.index("**Changes to All plans:**"))
+        self.assertGreater(config.index("PreviewLandingPath"), config.index("**Changes to All plans:**"))
         self.assertIn("changed the default value of ``MaxUsersPerTeam`` from ``50`` to ``0``", config)
         self.assertEqual(rows["CacheSettings.RedisEnableTLS"]["pr"], "mattermost/mattermost#39001")
         self.assertEqual(rows["CacheSettings.RedisEnableTLS"]["basis"], "code")
@@ -1600,6 +1600,27 @@ class ReviewFixesTest(unittest.TestCase):
                               " - A feature.", " - Another feature."])
         performance = merged.split("#### Performance\n", 1)[1].split("\n\n", 1)[0].splitlines()
         self.assertEqual(performance[0], " - Benchmarking test results showed no significant difference.")
+
+    def test_should_read_the_plan_a_label_names_old_or_new(self):
+        self.assertEqual([gc._plan_of(f" - {label}") for label in gc.changelog_facts.PLAN_LABELS.values()],
+                         list(gc.changelog_facts.PLANS))
+        self.assertEqual(gc._plan_of(" - **Changes to Enterprise Plans:**"), "Enterprise")
+        self.assertEqual(gc._plan_of(" - **Changes to all plans:**"), "All")
+
+    def test_should_add_settings_under_an_existing_label_written_the_old_way(self):
+        entry = ("## Release v12.2 - x\n\n### Upgrade Impact\n\n#### config.json\nNew setting options.\n"
+                 " - **Changes to Enterprise Plans:**\n   - Existing Redis setting.\n"
+                 " - **Changes to All Plans:**\n   - Existing setting.\n\n### Bug Fixes\n - Fixed.\n")
+        fragment = ("### Upgrade Impact\n#### config.json\n"
+                    " - **Changes to Enterprise Advanced plan:**\n   - New advanced setting.\n"
+                    " - **Changes to Enterprise and Enterprise Advanced plans:**\n   - New enterprise setting.\n")
+        merged = gc.merge_into_entry(entry, "v12.2", fragment)
+        config = merged.split("#### config.json\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        self.assertEqual(config[1:], [
+            " - **Changes to Enterprise Advanced plan:**", "   - New advanced setting.",
+            " - **Changes to Enterprise Plans:**", "   - Existing Redis setting.", "   - New enterprise setting.",
+            " - **Changes to All Plans:**", "   - Existing setting.",
+        ])
 
     def test_should_collapse_blank_lines_in_the_entry_only(self):
         content = "## Release v12.2 - x\n\n\n\n - a\n\n\n## Release v12.1 - y\n\n\n - b\n"
