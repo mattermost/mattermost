@@ -150,7 +150,7 @@ const PostMessagePreview = (props: Props) => {
         >
             <div className='post-preview'>
                 <div className='post-preview__header'>
-                    <div className='col col__name'>
+                    <div className='col col__name post-preview__avatar'>
                         <div className='post__img'>
                             <span className='profile-icon'>
                                 {
