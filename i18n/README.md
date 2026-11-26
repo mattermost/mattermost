@@ -28,10 +28,12 @@ recipe they follow for a run.
   correct translation and a plausible one. CI fails a pull request that adds a
   key without one. On the webapp it can go in the message descriptor in source,
   which wins, or in `en.json`; on the server, in `en.json`.
-- **A wrong translation can be fixed by hand** in its catalog, in a pull
-  request of its own. CI checks it against the same rules as a run's. If the
-  fix is a product term, add it to the [glossary](./glossary/) so later runs
-  use it too.
+- **Remove a wrong translation rather than rewriting it.** Delete its key from
+  that locale's catalog, in a pull request of its own. The product shows the
+  English until the next automated run translates the string again, with the
+  same context and checks as any other. Don't blank the value instead: an
+  empty translation fails CI. If the fault is a product term, add it to the
+  [glossary](./glossary/) so later runs use it too.
 - **Adding or removing a language** is a deliberate change across several
   files: `TestSupportedLocalesAreInSync` fails if the catalogs, the Go
   `supportedLocales` list and the webapp `languages` map disagree.
