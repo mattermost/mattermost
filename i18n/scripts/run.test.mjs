@@ -59,7 +59,7 @@ describe('a translation run', () => {
 
     test('plan refuses a baseline the base does not descend from', () => {
         const original = repo.read('i18n/baseline.json');
-        const elsewhere = repo.git('commit-tree', 'HEAD^{tree}', '-m', 'elsewhere');
+        const elsewhere = repo.git('-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit-tree', 'HEAD^{tree}', '-m', 'elsewhere');
         repo.write('i18n/baseline.json', original.replace(/"de": "[0-9a-f]+"/, `"de": "${elsewhere}"`));
         const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-run-'));
         try {
