@@ -44,6 +44,7 @@ var ImportUploadCmd = &cobra.Command{
 var ImportDeleteCmd = &cobra.Command{
 	Use:     "delete [importname]",
 	Short:   "Delete an import file",
+	Long:    "Delete an import file. Provide only the file name as shown by \"import list available\", not a path.",
 	Example: "  import delete import_file.zip",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(importDeleteCmdF),
@@ -272,6 +273,10 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 
 func importDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
 	importName := args[0]
+
+	if strings.ContainsAny(importName, `/\`) {
+		return fmt.Errorf("invalid import name %q: provide only the file name as shown by \"import list available\", not a path", importName)
+	}
 
 	if _, err := c.DeleteImport(context.TODO(), importName); err != nil {
 		return fmt.Errorf("failed to delete import: %w", err)

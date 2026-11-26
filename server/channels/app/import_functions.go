@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"sync"
 
@@ -462,6 +463,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		fields = append(fields, mlog.String("user_name", *data.Username))
 	}
 	rctx.Logger().Info("Validating user", fields...)
+
+	if data != nil && data.Username != nil && imports.IsRemoteUsername(*data.Username) {
+		rctx.Logger().Warn("Skipping Shared Channels remote user; their content is imported only if the user already exists on the destination", fields...)
+		return nil
+	}
 
 	if err := imports.ValidateUserImportData(data); err != nil {
 		return err
@@ -1906,7 +1912,7 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 		}
 	}
 	if nErr != nil {
-		if deactivateMissingUsers {
+		if deactivateMissingUsers || imports.IsRemoteUsername(*data.User) {
 			rctx.Logger().Warn("Skipping reaction from user not found on destination during scoped import", mlog.String("username", *data.User))
 			return nil
 		}
@@ -2375,8 +2381,13 @@ func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers boo
 	// Check completeness after remap resolution so that SSO users whose username changed
 	// on the dest (recorded via report.Remap during user processing) are not falsely
 	// reported as missing when the post-processing pass resolves them via remap.
+	// Remote users can't be imported, so a missing one is tolerated and callers skip what references them.
 	if len(users) != len(uniqueUsernames) && !deactivateMissingUsers {
-		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
+		for _, username := range uniqueUsernames {
+			if _, found := users[strings.ToLower(username)]; !found && !imports.IsRemoteUsername(username) {
+				return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return users, nil
@@ -2863,6 +2874,10 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	}
 	for _, user := range members {
 		member, ok := userMap[strings.ToLower(user)]
+		if !ok && imports.IsRemoteUsername(user) {
+			rctx.Logger().Warn("Skipping direct channel with a remote member not found on destination", mlog.String("username", user))
+			return nil
+		}
 		if !ok {
 			// Intentionally not added to report.UnmatchedUsers: the unmatched-users
 			// report is scoped to team/channel membership outcomes. DMs are not
@@ -3208,6 +3223,14 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	)
 
 	for _, line := range lines {
+		hasMissingRemoteMember := slices.ContainsFunc(*line.DirectPost.ChannelMembers, func(username string) bool {
+			return users[strings.ToLower(username)] == nil && imports.IsRemoteUsername(username)
+		})
+		if hasMissingRemoteMember {
+			rctx.Logger().Warn("Skipping direct post in a channel with a remote member not found on destination", mlog.Int("line_number", line.LineNumber))
+			continue
+		}
+
 		var userIDs []string
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
@@ -3525,7 +3548,7 @@ func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWor
 				if _, ok := errors.AsType[*store.ErrNotFound](uErr); !ok {
 					return nil, line.LineNumber, model.NewAppError("extractThreadMembers", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
 				}
-				if deactivateMissingUsers {
+				if deactivateMissingUsers || imports.IsRemoteUsername(*member.User) {
 					rctx.Logger().Warn("Skipping thread follower not found on destination during scoped import", mlog.String("username", *member.User))
 					continue
 				}

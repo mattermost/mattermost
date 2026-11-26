@@ -40,7 +40,7 @@ const MutedFindings = ({findings, groupBy, ...rowState}: Props) => {
                 />
                 <FormattedMessage
                     id='admin.health_dashboard.muted.note'
-                    defaultMessage='Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.'
+                    defaultMessage='Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmuting a finding returns it to the open list.'
                 />
             </p>
             {findings.length === 0 ? (

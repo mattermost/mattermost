@@ -31,6 +31,8 @@ func TestWorkers(t *testing.T) {
 	cfg.SetDefaults()
 	cfg.FeatureFlags.HealthDashboard = true
 	*cfg.JobSettings.RunJobs = false
+	// Automatic checks gate only the scheduler, so on-demand runs still execute.
+	*cfg.SiteHealthSettings.EnableAutomaticChecks = false
 	configService := &testutils.StaticConfigService{Cfg: cfg}
 
 	pending := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusPending}
@@ -66,7 +68,7 @@ func TestWorkers(t *testing.T) {
 		runs.Add(1)
 		return nil
 	})
-	workers := MakeWorkers(jobServer, worker)
+	workers := MakeWorkers(jobServer, worker, enterpriseLicense)
 	workers.Start()
 	t.Cleanup(workers.Stop)
 
@@ -76,18 +78,29 @@ func TestWorkers(t *testing.T) {
 	mockStore.JobStore.AssertCalled(t, "GetAllByTypeAndStatus", mock.Anything, model.JobTypeHealthCheck, model.JobStatusPending)
 }
 
-func TestWorkersWatcherSkipsPollingWhileDisabled(t *testing.T) {
-	cfg := &model.Config{}
-	cfg.SetDefaults()
-	cfg.FeatureFlags.HealthDashboard = false
-	configService := &testutils.StaticConfigService{Cfg: cfg}
+func TestWorkersWatcherSkipsPolling(t *testing.T) {
+	for name, tc := range map[string]struct {
+		flag    bool
+		license *model.License
+	}{
+		"while the feature flag is off": {flag: false, license: enterpriseLicense()},
+		"without a license":             {flag: true, license: nil},
+		"below Professional":            {flag: true, license: model.NewTestLicenseSKU(model.LicenseShortSkuE20)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			cfg.FeatureFlags.HealthDashboard = tc.flag
+			configService := &testutils.StaticConfigService{Cfg: cfg}
 
-	// The mock has no expectations, so any job query fails the test.
-	mockStore := &storetest.Store{}
-	jobServer := jobs.NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
-	worker := MakeWorker(jobServer, func(request.CTX) error { return nil })
-	workers := MakeWorkers(jobServer, worker)
+			// The mock has no expectations, so any job query fails the test.
+			mockStore := &storetest.Store{}
+			jobServer := jobs.NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
+			worker := MakeWorker(jobServer, func(request.CTX) error { return nil })
+			workers := MakeWorkers(jobServer, worker, func() *model.License { return tc.license })
 
-	workers.Watcher.PollAndNotify()
-	mockStore.JobStore.AssertNotCalled(t, "GetAllByTypeAndStatus", mock.Anything, mock.Anything, mock.Anything)
+			workers.Watcher.PollAndNotify()
+			mockStore.JobStore.AssertNotCalled(t, "GetAllByTypeAndStatus", mock.Anything, mock.Anything, mock.Anything)
+		})
+	}
 }

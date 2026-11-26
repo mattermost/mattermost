@@ -105,6 +105,38 @@ export async function enableUserManagedAttributes(client: Client4): Promise<void
 }
 
 /**
+ * Server-wide ABAC state the suite expects: ABAC enabled and an unmanaged `Department` attribute.
+ * Seeded once per run by the `setup` project, and by upgrade-to on upgrade paths, which skip it.
+ * Unmanaged, so users can set their own value (a `managed: 'admin'` field rejects that with a 403).
+ * Failures are swallowed: on an unlicensed server individual tests skip via pw.skipIfNoLicense().
+ */
+export async function ensureAbacSuiteBaseline(client: Client4): Promise<void> {
+    try {
+        await client.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
+    } catch {
+        // Server is not licensed for ABAC
+    }
+
+    try {
+        const fields = await client.getCustomProfileAttributeFields();
+        if (!fields.some((f) => f.name === 'Department')) {
+            await client.createCustomProfileAttributeField({
+                name: 'Department',
+                type: 'text',
+                attrs: {sort_order: 0},
+            } as any);
+        }
+    } catch {
+        // ABAC tests handle their own attribute setup
+    }
+}
+
+/**
  * Ensure required user attributes exist via API
  */
 export async function ensureUserAttributes(client: Client4, attributeNames?: string[]): Promise<void> {

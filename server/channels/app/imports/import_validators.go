@@ -199,6 +199,14 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 	return nil
 }
 
+// IsRemoteUsername reports whether username has the "name:remote" form that Shared
+// Channels gives to users synced from a remote server. A local account can never
+// have such a username, so the importer cannot recreate these users.
+func IsRemoteUsername(username string) bool {
+	normalized := model.NormalizeUsername(username)
+	return !model.IsValidUsername(normalized) && model.IsValidUsernameAllowRemote(normalized)
+}
+
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		// Check if the resolved path is within the expected base path.

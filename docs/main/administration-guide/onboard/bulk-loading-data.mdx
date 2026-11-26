@@ -1548,6 +1548,22 @@ Accounts created for SSO users (users with `auth_service` and `auth_data` in the
 
 If an import finishes but can't remove the temporary records that mark its accounts as its own, the job fails. It still tries to write its report, but if that also fails, the error is only logged, so check the server logs if no report is available. Run the same import job file again to finish removing them; that run doesn't import the data again, changes no accounts, and writes no report. If the server also can't record that the import finished, the job fails with an error saying so, and running the file again sets up its accounts again, overwriting changes made to them since. A file uploaded again is stored under a new name and counts as a different import, and so does an import of the same file into a different destination team or channel. A local import of a file with different import data at the same path also counts as a different import, as does an account whose shell was created but couldn't be recorded as the import's own. A membership for a team or channel that's still missing is reported again on every run. The counts and report path recorded on the import job are specific to each run, and a run with nothing to report records no report. An earlier `.unmatched-users.csv` file isn't removed or overwritten when a later run has nothing to report, so a file left on disk may reflect a previous run rather than the latest one. Check the counts on the import job to see whether the current run produced a report.
 
+## Shared Channels remote users
+
+An export from a server that uses [Shared Channels](/administration-guide/onboard/connected-workspaces) can include remote users, which are users synced from a connected server. Their usernames have the form `name:remote`, for example `admin:connection-to-remote-server`. Local accounts can't have a colon in their username, so the import can't recreate these users without their remote connection.
+
+Remote users are skipped rather than imported:
+
+- No account or shell account is created for them, and they aren't counted toward team member limits.
+- They don't appear in the [unmatched users report](#unmatched-users-report).
+- The server log records a `Skipping Shared Channels remote user` warning for each one.
+
+If a remote user already exists on the destination server with the same username (for example, when re-importing into the server the export came from), their content is imported and attributed to them as usual. If they don't exist, content that depends on them is skipped without failing the import:
+
+- Posts and replies they authored, including any replies and reactions on those posts.
+- Their reactions, flags, acknowledgements, and thread follows on other users' posts.
+- Any direct message or group message channel they're a member of, along with all its posts. The whole channel is skipped so that a group message doesn't collapse into a direct message between its remaining local members.
+
 ## Common issues
 
 Run the bulk import command as the *mattermost* user. Running it as *root* or any other user will cause issues with file permissions on imported attachments.

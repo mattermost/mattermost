@@ -136,6 +136,10 @@
             {
                 "path": "admin_console/site_config/notices",
                 "selector": "AnnouncementSettings.AdminNoticesEnabledtrue"
+            },
+            {
+                "path": "admin_console/site_config/notices",
+                "selector": "ServiceSettings.EnableSecurityFixAlerttrue"
             }
         ]
     },
@@ -177,12 +181,7 @@
     },
     {
         "section": "environment.smtp",
-        "disabledInputs": [
-            {
-                "path": "/admin_console/environment/smtp",
-                "selector": "ServiceSettings.EnableSecurityFixAlerttrue"
-            }
-        ]
+        "disabledInputs": []
     },
     {
         "section": "environment.push_notification_server",

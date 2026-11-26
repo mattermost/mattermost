@@ -992,7 +992,7 @@ Syslog targets support local and remote syslog servers, with or without TLS tran
 <tr>
 <td>cert</td>
 <td>string</td>
-<td>Path to a cert file (.pem) to be used when establishing a TLS connection to the server.</td>
+<td>Certificate used when establishing a TLS connection to the server. A value set through the API is a base64-encoded PEM certificate. A certificate path already present in the configuration is unchanged.</td>
 </tr>
 <tr>
 <td>insecure</td>
@@ -1043,7 +1043,7 @@ The TCP socket targets can be configured with an IP address or domain name, port
 <tr>
 <td>cert</td>
 <td>string</td>
-<td>Path to a cert file (.pem) to be used when establishing a TLS connection to the server.</td>
+<td>Certificate used when establishing a TLS connection to the server. A value set through the API is a base64-encoded PEM certificate. A certificate path already present in the configuration is unchanged.</td>
 </tr>
 <tr>
 <td>insecure</td>
