@@ -87,8 +87,8 @@ func TestGetOSRelease(t *testing.T) {
 
 	t.Run("prefers the first file", func(t *testing.T) {
 		setHostOSPaths(t, []string{
-			writeTempCgroupFile(t, dir, "first", "ID=rocky\n"),
-			writeTempCgroupFile(t, dir, "second", "ID=debian\n"),
+			writeTempFile(t, dir, "first", "ID=rocky\n"),
+			writeTempFile(t, dir, "second", "ID=debian\n"),
 		}, nil)
 
 		osRelease, err := getOSRelease()
@@ -97,7 +97,7 @@ func TestGetOSRelease(t *testing.T) {
 	})
 
 	t.Run("falls back when the first file is missing", func(t *testing.T) {
-		setHostOSPaths(t, []string{etc, writeTempCgroupFile(t, dir, "usr-lib-os-release", "ID=debian\n")}, nil)
+		setHostOSPaths(t, []string{etc, writeTempFile(t, dir, "usr-lib-os-release", "ID=debian\n")}, nil)
 
 		osRelease, err := getOSRelease()
 		require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestGetOSRelease(t *testing.T) {
 
 	t.Run("fails without falling back when the first file is unreadable", func(t *testing.T) {
 		// A directory exists but can't be read as a file.
-		setHostOSPaths(t, []string{dir, writeTempCgroupFile(t, dir, "usr-lib-os-release", "ID=debian\n")}, nil)
+		setHostOSPaths(t, []string{dir, writeTempFile(t, dir, "usr-lib-os-release", "ID=debian\n")}, nil)
 
 		osRelease, err := getOSRelease()
 		require.Error(t, err)
@@ -143,7 +143,7 @@ func TestGetRunningInContainer(t *testing.T) {
 	runningInContainer := func(t *testing.T, installationType, cgroup string, markers ...string) bool {
 		t.Helper()
 		setHostOSPaths(t, nil, append([]string{missingMarker}, markers...))
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", cgroup)
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup", cgroup)
 
 		result, err := getRunningInContainer(installationType)
 		require.NoError(t, err)
@@ -181,7 +181,7 @@ func TestGetRunningInContainer(t *testing.T) {
 	})
 
 	t.Run("container marker file", func(t *testing.T) {
-		assert.True(t, runningInContainer(t, "unknown", hostCgroup, writeTempCgroupFile(t, dir, ".containerenv", "")))
+		assert.True(t, runningInContainer(t, "unknown", hostCgroup, writeTempFile(t, dir, ".containerenv", "")))
 	})
 
 	for name, cgroup := range map[string]string{
@@ -200,9 +200,9 @@ func TestGetRunningInContainer(t *testing.T) {
 	}
 
 	t.Run("uninspectable marker without a positive cgroup result", func(t *testing.T) {
-		notADir := writeTempCgroupFile(t, dir, "not-a-dir", "")
+		notADir := writeTempFile(t, dir, "not-a-dir", "")
 		setHostOSPaths(t, nil, []string{filepath.Join(notADir, ".dockerenv")})
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", hostCgroup)
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup", hostCgroup)
 
 		result, err := getRunningInContainer("unknown")
 		require.Error(t, err)
@@ -210,9 +210,9 @@ func TestGetRunningInContainer(t *testing.T) {
 	})
 
 	t.Run("uninspectable marker with a positive cgroup result", func(t *testing.T) {
-		notADir := writeTempCgroupFile(t, dir, "not-a-dir", "")
+		notADir := writeTempFile(t, dir, "not-a-dir", "")
 		setHostOSPaths(t, nil, []string{filepath.Join(notADir, ".dockerenv")})
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", "0::/system.slice/docker-0123.scope\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup", "0::/system.slice/docker-0123.scope\n")
 
 		result, err := getRunningInContainer("unknown")
 		require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestGetSupportPacketDiagnosticsOSRelease(t *testing.T) {
 		t.Cleanup(func() { th.Service.installTypeOverride = originalInstallType })
 		dir := t.TempDir()
 		setHostOSPaths(t, hostOSPaths.osRelease, []string{filepath.Join(dir, "missing-dockerenv")})
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", "0::/system.slice/mattermost.service\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup", "0::/system.slice/mattermost.service\n")
 
 		for installType, expected := range map[string]bool{"docker": true, "tar": false} {
 			th.Service.installTypeOverride = installType
