@@ -47,6 +47,14 @@ Expects these environment variables:
                       have), summary.md and, when the model was asked, model_output.md (its
                       raw answers). Nothing is written there if unset.
 
+Configuration, audit log, API and minimum-version changes are facts, so code places them,
+not the model (see changelog_facts.py): config-change-checker's lines are taken out of each
+release note and written under #### config.json (grouped by plan), ### Audit Log Event
+Changes and ### API Changes, after checking them against the release diff. Changes the code
+shows between RELEASE_BASE_REF and RELEASE_HEAD_REF that no note states (config.go fields and
+defaults, audit_events.go constants, minimum browser, OS and PostgreSQL versions) are added
+too, with the PR found in the release branch's history, and listed in the readiness report.
+
 The target changelog is an MDX file: it opens with YAML frontmatter, imports MDX
 components, and uses JSX elements such as <Note> and <Important>. Generated content
 must therefore be MDX-safe (see the "MDX safety" rule in SYSTEM_PROMPT).
@@ -66,6 +74,7 @@ from urllib3.util.retry import Retry
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import changelog_release  # noqa: E402
 import check_config_changes_ci as config_checker  # noqa: E402  (its router parser)
+import changelog_facts  # noqa: E402
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPOS = [r.strip() for r in os.environ["REPOS"].split(",") if r.strip()]
@@ -114,14 +123,13 @@ Here are your instructions:
              - Added a new column ``DeleteAt`` to the ``ChannelMembers`` table.
 
           (Write the real version number in place of VERSION. The summary bullet uses one space; each change uses three.)
-        - `#### config.json` — new or changed configuration settings. Use this exact block format for each plan grouping (no blank line between the `#### config.json` heading and the description paragraph, and no blank line between the description paragraph and the first bullet):
+        - `#### config.json` — configuration settings. Added and removed settings, and changed defaults, are listed here automatically from the code, so do not write bullets for them. Only a note that describes a new option or value of an existing setting goes here, nested under the plan label the setting needs, in this exact shape (no blank line between the heading and the description paragraph, or between the paragraph and the first bullet):
           New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
-           - **Changes to Enterprise Advanced plan:**
-             - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
-           - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database.
+           - **Changes to All Plans:**
+             - Under ``ServiceSettings`` in ``config.json``, added a ``brotli`` option to the ``WebserverMode`` configuration setting.
 
-          Adapt the plan name (e.g. "Changes to All plans:", "Changes to Enterprise plans:", "Changes to Enterprise Advanced plan:") and nest each setting change beneath the appropriate plan bullet. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
-        - `#### Compatibility` — minimum version requirement changes for browsers, OS, or clients. Example: "Updated minimum Edge and Chrome versions to 146+."
+          The plan labels are exactly "**Changes to Enterprise Advanced Plans:**", "**Changes to Enterprise Plans:**", "**Changes to Professional Plans:**" and "**Changes to All Plans:**", in that order. Plan bullets use one space; the settings beneath them use three.
+        - `#### Important Upgrade Notes` — what administrators must know or do when upgrading: minimum version requirement changes for browsers, OS, databases or clients (e.g. "Updated the minimum supported Chrome and Edge versions to 156+."), changed defaults, and anything that is now rejected, required or checked.
     - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. The line immediately after the `### Improvements` heading — with NO blank line between them — must be `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK`; it is replaced automatically with a Markdown link). Then a blank line, then the first `####` subsection heading. It must look exactly like this:
 
       ### Improvements
@@ -134,12 +142,12 @@ Here are your instructions:
         - `#### User Interface` — user interface and UX changes and new visual features. Pre-packaged plugin version updates go at the TOP of this subsection, before other items. Always write "user interface" in full — never abbreviate as "UI".
         - `#### Plugins/Integrations` — plugin and integration improvements (use as a separate subsection when there are enough items to warrant it)
         - `#### Administration` — System Console features, logging, support packet changes
-        - `#### mmctl` — mmctl command additions or changes (use as a separate subsection when there are enough items to warrant it)
+        - `#### mmctl` — mmctl command additions or changes. Every note that is mainly about an mmctl command or flag goes here, never under Administration.
         - `#### Performance` — performance improvements
     - `### Bug Fixes` — corrections to defects. All items starting with "Fixed an issue..." go here, even if the raw note appeared in an Improvements context.
-    - `### API Changes` — API additions, changes, or deprecations
+    - `### API Changes` — API additions, changes, or deprecations. Added and removed endpoints are listed here automatically, so write a bullet only for other API changes (a new parameter, a changed response).
     - `### WebSocket Event Changes` — new or changed WebSocket events, if applicable
-    - `### Audit Log Event Changes` — new or changed audit log events
+    - `### Audit Log Event Changes` — listed automatically from the code; do not write bullets for it.
     - `### Go Version` — Always include this section. The Go version content will be injected automatically — output only this heading with no content beneath it.
     - `### Open Source Components` — open source component additions or removals. Format each item as: "Added ``<package>`` to <repo_url>." or "Removed ``<package>`` from <repo_url>." Example: "Added ``x/text`` to https://github.com/mattermost/mattermost/." Only include if there are relevant notes.
     - `### Security` — security-related fixes not already covered under Bug Fixes
@@ -164,6 +172,8 @@ Here are your instructions:
     - Feature flags (e.g., ``MM_FEATUREFLAGS_CJKSEARCH``)
     - Package names in Open Source Components (e.g., ``x/text``)
 
+    Never put double backticks around plain words or feature names (write "Site Health", not ``Site Health``); they are for identifiers only.
+
 5.  **Markdown formatting — indentation is exact:**
     - Top-level bullets are indented with exactly ONE space: ` - item`
     - Nested bullets are indented with exactly THREE spaces: `   - nested item`
@@ -175,7 +185,7 @@ Here are your instructions:
 6.  **MDX safety:** The changelog is an `.mdx` file, so raw `{`, `}`, and `<` characters are parsed as JSX and will break the docs build. Therefore:
     - Never output a bare `{` or `}` in prose. If a release note needs braces, wrap the text in double backticks (e.g. ``{"key": "value"}``) so it becomes inline code.
     - Never output a bare `<` followed by a letter (e.g. `<Note>`, `<div>`, `<T>`). Wrap such text in double backticks, or rewrite it (e.g. "less than 5" instead of "<5").
-    - Do not emit JSX/HTML components yourself. Components like `<Note>` and `<Important>` already exist in the file and are added manually — never generate, duplicate, or close them.
+    - Do not emit JSX/HTML components yourself. Components like `<Note>` and `<Important>` are added automatically — never generate, duplicate, or close them.
     - Use standard Markdown links (`[text](url)`) and plain Markdown bullets only.
 
 7.  **License requirements:** When a feature requires a specific Mattermost license, note it inline at the end of the bullet point (e.g., "Requires Enterprise Advanced license" or "Requires Enterprise license").
@@ -188,15 +198,15 @@ Here are your instructions:
 
 11.  **Focus:** Output only the section content (headings and bullet points). Do not include the release version header line or any introductory or concluding remarks from yourself.
 
-12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
+12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All Plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
 13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing. A developer's note about a schema change listed under `#### Database Schema Changes` (its PR added that migration, or the note names it) goes into that migration's bullet, carrying both IDs: never write a second bullet for it in another section. Never write a migration number (such as ``000238``) or migration file name anywhere outside `#### Database Schema Changes`.
 
-14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. Link that note's bullet to that URL, exactly as given, wherever the bullet goes (under `### Improvements`, `#### config.json`, `#### Compatibility` or any other section), by linking the feature's name the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link each page once. Never add a docs.mattermost.com link that was not given in a note.
+14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. Link that note's bullet to that URL, exactly as given, wherever the bullet goes (under `### Improvements`, `#### config.json`, `#### Important Upgrade Notes` or any other section), by linking the feature's name the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link each page once. Never add a docs.mattermost.com link that was not given in a note.
 
 15.  **Verbs:** Start a bullet with "Added" only when the note is about something new being added. A note that is already a sentence with its own verb (such as "``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` now includes deleted replies") is kept as that sentence, or rewritten with a fitting verb ("Updated ... so that ..."); never put "Added" in front of it.
 
-16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Compatibility` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Compatibility` describes the same change, write one bullet that combines them and carries both IDs."""
+16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Important Upgrade Notes` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Important Upgrade Notes` describes the same change, write one bullet that combines them and carries both IDs."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -1309,9 +1319,36 @@ H3_ORDER = [
     "Open Source Components", "Security",
 ]
 H4_ORDER = {
-    "Upgrade Impact": ["Database Schema Changes", "config.json", "Compatibility"],
+    "Upgrade Impact": ["Database Schema Changes", "config.json", "Important Upgrade Notes"],
     "Improvements": ["User Interface", "Plugins/Integrations", "Administration", "mmctl", "Performance"],
 }
+# Earlier names of a subsection, so an entry written before the rename still gets its bullets.
+SUBSECTION_ALIASES = {"Important Upgrade Notes": ("Compatibility",)}
+
+# "**Changes to Enterprise Advanced plan:**", "**Changes to All Plans:**": the plan a label names.
+_PLAN_LABEL_RE = re.compile(r"^\s*[-*+]\s+\*\*Changes to (.+?) [Pp]lans?:?\*\*:?\s*$")
+
+
+def _plan_of(line: str) -> str | None:
+    """The plan a config.json plan-label bullet names, normalized ("All", "Enterprise Advanced"), or None."""
+    match = _PLAN_LABEL_RE.match(line)
+    if not match:
+        return None
+    name = match.group(1).strip()
+    return next((plan for plan in changelog_facts.PLANS if plan.lower() == name.lower()), name)
+
+
+def _config_rank(line: str) -> int:
+    """Where a top-level config.json bullet goes: plan labels in plan order, then everything else."""
+    plan = _plan_of(line)
+    if plan in changelog_facts.PLANS:
+        return changelog_facts.PLANS.index(plan)
+    return len(changelog_facts.PLANS)
+
+
+# Bullets the prompt puts first in their subsection; a later run keeps them there.
+_LEADING_BULLETS = {"User Interface": re.compile(r"^\s*- Pre-packaged "),
+                    "Performance": re.compile(r"^\s*- Benchmarking test results")}
 
 
 def parse_fragment(fragment: str) -> list[dict]:
@@ -1492,7 +1529,9 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
         head, children = block[0], block[1:]
         target = None
         for index in range(start, end + inserted):
-            if _is_top_level(lines[index], top_indent) and lines[index].strip() == head.strip():
+            if not _is_top_level(lines[index], top_indent):
+                continue
+            if lines[index].strip() == head.strip() or (_plan_of(head) and _plan_of(lines[index]) == _plan_of(head)):
                 target = index
                 break
         if target is None and title == "Database Schema Changes" and children:
@@ -1522,6 +1561,16 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
         else:
             block = _align_to_indent(block, top_indent)
             at = _last_content_line(lines, start, end + inserted) + 1
+            heads = [i for i in range(start + 1, end + inserted) if _is_top_level(lines[i], top_indent)]
+            if title == "config.json":
+                # Plan labels in plan order, removed settings after them.
+                later = [i for i in heads if _config_rank(lines[i]) > _config_rank(head)]
+                at = later[0] if later else at
+            elif title in _LEADING_BULLETS and _LEADING_BULLETS[title].match(head):
+                leading = [i for i in heads if _LEADING_BULLETS[title].match(lines[i])]
+                at = (leading[-1] + 1 if leading else heads[0]) if heads else at
+                while leading and at < end + inserted and lines[at].strip() and not _is_top_level(lines[at], top_indent):
+                    at += 1
             lines[at:at] = block
             inserted += len(block)
     return inserted
@@ -1558,6 +1607,13 @@ def _entry_start(lines: list[str], version_short: str) -> int | None:
     """The index of the ``## Release vX.Y`` heading line, or None."""
     heading_re = re.compile(r"^## Release " + re.escape(version_short) + r"\b(?!\.)")
     return next((i for i, line in enumerate(lines) if heading_re.match(line)), None)
+
+
+def _entry_text(content: str | None, version_short: str) -> str:
+    """The ``version_short`` entry of ``content``, or "" when there is none."""
+    lines = (content or "").split("\n")
+    start = _entry_start(lines, version_short)
+    return "" if start is None else "\n".join(lines[start:_region_end(lines, start, r"^## ")])
 
 
 def _section_of(lines: list[str], start: int, index: int) -> tuple[str | None, str | None]:
@@ -1695,8 +1751,10 @@ def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
 
         for sub in section["subsections"]:
             h3_end = _region_end(lines, h3_line, r"^#{2,3} ")
+            names = (sub["title"], *SUBSECTION_ALIASES.get(sub["title"], ()))
             h4_line = next(
-                (i for i in range(h3_line, h3_end) if re.match(r"^#### +" + re.escape(sub["title"]) + r"\s*$", lines[i])),
+                (i for i in range(h3_line, h3_end)
+                 if re.match(r"^#### +(?:" + "|".join(map(re.escape, names)) + r")\s*$", lines[i])),
                 None,
             )
             if h4_line is None:
@@ -1980,6 +2038,27 @@ def render_status(readiness: dict) -> list[str]:
             lines.append(f"- {pr(note['source'])}{kept}: \"{note['excerpt'].replace('`', chr(39))}\"")
         lines.append("")
 
+    facts = readiness.get("facts", [])
+    if facts:
+        kinds = {"config": "setting", "config_default": "default", "audit": "audit event", "api": "API endpoint",
+                 "min_version": "minimum version"}
+        from_code = [row for row in facts if row["basis"] == "code"]
+        unplaced = [row for row in facts if not row["placed"]]
+        lines += [f"### Config, audit, API and minimum-version changes: {len(facts)}", "",
+                  "Every change config-change-checker wrote into a release note, and every one read from the code "
+                  "between the previous release and this branch, with where it was placed."
+                  + (f" {len(from_code)} were found in code, not in a release note." if from_code else ""), ""]
+        for row in facts:
+            who = pr(row["pr"]) if row.get("pr") else "PR not found"
+            where = f"placed under {row['placed']}" if row["placed"] else row["detail"] or "not placed"
+            plan = f", {row['plan']} plan ({row['plan_basis']})" if row.get("plan") else ""
+            basis = "found in code, not in a release note" if row["basis"] == "code" else row["basis"]
+            icon = "✅" if row["placed"] else "⚠️"
+            lines.append(f"- {icon} {kinds[row['kind']]} `{row['ident']}` from {who}: {where}{plan}. Basis: {basis}.")
+        if unplaced:
+            lines += ["", f"{len(unplaced)} not placed; check each against the release before adding it by hand."]
+        lines.append("")
+
     restated = readiness.get("restated", [])
     if restated:
         lines += [f"### Notes that only restate a migration: {len(restated)}", "",
@@ -2113,13 +2192,21 @@ def render_model_output(sources_by_id: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[dict], set, bool]:
+def render_fragment(notes: list[dict], sources_by_id: dict, facts_text: str = "") -> tuple[str, list[dict], set, bool]:
     """Polish ``notes`` into MDX-safe changelog text and attribute each bullet to its PRs.
+
+    ``facts_text`` holds the config, audit, API and minimum-version bullets, already written
+    by code (``changelog_facts.render_facts``); it is merged into the model's text, never sent
+    to the model.
 
     Returns the text (``BLOG_POST_LINK`` still a placeholder, Go Version heading still
     empty), the bullet items, the note IDs the bullets referenced, and whether the text
     was AI-polished.
     """
+    if not notes:
+        merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n", "v0.0", facts_text)
+        text, items, referenced = extract_source_markers(normalize_formatting(merged.split("\n", 2)[2]), sources_by_id)
+        return text, items, referenced, False
     raw_polished, ai_polished = polish_with_ai(notes)
     if ai_polished:
         MODEL_ANSWERS.append({"kind": "first answer", "ids": [note["id"] for note in notes], "text": raw_polished})
@@ -2133,6 +2220,9 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
             url_sources.setdefault(note["docs_url"], set()).add(note["source"])
     polished = drop_repeated_notes(drop_misplaced_doc_links(polished, url_sources, sources_by_id))
     polished = tidy_generated(polished, notes)
+    if facts_text:
+        merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n{polished}", "v0.0", facts_text)
+        polished = normalize_formatting(merged.split("\n", 2)[2])
     polished, items, referenced = extract_source_markers(polished, sources_by_id)
 
     items, referenced = _drop_go_version(items, referenced)
@@ -2312,7 +2402,98 @@ def tidy_generated(text: str, notes: list[dict], already: str = "") -> str:
     """The deterministic fixes applied to the model's text while it still carries its markers."""
     docs = {note["id"]: (note["docs_url"], note.get("docs_title")) for note in notes if note.get("docs_url")}
     text = fill_version(text, changelog_release.short_version(VERSION))
+    text = unwrap_plain_words(move_mmctl_bullets(text))
     return link_docs_pages(drop_added_before_verb(strip_migration_numbers(text)), docs, already)
+
+
+# A bullet is about mmctl when mmctl is named this early in it.
+MMCTL_LEAD_WORDS = 8
+
+
+def move_mmctl_bullets(text: str) -> str:
+    """Move an Improvements bullet that is mainly about an mmctl command into ``#### mmctl``.
+
+    "Mainly about" is mmctl named within its first MMCTL_LEAD_WORDS words, as in "Added
+    ``mmctl plugin keys`` commands" or "Added the ``--plugin`` flag to ``mmctl logs``". A
+    bullet that names mmctl only in passing ("Added a Re-run checks button ... and an
+    ``mmctl health run`` command") stays. Bullets with nested bullets are left alone.
+    """
+    lines = text.split("\n")
+    moving = []
+    for block in _bullet_blocks(lines):
+        if block["section"] != "Improvements" or block["subsection"] in (None, "mmctl"):
+            continue
+        if _bullet_indent(lines[block["start"]]) != 1:
+            continue
+        following = lines[block["end"]] if block["end"] < len(lines) else ""
+        if (_bullet_indent(following) or 0) > 1:
+            continue
+        words = re.findall(r"[\w-]+", _SOURCE_MARKER_RE.sub("", " ".join(lines[block["start"]:block["end"]])))
+        if "mmctl" in words[:MMCTL_LEAD_WORDS + 1]:
+            moving.append(block)
+    if not moving:
+        return text
+    moved = [line for block in moving for line in lines[block["start"]:block["end"]]]
+    dropped = {number for block in moving for number in range(block["start"], block["end"])}
+    kept = "\n".join(line for number, line in enumerate(lines) if number not in dropped)
+    merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n{kept}", "v0.0", "### Improvements\n#### mmctl\n" + "\n".join(moved))
+    return normalize_formatting(merged.split("\n", 2)[2])
+
+
+# ``Site Health``, ``System Console``: title-case words in code formatting. Commands,
+# settings and paths are never written that way, so these are plain words.
+_PLAIN_WORDS_CODE_RE = re.compile(r"``((?:[A-Z][a-z]+)(?: (?:[A-Z][a-z]+|and|of|to|the|for))*(?: [A-Z][a-z]+))``")
+
+
+def unwrap_plain_words(text: str) -> str:
+    """Take the double backticks off plain words, such as ``Site Health``; identifiers keep them."""
+    return _PLAIN_WORDS_CODE_RE.sub(r"\1", text)
+
+
+IMPORTANT_UPGRADE_BLOCK = """<Important>
+
+If you upgrade from a release earlier than {previous}, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/backup-disaster-recovery.html) for rollback steps and interim mitigation strategy.
+
+</Important>"""
+
+
+def previous_release(version: str, base_ref: str = "") -> str:
+    """The release before ``version`` as ``vX.Y``: from the diff base when given, else one minor back."""
+    match = re.search(r"(\d+)\.(\d+)", base_ref or "")
+    if match:
+        return f"v{match.group(1)}.{match.group(2)}"
+    major, minor, _ = changelog_release.parse_version(version)
+    return f"v{major}.{minor - 1}" if minor else f"v{major - 1}"
+
+
+def add_important_block(text: str, previous: str) -> str:
+    """End ``### Upgrade Impact`` with the <Important> upgrade block, creating the section if needed."""
+    if "<Important>" in text:
+        return text
+    block = IMPORTANT_UPGRADE_BLOCK.format(previous=previous)
+    section = re.search(r"(?m)^### Upgrade Impact[ \t]*$", text)
+    if not section:
+        first = re.search(r"(?m)^### ", text)
+        at = first.start() if first else len(text)
+        before = text[:at].rstrip()
+        return (before + "\n\n" if before else "") + f"### Upgrade Impact\n\n{block}\n\n" + text[at:]
+    following = re.search(r"(?m)^#{2,3} ", text[section.end():])
+    at = section.end() + following.start() if following else len(text)
+    return text[:at].rstrip() + f"\n\n{block}\n\n" + text[at:].lstrip("\n")
+
+
+def collapse_entry_blank_lines(content: str, version_short: str) -> str:
+    """One blank line at most between lines of the ``version_short`` entry; the rest of the file is left as it is."""
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content
+    end = _region_end(lines, start, r"^## ")
+    region = "\n".join(lines[start:end])
+    collapsed = re.sub(r"\n{3,}", "\n\n", region)
+    if end < len(lines):
+        collapsed = collapsed.rstrip("\n") + "\n"
+    return "\n".join(lines[:start] + collapsed.split("\n") + lines[end:])
 
 
 def _drop_go_version(items: list[dict], referenced: set) -> tuple[list[dict], set]:
@@ -2412,6 +2593,140 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     return merged.split("\n", 2)[2], items + retry_items, referenced | retry_referenced
 
 
+# ── Config, audit, API and minimum-version facts ────────────────────────────────────
+
+MAX_FACT_COMMITS = 60
+
+
+def branch_commits(path: str, branch: str, since: str | None, repo: str = DOCS_REPO) -> list[dict]:
+    """The commits on ``branch`` that touched ``path`` since ``since``, newest first, each with its
+    message and that file's patch. Read from GitHub, since the workflow's clone is shallow."""
+    params = {"sha": branch, "path": path, "per_page": MAX_FACT_COMMITS}
+    if since:
+        params["since"] = since
+    resp = SESSION.get(f"https://api.github.com/repos/{repo}/commits", params=params, timeout=API_TIMEOUT)
+    resp.raise_for_status()
+    commits = []
+    for commit in resp.json():
+        detail = SESSION.get(f"https://api.github.com/repos/{repo}/commits/{commit['sha']}", timeout=API_TIMEOUT)
+        detail.raise_for_status()
+        data = detail.json()
+        patch = next((f.get("patch") or "" for f in data.get("files") or [] if f["filename"] == path), "")
+        commits.append({"message": (data.get("commit") or {}).get("message") or "", "patch": patch})
+    return commits
+
+
+def fact_plan_lookup(ref: str, show=None):
+    """``plan(fact) -> (plan, basis)`` for config facts, read from the System Console admin definition at ``ref``."""
+    cache = {}
+    show = show or changelog_release.git_show
+
+    def grep(text):
+        result = changelog_release._git("grep", "-l", "-F", text, ref, "--", changelog_facts.ADMIN_CONSOLE_DIR)
+        return [line.split(":", 1)[1] for line in result.stdout.splitlines()
+                if ":" in line and not re.search(r"\.test\.[jt]sx?$", line)]
+
+    def plan(fact):
+        if "admin" not in cache:
+            cache["admin"] = show(ref, changelog_facts.ADMIN_DEFINITION_PATH) or ""
+            cache["groups"] = changelog_facts.config_groups(show(ref, changelog_facts.CONFIG_PATH) or "")
+        return changelog_facts.setting_plan(
+            fact["group"], fact["field"], cache["groups"], cache["admin"],
+            lambda key: changelog_facts.admin_components(key, grep, cache["admin"]))
+    return plan
+
+
+def _fact_row(fact: dict, detail: str = "") -> dict:
+    """A fact as the readiness report lists it."""
+    pr = fact.get("pr")
+    if not pr and "#" in fact["source"]:
+        pr = fact["source"]
+    elif pr and not isinstance(pr, str):
+        pr = f"{DOCS_REPO}#{pr}"
+    return {"kind": fact["kind"], "ident": fact["ident"], "source": fact["source"], "pr": pr,
+            "basis": fact.get("basis", "release note"), "plan": fact.get("plan"),
+            "plan_basis": fact.get("plan_basis"), "placed": None, "detail": detail}
+
+
+def prepare_facts(note_facts: list[dict], developer_text: str, base_ref: str, head_ref: str,
+                  entry_text: str | None = None, included: set | frozenset = frozenset(),
+                  show=None, commits_for=None, plan_of=None) -> tuple[list[dict], list[dict]]:
+    """Decide which config, audit, API and minimum-version facts to place, and report on every one.
+
+    ``note_facts`` come from config-change-checker lines in release notes. One the release
+    diff contradicts (a setting the previous release already shipped) is not placed. Facts
+    read from the code that no note states, in its checker lines or its text
+    (``developer_text``), are added with the PR found in the branch's history.
+
+    In update mode ``entry_text`` is the existing entry: a fact it already states is not
+    placed again, and a fact of an already-included PR that it lacks is placed under the
+    fact's own key, so a reviewer who then deletes it isn't overruled on the next run.
+
+    Returns (facts to place, one report row per fact).
+    """
+    show = show or changelog_release.git_show
+    rows, place = [], []
+    valid = []
+    for fact in note_facts:
+        try:
+            reason = changelog_facts.contradicted(fact, base_ref, head_ref, show)
+        except RuntimeError as err:
+            print(f"::warning title=Checker line not verified::{fact['ident']}: {err}")
+            reason = None
+        if reason:
+            fact["contradicted"] = reason
+            rows.append(_fact_row(fact, f"not placed: the release note says {fact['verb'].lower()}, but it is {reason}"))
+            print(f"::warning title=Checker line contradicted by the release diff::{fact['source']}: "
+                  f"{fact['ident']} is {reason}")
+        else:
+            valid.append(fact)
+    try:
+        code = changelog_facts.code_facts(base_ref, head_ref, show)
+    except RuntimeError as err:
+        print(f"::warning title=Code not read for config, audit and minimum-version changes::{err}")
+        code = []
+    known = {(fact["kind"], fact["ident"]) for fact in note_facts}
+    missing = [fact for fact in code
+               if (fact["kind"], fact["ident"]) not in known and not changelog_facts.mentioned(fact, developer_text)]
+    if missing and commits_for:
+        try:
+            changelog_facts.find_prs(missing, commits_for)
+        except (requests.RequestException, KeyError, ValueError) as err:
+            print(f"::warning title=PRs not found for code changes::{type(err).__name__}: {err}")
+
+    for fact in valid:
+        if entry_text is not None and fact["source"] not in included and changelog_facts.mentioned(fact, entry_text):
+            rows.append({**_fact_row(fact), "placed": "already in the entry"})
+            continue
+        if entry_text is not None and fact["source"] in included:
+            if changelog_facts.mentioned(fact, entry_text):
+                rows.append({**_fact_row(fact), "placed": "already in the entry"})
+                continue
+            key = changelog_facts.fact_key(fact)
+            if key in included:
+                rows.append({**_fact_row(fact), "placed": "recorded earlier; not in the entry now (removed by a reviewer?)"})
+                continue
+            fact = {**fact, "pr": fact["source"], "source": key, "basis": "release note, missing from the entry"}
+        place.append(fact)
+    for fact in missing:
+        fact["basis"] = "code"
+        if fact["source"] in included:
+            rows.append({**_fact_row(fact), "placed": "recorded earlier; not in the entry now (removed by a reviewer?)"
+                         if entry_text is not None and not changelog_facts.mentioned(fact, entry_text) else "already in the entry"})
+            continue
+        if entry_text is not None and changelog_facts.mentioned(fact, entry_text):
+            rows.append({**_fact_row(fact), "placed": "already in the entry"})
+            continue
+        place.append(fact)
+    for fact in place:
+        if fact["kind"] in ("config", "config_default") and plan_of:
+            try:
+                fact["plan"], fact["plan_basis"] = plan_of(fact)
+            except RuntimeError as err:
+                fact["plan"], fact["plan_basis"] = "All", f"admin definition not read: {err}"
+    return place, rows
+
+
 def blog_post_link() -> str:
     """The Markdown link to the release's blog post, built from the version when no URL is given."""
     blog_url = os.environ.get("BLOG_POST_URL", "").strip()
@@ -2447,6 +2762,10 @@ def main():
     milestone_prs = {}
     private_repos = []
     named_docs = {}
+    # Config, audit and API lines config-change-checker wrote into release notes, placed by code,
+    # and the developers' own text, against which changes read from the code are checked.
+    note_facts = []
+    developer_text = []
     lookup_endpoint = endpoint_lookup(os.environ.get("RELEASE_BASE_REF", "").strip(),
                                       os.environ.get("RELEASE_HEAD_REF", "").strip())
 
@@ -2494,9 +2813,13 @@ def main():
                         print(f"::warning title=API endpoint path not resolved::{source}: {line}")
                         note_quality.append({"source": source, "title": pr["title"], "reason": UNRESOLVED_ENDPOINT,
                                              "excerpt": line})
+                    # Checker lines are facts: they are placed by code, and the model gets only the rest.
+                    note, facts, _ = changelog_facts.parse_checker_lines(note, source)
+                    note_facts += facts
+                    developer_text.append(note)
                     if not note:
                         continue
-                    all_notes.append({"source": source, "text": note, "merged_at": merged_at})
+                    all_notes.append({"source": source, "text": note, "merged_at": merged_at, "facts": facts})
                     issue = note_quality_issue(note)
                     if issue:
                         lines = [line.strip() for line in note.splitlines() if line.strip()]
@@ -2652,6 +2975,26 @@ def main():
         all_notes = [note for note in all_notes if note["source"] not in included | withheld]
         print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
 
+    # Config, audit, API and minimum-version changes: from the checker lines in the notes,
+    # checked against the release diff, plus those only the code shows.
+    fact_place, fact_rows = [], []
+    if not proposed_before:
+        cut = release_branch_cut(base_ref) if base_ref and head_ref else None
+        branch = head_ref.removeprefix("origin/")
+        fact_place, fact_rows = prepare_facts(
+            note_facts, "\n".join(developer_text), base_ref, head_ref,
+            entry_text=_entry_text(content, version_short) if mode == "update" else None,
+            included=included | withheld,
+            commits_for=(lambda path: branch_commits(path, branch, cut)) if base_ref and head_ref else None,
+            plan_of=fact_plan_lookup(head_ref or docs_ref),
+        )
+    for note in all_notes:
+        listed = [fact for fact in note.get("facts", []) if not fact.get("contradicted")]
+        if listed:
+            automatic = "; ".join(changelog_facts.bullet(fact).rstrip(".") for fact in listed if fact["kind"] != "min_version")
+            note["context"] = ((note.get("context") or "") + "\n" if note.get("context") else "") + (
+                f"Listed automatically in their own sections, so do not write bullets for: {automatic}.")
+
     all_notes, restated = split_restated_notes(all_notes, derived)
     listed = {note["source"][len("migration:"):] for note in derived if note["source"].startswith("migration:")}
     for note in all_notes:
@@ -2665,6 +3008,11 @@ def main():
     for number, note in enumerate(all_notes, start=1):
         note["id"] = f"N{number}"
     sources_by_id = {note["id"]: note["source"] for note in all_notes}
+    fact_ids = {}
+    for number, fact in enumerate(fact_place, start=len(all_notes) + 1):
+        fact_ids[id(fact)] = f"N{number}"
+        sources_by_id[f"N{number}"] = fact["source"]
+    facts_text = changelog_facts.render_facts(fact_place, fact_ids)
 
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
     release_date = os.environ.get("RELEASE_DATE", "").strip()
@@ -2742,13 +3090,13 @@ def main():
     items = []
     referenced = set()
     ai_polished = False
-    changed = bool(all_notes)
+    changed = bool(all_notes or fact_place)
 
     if mode == "update":
         entry = ""
         updated = content
-        if all_notes:
-            fragment, items, referenced, ai_polished = render_fragment(all_notes, sources_by_id)
+        if all_notes or facts_text:
+            fragment, items, referenced, ai_polished = render_fragment(all_notes, sources_by_id, facts_text)
             # The entry already has its Go Version section; a new ### Improvements
             # section, if the fragment creates one, still needs its blog post link.
             fragment = remove_section(fragment, "Go Version")
@@ -2762,6 +3110,8 @@ def main():
             print(f"✅ Added {len(items)} bullet(s) from {len(sources_by_id)} note(s) to the {version_short} entry")
         elif updated == original_content:
             print("✅ No new release notes since the last run — changelog left unchanged")
+        if updated is not None and updated != original_content:
+            updated = collapse_entry_blank_lines(updated, version_short)
         changed = updated is not None and updated != original_content
         if changed:
             with open(changelog_path, "w", encoding="utf-8") as f:
@@ -2822,9 +3172,10 @@ def main():
             else:
                 go_section = f"### Go Version\n - {version_short} uses the same Go version as the previous release."
 
-        if all_notes:
-            polished, items, referenced, ai_polished = render_fragment(all_notes, sources_by_id)
+        if all_notes or facts_text:
+            polished, items, referenced, ai_polished = render_fragment(all_notes, sources_by_id, facts_text)
             polished = polished.replace("BLOG_POST_LINK", blog_post_link())
+            polished = add_important_block(polished, previous_release(VERSION, base_ref))
             # Inject the Go Version section: replace the placeholder heading the AI outputs,
             # or insert it before ### Open Source Components / ### Security to preserve
             # section order, or append at the end if neither anchor exists.
@@ -2844,7 +3195,7 @@ def main():
                     polished = polished[:idx].rstrip() + "\n\n" + go_section + "\n\n" + polished[idx:]
                 else:
                     polished = polished.rstrip() + "\n\n" + go_section + "\n"
-            entry += polished + "\n"
+            entry += re.sub(r"\n{3,}", "\n\n", polished) + "\n"
         else:
             entry += go_section + "\n"
             entry += "\n_No other release notes for this version._\n"
@@ -2887,6 +3238,15 @@ def main():
     for note in not_placed:
         print(f"::warning title=Release note not placed::{note['source']}: the model left this note out of the changelog")
     readiness["not_placed"] = not_placed
+    placed_at = {}
+    for item in items:
+        for note_id in item.get("ids", []):
+            placed_at.setdefault(note_id, " / ".join(part for part in (item["section"], item["subsection"]) if part))
+    for fact in fact_place:
+        row = _fact_row(fact)
+        row["placed"] = placed_at.get(fact_ids[id(fact)])
+        fact_rows.append(row)
+    readiness["facts"] = sorted(fact_rows, key=lambda row: (row["kind"], row["ident"]))
     readiness["restated"] = [{"source": n["source"], "migration": n["migration"]} for n in restated]
     # proposed_before is only left set when the run proposed a list instead of updating.
     if not proposed_before:
@@ -2896,13 +3256,16 @@ def main():
             pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [], included,
                                         set(sources_by_id.values()))
 
-    urls = changelog_release.docs_urls(entry)
+    # The <Important> block's links are the same in every entry; the link check is for what this run wrote.
+    checked_text = re.sub(r"(?s)<Important>.*?</Important>", "", entry)
+    urls = changelog_release.docs_urls(checked_text)
     readiness["links_checked"] = len(urls)
     readiness["broken_links"] = []
     if urls:
         try:
             readiness["broken_links"] = changelog_release.broken_links(
-                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)], site())
+                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)
+                 if not line.startswith("If you upgrade from a release earlier than")], site())
         except RuntimeError as err:
             readiness["broken_links"] = None
             print(f"::warning title=Docs links not checked::{err}")
@@ -2922,7 +3285,8 @@ def main():
         }, key=_source_sort_key)
 
     added_sources = set(sources_by_id.values())
-    derived_sources = {note["source"] for note in derived}
+    derived_sources = {note["source"] for note in derived} | {
+        fact["source"] for fact in fact_place if "#" not in fact["source"]}
     payload = {
         # 2: sources may be derived keys (plugin:…, websocket:…, migration:…) as well as
         # owner/repo#number; adds prs_flagged, derived_sources, proposed_sources, readiness

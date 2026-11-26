@@ -792,6 +792,124 @@ class MainTest(unittest.TestCase):
         gc.main()
         return self.changelog.read_text(), self._payload()
 
+    def _with_v12_2_code(self, base_files=None):
+        """The v12.1.0 tag and release-12.2 branch of test_changelog_facts, as this test's base and head refs."""
+        import test_changelog_facts as fx
+        files = {"v12.0.0": base_files or fx.V12_1, "origin/release-12.1": {**fx.V12_2, fx.cf.ADMIN_DEFINITION_PATH: fx.ADMIN}}
+
+        def show(ref, path):
+            if path == gc.changelog_release.BUILDENV_DOCKERFILE:
+                return "FROM golang:1.27.1-bookworm\n"
+            return files.get(ref, {}).get(path)
+        gc.changelog_release.git_show = show
+        saved = gc.branch_commits
+        self.addCleanup(setattr, gc, "branch_commits", saved)
+        commits = {fx.cf.CONFIG_PATH: [
+            {"message": "MM-1 Redis TLS (#39001)", "patch": "+\tRedisEnableTLS *bool"},
+            {"message": "Cloud preview landing (#39002)", "patch": "+\tPreviewLandingPath *string"},
+        ]}
+        gc.branch_commits = lambda path, branch, since: commits.get(path, [])
+        return fx
+
+    @staticmethod
+    def _note_body(note):
+        return f"#### Summary\nx\n\n#### Release Note\n```release-note\n{note}\n```\n"
+
+    def test_create_places_checker_lines_and_code_changes_by_code(self):
+        fx = self._with_v12_2_code()
+        self.prs = [
+            self._pr(38637, self._note_body(fx.NOTE_38637), "2026-10-20T10:00:00Z", ["release-note"]),
+            self._pr(38885, self._note_body(fx.NOTE_38885), "2026-10-21T10:00:00Z", ["release-note"]),
+            self._pr(39500, self._note_body(fx.NOTE_39500), "2026-10-22T10:00:00Z", ["release-note"]),
+            self._pr(39502, self._note_body(fx.NOTE_39502), "2026-10-23T10:00:00Z", ["release-note"]),
+        ]
+        gc.main()
+        content = self.changelog.read_text()
+        payload = self._payload()
+        summary = (self.out / "summary.md").read_text()
+
+        audit = content.split("### Audit Log Event Changes\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        self.assertEqual(len(audit), 7)
+        self.assertEqual([line.split("``")[1] for line in audit], fx.V12_2_AUDIT_EVENTS)
+        api = content.split("### API Changes\n", 1)[1].split("\n\n", 1)[0]
+        self.assertEqual(api.count("/missing_values"), 4)
+        self.assertIn("``POST /api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values/notify``", api)
+        self.assertIn("``POST /api/v4/plugins/public_keys`` (``localAddPluginPublicKey``)", api)
+
+        # The checker's two #38637 settings shipped in the previous release; its text is kept.
+        self.assertNotIn("EnableFileIndexing", content)
+        self.assertNotIn("AdditionalScopes", content)
+        self.assertIn('Added a "brotli" option to the Web Server Mode setting.', content)
+        self.assertNotIn("New API file", content)
+        rows = {row["ident"]: row for row in payload["readiness"]["facts"]}
+        self.assertIn("already in the previous release", rows["ElasticsearchSettings.EnableFileIndexing"]["detail"])
+        self.assertIsNone(rows["ElasticsearchSettings.EnableFileIndexing"]["placed"])
+
+        config = content.split("#### config.json\n", 1)[1].split("<Important>", 1)[0]
+        self.assertLess(config.index("**Changes to Enterprise Advanced Plans:**"), config.index("**Changes to All Plans:**"))
+        self.assertLess(config.index("RedisEnableTLS"), config.index("**Changes to All Plans:**"))
+        self.assertGreater(config.index("PreviewLandingPath"), config.index("**Changes to All Plans:**"))
+        self.assertIn("changed the default value of ``MaxUsersPerTeam`` from ``50`` to ``0``", config)
+        self.assertEqual(rows["CacheSettings.RedisEnableTLS"]["pr"], "mattermost/mattermost#39001")
+        self.assertEqual(rows["CacheSettings.RedisEnableTLS"]["basis"], "code")
+        self.assertEqual(rows["CacheSettings.RedisEnableTLS"]["placed"], "Upgrade Impact / config.json")
+        self.assertEqual(rows["AuditEventSearchGlobalAttributeListing"]["pr"], "mattermost/mattermost#39500")
+        self.assertIn("If you upgrade from a release earlier than v12.0, please read", content)
+        self.assertLess(content.index("</Important>"), content.index("### API Changes"))
+
+        self.assertIn("### Config, audit, API and minimum-version changes:", summary)
+        self.assertIn("audit event `AuditEventLocalAddPluginPublicKey` from [mattermost/mattermost#39502]", summary)
+        self.assertIn("Basis: found in code, not in a release note.", summary)
+        self.assertNotIn("machine-generated", summary)
+        recorded = gc.parse_sources_comment((self.out / "pr_body.md").read_text())
+        self.assertTrue({"mattermost/mattermost#38885", "config:CacheSettings.RedisEnableTLS@added"} <= recorded)
+
+    def test_update_adds_an_included_prs_missing_audit_events_and_a_raised_minimum(self):
+        fx = self._with_v12_2_code(base_files={**self._facts().V12_1, self._facts().cf.SERVER_I18N_PATH: self._facts().i18n("150", "150")})
+        self.prs = [self._pr(38885, self._note_body(fx.NOTE_38885), "2026-10-21T10:00:00Z", ["release-note"])]
+        entry = ENTRY_V12_1.replace("### Improvements", """### Upgrade Impact
+
+#### config.json
+New setting options were added to ``config.json``.
+ - **Changes to Enterprise Advanced plan:**
+   - Under ``CacheSettings`` in ``config.json``, added ``RedisEnableTLS``, edited by a reviewer.
+
+
+ - Removed ``LdapSettings.LoginButtonColor`` configuration setting.
+
+#### Compatibility
+ - Existing upgrade note.
+
+### Improvements""")
+        sources = ["mattermost/mattermost#1", "mattermost/mattermost#2", "mattermost/mattermost#38885",
+                   "plugin:mattermost-plugin-calls@v1.12.6", "config-default:TeamSettings.MaxUsersPerTeam@0"]
+        content, payload = self._update_with(entry, sources)
+        self.assertIn("added ``RedisEnableTLS``, edited by a reviewer.", content)
+        self.assertEqual(content.count("RedisEnableTLS"), 1)
+        self.assertEqual(content.count("**Changes to"), 2)
+        config = content.split("#### config.json\n", 1)[1].split("####", 1)[0]
+        self.assertLess(config.index("PreviewLandingPath"), config.index("Removed ``LdapSettings"))
+        self.assertNotIn("\n\n\n", content.split("## Release v12.1", 1)[1])
+        self.assertNotIn("#### Important Upgrade Notes", content)
+        self.assertIn("#### Compatibility\n - Existing upgrade note.\n - Updated the minimum supported Chrome and Edge versions to 156+.", content)
+        audit = content.split("### Audit Log Event Changes\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        # #38885 is recorded but its events are missing from the entry; the other PRs' events
+        # are in no note at all and come from the code. All seven are added, each under its own key.
+        self.assertEqual([line.split("``")[1] for line in audit], fx.V12_2_AUDIT_EVENTS)
+        recorded = gc.parse_sources_comment((self.out / "pr_body.md").read_text())
+        self.assertIn("audit:AuditEventNotifyPropertyFieldMissingValues@added", recorded)
+        self.assertIn("audit:AuditEventLocalAddPluginPublicKey@added", recorded)
+        rows = {row["ident"]: row for row in payload["readiness"]["facts"]}
+        self.assertEqual(rows["AuditEventNotifyPropertyFieldMissingValues"]["basis"], "release note, missing from the entry")
+        self.assertEqual(rows["AuditEventNotifyPropertyFieldMissingValues"]["pr"], "mattermost/mattermost#38885")
+        self.assertIn("min-version:Chrome@156", recorded)
+        self.assertNotIn("MaxUsersPerTeam", content)
+
+    @staticmethod
+    def _facts():
+        import test_changelog_facts as fx
+        return fx
+
     def test_update_follows_a_go_bump_on_the_release_branch(self):
         prs = ["mattermost/mattermost#1", "mattermost/mattermost#2", "plugin:mattermost-plugin-calls@v1.12.6"]
         content, payload = self._update_with(ENTRY_V12_1.replace("v1.27.1", "v1.26.10"), prs)
@@ -1367,7 +1485,7 @@ class TidyGeneratedTest(unittest.TestCase):
         # Model-level rules: the v12.2 dry run put the go-crypto swap outside Compatibility and
         # wrote "Added ``GET .../thread`` ... now includes".
         self.assertIn("A note that replaces or upgrades a library and also says what now behaves differently", gc.SYSTEM_PROMPT)
-        self.assertIn("goes under `#### Compatibility`", gc.SYSTEM_PROMPT)
+        self.assertIn("goes under `#### Important Upgrade Notes`", gc.SYSTEM_PROMPT)
         self.assertIn('never put "Added" in front of it', gc.SYSTEM_PROMPT)
         self.assertIn("Never write a migration number", gc.SYSTEM_PROMPT)
 
@@ -1434,6 +1552,70 @@ class GoVersionPruneTest(unittest.TestCase):
         self.assertEqual(referenced, {"N1"})
         self.assertEqual([item["section"] for item in items], ["Bug Fixes"])
         self.assertEqual([n["id"] for n in gc.dropped_notes(notes, referenced)], ["N2"])
+
+
+class ReviewFixesTest(unittest.TestCase):
+    """The v12.2 review's layout fixes."""
+
+    def test_should_move_a_bullet_mainly_about_mmctl_into_its_subsection(self):
+        text = (
+            "### Improvements\nSee BLOG_POST_LINK on the highlights in our latest release.\n\n"
+            "#### Administration\n"
+            " - Added a Re-run checks button to the System Console Site health page and an ``mmctl health run`` command. [[N1]]\n"
+            " - Added the ``--plugin`` flag to ``mmctl logs``. [[N2]]\n"
+            " - Added ``mmctl plugin keys`` commands to manage plugin signature keys. [[N3]]\n"
+        )
+        moved = gc.move_mmctl_bullets(text)
+        admin, mmctl = moved.split("#### mmctl\n")
+        self.assertIn("[[N1]]", admin)
+        self.assertNotIn("[[N2]]", admin)
+        self.assertEqual([line[-6:] for line in mmctl.strip().splitlines()], ["[[N2]]", "[[N3]]"])
+
+    def test_should_take_code_formatting_off_plain_words_only(self):
+        text = "Added ``Site Health`` checks to the ``System Console`` and ``mmctl health run`` to ``ServiceSettings.SiteURL``."
+        self.assertEqual(gc.unwrap_plain_words(text),
+                         "Added Site Health checks to the System Console and ``mmctl health run`` to ``ServiceSettings.SiteURL``.")
+
+    def test_should_end_upgrade_impact_with_the_important_block(self):
+        text = "### Upgrade Impact\n\n#### config.json\n - x\n\n### Improvements\n - y\n"
+        out = gc.add_important_block(text, "v12.1")
+        self.assertIn(" - x\n\n<Important>\n\nIf you upgrade from a release earlier than v12.1, please read", out)
+        self.assertIn("</Important>\n\n### Improvements", out)
+        self.assertEqual(gc.add_important_block(out, "v12.1"), out)
+        self.assertTrue(gc.add_important_block("### Bug Fixes\n - z\n", "v12.1").startswith("### Upgrade Impact\n\n<Important>"))
+        self.assertEqual(gc.previous_release("v12.2.0", "origin/release-12.1"), "v12.1")
+        self.assertEqual(gc.previous_release("v13.0.0"), "v12")
+
+    def test_should_keep_plugin_and_benchmark_bullets_first_on_a_later_run(self):
+        entry = (
+            "## Release v12.2 - x\n\n### Improvements\n#### User Interface\n"
+            " - Pre-packaged Calls plugin version v1.\n - A feature.\n\n"
+            "#### Performance\n - Faster logs.\n\n### Bug Fixes\n - Fixed.\n"
+        )
+        fragment = ("### Improvements\n#### User Interface\n - Pre-packaged Jira plugin version v5.\n - Another feature.\n"
+                    "#### Performance\n - Benchmarking test results showed no significant difference.\n")
+        merged = gc.merge_into_entry(entry, "v12.2", fragment)
+        ui = merged.split("#### User Interface\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        self.assertEqual(ui, [" - Pre-packaged Calls plugin version v1.", " - Pre-packaged Jira plugin version v5.",
+                              " - A feature.", " - Another feature."])
+        performance = merged.split("#### Performance\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        self.assertEqual(performance[0], " - Benchmarking test results showed no significant difference.")
+
+    def test_should_collapse_blank_lines_in_the_entry_only(self):
+        content = "## Release v12.2 - x\n\n\n\n - a\n\n\n## Release v12.1 - y\n\n\n - b\n"
+        self.assertEqual(gc.collapse_entry_blank_lines(content, "v12.2"),
+                         "## Release v12.2 - x\n\n - a\n\n## Release v12.1 - y\n\n\n - b\n")
+
+
+class PrepareFactsTest(unittest.TestCase):
+    def test_should_not_place_a_fact_again_that_a_developer_already_wrote(self):
+        import test_changelog_facts as fx
+        show = fx.repo({"a": fx.V12_1, "b": fx.V12_2})
+        place, rows = gc.prepare_facts([], "Allowed 0 for ``TeamSettings.MaxUsersPerTeam``, now the default.", "a", "b",
+                                       show=show, plan_of=lambda fact: ("All", "test"))
+        self.assertNotIn("TeamSettings.MaxUsersPerTeam", [fact["ident"] for fact in place])
+        self.assertIn("CacheSettings.RedisEnableTLS", [fact["ident"] for fact in place])
+        self.assertEqual(rows, [])
 
 
 if __name__ == "__main__":

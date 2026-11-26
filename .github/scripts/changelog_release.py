@@ -10,7 +10,8 @@ anything. Three entry points:
                Scheduled runs pass no inputs: the release is the one between its
                vX.Y.0-rc1 tag and its changelog entry being merged to master (the
                vX.Y.0 tag is pushed about five working days before that).
-  reviewers  - Print the reviewers to request for the sections a run touched.
+  reviewers  - Print the reviewers to request for the sections a run touched, leaving out
+               anyone the changelog PR already requested or who has reviewed it.
 
 and, imported by generate_changelog.py, ``derived_notes()``: the changes a release
 makes that developers rarely write release notes for — pre-packaged plugin versions,
@@ -782,6 +783,53 @@ def broken_links(lines: list[tuple[str, int, str]], site: DocsSite) -> list[dict
 
 # ── Reviewers ───────────────────────────────────────────────────────────────────────
 
+# A subsection and its earlier name: sections.json from older runs, and reviewer mappings
+# written before the rename, say Compatibility.
+SUBSECTION_NAMES = {
+    "Important Upgrade Notes": ("Important Upgrade Notes", "Compatibility"),
+    "Compatibility": ("Important Upgrade Notes", "Compatibility"),
+}
+
+
+def already_asked(timeline: list[dict], reviews: list[dict]) -> dict:
+    """Who a changelog PR has already asked for a review, or heard one from.
+
+    ``timeline`` is the PR's issue timeline: its ``review_requested`` events name a user or a
+    team. ``reviews`` are the PR's submitted reviews, of any state. A login is matched
+    case-insensitively; a team by its slug.
+    """
+    users, teams = set(), set()
+    for event in timeline or []:
+        if event.get("event") != "review_requested":
+            continue
+        if (event.get("requested_reviewer") or {}).get("login"):
+            users.add(event["requested_reviewer"]["login"].lower())
+        if (event.get("requested_team") or {}).get("slug"):
+            teams.add(event["requested_team"]["slug"].lower())
+    for review in reviews or []:
+        if (review.get("user") or {}).get("login"):
+            users.add(review["user"]["login"].lower())
+    return {"users": sorted(users), "teams": sorted(teams)}
+
+
+def not_yet_asked(reviewers: list[str], asked: dict) -> list[str]:
+    """``reviewers`` without anyone already requested on the PR or who has reviewed it.
+
+    Each reviewer is requested at most once per changelog PR: a later run that adds to
+    their section does not ask again, even after they approved.
+    """
+    users = {login.lower() for login in asked.get("users", [])}
+    teams = {slug.lower() for slug in asked.get("teams", [])}
+    out = []
+    for name in reviewers:
+        if "/" in name:
+            if name.split("/", 1)[1].lower() not in teams:
+                out.append(name)
+        elif name.lower() not in users:
+            out.append(name)
+    return out
+
+
 def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
     """Reviewers for the sections a run added bullets to.
 
@@ -796,7 +844,9 @@ def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
         section = group.get("section") or ""
         touched.add(section)
         if group.get("subsection"):
-            touched.add(f"{section}/{group['subsection']}")
+            # A mapping written for the subsection's old name still matches, and the other way round.
+            for name in SUBSECTION_NAMES.get(group["subsection"], (group["subsection"],)):
+                touched.add(f"{section}/{name}")
     reviewers = []
     if not touched:
         return reviewers
@@ -819,6 +869,21 @@ def _write_outputs(outputs: dict) -> None:
         with open(path, "a", encoding="utf-8") as f:
             for key, value in outputs.items():
                 f.write(f"{key}={value}\n")
+
+
+def _json_pages(path: str) -> list:
+    """The pages ``gh api --paginate`` wrote to ``path``: one JSON array after another."""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    decoder, pages, index = json.JSONDecoder(), [], 0
+    while index < len(text):
+        while index < len(text) and text[index].isspace():
+            index += 1
+        if index >= len(text):
+            break
+        page, index = decoder.raw_decode(text, index)
+        pages.append(page if isinstance(page, list) else [page])
+    return pages
 
 
 def _read_file(path: str) -> str | None:
@@ -849,7 +914,17 @@ def main(argv: list[str]) -> int:
         with open(argv[2], encoding="utf-8") as f:
             sections = json.load(f).get("sections", [])
         mapping = json.loads(os.environ.get("SECTION_REVIEWERS") or "{}")
-        print(",".join(reviewers_for(sections, mapping)))
+        reviewers = reviewers_for(sections, mapping)
+        if len(argv) > 4:
+            # The PR's timeline and reviews: skip anyone already asked, or who has reviewed.
+            timeline = [event for page in _json_pages(argv[3]) for event in page]
+            reviews = [review for page in _json_pages(argv[4]) for review in page]
+            asked = already_asked(timeline, reviews)
+            skipped = [name for name in reviewers if name not in not_yet_asked(reviewers, asked)]
+            if skipped:
+                print(f"Already requested or reviewed, not asked again: {', '.join(skipped)}", file=sys.stderr)
+            reviewers = not_yet_asked(reviewers, asked)
+        print(",".join(reviewers))
         return 0
     if command == "check-links" and len(argv) > 2:
         # Only the lines this change adds: older entries link pages that have since moved,
@@ -864,7 +939,8 @@ def main(argv: list[str]) -> int:
             print(f"::error file={p['file']},line={p['line']},title=Broken docs link::{p['url']}: {p['problem']}")
         print(f"{checked} docs.mattermost.com link(s) added to the changelog; {len(problems)} broken")
         return 1 if problems else 0
-    print("usage: changelog_release.py resolve | reviewers SECTIONS_JSON | check-links BASE_REF", file=sys.stderr)
+    print("usage: changelog_release.py resolve | reviewers SECTIONS_JSON [TIMELINE_JSON REVIEWS_JSON] | "
+          "check-links BASE_REF", file=sys.stderr)
     return 2
 
 

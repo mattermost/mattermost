@@ -13,7 +13,10 @@ name: Generate Changelog
 # feature links to: the one its release note names on a Docs: line, else the one found
 # by following its PR to the docs files it, or a docs PR naming its Jira key or linking
 # it, changed. Every docs link in the generated text is checked against the docs
-# sources; changelog-link-check.yml does the same for each changelog PR.
+# sources; changelog-link-check.yml does the same for each changelog PR. Config settings,
+# audit log events, API endpoints and minimum browser, OS and database versions are placed
+# by code, from config-change-checker's lines in release notes and from the release diff,
+# and each one is listed in the summary with where it went.
 #
 # Repository variables read here, all optional:
 #   CHANGELOG_SCHEDULE_MODE     — auto | dry_run (default; dryrun also accepted) for
@@ -24,7 +27,9 @@ name: Generate Changelog
 #                                 X.0 releases are major and the rest feature releases
 #   CHANGELOG_SECTION_REVIEWERS — JSON mapping a section pattern to reviewers, e.g.
 #                                 {"Upgrade Impact/*": ["org/team"], "API Changes": ["login"]};
-#                                 requested on the changelog PR for the sections a run adds to
+#                                 requested on the changelog PR for the sections a run adds to,
+#                                 once per PR: anyone already requested or who has reviewed is
+#                                 not asked again
 on:
   schedule:
     - cron: '0 6 * * 1-5'
@@ -198,7 +203,7 @@ jobs:
         run: |
           # Run the generator from this checkout even after the PR branch is checked out
           # below: that branch was cut when the PR was opened and may carry an older copy.
-          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py .github/scripts/check_config_changes_ci.py "$RUNNER_TEMP/"
+          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py .github/scripts/changelog_facts.py .github/scripts/check_config_changes_ci.py "$RUNNER_TEMP/"
 
           PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "changelog/$VERSION" --state open --json number --jq '.[0].number // empty')"
           BODY_FILE=""
@@ -339,7 +344,7 @@ jobs:
             git diff --staged --quiet && echo "No changes to commit" && exit 0
             git commit -m "docs: add release notes from $ADDED_PRS newly merged PR(s) and $ADDED_DERIVED release change(s) to the $VERSION changelog, and correct ${CORRECTED:-0} bullet(s)"
             git push origin "HEAD:changelog/$VERSION"
-            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE" --add-label release-note-none
             echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -350,13 +355,15 @@ jobs:
           git diff --staged --quiet && echo "No changes to commit" && exit 0
           git commit -m "docs: add changelog for $VERSION"
           git push origin "changelog/$VERSION" --force
+          # The changelog PR is itself the release notes, so it needs no release note of its own.
           if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE" --add-label release-note-none
           else
             PR_URL="$(gh pr create \
               --repo mattermost/mattermost \
               --draft \
               --title "$VERSION Changelog" \
+              --label release-note-none \
               --body-file "$BODY_FILE" \
               --base master \
               --head "changelog/$VERSION")"
@@ -371,9 +378,15 @@ jobs:
           PR_NUMBER: ${{ steps.publish.outputs.number }}
           SECTION_REVIEWERS: ${{ vars.CHANGELOG_SECTION_REVIEWERS }}
         run: |
-          REVIEWERS="$(python3 "$RUNNER_TEMP/changelog_release.py" reviewers "$RUNNER_TEMP/changelog-output/sections.json")"
+          # Each reviewer is asked once per changelog PR: anyone already requested (the
+          # timeline's review_requested events) or who has reviewed, approvals included, is
+          # left out, even when this run added to their section.
+          gh api --paginate "repos/mattermost/mattermost/issues/$PR_NUMBER/timeline" > "$RUNNER_TEMP/timeline.json"
+          gh api --paginate "repos/mattermost/mattermost/pulls/$PR_NUMBER/reviews" > "$RUNNER_TEMP/reviews.json"
+          REVIEWERS="$(python3 "$RUNNER_TEMP/changelog_release.py" reviewers "$RUNNER_TEMP/changelog-output/sections.json" \
+            "$RUNNER_TEMP/timeline.json" "$RUNNER_TEMP/reviews.json")"
           if [ -z "$REVIEWERS" ]; then
-            echo "No reviewers configured for the sections this run added to"
+            echo "No reviewers to request: none configured for the sections this run added to, or all already asked"
             exit 0
           fi
           echo "Requesting review from $REVIEWERS"
