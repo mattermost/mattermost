@@ -1047,12 +1047,6 @@ Set whether or not this Mattermost server will handle tasks created by the Sched
 
 When running Mattermost in [High Availablity mode](/deployment-guide/server/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
 
-<Note>
-
-The [Site health dashboard](/administration-guide/manage/site-health-dashboard) health check runs on app servers even when this setting is disabled. To stop its hourly run, [turn off automatic checks](/administration-guide/manage/site-health-dashboard#turn-off-automatic-checks).
-
-</Note>
-
 <table>
 <colgroup>
 <col style={{width: '100%'}} />
