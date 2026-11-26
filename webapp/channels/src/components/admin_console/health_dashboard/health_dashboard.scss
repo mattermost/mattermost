@@ -9,7 +9,7 @@
     --health-resolved-rgb: var(--sys-online-indicator-rgb);
     --health-unknown: rgba(var(--sys-center-channel-color-rgb), 0.64);
     --health-unknown-rgb: var(--sys-center-channel-color-rgb);
-    --health-nodeLeft: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    --health-nodeLeft: rgba(var(--sys-center-channel-color-rgb), 0.8);
     --health-nodeLeft-rgb: var(--sys-center-channel-color-rgb);
 
     .admin-console__content {
@@ -401,9 +401,17 @@
         border-left-color: rgba(var(--sys-center-channel-color-rgb), 0.24);
     }
 
-    &--muted &__header,
-    &--nodeLeft &__header {
+    &--muted &__header {
         opacity: 0.72;
+    }
+
+    // Dimming the whole header would push the badge text below 4.5:1 contrast.
+    &--nodeLeft &__icon {
+        opacity: 0.72;
+    }
+
+    &--nodeLeft &__title {
+        opacity: 0.75;
     }
 
     &--expanded {
