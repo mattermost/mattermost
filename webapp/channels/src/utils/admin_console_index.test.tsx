@@ -87,6 +87,16 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('Sync History')).toContain('authentication/ldap');
     });
 
+    it('should index the user attributes sync section on every page that renders it', () => {
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
+
+        const idx = generateIndex(AdminDefinition, intl, {});
+        const pages = ['authentication/ldap', 'authentication/openid', 'authentication/saml'];
+
+        expect(idx.search('User attributes sync')).toEqual(expect.arrayContaining(pages));
+        expect(idx.search('Custom profile attri').sort()).toEqual(pages);
+    });
+
     xit('should generate a index where I can search in other language', () => {
         const intl = createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'});
 
