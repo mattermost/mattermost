@@ -121,9 +121,9 @@ func beginPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	options, appErr := c.App.BeginPasskeyLogin(c.AppContext)
-	if appErr != nil {
-		c.Err = appErr
+	options, err := c.App.BeginPasskeyLogin(c.AppContext)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -153,19 +153,18 @@ func finishPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, passkey, appErr := c.App.FinishPasskeyLogin(c.AppContext, finish.CeremonyId, finish.Credential)
-	if appErr != nil {
+	user, passkey, err := c.App.FinishPasskeyLogin(c.AppContext, finish.CeremonyId, finish.Credential)
+	if err != nil {
+		c.Err = model.AsAppError(err)
+		return
+	}
+
+	if appErr := checkUserMaySignIn(c, user); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if appErr = checkUserMaySignIn(c, user); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	var session *model.Session
-	session, appErr = c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+	session, appErr := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
 		IsMobile:    utils.IsMobileRequest(r),
 		IsOAuthUser: user.IsOAuthUser(),
 		IsSaml:      user.IsSAMLUser(),
@@ -179,9 +178,9 @@ func finishPasskeyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 
 	// DoLogin has already put the token on the response; take it back if the passkey is gone.
-	if appErr = c.App.ConfirmPasskeySession(c.AppContext, session, passkey); appErr != nil {
+	if err = c.App.ConfirmPasskeySession(c.AppContext, session, passkey); err != nil {
 		w.Header().Del(model.HeaderToken)
-		c.Err = appErr
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -213,9 +212,9 @@ func beginPasskeyRegistration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	options, appErr := c.App.BeginPasskeyRegistration(c.AppContext, c.AppContext.Session())
-	if appErr != nil {
-		c.Err = appErr
+	options, err := c.App.BeginPasskeyRegistration(c.AppContext, c.AppContext.Session())
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -234,8 +233,8 @@ func finishPasskeyRegistration(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	passkey, appErr := c.App.FinishPasskeyRegistration(c.AppContext, c.AppContext.Session(), finish.CeremonyId, finish.Name, r.UserAgent(), finish.Credential)
-	writePasskeyRegistered(c, w, passkey, appErr)
+	passkey, err := c.App.FinishPasskeyRegistration(c.AppContext, c.AppContext.Session(), finish.CeremonyId, finish.Name, r.UserAgent(), finish.Credential)
+	writePasskeyRegistered(c, w, passkey, err)
 }
 
 // decodePasskeyRegistrationFinish reads and validates the finish body, returning nil with c.Err set
@@ -272,9 +271,9 @@ func decodePasskeyEnrollmentTicket(c *Context, r *http.Request) string {
 	return body.Ticket
 }
 
-func writePasskeyRegistered(c *Context, w http.ResponseWriter, passkey *model.Passkey, appErr *model.AppError) {
-	if appErr != nil {
-		c.Err = appErr
+func writePasskeyRegistered(c *Context, w http.ResponseWriter, passkey *model.Passkey, err error) {
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -297,9 +296,9 @@ func beginPasskeyRegistrationWithTicket(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	options, appErr := c.App.BeginPasskeyRegistrationWithTicket(c.AppContext, ticket)
-	if appErr != nil {
-		c.Err = appErr
+	options, err := c.App.BeginPasskeyRegistrationWithTicket(c.AppContext, ticket)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -318,8 +317,8 @@ func finishPasskeyRegistrationWithTicket(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	passkey, appErr := c.App.FinishPasskeyRegistrationWithTicket(c.AppContext, finish.CeremonyId, finish.Name, r.UserAgent(), finish.Credential)
-	writePasskeyRegistered(c, w, passkey, appErr)
+	passkey, err := c.App.FinishPasskeyRegistrationWithTicket(c.AppContext, finish.CeremonyId, finish.Name, r.UserAgent(), finish.Credential)
+	writePasskeyRegistered(c, w, passkey, err)
 }
 
 // beginPasskeyVerificationWithTicket and finishPasskeyVerificationWithTicket check that the device holds
@@ -334,9 +333,9 @@ func beginPasskeyVerificationWithTicket(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	options, appErr := c.App.BeginPasskeyVerificationWithTicket(c.AppContext, ticket)
-	if appErr != nil {
-		c.Err = appErr
+	options, err := c.App.BeginPasskeyVerificationWithTicket(c.AppContext, ticket)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -364,9 +363,9 @@ func finishPasskeyVerificationWithTicket(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	userID, appErr := c.App.FinishPasskeyVerificationWithTicket(c.AppContext, finish.CeremonyId, finish.Credential)
-	if appErr != nil {
-		c.Err = appErr
+	userID, err := c.App.FinishPasskeyVerificationWithTicket(c.AppContext, finish.CeremonyId, finish.Credential)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -382,9 +381,9 @@ func createPasskeyEnrollmentTicket(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	ticket, appErr := c.App.CreatePasskeyEnrollmentTicket(c.AppContext, c.AppContext.Session())
-	if appErr != nil {
-		c.Err = appErr
+	ticket, err := c.App.CreatePasskeyEnrollmentTicket(c.AppContext, c.AppContext.Session())
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -399,9 +398,9 @@ func getPasskeys(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passkeys, appErr := c.App.GetPasskeysForUser(c.Params.UserId)
-	if appErr != nil {
-		c.Err = appErr
+	passkeys, err := c.App.GetPasskeysForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -421,8 +420,8 @@ func deletePasskey(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.DeletePasskey(c.AppContext, c.Params.UserId, passkeyID); appErr != nil {
-		c.Err = appErr
+	if err := c.App.DeletePasskey(c.AppContext, c.Params.UserId, passkeyID); err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 
@@ -441,8 +440,8 @@ func revokePasskeySessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokePasskeySessions, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if appErr := c.App.RevokePasskeySessions(c.AppContext); appErr != nil {
-		c.Err = appErr
+	if err := c.App.RevokePasskeySessions(c.AppContext); err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 

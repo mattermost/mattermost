@@ -59,7 +59,7 @@ func TestGetPasskeysForUser(t *testing.T) {
 
 	t.Run("no passkeys gives an empty non-nil slice", func(t *testing.T) {
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, passkeys)
 		require.Empty(t, passkeys)
 	})
@@ -71,7 +71,7 @@ func TestGetPasskeysForUser(t *testing.T) {
 		savePasskey(t, th, th.BasicUser.Id, "someone else's", now)
 
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser2.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Len(t, passkeys, 2)
 		require.Equal(t, older.Id, passkeys[0].Id)
 		require.Equal(t, newer.Id, passkeys[1].Id)
@@ -85,10 +85,10 @@ func TestDeletePasskey(t *testing.T) {
 	t.Run("deletes the user's own passkey", func(t *testing.T) {
 		passkey := savePasskey(t, th, th.BasicUser.Id, "mine", model.GetMillis())
 
-		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
+		require.NoError(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
 
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Empty(t, passkeys)
 	})
 
@@ -96,20 +96,20 @@ func TestDeletePasskey(t *testing.T) {
 		passkey := savePasskey(t, th, th.BasicUser2.Id, "theirs", model.GetMillis())
 
 		appErr := th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
-		require.Equal(t, "app.passkey.not_found.app_error", appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusNotFound, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, "app.passkey.not_found.app_error", model.AsAppError(appErr).Id)
 
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser2.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Len(t, passkeys, 1)
 	})
 
 	t.Run("unknown id is a 404", func(t *testing.T) {
 		appErr := th.App.DeletePasskey(th.Context, th.BasicUser.Id, model.NewId())
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
-		require.Equal(t, "app.passkey.not_found.app_error", appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusNotFound, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, "app.passkey.not_found.app_error", model.AsAppError(appErr).Id)
 	})
 
 	mockEmail := func(t *testing.T) *emailmocks.ServiceInterface {
@@ -126,7 +126,7 @@ func TestDeletePasskey(t *testing.T) {
 		mockSvc := mockEmail(t)
 		mockSvc.On("SendPasskeyRemovedEmail", th.BasicUser.Email, th.BasicUser.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
 
-		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
+		require.NoError(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
 		mockSvc.AssertNumberOfCalls(t, "SendPasskeyRemovedEmail", 1)
 		mockSvc.AssertExpectations(t)
 	})
@@ -136,11 +136,11 @@ func TestDeletePasskey(t *testing.T) {
 		mockSvc := mockEmail(t)
 		mockSvc.On("SendPasskeyRemovedEmail", th.BasicUser.Email, th.BasicUser.Locale, th.App.GetSiteURL(), "flaky mail").Return(errors.New("smtp down")).Once()
 
-		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
+		require.NoError(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, passkey.Id))
 		mockSvc.AssertExpectations(t)
 
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		for _, p := range passkeys {
 			require.NotEqual(t, passkey.Id, p.Id)
 		}
@@ -150,8 +150,8 @@ func TestDeletePasskey(t *testing.T) {
 		theirs := savePasskey(t, th, th.BasicUser2.Id, "theirs", model.GetMillis())
 		mockSvc := mockEmail(t)
 
-		require.NotNil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, model.NewId()))
-		require.NotNil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, theirs.Id))
+		require.Error(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, model.NewId()))
+		require.Error(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, theirs.Id))
 		mockSvc.AssertNotCalled(t, "SendPasskeyRemovedEmail")
 	})
 
@@ -185,7 +185,7 @@ func TestDeletePasskey(t *testing.T) {
 		noPasskeyID := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, "", false)
 		othersWithAId := createSession(t, th.BasicUser2.Id, model.SessionLoginMethodPasskey, a.Id, false)
 
-		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, a.Id))
+		require.NoError(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, a.Id))
 
 		require.True(t, sessionEnded(t, a1))
 		require.True(t, sessionEnded(t, a2))
@@ -205,7 +205,7 @@ func TestDeletePasskey(t *testing.T) {
 			}).
 			Return(nil).Once()
 
-		require.Nil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id))
+		require.NoError(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id))
 		mockSvc.AssertExpectations(t)
 	})
 
@@ -216,12 +216,12 @@ func TestDeletePasskey(t *testing.T) {
 		ordinary := createSession(t, th.BasicUser.Id, model.SessionLoginMethodPasskey, pk.Id, false)
 
 		appErr := th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
-		require.Equal(t, "app.passkey.revoke_sessions.app_error", appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, "app.passkey.revoke_sessions.app_error", model.AsAppError(appErr).Id)
 
 		passkeys, getErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
-		require.Nil(t, getErr)
+		require.NoError(t, getErr)
 		for _, p := range passkeys {
 			require.NotEqual(t, pk.Id, p.Id)
 		}
@@ -232,7 +232,7 @@ func TestDeletePasskey(t *testing.T) {
 		pk := savePasskey(t, th, th.BasicUser2.Id, "theirs", model.GetMillis())
 		theirs := createSession(t, th.BasicUser2.Id, model.SessionLoginMethodPasskey, pk.Id, false)
 
-		require.NotNil(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id))
+		require.Error(t, th.App.DeletePasskey(th.Context, th.BasicUser.Id, pk.Id))
 		require.False(t, sessionEnded(t, theirs))
 	})
 }
@@ -260,7 +260,7 @@ func TestConfirmPasskeySession(t *testing.T) {
 		pk := savePasskey(t, th, th.BasicUser.Id, "here", model.GetMillis())
 		session := sessionFor(t, pk)
 
-		require.Nil(t, th.App.ConfirmPasskeySession(th.Context, session, pk))
+		require.NoError(t, th.App.ConfirmPasskeySession(th.Context, session, pk))
 		require.False(t, sessionEnded(t, session))
 	})
 
@@ -270,9 +270,9 @@ func TestConfirmPasskeySession(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().Passkey().Delete(pk.UserId, pk.Id))
 
 		appErr := th.App.ConfirmPasskeySession(th.Context, session, pk)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusUnauthorized, appErr.StatusCode)
-		require.Equal(t, "app.passkey.unknown_credential.app_error", appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusUnauthorized, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, "app.passkey.unknown_credential.app_error", model.AsAppError(appErr).Id)
 		require.True(t, sessionEnded(t, session))
 	})
 
@@ -282,7 +282,7 @@ func TestConfirmPasskeySession(t *testing.T) {
 		session := sessionFor(t, pk)
 		require.NoError(t, th.App.Srv().Store().Passkey().Delete(other.UserId, other.Id))
 
-		require.Nil(t, th.App.ConfirmPasskeySession(th.Context, session, pk))
+		require.NoError(t, th.App.ConfirmPasskeySession(th.Context, session, pk))
 		require.False(t, sessionEnded(t, session))
 	})
 
@@ -294,9 +294,9 @@ func TestConfirmPasskeySession(t *testing.T) {
 		t.Cleanup(func() { th.App.Srv().SetStore(original) })
 
 		appErr := th.App.ConfirmPasskeySession(th.Context, session, pk)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
-		require.Equal(t, "app.passkey.finish_login.app_error", appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, "app.passkey.finish_login.app_error", model.AsAppError(appErr).Id)
 		require.True(t, sessionEnded(t, session))
 	})
 }
@@ -329,13 +329,13 @@ func TestPasskeyRelyingParty(t *testing.T) {
 
 			rp, appErr := th.App.passkeyRelyingParty()
 			if tc.wantErr {
-				require.NotNil(t, appErr)
+				require.Error(t, appErr)
 				require.Nil(t, rp)
-				require.Equal(t, "app.passkey.unavailable.app_error", appErr.Id)
-				require.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+				require.Equal(t, "app.passkey.unavailable.app_error", model.AsAppError(appErr).Id)
+				require.Equal(t, http.StatusNotImplemented, model.AsAppError(appErr).StatusCode)
 				return
 			}
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			require.NotNil(t, rp)
 
 			cfg := rp.Config
@@ -385,7 +385,7 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 	begin := func(t *testing.T, session *model.Session) (*model.PasskeyRegistrationOptions, creation) {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, opts)
 		var c creation
 		require.NoError(t, json.Unmarshal(opts.Options, &c))
@@ -395,9 +395,9 @@ func TestBeginPasskeyRegistration(t *testing.T) {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
 		require.Nil(t, opts)
-		require.NotNil(t, appErr)
-		require.Equal(t, status, appErr.StatusCode)
-		require.Equal(t, id, appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, status, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, id, model.AsAppError(appErr).Id)
 	}
 
 	t.Run("fresh standard session gets options and a stored ceremony", func(t *testing.T) {
@@ -522,9 +522,9 @@ func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
 		t.Helper()
 		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
 		require.Nil(t, ticket)
-		require.NotNil(t, appErr)
-		require.Equal(t, status, appErr.StatusCode)
-		require.Equal(t, id, appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, status, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, id, model.AsAppError(appErr).Id)
 	}
 
 	t.Run("stored session gets a ticket tied to it", func(t *testing.T) {
@@ -532,7 +532,7 @@ func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
 		session := storedSession(t, user.Id)
 
 		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, ticket)
 		require.Len(t, ticket.Ticket, model.TokenSize)
 
@@ -548,7 +548,7 @@ func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
 
 	t.Run("ticket expires after 10 minutes", func(t *testing.T) {
 		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, storedSession(t, th.CreateUser(t).Id))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, ticket)
 		token, err := th.App.Srv().Store().Token().GetByToken(ticket.Ticket)
 		require.NoError(t, err)
@@ -564,7 +564,7 @@ func TestCreatePasskeyEnrollmentTicket(t *testing.T) {
 		session := storedSession(t, th.CreateUser(t).Id)
 		session.CreateAt = model.GetMillis() - 11*60*1000
 		ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, ticket)
 	})
 
@@ -618,7 +618,7 @@ func TestBeginPasskeyLogin(t *testing.T) {
 	begin := func(t *testing.T) (*model.PasskeyLoginOptions, assertion) {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyLogin(th.Context)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, opts)
 		var a assertion
 		require.NoError(t, json.Unmarshal(opts.Options, &a))
@@ -666,9 +666,9 @@ func TestBeginPasskeyLogin(t *testing.T) {
 		})
 		opts, appErr := th.App.BeginPasskeyLogin(th.Context)
 		require.Nil(t, opts)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-		require.Equal(t, "app.passkey.unavailable.app_error", appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusNotImplemented, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, "app.passkey.unavailable.app_error", model.AsAppError(appErr).Id)
 	})
 }
 
@@ -684,7 +684,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 	begin := func(t *testing.T, session *model.Session) *model.PasskeyRegistrationOptions {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return opts
 	}
 	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
@@ -699,17 +699,18 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		require.NoError(t, err)
 		return resp
 	}
-	requireFails := func(t *testing.T, pk *model.Passkey, appErr *model.AppError, status int, id string) {
+	requireFails := func(t *testing.T, pk *model.Passkey, err error, status int, id string) {
 		t.Helper()
 		require.Nil(t, pk)
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		appErr := model.AsAppError(err)
 		require.Equal(t, status, appErr.StatusCode)
 		require.Equal(t, id, appErr.Id)
 	}
 	stored := func(t *testing.T, userID string) []*model.Passkey {
 		t.Helper()
 		passkeys, appErr := th.App.GetPasskeysForUser(userID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return passkeys
 	}
 
@@ -720,7 +721,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		auth := newAuthenticator(t)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, " My laptop ", chromeOnMac, respond(t, auth, opts, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 		require.Equal(t, "My laptop", pk.Name)
 
@@ -753,7 +754,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "  ", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Equal(t, "Chrome on Mac OS", pk.Name)
 	})
 
@@ -763,7 +764,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "", "", respond(t, newAuthenticator(t), opts, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Equal(t, "Passkey", pk.Name)
 	})
 
@@ -777,7 +778,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.name_too_long.app_error")
 
 		pk, appErr = th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, strings.Repeat("é", model.PasskeyNameMaxRunes), chromeOnMac, resp)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 	})
 
@@ -788,7 +789,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		resp := respond(t, newAuthenticator(t), opts, origin)
 
 		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, resp)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, resp)
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
@@ -892,7 +893,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "My laptop", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 		mockSvc.AssertNumberOfCalls(t, "SendPasskeyAddedEmail", 1)
 		mockSvc.AssertExpectations(t)
@@ -906,7 +907,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "a").Return(errors.New("smtp down")).Once()
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 		require.Len(t, stored(t, user.Id), 1)
 		mockSvc.AssertExpectations(t)
@@ -929,7 +930,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 
 		opts := begin(t, session)
 		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, auth, opts, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// The soft authenticator ignores excludeCredentials, as a misbehaving client might.
 		opts = begin(t, session)
@@ -947,7 +948,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		first, second := begin(t, session), begin(t, session)
 
 		_, appErr := th.App.FinishPasskeyRegistration(th.Context, session, first.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), first, origin))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, second.CeremonyId, "b", chromeOnMac, respond(t, newAuthenticator(t), second, origin))
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.limit_reached.app_error")
@@ -962,7 +963,7 @@ func TestFinishPasskeyRegistration(t *testing.T) {
 		opts := begin(t, session)
 
 		pk, appErr := th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", chromeOnMac, respond(t, newAuthenticator(t), opts, "https://xn--bcher-kva.example"))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 	})
 }
@@ -995,7 +996,7 @@ func agePasskeyTicket(t *testing.T, th *TestHelper, ticket string) {
 func issuePasskeyTicket(t *testing.T, th *TestHelper, session *model.Session) string {
 	t.Helper()
 	ticket, appErr := th.App.CreatePasskeyEnrollmentTicket(th.Context, session)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	return ticket.Ticket
 }
 
@@ -1043,7 +1044,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 	begin := func(t *testing.T, ticket string) *model.PasskeyRegistrationOptions {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyRegistrationWithTicket(th.Context, ticket)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return opts
 	}
 	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
@@ -1058,14 +1059,15 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		require.NoError(t, err)
 		return resp
 	}
-	finish := func(t *testing.T, opts *model.PasskeyRegistrationOptions, name string, resp []byte) (*model.Passkey, *model.AppError) {
+	finish := func(t *testing.T, opts *model.PasskeyRegistrationOptions, name string, resp []byte) (*model.Passkey, error) {
 		t.Helper()
 		return th.App.FinishPasskeyRegistrationWithTicket(th.Context, opts.CeremonyId, name, chromeOnMac, resp)
 	}
-	requireFails := func(t *testing.T, pk *model.Passkey, appErr *model.AppError, status int, id string) {
+	requireFails := func(t *testing.T, pk *model.Passkey, err error, status int, id string) {
 		t.Helper()
 		require.Nil(t, pk)
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		appErr := model.AsAppError(err)
 		require.Equal(t, status, appErr.StatusCode)
 		require.Equal(t, id, appErr.Id)
 	}
@@ -1073,21 +1075,21 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyRegistrationWithTicket(th.Context, ticket)
 		require.Nil(t, opts)
-		require.NotNil(t, appErr)
-		require.Equal(t, status, appErr.StatusCode)
-		require.Equal(t, id, appErr.Id)
+		require.Error(t, appErr)
+		require.Equal(t, status, model.AsAppError(appErr).StatusCode)
+		require.Equal(t, id, model.AsAppError(appErr).Id)
 	}
 	stored := func(t *testing.T, userID string) []*model.Passkey {
 		t.Helper()
 		passkeys, appErr := th.App.GetPasskeysForUser(userID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return passkeys
 	}
 	register := func(t *testing.T, ticket string) *model.Passkey {
 		t.Helper()
 		opts := begin(t, ticket)
 		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return pk
 	}
 	withTicketStore := func(t *testing.T, tokens *ticketTokenStore) {
@@ -1101,7 +1103,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		auth := newAuthenticator(t)
 
 		pk, appErr := finish(t, opts, " ", respond(t, auth, opts))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 		require.Equal(t, "Chrome on Mac OS", pk.Name)
 
@@ -1116,7 +1118,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		opts := begin(t, ticket)
 
 		pk, appErr := finish(t, opts, " My laptop ", respond(t, newAuthenticator(t), opts))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Equal(t, "My laptop", pk.Name)
 	})
 
@@ -1129,7 +1131,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.name_too_long.app_error")
 
 		pk, appErr = finish(t, opts, "ok", resp)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 		require.Len(t, stored(t, user.Id), 1)
 	})
@@ -1140,7 +1142,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		require.NotEqual(t, first.CeremonyId, second.CeremonyId)
 
 		pk, appErr := finish(t, second, "a", respond(t, newAuthenticator(t), second))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, pk)
 
 		// The first ceremony is still unexpired, but the ticket behind it is spent.
@@ -1164,7 +1166,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		// A ceremony token carries the same user and session ids as a ticket, so only its type refuses it.
 		session := storedSession(t, th.CreateUser(t).Id, model.SessionLoginMethodStandard)
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		requireBeginFails(t, opts.CeremonyId, http.StatusBadRequest, ticketInvalid)
 	})
@@ -1342,9 +1344,9 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		user, session, ticket := fresh(t)
 		auth := newAuthenticator(t)
 		sessionOpts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		_, appErr = th.App.FinishPasskeyRegistration(th.Context, session, sessionOpts.CeremonyId, "a", chromeOnMac, respond(t, auth, sessionOpts))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		opts := begin(t, ticket)
 		pk, appErr := finish(t, opts, "b", respond(t, auth, opts))
@@ -1367,7 +1369,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 	t.Run("a ceremony begun from a session is refused by ticket registration", func(t *testing.T) {
 		user, session, ticket := fresh(t)
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		pk, appErr := finish(t, opts, "a", respond(t, newAuthenticator(t), opts))
 		requireFails(t, pk, appErr, http.StatusBadRequest, "app.passkey.ceremony_invalid.app_error")
@@ -1455,7 +1457,7 @@ func TestPasskeyRegistrationWithTicket(t *testing.T) {
 		mockSvc.On("SendPasskeyAddedEmail", user.Email, user.Locale, th.App.GetSiteURL(), "My laptop").Return(nil).Once()
 
 		_, appErr := finish(t, opts, "My laptop", respond(t, newAuthenticator(t), opts))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		mockSvc.AssertExpectations(t)
 	})
 }
@@ -1492,11 +1494,11 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		t.Helper()
 		session := recentSession(user.Id)
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		resp, err := auth.CreateResponse(opts.Options, origin)
 		require.NoError(t, err)
 		_, appErr = th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", "", resp)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 	}
 	// registered returns a user with one passkey, its recently signed-in stored session and a ticket
 	// that session issued.
@@ -1510,7 +1512,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 	begin := func(t *testing.T, ticket string) *model.PasskeyLoginOptions {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyVerificationWithTicket(th.Context, ticket)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.NotNil(t, opts)
 		return opts
 	}
@@ -1520,19 +1522,20 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.NoError(t, err)
 		return resp
 	}
-	verify := func(t *testing.T, ticket string, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) *model.AppError {
+	verify := func(t *testing.T, ticket string, auth *testlib.SoftAuthenticator, authOpts ...testlib.SoftAuthenticatorOption) error {
 		t.Helper()
 		opts := begin(t, ticket)
 		_, appErr := th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts, authOpts...))
 		return appErr
 	}
-	finishErr := func(ceremonyID string, credential []byte) *model.AppError {
+	finishErr := func(ceremonyID string, credential []byte) error {
 		_, appErr := th.App.FinishPasskeyVerificationWithTicket(th.Context, ceremonyID, credential)
 		return appErr
 	}
-	requireFails := func(t *testing.T, appErr *model.AppError, status int, id string) {
+	requireFails := func(t *testing.T, err error, status int, id string) {
 		t.Helper()
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		appErr := model.AsAppError(err)
 		require.Equal(t, status, appErr.StatusCode)
 		require.Equal(t, id, appErr.Id)
 	}
@@ -1545,7 +1548,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 	stored := func(t *testing.T, userID string) []*model.Passkey {
 		t.Helper()
 		passkeys, appErr := th.App.GetPasskeysForUser(userID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return passkeys
 	}
 	sessionCount := func(t *testing.T, userID string) int {
@@ -1598,7 +1601,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 		verifiedUserID, appErr := th.App.FinishPasskeyVerificationWithTicket(th.Context, opts.CeremonyId, assert(t, auth, opts))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Equal(t, user.Id, verifiedUserID)
 		require.Positive(t, stored(t, user.Id)[0].LastUsedAt)
 		require.Equal(t, sessions, sessionCount(t, user.Id))
@@ -1616,25 +1619,25 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		begun := make([]*model.PasskeyRegistrationOptions, len(auths))
 		for i, session := range sessions {
 			opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			begun[i] = opts
 		}
 		for i, auth := range auths {
 			resp, err := auth.CreateResponse(begun[i].Options, origin)
 			require.NoError(t, err)
 			_, appErr := th.App.FinishPasskeyRegistration(th.Context, sessions[i], begun[i].CeremonyId, "a", "", resp)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 		}
 		passkeys := stored(t, user.Id)
 		require.Len(t, passkeys, 2)
 		require.NotEqual(t, passkeys[0].UserHandle, passkeys[1].UserHandle)
 		session := storedPasskeySession(t, th, user.Id, model.SessionLoginMethodStandard)
 
-		require.Nil(t, verify(t, issuePasskeyTicket(t, th, session), auths[1]))
+		require.NoError(t, verify(t, issuePasskeyTicket(t, th, session), auths[1]))
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 		require.Positive(t, stored(t, user.Id)[1].LastUsedAt)
 
-		require.Nil(t, verify(t, issuePasskeyTicket(t, th, session), auths[0]))
+		require.NoError(t, verify(t, issuePasskeyTicket(t, th, session), auths[0]))
 		require.Positive(t, stored(t, user.Id)[0].LastUsedAt)
 	})
 
@@ -1680,7 +1683,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		requireFails(t, verify(t, ticket, other), http.StatusUnauthorized, invalidCredential)
 		require.Zero(t, stored(t, user.Id)[0].LastUsedAt)
 
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 	})
 
 	t.Run("a passkey deleted after begin is refused", func(t *testing.T) {
@@ -1689,7 +1692,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		opts := begin(t, ticket)
 		for _, p := range stored(t, user.Id) {
 			if string(p.CredentialId) == string(auth.CredentialID) {
-				require.Nil(t, th.App.DeletePasskey(th.Context, user.Id, p.Id))
+				require.NoError(t, th.App.DeletePasskey(th.Context, user.Id, p.Id))
 			}
 		}
 
@@ -1700,7 +1703,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 
 		requireFails(t, verify(t, ticket, auth, testlib.WithoutUserVerification()), http.StatusUnauthorized, invalidCredential)
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 	})
 
 	t.Run("a garbage credential is refused and the ticket still works", func(t *testing.T) {
@@ -1708,14 +1711,14 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		opts := begin(t, ticket)
 
 		requireFails(t, finishErr(opts.CeremonyId, []byte(`{"id":`)), http.StatusBadRequest, invalidCredential)
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 	})
 
 	t.Run("the counter must increase, and a ticket survives a refusal", func(t *testing.T) {
 		user, auth, session, ticket := registered(t)
 
 		auth.SignCount = 5
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 		require.EqualValues(t, 5, stored(t, user.Id)[0].SignCount)
 
 		ticket = issuePasskeyTicket(t, th, session)
@@ -1723,15 +1726,15 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		require.EqualValues(t, 5, stored(t, user.Id)[0].SignCount)
 
 		auth.SignCount = 6
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 		require.EqualValues(t, 6, stored(t, user.Id)[0].SignCount)
 	})
 
 	t.Run("a counter that stays at zero is accepted", func(t *testing.T) {
 		_, auth, session, ticket := registered(t)
 
-		require.Nil(t, verify(t, ticket, auth))
-		require.Nil(t, verify(t, issuePasskeyTicket(t, th, session), auth))
+		require.NoError(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, issuePasskeyTicket(t, th, session), auth))
 	})
 
 	t.Run("a failure to record the use is a server error", func(t *testing.T) {
@@ -1767,7 +1770,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 
 	t.Run("a spent ticket cannot begin again", func(t *testing.T) {
 		_, auth, _, ticket := registered(t)
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 
 		requireBeginFails(t, ticket, http.StatusBadRequest, ticketInvalid)
 	})
@@ -1775,7 +1778,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 	t.Run("a ticket spent by another finish refuses the other ceremony", func(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 		first, second := begin(t, ticket), begin(t, ticket)
-		require.Nil(t, finishErr(first.CeremonyId, assert(t, auth, first)))
+		require.NoError(t, finishErr(first.CeremonyId, assert(t, auth, first)))
 
 		auth.SignCount = 1
 		requireFails(t, finishErr(second.CeremonyId, assert(t, auth, second)), http.StatusBadRequest, ticketInvalid)
@@ -1790,7 +1793,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 
 		_, _, session, _ := registered(t)
 		reg, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		requireBeginFails(t, reg.CeremonyId, http.StatusBadRequest, ticketInvalid)
 	})
 
@@ -1818,7 +1821,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		_, auth, session, ticket := registered(t)
 		agePasskeySession(t, th, session)
 
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 	})
 
 	t.Run("a ticket consumed by a concurrent finish records nothing", func(t *testing.T) {
@@ -1874,7 +1877,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		_, auth, _, ticket := registered(t)
 		useTicketStore(t, th, &ticketTokenStore{getByToken: func() (*model.Token, error) { return nil, store.NewErrNotFound("Token", "x") }})
 
-		require.Nil(t, verify(t, ticket, auth))
+		require.NoError(t, verify(t, ticket, auth))
 	})
 
 	t.Run("a failure to read the passkeys is a server error at begin and at finish", func(t *testing.T) {
@@ -1911,8 +1914,8 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 
 		opts, appErr := th.App.BeginPasskeyVerificationWithTicket(th.Context, ticket)
 		require.Nil(t, opts)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Error(t, appErr)
+		require.Equal(t, http.StatusNotFound, model.AsAppError(appErr).StatusCode)
 	})
 
 	t.Run("an unusable Site URL is a 501 at begin and at finish", func(t *testing.T) {
@@ -1973,7 +1976,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		user, auth, _, ticket := registered(t)
 
 		login, appErr := th.App.BeginPasskeyLogin(th.Context)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		requireFails(t, finishErr(login.CeremonyId, assert(t, auth, login)), http.StatusBadRequest, ceremonyInvalid)
 
 		opts := begin(t, ticket)
@@ -1996,11 +1999,11 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		t.Helper()
 		session := recentSession(user.Id)
 		opts, appErr := th.App.BeginPasskeyRegistration(th.Context, session)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		resp, err := auth.CreateResponse(opts.Options, origin, authOpts...)
 		require.NoError(t, err)
 		_, appErr = th.App.FinishPasskeyRegistration(th.Context, session, opts.CeremonyId, "a", "", resp)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 	}
 	newAuthenticator := func(t *testing.T) *testlib.SoftAuthenticator {
 		t.Helper()
@@ -2017,10 +2020,10 @@ func TestFinishPasskeyLogin(t *testing.T) {
 	begin := func(t *testing.T) *model.PasskeyLoginOptions {
 		t.Helper()
 		opts, appErr := th.App.BeginPasskeyLogin(th.Context)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		return opts
 	}
-	finish := func(t *testing.T, auth *testlib.SoftAuthenticator, origin string, authOpts ...testlib.SoftAuthenticatorOption) (*model.User, *model.AppError) {
+	finish := func(t *testing.T, auth *testlib.SoftAuthenticator, origin string, authOpts ...testlib.SoftAuthenticatorOption) (*model.User, error) {
 		t.Helper()
 		opts := begin(t)
 		resp, err := auth.GetAssertion(opts.Options, origin, authOpts...)
@@ -2028,23 +2031,24 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		user, _, appErr := th.App.FinishPasskeyLogin(th.Context, opts.CeremonyId, resp)
 		return user, appErr
 	}
-	requireFails := func(t *testing.T, user *model.User, appErr *model.AppError, status int, id string) {
+	requireFails := func(t *testing.T, user *model.User, err error, status int, id string) {
 		t.Helper()
 		require.Nil(t, user)
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		appErr := model.AsAppError(err)
 		require.Equal(t, status, appErr.StatusCode)
 		require.Equal(t, id, appErr.Id)
 	}
-	requireSucceeds := func(t *testing.T, want *model.User, got *model.User, appErr *model.AppError) {
+	requireSucceeds := func(t *testing.T, want *model.User, got *model.User, err error) {
 		t.Helper()
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 		require.NotNil(t, got)
 		require.Equal(t, want.Id, got.Id)
 	}
 	storedPasskey := func(t *testing.T, userID string) *model.Passkey {
 		t.Helper()
 		passkeys, appErr := th.App.GetPasskeysForUser(userID)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Len(t, passkeys, 1)
 		return passkeys[0]
 	}
@@ -2145,7 +2149,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 
 	t.Run("a deleted passkey is refused as unknown", func(t *testing.T) {
 		user, auth := registered(t)
-		require.Nil(t, th.App.DeletePasskey(th.Context, user.Id, storedPasskey(t, user.Id).Id))
+		require.NoError(t, th.App.DeletePasskey(th.Context, user.Id, storedPasskey(t, user.Id).Id))
 
 		got, appErr := finish(t, auth, origin)
 		requireFails(t, got, appErr, http.StatusUnauthorized, "app.passkey.unknown_credential.app_error")
@@ -2217,7 +2221,7 @@ func TestFinishPasskeyLogin(t *testing.T) {
 	t.Run("a registration ceremony cannot finish a sign-in", func(t *testing.T) {
 		_, auth := registered(t)
 		reg, appErr := th.App.BeginPasskeyRegistration(th.Context, recentSession(th.CreateUser(t).Id))
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		resp, err := auth.GetAssertion(begin(t).Options, origin)
 		require.NoError(t, err)
 
@@ -2230,8 +2234,8 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		_, appErr := th.App.UpdateActive(th.Context, user, false)
 		require.Nil(t, appErr)
 
-		got, appErr := finish(t, auth, origin)
-		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.login.inactive.app_error")
+		got, err := finish(t, auth, origin)
+		requireFails(t, got, err, http.StatusUnauthorized, "api.user.login.inactive.app_error")
 		require.Zero(t, storedPasskey(t, user.Id).LastUsedAt)
 	})
 
@@ -2240,8 +2244,8 @@ func TestFinishPasskeyLogin(t *testing.T) {
 		_, appErr := th.App.ConvertUserToBot(th.Context, user)
 		require.Nil(t, appErr)
 
-		got, appErr := finish(t, auth, origin)
-		requireFails(t, got, appErr, http.StatusUnauthorized, "api.user.login.bot_login_forbidden.app_error")
+		got, err := finish(t, auth, origin)
+		requireFails(t, got, err, http.StatusUnauthorized, "api.user.login.bot_login_forbidden.app_error")
 	})
 
 	t.Run("a user locked out by failed password attempts is refused", func(t *testing.T) {

@@ -795,7 +795,7 @@ func TestRevokePasskeySessions(t *testing.T) {
 		noProps := create(th.BasicUser.Id, "")
 		passkeyB := create(th.BasicUser2.Id, model.SessionLoginMethodPasskey)
 
-		require.Nil(t, th.App.RevokePasskeySessions(th.Context))
+		require.NoError(t, th.App.RevokePasskeySessions(th.Context))
 
 		_, appErr := th.App.GetSession(passkeyA.Token)
 		require.NotNil(t, appErr)
@@ -808,7 +808,7 @@ func TestRevokePasskeySessions(t *testing.T) {
 	})
 
 	t.Run("no passkey sessions", func(t *testing.T) {
-		require.Nil(t, th.App.RevokePasskeySessions(th.Context))
+		require.NoError(t, th.App.RevokePasskeySessions(th.Context))
 	})
 }
 

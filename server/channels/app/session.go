@@ -314,7 +314,7 @@ func (a *App) RevokeSessionsFromAllUsers(rctx request.CTX) *model.AppError {
 }
 
 // RevokePasskeySessions revokes every session started by a passkey sign-in, for all users.
-func (a *App) RevokePasskeySessions(rctx request.CTX) *model.AppError {
+func (a *App) RevokePasskeySessions(rctx request.CTX) error {
 	sessions, err := a.Srv().Store().Session().GetSessionsByLoginMethod(model.SessionLoginMethodPasskey)
 	if err != nil {
 		return model.NewAppError("RevokePasskeySessions", "app.session.get_passkey_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

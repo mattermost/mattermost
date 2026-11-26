@@ -179,7 +179,7 @@ func TestDeletePasskey(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 
 		passkeys, err := th.App.GetPasskeysForUser(th.BasicUser2.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Len(t, passkeys, 1)
 	})
 
@@ -192,7 +192,7 @@ func TestDeletePasskey(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		passkeys, appErr := th.App.GetPasskeysForUser(th.BasicUser2.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Len(t, passkeys, 1)
 	})
 
@@ -690,7 +690,7 @@ func TestPasskeyVerificationWithTicket(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, verified.UserId)
 
 		list, appErr := th.App.GetPasskeysForUser(th.BasicUser.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		require.Len(t, list, 1)
 		assert.Equal(t, pk.Id, list[0].Id)
 		assert.NotZero(t, list[0].LastUsedAt)

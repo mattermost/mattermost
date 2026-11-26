@@ -26,7 +26,7 @@ import (
 
 // GetPasskeysForUser returns the user's passkeys, oldest first. It is not gated on the Passkeys
 // feature flag or license: the API layer decides who may call it.
-func (a *App) GetPasskeysForUser(userID string) ([]*model.Passkey, *model.AppError) {
+func (a *App) GetPasskeysForUser(userID string) ([]*model.Passkey, error) {
 	passkeys, err := a.Srv().Store().Passkey().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetPasskeysForUser", "app.passkey.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -42,7 +42,7 @@ func (a *App) GetPasskeysForUser(userID string) ([]*model.Passkey, *model.AppErr
 // passkey stays deleted, the remaining sessions are still attempted and the caller gets a 500.
 // Sessions with no recorded passkey id are not matched here. Once the passkey is deleted the user
 // is emailed; a failure to send is logged and does not change the result.
-func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.AppError {
+func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) error {
 	// The store delete reports no name, and the removal email needs one.
 	passkeys, err := a.Srv().Store().Passkey().GetForUser(userID)
 	if err != nil {
@@ -76,7 +76,7 @@ func (a *App) DeletePasskey(rctx request.CTX, userID, passkeyID string) *model.A
 		return model.NewAppError("DeletePasskey", "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var revokeErr *model.AppError
+	var revokeErr error
 	for _, session := range sessions {
 		if appErr := a.RevokeSession(rctx, session); appErr != nil {
 			revokeErr = model.NewAppError("DeletePasskey", "app.passkey.revoke_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
@@ -100,7 +100,7 @@ func (a *App) sendPasskeyRemovedEmail(rctx request.CTX, userID, name string) {
 // every call because the Site URL can change at runtime and construction is cheap. Any reason the
 // library or PasskeyRPID rejects the Site URL is reported as 501, never 500: the server is
 // correctly configured to refuse, not broken.
-func (a *App) passkeyRelyingParty() (*webauthn.WebAuthn, *model.AppError) {
+func (a *App) passkeyRelyingParty() (*webauthn.WebAuthn, error) {
 	cfg := a.Config()
 	siteURL := *cfg.ServiceSettings.SiteURL
 
@@ -206,7 +206,7 @@ func passkeySignedInRecently(session *model.Session) bool {
 
 // BeginPasskeyRegistration starts a registration ceremony for the session's user. It does not check
 // the Passkeys feature flag or license: the API layer decides whether the caller may get here.
-func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session) (*model.PasskeyRegistrationOptions, *model.AppError) {
+func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session) (*model.PasskeyRegistrationOptions, error) {
 	return a.beginPasskeyRegistration(rctx, session, "")
 }
 
@@ -214,7 +214,7 @@ func (a *App) BeginPasskeyRegistration(rctx request.CTX, session *model.Session)
 // issued the enrollment ticket. The ticket is only read here, not consumed, so the browser page may
 // begin again while the ticket is valid; the first successful finish spends it. The recent sign-in
 // rule applies to the issuing session, not to any other session of the user.
-func (a *App) BeginPasskeyRegistrationWithTicket(rctx request.CTX, ticket string) (*model.PasskeyRegistrationOptions, *model.AppError) {
+func (a *App) BeginPasskeyRegistrationWithTicket(rctx request.CTX, ticket string) (*model.PasskeyRegistrationOptions, error) {
 	session, appErr := a.passkeyTicketSession(rctx, ticket)
 	if appErr != nil {
 		return nil, appErr
@@ -226,7 +226,7 @@ func (a *App) BeginPasskeyRegistrationWithTicket(rctx request.CTX, ticket string
 // the ticket. Every way the ticket can be unusable (unknown, other type, expired, unreadable, or its
 // session gone, expired or someone else's) gives the same ticket_invalid, so callers learn nothing
 // about which.
-func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Session, *model.AppError) {
+func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Session, error) {
 	const where = "passkeyTicketSession"
 
 	invalid := func() *model.AppError {
@@ -264,7 +264,7 @@ func (a *App) passkeyTicketSession(rctx request.CTX, ticket string) (*model.Sess
 	return session, nil
 }
 
-func (a *App) beginPasskeyRegistration(rctx request.CTX, session *model.Session, ticket string) (*model.PasskeyRegistrationOptions, *model.AppError) {
+func (a *App) beginPasskeyRegistration(rctx request.CTX, session *model.Session, ticket string) (*model.PasskeyRegistrationOptions, error) {
 	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil {
 		return nil, appErr
@@ -276,24 +276,24 @@ func (a *App) beginPasskeyRegistration(rctx request.CTX, session *model.Session,
 		return nil, model.NewAppError("BeginPasskeyRegistration", "app.passkey.recent_login_required.app_error", nil, "", http.StatusForbidden)
 	}
 
-	passkeys, appErr := a.GetPasskeysForUser(user.Id)
-	if appErr != nil {
-		return nil, appErr
+	passkeys, err := a.GetPasskeysForUser(user.Id)
+	if err != nil {
+		return nil, err
 	}
 	if len(passkeys) >= model.PasskeyMaxPerUser {
 		return nil, model.NewAppError("BeginPasskeyRegistration", "app.passkey.limit_reached.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	rp, appErr := a.passkeyRelyingParty()
-	if appErr != nil {
-		return nil, appErr
+	rp, err := a.passkeyRelyingParty()
+	if err != nil {
+		return nil, err
 	}
 
 	// All of a user's passkeys share one handle, so a second authenticator maps to the same account.
 	handle := make([]byte, model.PasskeyUserHandleSize)
 	if len(passkeys) > 0 {
 		handle = passkeys[0].UserHandle
-	} else if _, err := rand.Read(handle); err != nil {
+	} else if _, err = rand.Read(handle); err != nil {
 		return nil, model.NewAppError("BeginPasskeyRegistration", "app.passkey.begin_registration.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -329,7 +329,7 @@ func (a *App) beginPasskeyRegistration(rctx request.CTX, session *model.Session,
 // passkey for the session's user. The ticket is tied to the given session, which must be the
 // request's own. It checks no recent-sign-in window (registering through the ticket does, against
 // the issuing session) and, like BeginPasskeyRegistration, no feature flag or license.
-func (a *App) CreatePasskeyEnrollmentTicket(rctx request.CTX, session *model.Session) (*model.PasskeyEnrollmentTicket, *model.AppError) {
+func (a *App) CreatePasskeyEnrollmentTicket(rctx request.CTX, session *model.Session) (*model.PasskeyEnrollmentTicket, error) {
 	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil {
 		return nil, appErr
@@ -352,7 +352,7 @@ func (a *App) CreatePasskeyEnrollmentTicket(rctx request.CTX, session *model.Ses
 
 // BeginPasskeyLogin starts a usernameless sign-in ceremony. It does not check the Passkeys feature
 // flag, license or settings: the API layer decides whether the caller may get here.
-func (a *App) BeginPasskeyLogin(rctx request.CTX) (*model.PasskeyLoginOptions, *model.AppError) {
+func (a *App) BeginPasskeyLogin(rctx request.CTX) (*model.PasskeyLoginOptions, error) {
 	rp, appErr := a.passkeyRelyingParty()
 	if appErr != nil {
 		return nil, appErr
@@ -384,27 +384,27 @@ func (a *App) BeginPasskeyLogin(rctx request.CTX) (*model.PasskeyLoginOptions, *
 // of the user of the session that issued the enrollment ticket, so the device can be recorded as
 // enrolled instead of getting a duplicate. It creates no session and reads no login setting. Like
 // registration through a ticket, it only reads the ticket; the first successful finish spends it.
-func (a *App) BeginPasskeyVerificationWithTicket(rctx request.CTX, ticket string) (*model.PasskeyLoginOptions, *model.AppError) {
+func (a *App) BeginPasskeyVerificationWithTicket(rctx request.CTX, ticket string) (*model.PasskeyLoginOptions, error) {
 	const where = "BeginPasskeyVerificationWithTicket"
 
-	session, appErr := a.passkeyTicketSession(rctx, ticket)
-	if appErr != nil {
-		return nil, appErr
+	session, err := a.passkeyTicketSession(rctx, ticket)
+	if err != nil {
+		return nil, err
 	}
 	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
-	passkeys, appErr := a.GetPasskeysForUser(user.Id)
-	if appErr != nil {
-		return nil, appErr
+	passkeys, err := a.GetPasskeysForUser(user.Id)
+	if err != nil {
+		return nil, err
 	}
 	if len(passkeys) == 0 {
 		return nil, model.NewAppError(where, "app.passkey.none_registered.app_error", nil, "", http.StatusBadRequest)
 	}
-	rp, appErr := a.passkeyRelyingParty()
-	if appErr != nil {
-		return nil, appErr
+	rp, err := a.passkeyRelyingParty()
+	if err != nil {
+		return nil, err
 	}
 
 	failed := func(err error) *model.AppError {
@@ -452,7 +452,7 @@ func defaultPasskeyName(userAgent string) string {
 // BeginPasskeyRegistration and stores the new passkey. Like begin, it leaves the feature flag and
 // license to the API layer. The ceremony is bound to the session that began it, and that same
 // session must still be a recent sign-in: another session of the same user does not qualify.
-func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, *model.AppError) {
+func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, error) {
 	const where = "FinishPasskeyRegistration"
 
 	name, ceremony, appErr := a.takePasskeyCeremony(where, ceremonyID, name, userAgent)
@@ -471,7 +471,7 @@ func (a *App) FinishPasskeyRegistration(rctx request.CTX, session *model.Session
 // from the ticket and must still be a recent sign-in. The ticket is spent once the library accepts
 // the credential, before the passkey is saved: a refused credential leaves the ticket usable, and
 // two finishes on one ticket save at most one passkey.
-func (a *App) FinishPasskeyRegistrationWithTicket(rctx request.CTX, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, *model.AppError) {
+func (a *App) FinishPasskeyRegistrationWithTicket(rctx request.CTX, ceremonyID, name, userAgent string, credential []byte) (*model.Passkey, error) {
 	const where = "FinishPasskeyRegistrationWithTicket"
 
 	name, ceremony, appErr := a.takePasskeyCeremony(where, ceremonyID, name, userAgent)
@@ -492,7 +492,7 @@ func (a *App) FinishPasskeyRegistrationWithTicket(rctx request.CTX, ceremonyID, 
 	return a.completePasskeyRegistration(rctx, where, session, ceremony, name, credential)
 }
 
-func (a *App) takePasskeyCeremony(where, ceremonyID, name, userAgent string) (string, *passkeyCeremony, *model.AppError) {
+func (a *App) takePasskeyCeremony(where, ceremonyID, name, userAgent string) (string, *passkeyCeremony, error) {
 	name = strings.TrimSpace(name)
 	if utf8.RuneCountInString(name) > model.PasskeyNameMaxRunes {
 		return "", nil, model.NewAppError(where, "app.passkey.name_too_long.app_error", nil, "", http.StatusBadRequest)
@@ -518,7 +518,7 @@ func (a *App) takePasskeyCeremony(where, ceremonyID, name, userAgent string) (st
 	return name, &ceremony, nil
 }
 
-func (a *App) completePasskeyRegistration(rctx request.CTX, where string, session *model.Session, ceremony *passkeyCeremony, name string, credential []byte) (*model.Passkey, *model.AppError) {
+func (a *App) completePasskeyRegistration(rctx request.CTX, where string, session *model.Session, ceremony *passkeyCeremony, name string, credential []byte) (*model.Passkey, error) {
 	// Checked again here: the session may have been recent when the ceremony began but not by now.
 	if !passkeySignedInRecently(session) {
 		return nil, model.NewAppError(where, "app.passkey.recent_login_required.app_error", nil, "", http.StatusForbidden)
@@ -536,13 +536,13 @@ func (a *App) completePasskeyRegistration(rctx request.CTX, where string, sessio
 	if appErr != nil {
 		return nil, appErr
 	}
-	passkeys, appErr := a.GetPasskeysForUser(user.Id)
-	if appErr != nil {
-		return nil, appErr
+	passkeys, err := a.GetPasskeysForUser(user.Id)
+	if err != nil {
+		return nil, err
 	}
-	rp, appErr := a.passkeyRelyingParty()
-	if appErr != nil {
-		return nil, appErr
+	rp, err := a.passkeyRelyingParty()
+	if err != nil {
+		return nil, err
 	}
 	// The library checks origin, RP ID hash, challenge and that user verification was performed.
 	cred, err := rp.CreateCredential(&passkeyUser{user: user, handle: ceremony.SessionData.UserID, passkeys: passkeys}, *ceremony.SessionData, parsed)
@@ -592,7 +592,7 @@ func (a *App) completePasskeyRegistration(rctx request.CTX, where string, sessio
 }
 
 // A ticket that is gone or expired is ticket_invalid; any other failure is a 500 with failedID.
-func (a *App) consumePasskeyTicket(where, failedID, ticket string) *model.AppError {
+func (a *App) consumePasskeyTicket(where, failedID, ticket string) error {
 	token, appErr := a.ConsumeTokenOnce(model.TokenTypePasskeyEnrollmentTicket, ticket)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return model.NewAppError(where, failedID, nil, "", http.StatusInternalServerError).Wrap(appErr)
@@ -608,7 +608,7 @@ func (a *App) consumePasskeyTicket(where, failedID, ticket string) *model.AppErr
 // checks password sign-in applies. It creates no session, checks no MFA code and leaves the user's
 // failed-attempt count alone: a failed assertion is not a failed password attempt, and a passkey
 // sign-in is not a reason to forgive earlier ones.
-func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential []byte) (*model.User, *model.Passkey, *model.AppError) {
+func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential []byte) (*model.User, *model.Passkey, error) {
 	const where = "FinishPasskeyLogin"
 
 	invalidCeremony := func() *model.AppError {
@@ -634,9 +634,9 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 		return nil, nil, model.NewAppError(where, "app.passkey.invalid_credential.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rp, appErr := a.passkeyRelyingParty()
-	if appErr != nil {
-		return nil, nil, appErr
+	rp, err := a.passkeyRelyingParty()
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// The library wraps whatever the handler returns, so the reason is carried out in these.
@@ -708,7 +708,7 @@ func (a *App) FinishPasskeyLogin(rctx request.CTX, ceremonyID string, credential
 // primary; sign-in writes the session to the primary and then re-reads the row from the primary. If
 // this finds the row, the delete has not committed, so its later session scan sees this session; if
 // the row is gone, this ends the session itself. Either way no usable session outlives its passkey.
-func (a *App) ConfirmPasskeySession(rctx request.CTX, session *model.Session, passkey *model.Passkey) *model.AppError {
+func (a *App) ConfirmPasskeySession(rctx request.CTX, session *model.Session, passkey *model.Passkey) error {
 	const where = "ConfirmPasskeySession"
 
 	current, err := a.Srv().Store().Passkey().GetByCredentialId(passkey.CredentialId)
@@ -736,7 +736,7 @@ func (a *App) ConfirmPasskeySession(rctx request.CTX, session *model.Session, pa
 // been cloned. The library flags it; the explicit comparison is kept because UpdateUsage only compares
 // the previous value, so a flag the library stopped raising would let a replayed counter through. A
 // counter that stays at 0 is normal for synced passkeys.
-func checkPasskeyCounter(where string, parsed *protocol.ParsedCredentialAssertionData, cred *webauthn.Credential, passkey *model.Passkey) *model.AppError {
+func checkPasskeyCounter(where string, parsed *protocol.ParsedCredentialAssertionData, cred *webauthn.Credential, passkey *model.Passkey) error {
 	presented := parsed.Response.AuthenticatorData.Counter
 	if cred.Authenticator.CloneWarning || (presented != 0 && int64(presented) <= passkey.SignCount) {
 		return passkeyCounterRegressed(where, errors.New("authenticator counter did not increase"))
@@ -747,7 +747,7 @@ func checkPasskeyCounter(where string, parsed *protocol.ParsedCredentialAssertio
 // The update is compare-and-set on the counter, so a concurrent use that got there first makes
 // this one counter_regressed. A miss can also mean the passkey was deleted since it was looked up,
 // which is unknown_credential: the row is re-read to tell the two apart.
-func (a *App) recordPasskeyUse(where string, passkey *model.Passkey, cred *webauthn.Credential) *model.AppError {
+func (a *App) recordPasskeyUse(where string, passkey *model.Passkey, cred *webauthn.Credential) error {
 	err := a.Srv().Store().Passkey().UpdateUsage(passkey.Id, passkey.SignCount, int64(cred.Authenticator.SignCount), model.GetMillis())
 	if err == nil {
 		return nil
@@ -768,11 +768,11 @@ func (a *App) recordPasskeyUse(where string, passkey *model.Passkey, cred *webau
 	return model.NewAppError(where, "app.passkey.update_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
 }
 
-func passkeyUnknownCredential(where string, err error) *model.AppError {
+func passkeyUnknownCredential(where string, err error) error {
 	return model.NewAppError(where, "app.passkey.unknown_credential.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 }
 
-func passkeyCounterRegressed(where string, err error) *model.AppError {
+func passkeyCounterRegressed(where string, err error) error {
 	return model.NewAppError(where, "app.passkey.counter_regressed.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 }
 
@@ -782,7 +782,7 @@ func passkeyCounterRegressed(where string, err error) *model.AppError {
 // after the assertion and counter checks pass, before the use is recorded: a refused assertion leaves
 // the ticket usable, and two finishes on one ticket cannot both succeed. It returns the ticket's
 // user id: the caller has no session, so this is how it learns whose passkey it just confirmed.
-func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID string, credential []byte) (string, *model.AppError) {
+func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID string, credential []byte) (string, error) {
 	const where = "FinishPasskeyVerificationWithTicket"
 
 	invalidCeremony := func() *model.AppError {
@@ -799,9 +799,9 @@ func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID s
 	if token.IsExpired() || json.Unmarshal([]byte(token.Extra), &ceremony) != nil || ceremony.SessionData == nil || ceremony.Ticket == "" {
 		return "", invalidCeremony()
 	}
-	session, appErr := a.passkeyTicketSession(rctx, ceremony.Ticket)
-	if appErr != nil {
-		return "", appErr
+	session, err := a.passkeyTicketSession(rctx, ceremony.Ticket)
+	if err != nil {
+		return "", err
 	}
 	if ceremony.UserID != session.UserId || ceremony.SessionID != session.Id {
 		return "", invalidCeremony()
@@ -815,13 +815,13 @@ func (a *App) FinishPasskeyVerificationWithTicket(rctx request.CTX, ceremonyID s
 	if appErr != nil {
 		return "", appErr
 	}
-	passkeys, appErr := a.GetPasskeysForUser(user.Id)
-	if appErr != nil {
-		return "", appErr
+	passkeys, err := a.GetPasskeysForUser(user.Id)
+	if err != nil {
+		return "", err
 	}
-	rp, appErr := a.passkeyRelyingParty()
-	if appErr != nil {
-		return "", appErr
+	rp, err := a.passkeyRelyingParty()
+	if err != nil {
+		return "", err
 	}
 	// Passkeys registered while the user had none each carry their own user handle, and the library
 	// refuses an assertion whose handle is not the one it is told, so validate against the presented
