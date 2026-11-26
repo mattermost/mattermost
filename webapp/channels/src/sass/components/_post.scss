@@ -1048,6 +1048,10 @@
                         display: flex;
                     }
 
+                    &.post--compact .post-preview__header .col__name:has(.post__img) {
+                        display: none;
+                    }
+
                     .post__permalink {
                         position: relative;
                         top: auto;
