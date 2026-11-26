@@ -295,6 +295,15 @@ function onDialogRequest(req, res) {
     const {body} = req;
     if (body.trigger_id) {
         const dialog = webhookUtils.getFullDialog(body.trigger_id, webhookBaseUrl);
+        if (body.text?.trim() === 'wide_table') {
+            dialog.dialog.introduction_text = [
+                'Dialog introduction',
+                '',
+                '| One | Two | Three | Four | Five | Six |',
+                '| --- | --- | --- | --- | --- | --- |',
+                ...Array.from({length: 30}, (_, i) => `| Row ${i} | ${'Long cell text '.repeat(8)} | Data | ${'Long cell text '.repeat(8)} | Data | Last |`),
+            ].join('\n');
+        }
         openDialog(dialog);
     }
 

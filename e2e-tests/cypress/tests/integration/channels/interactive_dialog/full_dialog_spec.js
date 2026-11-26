@@ -70,6 +70,45 @@ describe('Interactive Dialog - Apps Form', () => {
         cy.reload();
     });
 
+    [700, 375].forEach((width) => {
+        it(`MM-72184 - Wide introduction table is scrollable at ${width}px`, () => {
+            cy.viewport(width, 800);
+            cy.uiPostMessageQuickly('| Post header | Value |\n| --- | --- |\n| Normal | Table |');
+            cy.contains('.markdown__table th', 'Post header').should('have.css', 'position', 'static').
+                closest('.table-responsive').should('have.css', 'max-height', 'none');
+
+            cy.document().then((doc) => {
+                const style = doc.createElement('style');
+                style.textContent = '.AppsFormHeader .table-responsive { scrollbar-width: none; } .AppsFormHeader .table-responsive::-webkit-scrollbar { display: none; }';
+                doc.head.appendChild(style);
+            });
+            cy.postMessage(`/${createdCommand.trigger} wide_table`);
+
+            cy.get('#appsModal .AppsFormHeader').within(() => {
+                cy.contains('Dialog introduction').should('be.visible');
+                cy.contains('Scroll horizontally to see more columns.').should('be.visible');
+                cy.get('.table-responsive').should('have.attr', 'tabindex', '0').and('have.attr', 'role', 'region').
+                    should(($wrapper) => {
+                        const wrapper = $wrapper[0];
+                        expect(wrapper.scrollWidth).to.be.greaterThan(wrapper.clientWidth);
+                        expect(wrapper.scrollHeight).to.be.greaterThan(wrapper.clientHeight);
+                        expect(wrapper.clientHeight).to.be.at.most(400);
+                    }).
+                    then(($wrapper) => {
+                        const wrapper = $wrapper[0];
+                        const cell = wrapper.querySelector('th');
+                        wrapper.scrollTop = 200;
+                        wrapper.scrollLeft = 200;
+                        expect(wrapper.scrollTop).to.be.greaterThan(0);
+                        expect(wrapper.scrollLeft).to.be.greaterThan(0);
+                        expect(cell.getBoundingClientRect().top).to.be.closeTo(wrapper.getBoundingClientRect().top, 2);
+                    });
+            });
+
+            cy.get('#realname').should('exist').and('have.value', 'default text');
+        });
+    });
+
     it('MM-T2491 - UI check', () => {
         // # Post a slash command
         cy.get('#postListContent').should('be.visible');

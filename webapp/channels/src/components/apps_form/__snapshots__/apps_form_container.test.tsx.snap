@@ -74,9 +74,13 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
                 />
               </span>
             </div>
-            <p>
-              Form Header
-            </p>
+            <div
+              class="AppsFormHeader"
+            >
+              <p>
+                Form Header
+              </p>
+            </div>
             <div
               class="form-group"
               data-testid="field1"

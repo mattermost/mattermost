@@ -4188,6 +4188,8 @@
   "apps_form_file_upload.upload_failed": "Upload failed",
   "apps_form.date_field.placeholder": "Select a date",
   "apps_form.datetime_field.timezone_hint": "Times in {timezone}",
+  "apps_form.header.scrollableTable": "Scrollable table",
+  "apps_form.header.scrollHint": "Scroll horizontally to see more columns.",
   "apps.error": "Error: {error}",
   "apps.error.command.field_missing": "Required fields missing: `{fieldName}`.",
   "apps.error.command.same_channel": "Channel repeated for field `{fieldName}`: `{option}`.",
