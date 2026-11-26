@@ -4231,6 +4231,10 @@
     "defaultMessage": "This attribute is synced from {sources}. An attribute synced from OpenID Connect can't also sync from AD/LDAP or SAML.",
     "description": "Help text under a disabled field in the 'User attributes sync' section, explaining that the attribute is already synced from another identity source that cannot be combined with OpenID Connect. {sources} is a list of source names, such as AD/LDAP or OpenID Connect."
   },
+  "admin.customProfileAttributes.legacyTitle": {
+    "defaultMessage": "Custom profile attributes sync",
+    "description": "Legacy name of the 'User attributes sync' section on the AD/LDAP, SAML 2.0 and OpenID Connect System Console pages, kept as a searchable string so old searches for 'Custom profile attributes' still find those pages. Never displayed."
+  },
   "admin.customProfileAttributes.linkedNonText": {
     "defaultMessage": "This field is linked to an attribute of type {type} in Attribute Management, so it cannot be synced from an identity source. Only text, select and multiselect attributes support sync.",
     "description": "Help text under a user-attribute field in the AD/LDAP, SAML or OpenID Connect user attributes sync settings when the field is linked to an attribute defined on the System Console Attribute Management page and that attribute's type cannot be synced; explains why the sync box is disabled. {type} is the raw type identifier, such as date or user, and is not translated. 'Attribute Management' is the page name; match its translation."
