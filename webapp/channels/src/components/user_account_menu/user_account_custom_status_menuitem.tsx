@@ -20,6 +20,9 @@ import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import * as Menu from 'components/menu';
 
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+
 interface Props {
     timezone?: string;
     customStatus?: UserCustomStatus;
@@ -35,6 +38,13 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
     function handleClear(event: MouseEvent<HTMLElement> | TouchEvent) {
         event.stopPropagation();
         dispatch(unsetCustomStatus());
+    }
+
+    function handleClearKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+        if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
+            // Keep the parent menu item from also treating this keypress as its own activation
+            event.stopPropagation();
+        }
     }
 
     const hasStatusWithText = Boolean(props.customStatus?.text?.length);
@@ -102,19 +112,28 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
         });
     }
 
+    const clearLabel = formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.clearTooltip', defaultMessage: 'Clear custom status'});
+
     let trailingElement: ReactNode | null = null;
     if (showPulsatingDot) {
         trailingElement = <PulsatingDot/>;
     } else if (hasStatusWithText || hasStatusWithExpiry || hasStatusWithNoExpiry) {
         trailingElement = (
             <WithTooltip
-                title={formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.clearTooltip', defaultMessage: 'Clear custom status'})}
+                title={clearLabel}
             >
-                <i
-                    className='icon icon-close-circle userAccountMenu_menuItemTrailingIconClear'
-                    aria-hidden='true'
+                <button
+                    type='button'
+                    className='userAccountMenu_menuItemTrailingIconClear'
+                    aria-label={clearLabel}
                     onClick={handleClear}
-                />
+                    onKeyDown={handleClearKeyDown}
+                >
+                    <i
+                        className='icon icon-close-circle'
+                        aria-hidden='true'
+                    />
+                </button>
             </WithTooltip>
         );
     }

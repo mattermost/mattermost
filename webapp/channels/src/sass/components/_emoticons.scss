@@ -457,7 +457,7 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
         align-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.48);
         font-size: 12px;
-        font-weight: bold;
+        font-weight: 600;
         line-height: normal;
         text-transform: uppercase;
     }
@@ -584,7 +584,7 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     &.emoji-picker__preview-placeholder {
         span {
-            font-weight: bold;
+            font-weight: 600;
         }
     }
 
@@ -592,7 +592,7 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
         display: inline;
 
         .emoji-picker__preview-name {
-            font-weight: bold;
+            font-weight: 600;
             user-select: text;
         }
     }

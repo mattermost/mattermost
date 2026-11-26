@@ -876,7 +876,7 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "http://baseline.example.com"
-		*cfg.ServiceSettings.EnableSecurityFixAlert = false
+		*cfg.ServiceSettings.EnableInsecureOutgoingConnections = false
 		*cfg.EmailSettings.SMTPServer = "baseline-smtp.example.com"
 		*cfg.EmailSettings.SMTPPassword = "baseline-password"
 	})
@@ -897,7 +897,7 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 				cfg = th.App.Config().Clone()
 			}
 			cfg.ServiceSettings.SiteURL = new("http://changed.example.com")
-			cfg.ServiceSettings.EnableSecurityFixAlert = new(true)
+			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(true)
 			cfg.EmailSettings.SMTPServer = new("changed-smtp.example.com")
 			cfg.EmailSettings.SMTPPassword = new("changed-password")
 
@@ -906,12 +906,12 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 			CheckOKStatus(t, resp)
 
 			serverCfg := th.App.Config()
-			assert.True(t, *serverCfg.ServiceSettings.EnableSecurityFixAlert, "unprotected environment_smtp field should be writable")
+			assert.True(t, *serverCfg.ServiceSettings.EnableInsecureOutgoingConnections, "unprotected environment_web_server field should be writable")
 			assert.Equal(t, "http://baseline.example.com", *serverCfg.ServiceSettings.SiteURL)
 			assert.Equal(t, "baseline-smtp.example.com", *serverCfg.EmailSettings.SMTPServer)
 			assert.Equal(t, "baseline-password", *serverCfg.EmailSettings.SMTPPassword)
 
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableSecurityFixAlert = false })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableInsecureOutgoingConnections = false })
 		})
 	}
 
@@ -921,6 +921,92 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 		assert.Equal(t, "http://baseline.example.com", *cfg.ServiceSettings.SiteURL)
 		assert.Equal(t, "baseline-smtp.example.com", *cfg.EmailSettings.SMTPServer)
 		assert.Equal(t, model.FakeSetting, *cfg.EmailSettings.SMTPPassword)
+	})
+}
+
+func TestEnableSecurityFixAlertFollowsSiteNoticesPermissions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	grant := func(t *testing.T, permissionIDs ...string) {
+		t.Helper()
+		for _, permissionID := range permissionIDs {
+			th.AddPermissionToRole(t, permissionID, model.SystemUserRoleId)
+			t.Cleanup(func() { th.RemovePermissionFromRole(t, permissionID, model.SystemUserRoleId) })
+		}
+	}
+
+	restoreDefaults := func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableSecurityFixAlert = true
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+	}
+
+	reset := func(t *testing.T) {
+		restoreDefaults()
+		t.Cleanup(restoreDefaults)
+	}
+
+	disableSecurityFixAlert := func(t *testing.T, client *model.Client4) {
+		t.Helper()
+		_, resp, err := client.PatchConfig(context.Background(), &model.Config{
+			ServiceSettings: model.ServiceSettings{EnableSecurityFixAlert: new(false)},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	}
+
+	t.Run("SMTP permissions neither read nor write it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadEnvironmentSMTP.Id, model.PermissionSysconsoleWriteEnvironmentSMTP.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Nil(t, cfg.ServiceSettings.EnableSecurityFixAlert)
+
+		disableSecurityFixAlert(t, th.Client)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+
+	t.Run("Notices read permission reads it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadSiteNotices.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, cfg.ServiceSettings.EnableSecurityFixAlert)
+		assert.True(t, *cfg.ServiceSettings.EnableSecurityFixAlert)
+
+		_, resp, err := th.Client.PatchConfig(context.Background(), &model.Config{
+			ServiceSettings: model.ServiceSettings{EnableSecurityFixAlert: new(false)},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+
+	t.Run("Notices write permission writes it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadSiteNotices.Id, model.PermissionSysconsoleWriteSiteNotices.Id)
+
+		disableSecurityFixAlert(t, th.Client)
+		assert.False(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+
+	t.Run("RestrictSystemAdmin makes it read-only for delegated and system admins", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadSiteNotices.Id, model.PermissionSysconsoleWriteSiteNotices.Id)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, cfg.ServiceSettings.EnableSecurityFixAlert)
+
+		disableSecurityFixAlert(t, th.Client)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+
+		disableSecurityFixAlert(t, th.SystemAdminClient)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
 	})
 }
 

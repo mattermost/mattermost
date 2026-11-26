@@ -16,6 +16,14 @@ import (
 
 type Option func(s *Server) error
 
+// LatestVersionURL makes the server look up the latest release at url instead of on GitHub.
+func LatestVersionURL(url string) Option {
+	return func(s *Server) error {
+		s.latestVersionURLOverride = url
+		return nil
+	}
+}
+
 // By default, the app will use the store specified by the configuration. This allows you to
 // construct an app with a different store.
 //

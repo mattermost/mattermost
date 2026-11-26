@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -242,14 +243,12 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.HealthDashboard = true
 		cfg.ServiceSettings.SiteURL = model.NewPointer("")
-	})
+	}, LatestVersionURL(latestVersionServer(t).URL))
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
 
 	require.NoError(t, th.App.clearLatestVersionCache())
 	t.Cleanup(func() { assert.NoError(t, th.App.clearLatestVersionCache()) })
-	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
-	require.Nil(t, appErr)
 
 	job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
 	require.Nil(t, appErr)
@@ -278,4 +277,78 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 		codes[finding.Code] = finding.State
 	}
 	assert.Equal(t, "firing", codes["SITE_URL_EMPTY"])
+}
+
+// Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.
+func TestHealthCheckWorkersPollOnlyWhileLicensed(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.HealthDashboard = true
+	}, LatestVersionURL(latestVersionServer(t).URL))
+	th.App.Srv().SetLicense(nil)
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	require.NoError(t, th.App.clearLatestVersionCache())
+	t.Cleanup(func() { assert.NoError(t, th.App.clearLatestVersionCache()) })
+
+	jobServer := th.Server.Jobs
+	counting := &pollCountingStore{Store: jobServer.Store}
+	jobServer.Store = counting
+	t.Cleanup(func() { jobServer.Store = counting.Store })
+
+	ch := th.Server.Channels()
+	ch.startHealthCheckWorkers()
+	t.Cleanup(ch.stopHealthCheckWorkers)
+
+	ch.healthCheckWorkers.Watcher.PollAndNotify()
+	assert.Zero(t, counting.polls.Load(), "an unlicensed server must not query for health_check jobs")
+
+	// The workers started unlicensed; adding a license is neither a restart nor a config change.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	waitForSuccess := func(t *testing.T, job *model.Job) {
+		t.Helper()
+		require.Eventually(t, func() bool {
+			ch.healthCheckWorkers.Watcher.PollAndNotify()
+			stored, err := th.App.Srv().Store().Job().Get(th.Context, job.Id)
+			require.NoError(t, err)
+			return stored.Status == model.JobStatusSuccess
+		}, 30*time.Second, 100*time.Millisecond)
+	}
+
+	onDemand, err := th.App.StartHealthCheckRun(th.Context)
+	require.NoError(t, err)
+	waitForSuccess(t, onDemand)
+
+	scheduled, appErr := health_check.MakeScheduler(jobServer, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
+	require.Nil(t, appErr)
+	require.NotNil(t, scheduled)
+	waitForSuccess(t, scheduled)
+
+	polls := counting.polls.Load()
+	require.Positive(t, polls, "a licensed server must query for health_check jobs")
+
+	th.App.Srv().SetLicense(nil)
+	ch.healthCheckWorkers.Watcher.PollAndNotify()
+	assert.Equal(t, polls, counting.polls.Load(), "removing the license must stop the polling")
+}
+
+// pollCountingStore counts the health-check watcher's queries for pending health_check jobs.
+type pollCountingStore struct {
+	store.Store
+	polls atomic.Int32
+}
+
+func (s *pollCountingStore) Job() store.JobStore {
+	return pollCountingJobs{JobStore: s.Store.Job(), polls: &s.polls}
+}
+
+type pollCountingJobs struct {
+	store.JobStore
+	polls *atomic.Int32
+}
+
+func (j pollCountingJobs) GetAllByTypeAndStatus(rctx request.CTX, jobType string, status string) ([]*model.Job, error) {
+	if jobType == model.JobTypeHealthCheck {
+		j.polls.Add(1)
+	}
+	return j.JobStore.GetAllByTypeAndStatus(rctx, jobType, status)
 }

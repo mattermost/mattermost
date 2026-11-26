@@ -467,6 +467,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
 	})
 
+	oauthClient := ps.HTTPService().MakeClient(false)
 	for _, provider := range []struct {
 		name   string
 		sso    *model.SSOSettings
@@ -479,7 +480,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	} {
 		add(model.SafeDereference(provider.sso.Enable), networkProbe{
 			name: provider.name, section: model.SectionOAuthProbes, status: &provider.status.Status, errMsg: &provider.status.Error,
-			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, provider.sso) },
+			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, oauthClient, provider.sso) },
 		})
 	}
 
@@ -629,25 +630,25 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 // Otherwise it probes the TokenEndpoint host: any HTTP response (including
 // 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
 // Callers only probe enabled providers.
-func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) error {
+func probeOAuthProvider(ctx context.Context, client *http.Client, sso *model.SSOSettings) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
-		return probeOIDCDiscovery(ctx, discoveryEndpoint)
+		return probeOIDCDiscovery(ctx, client, discoveryEndpoint)
 	}
 	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
-		return probeOAuthTokenEndpoint(ctx, tokenEndpoint)
+		return probeOAuthTokenEndpoint(ctx, client, tokenEndpoint)
 	}
 	return errors.New("no discovery or token endpoint configured")
 }
 
-func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
+func probeOIDCDiscovery(ctx context.Context, client *http.Client, discoveryURL string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -672,12 +673,12 @@ func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
 	return nil
 }
 
-func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
+func probeOAuthTokenEndpoint(ctx context.Context, client *http.Client, tokenURL string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -694,7 +695,7 @@ func drainAndCloseBody(body io.ReadCloser) {
 	_ = body.Close()
 }
 
-// TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
+// TODO: move this into its own push proxy package once one exists, together with PushNotificationClient
 func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -706,7 +707,7 @@ func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverUR
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := ps.PushNotificationClient().Do(req)
 	if err != nil {
 		return err
 	}
