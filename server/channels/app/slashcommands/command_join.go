@@ -38,11 +38,7 @@ func (*JoinProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 }
 
 func (*JoinProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	channelName := strings.ToLower(message)
-
-	if strings.HasPrefix(message, "~") {
-		channelName = message[1:]
-	}
+	channelName := strings.ToLower(strings.TrimPrefix(message, "~"))
 
 	channel, err := a.Srv().Store().Channel().GetByName(args.TeamId, channelName, true)
 	if err != nil {
