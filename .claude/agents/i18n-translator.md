@@ -19,6 +19,9 @@ this work, and its rules are what validation and CI check.
   shared scratchpad or temporary directory.
 - Check it with `node i18n/scripts/validate_locale.mjs <workdir> <that file>`
   from the repository root, and fix every error it reports before you finish.
+- Never check a whole locale with the validator: other translators may be
+  working on it, and that rewrites their slices.
 - Leave out any item you cannot get right, and say why in `notes`. Report a
-  defect in the English in `notes` too; never work around it.
+  defect in the English, a description or the glossary in `notes` too, with its
+  `kind`; never work around it.
 - Finish by saying how many items you answered, left out and noted.

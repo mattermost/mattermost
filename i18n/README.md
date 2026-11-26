@@ -51,7 +51,7 @@ agents do the writing, and the two hand files to each other:
 | 3 | `find_new_strings.mjs` | every English string the run will translate | adds new product terms to the glossary, with a target per language |
 | 4 | `plan_translations.mjs` | each language's work, cut into slices | one translator per slice writes its answers |
 | 5 | `validate_locale.mjs` | whatever no answer covers yet, as new slices | more translators take what remains, until nothing does |
-| 6 | `finalize.mjs` | the catalogs and the baseline, all or nothing, and a report | opens the pull request |
+| 6 | `finalize.mjs` | the catalogs and the baseline, all or nothing, a report and the translators' notes | opens the pull request |
 
 The scripts are in [`scripts/`](./scripts/), and each one's header states what
 it does. They keep their working files in a directory outside the repository,
@@ -121,11 +121,15 @@ judged without reading every translation. Its description is the run's report:
 - per language, how many strings were translated, reworded but kept,
   repaired, left as they were, acknowledged as a soft finding that is right,
   carried over from renamed keys, and removed
-- the translators' notes, once per string with the languages that raised it,
-  often a defect in the English
 - the new glossary terms, for someone to agree, since they bind every later
   run
 - any language left for the next run
+
+The translators' notes follow in comments, grouped by kind: defects in the
+English, in the descriptions and in the glossary, once per string with the
+languages that raised them; then wrong translations found elsewhere in the
+catalogs, and choices to check, per language. The first three are for pull
+requests of their own; a run fixes none of them.
 
 The changes to `en.json` in a run are only descriptions that were empty. A
 translation run never changes the English; a defect it finds is reported, for

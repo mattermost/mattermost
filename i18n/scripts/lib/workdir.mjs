@@ -17,6 +17,8 @@
 //   remaining/<locale>/NN.json  the worklist items no answer file has yet, in
 //                           slices, from validate_locale.mjs, while there are any
 //   report.md               what finalize.mjs did, for the pull request
+//   notes.md                the translators' notes, by kind, for the pull
+//                           request's comments
 //   pruned.json             the translations finalize.mjs pruned
 import crypto from 'crypto';
 import fs from 'fs';
@@ -39,6 +41,7 @@ export const paths = (workdir) => ({
     remaining: path.join(workdir, 'remaining'),
     remainingFor: (locale) => path.join(workdir, 'remaining', locale),
     report: path.join(workdir, 'report.md'),
+    notes: path.join(workdir, 'notes.md'),
     pruned: path.join(workdir, 'pruned.json'),
 });
 

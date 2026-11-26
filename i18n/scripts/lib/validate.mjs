@@ -10,8 +10,14 @@
 //     "webapp": {"<key>": "<ICU message>"},
 //     "server": {"<id>": "<text>" or {"<plural form>": "<text>"}},
 //     "acknowledge": {"webapp:<key>": "<why this soft finding is right>"},
-//     "notes": {"server:<id>": "<anything a reviewer should know>"}
+//     "notes": {"server:<id>": {"kind": "<kind>", "text": "<what a reviewer should know>"}}
 //   }
+//
+// A note's kind says what it is about, so the report can group them: english, a
+// defect in the English; description, a wrong or misleading description;
+// glossary, a glossary term that is wrong or missing for the context; catalog,
+// a wrong translation elsewhere in the locale's catalog; choice, a translation
+// decision for the reviewer to check.
 //
 // It answers worklist items, and nothing else; acknowledge refers to items it
 // answers, and notes to any item in the locale's worklist, so a translator can
@@ -25,6 +31,7 @@ import {readGlossary, readStyle} from './glossary.mjs';
 import {checkTranslation} from './rules.mjs';
 
 const TOP_LEVEL = new Set(['webapp', 'server', 'acknowledge', 'notes']);
+export const NOTE_KINDS = ['english', 'description', 'glossary', 'catalog', 'choice'];
 
 export function validatePayload({plan, locale, payload, tree}) {
     const errors = [];
@@ -78,7 +85,7 @@ export function validatePayload({plan, locale, payload, tree}) {
                     soft.add(ref);
                     acknowledged.push({ref, rule: f.rule, message: f.message, reason: acknowledge[ref].trim()});
                 } else {
-                    errors.push(`${ref}: ${f.message}. If that is right, say why in "acknowledge": {"${ref}": "..."}`);
+                    errors.push(`${ref}: ${f.message} (soft finding, ${f.rule}). If that is right, say why in "acknowledge": {"${ref}": "..."}`);
                 }
             }
         }
@@ -95,7 +102,9 @@ export function validatePayload({plan, locale, payload, tree}) {
         const [surface, k] = ref.split(/:(.*)/s);
         if (!plan.surfaces[surface]?.locales[locale]?.items[k]) {
             errors.push(`notes.${ref}: not in this locale's worklist`);
-        } else if (typeof note !== 'string' || !note.trim()) {
+        } else if (!note || typeof note !== 'object' || !NOTE_KINDS.includes(note.kind)) {
+            errors.push(`notes.${ref}: not {"kind": ${NOTE_KINDS.map((kind) => `"${kind}"`).join(' | ')}, "text": "..."}`);
+        } else if (typeof note.text !== 'string' || !note.text.trim()) {
             errors.push(`notes.${ref}: empty`);
         }
     }

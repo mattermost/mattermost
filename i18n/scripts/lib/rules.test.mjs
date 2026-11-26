@@ -123,6 +123,12 @@ describe('rules', () => {
         assert.deepEqual(check('ja', 'You can do it', 'できます'), []);
     });
 
+    test('a letter after a placeholder or a shortcut separator is not a pronoun', () => {
+        assert.deepEqual(check('nl', 'Your email', 'Uw e-mail'), ['soft address']);
+        assert.deepEqual(check('nl', '{hours}h', '{hours}u'), []);
+        assert.deepEqual(check('nl', 'Upload files:\tCtrl|U', 'Bestanden uploaden:\tCtrl|U'), []);
+    });
+
     test('a glossary or style file that is not a JSON object is an error, not an empty one', () => {
         for (const text of ['[]', '5', 'null', '{"Mattermost":']) {
             const tree = {read: () => text};

@@ -130,6 +130,7 @@ if (answers.kept || answers.dropped) {
 fs.rmSync(p.worklists, {recursive: true, force: true});
 fs.rmSync(p.remaining, {recursive: true, force: true});
 fs.rmSync(p.report, {force: true});
+fs.rmSync(p.notes, {force: true});
 fs.rmSync(p.pruned, {force: true});
 writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan, digest: digest(tree)});
 

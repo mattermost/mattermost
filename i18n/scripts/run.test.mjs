@@ -132,7 +132,7 @@ describe('a translation run', () => {
             assert.equal(items['app.copy'].sameAs, 'app.title');
             assert.equal(items['app.copy'].current, 'Настройки канала');
             assert.equal(items['app.copy'].previous.description, 'Title of the channel settings modal');
-            assert.deepEqual(items['app.brand'].terms, [{term: 'Mattermost', target: 'Mattermost', doNotTranslate: true}]);
+            assert.deepEqual(items['app.brand'].terms, [{term: 'Mattermost', definition: 'The product.', target: 'Mattermost', doNotTranslate: true}]);
         } finally {
             repo.write('webapp/channels/src/i18n/en.json', original);
             fs.rmSync(scratch, {recursive: true, force: true});
@@ -187,7 +187,7 @@ describe('a translation run', () => {
                 'app.title': 'Настройки',
             },
             acknowledge: {'webapp:app.reword': 'nothing wrong'},
-            notes: {'webapp:app.title': 'not an item'},
+            notes: {'webapp:app.title': {kind: 'choice', text: 'not an item'}, 'webapp:app.hello': 'a bare string'},
         });
         const r = repo.run('validate_locale.mjs', workdir, 'ru');
         assert.equal(r.status, 1);
@@ -198,6 +198,8 @@ describe('a translation run', () => {
             /webapp:app\.title: not in this locale's worklist/,
             /acknowledge\.webapp:app\.reword: nothing to acknowledge/,
             /notes\.webapp:app\.title: not in this locale's worklist/,
+            /notes\.webapp:app\.hello: not \{"kind": "english" \| /,
+            /webapp:app\.new: identical to the English.*\(soft finding, identical-to-english\)/,
         ]) {
             assert.match(out, expected);
         }
@@ -217,9 +219,16 @@ describe('a translation run', () => {
         payload('ru', ruPayload);
     });
 
+    test('a file is found from the work directory, and counted on its own', () => {
+        payload('ru', ruPayload);
+        const r = repo.run('validate_locale.mjs', workdir, 'translations/ru/all.json');
+        assert.equal(r.status, 0, r.stdout + r.stderr);
+        assert.match(r.stdout, /^translations\/ru\/all\.json: 6 answered, 1 changed/m);
+    });
+
     test('a translator can note an item it leaves out', () => {
         const {'app.new': left, ...webapp} = ruPayload.webapp;
-        payload('ru', {...ruPayload, webapp, notes: {'webapp:app.new': 'Save which changes? The English does not say'}});
+        payload('ru', {...ruPayload, webapp, notes: {'webapp:app.new': {kind: 'english', text: 'Save which changes? The English does not say'}}});
         const r = repo.run('validate_locale.mjs', workdir, 'ru');
         assert.equal(r.status, 0, r.stdout + r.stderr);
         assert.match(r.stdout, /1 unanswered/);
@@ -260,7 +269,7 @@ describe('a translation run', () => {
             const r = repo.run('validate_locale.mjs', workdir, file);
             assert.equal(r.status, 0, r.stdout + r.stderr);
         }
-        assert.match(repo.run('validate_locale.mjs', workdir, first).stdout, /4 answered, 2 unanswered/);
+        assert.match(repo.run('validate_locale.mjs', workdir, first).stdout, /4 answered, 1 changed/);
 
         const both = repo.run('validate_locale.mjs', workdir, 'ru');
         assert.equal(both.status, 1);
@@ -367,7 +376,11 @@ describe('a translation run', () => {
     });
 
     test('finalize writes the catalogs and advances only the baselines it brought up to date', () => {
-        payload('ru', {...ruPayload, notes: {'webapp:app.new': 'The English does not say what is saved'}});
+        payload('ru', {...ruPayload,
+            notes: {
+                'webapp:app.new': {kind: 'english', text: 'The English does not say what is saved'},
+                'webapp:app.reword': {kind: 'catalog', text: 'app.old says the opposite'},
+            }});
         const r = repo.run('finalize.mjs', workdir, '--no-verify');
         assert.equal(r.status, 0, r.stderr);
 
@@ -401,8 +414,11 @@ describe('a translation run', () => {
         assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(path.join(workdir, 'pruned.json'), 'utf8'))).sort(), ['de', 'ru']);
         const report = fs.readFileSync(path.join(workdir, 'report.md'), 'utf8');
         assert.match(report, /\| ru \| 2 \| 1 \| 1 \| 2 \| 0 \| 0 \| 1 \| 3 \|/);
-        assert.match(report, /- `webapp:app\.new` \(ru\): The English does not say what is saved/);
         assert.match(report, /- de: 3 webapp, 1 server/);
+        assert.match(report, /notes\.md: 1 english, 1 catalog string\(s\)/);
+        const notes = fs.readFileSync(path.join(workdir, 'notes.md'), 'utf8');
+        assert.match(notes, /#### Defects in the English\n\n- `webapp:app\.new` \(ru\): The English does not say what is saved/);
+        assert.match(notes, /#### Wrong translations elsewhere in the catalogs, outside this run\n\n- `webapp:app\.reword`\n {2}- ru: app\.old says the opposite/);
     });
 
     test('finalize refuses a plan the repository has moved away from', () => {
@@ -431,6 +447,7 @@ describe('a translation run', () => {
         const r = repo.run('plan_translations.mjs', workdir, '--base', base);
         assert.equal(r.status, 0, r.stderr);
         assert.equal(fs.existsSync(path.join(workdir, 'report.md')), false);
+        assert.equal(fs.existsSync(path.join(workdir, 'notes.md')), false);
         assert.equal(fs.existsSync(path.join(workdir, 'pruned.json')), false);
     });
 });

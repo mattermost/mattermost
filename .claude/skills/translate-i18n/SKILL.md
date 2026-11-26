@@ -202,29 +202,38 @@ slice names, in its `answers` field, the file its translator writes.
 `$RUN/worklists/` holds the whole plan, for reference; translators work only
 from `remaining/`.
 
-Start one `i18n-translator` per slice in `remaining/`, as many at once as you
-can; if you cannot start subagents at all, work through the slices one by one.
+Start `i18n-translator` subagents over the slices in `remaining/`, as many at
+once as you can; if you cannot start subagents at all, work through the slices
+one by one. Give each translator up to three consecutive slices of one locale,
+to work through in turn: what it learns of the locale's catalog in the first
+carries to the next, and a large run then sends you a third as many reports.
 Never give one translator two locales: quality drops when it switches between
-languages, and a translator calibrates against its own locale's catalog.
-Give each this brief:
+languages, and a translator calibrates against its own locale's catalog. In
+Claude Code a session runs at most 20 subagents at once; start the next as each
+one finishes. Give each this brief:
 
-> Read `i18n/AGENTS.md` first. Translate `<slice file>`, which carries the
-> English, descriptions, glossary terms, plural forms, form of address and
-> nearby translations. Write your answers to the file its `answers` field
-> names, under `$RUN`, in the shape `i18n/AGENTS.md` describes, and check it
-> with `node i18n/scripts/validate_locale.mjs $RUN <that file>` until it
-> reports no errors. Leave out any item you cannot get right, rather than
-> answer it wrongly. Keep any scratch file in `$RUN/scratch/<locale>-<slice>/`.
-> Change no other file.
+> Read `i18n/AGENTS.md` first. Translate `<slice files>`, one after another;
+> each carries the English, descriptions, glossary terms, plural forms, form of
+> address and nearby translations. Write each slice's answers to the file its
+> `answers` field names, under `$RUN`, in the shape `i18n/AGENTS.md` describes,
+> and check each with `node i18n/scripts/validate_locale.mjs $RUN <that file>`
+> until it reports no errors. Never check the whole locale: other translators
+> may be working on it. Leave out any item you cannot get right, rather than
+> answer it wrongly. Keep any scratch file in `$RUN/scratch/<locale>-<first
+> slice>/`. Change no other file. Put everything a reviewer should know in each
+> answer file's `notes`; report in at most three lines: per slice, how many
+> items you answered, left out, acknowledged and noted, and any problem with
+> the pipeline itself.
 
-Then, for each locale:
+Then, for each locale, once every translator working on it has finished:
 
 ```bash
 node i18n/scripts/validate_locale.mjs $RUN <locale>
 ```
 
 It checks the locale's files together and rewrites `$RUN/remaining/<locale>/`
-with whatever still has no answer, each slice naming a new answer file, or
+with whatever still has no answer, which is why no translator may still be
+working on that locale, each slice naming a new answer file, or
 removes it once every item has an answer. While it exists, start one
 translator per slice in it with the same brief, and validate again. Give a
 locale three rounds; if items still remain, drop the locale for this run by
@@ -263,8 +272,8 @@ All or nothing, in order:
    nothing left. A locale left out keeps its baseline, though its catalog is
    still pruned and its unchanged renames carried.
 
-It writes `$RUN/report.md` for the PR, and `$RUN/pruned.json` with the
-translations pruning removed. Commit the catalogs and `i18n/baseline.json`
+It writes `$RUN/report.md` for the PR, `$RUN/notes.md` with the translators'
+notes by kind, and `$RUN/pruned.json` with the translations pruning removed. Commit the catalogs and `i18n/baseline.json`
 together: `Translate the strings added and changed since the last run`.
 
 ## 7. The pull request
@@ -287,12 +296,19 @@ untranslated.
 Open the pull request against `$TARGET`, with `report.md` as its body, adding:
 
 - the new glossary terms, for the reviewer to agree
-- the English defects the describers and translators found
+- the English defects the describers found
 - the locales dropped, if any
 
-The report already counts, per locale, what was translated, kept, repaired,
-left as it was, acknowledged, carried and pruned, and lists the translators'
-notes once per string. It stays short whatever the size of the run.
+The report counts, per locale, what was translated, kept, repaired, left as it
+was, acknowledged, carried and pruned. It stays short whatever the size of the
+run. Post `notes.md` as comments on the pull request, split to fit GitHub's
+65,536 characters per comment.
+
+Read the notes before you post them. A translator can be wrong about the
+pipeline, such as saying a term has no glossary entry when its worklist
+carried one; check such a claim and drop the note if it is false. The
+`english`, `description`, `glossary` and `catalog` notes are work for pull
+requests of their own: file them where the team tracks follow-ups.
 
 ## Refreshing a run
 

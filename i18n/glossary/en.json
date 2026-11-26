@@ -206,7 +206,7 @@
     ]
   },
   "thread": {
-    "definition": "A set of replies attached to a root message, viewed and followed as one conversation.",
+    "definition": "A set of replies attached to a root message, viewed and followed as one conversation. Not an operating-system thread, as in the Site health findings about GOMAXPROCS, which takes the ordinary technical word.",
     "partOfSpeech": "noun",
     "doNotTranslate": false,
     "aliases": [
@@ -515,7 +515,7 @@
     ]
   },
   "mute": {
-    "definition": "To silence notifications from a channel while remaining a member; distinct from muting a microphone in Calls.",
+    "definition": "To silence notifications from a channel while remaining a member; distinct from muting a microphone in Calls, and from muting a Site health finding, which hides it from the dashboard and follows that dashboard's own Mute button.",
     "partOfSpeech": "verb",
     "doNotTranslate": false,
     "aliases": [

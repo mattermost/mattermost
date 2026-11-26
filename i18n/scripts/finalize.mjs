@@ -25,8 +25,10 @@
 // which counts as a failure and restores. One sent to this process alone waits
 // until finalize has finished, and changes nothing: the run is complete.
 //
-// Writes <workdir>/report.md, a summary for the pull request, and
-// <workdir>/pruned.json, the translations pruning removed.
+// Writes <workdir>/report.md, a summary for the pull request,
+// <workdir>/notes.md, the translators' notes by kind, and <workdir>/pruned.json,
+// the translations pruning removed. The notes of a large run outgrow a pull
+// request description, so they are kept apart, to post as comments.
 import {execFileSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -34,7 +36,7 @@ import {parseArgs} from 'util';
 
 import {BASELINE, catalogPath, parseCatalog, readBaseline, same, serializeBaseline, serializeCatalog} from './lib/catalogs.mjs';
 import {commitTree, workingTree} from './lib/repo.mjs';
-import {mergePayloads, unanswered, validatePayload} from './lib/validate.mjs';
+import {mergePayloads, NOTE_KINDS, unanswered, validatePayload} from './lib/validate.mjs';
 import {answerFiles, digest, paths, PLAN_VERSION, readJSON, writeJSON} from './lib/workdir.mjs';
 
 const usage = 'usage: node i18n/scripts/finalize.mjs <workdir> [--no-verify]';
@@ -245,7 +247,7 @@ writeJSON(p.pruned, pruned);
 
 // The report: what a reviewer, who reads few of these languages, can check.
 // It stays short whatever the size of the run: counts per locale, the locales
-// left for the next run, and the translators' notes, once per string.
+// left for the next run, and how many notes of each kind notes.md holds.
 const acknowledgedBy = Object.fromEntries(Object.entries(results).map(([locale, r]) => [locale, r.acknowledged.length]));
 const lines = [`Translation run against ${plan.base}.`, ''];
 lines.push('| Locale | New | Changed: rewritten | Changed: kept | Repaired | Repair: no action | Acknowledged | Carried | Pruned |', '|---|---|---|---|---|---|---|---|---|');
@@ -261,19 +263,47 @@ if (Object.keys(behind).length) {
         lines.push(`- ${locale}: ${Object.entries(s).map(([surface, n]) => `${n} ${surface}`).join(', ')}`);
     }
 }
-const notes = new Map();
+
+// A note about the source, the English, its description or the glossary, is
+// the same report from every locale that makes it, so it is listed once per
+// string. One about a locale's own catalog or choice is listed per locale.
+const NOTE_HEADINGS = {
+    english: 'Defects in the English',
+    description: 'Defects in the descriptions',
+    glossary: 'Glossary terms that are wrong or missing for the context',
+    catalog: 'Wrong translations elsewhere in the catalogs, outside this run',
+    choice: 'Translation choices to check',
+};
+const SHARED_KINDS = new Set(['english', 'description', 'glossary']);
+const byKind = Object.fromEntries(NOTE_KINDS.map((kind) => [kind, new Map()]));
 for (const [locale, r] of Object.entries(results).sort()) {
-    for (const [ref, note] of Object.entries(r.notes)) {
-        notes.set(ref, [...(notes.get(ref) || []), {locale, note}]);
+    for (const [ref, {kind, text}] of Object.entries(r.notes)) {
+        byKind[kind].set(ref, [...(byKind[kind].get(ref) || []), {locale, text}]);
     }
 }
-if (notes.size) {
-    lines.push('', 'Notes from the translators, often a defect in the English:', '');
-    for (const [ref, by] of [...notes].sort(([a], [b]) => a.localeCompare(b))) {
-        lines.push(`- \`${ref}\` (${by.map((n) => n.locale).join(', ')}): ${by[0].note}`);
+const noteLines = [];
+const counts = [];
+for (const kind of NOTE_KINDS) {
+    const notes = [...byKind[kind]].sort(([a], [b]) => a.localeCompare(b));
+    if (!notes.length) {
+        continue;
     }
+    counts.push(`${notes.length} ${kind}`);
+    noteLines.push(`#### ${NOTE_HEADINGS[kind]}`, '');
+    for (const [ref, by] of notes) {
+        if (SHARED_KINDS.has(kind)) {
+            noteLines.push(`- \`${ref}\` (${by.map((n) => n.locale).join(', ')}): ${by[0].text}`);
+        } else {
+            noteLines.push(`- \`${ref}\``, ...by.map((n) => `  - ${n.locale}: ${n.text}`));
+        }
+    }
+    noteLines.push('');
+}
+if (counts.length) {
+    lines.push('', `The translators' notes, by kind, are in notes.md: ${counts.join(', ')} string(s).`);
 }
 fs.writeFileSync(p.report, lines.join('\n') + '\n');
+fs.writeFileSync(p.notes, noteLines.join('\n'));
 
 console.log(lines.join('\n'));
-console.log(`\n${originals.size} files changed. Report: ${p.report}`);
+console.log(`\n${originals.size} files changed. Report: ${p.report}. Notes: ${p.notes}`);

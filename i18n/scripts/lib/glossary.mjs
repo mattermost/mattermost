@@ -52,7 +52,12 @@ export function readGlossary(tree, locale) {
     }));
 }
 
-/** The glossary entries a source string uses, as hints for its translator. */
+/**
+ * The glossary entries a source string uses, as hints for its translator. The
+ * definition says which sense the target is for, since a form can match a
+ * string that means something else: a message thread, not an operating-system
+ * thread.
+ */
 export function termsIn(glossary, english) {
     const text = flatten(english);
     const out = [];
@@ -60,6 +65,7 @@ export function termsIn(glossary, english) {
         if (entry.patterns.some(({re}) => re.test(text))) {
             out.push({
                 term: entry.term,
+                ...(entry.definition ? {definition: entry.definition} : {}),
                 ...(entry.target === undefined ? {} : {target: entry.target}),
                 ...(entry.note ? {note: entry.note} : {}),
                 ...(entry.doNotTranslate ? {doNotTranslate: true} : {}),
@@ -70,11 +76,18 @@ export function termsIn(glossary, english) {
     return out;
 }
 
+// Stands where a placeholder was in the prose rules read, so a letter written
+// straight after one is not taken for a word of its own.
+export const PLACEHOLDER = '\uE000';
+
 /**
  * A locale's style.json entry, with avoid compiled into one pattern, or null.
  * skipSentenceStart is for languages whose formal pronoun is also an ordinary
  * one at the start of a sentence: German "Sie" is "you" mid-sentence, but can be
  * "they" first.
+ * A word straight after a placeholder or a shortcut's key separator is not a
+ * pronoun: the Dutch "u" in "{hours}u" means hours, and "U" in "Ctrl|U" is a key.
+ * The rules put PLACEHOLDER where a placeholder was.
  */
 export function readStyle(tree, locale) {
     const text = tree.read(STYLE);
@@ -84,7 +97,7 @@ export function readStyle(tree, locale) {
     }
     const start = entry.skipSentenceStart ? '(?<![.!?:\\n]\\s*|^\\s*|["“„«(*]\\s*)' : '';
     const words = entry.avoid.map(escape).join('|');
-    return {...entry, avoidRe: new RegExp(`${start}(?<![\\p{L}\\p{N}'’])(${words})(?![\\p{L}\\p{N}])`, entry.matchCase ? 'gu' : 'giu')};
+    return {...entry, avoidRe: new RegExp(`${start}(?<![\\p{L}\\p{N}'’|${PLACEHOLDER}])(${words})(?![\\p{L}\\p{N}])`, entry.matchCase ? 'gu' : 'giu')};
 }
 
 /**

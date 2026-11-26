@@ -20,7 +20,7 @@ import path from 'path';
 import {fileURLToPath, pathToFileURL} from 'url';
 
 import {flatten} from './catalogs.mjs';
-import {droppedNames} from './glossary.mjs';
+import {droppedNames, PLACEHOLDER} from './glossary.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const icu = await import(pathToFileURL(path.join(here, '../../../webapp/channels/scripts/icu_rules.mjs')).href).catch((e) => {
@@ -45,10 +45,16 @@ const WEBAPP_SEVERITY = {
 
 const finding = (rule, severity, message) => ({rule, severity, message});
 
+// Argument, number, date, time and the plural's #.
+const ARGUMENT_TYPES = new Set([1, 2, 3, 4, 7]);
+
 function literalText(ast, out = []) {
     for (const el of ast) {
         if (el.type === 0) {
             out.push(el.value);
+        }
+        if (ARGUMENT_TYPES.has(el.type)) {
+            out.push(PLACEHOLDER);
         }
         if (el.options) {
             for (const option of Object.values(el.options)) {
@@ -66,12 +72,12 @@ function proseOf(value, surface) {
     let text;
     if (surface === 'webapp') {
         try {
-            text = literalText(icu.parse(value, icu.PARSE_OPTIONS)).join(' ');
+            text = literalText(icu.parse(value, icu.PARSE_OPTIONS)).join(' ').replaceAll(`${PLACEHOLDER} `, PLACEHOLDER);
         } catch {
             text = value;
         }
     } else {
-        text = flatten(value).replace(/\{\{[^}]*\}\}/g, ' ');
+        text = flatten(value).replace(/\{\{[^}]*\}\}/g, PLACEHOLDER);
     }
     return text.replace(/[a-z][a-z0-9+.-]*:\/\/\S*|\S+@\S+\.\S+/gi, ' ');
 }

@@ -6,9 +6,11 @@
 //   node i18n/scripts/validate_locale.mjs <workdir> [<locale> | <payload.json>]...
 //
 // A locale checks every payload in <workdir>/translations/<locale>/ together; a
-// file checks that payload alone, for a translator working on one slice. With
-// neither, checks every locale. Exits 1 if any has an error. Items left
-// unanswered are not an error here; finalize.mjs requires them.
+// file checks that payload alone, for a translator working on one slice. A file
+// path is read from the current directory, or else from <workdir>, where a
+// slice's answers field names it. With neither, checks every locale. Exits 1 if
+// any has an error. Items left unanswered are not an error here; finalize.mjs
+// requires them.
 //
 // Checking a locale also writes <workdir>/remaining/<locale>/: its worklist,
 // with only the items no payload answers, in slices for the next translators,
@@ -41,9 +43,13 @@ if (plan.version !== PLAN_VERSION) {
     process.exit(2);
 }
 
+// A slice names its answer file relative to the work directory, so a file that
+// is not where the current directory says is looked for there.
+const answerPath = (arg) => (fs.existsSync(arg) || path.isAbsolute(arg) ? arg : path.join(workdir, arg));
+
 const available = answerFiles(p);
 const targets = (only.length ? only : Object.keys(available)).map((arg) => (arg.endsWith('.json') ?
-    {label: arg, locale: path.basename(path.dirname(path.resolve(arg))), files: [arg], whole: false} :
+    {label: arg, locale: path.basename(path.dirname(path.resolve(answerPath(arg)))), files: [answerPath(arg)], whole: false} :
     {label: arg, locale: arg, files: available[arg] || [], whole: true}));
 if (!targets.length) {
     console.error(`no payloads in ${p.translations}/`);
@@ -76,7 +82,11 @@ for (const {label, locale, files, whole} of targets) {
     if (whole) {
         writeRemaining(p, locale, new Set(left), available[locale] || []);
     }
-    console.log(`${label}: ${result.stats.answered} answered, ${left.length} unanswered, ${result.stats.kept} changed items kept as they were, ${result.stats.untouched} repairs left as they were, ${result.acknowledged.length} acknowledged`);
+
+    // A file answers part of the locale, so what the locale still lacks is no
+    // measure of it.
+    const unansweredCount = whole ? `, ${left.length} unanswered` : '';
+    console.log(`${label}: ${result.stats.answered} answered${unansweredCount}, ${result.stats.kept} changed items kept as they were, ${result.stats.untouched} repairs left as they were, ${result.acknowledged.length} acknowledged`);
     if (errors.length) {
         failed++;
         console.error(`  ${errors.length} error(s):`);

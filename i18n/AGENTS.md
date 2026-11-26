@@ -171,12 +171,19 @@ Each item has a `kind`:
 - **`repair`**: an existing translation that breaks a rule, listed in
   `problems`: a webapp plural missing a form the locale uses, or the wrong form
   of address. It is your judgement call. A missing plural form is a real bug:
-  fix it and change nothing else. A pronoun inside a quotation, or a register
-  the surrounding strings share, can be right: return the translation unchanged,
-  and nothing is done. An unchanged repair is not checked against the rules.
+  fix it. A pronoun inside a quotation, or a register the surrounding strings
+  share, can be right: return the translation unchanged, and nothing is done.
+  An unchanged repair is not checked against the rules. While you are in the
+  string, fix any other clear error in it too, such as a wrong word, a dropped
+  phrase or English the old translation left, and say what you changed in a
+  `catalog` note, so the reviewer sees every change beyond the listed problem.
 
 The hints are drawn from the locale's own catalog. `terms` lists the glossary
-entries the English uses, with this locale's target and note. `siblings` gives
+entries the English uses, with the term's definition and this locale's target
+and note. A term is matched by its words alone, so check the definition: where
+the string means something else, such as an operating-system thread rather
+than a message thread, use the word the sense needs, and say so in a
+`glossary` note. `siblings` gives
 translations of the nearest keys under the same prefix. Use them to match what
 the product already says.
 
@@ -189,7 +196,7 @@ answers some of the worklist:
   "webapp": {"<key>": "<ICU message>"},
   "server": {"<id>": "<text>", "<plural id>": {"one": "...", "other": "..."}},
   "acknowledge": {"webapp:<key>": "<why this soft finding is right>"},
-  "notes": {"server:<id>": "<anything the reviewer should know>"}
+  "notes": {"server:<id>": {"kind": "<kind>", "text": "<what the reviewer should know>"}}
 }
 ```
 
@@ -197,15 +204,30 @@ A file answers only worklist items, and no item is answered in two files.
 `acknowledge` refers to items the same file answers. Acknowledge only a
 finding validation reports: an acknowledgment with nothing to acknowledge is an
 error. `notes` can refer to any item in the locale's worklist, answered or not:
-use it to report a defect in the English instead of working around it, or to
-say why you left an item out. A file belongs in its locale's directory, which
-is where `validate_locale.mjs` takes the locale from.
+use it to report a defect instead of working around it, or to say why you left
+an item out. Each note has a `kind`, which the report groups by:
+
+- `english`: a defect in the English, such as a typo, an ambiguity or a count
+  with no plural
+- `description`: a description that is wrong or misleading, such as one naming
+  a variable the string does not have
+- `glossary`: a glossary term whose target is wrong for this context, such as
+  a message "thread" in a string about operating-system threads
+- `catalog`: a wrong translation in this locale's catalog, outside the item or
+  fixed in passing while repairing it
+- `choice`: a translation decision the reviewer should check
+
+A file belongs in its locale's directory, which is where `validate_locale.mjs`
+takes the locale from.
 
 `node i18n/scripts/validate_locale.mjs <workdir> <file>` checks one file alone;
-run it until it reports no errors. Leave out any item you cannot get right: an
-unanswered item goes to the next translator, while an error holds up the whole
-locale. `node i18n/scripts/validate_locale.mjs <workdir> <locale>` checks a
-locale's files together.
+run it until it reports no errors. A relative path is also looked for in the
+work directory, so the slice's `answers` path works as it is. Leave out any
+item you cannot get right: an unanswered item goes to the next translator,
+while an error holds up the whole locale. `node i18n/scripts/validate_locale.mjs
+<workdir> <locale>` checks a locale's files together, and rewrites its
+`remaining/` slices, so only the orchestrator runs it, once every translator of
+that locale has finished.
 
 `finalize.mjs` is all or nothing across locales: an error, or an unanswered
 item in any locale with answers, and it applies nothing. To ship the rest, drop
