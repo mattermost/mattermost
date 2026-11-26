@@ -23,9 +23,8 @@ import (
 
 // fakeServer counts the calls of each kind. Each test sets the handlers it needs.
 type fakeServer struct {
-	bulk, mget, doc http.HandlerFunc
-	bulks, mgets    atomic.Int64
-	docs            atomic.Int64
+	bulk, doc   http.HandlerFunc
+	bulks, docs atomic.Int64
 }
 
 func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,9 +33,6 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case strings.HasSuffix(r.URL.Path, "/_bulk"):
 		f.bulks.Add(1)
 		f.bulk(w, r)
-	case strings.HasSuffix(r.URL.Path, "/_mget"):
-		f.mgets.Add(1)
-		f.mget(w, r)
 	case f.doc != nil:
 		f.docs.Add(1)
 		f.doc(w, r)
@@ -51,14 +47,6 @@ func dropConnection(w http.ResponseWriter, _ *http.Request) {
 	_, _ = buf.WriteString("HTTP/1.1 200 OK\r\nX-Elastic-Product: Elasticsearch\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{\"took\":1,")
 	_ = buf.Flush()
 	_ = conn.Close()
-}
-
-func mgetFound(w http.ResponseWriter, _ *http.Request) {
-	_, _ = w.Write([]byte(`{"docs":[{"_index":"posts","_id":"1","found":true}]}`))
-}
-
-func mgetNotFound(w http.ResponseWriter, _ *http.Request) {
-	_, _ = w.Write([]byte(`{"docs":[{"_index":"posts","_id":"1","found":false}]}`))
 }
 
 func unavailable(w http.ResponseWriter, _ *http.Request) {
@@ -130,33 +118,21 @@ func closeInTime(t *testing.T, bi esutil.BulkIndexer, retrier *common.BulkRetrie
 	}
 }
 
-func TestBulkWiringConnectionClosedAfter200IsNotFailedWhenDocExists(t *testing.T) {
-	f := &fakeServer{bulk: dropConnection, mget: mgetFound}
+func TestBulkWiringConnectionClosedAfter200IsResentAndNotFailed(t *testing.T) {
+	f := &fakeServer{bulk: dropConnection, doc: created}
 	bi, retrier := newTestIndexer(t, f)
 
 	add(t, bi, retrier, "index", "1")
 
 	assert.Equal(t, int64(0), closeInTime(t, bi, retrier))
-	assert.Equal(t, int64(1), f.mgets.Load())
-	assert.Equal(t, int64(0), f.docs.Load(), "doc must not be resent")
+	assert.Equal(t, int64(1), f.docs.Load())
 }
 
 // The ES client has no request timeout, so a timed-out _bulk shows up as a 504.
-func TestBulkWiringGatewayTimeoutIsNotFailedWhenDocExists(t *testing.T) {
+func TestBulkWiringGatewayTimeoutIsResentAndNotFailed(t *testing.T) {
 	f := &fakeServer{bulk: func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusGatewayTimeout)
-	}, mget: mgetFound}
-	bi, retrier := newTestIndexer(t, f)
-
-	add(t, bi, retrier, "index", "1")
-
-	assert.Equal(t, int64(0), closeInTime(t, bi, retrier))
-	assert.Equal(t, int64(1), f.mgets.Load())
-	assert.Equal(t, int64(0), f.docs.Load(), "doc must not be resent")
-}
-
-func TestBulkWiringLostRequestIsResentOnceWhenDocIsMissing(t *testing.T) {
-	f := &fakeServer{bulk: dropConnection, mget: mgetNotFound, doc: created}
+	}, doc: created}
 	bi, retrier := newTestIndexer(t, f)
 
 	add(t, bi, retrier, "index", "1")
@@ -175,7 +151,6 @@ func TestBulkWiringItemRejectedByServerIsFailedAndNotResent(t *testing.T) {
 	add(t, bi, retrier, "index", "1")
 
 	assert.Equal(t, int64(1), closeInTime(t, bi, retrier))
-	assert.Equal(t, int64(0), f.mgets.Load())
 	assert.Equal(t, int64(0), f.docs.Load())
 }
 
@@ -191,7 +166,7 @@ func TestBulkWiringDeleteOfMissingDocIsNotFailed(t *testing.T) {
 }
 
 func TestBulkWiringGivesUpWhenServerKeepsFailing(t *testing.T) {
-	f := &fakeServer{bulk: dropConnection, mget: unavailable, doc: unavailable}
+	f := &fakeServer{bulk: dropConnection, doc: unavailable}
 	bi, retrier := newTestIndexer(t, f)
 
 	add(t, bi, retrier, "index", "1")

@@ -22,32 +22,11 @@ import (
 
 // fakeBackend answers from the funcs and records the calls.
 type fakeBackend struct {
-	mut    sync.Mutex
-	exists func(items []BulkItem) (map[string]bool, error)
-	apply  func(item BulkItem) (int, error)
+	mut   sync.Mutex
+	apply func(item BulkItem) (int, error)
 	// hang makes every call wait for its context to end.
 	hang    bool
-	checked []string
 	applied []string
-	// chunks holds the size of each Exists call.
-	chunks []int
-}
-
-func (f *fakeBackend) Exists(ctx context.Context, items []BulkItem) (map[string]bool, error) {
-	f.mut.Lock()
-	f.chunks = append(f.chunks, len(items))
-	for _, it := range items {
-		f.checked = append(f.checked, it.DocID)
-	}
-	f.mut.Unlock()
-	if f.hang {
-		<-ctx.Done()
-		return nil, ctx.Err()
-	}
-	if f.exists == nil {
-		return map[string]bool{}, nil
-	}
-	return f.exists(items)
 }
 
 func (f *fakeBackend) Apply(ctx context.Context, item BulkItem) (int, error) {
@@ -94,7 +73,7 @@ func TestBulkRetrierDeleteNotFoundIsIgnored(t *testing.T) {
 	wait(t, r)
 
 	assert.Zero(t, r.Failed())
-	assert.Empty(t, b.checked)
+	assert.Empty(t, b.applied)
 }
 
 func TestBulkRetrierBadRequestFailsAtOnce(t *testing.T) {
@@ -105,25 +84,10 @@ func TestBulkRetrierBadRequestFailsAtOnce(t *testing.T) {
 
 	assert.Equal(t, int64(1), r.Failed())
 	wait(t, r)
-	assert.Empty(t, b.checked)
 	assert.Empty(t, b.applied)
 }
 
-func TestBulkRetrierIndexFoundIsNotFailed(t *testing.T) {
-	b := &fakeBackend{exists: func([]BulkItem) (map[string]bool, error) {
-		return map[string]bool{"posts/a": true}, nil
-	}}
-	r := newTestRetrier(t, b)
-
-	r.Handle(indexItem("a"), 0, errTransport)
-	wait(t, r)
-
-	assert.Zero(t, r.Failed())
-	assert.Equal(t, int64(1), r.Verified())
-	assert.Empty(t, b.applied)
-}
-
-func TestBulkRetrierIndexNotFoundIsResent(t *testing.T) {
+func TestBulkRetrierTransientIndexFailureIsResent(t *testing.T) {
 	b := &fakeBackend{}
 	r := newTestRetrier(t, b)
 
@@ -135,10 +99,8 @@ func TestBulkRetrierIndexNotFoundIsResent(t *testing.T) {
 	assert.Equal(t, []string{"a"}, b.applied)
 }
 
-func TestBulkRetrierDeleteFoundIsResent(t *testing.T) {
-	b := &fakeBackend{exists: func([]BulkItem) (map[string]bool, error) {
-		return map[string]bool{"posts/a": true}, nil
-	}}
+func TestBulkRetrierTransientDeleteFailureIsResent(t *testing.T) {
+	b := &fakeBackend{}
 	r := newTestRetrier(t, b)
 
 	r.Handle(deleteItem("a"), http.StatusServiceUnavailable, nil)
@@ -148,43 +110,15 @@ func TestBulkRetrierDeleteFoundIsResent(t *testing.T) {
 	assert.Equal(t, []string{"a"}, b.applied)
 }
 
-func TestBulkRetrierDeleteNotFoundIsDone(t *testing.T) {
-	b := &fakeBackend{exists: func([]BulkItem) (map[string]bool, error) {
-		return map[string]bool{"posts/a": false}, nil
-	}}
+func TestBulkRetrierResendOfDeleteGets404IsDone(t *testing.T) {
+	b := &fakeBackend{apply: func(BulkItem) (int, error) { return http.StatusNotFound, nil }}
 	r := newTestRetrier(t, b)
 
 	r.Handle(deleteItem("a"), 0, errTransport)
 	wait(t, r)
 
 	assert.Zero(t, r.Failed())
-	assert.Equal(t, int64(1), r.Verified())
-	assert.Empty(t, b.applied)
-}
-
-func TestBulkRetrierDeleteMissingFromCheckIsResent(t *testing.T) {
-	b := &fakeBackend{} // the check says nothing about the doc
-	r := newTestRetrier(t, b)
-
-	r.Handle(deleteItem("a"), 0, errTransport)
-	wait(t, r)
-
-	assert.Zero(t, r.Verified())
-	assert.Equal(t, []string{"a"}, b.applied)
-}
-
-func TestBulkRetrierExistsErrorResendsAll(t *testing.T) {
-	b := &fakeBackend{exists: func([]BulkItem) (map[string]bool, error) {
-		return nil, errTransport
-	}}
-	r := newTestRetrier(t, b)
-
-	r.Handle(indexItem("a"), 0, errTransport)
-	r.Handle(deleteItem("b"), 0, errTransport)
-	wait(t, r)
-
-	assert.Zero(t, r.Failed())
-	assert.ElementsMatch(t, []string{"a", "b"}, b.applied)
+	assert.Equal(t, int64(1), r.Retried())
 }
 
 func TestBulkRetrierResendIsRetriedAfter503(t *testing.T) {
@@ -370,35 +304,8 @@ func TestBulkRetrierEachResendGetsItsOwnBody(t *testing.T) {
 	assert.NotSame(t, item.Body, bodies[0])
 }
 
-// allFound answers that every doc exists.
-func allFound(items []BulkItem) (map[string]bool, error) {
-	found := map[string]bool{}
-	for _, it := range items {
-		found[it.Index+"/"+it.DocID] = true
-	}
-	return found, nil
-}
-
-func TestBulkRetrierChecksAtMost1000ItemsPerCall(t *testing.T) {
-	b := &fakeBackend{exists: allFound}
-	r := newTestRetrier(t, b)
-
-	for i := range 2500 {
-		r.Handle(indexItem(strconv.Itoa(i)), 0, errTransport)
-	}
-	wait(t, r)
-
-	total := 0
-	for _, n := range b.chunks {
-		assert.LessOrEqual(t, n, 1000)
-		total += n
-	}
-	assert.Equal(t, 2500, total)
-	assert.Equal(t, int64(2500), r.Verified())
-}
-
 func TestBulkRetrierHandlesManyCallersAtOnce(t *testing.T) {
-	b := &fakeBackend{exists: allFound}
+	b := &fakeBackend{}
 	r := newTestRetrier(t, b)
 
 	var wg sync.WaitGroup
@@ -413,7 +320,7 @@ func TestBulkRetrierHandlesManyCallersAtOnce(t *testing.T) {
 	wait(t, r)
 
 	assert.Zero(t, r.Failed())
-	assert.Equal(t, int64(800), r.Verified())
+	assert.Equal(t, int64(800), r.Retried())
 }
 
 func TestBulkRetrierTakesItemsThatArriveDuringARound(t *testing.T) {
@@ -458,12 +365,12 @@ func TestBulkRetrierLogsOneWarnPerRoundNotPerItem(t *testing.T) {
 	started := make(chan struct{})
 	release := make(chan struct{})
 	var once sync.Once
-	b := &fakeBackend{exists: func(items []BulkItem) (map[string]bool, error) {
+	b := &fakeBackend{apply: func(BulkItem) (int, error) {
 		once.Do(func() {
 			close(started)
 			<-release
 		})
-		return allFound(items)
+		return http.StatusOK, nil
 	}}
 	r, count := newLoggedRetrier(t, b)
 

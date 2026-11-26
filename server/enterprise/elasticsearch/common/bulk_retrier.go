@@ -17,7 +17,6 @@ import (
 
 const (
 	bulkRetryMaxAttempts = 4
-	bulkRetryChunkSize   = 1000
 	bulkRetryBackoff     = 2 * time.Second
 
 	// BulkRetryWaitLimit is the longest a job close waits for the retries.
@@ -33,8 +32,6 @@ type BulkItem struct {
 
 // BulkBackend calls must return when their context ends.
 type BulkBackend interface {
-	// Exists returns the docs that exist. Key is index+"/"+docID.
-	Exists(ctx context.Context, items []BulkItem) (map[string]bool, error)
 	// Apply sends one item. Status 0 with an error means transport failure.
 	Apply(ctx context.Context, item BulkItem) (status int, err error)
 }
@@ -45,14 +42,13 @@ type retryItem struct {
 	attempts int
 }
 
-// BulkRetrier takes items the bulk indexer could not confirm, checks if they
-// are in the search backend, and resends the missing ones.
+// BulkRetrier takes items the bulk indexer could not confirm and resends them.
 type BulkRetrier struct {
 	backend BulkBackend
 	logger  mlog.LoggerIFace
-	// Backoff is the wait before an item's first check. It doubles per attempt.
+	// Backoff is the wait before an item's first resend. It doubles per attempt.
 	Backoff time.Duration
-	// Timeout limits each check and each resend.
+	// Timeout limits each resend.
 	Timeout time.Duration
 
 	// ctx ends when Wait gives up. It stops the retries.
@@ -65,9 +61,8 @@ type BulkRetrier struct {
 	// One count per queued item, so Wait can block until all are settled.
 	inflight sync.WaitGroup
 
-	failed   atomic.Int64
-	retried  atomic.Int64
-	verified atomic.Int64
+	failed  atomic.Int64
+	retried atomic.Int64
 }
 
 func NewBulkRetrier(backend BulkBackend, logger mlog.LoggerIFace) *BulkRetrier {
@@ -132,9 +127,6 @@ func (r *BulkRetrier) Failed() int64 { return r.failed.Load() }
 // Retried counts the items that were resent and succeeded.
 func (r *BulkRetrier) Retried() int64 { return r.retried.Load() }
 
-// Verified counts the items that needed no resend after the check.
-func (r *BulkRetrier) Verified() int64 { return r.verified.Load() }
-
 func (r *BulkRetrier) enqueue(item BulkItem) {
 	r.inflight.Add(1)
 	queued := retryItem{BulkItem: item}
@@ -186,11 +178,9 @@ func (r *BulkRetrier) run() {
 			}
 			continue
 		}
-		r.logger.Warn("Bulk items unconfirmed, checking documents", mlog.Int("num_items", len(items)))
-		for len(items) > 0 {
-			n := min(len(items), bulkRetryChunkSize)
-			r.processChunk(items[:n])
-			items = items[n:]
+		r.logger.Warn("Bulk items unconfirmed, resending documents", mlog.Int("num_items", len(items)))
+		for _, item := range items {
+			r.resend(item)
 		}
 	}
 }
@@ -215,31 +205,6 @@ func (r *BulkRetrier) sleep(d time.Duration) bool {
 	case <-r.ctx.Done():
 		return false
 	}
-}
-
-func (r *BulkRetrier) processChunk(items []retryItem) {
-	ctx, cancel := context.WithTimeout(r.ctx, r.Timeout)
-	found, err := r.backend.Exists(ctx, items2bulk(items))
-	cancel()
-	if err != nil {
-		r.logger.Warn("Bulk retry: check failed, resending all", mlog.Err(err))
-	}
-
-	for _, item := range items {
-		if err == nil && isSettled(item.BulkItem, found) {
-			r.verified.Add(1)
-			r.inflight.Done()
-			continue
-		}
-		r.resend(item)
-	}
-}
-
-// isSettled is true when the check shows the wanted state: an indexed doc
-// is there, or a deleted doc is gone. A doc missing from the answer is unknown.
-func isSettled(item BulkItem, found map[string]bool) bool {
-	exists, ok := found[item.Index+"/"+item.DocID]
-	return ok && exists == (item.Action == "index")
 }
 
 func (r *BulkRetrier) resend(item retryItem) {
@@ -276,12 +241,4 @@ func (r *BulkRetrier) resend(item retryItem) {
 func (r *BulkRetrier) fail() {
 	r.failed.Add(1)
 	r.inflight.Done()
-}
-
-func items2bulk(items []retryItem) []BulkItem {
-	out := make([]BulkItem, len(items))
-	for i, item := range items {
-		out[i] = item.BulkItem
-	}
-	return out
 }

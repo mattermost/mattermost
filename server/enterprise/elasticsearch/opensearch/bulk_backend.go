@@ -4,49 +4,16 @@
 package opensearch
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 )
 
-// bulkBackend lets the retrier check and resend documents.
+// bulkBackend lets the retrier resend documents.
 type bulkBackend struct {
 	client *opensearchapi.Client
-}
-
-// Exists asks with one _mget. Docs with a per-doc error are left out.
-func (b *bulkBackend) Exists(ctx context.Context, items []common.BulkItem) (map[string]bool, error) {
-	type doc struct {
-		Index  string `json:"_index"`
-		ID     string `json:"_id"`
-		Source bool   `json:"_source"`
-	}
-	docs := make([]doc, len(items))
-	for i, item := range items {
-		docs[i] = doc{Index: item.Index, ID: item.DocID}
-	}
-	body, err := json.Marshal(map[string]any{"docs": docs})
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := b.client.MGet(ctx, opensearchapi.MGetReq{Body: bytes.NewReader(body)})
-	if err != nil {
-		return nil, err
-	}
-
-	found := make(map[string]bool, len(resp.Docs))
-	for _, d := range resp.Docs {
-		if d.Error != nil {
-			continue // unknown, not "missing"
-		}
-		found[d.Index+"/"+d.ID] = d.Found
-	}
-	return found, nil
 }
 
 // Apply sends the item with the single document API.

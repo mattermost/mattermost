@@ -36,53 +36,6 @@ func newTestBackend(t *testing.T, h http.HandlerFunc) *bulkBackend {
 	return &bulkBackend{client: client}
 }
 
-func TestBulkBackendExistsReturnsFoundDocs(t *testing.T) {
-	var body string
-	b := newTestBackend(t, func(w http.ResponseWriter, r *http.Request) {
-		raw, _ := io.ReadAll(r.Body)
-		body = string(raw)
-		_, _ = w.Write([]byte(`{"docs":[
-			{"_index":"posts_a","_id":"1","found":true},
-			{"_index":"posts_b","_id":"2","found":false}]}`))
-	})
-
-	found, err := b.Exists(context.Background(), []common.BulkItem{
-		{Index: "posts_a", DocID: "1"},
-		{Index: "posts_b", DocID: "2"},
-	})
-
-	require.NoError(t, err)
-	assert.Equal(t, map[string]bool{"posts_a/1": true, "posts_b/2": false}, found)
-	assert.Contains(t, body, `"_index":"posts_a"`)
-	assert.Contains(t, body, `"_source":false`)
-}
-
-func TestBulkBackendExistsSkipsDocsWithError(t *testing.T) {
-	b := newTestBackend(t, func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte(`{"docs":[
-			{"_index":"posts","_id":"1","error":{"type":"shard_failure"}},
-			{"_index":"posts","_id":"2","found":false}]}`))
-	})
-
-	found, err := b.Exists(context.Background(), []common.BulkItem{
-		{Index: "posts", DocID: "1"},
-		{Index: "posts", DocID: "2"},
-	})
-
-	require.NoError(t, err)
-	assert.Equal(t, map[string]bool{"posts/2": false}, found)
-}
-
-func TestBulkBackendExistsFailsOnServerError(t *testing.T) {
-	b := newTestBackend(t, func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusServiceUnavailable)
-	})
-
-	_, err := b.Exists(context.Background(), []common.BulkItem{{Index: "posts", DocID: "1"}})
-
-	assert.Error(t, err)
-}
-
 func TestBulkBackendApplyIndexSendsBody(t *testing.T) {
 	var method, path, body string
 	b := newTestBackend(t, func(w http.ResponseWriter, r *http.Request) {

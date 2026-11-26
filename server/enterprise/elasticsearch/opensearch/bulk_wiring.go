@@ -64,7 +64,6 @@ func closeBulk(bi opensearchutil.BulkIndexer, retrier *common.BulkRetrier, logge
 		mlog.Uint("num_indexed", stats.NumIndexed),
 		mlog.Int("num_failed", retrier.Failed()),
 		mlog.Int("num_retried", retrier.Retried()),
-		mlog.Int("num_verified", retrier.Verified()),
 		mlog.Uint("stats_num_failed", stats.NumFailed),
 		mlog.Uint("num_added", stats.NumAdded),
 		mlog.Uint("num_flushed", stats.NumFlushed),
