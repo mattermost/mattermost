@@ -114,8 +114,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
 
 #### Administration
  - Added a "Re-run checks" button to the System Console Site health page and an ``mmctl health run`` command, to run the Health Dashboard check on demand. System admins can also start a run by creating a ``health_check`` job with ``POST /api/v4/jobs``. See the [Site Health Dashboard documentation](https://docs.mattermost.com/administration-guide/manage/site-health-dashboard) for details.
- - Added per-node memory diagnostics and Health Dashboard warnings for memory pressure, out-of-memory kills, low host memory, and incompatible Go memory limits.
- - Added CPU pressure diagnostics and per-node Site Health Dashboard findings for CPU throttling, ``GOMAXPROCS`` configuration, and sustained host load.
+ - Added per-node memory diagnostics and Health Dashboard warnings for memory pressure, out-of-memory kills, low host memory, and incompatible Go memory limits (Linux hosts and cgroup v2 containers).
+ - Added CPU pressure diagnostics and per-node Site Health Dashboard findings for CPU throttling, ``GOMAXPROCS`` configuration, and sustained host load (Linux hosts and cgroup v2 containers).
  - Added a Site Health finding for unreachable push notification servers.
  - Added health dashboard checks for low and critically low local file storage disk space.
  - Added a warning health finding when the PostgreSQL ``Posts`` table has many dead tuples that vacuum has not removed, with guidance for both a blocked and a lagging vacuum.
@@ -132,7 +132,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Added the ``channel_write_access`` and ``channel_management_access`` actions to attribute-based access control policies. A permission policy or channel policy with ``channel_write_access`` restricts posting, editing, reactions, file uploads and drafts in a channel; ``channel_management_access`` restricts changing the channel's settings, members, bookmarks and policies. System admins are not bound by ``channel_management_access``.
  - Added the ``biometric_authenticated`` mobile session attribute for attribute-based access control policies.
  - The metrics plugin is now enabled by default on servers where Performance Monitoring is enabled, unless an administrator has explicitly enabled or disabled the plugin.
- - Support Packets now record whether the server's audit logging is active (``audit_logging_active`` in ``diagnostics.yaml``), and offline health checks with ``mmctl health check --packet`` use it instead of judging audit logging from the machine running ``mmctl``.
+ - Support Packets now record whether the server's audit logging is active (``audit_logging_active`` in ``diagnostics.yaml``), and offline health checks with ``mmctl health check --packet`` use it instead of judging audit logging from the machine running ``mmctl``. This fixes offline checks run from a Windows machine wrongly reporting a Linux server's audit logging as off.
  - Logger metrics (queue used, logged, error, dropped and blocked) are now reported for audit log targets, labelled with an ``audit/`` target prefix.
  - Added the ``mattermost_websocket_reconnect_failures_total`` metric, which reports why a websocket reconnect could not resume its previous connection and whether that connection was on another cluster node. The failure type of ``mattermost_websocket_reconnects_total`` now counts every reconnect that could not resume, and the metric gained an ``origin_client`` label. Added a Grafana dashboard for these metrics.
  - System Console Server Logs now shows log entry times in the admin's timezone and clock format, and includes the date when entries are not all from today.
