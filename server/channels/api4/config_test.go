@@ -1135,6 +1135,8 @@ func TestGetClientConfig(t *testing.T) {
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Equal(t, testKey, config["GoogleDeveloperKey"])
+		require.Contains(t, config, "FileLevel")
+		require.Contains(t, config, "BuildDate")
 	})
 
 	t.Run("without session", func(t *testing.T) {
@@ -1149,6 +1151,8 @@ func TestGetClientConfig(t *testing.T) {
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
+		require.NotContains(t, config, "FileLevel", "logging settings should not be exposed before login")
+		require.NotContains(t, config, "BuildDate", "build details should not be exposed before login")
 	})
 
 	t.Run("format=old (backward compatibility)", func(t *testing.T) {

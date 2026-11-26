@@ -845,11 +845,12 @@ func TestGenerateClientConfigLockProfileFieldsForEmailUsers(t *testing.T) {
 func TestGetLimitedClientConfig(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
-		description    string
-		config         *model.Config
-		telemetryID    string
-		license        *model.License
-		expectedFields map[string]string
+		description      string
+		config           *model.Config
+		telemetryID      string
+		license          *model.License
+		expectedFields   map[string]string
+		unexpectedFields []string
 	}{
 		{
 			"unlicensed",
@@ -872,9 +873,18 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			map[string]string{
 				"DiagnosticId":                     "",
 				"EnforceMultifactorAuthentication": "false",
-				"WebsocketURL":                     "ws://mattermost.example.com:8065",
-				"WebsocketPort":                    "80",
-				"WebsocketSecurePort":              "443",
+			},
+			[]string{
+				"WebsocketURL",
+				"WebsocketPort",
+				"WebsocketSecurePort",
+				"BuildDate",
+				"BuildHashEnterprise",
+				"EnableFile",
+				"FileLevel",
+				"IsFipsEnabled",
+				"SupportEmail",
+				"EnableGuestAccounts",
 			},
 		},
 		{
@@ -897,20 +907,25 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"PasswordRequireNumber":    "true",
 				"PasswordRequireSymbol":    "false",
 			},
+			nil,
 		},
 		{
 			"Feature Flags",
 			&model.Config{
 				FeatureFlags: &model.FeatureFlags{
-					TestFeature:    "myvalue",
-					PostAttributes: true,
+					TestFeature:       "myvalue",
+					PostAttributes:    true,
+					SessionAttributes: true,
 				},
 			},
 			"",
 			nil,
 			map[string]string{
-				"FeatureFlagTestFeature":    "myvalue",
-				"FeatureFlagPostAttributes": "true",
+				"FeatureFlagSessionAttributes": "true",
+			},
+			[]string{
+				"FeatureFlagTestFeature",
+				"FeatureFlagPostAttributes",
 			},
 		},
 		{
@@ -928,6 +943,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalEnableWatermark": "true",
 			},
+			nil,
 		},
 	}
 
@@ -946,6 +962,9 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
 					assert.Equal(t, expectedValue, actualValue)
 				}
+			}
+			for _, unexpectedField := range testCase.unexpectedFields {
+				assert.NotContains(t, configMap, unexpectedField)
 			}
 		})
 	}

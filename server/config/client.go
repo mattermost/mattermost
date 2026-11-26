@@ -16,6 +16,48 @@ import (
 func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
 	props := GenerateLimitedClientConfig(c, telemetryID, license)
 
+	props["BuildDate"] = model.BuildDate
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
+	props["IsFipsEnabled"] = strconv.FormatBool(fips.IsEnabled)
+
+	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
+	props["FileLevel"] = *c.LogSettings.FileLevel
+
+	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
+	props["WebsocketPort"] = strconv.Itoa(*c.ServiceSettings.WebsocketPort)
+	props["WebsocketSecurePort"] = strconv.Itoa(*c.ServiceSettings.WebsocketSecurePort)
+
+	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
+	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
+	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
+	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
+
+	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+	props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableClientMetrics)
+
+	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
+
+	props["ReportAProblemType"] = *c.SupportSettings.ReportAProblemType
+	props["ReportAProblemMail"] = *c.SupportSettings.ReportAProblemMail
+	props["AllowDownloadLogs"] = strconv.FormatBool(*c.SupportSettings.AllowDownloadLogs)
+	props["SupportEmail"] = *c.SupportSettings.SupportEmail
+	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
+
+	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
+	props["EnableUserStatuses"] = strconv.FormatBool(*c.ServiceSettings.EnableUserStatuses)
+
+	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
+
+	props["AppsPluginEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable && c.PluginSettings.PluginStates[model.PluginIdApps] != nil && c.PluginSettings.PluginStates[model.PluginIdApps].Enable)
+
+	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
+	props["HideGuestTags"] = strconv.FormatBool(*c.GuestAccountsSettings.HideTags)
+	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
+
+	for key, value := range c.FeatureFlags.ToMap() {
+		props["FeatureFlag"+key] = value
+	}
+
 	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableLastActiveTime"] = strconv.FormatBool(*c.TeamSettings.EnableLastActiveTime)
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
@@ -281,41 +323,24 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 }
 
 // GenerateLimitedClientConfig renders the given configuration for an untrusted client.
+// It is served to callers that are not logged in, so it should only contain what the
+// clients need before login. Anything else belongs in GenerateClientConfig.
 func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
 	props := make(map[string]string)
 
+	// Version is read before login by the desktop app and by mobile to pick the SSO options.
 	props["Version"] = model.CurrentVersion
 	props["BuildNumber"] = model.BuildNumber
-	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
-	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 	props["ServiceEnvironment"] = model.GetServiceEnvironment()
-	props["IsFipsEnabled"] = strconv.FormatBool(fips.IsEnabled)
 
-	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableDesktopLandingPage"] = strconv.FormatBool(*c.ServiceSettings.EnableDesktopLandingPage)
-	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
-	props["FileLevel"] = *c.LogSettings.FileLevel
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["SiteName"] = *c.TeamSettings.SiteName
-	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
-	props["WebsocketPort"] = strconv.Itoa(*c.ServiceSettings.WebsocketPort)
-	props["WebsocketSecurePort"] = strconv.Itoa(*c.ServiceSettings.WebsocketSecurePort)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
-	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
-
-	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
-	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
-	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
-	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
-
-	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
-	props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableClientMetrics)
-
-	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
 
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
@@ -325,18 +350,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
 	props["AboutLink"] = *c.SupportSettings.AboutLink
 	props["HelpLink"] = *c.SupportSettings.HelpLink
-	props["ReportAProblemType"] = *c.SupportSettings.ReportAProblemType
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
-	props["ReportAProblemMail"] = *c.SupportSettings.ReportAProblemMail
-	props["AllowDownloadLogs"] = strconv.FormatBool(*c.SupportSettings.AllowDownloadLogs)
 	props["ForgotPasswordLink"] = *c.SupportSettings.ForgotPasswordLink
-	props["SupportEmail"] = *c.SupportSettings.SupportEmail
-	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 
-	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
-	props["EnableUserStatuses"] = strconv.FormatBool(*c.ServiceSettings.EnableUserStatuses)
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
@@ -346,10 +364,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["TelemetryId"] = telemetryID
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
-
+	// Plugins may still rely on loading before login, e.g. for white labelling.
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
-	props["AppsPluginEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable && c.PluginSettings.PluginStates[model.PluginIdApps] != nil && c.PluginSettings.PluginStates[model.PluginIdApps].Enable)
 
 	props["PasswordMinimumLength"] = strconv.Itoa(*c.PasswordSettings.MinimumLength)
 	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
@@ -371,15 +387,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableSignUpWithOpenId"] = "false"
 	props["OpenIdButtonText"] = ""
 	props["OpenIdButtonColor"] = ""
-	props["CWSURL"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["EnforceMultifactorAuthentication"] = "false"
-	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
-	props["HideGuestTags"] = strconv.FormatBool(*c.GuestAccountsSettings.HideTags)
-	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
 	props["EnableGuestMagicLink"] = strconv.FormatBool(*c.GuestAccountsSettings.EnableGuestMagicLink)
 
 	if license != nil {
@@ -427,7 +439,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
-			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
 		}
@@ -450,9 +461,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		}
 	}
 
-	for key, value := range c.FeatureFlags.ToMap() {
-		props["FeatureFlag"+key] = value
-	}
+	// The desktop app reads this before login to collect session attributes for the login request.
+	props["FeatureFlagSessionAttributes"] = strconv.FormatBool(c.FeatureFlags.SessionAttributes)
 
 	return props
 }
