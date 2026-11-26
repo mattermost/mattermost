@@ -14,11 +14,13 @@ From Mattermost v12.3, the Site health dashboard is enabled by default. In v12.2
 
 ## Access the dashboard
 
-Go to **System Console \> Reporting \> Site health**. Only system administrators can access this page.
+Go to **System Console \> Reporting \> Site health**. System administrators and delegated admins who can read **Site Statistics** can access this page.
+
+Delegated admins see the page read-only: they can't mute or unmute findings or re-run checks. Which findings they see depends on their permissions.
 
 <Note>
 
-Site health replaces the [Workspace Optimization](/administration-guide/configure/optimize-your-workspace) page. When Site health is available to you, **Reporting \> Workspace Optimization** no longer appears in the System Console. Delegated admins who can't access Site health continue to see Workspace Optimization.
+Site health replaces the [Workspace Optimization](/administration-guide/configure/optimize-your-workspace) page. When Site health is available to you, **Reporting \> Workspace Optimization** no longer appears in the System Console.
 
 </Note>
 
@@ -125,6 +127,16 @@ Each muted finding row shows:
 
 Select **Unmute** on any row in the muted list. The finding leaves the muted list and appears again in the tab for its current state, for example **Recently resolved** if the check has passed since you muted it.
 
+## Export findings
+
+To share the findings, select **Export** next to **Re-run checks**, then choose one of the following options:
+
+- **Download HTML**: Saves a self-contained report that opens in any browser.
+- **Download Markdown**: Saves the report as Markdown, for pasting into a ticket or wiki page.
+- **Print / Save as PDF**: Opens your browser's print dialog. To save a PDF, choose **Save as PDF** as the printer.
+
+The export includes all findings, including muted and resolved ones, whatever tab or view you have open.
+
 ## Check health from the command line
 
 Use the [mmctl](/administration-guide/manage/mmctl-command-line-tool) `health check` command to list the same findings shown on the dashboard. This is useful for scripting and for checking a server without opening the System Console.
@@ -149,4 +161,18 @@ To run the checks now instead of waiting for the next scheduled run, use `mmctl 
 
 ```sh
 mmctl health run
+```
+
+### Export a health report
+
+To share the findings as a file, export them as HTML or Markdown with `mmctl health export`:
+
+```sh
+mmctl health export html --output health-report.html
+```
+
+The report includes resolved and muted findings. Without `--output`, it goes to standard output. Use `--packet` to export a Support Packet without a server connection:
+
+```sh
+mmctl health export md --packet mm_support_packet.zip
 ```

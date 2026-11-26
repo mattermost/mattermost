@@ -10,11 +10,6 @@ type ContainerLimits struct {
 	CPULimit float64
 }
 
-type cgroupV2Info struct {
-	dir                  string
-	memoryStatsSupported bool
-}
-
 type memoryDiagnostics struct {
 	AvailableMemoryMB           *uint64
 	SwapTotalMB                 *uint64

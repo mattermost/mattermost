@@ -326,6 +326,13 @@
                   description: Marketplace plugin IDs to install as part of onboarding.
                   items:
                     type: string
+                site_url:
+                  type: string
+                  description: >
+                    http or https URL without a path, such as `https://chat.example.com`,
+                    to save as `ServiceSettings.SiteURL` before
+                    the plugins are installed. It is only saved if no Site URL is set yet
+                    and the Site URL is not set by an environment variable.
       responses:
         "200":
           description: Onboarding completion successful

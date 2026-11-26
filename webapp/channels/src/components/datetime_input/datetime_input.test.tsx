@@ -209,6 +209,183 @@ describe('components/datetime_input/DateTimeInput', () => {
         });
     });
 
+    describe('selecting today when past dates are not allowed', () => {
+        test.each([
+            ['on an interval boundary', '2025-06-08T10:15:20Z', '2025-06-08T10:30:00.000Z'],
+            ['between interval boundaries', '2025-06-08T10:17:20Z', '2025-06-08T10:30:00.000Z'],
+        ])('should choose a future time %s', async (_name, now, expected) => {
+            fakeNow(now);
+            mockGetCurrentMomentForTimezone.mockImplementation(() => moment.tz(now, 'UTC'));
+            const handleChange = jest.fn();
+
+            try {
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={moment.tz('2025-06-09T09:00:00Z', 'UTC')}
+                        handleChange={handleChange}
+                        timePickerInterval={15}
+                    />,
+                );
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                const picked = handleChange.mock.lastCall[0];
+                expect(picked.toISOString()).toBe(expected);
+                expect(picked.isAfter(moment.tz(now, 'UTC'))).toBe(true);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        describe('with the real time comparison', () => {
+            beforeEach(() => {
+                mockIsBeforeTime.mockImplementation(jest.requireActual('utils/timezone').isBeforeTime);
+            });
+
+            test.each([
+                ['keeps the selected time when it is still ahead', '2025-06-08T08:00:20Z', '2025-06-09T09:00:00Z', 15, '2025-06-08T09:00:00.000Z'],
+                ['rounds now when the selected time has passed', '2025-06-08T10:15:20Z', '2025-06-09T09:00:00Z', 15, '2025-06-08T10:30:00.000Z'],
+                ['rounds once when there is no selected time', '2025-06-08T10:15:20Z', null, 15, '2025-06-08T10:30:00.000Z'],
+                ['picks the last interval of the day', '2025-06-08T23:44:20Z', null, 15, '2025-06-08T23:45:00.000Z'],
+            ])('should %s', async (_name, now, selected, interval, expected) => {
+                fakeNow(now);
+                mockGetCurrentMomentForTimezone.mockImplementation(() => moment.tz(now, 'UTC'));
+                const handleChange = jest.fn();
+
+                try {
+                    renderWithContext(
+                        <DateTimeInput
+                            {...baseProps}
+                            time={selected ? moment.tz(selected, 'UTC') : null}
+                            handleChange={handleChange}
+                            timePickerInterval={interval}
+                        />,
+                    );
+
+                    await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                    await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                    expect(handleChange.mock.lastCall[0].toISOString()).toBe(expected);
+                } finally {
+                    jest.useRealTimers();
+                }
+            });
+
+            test('should ignore the click when the next interval is tomorrow', async () => {
+                const now = '2025-06-08T23:45:20Z';
+                fakeNow(now);
+                mockGetCurrentMomentForTimezone.mockImplementation(() => moment.tz(now, 'UTC'));
+                const handleChange = jest.fn();
+
+                try {
+                    renderWithContext(
+                        <DateTimeInput
+                            {...baseProps}
+                            time={null}
+                            handleChange={handleChange}
+                            timePickerInterval={15}
+                        />,
+                    );
+
+                    await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                    await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                    expect(handleChange).not.toHaveBeenCalled();
+                } finally {
+                    jest.useRealTimers();
+                }
+            });
+        });
+    });
+
+    describe('selecting today with manual time entry when past dates are not allowed', () => {
+        beforeEach(() => {
+            mockIsBeforeTime.mockImplementation(jest.requireActual('utils/timezone').isBeforeTime);
+        });
+
+        test.each([
+            ['keeps an off-interval time that is still ahead', '2025-06-08T23:44:20Z', '2025-06-09T23:50:00Z', '2025-06-08T23:50:00.000Z'],
+            ['keeps a future time without rounding', '2025-06-08T10:17:20Z', '2025-06-09T10:22:00Z', '2025-06-08T10:22:00.000Z'],
+            ['falls back to the exact current minute when the time has passed', '2025-06-08T10:17:20Z', '2025-06-09T09:00:00Z', '2025-06-08T10:17:00.000Z'],
+            ['uses the exact current minute when there is no time', '2025-06-08T23:50:20Z', null, '2025-06-08T23:50:00.000Z'],
+        ])('should %s', async (_name, now, selected, expected) => {
+            fakeNow(now);
+            mockGetCurrentMomentForTimezone.mockImplementation(() => moment.tz(now, 'UTC'));
+            const handleChange = jest.fn();
+
+            try {
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={selected ? moment.tz(selected, 'UTC') : null}
+                        handleChange={handleChange}
+                        timePickerInterval={15}
+                        manualTimeEntry={true}
+                    />,
+                );
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                expect(handleChange).toHaveBeenCalledTimes(1);
+                expect(handleChange.mock.lastCall[0].toISOString()).toBe(expected);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        test('should keep rounding and ignore the click when a dropdown time rounds past midnight', async () => {
+            const now = '2025-06-08T23:44:20Z';
+            fakeNow(now);
+            mockGetCurrentMomentForTimezone.mockImplementation(() => moment.tz(now, 'UTC'));
+            const handleChange = jest.fn();
+
+            try {
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={moment.tz('2025-06-09T23:50:00Z', 'UTC')}
+                        handleChange={handleChange}
+                        timePickerInterval={15}
+                    />,
+                );
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                // Only the mount-time interval rounding of the selected time may call back, never a pick of today
+                const pickedToday = handleChange.mock.calls.filter(([picked]) => picked.isSame(moment.tz('2025-06-08', 'UTC'), 'day'));
+                expect(pickedToday).toHaveLength(0);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+    });
+
+    describe('time options when past dates are not allowed', () => {
+        test.each([
+            ['lists the remaining intervals today', '2025-06-08T23:44:20Z', ['11:45 PM']],
+            ['lists nothing when the next interval is tomorrow', '2025-06-08T23:45:20Z', []],
+        ])('should %s', async (_name, now, expected) => {
+            mockGetCurrentMomentForTimezone.mockImplementation(() => moment.tz(now, 'UTC'));
+
+            renderWithContext(
+                <DateTimeInput
+                    {...baseProps}
+                    time={null}
+                    timePickerInterval={15}
+                />,
+            );
+
+            await userEvent.click(screen.getByLabelText('Time'));
+
+            const options = screen.queryAllByTestId(/^time_option_/).map((option) => option.textContent);
+            expect(options).toEqual(expected);
+        });
+    });
+
     describe('timezone handling', () => {
         test('should handle timezone prop', () => {
             const props = {
@@ -361,6 +538,20 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(handleChange).not.toHaveBeenCalled();
         });
 
+        it('should not move a time on the interval boundary that has seconds', () => {
+            const handleChange = jest.fn();
+
+            renderWithContext(
+                <DateTimeInput
+                    time={moment('2025-06-08T14:30:20Z')}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            expect(handleChange).not.toHaveBeenCalled();
+        });
+
         it('should use 30-minute default interval when prop not provided', () => {
             const handleChange = jest.fn();
             const unroundedTime = moment('2025-06-08T14:17:00Z');
@@ -378,6 +569,30 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(handleChange).toHaveBeenCalledTimes(1);
             const roundedTime = handleChange.mock.calls[0][0];
             expect(roundedTime.minute()).toBe(30); // 14:17 -> 14:30
+        });
+    });
+
+    describe('getRoundedTime', () => {
+        test.each([
+            ['keeps a time exactly on the boundary', '2025-06-08T15:30:00.000Z', 30, '2025-06-08T15:30:00.000Z'],
+            ['rounds up within the interval', '2025-06-08T15:31:00.000Z', 30, '2025-06-08T16:00:00.000Z'],
+            ['rounds up when the boundary minute has seconds', '2025-06-08T15:30:20.000Z', 30, '2025-06-08T16:00:00.000Z'],
+            ['rounds up when the boundary minute has milliseconds', '2025-06-08T15:30:00.500Z', 30, '2025-06-08T16:00:00.000Z'],
+            ['rounds up past the hour', '2025-06-08T15:50:20.000Z', 15, '2025-06-08T16:00:00.000Z'],
+            ['rounds a one minute interval to the next minute', '2025-06-08T15:34:58.000Z', 1, '2025-06-08T15:35:00.000Z'],
+            ['keeps a one minute interval time with no seconds', '2025-06-08T15:34:00.000Z', 1, '2025-06-08T15:34:00.000Z'],
+        ])('%s', (_name, input, interval, expected) => {
+            const result = getRoundedTime(moment.tz(input, 'UTC'), interval);
+
+            expect(result.toISOString()).toBe(expected);
+        });
+
+        test('should not mutate the given moment', () => {
+            const input = moment.tz('2025-06-08T15:30:20.000Z', 'UTC');
+
+            getRoundedTime(input, 30);
+
+            expect(input.toISOString()).toBe('2025-06-08T15:30:20.000Z');
         });
     });
 

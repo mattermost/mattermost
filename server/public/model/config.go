@@ -434,7 +434,7 @@ type ServiceSettings struct {
 	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert                 *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert                 *bool    `access:"site_notices,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
@@ -2425,6 +2425,16 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.EmailNotificationContentsType == nil {
 		s.EmailNotificationContentsType = new(EmailNotificationContentsFull)
 	}
+}
+
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
+// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+func (s *EmailSettings) IsSMTPConfigured() bool {
+	server := SafeDereference(s.SMTPServer)
+	if server == "" {
+		return false
+	}
+	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
 }
 
 type RateLimitSettings struct {

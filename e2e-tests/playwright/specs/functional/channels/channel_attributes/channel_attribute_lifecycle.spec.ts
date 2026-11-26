@@ -64,8 +64,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // refuses the same create independently.
             await expect(modal.createButton).toBeDisabled();
 
-            await page.getByTestId(`channelAttribute-${required.name}`).click();
-            await page.getByText('ALPHA', {exact: true}).click();
+            await modal.selectAttributeOption(required.name, 'ALPHA');
 
             await expect(modal.createButton).toBeEnabled();
             await modal.create();
@@ -160,6 +159,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // The unset-required row and its edit path are admin-only in Channel Info,
             // so recovering it needs a channel admin, not a plain member.
             await adminClient.updateChannelMemberSchemeRoles(channel.id, user.id, true, true);
+            await adminClient.deleteChannel(channel.id);
 
             const required = await createAttribute(adminClient, attributeName('unfilled', suffix), {
                 options: ['RECOVERED'],
@@ -167,6 +167,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 required: true,
             });
             created.push(required);
+            await adminClient.unarchiveChannel(channel.id);
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, channel.name);
@@ -176,7 +177,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // The empty row is both the signal and the retry path.
             const row = page.getByTestId(`channelInfoAttributeRow-${required.name}`);
             await expect(row).toBeVisible();
-            await expect(row).toContainText('Not set');
+            await expect(row.getByTestId(`channelInfoAttributeMissing-${required.name}`)).toHaveText('Select a value');
 
             // No chip while unset.
             await expect(page.getByTestId('attributeChip')).toHaveCount(0);

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -165,9 +166,9 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	// Routes should be available when PostAttributes=true alone, with every
-	// other peer property flag off. The post_attributes group itself is
-	// registered unconditionally at startup (see RegisterBuiltinGroups in
-	// server.go); only the generic Properties API route registration is
+	// other peer property flag off. The access_control group that holds post
+	// fields is registered unconditionally at startup (see RegisterBuiltinGroups
+	// in server.go); only the generic Properties API route registration is
 	// gated by the OR condition in InitProperties.
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.IntegratedBoards = false
@@ -177,11 +178,15 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 		cfg.FeatureFlags.PostAttributes = true
 	}).InitBasic(t)
 
-	groupName := model.PostAttributesPropertyGroupName
+	// access_control answers only to an Enterprise licence.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	groupName := model.AccessControlPropertyGroupName
 
 	t.Run("create field should succeed with PostAttributes flag", func(t *testing.T) {
 		field := &model.PropertyField{
-			Name:       model.NewId(),
+			// access_control names must be CEL identifiers, and an id can start with a digit.
+			Name:       "f_" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "system",
 		}
@@ -362,7 +367,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("non-admin should have permissions forced to member", func(t *testing.T) {
+	t.Run("non-admin should have permissions forced to the post defaults", func(t *testing.T) {
 		th.LoginBasic(t)
 
 		sysadminLevel := model.PermissionLevelSysadmin
@@ -380,11 +385,12 @@ func TestCreatePropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		// Non-admin should have permissions forced to member
+		// Non-admin should have permissions forced to the defaults: member for
+		// the definition slots, creator for a post field's values
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
 	})
@@ -404,17 +410,18 @@ func TestCreatePropertyField(t *testing.T) {
 		// for the definition slots, so those default to sysadmin: a globally
 		// scoped field must not be renameable, retypeable or deletable by
 		// everyone. Values are the exception -- they are gated by the value's
-		// own target rather than the field's, so they keep the member default
-		// and stay writable by the people the value's target admits.
+		// own target rather than the field's, so they keep the object type's
+		// default, creator for a post field, and stay writable by the people
+		// the value's target admits.
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
 	})
 
-	t.Run("admin should get member defaults on a channel target when not specified", func(t *testing.T) {
+	t.Run("admin should get the post defaults on a channel target when not specified", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeText,
@@ -427,11 +434,12 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		// A narrower target keeps the object type default on all three slots:
-		// the member level there resolves to channel membership, not everyone.
+		// member for the definition slots, which there resolves to channel
+		// membership rather than everyone, and creator for a post field's values.
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
 	})
@@ -554,7 +562,7 @@ func TestCreatePropertyField(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 
 			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
-			require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 			require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 		})
 
@@ -646,7 +654,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionField)
-		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 	})
 
@@ -1283,8 +1291,9 @@ func TestCreatePropertyField(t *testing.T) {
 		// Only a caller who administers the field's scope may configure
 		// permission levels; everyone else has all three pinned to the object
 		// type's default, so a submitted creator level is discarded rather
-		// than honoured. th.BasicUser is a plain channel_user in
-		// th.BasicChannel here.
+		// than honoured. For a post field creator is also the values default,
+		// so the definition slots are what show the discard. th.BasicUser is a
+		// plain channel_user in th.BasicChannel here.
 		th.LoginBasic(t)
 
 		creatorLevel := model.PermissionLevelCreator
@@ -1303,7 +1312,7 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionField)
-		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 	})
 
@@ -5629,11 +5638,16 @@ func TestPatchPropertyValues(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
-	// A system target defaults every slot to sysadmin, values included, so a
-	// field created with omitted levels is sysadmin-only end to end. Callers
-	// that want members to write values must pin permission_values themselves.
-	t.Run("member can set values on a system-scoped field created with default levels", func(t *testing.T) {
+	// A system target defaults the definition slots to sysadmin, but a post
+	// field's values default to creator: they are gated by the post, so the
+	// post's author may write them and another channel member may not.
+	t.Run("the post's author can set values on a system-scoped field created with default levels", func(t *testing.T) {
 		th.LoginBasic(t)
+
+		// th.BasicPost is created before th.BasicUser joins the team, so it is
+		// not theirs; this post is.
+		ownPost, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "mine"})
+		require.NoError(t, err)
 
 		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
 			Name:       model.NewId(),
@@ -5645,9 +5659,18 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.NotNil(t, created.PermissionField)
 		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 		require.NotNil(t, created.PermissionValues)
-		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelCreator, *created.PermissionValues)
 
-		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+		// Another member of the post's channel is refused: at member they would not be.
+		otherMember := th.CreateClient()
+		th.LoginBasic2WithClient(t, otherMember)
+		_, resp, err = otherMember.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"not mine"`)},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, []model.PropertyValuePatchItem{
 			{FieldID: created.ID, Value: json.RawMessage(`"annotated"`)},
 		})
 		require.NoError(t, err)
@@ -5666,7 +5689,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.Equal(t, model.PermissionLevelSysadmin, *sysadminValues.PermissionValues)
 
-		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, []model.PropertyValuePatchItem{
 			{FieldID: sysadminValues.ID, Value: json.RawMessage(`"annotated"`)},
 		})
 		require.Error(t, err)
@@ -9297,5 +9320,252 @@ func TestPatchPropertyFieldNullGrantsEcho(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Nil(t, stored.Permissions.Grants)
 		require.Equal(t, field.Attrs[model.PropertyFieldAttributeOptions], stored.Attrs[model.PropertyFieldAttributeOptions])
+	})
+}
+
+// TestPatchPropertyFieldRequiredChannelsMissingValuesGate covers
+// checkRequiredAttributeTransition (MM-70717): PATCHing a channel attribute's
+// attrs.required from false to true must be rejected with 409 while any
+// active channel lacks a value for it.
+//
+// Only the *blocking* direction is asserted against an exact channel
+// population: any Mattermost test server already has at least one active
+// channel (InitBasic's defaults, if nothing else), and the field ID used in
+// each subtest is freshly generated, so that pre-existing channel is
+// guaranteed to have no value for it. The reverse ("succeeds once every
+// channel has a value") is not asserted here -- it would require every
+// channel already in the shared test database to carry a value for this
+// field, which this suite cannot control -- and is instead covered at the
+// store layer (storetest.testChannelStoreExistsChannelMissingPropertyValue),
+// which starts from a clean, fully-controlled Channels table.
+func TestPatchPropertyFieldRequiredChannelsMissingValuesGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	newField := func(t *testing.T, objectType string, required bool) *model.PropertyField {
+		t.Helper()
+		// "a" prefix: field names in this group are validated as CEL
+		// identifiers (must start with a letter/underscore), which
+		// model.NewId() alone does not always satisfy.
+		attrs := model.StringInterface{}
+		if required {
+			// Create the field through the normal App path first so all defaults
+			// are populated, then establish the already-required fixture directly
+			// in the store. Creating it required through App is intentionally
+			// blocked by the transition gate under test.
+			field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				Name:       "a" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				GroupID:    group.ID,
+				ObjectType: objectType,
+				TargetType: "system",
+				Attrs:      attrs,
+			}, false, "")
+			require.Nil(t, appErr)
+
+			field.Attrs[model.PropertyFieldAttrRequired] = true
+			updated, err := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{field}, nil)
+			require.NoError(t, err)
+			return updated[0]
+		}
+
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    group.ID,
+			ObjectType: objectType,
+			TargetType: "system",
+			Attrs:      attrs,
+		}, false, "")
+		require.Nil(t, appErr)
+		return field
+	}
+
+	t.Run("blocks turning required on while an active channel lacks a value", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, false)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_field.required.channels_missing_values.app_error")
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+		reloaded, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+		require.Nil(t, appErr)
+		require.False(t, model.IsPropertyFieldRequired(reloaded), "the field must be unchanged in the database after a rejected patch")
+	})
+
+	t.Run("an already-required field accepts an unrelated attribute change", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, true)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"display_name": "Renamed"}}
+		updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.True(t, model.IsPropertyFieldRequired(updated), "required must be untouched by a patch that never mentions it")
+	})
+
+	t.Run("re-sending required=true unchanged succeeds", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, true)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("flipping required back to false always succeeds -- the escape hatch", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, true)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": false}}
+		updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.False(t, model.IsPropertyFieldRequired(updated))
+	})
+
+	t.Run("the same toggle on a user-object-type field is unaffected", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeUser, false)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+		updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.True(t, model.IsPropertyFieldRequired(updated))
+	})
+
+	t.Run("non-HTTP callers (plugin/local) are blocked too, not just the api4 handler", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, false)
+		field.Attrs["required"] = true
+
+		_, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("a caller claiming another object type for an existing channel field is still checked", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, false)
+		field.ObjectType = model.PropertyFieldObjectTypeUser
+		field.Attrs["required"] = true
+
+		_, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", appErr.Id)
+	})
+
+	t.Run("a team-scoped channel field is not checked, since Required is enforced only server-wide", func(t *testing.T) {
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   th.BasicTeam.Id,
+			Attrs:      model.StringInterface{},
+		}, false, "")
+		require.Nil(t, appErr)
+		field.Attrs["required"] = true
+
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, field, false, "")
+		require.Nil(t, appErr)
+		assert.True(t, model.IsPropertyFieldRequired(updated))
+
+		// Required was never enforced while team-scoped, so widening the
+		// field to every team is checked like turning Required on.
+		updated.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		updated.TargetID = ""
+		_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, updated, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", appErr.Id)
+	})
+
+	t.Run("with required enforcement disabled the disabled error wins over the missing-values gate", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = true })
+
+		field := newField(t, model.PropertyFieldObjectTypeChannel, false)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property_field.required_disabled.app_error")
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+// TestCreatePropertyFieldRequiredChannelsMissingValuesGate verifies callers
+// cannot bypass the false-to-true update gate by creating a field already
+// required. A new field has no ID and therefore no existing channel can hold
+// a value for it, so required creation is blocked whenever active local
+// channels exist.
+func TestCreatePropertyFieldRequiredChannelsMissingValuesGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	t.Run("blocks creating a channel-object field already required", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, &model.PropertyField{
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: "system",
+			Attrs:      model.StringInterface{"required": true},
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_field.required.channels_missing_values.app_error")
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+	})
+
+	t.Run("creating without required succeeds", func(t *testing.T) {
+		field, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, &model.PropertyField{
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: "system",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.False(t, model.IsPropertyFieldRequired(field))
+	})
+
+	t.Run("required=true on a user-object-type field is unaffected", func(t *testing.T) {
+		field, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, &model.PropertyField{
+			// User-object (CPA) field names are validated as CEL identifiers,
+			// which model.NewId() alone does not always satisfy.
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: "system",
+			Attrs:      model.StringInterface{"required": true},
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.True(t, model.IsPropertyFieldRequired(field))
+	})
+
+	t.Run("non-HTTP callers (plugin/local) are blocked too, not just the api4 handler", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: "system",
+			Attrs:      model.StringInterface{"required": true},
+		}, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
 	})
 }

@@ -62,13 +62,10 @@ func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
 	d, err := a.Srv().Store().NotifyAdmin().Save(data)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if nfErr, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
-		default:
-			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return d, nil
