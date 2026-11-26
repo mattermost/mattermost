@@ -155,7 +155,7 @@ func (lt *LoadTestProvider) doCommand(a *app.App, rctx request.CTX, args *model.
 		return &model.CommandResponse{}, nil
 	}
 
-	if message == "" || strings.HasPrefix(message, "help") {
+	if trimmed := strings.TrimSpace(message); trimmed == "" || strings.HasPrefix(trimmed, "help") {
 		return lt.HelpCommand(args, message), nil
 	}
 

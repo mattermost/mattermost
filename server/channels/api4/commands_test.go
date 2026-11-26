@@ -192,6 +192,10 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test help")
 	require.NoError(t, err)
 	require.True(t, strings.Contains(rs.Text, "Mattermost testing commands to help"), rs.Text)
+
+	rs, _, err = client.ExecuteCommand(context.Background(), channel.Id, "/test  help")
+	require.NoError(t, err)
+	require.True(t, strings.Contains(rs.Text, "Mattermost testing commands to help"), rs.Text)
 }
 
 func TestLoadTestSetupCommands(t *testing.T) {
