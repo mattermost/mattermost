@@ -631,6 +631,31 @@ func TestFileStoreLoad(t *testing.T) {
 		assertFileNotEqualsConfig(t, emptyConfig, path)
 	})
 
+	t.Run("nil plugin state removed", func(t *testing.T) {
+		const pluginID = "com.example.someplugin"
+		cfg := minimalConfig.Clone()
+		cfg.PluginSettings.PluginStates = map[string]*model.PluginState{pluginID: nil}
+
+		path, tearDown := setupConfigFile(t, cfg)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		for name, states := range map[string]map[string]*model.PluginState{
+			"loaded": fs.Get().PluginSettings.PluginStates,
+			"file":   getActualFileConfig(t, path).PluginSettings.PluginStates,
+		} {
+			assert.NotContainsf(t, states, pluginID, "%s config", name)
+			for id, state := range states {
+				assert.NotNilf(t, state, "%s config PluginStates[%q]", name, id)
+			}
+		}
+	})
+
 	t.Run("honour environment", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
 		defer tearDown()
