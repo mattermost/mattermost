@@ -240,9 +240,28 @@ func TestStopHealthCheckWorkersCancelsRunningJob(t *testing.T) {
 
 // Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.
 func TestHealthCheckJobEndToEnd(t *testing.T) {
+	t.Run("a scheduled run", func(t *testing.T) {
+		testHealthCheckJobEndToEnd(t, true, func(th *TestHelper) *model.Job {
+			job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
+			require.Nil(t, appErr)
+			return job
+		})
+	})
+
+	t.Run("an on-demand run with automatic checks off", func(t *testing.T) {
+		testHealthCheckJobEndToEnd(t, false, func(th *TestHelper) *model.Job {
+			job, err := th.App.StartHealthCheckRun(th.Context)
+			require.NoError(t, err)
+			return job
+		})
+	})
+}
+
+func testHealthCheckJobEndToEnd(t *testing.T, automaticChecks bool, createJob func(th *TestHelper) *model.Job) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.HealthDashboard = true
 		cfg.ServiceSettings.SiteURL = model.NewPointer("")
+		cfg.SiteHealthSettings.EnableAutomaticChecks = model.NewPointer(automaticChecks)
 	}, LatestVersionURL(latestVersionServer(t).URL))
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
@@ -250,8 +269,7 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 	require.NoError(t, th.App.clearLatestVersionCache())
 	t.Cleanup(func() { assert.NoError(t, th.App.clearLatestVersionCache()) })
 
-	job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
-	require.Nil(t, appErr)
+	job := createJob(th)
 	require.NotNil(t, job)
 
 	ch := th.Server.Channels()

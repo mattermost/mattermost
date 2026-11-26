@@ -75,14 +75,20 @@ Each finding row shows its severity, title, category area, and how long the cond
 
 ### How checks run
 
-Checks run automatically about once an hour. In a high availability cluster, every node reports its own status, so a finding can point to the node that has the problem. For example, it can name a node that can't reach LDAP, SAML, SMTP, Elasticsearch or OpenSearch, or file storage while the other nodes can, or a node whose database connection pool is nearly full.
+Checks run automatically about once an hour, unless you [turn off automatic checks](#turn-off-automatic-checks). In a high availability cluster, every node reports its own status, so a finding can point to the node that has the problem. For example, it can name a node that can't reach LDAP, SAML, SMTP, Elasticsearch or OpenSearch, or file storage while the other nodes can, or a node whose database connection pool is nearly full.
 
 To run the checks now instead of waiting, select **Re-run checks** at the top of the page. The button shows **Running checks…** until the run finishes, usually within a minute or two, and then the findings and **Last evaluated** update. If a run is already in progress, whether you or the hourly schedule started it, the dashboard waits for that run instead of starting another. If the run fails, the dashboard shows the reason and keeps the previous findings.
 
-- After the feature is enabled, the first check runs within an hour. Until then, the dashboard has no findings to show. Select **Re-run checks** to run it straight away.
+- Until the first check runs, the dashboard has no findings to show. Select **Re-run checks** to run it straight away.
 - After you fix the cause of a finding, it moves to **Recently resolved** after the next check run. Select **Re-run checks** to confirm the fix without waiting up to an hour.
 - A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
 - If a node doesn't report back in time, the dashboard shows **A cluster node is not responding**. That node's other findings keep their last known state until it responds again. A busy or slow node can cause this warning to appear briefly.
+
+### Turn off automatic checks
+
+From Mattermost v12.3, system admins can stop the hourly run: at the top of the Site health page, set **Run checks automatically** to **False**, then select **Save**. The `config.json` setting is `SiteHealthSettings` > `EnableAutomaticChecks` (default `true`). It isn't available in Mattermost Cloud.
+
+While automatic checks are off, the dashboard shows the findings from the last run, and **Re-run checks** and `mmctl health run` still work.
 
 ### Filter by tab
 
