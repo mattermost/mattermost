@@ -22,14 +22,13 @@ import {
 } from 'mattermost-redux/utils/health_utils';
 import type {HealthFindingTab} from 'mattermost-redux/utils/health_utils';
 
-import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useWebSocketClient} from 'utils/use_websocket/hooks';
 
-import {AutomaticChecksOffBanner, AutomaticChecksSetting} from './automatic_checks';
+import {AutomaticChecksOffBanner, AutomaticChecksSwitch} from './automatic_checks';
 import {EmptyState, TabEmptyState} from './empty_state';
 import ExportMenu from './export_menu';
 import FindingGroups from './finding_groups';
@@ -65,7 +64,6 @@ export type Props = {
         createJob: (job: JobTypeBase) => Promise<ActionResult<Job>>;
         getJobsByType: (type: JobType, page?: number, perPage?: number) => Promise<ActionResult<Job[]>>;
         patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
-        setNavigationBlocked: (blocked: boolean) => void;
     };
 };
 
@@ -130,6 +128,16 @@ const unmuteErrorMessage = defineMessage({
     defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
 });
 
+const automaticChecksOnErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.automatic_checks.on_error',
+    defaultMessage: 'Automatic checks could not be turned on, so they are still off. Try again.',
+});
+
+const automaticChecksOffErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.automatic_checks.off_error',
+    defaultMessage: 'Automatic checks could not be turned off, so they are still on. Try again.',
+});
+
 const runNotAllowedMessage = defineMessage({
     id: 'admin.health_dashboard.run.not_allowed',
     defaultMessage: 'Only system admins can run checks.',
@@ -164,9 +172,8 @@ const HealthDashboard = ({
     const [exportFailed, setExportFailed] = useState(false);
     const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
     const [, setStaleCheck] = useState(0);
-    const [automaticChecksDraft, setAutomaticChecksDraft] = useState<boolean>();
-    const [savingAutomaticChecks, setSavingAutomaticChecks] = useState(false);
-    const [automaticChecksError, setAutomaticChecksError] = useState<string>();
+    const [pendingAutomaticChecks, setPendingAutomaticChecks] = useState<boolean>();
+    const [automaticChecksError, setAutomaticChecksError] = useState<MessageDescriptor | null>(null);
     const wsClient = useWebSocketClient();
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
@@ -223,21 +230,15 @@ const HealthDashboard = ({
         return () => clearTimeout(timer);
     }, [staleAt]);
 
-    const automaticChecksDirty = automaticChecksDraft !== undefined && automaticChecksDraft !== automaticChecks;
-    useEffect(() => {
-        actions.setNavigationBlocked(automaticChecksDirty);
-    }, [automaticChecksDirty, actions]);
-    useEffect(() => () => actions.setNavigationBlocked(false), [actions]);
-
-    const changeAutomaticChecks = useCallback((_: string, value: boolean) => setAutomaticChecksDraft(value), []);
-
+    // Shows the new value while it saves. A failed save drops it, which reverts the switch.
+    const savingAutomaticChecks = pendingAutomaticChecks !== undefined;
     const saveAutomaticChecks = useCallback(async (value: boolean) => {
-        setSavingAutomaticChecks(true);
+        setPendingAutomaticChecks(value);
+        setAutomaticChecksError(null);
         const {error} = await actions.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: value}});
-        setSavingAutomaticChecks(false);
-        setAutomaticChecksError(error?.message);
-        if (!error) {
-            setAutomaticChecksDraft(undefined);
+        setPendingAutomaticChecks(undefined);
+        if (error) {
+            setAutomaticChecksError(value ? automaticChecksOnErrorMessage : automaticChecksOffErrorMessage);
         }
     }, [actions]);
 
@@ -282,6 +283,15 @@ const HealthDashboard = ({
     }, [actions]);
 
     const rowState = canManage ? {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute} : {now, expanded, onToggle: toggle};
+
+    const automaticChecksSwitch = automaticChecks !== undefined && (
+        <AutomaticChecksSwitch
+            checked={pendingAutomaticChecks ?? automaticChecks}
+            setByEnv={automaticChecksSetByEnv}
+            disabled={!canWriteAutomaticChecks || savingAutomaticChecks}
+            onChange={saveAutomaticChecks}
+        />
+    );
 
     // Always wrapped so the button node is stable whether or not the tooltip applies.
     const runButton = (
@@ -360,7 +370,10 @@ const HealthDashboard = ({
         content = (
             <>
                 <div className='HealthDashboard__summary HealthDashboard__summary--end'>
-                    {runButton}
+                    <div className='HealthDashboard__actions'>
+                        {automaticChecksSwitch}
+                        {runButton}
+                    </div>
                 </div>
                 {runErrorBanner}
                 <EmptyState
@@ -393,6 +406,7 @@ const HealthDashboard = ({
                         />
                     </p>
                     <div className='HealthDashboard__actions'>
+                        {automaticChecksSwitch}
                         {runButton}
                         <ExportMenu onError={setExportFailed}/>
                     </div>
@@ -478,8 +492,6 @@ const HealthDashboard = ({
         );
     }
 
-    const showAutomaticChecks = automaticChecks !== undefined;
-
     return (
         <div className='wrapper--fixed HealthDashboard'>
             <AdminHeader>
@@ -490,32 +502,23 @@ const HealthDashboard = ({
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
-                    {showAutomaticChecks && (
-                        <AutomaticChecksSetting
-                            value={automaticChecksDraft ?? automaticChecks}
-                            setByEnv={automaticChecksSetByEnv}
-                            disabled={!canWriteAutomaticChecks || savingAutomaticChecks}
-                            onChange={changeAutomaticChecks}
-                        />
-                    )}
                     {automaticChecks === false && (
                         <AutomaticChecksOffBanner
                             onTurnOn={canWriteAutomaticChecks && !automaticChecksSetByEnv ? () => saveAutomaticChecks(true) : undefined}
                             turningOn={savingAutomaticChecks}
                         />
                     )}
+                    {automaticChecksError && (
+                        <AlertBanner
+                            mode='danger'
+                            className='HealthDashboard__automaticChecksError'
+                            onDismiss={() => setAutomaticChecksError(null)}
+                            message={<FormattedMessage {...automaticChecksError}/>}
+                        />
+                    )}
                     {content}
                 </div>
             </div>
-            {showAutomaticChecks && (
-                <SaveChangesPanel
-                    saving={savingAutomaticChecks}
-                    saveNeeded={automaticChecksDirty}
-                    onClick={() => saveAutomaticChecks(automaticChecksDraft!)}
-                    serverError={automaticChecksError}
-                    isDisabled={!canWriteAutomaticChecks}
-                />
-            )}
         </div>
     );
 };

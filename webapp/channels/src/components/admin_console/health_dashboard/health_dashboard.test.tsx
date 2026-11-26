@@ -6,7 +6,6 @@ import React from 'react';
 import type {WebSocketMessages} from '@mattermost/client';
 import type {HealthFinding, HealthFindingList} from '@mattermost/types/health';
 import type {Job} from '@mattermost/types/jobs';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -15,8 +14,6 @@ import {handleJobUpdated} from 'actions/websocket_actions';
 import WebSocketClient from 'client/web_websocket_client';
 import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-
-import type {GlobalState} from 'types/store';
 
 import HealthDashboard from './index';
 
@@ -912,7 +909,7 @@ describe('components/admin_console/health_dashboard', () => {
         });
     });
 
-    describe('run checks automatically', () => {
+    describe('automatic checks', () => {
         const offBanner = 'Automatic checks are off. Findings show the last run and may be out of date.';
 
         function withSetting(viewer: ReturnType<typeof viewedBy>, enabled: boolean | undefined, {setByEnv = false, restrictSystemAdmin = false} = {}) {
@@ -932,9 +929,8 @@ describe('components/admin_console/health_dashboard', () => {
             };
         }
 
-        const trueOption = () => screen.getByRole('radio', {name: 'True'});
-        const falseOption = () => screen.getByRole('radio', {name: 'False'});
-        const saveButton = () => screen.getByRole('button', {name: 'Save'});
+        const automaticChecksSwitch = () => screen.getByRole('switch', {name: 'Automatic checks'});
+        const turnOnButton = () => screen.queryByRole('button', {name: 'Turn on'});
 
         function mockPatchConfig() {
             return jest.spyOn(Client4, 'patchConfig').mockImplementation(async (patch) => ({
@@ -943,128 +939,111 @@ describe('components/admin_console/health_dashboard', () => {
             } as Awaited<ReturnType<typeof Client4.patchConfig>>));
         }
 
+        // Holds the save open until finishSave is called, so the in-flight state can be checked.
+        function mockPendingPatchConfig() {
+            let finishSave: () => void = () => {};
+            const patchConfig = jest.spyOn(Client4, 'patchConfig').mockImplementation((patch) => new Promise((resolve) => {
+                finishSave = () => resolve({...patch, ExperimentalSettings: {RestrictSystemAdmin: false}} as Awaited<ReturnType<typeof Client4.patchConfig>>);
+            }));
+            return {patchConfig, finishSave: () => act(async () => finishSave())};
+        }
+
         test('is hidden where the admin config leaves it out, as on Cloud', async () => {
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, undefined));
 
-            expect(screen.queryByText('Run checks automatically')).not.toBeInTheDocument();
+            expect(screen.queryByRole('switch', {name: 'Automatic checks'})).not.toBeInTheDocument();
+            expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
+        });
+
+        test('sits next to Re-run checks and Export, on, with no banner, Save button or old setting row', async () => {
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
+
+            expect(automaticChecksSwitch()).toBeChecked();
+            expect(automaticChecksSwitch()).toBeEnabled();
+            const actions = automaticChecksSwitch().closest('.HealthDashboard__actions') as HTMLElement;
+            expect(within(actions).getByRole('button', {name: 'Re-run checks'})).toBeInTheDocument();
+            expect(within(actions).getByTestId('healthDashboardExportButton')).toBeInTheDocument();
             expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('radio')).not.toBeInTheDocument();
         });
 
-        test('shows True with its help text and no banner while automatic checks are on', async () => {
+        test('turning it off saves at once, locks the switch until the save finishes, then shows the banner', async () => {
+            const {patchConfig, finishSave} = mockPendingPatchConfig();
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
 
-            expect(screen.getByText('Run checks automatically')).toBeInTheDocument();
-            expect(screen.getByText('When true, the server checks site health every hour.')).toBeInTheDocument();
-            expect(trueOption()).toBeChecked();
-            expect(trueOption()).toBeEnabled();
-            expect(saveButton()).toBeDisabled();
-            expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
-        });
-
-        test('a system admin turns them off with Save, and the banner appears', async () => {
-            const patchConfig = mockPatchConfig();
-            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
-
-            await userEvent.click(falseOption());
-            expect(saveButton()).toBeEnabled();
-            expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
-
-            await userEvent.click(saveButton());
+            await userEvent.click(automaticChecksSwitch());
 
             expect(patchConfig).toHaveBeenCalledWith({SiteHealthSettings: {EnableAutomaticChecks: false}});
+            expect(automaticChecksSwitch()).not.toBeChecked();
+            expect(automaticChecksSwitch()).toBeDisabled();
+
+            await finishSave();
+
             expect(await screen.findByText(offBanner)).toBeInTheDocument();
-            expect(falseOption()).toBeChecked();
-            expect(saveButton()).toBeDisabled();
+            expect(automaticChecksSwitch()).not.toBeChecked();
+            expect(automaticChecksSwitch()).toBeEnabled();
         });
 
-        test('an unsaved change blocks leaving the page until it is saved or the page is left', async () => {
-            mockPatchConfig();
-            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(evaluated(mixed));
-            const {store, unmount} = renderWithContext(<HealthDashboard/>, withSetting(systemAdmin, true) as DeepPartial<GlobalState>);
-            await screen.findByText(/^Last evaluated/);
-            const blocked = () => store.getState().views.admin.navigationBlock.blocked;
-
-            await userEvent.click(falseOption());
-            expect(blocked()).toBe(true);
-
-            await userEvent.click(trueOption());
-            expect(blocked()).toBe(false);
-
-            await userEvent.click(falseOption());
-            await userEvent.click(saveButton());
-            await screen.findByText(offBanner);
-            expect(blocked()).toBe(false);
-
-            await userEvent.click(trueOption());
-            expect(blocked()).toBe(true);
-            unmount();
-            expect(blocked()).toBe(false);
-        });
-
-        test('a system admin turns them back on from the banner', async () => {
-            const patchConfig = mockPatchConfig();
-            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false));
-
-            expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(falseOption()).toBeChecked();
-
-            await userEvent.click(screen.getByRole('button', {name: 'Turn on'}));
-
-            expect(patchConfig).toHaveBeenCalledWith({SiteHealthSettings: {EnableAutomaticChecks: true}});
-            await waitFor(() => expect(screen.queryByText(offBanner)).not.toBeInTheDocument());
-            expect(trueOption()).toBeChecked();
-        });
-
-        test('keeps the change unsaved and shows the error when the server rejects it', async () => {
+        test('a failed save turns the switch back and shows an error', async () => {
             jest.spyOn(Client4, 'patchConfig').mockRejectedValue({message: 'Not allowed.'});
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
 
-            await userEvent.click(falseOption());
-            await userEvent.click(saveButton());
+            await userEvent.click(automaticChecksSwitch());
 
-            expect(await screen.findByText('Not allowed.')).toBeInTheDocument();
-            expect(falseOption()).toBeChecked();
-            expect(saveButton()).toBeEnabled();
+            expect(await screen.findByText('Automatic checks could not be turned off, so they are still on. Try again.')).toBeInTheDocument();
+            expect(automaticChecksSwitch()).toBeChecked();
+            expect(automaticChecksSwitch()).toBeEnabled();
             expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
         });
 
-        test('locks the setting while a save is pending so a newer selection is not lost', async () => {
-            let finishSave: () => void = () => {};
-            jest.spyOn(Client4, 'patchConfig').mockImplementation((patch) => new Promise((resolve) => {
-                finishSave = () => resolve({...patch, ExperimentalSettings: {RestrictSystemAdmin: false}} as Awaited<ReturnType<typeof Client4.patchConfig>>);
-            }));
-            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
+        test('Turn on in the banner saves through the same path and turns the switch on', async () => {
+            const {patchConfig, finishSave} = mockPendingPatchConfig();
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false));
 
-            await userEvent.click(falseOption());
-            await userEvent.click(saveButton());
+            expect(screen.getByText(offBanner)).toBeInTheDocument();
+            expect(automaticChecksSwitch()).not.toBeChecked();
 
-            await waitFor(() => expect(trueOption()).toBeDisabled());
-            expect(falseOption()).toBeDisabled();
+            await userEvent.click(turnOnButton()!);
 
-            await act(async () => finishSave());
+            expect(patchConfig).toHaveBeenCalledWith({SiteHealthSettings: {EnableAutomaticChecks: true}});
+            expect(automaticChecksSwitch()).toBeChecked();
+            expect(automaticChecksSwitch()).toBeDisabled();
 
-            expect(await screen.findByText(offBanner)).toBeInTheDocument();
-            expect(trueOption()).toBeEnabled();
-            expect(falseOption()).toBeChecked();
+            await finishSave();
+
+            await waitFor(() => expect(screen.queryByText(offBanner)).not.toBeInTheDocument());
+            expect(automaticChecksSwitch()).toBeChecked();
+            expect(automaticChecksSwitch()).toBeEnabled();
         });
 
-        test('the banner also shows above the empty state', async () => {
+        test('a failed Turn on keeps the banner and the switch off and shows an error', async () => {
+            jest.spyOn(Client4, 'patchConfig').mockRejectedValue({message: 'Not allowed.'});
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false));
+
+            await userEvent.click(turnOnButton()!);
+
+            expect(await screen.findByText('Automatic checks could not be turned on, so they are still off. Try again.')).toBeInTheDocument();
+            expect(screen.getByText(offBanner)).toBeInTheDocument();
+            expect(automaticChecksSwitch()).not.toBeChecked();
+        });
+
+        test('shows the switch and the banner in the empty state too', async () => {
             await renderDashboard({evaluated_at: 0, findings: []}, withSetting(systemAdmin, false));
 
+            expect(automaticChecksSwitch()).not.toBeChecked();
             expect(screen.getByText(offBanner)).toBeInTheDocument();
             expect(screen.getByText('No health check has run yet. To run one now, select Re-run checks.')).toBeInTheDocument();
         });
 
-        test('a delegated admin without manage_system sees the setting disabled and the banner without Turn on', async () => {
+        test('a delegated admin without manage_system sees the switch disabled and the banner without Turn on', async () => {
             const patchConfig = mockPatchConfig();
             await renderDashboard(evaluated(mixed), withSetting(systemManager, false));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Turn on'})).not.toBeInTheDocument();
-            expect(trueOption()).toBeDisabled();
-            expect(falseOption()).toBeDisabled();
-            expect(saveButton()).toBeDisabled();
+            expect(turnOnButton()).not.toBeInTheDocument();
+            expect(automaticChecksSwitch()).not.toBeChecked();
+            expect(automaticChecksSwitch()).toBeDisabled();
             expect(patchConfig).not.toHaveBeenCalled();
         });
 
@@ -1072,16 +1051,19 @@ describe('components/admin_console/health_dashboard', () => {
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false, {restrictSystemAdmin: true}));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Turn on'})).not.toBeInTheDocument();
-            expect(falseOption()).toBeDisabled();
+            expect(turnOnButton()).not.toBeInTheDocument();
+            expect(automaticChecksSwitch()).toBeDisabled();
         });
 
-        test('a system admin can\'t change it when an environment variable sets it', async () => {
+        test('a system admin can\'t change it when an environment variable sets it, and the tooltip says why', async () => {
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false, {setByEnv: true}));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Turn on'})).not.toBeInTheDocument();
-            expect(falseOption()).toBeDisabled();
+            expect(turnOnButton()).not.toBeInTheDocument();
+            expect(automaticChecksSwitch()).toBeDisabled();
+
+            await userEvent.hover(automaticChecksSwitch().closest('.HealthDashboard__automaticChecks')!);
+            expect(await screen.findByText('This setting has been set through an environment variable. It cannot be changed through the System Console.')).toBeInTheDocument();
         });
     });
 });

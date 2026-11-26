@@ -752,14 +752,12 @@ test('turns automatic checks off and back on', {tag: '@system_console'}, async (
     // # Open Site health
     await systemConsolePage.gotoSiteHealth();
 
-    // * Verify automatic checks are on, with nothing to save and no banner
-    await expect(siteHealth.automaticChecksTrue).toBeChecked();
-    await expect(siteHealth.saveButton).toBeDisabled();
+    // * Verify automatic checks are on, with no banner
+    await expect(siteHealth.automaticChecksSwitch.input).toBeChecked();
     await expect(siteHealth.automaticChecksOff).not.toBeVisible();
 
-    // # Set Run checks automatically to False and save
-    await siteHealth.automaticChecksFalse.check();
-    await siteHealth.saveButton.click();
+    // # Turn the Automatic checks switch off
+    await siteHealth.automaticChecksSwitch.click();
 
     // * Verify the server stores the setting and the page says automatic checks are off
     await expect.poll(() => getAutomaticChecks(adminClient)).toBe(false);
@@ -771,7 +769,7 @@ test('turns automatic checks off and back on', {tag: '@system_console'}, async (
     await siteHealth.toBeVisible();
 
     // * Verify the setting stayed off
-    await expect(siteHealth.automaticChecksFalse).toBeChecked();
+    await expect(siteHealth.automaticChecksSwitch.input).not.toBeChecked();
     await expect(siteHealth.automaticChecksOff).toBeVisible();
 
     // # Run the checks on demand while automatic checks are off
@@ -780,15 +778,15 @@ test('turns automatic checks off and back on', {tag: '@system_console'}, async (
     // # Select Turn on in the banner
     await siteHealth.turnOnButton.click();
 
-    // * Verify the server stores the setting, the banner goes away and True is selected
+    // * Verify the server stores the setting, the banner goes away and the switch is on
     await expect.poll(() => getAutomaticChecks(adminClient)).toBe(true);
     await expect(siteHealth.automaticChecksOff).not.toBeVisible();
-    await expect(siteHealth.automaticChecksTrue).toBeChecked();
+    await expect(siteHealth.automaticChecksSwitch.input).toBeChecked();
 });
 
 /**
  * @objective Verify a System Manager, who can read Site Statistics but lacks manage_system, sees automatic checks
- * read-only: the setting is disabled and the banner has no Turn on action.
+ * read-only: the switch is disabled and the banner has no Turn on action.
  */
 test('shows automatic checks read-only to a system manager', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
@@ -809,11 +807,9 @@ test('shows automatic checks read-only to a system manager', {tag: '@system_cons
     // # Open Site health
     await systemConsolePage.gotoSiteHealth();
 
-    // * Verify the banner shows without Turn on, and the setting can't be changed
+    // * Verify the banner shows without Turn on, and the switch can't be changed
     await expect(siteHealth.automaticChecksOff).toBeVisible();
     await expect(siteHealth.turnOnButton).not.toBeVisible();
-    await expect(siteHealth.automaticChecksFalse).toBeChecked();
-    await expect(siteHealth.automaticChecksTrue).toBeDisabled();
-    await expect(siteHealth.automaticChecksFalse).toBeDisabled();
-    await expect(siteHealth.saveButton).toBeDisabled();
+    await expect(siteHealth.automaticChecksSwitch.input).not.toBeChecked();
+    await expect(siteHealth.automaticChecksSwitch.input).toBeDisabled();
 });

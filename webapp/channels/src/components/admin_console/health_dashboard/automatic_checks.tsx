@@ -2,47 +2,48 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Switch} from '@mattermost/compass-ui/components/switch';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import BooleanSetting from 'components/admin_console/boolean_setting';
 import AlertBanner from 'components/alert_banner';
 
-export const AUTOMATIC_CHECKS_ID = 'SiteHealthSettings.EnableAutomaticChecks';
+const setByEnvMessage = defineMessage({
+    id: 'admin.set_by_env',
+    defaultMessage: 'This setting has been set through an environment variable. It cannot be changed through the System Console.',
+});
 
-type SettingProps = {
-    value: boolean;
+type SwitchProps = {
+    checked: boolean;
     setByEnv: boolean;
     disabled: boolean;
-    onChange: (id: string, value: boolean) => void;
+    onChange: (value: boolean) => void;
 };
 
-export const AutomaticChecksSetting = ({value, setByEnv, disabled, onChange}: SettingProps) => (
-    <form
-        className='admin-console__setting-group form-horizontal HealthDashboard__automaticChecks'
-        onSubmit={(e) => e.preventDefault()}
+// Always wrapped so the switch node is stable whether or not the tooltip applies. The span
+// receives the hover, which a disabled input doesn't.
+export const AutomaticChecksSwitch = ({checked, setByEnv, disabled, onChange}: SwitchProps) => (
+    <WithTooltip
+        title={setByEnvMessage}
+        disabled={!setByEnv}
     >
-        <BooleanSetting
-            id={AUTOMATIC_CHECKS_ID}
-            label={
+        <span className='HealthDashboard__automaticChecks'>
+            <Switch
+                size='small'
+                data-testid='healthDashboardAutomaticChecks'
+                checked={checked}
+                disabled={disabled || setByEnv}
+                onChange={(e) => onChange(e.target.checked)}
+            >
                 <FormattedMessage
                     id='admin.health_dashboard.automatic_checks.label'
-                    defaultMessage='Run checks automatically'
+                    defaultMessage='Automatic checks'
                 />
-            }
-            helpText={
-                <FormattedMessage
-                    id='admin.health_dashboard.automatic_checks.help'
-                    defaultMessage='When true, the server checks site health every hour.'
-                />
-            }
-            value={value}
-            setByEnv={setByEnv}
-            disabled={disabled}
-            onChange={onChange}
-        />
-    </form>
+            </Switch>
+        </span>
+    </WithTooltip>
 );
 
 type BannerProps = {

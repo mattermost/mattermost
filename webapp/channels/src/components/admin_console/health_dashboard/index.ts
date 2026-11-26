@@ -13,8 +13,6 @@ import {getConfig as getAdminConfig, getEnvironmentConfig} from 'mattermost-redu
 import {getFindings, getLastEvaluatedAt, getMutedFindings} from 'mattermost-redux/selectors/entities/health';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {setNavigationBlocked} from 'actions/admin_actions';
-
 import type {GlobalState} from 'types/store';
 
 import HealthDashboard from './health_dashboard';
@@ -44,7 +42,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             createJob,
             getJobsByType,
             patchConfig,
-            setNavigationBlocked,
         }, dispatch),
     };
 }
