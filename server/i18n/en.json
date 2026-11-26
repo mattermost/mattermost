@@ -7524,8 +7524,7 @@
   },
   {
     "id": "app.plugin.reserved_id.app_error",
-    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded.",
-    "description": "Returned when installing or reattaching a plugin that uses the core server caller identity."
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded."
   },
   {
     "id": "app.plugin.restart.app_error",
