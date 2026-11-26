@@ -25,18 +25,19 @@ const sizeOf = (k, item) => k.length + JSON.stringify(item).length;
  * [{surface: {key: item}}, ...]. A surface with nothing in a slice is left out.
  */
 export function cut(items, budget = SLICE_BUDGET) {
-    const features = [];
+    const byFeature = new Map();
     for (const surface of Object.keys(SURFACES)) {
         for (const [k, item] of Object.entries(items[surface] || {})) {
             const id = featureOf(surface, k);
-            if (features.at(-1)?.id !== id) {
-                features.push({id, entries: [], size: 0});
+            if (!byFeature.has(id)) {
+                byFeature.set(id, {entries: [], size: 0});
             }
-            const f = features.at(-1);
+            const f = byFeature.get(id);
             f.entries.push([surface, k, item]);
             f.size += sizeOf(k, item);
         }
     }
+    const features = [...byFeature.values()];
 
     const slices = [];
     let current = [];

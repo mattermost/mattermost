@@ -41,6 +41,11 @@ describe('cut', () => {
         ]);
     });
 
+    test('a feature whose keys are apart is still one feature', () => {
+        const slices = cut({webapp: of('admin.logs.a', 'admin.user.a', 'admin.user.b', 'admin.logs.b')}, size * 2);
+        assert.deepEqual(keys(slices), [['webapp:admin.logs.a', 'webapp:admin.logs.b'], ['webapp:admin.user.a', 'webapp:admin.user.b']]);
+    });
+
     test('the same prefix on two surfaces is two features', () => {
         const slices = cut({webapp: of('app.post.a', 'app.post.b'), server: of('app.post.a', 'app.post.b')}, size * 3);
         assert.deepEqual(keys(slices), [['webapp:app.post.a', 'webapp:app.post.b'], ['server:app.post.a', 'server:app.post.b']]);
