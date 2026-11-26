@@ -2135,6 +2135,7 @@
         per-attribute TTL and grace period.
 
         Requires the `SessionAttributes` feature flag and an Enterprise Advanced license.
+        When the feature is not enabled, an empty list is returned.
 
       operationId: GetSessionAttributesManifest
       responses:
@@ -2161,8 +2162,6 @@
                         type: string
                     display_name:
                       type: string
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/audits":
     get:
       tags:
