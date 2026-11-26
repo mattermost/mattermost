@@ -1769,3 +1769,17 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 	}
 	return nil
 }
+
+// serverMutexAPI lets cluster.Mutex keep its lease in the plugin key value store, under the
+// core server's reserved plugin ID.
+type serverMutexAPI struct {
+	a *App
+}
+
+func (m serverMutexAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	return m.a.SetPluginKeyWithOptions(model.CoreServerPluginID, key, value, options)
+}
+
+func (m serverMutexAPI) LogError(msg string, keyValuePairs ...any) {
+	m.a.Log().Sugar().Errorw(msg, keyValuePairs...)
+}

@@ -87,9 +87,9 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTask           leaderTask
-	postReminderTask  leaderTask
-	scheduledPostTask leaderTask
+	dndTask           clusterTask
+	postReminderTask  clusterTask
+	scheduledPostTask clusterTask
 
 	interruptQuitChan     chan struct{}
 	emailLoginAttemptsMut sync.Mutex
