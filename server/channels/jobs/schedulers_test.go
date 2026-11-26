@@ -175,6 +175,57 @@ func TestScheduler(t *testing.T) {
 	})
 }
 
+func TestPeriodicSchedulerFollowsConfigChanges(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
+	mockStore := &storetest.Store{}
+	mockStore.JobStore.On("GetCountByStatusAndType", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(int64(0), nil)
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", mock.AnythingOfType("[]string"), mock.AnythingOfType("string")).Return(nil, nil)
+
+	disabled := &model.Config{}
+	disabled.SetDefaults()
+	*disabled.SiteHealthSettings.EnableAutomaticChecks = false
+	enabled := disabled.Clone()
+	*enabled.SiteHealthSettings.EnableAutomaticChecks = true
+
+	jobServer := &JobServer{Store: mockStore, ConfigService: &testutils.StaticConfigService{Cfg: disabled}}
+	jobServer.initSchedulers()
+
+	const period = time.Hour
+	jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, NewPeriodicScheduler(jobServer, model.JobTypeHealthCheck, period, func(cfg *model.Config) bool {
+		return *cfg.SiteHealthSettings.EnableAutomaticChecks
+	}))
+	// Stopping waits for the scheduler loop to exit, so nextRunTimes can be read safely afterwards.
+	nextRun := func() *time.Time { return jobServer.schedulers.nextRunTimes[model.JobTypeHealthCheck] }
+
+	t.Run("disabled at start", func(t *testing.T) {
+		require.NoError(t, jobServer.StartSchedulers())
+		require.NoError(t, jobServer.StopSchedulers())
+		assert.Nil(t, nextRun())
+	})
+
+	t.Run("enabled by a config change", func(t *testing.T) {
+		require.NoError(t, jobServer.StartSchedulers())
+		changedAt := time.Now()
+		jobServer.schedulers.handleConfigChange(disabled, enabled)
+		require.NoError(t, jobServer.StopSchedulers())
+
+		require.NotNil(t, nextRun())
+		assert.WithinRange(t, *nextRun(), changedAt.Add(period), time.Now().Add(period+time.Duration(jitterRange)*time.Millisecond))
+	})
+
+	t.Run("disabled again by a config change", func(t *testing.T) {
+		require.NoError(t, jobServer.StartSchedulers())
+		jobServer.schedulers.handleConfigChange(disabled, enabled)
+		jobServer.schedulers.handleConfigChange(enabled, disabled)
+		require.NoError(t, jobServer.StopSchedulers())
+
+		assert.Nil(t, nextRun())
+	})
+}
+
 func TestRandomDelay(t *testing.T) {
 	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
 		t.Parallel()

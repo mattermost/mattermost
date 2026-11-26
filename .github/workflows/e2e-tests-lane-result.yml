@@ -259,9 +259,16 @@ jobs:
           path: e2e-triage-answers.json
           key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(inputs.composite_identity_json).gh_pr_number && format('pr{0}', fromJSON(inputs.composite_identity_json).gh_pr_number) || fromJSON(inputs.composite_identity_json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       # A green lane that published has already refreshed the summary in that publication, and triage
-      # did not run to change it since: refreshing again would only re-read every status on the commit.
+      # did not run to change it since. Likewise, when triage ran on a listed PR lane in enforce mode
+      # and confirms it published the aggregate itself (aggregate-published == 'true', separate from
+      # published == 'true' which only reflects the lane verdict), triage already settled the summary
+      # with its own status overlay; refreshing again would re-read stale GitHub commit statuses and
+      # risk reverting e2e-test/triage. Gating on aggregate-published keeps ci/refresh-lane-summary
+      # running as a fallback whenever triage's aggregate update fails or skips, as well as before
+      # mattermost-test-automation-toolkit exposes aggregate-published (with lastWritten verdict overlay),
+      # since an unset output evaluates to '' != 'true'.
       - name: ci/refresh-lane-summary
-        if: ${{ !cancelled() && inputs.composite_identity_json != '' && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}
+        if: ${{ !cancelled() && inputs.composite_identity_json != '' && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') && !(steps.triage.outcome == 'success' && steps.triage.outputs.effective-mode == 'enforce' && steps.triage.outputs.aggregate-published == 'true' && steps.lanes.outputs.triage-lanes != '') }}
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
         with:
           composite-identity: ${{ inputs.composite_identity_json }}

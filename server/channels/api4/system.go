@@ -23,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
@@ -551,7 +550,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion(c.AppContext, releases.LatestURL)
+	resp, appErr := c.App.GetLatestVersion(c.AppContext, c.App.Srv().LatestVersionURL())
 	if appErr != nil {
 		c.Err = appErr
 		return

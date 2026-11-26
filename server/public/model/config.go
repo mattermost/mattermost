@@ -434,7 +434,7 @@ type ServiceSettings struct {
 	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert                 *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert                 *bool    `access:"site_notices,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
@@ -3698,6 +3698,17 @@ func (s *JobSettings) SetDefaults() {
 	}
 }
 
+type SiteHealthSettings struct {
+	// EnableAutomaticChecks gates only the hourly scheduler. On-demand runs keep working when it is off.
+	EnableAutomaticChecks *bool `access:"reporting_site_statistics,manage_system_write,write_restrictable,cloud_restrictable"`
+}
+
+func (s *SiteHealthSettings) SetDefaults() {
+	if s.EnableAutomaticChecks == nil {
+		s.EnableAutomaticChecks = new(true)
+	}
+}
+
 type CloudSettings struct {
 	CWSURL                *string `access:"write_restrictable"`
 	CWSAPIURL             *string `access:"write_restrictable"`
@@ -4412,6 +4423,7 @@ type Config struct {
 	MobileEphemeralModeSettings MobileEphemeralModeSettings
 	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
+	SiteHealthSettings          SiteHealthSettings
 	PluginSettings              PluginSettings
 	DisplaySettings             DisplaySettings
 	GuestAccountsSettings       GuestAccountsSettings
@@ -4531,6 +4543,7 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
+	o.SiteHealthSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()

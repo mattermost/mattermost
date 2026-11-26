@@ -37,6 +37,8 @@
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
     }
 
+    &__automaticChecksOff,
+    &__automaticChecksError,
     &__runError,
     &__exportError {
         margin-bottom: 16px;
@@ -46,6 +48,12 @@
         display: flex;
         align-items: center;
         gap: 8px;
+    }
+
+    &__automaticChecks {
+        display: inline-flex;
+        margin-right: 8px;
+        white-space: nowrap;
     }
 
     &__exportLabel {

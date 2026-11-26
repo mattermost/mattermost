@@ -8,10 +8,12 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -842,6 +844,143 @@ func TestDeactivateMissingUsersMode(t *testing.T) {
 	assert.Equal(t, "true", u.Props[model.UserPropsKeyImportedInactive], "shell account should have importedInactive prop set")
 }
 
+func TestBulkImportSkipsRemoteUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	postsByMessage := func(t *testing.T, channelID string) map[string]*model.Post {
+		t.Helper()
+		list, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: channelID, PerPage: 100})
+		require.Nil(t, appErr)
+		posts := map[string]*model.Post{}
+		for _, post := range list.Posts {
+			posts[post.Message] = post
+		}
+		return posts
+	}
+
+	t.Run("skips remote users missing on the destination and everything that references them", func(t *testing.T) {
+		teamName := model.NewRandomTeamName()
+		channelName := model.NewId()
+		alice := model.NewUsername()
+		bob := model.NewUsername()
+		remote := model.NewUsername() + ":connection-to-remote"
+
+		userLine := func(username string) string {
+			return `{"type":"user","user":{"username":"` + username + `","email":"` + model.NewId() + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
+		}
+		data := strings.Join([]string{
+			`{"type":"version","version":1}`,
+			`{"type":"team","team":{"type":"O","display_name":"Team","name":"` + teamName + `"}}`,
+			`{"type":"channel","channel":{"type":"O","display_name":"Channel","team":"` + teamName + `","name":"` + channelName + `"}}`,
+			userLine(alice),
+			userLine(remote),
+			userLine(bob),
+			`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + remote + `","message":"remote root","create_at":1000}}`,
+			`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + alice + `","message":"local root","create_at":2000,` +
+				`"flagged_by":["` + remote + `","` + bob + `"],` +
+				`"reactions":[{"user":"` + remote + `","emoji_name":"smile","create_at":2001},{"user":"` + bob + `","emoji_name":"+1","create_at":2002}],` +
+				`"replies":[{"user":"` + remote + `","message":"remote reply","create_at":2003},{"user":"` + bob + `","message":"local reply","create_at":2004}],` +
+				`"thread_followers":[{"user":"` + remote + `"},{"user":"` + bob + `"}]}}`,
+			`{"type":"direct_channel","direct_channel":{"members":["` + alice + `","` + bob + `"]}}`,
+			`{"type":"direct_channel","direct_channel":{"members":["` + alice + `","` + remote + `"]}}`,
+			`{"type":"direct_channel","direct_channel":{"members":["` + alice + `","` + bob + `","` + remote + `"],"header":"gm header"}}`,
+			`{"type":"direct_post","direct_post":{"channel_members":["` + alice + `","` + bob + `"],"user":"` + alice + `","message":"local dm","create_at":3000}}`,
+			`{"type":"direct_post","direct_post":{"channel_members":["` + alice + `","` + remote + `"],"user":"` + remote + `","message":"remote dm","create_at":3001}}`,
+			`{"type":"direct_post","direct_post":{"channel_members":["` + alice + `","` + bob + `","` + remote + `"],"user":"` + alice + `","message":"gm with remote","create_at":3002}}`,
+		}, "\n")
+
+		line, appErr := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, line)
+
+		_, err := th.App.Srv().Store().User().GetByUsername(remote)
+		require.Error(t, err, "remote user should not be created")
+		aliceUser, err := th.App.Srv().Store().User().GetByUsername(alice)
+		require.NoError(t, err)
+		bobUser, err := th.App.Srv().Store().User().GetByUsername(bob)
+		require.NoError(t, err)
+
+		team, appErr := th.App.GetTeamByName(teamName)
+		require.Nil(t, appErr)
+		channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
+		require.Nil(t, appErr)
+
+		posts := postsByMessage(t, channel.Id)
+		require.ElementsMatch(t, []string{"local root", "local reply"}, slices.Collect(maps.Keys(posts)))
+		root := posts["local root"]
+		assert.Equal(t, aliceUser.Id, root.UserId)
+		assert.Equal(t, bobUser.Id, posts["local reply"].UserId)
+		assert.Equal(t, root.Id, posts["local reply"].RootId)
+
+		reactions, appErr := th.App.GetReactionsForPost(root.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reactions, 1)
+		assert.Equal(t, bobUser.Id, reactions[0].UserId)
+
+		flagged, err := th.App.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFlaggedPost, root.Id)
+		require.NoError(t, err)
+		require.Len(t, flagged, 1)
+		assert.Equal(t, bobUser.Id, flagged[0].UserId)
+
+		// The group message must not collapse into the alice-bob DM once the remote member is dropped.
+		dm, err := th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(aliceUser.Id, bobUser.Id), false)
+		require.NoError(t, err)
+		assert.Empty(t, dm.Header)
+		require.ElementsMatch(t, []string{"local dm"}, slices.Collect(maps.Keys(postsByMessage(t, dm.Id))))
+	})
+
+	t.Run("still fails on a missing local user referenced alongside a remote user", func(t *testing.T) {
+		teamName := model.NewRandomTeamName()
+		channelName := model.NewId()
+		alice := model.NewUsername()
+		data := strings.Join([]string{
+			`{"type":"version","version":1}`,
+			`{"type":"team","team":{"type":"O","display_name":"Team","name":"` + teamName + `"}}`,
+			`{"type":"channel","channel":{"type":"O","display_name":"Channel","team":"` + teamName + `","name":"` + channelName + `"}}`,
+			`{"type":"user","user":{"username":"` + alice + `","email":"` + model.NewId() + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`,
+			`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + alice + `","message":"local root","create_at":1000,` +
+				`"flagged_by":["` + model.NewUsername() + `:connection-to-remote","` + model.NewUsername() + `"]}}`,
+		}, "\n")
+
+		_, appErr := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.get_users_by_username.some_users_not_found.error", appErr.Id)
+	})
+
+	t.Run("attributes content to a remote user that already exists on the destination", func(t *testing.T) {
+		remoteUser, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: model.NewUsername() + ":connection-to-remote",
+			Password: model.NewTestPassword(),
+			RemoteId: model.NewPointer(model.NewId()),
+		})
+		require.Nil(t, appErr)
+
+		teamName := model.NewRandomTeamName()
+		channelName := model.NewId()
+		data := strings.Join([]string{
+			`{"type":"version","version":1}`,
+			`{"type":"team","team":{"type":"O","display_name":"Team","name":"` + teamName + `"}}`,
+			`{"type":"channel","channel":{"type":"O","display_name":"Channel","team":"` + teamName + `","name":"` + channelName + `"}}`,
+			`{"type":"user","user":{"username":"` + remoteUser.Username + `","email":"` + remoteUser.Email + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`,
+			`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + remoteUser.Username + `","message":"remote root","create_at":1000}}`,
+		}, "\n")
+
+		line, appErr := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, line)
+
+		team, appErr := th.App.GetTeamByName(teamName)
+		require.Nil(t, appErr)
+		channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
+		require.Nil(t, appErr)
+		posts := postsByMessage(t, channel.Id)
+		require.Contains(t, posts, "remote root")
+		assert.Equal(t, remoteUser.Id, posts["remote root"].UserId)
+	})
+}
+
 func TestRewriteTeamNameEndToEnd(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1237,6 +1376,14 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		team := teamWithOneMember(t)
 		deactivated := `{"type":"user","user":{"username":"` + model.NewUsername() + `","email":"` + model.NewId() + `@example.com","delete_at":1700000000000,"teams":[{"name":"` + team.Name + `"}]}}`
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), deactivated}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+	})
+
+	t.Run("remote users are not counted", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername()+":connection-to-remote", team.Name)}, "\n"))
 
 		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 	})

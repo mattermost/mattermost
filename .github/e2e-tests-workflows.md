@@ -586,7 +586,7 @@ refreshes the aggregate only for a context in that list.
 | `e2e-test/{cypress,playwright}-full/enterprise` (PR) | template claim and lane result; skip path | yes |
 | `e2e-test/playwright-full/enterprise/subpath` (PR) | playwright template with `server_deploy: subpath` | yes, when `should_run_subpath` |
 | `e2e-test/{cypress,playwright}-full/fips` (PR) | template claim and lane result; skip path | yes, when `should_run_fips` |
-| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template: claimed by prepare-run, resolved by the lane result | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern. Each lane gets its own triage check, without the model |
+| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template: claimed by prepare-run, resolved by the lane result | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern. Each lane gets its own triage check (PR runs pass `ANTHROPIC_API_KEY`; merge and release callers omit it) |
 | `…/master`, `…/release`, `…/release-cut` and their `/subpath` variants (`…/master/subpath`) | on-merge and on-release callers | no. Each lane gets its own triage check and writes only its own status |
 
 A suffixed context never equals a listed lane, so it never claims or refreshes the aggregate. A

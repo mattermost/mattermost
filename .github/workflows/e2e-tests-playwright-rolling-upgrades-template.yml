@@ -95,6 +95,9 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
@@ -481,3 +484,4 @@ jobs:
       webhook_payload: ${{ needs.report.outputs.webhook_payload }}
     secrets:
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
