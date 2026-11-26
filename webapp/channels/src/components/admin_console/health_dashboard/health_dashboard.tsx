@@ -29,6 +29,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {useWebSocketClient} from 'utils/use_websocket/hooks';
 
 import {AutomaticChecksOffBanner, AutomaticChecksSwitch} from './automatic_checks';
+import type {AutomaticChecksDisabledReason} from './automatic_checks';
 import {EmptyState, TabEmptyState} from './empty_state';
 import ExportMenu from './export_menu';
 import FindingGroups from './finding_groups';
@@ -53,7 +54,9 @@ export type Props = {
     // it, as on Cloud, which hides the setting.
     automaticChecks?: boolean;
     automaticChecksSetByEnv: boolean;
-    canWriteAutomaticChecks: boolean;
+
+    // ExperimentalSettings.RestrictSystemAdmin, which keeps even system admins from changing the setting.
+    restrictSystemAdmin: boolean;
 
     // Jobs in the store by ID. job_updated WebSocket events keep them up to date.
     jobs: Record<string, Job>;
@@ -155,7 +158,7 @@ const HealthDashboard = ({
     canManage,
     automaticChecks,
     automaticChecksSetByEnv,
-    canWriteAutomaticChecks,
+    restrictSystemAdmin,
     jobs,
     actions,
 }: Props) => {
@@ -284,11 +287,19 @@ const HealthDashboard = ({
 
     const rowState = canManage ? {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute} : {now, expanded, onToggle: toggle};
 
+    let automaticChecksDisabledReason: AutomaticChecksDisabledReason | undefined;
+    if (automaticChecksSetByEnv) {
+        automaticChecksDisabledReason = 'set_by_env';
+    } else if (restrictSystemAdmin) {
+        automaticChecksDisabledReason = 'restricted';
+    } else if (!canManage) {
+        automaticChecksDisabledReason = 'not_allowed';
+    }
     const automaticChecksSwitch = automaticChecks !== undefined && (
         <AutomaticChecksSwitch
             checked={pendingAutomaticChecks ?? automaticChecks}
-            setByEnv={automaticChecksSetByEnv}
-            disabled={!canWriteAutomaticChecks || savingAutomaticChecks}
+            saving={savingAutomaticChecks}
+            disabledReason={automaticChecksDisabledReason}
             onChange={saveAutomaticChecks}
         />
     );

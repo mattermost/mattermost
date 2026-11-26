@@ -938,6 +938,17 @@ describe('components/admin_console/health_dashboard', () => {
             } as Awaited<ReturnType<typeof Client4.patchConfig>>));
         }
 
+        const hourly = 'Runs the health check every hour. Re-run checks still works when this is off.';
+        const notAllowed = 'Only system admins can change this setting.';
+        const restricted = 'This setting can\'t be changed while System Console changes are restricted.';
+        const setByEnv = 'This setting has been set through an environment variable. It cannot be changed through the System Console.';
+
+        // Hovers the span around the switch, which takes the hover a disabled input doesn't.
+        async function hoverTooltip() {
+            await userEvent.hover(automaticChecksSwitch().closest('.HealthDashboard__automaticChecks')!);
+            return (await screen.findByRole('tooltip')).textContent;
+        }
+
         // Holds the save open until finishSave is called, so the in-flight state can be checked.
         function mockPendingPatchConfig() {
             let finishSave: () => void = () => {};
@@ -965,6 +976,24 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.queryByText(offBanner)).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+        });
+
+        test('says what it does in a tooltip and to screen readers when it can be changed', async () => {
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
+
+            expect(automaticChecksSwitch()).toHaveAccessibleDescription(hourly);
+            expect(await hoverTooltip()).toBe(hourly);
+        });
+
+        test('keeps saying what it does, not why it is disabled, while a save is pending', async () => {
+            mockPendingPatchConfig();
+            await renderDashboard(evaluated(mixed), withSetting(systemAdmin, true));
+
+            await userEvent.click(automaticChecksSwitch());
+
+            expect(automaticChecksSwitch()).toBeDisabled();
+            expect(automaticChecksSwitch()).toHaveAccessibleDescription(hourly);
+            expect(await hoverTooltip()).toBe(hourly);
         });
 
         test('turning it off saves at once, locks the switch until the save finishes, then shows the banner', async () => {
@@ -1049,14 +1078,24 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.getByText(offBanner)).toBeInTheDocument();
             expect(automaticChecksSwitch()).not.toBeChecked();
             expect(automaticChecksSwitch()).toBeDisabled();
+            expect(automaticChecksSwitch()).toHaveAccessibleDescription(notAllowed);
+            expect(await hoverTooltip()).toBe(notAllowed);
             expect(patchConfig).not.toHaveBeenCalled();
         });
 
-        test('a system admin can\'t change it with RestrictSystemAdmin', async () => {
+        test('a system admin can\'t change it with RestrictSystemAdmin, and the tooltip says why', async () => {
             await renderDashboard(evaluated(mixed), withSetting(systemAdmin, false, {restrictSystemAdmin: true}));
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
             expect(automaticChecksSwitch()).toBeDisabled();
+            expect(automaticChecksSwitch()).toHaveAccessibleDescription(restricted);
+            expect(await hoverTooltip()).toBe(restricted);
+        });
+
+        test('RestrictSystemAdmin is the reason given to a delegated admin too, as it is checked first', async () => {
+            await renderDashboard(evaluated(mixed), withSetting(systemManager, false, {restrictSystemAdmin: true}));
+
+            expect(await hoverTooltip()).toBe(restricted);
         });
 
         test('a system admin can\'t change it when an environment variable sets it, and the tooltip says why', async () => {
@@ -1064,9 +1103,18 @@ describe('components/admin_console/health_dashboard', () => {
 
             expect(screen.getByText(offBanner)).toBeInTheDocument();
             expect(automaticChecksSwitch()).toBeDisabled();
+            expect(automaticChecksSwitch()).toHaveAccessibleDescription(setByEnv);
+            expect(await hoverTooltip()).toBe(setByEnv);
+        });
 
-            await userEvent.hover(automaticChecksSwitch().closest('.HealthDashboard__automaticChecks')!);
-            expect(await screen.findByText('This setting has been set through an environment variable. It cannot be changed through the System Console.')).toBeInTheDocument();
+        test('an environment variable is the only reason given, even with RestrictSystemAdmin and no manage_system', async () => {
+            await renderDashboard(evaluated(mixed), withSetting(systemManager, false, {setByEnv: true, restrictSystemAdmin: true}));
+
+            expect(automaticChecksSwitch()).toHaveAccessibleDescription(setByEnv);
+            expect(await hoverTooltip()).toBe(setByEnv);
+            for (const other of [hourly, notAllowed, restricted]) {
+                expect(screen.queryByText(other)).not.toBeInTheDocument();
+            }
         });
     });
 });

@@ -28,7 +28,7 @@ function mapStateToProps(state: GlobalState) {
         canManage,
         automaticChecks: adminConfig.SiteHealthSettings?.EnableAutomaticChecks,
         automaticChecksSetByEnv: Boolean(getEnvironmentConfig(state)?.SiteHealthSettings?.EnableAutomaticChecks),
-        canWriteAutomaticChecks: canManage && !adminConfig.ExperimentalSettings?.RestrictSystemAdmin,
+        restrictSystemAdmin: Boolean(adminConfig.ExperimentalSettings?.RestrictSystemAdmin),
         jobs: state.entities.jobs.jobs,
     };
 }

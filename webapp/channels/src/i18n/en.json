@@ -7563,9 +7563,17 @@
     "defaultMessage": "Updates",
     "description": "Section heading on the System Console Site health page grouping health findings in the \"server version and updates\" area; noun, compact space."
   },
+  "admin.health_dashboard.automatic_checks.description": {
+    "defaultMessage": "Runs the health check every hour. Re-run checks still works when this is off.",
+    "description": "Tooltip, and screen reader description, of the \"Automatic checks\" switch on the System Console Site health page when the switch can be changed; \"Re-run checks\" is the label of the button next to it."
+  },
   "admin.health_dashboard.automatic_checks.label": {
     "defaultMessage": "Automatic checks",
     "description": "Label of the switch next to Re-run checks on the System Console Site health page that turns the hourly health check on or off; it saves as soon as it is flipped."
+  },
+  "admin.health_dashboard.automatic_checks.not_allowed": {
+    "defaultMessage": "Only system admins can change this setting.",
+    "description": "Tooltip, and screen reader description, of the disabled \"Automatic checks\" switch on the System Console Site health page, shown to delegated admins who can view the page but lack the system admin permission needed to change it."
   },
   "admin.health_dashboard.automatic_checks.off": {
     "defaultMessage": "Automatic checks are off. Findings show the last run and may be out of date.",
@@ -7578,6 +7586,10 @@
   "admin.health_dashboard.automatic_checks.on_error": {
     "defaultMessage": "Automatic checks could not be turned on, so they are still off. Try again.",
     "description": "Error banner on the System Console Site health page when turning on the \"Automatic checks\" switch fails; the switch is turned back off."
+  },
+  "admin.health_dashboard.automatic_checks.restricted": {
+    "defaultMessage": "This setting can't be changed while System Console changes are restricted.",
+    "description": "Tooltip, and screen reader description, of the disabled \"Automatic checks\" switch on the System Console Site health page when the server restricts System Console changes (RestrictSystemAdmin), so even system admins can't change it."
   },
   "admin.health_dashboard.detail.details": {
     "defaultMessage": "Details",
