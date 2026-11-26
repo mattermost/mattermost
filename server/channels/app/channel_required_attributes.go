@@ -54,15 +54,18 @@ func (a *App) CanSetChannelAttributeOnPendingChannel(rctx request.CTX, field *mo
 	}
 }
 
-// validateChannelAttributeValues refuses, with the error a write would give,
-// values whose content is invalid: a wrong shape or an option that doesn't
-// exist. It is for callers that can only write after another change and want a
-// bad value refused before it.
-func (a *App) validateChannelAttributeValues(rctx request.CTX, values []*model.PropertyValue) error {
+// validateChannelAttributeValues refuses, with the error the write would give,
+// values the write onto channel would refuse for their content, the field's
+// change policy against what channel already holds, or masking hiding part of
+// that from userID. It is for callers that can only write after another change
+// and want those refusals before it; the permission tier and the
+// direct-channel refusal are still left to the write.
+func (a *App) validateChannelAttributeValues(rctx request.CTX, channel *model.Channel, userID string, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
 	}
-	if err := a.Srv().propertyService.ValidatePropertyValueContents(rctx, values); err != nil {
+	stampChannelAttributeValues(channel, userID, values)
+	if err := a.Srv().propertyService.ValidatePropertyValueWrite(rctxWithSessionCallerID(rctx), values); err != nil {
 		if appErr := mapPropertyServiceError("ValidateChannelAttributeValues", err); appErr != nil {
 			return appErr
 		}
@@ -317,15 +320,19 @@ func (a *App) writeChannelAttributeValues(rctx request.CTX, channel *model.Chann
 		return nil
 	}
 
+	stampChannelAttributeValues(channel, userID, values)
+
+	if _, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, ""); appErr != nil {
+		return appErr
+	}
+	return nil
+}
+
+func stampChannelAttributeValues(channel *model.Channel, userID string, values []*model.PropertyValue) {
 	for _, value := range values {
 		value.TargetID = channel.Id
 		value.TargetType = model.PropertyValueTargetTypeChannel
 		value.CreatedBy = userID
 		value.UpdatedBy = userID
 	}
-
-	if _, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, ""); appErr != nil {
-		return appErr
-	}
-	return nil
 }
