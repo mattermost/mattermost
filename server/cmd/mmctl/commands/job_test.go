@@ -234,18 +234,18 @@ func (s *MmctlUnitTestSuite) TestCreateJobCmdF() {
 
 	s.Run("forwards type not in AllJobTypes to the server", func() {
 		printer.Clean()
-		mockJob := &model.Job{Id: model.NewId(), Type: model.JobTypeAccessControlSync}
+		mockJob := &model.Job{Id: model.NewId(), Type: "custom_plugin_job"}
 
 		cmd := &cobra.Command{}
 		cmd.Flags().StringToString("data", nil, "")
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), &model.Job{Type: model.JobTypeAccessControlSync, Data: map[string]string{}}).
+			CreateJob(context.TODO(), &model.Job{Type: "custom_plugin_job", Data: map[string]string{}}).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := createJobCmdF(s.client, cmd, []string{model.JobTypeAccessControlSync})
+		err := createJobCmdF(s.client, cmd, []string{"custom_plugin_job"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -270,10 +270,10 @@ func (s *MmctlUnitTestSuite) TestCreateJobCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestJobTypeCompletionF() {
-	s.Run("suggests all job types for the first argument", func() {
+	s.Run("suggests creatable job types for the first argument", func() {
 		suggestions, directive := jobTypeCompletionF(&cobra.Command{}, []string{}, "")
 		s.Equal(cobra.ShellCompDirectiveNoFileComp, directive)
-		s.ElementsMatch(model.AllJobTypes[:], suggestions)
+		s.ElementsMatch(model.CreatableJobTypes[:], suggestions)
 	})
 
 	s.Run("suggests nothing once the type is provided", func() {

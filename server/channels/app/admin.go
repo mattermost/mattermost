@@ -4,7 +4,7 @@
 package app
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
 	"maps"
@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
@@ -34,8 +35,8 @@ const (
 	latestVersionFailureExpiry = 6 * time.Hour
 )
 
-// LatestVersionURL is the GitHub endpoint for the latest server release.
-const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
+// testSiteURLTimeout matches how long the webapp waits for the Site URL test before giving up.
+var testSiteURLTimeout = 10 * time.Second
 
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
@@ -207,14 +208,20 @@ func (a *App) RecycleDatabaseConnection(rctx request.CTX) {
 
 func (a *App) TestSiteURL(rctx request.CTX, siteURL string) *model.AppError {
 	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
-	res, err := http.Get(url)
-	if err != nil || res.StatusCode != 200 {
-		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
+	client := &http.Client{Timeout: testSiteURLTimeout}
+	res, err := client.Get(url)
+	if err != nil {
+		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	defer func() {
-		_, _ = io.Copy(io.Discard, res.Body)
+
+	// A non-200 body is closed without draining so a stalled body can't delay the error until the timeout.
+	if res.StatusCode != http.StatusOK {
 		_ = res.Body.Close()
-	}()
+		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, fmt.Sprintf("status_code=%d", res.StatusCode), http.StatusBadRequest)
+	}
+
+	_, _ = io.Copy(io.Discard, res.Body)
+	_ = res.Body.Close()
 
 	return nil
 }
@@ -268,7 +275,9 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, cachedFailure, http.StatusInternalServerError)
 	}
 
-	releaseInfoResponse, err := fetchLatestVersion(rctx, latestVersionUrl)
+	ctx, cancel := context.WithTimeout(rctx.Context(), 10*time.Second)
+	defer cancel()
+	releaseInfoResponse, err := releases.FetchLatest(ctx, latestVersionUrl)
 	if err != nil {
 		// A cancelled request says nothing about whether the feed is reachable.
 		if rctx.Context().Err() == nil {
@@ -282,43 +291,6 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	err = latestVersionCache.SetWithExpiry(latestVersionCacheKey, releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return releaseInfoResponse, nil
-}
-
-func fetchLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, error) {
-	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		_, _ = io.Copy(io.Discard, res.Body)
-		return nil, fmt.Errorf("unexpected status code %d", res.StatusCode)
-	}
-
-	responseData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var releaseInfoResponse *model.GithubReleaseInfo
-	err = json.Unmarshal(responseData, &releaseInfoResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
-		return nil, validErr
 	}
 
 	return releaseInfoResponse, nil

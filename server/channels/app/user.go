@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
@@ -145,10 +146,20 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 	// Atomically consume the token to prevent race conditions where concurrent
 	// requests could reuse the same single-use token to create multiple sessions.
 	// Try both valid token types for guest magic links.
-	token, err := a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
-	if err != nil {
+	// Invitation tokens are only consumed while guest accounts are enabled.
+	guestAccountsEnabled := *a.Config().GuestAccountsSettings.Enable
+
+	var token *model.Token
+	var err *model.AppError
+	if guestAccountsEnabled {
+		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
+	}
+	if err != nil || !guestAccountsEnabled {
 		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLink, tokenString)
 		if err != nil {
+			if !guestAccountsEnabled {
+				return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
+			}
 			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
@@ -3085,6 +3096,13 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	}
 
 	if !options.ThreadsOnly {
+		// The page below drops threads in denied channels, so the totals must too.
+		denied, err := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+		if err != nil {
+			return nil, model.AsAppError(err)
+		}
+		options.ExcludeChannelIds = denied
+
 		eg.Go(func() error {
 			totalUnreadThreads, err := a.Srv().Store().Thread().GetTotalUnreadThreads(userID, teamID, options)
 			if err != nil {
@@ -3135,7 +3153,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 
 	if !options.TotalsOnly {
 		eg.Go(func() error {
-			threads, err := a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, options)
+			threads, err := a.threadsForUserPage(rctx, userID, teamID, options)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
 			}
@@ -3166,6 +3184,57 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	a.populatePostListTranslations(rctx, list)
 
 	return &result, nil
+}
+
+// defaultThreadsPageSize mirrors the page size SqlThreadStore.GetThreadsForUser
+// applies when the caller leaves PageSize unset.
+const defaultThreadsPageSize = 30
+
+func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+	fetch := func(opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)
+	}
+
+	if !a.ChannelAccessEnforcementActive() {
+		return fetch(options)
+	}
+
+	advance := func(opts model.GetUserThreadsOpts, page []*model.ThreadResponse) model.GetUserThreadsOpts {
+		last := page[len(page)-1].PostId
+		if opts.After != "" {
+			opts.After = last
+		} else {
+			opts.Before = last
+		}
+		return opts
+	}
+
+	// The store reads a zero PageSize as its own default; FetchUntil would read it as
+	// "no results", so the two have to agree.
+	want := int(options.PageSize)
+	if want == 0 {
+		want = defaultThreadsPageSize
+	}
+	threads, truncated, err := putils.FetchUntil(options, want, fetch,
+		func(thread *model.ThreadResponse) bool {
+			return thread.Post != nil && a.HasChannelReadAccessByID(rctx, userID, thread.Post.ChannelId)
+		},
+		func(page []*model.ThreadResponse) model.GetUserThreadsOpts {
+			return advance(options, page)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of threads; the policy denies most of this user's channels",
+			mlog.String("user_id", userID),
+			mlog.String("team_id", teamID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	return threads, nil
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
@@ -3308,6 +3377,8 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	auditRec.Success()
 
+	// Carries the thread's root post, so it must not reach a user the channel's policy denies.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 	a.Publish(message)
 	return nil
 }

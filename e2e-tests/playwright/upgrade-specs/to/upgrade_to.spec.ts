@@ -3,6 +3,7 @@
 
 import {expect, getPluginStatus, saveUpgradePhaseLogs, test} from '@mattermost/playwright-lib';
 
+import {ensureAbacSuiteBaseline} from '../../specs/functional/system_console/abac/support';
 import {
     assertChannelContainsMessage,
     assertSearchFinds,
@@ -158,5 +159,20 @@ test.describe.serial('upgrade-to baseline', {tag: ['@upgrade-to']}, () => {
         // * Verify unauthenticated requests still list every webapp plugin an authenticated admin sees
         const authenticatedIds = (await adminClient.getWebappPlugins()).map((p) => p.id).sort();
         expect(await readUnauthenticatedWebappPluginIds(pw.loginPage.page.request)).toEqual(authenticatedIds);
+    });
+
+    // Last, so the checks above see the config the upgrade produced. dispatch-run runs the suite
+    // next without the `setup` project, which skips ABAC seeding on upgrade paths anyway.
+    test('seed the ABAC baseline the suite expects', async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+
+        // # Enable ABAC and create an unmanaged Department attribute, as the setup project does
+        await ensureAbacSuiteBaseline(adminClient);
+
+        // * Verify Department exists and is unmanaged when the server supports custom profile attributes
+        await pw.skipIfNoLicense();
+        const department = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === 'Department');
+        expect(department, 'Department attribute').toBeDefined();
+        expect((department!.attrs as {managed?: string}).managed ?? '').toBe('');
     });
 });

@@ -62,7 +62,7 @@ func (ch *Channels) startHealthCheckWorkersWithRun(run func(rctx request.CTX) er
 	})
 
 	ch.cancelHealthCheck = cancel
-	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, worker)
+	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, worker, ch.License)
 	ch.healthCheckWorkers.Start()
 }
 
@@ -129,7 +129,7 @@ func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, error) {
 	if !a.Config().FeatureFlags.HealthDashboard {
 		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.feature_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
-	if !model.MinimumEnterpriseLicense(a.Channels().License()) {
+	if !model.MinimumProfessionalLicense(a.Channels().License()) {
 		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.license.app_error", nil, "", http.StatusNotImplemented)
 	}
 

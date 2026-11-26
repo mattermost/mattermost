@@ -699,6 +699,17 @@ func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
 }
 
+// channelAttributeMissingValuesRoute builds the route for the required-channel-
+// attribute compliance endpoints. An empty fieldID targets the field-less
+// "create mode" form, used before the attribute has been saved and thus has no
+// ID yet.
+func (c *Client4) channelAttributeMissingValuesRoute(groupName, fieldID string) clientRoute {
+	if fieldID == "" {
+		return c.propertyFieldsRoute(groupName, PropertyFieldObjectTypeChannel).Join("missing_values")
+	}
+	return c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values")
+}
+
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
 }
@@ -8431,6 +8442,43 @@ func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, obj
 	return BuildResponse(r), nil
 }
 
+// GetChannelsMissingAttributeValue returns a paginated list of active, local
+// channels that lack a value for the given channel attribute field.
+func (c *Client4) GetChannelsMissingAttributeValue(ctx context.Context, groupName, fieldID string, page, perPage int) (*ChannelsMissingAttributeValueList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelsMissingAttributeValueList](r)
+}
+
+// GetChannelAttributeComplianceSummary returns the compliance counts used by
+// the Required toggle's banner. An empty fieldID reports the count for every
+// active, local channel (create mode).
+func (c *Client4) GetChannelAttributeComplianceSummary(ctx context.Context, groupName, fieldID string) (*ChannelAttributeComplianceSummary, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID).Join("summary"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelAttributeComplianceSummary](r)
+}
+
+// NotifyChannelAdminsOfMissingAttributeValue sends a batched system-bot DM to
+// every unique channel admin of a channel missing a value for fieldID.
+func (c *Client4) NotifyChannelAdminsOfMissingAttributeValue(ctx context.Context, groupName, fieldID string) (*ChannelAttributeNotifyResult, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID).Join("notify"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelAttributeNotifyResult](r)
+}
+
 func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
 	values := url.Values{}
 	if search.PerPage > 0 {
@@ -8714,6 +8762,27 @@ func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFil
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+// ExportHealthFindings returns the health report in format, "html" or "md", rendered in the
+// client's locale, and the filename the server suggests for it.
+func (c *Client4) ExportHealthFindings(ctx context.Context, format string) ([]byte, string, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute().Join("export"), url.Values{"format": {format}}, "")
+	if err != nil {
+		return nil, "", BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Disposition"))
+	if err != nil {
+		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
+	}
+
+	data, resp, err := ReadBytesFromResponse(r)
+	if err != nil {
+		return nil, "", resp, err
+	}
+	return data, SanitizeFilename(params["filename"]), resp, nil
 }
 
 func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {

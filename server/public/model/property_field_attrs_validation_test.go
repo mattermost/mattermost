@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -304,6 +305,48 @@ func TestSanitizeAndValidatePropertyFieldActions(t *testing.T) {
 			require.Equal(t, tt.wantKey, ok)
 			if tt.wantKey && tt.want != nil {
 				require.Equal(t, tt.want, actual)
+			}
+		})
+	}
+}
+
+func TestValidatePropertyTextValue(t *testing.T) {
+	plain := &PropertyField{Type: PropertyFieldTypeText}
+	email := &PropertyField{Type: PropertyFieldTypeText, Attrs: StringInterface{PropertyFieldAttrValueType: PropertyFieldValueTypeEmail}}
+	quoted := func(s string) json.RawMessage {
+		raw, err := json.Marshal(s)
+		require.NoError(t, err)
+		return raw
+	}
+	atCap := strings.Repeat("a", PropertyFieldValueTypeTextMaxLength)
+
+	tests := []struct {
+		name    string
+		field   *PropertyField
+		value   json.RawMessage
+		wantErr bool
+	}{
+		{name: "empty string", field: plain, value: quoted("")},
+		{name: "json null", field: plain, value: json.RawMessage(`null`)},
+		{name: "at the cap", field: plain, value: quoted(atCap)},
+		{name: "one byte over the cap", field: plain, value: quoted(atCap + "a"), wantErr: true},
+		{name: "at the cap with surrounding whitespace", field: plain, value: quoted("  " + atCap + "\n")},
+		// 22 three-byte runes: 22 characters, 66 bytes.
+		{name: "multibyte under 64 characters but over 64 bytes", field: plain, value: quoted(strings.Repeat("€", 22)), wantErr: true},
+		{name: "a number", field: plain, value: json.RawMessage(`42`), wantErr: true},
+		{name: "an array", field: plain, value: json.RawMessage(`["a"]`), wantErr: true},
+		{name: "valid email for an email field", field: email, value: quoted("test@example.com")},
+		{name: "invalid email for an email field", field: email, value: quoted("not-an-email"), wantErr: true},
+		{name: "over the cap is refused before value_type", field: email, value: quoted(strings.Repeat("a", 60) + "@example.com"), wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePropertyTextValue(tt.field, tt.value)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}

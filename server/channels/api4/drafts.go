@@ -52,6 +52,10 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelWriteAccessByID(c, draft.ChannelId) {
+		return
+	}
+
 	dt, err := c.App.UpsertDraft(c.AppContext, &draft, connectionID)
 	if err != nil {
 		c.Err = err
@@ -117,6 +121,13 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userID := c.AppContext.Session().UserId
 	channelID := c.Params.ChannelId
+
+	// A draft is channel-scoped content, so removing one goes through the same
+	// write gate as upsertDraft. Checked on the route's channel rather than the
+	// stored draft so the gate still applies on the missing-draft no-op below.
+	if !requireChannelWriteAccessByID(c, channelID) {
+		return
+	}
 
 	draft, err := c.App.GetDraft(userID, channelID, rootID)
 	if err != nil {

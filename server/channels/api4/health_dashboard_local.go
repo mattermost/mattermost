@@ -8,4 +8,5 @@ import "net/http"
 // InitHealthDashboardLocal is read-only: a local session has no user to record as the muter.
 func (api *API) InitHealthDashboardLocal() {
 	api.BaseRoutes.HealthFindings.Handle("", api.APILocal(getHealthFindings)).Methods(http.MethodGet)
+	api.BaseRoutes.HealthFindings.Handle("/export", api.APILocal(exportHealthFindings)).Methods(http.MethodGet)
 }
