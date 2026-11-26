@@ -145,10 +145,20 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 	// Atomically consume the token to prevent race conditions where concurrent
 	// requests could reuse the same single-use token to create multiple sessions.
 	// Try both valid token types for guest magic links.
-	token, err := a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
-	if err != nil {
+	// Invitation tokens are only consumed while guest accounts are enabled.
+	guestAccountsEnabled := *a.Config().GuestAccountsSettings.Enable
+
+	var token *model.Token
+	var err *model.AppError
+	if guestAccountsEnabled {
+		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
+	}
+	if err != nil || !guestAccountsEnabled {
 		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLink, tokenString)
 		if err != nil {
+			if !guestAccountsEnabled {
+				return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
+			}
 			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
