@@ -81,12 +81,13 @@ describe('session_attributes utils', () => {
     });
 
     describe('isServerSourced', () => {
-        it('is true for the request-derived server names', () => {
+        it('is true for request-scoped server and proxy names', () => {
             expect(isServerSourced('ip_address')).toBe(true);
             expect(isServerSourced('user_agent_platform')).toBe(true);
             expect(isServerSourced('user_agent_os')).toBe(true);
             expect(isServerSourced('user_agent_browser_name')).toBe(true);
             expect(isServerSourced('user_agent_browser_version')).toBe(true);
+            expect(isServerSourced('tls_device_id')).toBe(true);
         });
 
         it('is false for client-sourced names', () => {

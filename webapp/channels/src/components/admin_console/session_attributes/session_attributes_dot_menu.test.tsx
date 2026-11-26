@@ -63,6 +63,13 @@ const serverSourcedField = makeField('ip_address', {
     grace_period_seconds: 60,
 });
 
+const tlsDeviceIdField = makeField('tls_device_id', {
+    display_name: 'TLS device ID',
+    enabled: true,
+    ttl_seconds: 300,
+    grace_period_seconds: 300,
+});
+
 function renderMenu(field: SessionAttributeField, onStageChange = jest.fn()) {
     renderWithContext(
         <div>
@@ -142,10 +149,13 @@ describe('SessionAttributesDotMenu', () => {
         expect(screen.queryByTestId(`session-attribute-ttl-option-${enabledField.id}-30`)).not.toBeInTheDocument();
     });
 
-    it('hides the TTL and Grace submenus for server-sourced attributes', async () => {
-        renderMenu(serverSourcedField);
+    it.each([
+        ['ip_address', serverSourcedField],
+        ['tls_device_id', tlsDeviceIdField],
+    ])('hides the TTL and Grace submenus for server-sourced attribute %s', async (_name, field) => {
+        renderMenu(field);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${serverSourcedField.id}`));
+        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${field.id}`));
 
         expect(screen.queryByRole('menuitem', {name: /Time-to-live/})).not.toBeInTheDocument();
         expect(screen.queryByRole('menuitem', {name: /Grace Period/})).not.toBeInTheDocument();

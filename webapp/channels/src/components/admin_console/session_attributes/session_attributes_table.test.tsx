@@ -78,6 +78,7 @@ const fields: SessionAttributeField[] = [
     }),
     makeField('user_agent_os', 'text', {sort_order: 9, enabled: true}),
     makeField('client_type', 'text', {sort_order: 10, enabled: true}),
+    makeField('tls_device_id', 'text', {sort_order: 11, ttl_seconds: 300, grace_period_seconds: 300, enabled: true}),
 ];
 
 function rowFor(text: string): HTMLElement {
@@ -129,10 +130,10 @@ describe('SessionAttributesTable', () => {
         expect(counts.Enum).toBe(1);
 
         // IP/Version display types were removed; every non-select field is String.
-        expect(counts.String).toBe(7);
+        expect(counts.String).toBe(8);
     });
 
-    it('shows the Server badge only on request-derived fields', () => {
+    it('shows the Server badge only on request-scoped fields', () => {
         renderWithContext(
             <SessionAttributesTable
                 data={fields}
@@ -140,10 +141,11 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        expect(screen.getAllByTestId('session-attribute-server-label')).toHaveLength(2);
+        expect(screen.getAllByTestId('session-attribute-server-label')).toHaveLength(3);
 
         expect(within(rowFor('ip_address')).getByTestId('session-attribute-server-label')).toBeInTheDocument();
         expect(within(rowFor('user_agent_os')).getByTestId('session-attribute-server-label')).toBeInTheDocument();
+        expect(within(rowFor('tls_device_id')).getByTestId('session-attribute-server-label')).toBeInTheDocument();
 
         // client_ip_address is seeded but not request-derived, so it must not be flagged.
         expect(within(rowFor('client_ip_address')).queryByTestId('session-attribute-server-label')).not.toBeInTheDocument();
@@ -204,9 +206,11 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        const row = rowFor('Client IP');
-        expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('—');
-        expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('—');
+        for (const label of ['Client IP', 'tls_device_id']) {
+            const row = rowFor(label);
+            expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('—');
+            expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('—');
+        }
     });
 
     it('falls back to the field name when display_name is absent', () => {
