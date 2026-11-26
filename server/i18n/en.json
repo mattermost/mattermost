@@ -1791,6 +1791,11 @@
     "description": "Autocomplete argument hint for the /me slash command; [message] is a placeholder for the text to post; keep the brackets."
   },
   {
+    "id": "api.command_me.message.app_error",
+    "translation": "A message must be provided with the /me command.",
+    "description": "Error shown when /me is run without any text argument; '/me' is the literal command and should stay untranslated."
+  },
+  {
     "id": "api.command_me.name",
     "translation": "me",
     "description": "Display name of the /me slash command in the slash command autocomplete list; 'me' is the literal command name."
