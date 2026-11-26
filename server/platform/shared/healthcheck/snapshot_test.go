@@ -151,10 +151,11 @@ func TestSnapshotHostnames(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name     string
-		config   *model.SupportPacketConfig
-		nodes    []*NodeSnapshot
-		expected []string
+		name      string
+		config    *model.SupportPacketConfig
+		configErr error
+		nodes     []*NodeSnapshot
+		expected  []string
 	}{
 		{
 			name:     "standalone node",
@@ -199,6 +200,21 @@ func TestSnapshotHostnames(t *testing.T) {
 			nodes:    []*NodeSnapshot{{Hostname: "mm.example.com", IsLeader: true, Diagnostics: licensedDiagnostics(false)}},
 			expected: []string{"mm.example.com"},
 		},
+		{
+			name:      "the config section failed so clustering is unknown",
+			config:    clusterConfig(true),
+			configErr: errors.New("config unavailable"),
+			nodes:     []*NodeSnapshot{{Hostname: "app-1", Diagnostics: replied}},
+		},
+		{
+			name:  "the config section is missing so clustering is unknown",
+			nodes: []*NodeSnapshot{{Hostname: "app-1", Diagnostics: replied}},
+		},
+		{
+			name:   "clustering is not set in the config",
+			config: &model.SupportPacketConfig{Config: &model.Config{}},
+			nodes:  []*NodeSnapshot{{Hostname: "app-1", Diagnostics: replied}},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -207,7 +223,7 @@ func TestSnapshotHostnames(t *testing.T) {
 
 			s := NewSnapshot(tc.nodes)
 			s.Config = tc.config
-			s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+			s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: tc.configErr}
 			require.Equal(t, tc.expected, s.Hostnames())
 		})
 	}

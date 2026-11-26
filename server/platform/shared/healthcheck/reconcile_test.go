@@ -486,6 +486,10 @@ func (h *healthRuns) run(t *testing.T, at time.Time, nodes ...*NodeSnapshot) []T
 	t.Helper()
 	h.now = at
 	snapshot := NewSnapshot(nodes)
+	cfg := &model.Config{}
+	cfg.ClusterSettings.Enable = model.NewPointer(false)
+	snapshot.Config = &model.SupportPacketConfig{Config: cfg}
+	snapshot.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
 	transitions, err := h.reconciler.Reconcile(h.engine.Evaluate(snapshot), snapshot.Hostnames())
 	require.NoError(t, err)
 	return transitions
@@ -658,6 +662,34 @@ func TestReconcileRetiresUnknownButNotResolvedFindingsOfNodesThatLeft(t *testing
 	assert.Equal(t, string(StateResolved), stillResolved.State)
 	assert.Equal(t, lastSeen, stillResolved.StateSince)
 	assert.Empty(t, stillResolved.MessageID)
+}
+
+func TestReconcileKeepsNodeLeftFindingsResolvedWhenNodesAreUnknown(t *testing.T) {
+	t.Parallel()
+
+	t0 := time.UnixMilli(70_000_000)
+	h := newHealthRuns(t0, diskLowRule, testRule("MEMORY_LOW", VolatilityThreshold))
+	lastSeen := t0.Add(-3 * time.Hour).UnixMilli()
+	left := testPersistedFinding("DISK_LOW", "disk_free_percent", "gone-host", StateFiring, lastSeen, lastSeen)
+	ordinary := testPersistedFinding("MEMORY_LOW", "memory", "other-host", StateResolved, lastSeen, lastSeen)
+	firing := testPersistedFinding("MEMORY_LOW", "memory", "firing-host", StateFiring, lastSeen, lastSeen)
+	require.NoError(t, h.store.Upsert([]*model.HealthFinding{left}))
+
+	h.run(t, t0, replyingNode("app-1"))
+	requireNodeLeft(t, h.finding(t, left.Fingerprint))
+	resolvedSince := h.finding(t, left.Fingerprint).StateSince
+	require.NoError(t, h.store.Upsert([]*model.HealthFinding{ordinary, firing}))
+
+	transitions := h.run(t, t0.Add(6*time.Hour), &NodeSnapshot{})
+
+	assert.Nil(t, transitionFor(transitions, left.Fingerprint))
+	kept := h.finding(t, left.Fingerprint)
+	requireNodeLeft(t, kept)
+	assert.Equal(t, resolvedSince, kept.StateSince)
+	assert.Equal(t, lastSeen, kept.LastSeenAt)
+
+	assert.Equal(t, string(StateUnknown), h.finding(t, ordinary.Fingerprint).State, "an ordinary resolved finding still ages")
+	assert.Equal(t, string(StateUnknown), h.finding(t, firing.Fingerprint).State, "a firing finding still ages")
 }
 
 func TestReconcileRetiresNothingWhenANodeHasNoHostname(t *testing.T) {

@@ -195,6 +195,12 @@ func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition
 		if finding.State == string(StateUnknown) {
 			continue
 		}
+		// Without a node inventory the departure cannot be re-checked, and aging would turn the
+		// departure into a check failure; a later run with the inventory settles it.
+		if len(current) == 0 && finding.State == string(StateResolved) &&
+			finding.Details[model.HealthFindingDetailResolvedReason] == model.HealthFindingResolvedReasonNodeLeft {
+			continue
+		}
 		// The node-down finding already represents this scope; aging its dependents to unknown
 		// would resurrect the derived unknown step 1 suppressed.
 		if finding.Scope != "" && unreachable[finding.Scope] {

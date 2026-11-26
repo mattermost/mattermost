@@ -57,9 +57,15 @@ func (s *Snapshot) Nodes() []*NodeSnapshot {
 //     address, rather than the hostname it reports itself;
 //   - a node without a hostname could be any of them;
 //   - with clustering on and licensed, a node without cluster info is the local node standing in
-//     for a cluster that could not be listed. Without the license the cluster never starts.
+//     for a cluster that could not be listed. Without the license the cluster never starts;
+//   - whether clustering is on is unknown, as the config section is missing or failed, so a
+//     cluster that could not be listed cannot be told apart from a standalone node.
 func (s *Snapshot) Hostnames() []string {
-	clusterEnabled, _ := s.ClusterEnabled()
+	clusterEnabled, known := s.ClusterEnabled()
+	if !known {
+		return nil
+	}
+
 	clusterLicensed, licenseKnown := s.LicenseAllows(FeatureCluster)
 	clustered := clusterEnabled && (clusterLicensed || !licenseKnown)
 	nodes := s.Nodes()
