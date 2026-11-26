@@ -25,7 +25,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -468,15 +467,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
 	})
 
-	// Probe with the same transports as the real requests: OAuth and OpenID logins refuse internal
-	// addresses unless allowed, while the push client trusts the admin-configured push server.
-	insecure := model.SafeDereference(cfg.ServiceSettings.EnableInsecureOutgoingConnections)
-	oauthClient := &http.Client{Transport: httpservice.NewTransportForInternalConnections(
-		insecure,
-		model.SafeDereference(cfg.ServiceSettings.AllowedUntrustedInternalConnections),
-	)}
-	pushClient := &http.Client{Transport: httpservice.NewTransport(insecure, nil, nil)}
-
+	oauthClient := ps.HTTPService().MakeClient(false)
 	for _, provider := range []struct {
 		name   string
 		sso    *model.SSOSettings
@@ -496,7 +487,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	pushServerURL := model.SafeDereference(cfg.EmailSettings.PushNotificationServer)
 	add(model.SafeDereference(cfg.EmailSettings.SendPushNotifications), networkProbe{
 		name: "push", section: model.SectionPushProbe, status: &d.Notifications.Push.Status, errMsg: &d.Notifications.Push.Error,
-		run: func(ctx context.Context) error { return ps.testPushProxyConnection(ctx, pushClient, pushServerURL) },
+		run: func(ctx context.Context) error { return ps.testPushProxyConnection(ctx, pushServerURL) },
 	})
 
 	return probes
@@ -704,8 +695,8 @@ func drainAndCloseBody(body io.ReadCloser) {
 	_ = body.Close()
 }
 
-// TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
-func (ps *PlatformService) testPushProxyConnection(ctx context.Context, client *http.Client, serverURL string) error {
+// TODO: move this into its own push proxy package once one exists, together with PushNotificationClient
+func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	versionURL, err := url.JoinPath(serverURL, "version")
@@ -716,7 +707,7 @@ func (ps *PlatformService) testPushProxyConnection(ctx context.Context, client *
 	if err != nil {
 		return err
 	}
-	resp, err := client.Do(req)
+	resp, err := ps.PushNotificationClient().Do(req)
 	if err != nil {
 		return err
 	}

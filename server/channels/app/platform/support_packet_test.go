@@ -1800,14 +1800,10 @@ func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
 		},
 	}
 
-	// runProbe configures the named probe against serverURL and returns the User-Agents it sent and its result.
-	runProbe := func(t *testing.T, name, serverURL string, insecure bool, allowedInternal string) ([]string, error) {
+	// runConfiguredProbe runs the named probe with the current config and clients, and returns the
+	// User-Agents it sent and its result.
+	runConfiguredProbe := func(t *testing.T, name string) ([]string, error) {
 		t.Helper()
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(insecure)
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new(allowedInternal)
-			configure[name](cfg, serverURL)
-		})
 		mu.Lock()
 		userAgents = nil
 		mu.Unlock()
@@ -1821,6 +1817,21 @@ func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
 		mu.Lock()
 		defer mu.Unlock()
 		return slices.Clone(userAgents), err
+	}
+
+	// runProbe configures the named probe against serverURL, then runs it.
+	runProbe := func(t *testing.T, name, serverURL string, insecure bool, allowedInternal string) ([]string, error) {
+		t.Helper()
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(insecure)
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new(allowedInternal)
+			configure[name](cfg, serverURL)
+		})
+		// The push client is built at start-up, so apply the settings to it as a restart would.
+		if name == "push" {
+			th.Service.initHTTPClients()
+		}
+		return runConfiguredProbe(t, name)
 	}
 
 	for name := range configure {
@@ -1863,6 +1874,19 @@ func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
 			})
 		})
 	}
+
+	// Real pushes keep the setting the server started with, so the probe must too.
+	t.Run("push keeps the insecure setting it started with", func(t *testing.T) {
+		_, err := runProbe(t, "push", selfSigned.URL, false, "")
+		require.Error(t, err)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(true)
+		})
+		_, err = runConfiguredProbe(t, "push")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "certificate")
+	})
 }
 
 func TestGetSupportPacketConfig(t *testing.T) {
