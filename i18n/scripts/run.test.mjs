@@ -186,23 +186,31 @@ describe('a translation run', () => {
                 'app.new': 'Save changes',
                 'app.title': 'Настройки',
             },
-            acknowledge: {'webapp:app.reword': 'nothing wrong'},
+            acknowledge: {'webapp:app.reword': 'nothing wrong', 'webapp:app.count': 'Russian needs no few form'},
             notes: {'webapp:app.title': {kind: 'choice', text: 'not an item'}, 'webapp:app.hello': 'a bare string'},
+            translations: {},
         });
         const r = repo.run('validate_locale.mjs', workdir, 'ru');
-        assert.equal(r.status, 1);
+        assert.equal(r.status, 1, r.stdout + r.stderr);
         const out = r.stdout + r.stderr;
         for (const expected of [
             /webapp:app\.count: .*no few\/many form/,
             /webapp:app\.new: identical to the English.*acknowledge/,
             /webapp:app\.title: not in this locale's worklist/,
             /acknowledge\.webapp:app\.reword: nothing to acknowledge/,
+            /acknowledge\.webapp:app\.count: an error cannot be acknowledged/,
+            /unknown top-level field "translations"/,
             /notes\.webapp:app\.title: not in this locale's worklist/,
             /notes\.webapp:app\.hello: not \{"kind": "english" \| /,
             /webapp:app\.new: identical to the English.*\(soft finding, identical-to-english\)/,
         ]) {
             assert.match(out, expected);
         }
+
+        const notAnObject = payload('ru', ['webapp:app.new']);
+        const array = repo.run('validate_locale.mjs', workdir, notAnObject);
+        assert.equal(array.status, 1, array.stdout + array.stderr);
+        assert.match(array.stdout + array.stderr, /not a JSON object/);
 
         payload('ru', ruPayload);
         const ok = repo.run('validate_locale.mjs', workdir, 'ru');
