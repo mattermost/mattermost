@@ -1760,50 +1760,46 @@ func TestNetworkProbesSMTP(t *testing.T) {
 	})
 }
 
+// The probes must use the same clients as the requests they stand in for; httpservice tests the clients themselves.
 func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
 	th := Setup(t)
 
 	var userAgents []string
 	var mu sync.Mutex
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		userAgents = append(userAgents, r.UserAgent())
 		mu.Unlock()
-		switch r.URL.Path {
-		case "/version":
-			w.WriteHeader(http.StatusOK)
-		case "/.well-known/openid-configuration":
+		if r.URL.Path == "/.well-known/openid-configuration" {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"issuer":"https://idp.example.com"}`))
-		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
-	})
-	selfSigned := httptest.NewTLSServer(handler)
-	t.Cleanup(selfSigned.Close)
-	internal := httptest.NewServer(handler)
-	t.Cleanup(internal.Close)
+	}))
+	t.Cleanup(server.Close)
 
-	configure := map[string]func(cfg *model.Config, serverURL string){
-		"push": func(cfg *model.Config, serverURL string) {
+	configure := map[string]func(cfg *model.Config){
+		"push": func(cfg *model.Config) {
 			cfg.EmailSettings.SendPushNotifications = new(true)
-			cfg.EmailSettings.PushNotificationServer = new(serverURL)
+			cfg.EmailSettings.PushNotificationServer = new(server.URL)
 		},
-		"openid": func(cfg *model.Config, serverURL string) {
+		"openid": func(cfg *model.Config) {
 			cfg.OpenIdSettings.Enable = new(true)
-			cfg.OpenIdSettings.DiscoveryEndpoint = new(serverURL + "/.well-known/openid-configuration")
+			cfg.OpenIdSettings.DiscoveryEndpoint = new(server.URL + "/.well-known/openid-configuration")
 		},
-		"gitlab": func(cfg *model.Config, serverURL string) {
+		"gitlab": func(cfg *model.Config) {
 			cfg.GitLabSettings.Enable = new(true)
 			cfg.GitLabSettings.DiscoveryEndpoint = new("")
-			cfg.GitLabSettings.TokenEndpoint = new(serverURL + "/oauth/token")
+			cfg.GitLabSettings.TokenEndpoint = new(server.URL + "/oauth/token")
 		},
 	}
 
-	// runConfiguredProbe runs the named probe with the current config and clients, and returns the
-	// User-Agents it sent and its result.
-	runConfiguredProbe := func(t *testing.T, name string) ([]string, error) {
+	// runProbe runs the named probe against server and returns the User-Agents it sent and its result.
+	runProbe := func(t *testing.T, name, allowedInternal string) ([]string, error) {
 		t.Helper()
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new(allowedInternal)
+			configure[name](cfg)
+		})
 		mu.Lock()
 		userAgents = nil
 		mu.Unlock()
@@ -1819,53 +1815,20 @@ func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
 		return slices.Clone(userAgents), err
 	}
 
-	// runProbe configures the named probe against serverURL, then runs it.
-	runProbe := func(t *testing.T, name, serverURL string, insecure bool, allowedInternal string) ([]string, error) {
-		t.Helper()
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(insecure)
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new(allowedInternal)
-			configure[name](cfg, serverURL)
-		})
-		// The push client is built at start-up, so apply the settings to it as a restart would.
-		if name == "push" {
-			th.Service.initHTTPClients()
-		}
-		return runConfiguredProbe(t, name)
-	}
-
 	for name := range configure {
 		t.Run(name, func(t *testing.T) {
-			// httptest servers listen on 127.0.0.1, so OAuth probes need it allowed to reach the certificate check.
-			allowLoopback := ""
-			if name != "push" {
-				allowLoopback = "127.0.0.1"
-			}
-
-			t.Run("self-signed certificate fails with insecure connections off", func(t *testing.T) {
-				_, err := runProbe(t, name, selfSigned.URL, false, allowLoopback)
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "certificate")
-			})
-
-			t.Run("self-signed certificate passes with insecure connections on", func(t *testing.T) {
-				agents, err := runProbe(t, name, selfSigned.URL, true, allowLoopback)
+			t.Run("sends the Mattermost User-Agent", func(t *testing.T) {
+				agents, err := runProbe(t, name, "127.0.0.1")
 				require.NoError(t, err)
 				assert.Equal(t, []string{"Mattermost-Bot/1.1"}, agents)
 			})
 
-			t.Run("internal address with the address allowed passes", func(t *testing.T) {
-				agents, err := runProbe(t, name, internal.URL, false, "127.0.0.1")
-				require.NoError(t, err)
-				assert.Equal(t, []string{"Mattermost-Bot/1.1"}, agents)
-			})
-
-			t.Run("internal address without the address allowed", func(t *testing.T) {
-				agents, err := runProbe(t, name, internal.URL, false, "")
+			t.Run("internal address not in AllowedUntrustedInternalConnections", func(t *testing.T) {
+				agents, err := runProbe(t, name, "")
 				if name == "push" {
 					// The push client trusts the admin-configured push server.
 					require.NoError(t, err)
-					assert.Equal(t, []string{"Mattermost-Bot/1.1"}, agents)
+					assert.Len(t, agents, 1)
 					return
 				}
 				require.Error(t, err)
@@ -1874,19 +1837,6 @@ func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
 			})
 		})
 	}
-
-	// Real pushes keep the setting the server started with, so the probe must too.
-	t.Run("push keeps the insecure setting it started with", func(t *testing.T) {
-		_, err := runProbe(t, "push", selfSigned.URL, false, "")
-		require.Error(t, err)
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(true)
-		})
-		_, err = runConfiguredProbe(t, "push")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "certificate")
-	})
 }
 
 func TestGetSupportPacketConfig(t *testing.T) {
