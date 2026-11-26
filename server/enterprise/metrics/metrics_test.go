@@ -5,11 +5,14 @@ package metrics
 
 import (
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
@@ -370,6 +373,91 @@ func TestMergeLabels(t *testing.T) {
 	t.Run("handles nil maps", func(t *testing.T) {
 		require.Equal(t, prometheus.Labels{}, mergeLabels(nil, nil))
 	})
+}
+
+func TestNormalizeDisconnectErrCode(t *testing.T) {
+	supported := []string{"1000", "1005", "1006", "1016", "4000", "4001"}
+	for _, code := range supported {
+		require.Equal(t, code, normalizeDisconnectErrCode(code))
+	}
+
+	unsupported := []string{
+		"", "unknown", "abc", "999", "1017", "3000", "4002", "5000", "-1000",
+		"+1000", "01000", "001000", " 1000", "1000 ", "1e3", "1000.0",
+		strings.Repeat("0", 1500) + "1000",
+		strings.Repeat("9", 100),
+	}
+	for _, code := range unsupported {
+		require.Equal(t, "unknown", normalizeDisconnectErrCode(code), "code %q", code)
+	}
+}
+
+func TestWebsocketReconnectMetricsCardinality(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics).InitBasic(t)
+
+	configureMetrics(th)
+	miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	countSeries := func(c prometheus.Collector) int {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		n := 0
+		for range ch {
+			n++
+		}
+		return n
+	}
+
+	sumCounter := func(c prometheus.Collector) float64 {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		total := 0.0
+		for metric := range ch {
+			m := &prometheusModels.Metric{}
+			require.NoError(t, metric.Write(m))
+			total += m.GetCounter().GetValue()
+		}
+		return total
+	}
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
+	header := http.Header{"Authorization": []string{"Bearer " + th.Client.AuthToken}}
+	reconnect := func(rawCode string) {
+		query := "?connection_id=" + model.NewId() + "&sequence_number=1&disconnect_err_code=" + rawCode
+		ws, _, err := websocket.DefaultDialer.Dial(url+query, header)
+		require.NoError(t, err)
+		require.NoError(t, ws.Close())
+	}
+
+	reconnect("1000")
+	require.Eventually(t, func() bool {
+		return countSeries(miImpl.WebSocketReconnectCounter) > 0 && countSeries(miImpl.WebSocketReconnectFailureCounter) > 0
+	}, 5*time.Second, 20*time.Millisecond)
+	baseReconnect := countSeries(miImpl.WebSocketReconnectCounter)
+	baseFailure := countSeries(miImpl.WebSocketReconnectFailureCounter)
+	baseReconnectTotal := sumCounter(miImpl.WebSocketReconnectCounter)
+	baseFailureTotal := sumCounter(miImpl.WebSocketReconnectFailureCounter)
+
+	rawCodes := []string{"%2B1000", "01000", "001000", strings.Repeat("0", 500) + "1000", "%2B0001000", "abc", "5000"}
+	for _, rawCode := range rawCodes {
+		reconnect(rawCode)
+	}
+
+	expected := float64(len(rawCodes))
+	require.Eventually(t, func() bool {
+		return sumCounter(miImpl.WebSocketReconnectCounter) >= baseReconnectTotal+expected &&
+			sumCounter(miImpl.WebSocketReconnectFailureCounter) >= baseFailureTotal+expected
+	}, 5*time.Second, 20*time.Millisecond)
+
+	require.LessOrEqual(t, countSeries(miImpl.WebSocketReconnectCounter), baseReconnect+1)
+	require.LessOrEqual(t, countSeries(miImpl.WebSocketReconnectFailureCounter), baseFailure+1)
 }
 
 func TestServerInfo(t *testing.T) {

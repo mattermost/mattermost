@@ -72,7 +72,25 @@
     }
 
     .userAccountMenu_menuItemTrailingIconClear {
+        display: flex;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
         font-size: 16px;
+
+        &:focus-visible {
+            box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+
+        @media (forced-colors: active) {
+            &:focus-visible {
+                outline: 2px solid CanvasText;
+            }
+        }
     }
 
     .userAccountMenu_profileMenuItem_tourWrapper {
@@ -88,7 +106,7 @@
     padding: 6px 20px;
     margin: 0;
     color: var(--center-channel-color);
-    font-weight: bold;
+    font-weight: 600;
     pointer-events: none;
 }
 

@@ -24,6 +24,7 @@ function viewedBy(roles: string) {
             roles: {
                 roles: {
                     system_admin: TestHelper.getRoleMock({name: 'system_admin', permissions: ['manage_system']}),
+                    system_manager: TestHelper.getRoleMock({name: 'system_manager', permissions: ['sysconsole_read_reporting_site_statistics']}),
                 },
             },
         },
@@ -31,7 +32,7 @@ function viewedBy(roles: string) {
 }
 
 const systemAdmin = viewedBy('system_user system_admin');
-const systemUser = viewedBy('system_user');
+const systemManager = viewedBy('system_user system_manager');
 
 async function renderDashboard(state: ReturnType<typeof viewedBy>) {
     renderWithContext(<HealthDashboard/>, state);
@@ -60,10 +61,10 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         jest.restoreAllMocks();
     });
 
-    test('is hidden from users without manage_system', async () => {
-        await renderDashboard(systemUser);
+    test('is shown to delegated admins without manage_system', async () => {
+        await renderDashboard(systemManager);
 
-        expect(screen.queryByTestId('healthDashboardExportButton')).not.toBeInTheDocument();
+        expect(screen.getByTestId('healthDashboardExportButton')).toBeInTheDocument();
     });
 
     test('lists the three export options', async () => {

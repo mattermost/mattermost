@@ -303,14 +303,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		require.NotNil(t, d.Server.GoMaxProcs)
 		assert.Positive(t, *d.Server.GoMaxProcs)
 		assert.Equal(t, d.Server.ContainerCPUPeriods == nil, d.Server.ContainerCPUThrottledPeriods == nil)
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.LoadAverage1m)
 			require.NotNil(t, d.Server.LoadAverage5m)
 			require.NotNil(t, d.Server.LoadAverage15m)
+			require.NotNil(t, d.Server.SwapTotalMB)
+			require.NotNil(t, d.Server.SwapUsedMB)
+			require.NotNil(t, d.Server.AvailableMemoryMB)
 		} else {
 			assert.Nil(t, d.Server.LoadAverage1m)
 			assert.Nil(t, d.Server.LoadAverage5m)
 			assert.Nil(t, d.Server.LoadAverage15m)
+			assert.Nil(t, d.Server.SwapTotalMB)
+			assert.Nil(t, d.Server.SwapUsedMB)
+			assert.Nil(t, d.Server.AvailableMemoryMB)
 		}
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.TotalMemoryMB)

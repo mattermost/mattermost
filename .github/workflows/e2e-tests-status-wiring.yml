@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/e2e-tests-*.yml'
       - '.github/actions/e2e-status-lanes/**'
+      - '.github/workflows/server-image-check.yml'
       - '.github/e2e-status-lanes.json'
       - '.github/scripts/test_e2e_status_workflows.py'
 

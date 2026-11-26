@@ -54,6 +54,7 @@ import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import {POST_VALUE_SETTER} from '../applies_to/posts';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, canSyncAttributeType, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
@@ -1090,7 +1091,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // Dispatches each resource type's own config onto its create request --
         // Users' Profile display/Who can set the value, or Channels' own
         // required/change-policy attrs and pinned permission_values. Posts has
-        // no config panel yet, so it always gets undefined (server defaults).
+        // no config panel yet, so it gets no attrs (server defaults) but does
+        // pin its permission_values.
         const newResourceAttrsFor = (type: ResourceObjectType): Record<string, unknown> | undefined => {
             switch (type) {
             case 'user':
@@ -1107,6 +1109,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return userConfigPermissionValues;
             case 'channel':
                 return CHANNEL_VALUE_SETTER;
+            case 'post':
+                return POST_VALUE_SETTER;
             default:
                 return undefined;
             }

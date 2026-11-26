@@ -16,8 +16,10 @@ export type RowState = {
     now: number;
     expanded: string | null;
     onToggle: (fingerprint: string) => void;
-    onMute: (fingerprint: string) => void;
-    onUnmute: (fingerprint: string) => void;
+
+    // Left out for admins who may not mute, which hides the mute controls.
+    onMute?: (fingerprint: string) => void;
+    onUnmute?: (fingerprint: string) => void;
 };
 
 const sectionMessages: Record<HealthFindingSection, MessageDescriptor> = {
