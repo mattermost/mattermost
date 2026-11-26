@@ -189,7 +189,6 @@ func TestSupportPacketCertificateYAML(t *testing.T) {
 	assert.Contains(t, body, `  client_certificate:
     error: "failed to read certificate \"ldap-public.crt\": not found"
 `)
-	assert.NotContains(t, body, "server_certificate")
 	assert.NotContains(t, body, "idp_certificate")
 	assert.NotContains(t, body, "sp_certificate")
 
@@ -198,6 +197,5 @@ func TestSupportPacketCertificateYAML(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, diagnostics.TLS.Certificate, roundTrip.TLS.Certificate)
 	assert.Equal(t, diagnostics.LDAP.ClientCertificate, roundTrip.LDAP.ClientCertificate)
-	assert.Nil(t, roundTrip.LDAP.ServerCertificate)
 	assert.Nil(t, roundTrip.SAML.IdpCertificate)
 }

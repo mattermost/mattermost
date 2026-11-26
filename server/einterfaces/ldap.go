@@ -26,10 +26,9 @@ type LdapInterface interface {
 
 type LdapDiagnosticInterface interface {
 	RunTest(rctx request.CTX) *model.AppError
-	// RunSupportPacketTest runs RunTest and also returns the certificates that apply to the
-	// connection, which are reported even when the test fails. A certificate that can't be read
-	// carries its own error.
-	RunSupportPacketTest(rctx request.CTX) (serverCert, clientCert *model.SupportPacketCertificate, appErr *model.AppError)
+	// RunSupportPacketTest runs RunTest and also returns the configured client certificate, which is
+	// reported even when the test fails. A certificate that can't be read carries its own error.
+	RunSupportPacketTest(rctx request.CTX) (clientCert *model.SupportPacketCertificate, appErr *model.AppError)
 	GetVendorNameAndVendorVersion(rctx request.CTX) (string, string, error)
 	RunTestConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError
 	RunTestDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError)

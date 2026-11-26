@@ -636,7 +636,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		ldapMock.On(
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
-		).Return(nil, nil, nil)
+		).Return(nil, nil)
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -660,7 +660,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		ldapMock.On(
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
-		).Return(nil, nil, nil)
+		).Return(nil, nil)
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -684,7 +684,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		ldapMock.On(
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
-		).Return(nil, nil, model.NewAppError("", "some error", nil, "", 0))
+		).Return(nil, model.NewAppError("", "some error", nil, "", 0))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -1499,7 +1499,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 	t.Run("LDAP vendor info fails", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(nil, nil, nil)
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(nil, nil)
 		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("", "", errors.New("vendor down"))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
@@ -1523,7 +1523,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 	t.Run("failed probe stays present and clean", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(expiredCert, unreadableCert, model.NewAppError("", "bind failed", nil, "", 0))
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(unreadableCert, model.NewAppError("", "bind failed", nil, "", 0))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -1537,8 +1537,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 
 		d := requireSectionErrors(t, nil)
-		// The certificates are reported even when the test fails.
-		assert.Equal(t, expiredCert, d.LDAP.ServerCertificate)
+		// The client certificate is reported even when the test fails.
 		assert.Equal(t, unreadableCert, d.LDAP.ClientCertificate)
 	})
 
@@ -1585,7 +1584,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
 		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).
 			Run(func(mock.Arguments) { <-release }).
-			Return(nil, nil, model.NewAppError("", "released", nil, "", 0))
+			Return(nil, model.NewAppError("", "released", nil, "", 0))
 		setLDAP(t, ldapMock)
 
 		// Long enough for the local collection, which also uses the context for its database queries.
@@ -1630,12 +1629,12 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		require.NoError(t, err)
 
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) (*model.SupportPacketCertificate, *model.SupportPacketCertificate, *model.AppError) {
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) (*model.SupportPacketCertificate, *model.AppError) {
 			close(ldapStarted)
 			if err := waitFor(fileStoreStarted); err != nil {
-				return nil, nil, model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
+				return nil, model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
 			}
-			return nil, nil, nil
+			return nil, nil
 		})
 		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("OpenLDAP", "2.6", nil)
 		setLDAP(t, ldapMock)

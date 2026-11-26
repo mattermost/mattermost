@@ -172,12 +172,9 @@ type SupportPacketDiagnostics struct {
 		Error         string `yaml:"error,omitempty"`
 		ServerName    string `yaml:"server_name,omitempty"`
 		ServerVersion string `yaml:"server_version,omitempty"`
-		// The certificates are valid even when the ldap_probe section has an error, which the vendor
-		// lookup sets after a passing test, so read them through Diag rather than SectionDiag.
-
-		// ServerCertificate is collected when the connection uses TLS or STARTTLS.
-		ServerCertificate *SupportPacketCertificate `yaml:"server_certificate,omitempty"`
-		// ClientCertificate is collected when both PublicCertificateFile and PrivateKeyFile are set.
+		// ClientCertificate is collected when both PublicCertificateFile and PrivateKeyFile are set. It is
+		// valid even when the ldap_probe section has an error, which the vendor lookup sets after a
+		// passing test, so read it through Diag rather than SectionDiag.
 		ClientCertificate *SupportPacketCertificate `yaml:"client_certificate,omitempty"`
 	} `yaml:"ldap"`
 

@@ -432,12 +432,12 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 	ldap := ps.LdapDiagnostic()
 	var serverName, serverVersion string
 	var vendorErr error
-	var serverCert, clientCert *model.SupportPacketCertificate
+	var clientCert *model.SupportPacketCertificate
 	add(ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)), networkProbe{
 		name: "ldap", section: model.SectionLDAPProbe, status: &d.LDAP.Status, errMsg: &d.LDAP.Error,
 		run: func(context.Context) error {
 			var appErr *model.AppError
-			serverCert, clientCert, appErr = ldap.RunSupportPacketTest(rctx)
+			clientCert, appErr = ldap.RunSupportPacketTest(rctx)
 			if appErr != nil {
 				return appErr
 			}
@@ -446,7 +446,7 @@ func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacke
 			return nil
 		},
 		record: func() error {
-			d.LDAP.ServerCertificate, d.LDAP.ClientCertificate = serverCert, clientCert
+			d.LDAP.ClientCertificate = clientCert
 			d.LDAP.ServerName = cmp.Or(serverName, unknownDataPoint)
 			d.LDAP.ServerVersion = cmp.Or(serverVersion, unknownDataPoint)
 			return errors.Wrap(vendorErr, "error while getting LDAP vendor info")
