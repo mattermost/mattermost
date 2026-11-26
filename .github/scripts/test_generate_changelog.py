@@ -1672,17 +1672,14 @@ class V122FixesTest(unittest.TestCase):
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "changelog"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 # The v12.2 entry as the first auto run wrote it plus the earlier review edits (5d6de28), and as
-# reviewed on mattermost/mattermost#40345 (af71e3d7): settings by plan with headings that name every
+# reviewed on mattermost/mattermost#40345 (76f66438): settings by plan with headings that name every
 # plan, Important Upgrade Notes, the <Important> block, the audit events and endpoints added, and
 # the two settings that shipped in v12.1 taken out.
 V122_BEFORE = (FIXTURES / "v12.2-entry-5d6de28299.mdx").read_text()
-V122_REVIEWED = (FIXTURES / "v12.2-entry-af71e3d7c8.mdx").read_text()
+V122_REVIEWED = (FIXTURES / "v12.2-entry-76f66438ba.mdx").read_text()
 # config-change-checker wrote these into #38637's note, but both shipped in v12.1. The release-diff
 # check that drops such lines comes with mattermost/mattermost#40396; here they are taken out first.
 V122_SHIPPED_IN_V12_1 = ("``EnableFileIndexing``", "``AdditionalScopes``")
-# The PM is confirming the Redis TLS plan. The configuration docs badge the whole Redis cache
-# backend section ent-adv, so the generator says Enterprise Advanced; #40345 says Enterprise for now.
-V122_REDIS_PENDING = (" - **Changes to Enterprise Advanced plan:**", " - **Changes to Enterprise and Enterprise Advanced plans:**")
 
 
 def _upgrade_impact(entry: str) -> str:
@@ -1708,10 +1705,7 @@ class V122ReviewTest(unittest.TestCase):
 
     def test_the_generator_writes_the_reviewed_config_json(self):
         out = _v122_generated(self.resolver, [])
-        # One known difference, the Redis TLS heading, until the PM confirms the plan: then either
-        # #40345 or the docs badge changes, this fixture is refreshed, and the two sections are equal.
-        self.assertEqual(_config_json(out).replace(*V122_REDIS_PENDING), _config_json(V122_REVIEWED))
-        self.assertIn(V122_REDIS_PENDING[0], _config_json(out))
+        self.assertEqual(_config_json(out), _config_json(V122_REVIEWED))
         self.assertIn("<Important>", _upgrade_impact(out))
         self.assertIn("#### Important Upgrade Notes", _upgrade_impact(out))
 
