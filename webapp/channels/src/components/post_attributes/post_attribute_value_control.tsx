@@ -366,7 +366,7 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? errorId : undefined}
                 ref={inputRef}
-                onChange={(event) => setDraft(limitTextValue(event.target.value))}
+                onChange={(event) => setDraft(limitTextValue(event.target.value, draft))}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
             />

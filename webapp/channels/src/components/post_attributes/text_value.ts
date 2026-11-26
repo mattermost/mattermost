@@ -46,23 +46,72 @@ function utf8ByteLength(text: string): number {
     return bytes;
 }
 
-/**
- * Cuts typed or pasted text down to what the server accepts, whole characters
- * at a time so a multibyte character is never split.
- */
-export function limitTextValue(text: string): string {
-    if (utf8ByteLength(text.trim()) <= TEXT_VALUE_MAX_BYTES) {
-        return text;
-    }
+// What Go's `strings.TrimSpace` strips (`unicode.IsSpace`). JS `trim()` also
+// strips U+FEFF and keeps U+0085, so it disagrees with the server both ways.
+const SERVER_SPACE = '[\\t\\n\\v\\f\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]';
+const SERVER_TRIM_PATTERN = new RegExp(`^${SERVER_SPACE}+|${SERVER_SPACE}+$`, 'g');
 
+function serverTrim(text: string): string {
+    return text.replace(SERVER_TRIM_PATTERN, '');
+}
+
+function fits(text: string): boolean {
+    return utf8ByteLength(serverTrim(text)) <= TEXT_VALUE_MAX_BYTES;
+}
+
+function isHighSurrogate(code: number): boolean {
+    return code >= 0xd800 && code <= 0xdbff;
+}
+
+function isLowSurrogate(code: number): boolean {
+    return code >= 0xdc00 && code <= 0xdfff;
+}
+
+function keepFitting(before: string, inserted: string, after: string): string {
     let kept = '';
-    for (const char of text) {
-        if (utf8ByteLength((kept + char).trim()) > TEXT_VALUE_MAX_BYTES) {
+    for (const char of inserted) {
+        if (!fits(before + kept + char + after)) {
             break;
         }
         kept += char;
     }
-    return kept;
+    return before + kept + after;
+}
+
+/**
+ * Cuts typed or pasted text down to what the server accepts, whole characters
+ * at a time so a multibyte character is never split. Only what was inserted
+ * since `previous` is cut, so a keystroke at the limit is refused rather than
+ * pushing the end of the value out.
+ */
+export function limitTextValue(text: string, previous = ''): string {
+    if (fits(text)) {
+        return text;
+    }
+
+    const shorter = Math.min(text.length, previous.length);
+    let start = 0;
+    while (start < shorter && text[start] === previous[start]) {
+        start++;
+    }
+    if (start > 0 && isHighSurrogate(text.charCodeAt(start - 1))) {
+        start--;
+    }
+
+    let end = 0;
+    while (end < shorter - start && text[text.length - 1 - end] === previous[previous.length - 1 - end]) {
+        end++;
+    }
+    if (end > 0 && isLowSurrogate(text.charCodeAt(text.length - end))) {
+        end--;
+    }
+
+    const before = text.slice(0, start);
+    const after = text.slice(text.length - end);
+    if (!fits(before + after)) {
+        return keepFitting('', text, '');
+    }
+    return keepFitting(before, text.slice(start, text.length - end), after);
 }
 
 // `model.IsValidEmail` takes only a bare `local@domain` that Go's `net/mail`
@@ -86,13 +135,32 @@ const IPV6_ZONE_PATTERN = /^([a-z][a-z\d+.-]*:\/\/[^/?#]*\[[\da-f:.]+)%25[\w.~-]
 // query, which `new URL` tolerates.
 const MALFORMED_ESCAPE_PATTERN = /%(?![\da-f]{2})/i;
 
+// `new URL` strips these, where Go refuses them anywhere in the URL.
+// eslint-disable-next-line no-control-regex
+const CONTROL_CHAR_PATTERN = /[\x00-\x1f\x7f]/;
+
+// Go refuses an escaped ASCII byte in the host other than `%25`, which `new
+// URL` decodes.
+const ASCII_HOST_ESCAPE_PATTERN = /%(?!25)[0-7][\da-f]/i;
+
 function isValidUrl(text: string): boolean {
-    if (!URL_PREFIX_PATTERN.test(text)) {
+    const prefix = URL_PREFIX_PATTERN.exec(text);
+    if (!prefix || CONTROL_CHAR_PATTERN.test(text)) {
         return false;
     }
 
     const withoutZone = text.replace(IPV6_ZONE_PATTERN, '$1]');
     if (MALFORMED_ESCAPE_PATTERN.test(withoutZone.split('?')[0])) {
+        return false;
+    }
+
+    // `new URL` reads a `\` as `/`, so it ends the authority there, where Go
+    // refuses it in the user info or host.
+    const authority = withoutZone.slice(prefix[0].length).split(/[/?#]/)[0];
+    if (authority.includes('\\')) {
+        return false;
+    }
+    if (ASCII_HOST_ESCAPE_PATTERN.test(authority.slice(authority.lastIndexOf('@') + 1))) {
         return false;
     }
 
@@ -108,7 +176,7 @@ function isValidUrl(text: string): boolean {
  * undefined when it would accept it. An empty value is always accepted.
  */
 export function validateTextValue(field: PropertyField, text: string): MessageDescriptor | undefined {
-    const trimmed = text.trim();
+    const trimmed = serverTrim(text);
     if (!trimmed) {
         return undefined;
     }

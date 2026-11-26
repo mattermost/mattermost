@@ -49,6 +49,43 @@ describe('limitTextValue', () => {
         expect(limitTextValue(padded)).toBe(padded);
         expect(limitTextValue(`  ${'a'.repeat(65)}`)).toBe(`  ${'a'.repeat(64)}`);
     });
+
+    test('trims only what the server trims', () => {
+        // Go's `strings.TrimSpace` keeps a BOM, which is three bytes, and strips
+        // U+0085, which JS `trim()` keeps.
+        expect(limitTextValue('\ufeff' + 'a'.repeat(64))).toBe('\ufeff' + 'a'.repeat(61));
+        const nextLine = `\u0085${'a'.repeat(64)}\u0085`;
+        expect(limitTextValue(nextLine)).toBe(nextLine);
+    });
+
+    test('refuses a keystroke at the limit wherever it is typed', () => {
+        const atLimit = 'a'.repeat(63) + 'z';
+        expect(limitTextValue('b' + atLimit, atLimit)).toBe(atLimit);
+        expect(limitTextValue('a'.repeat(30) + 'b' + 'a'.repeat(33) + 'z', atLimit)).toBe(atLimit);
+        expect(limitTextValue(atLimit + 'b', atLimit)).toBe(atLimit);
+    });
+
+    test('cuts only the pasted text, wherever it is pasted', () => {
+        const previous = 'x'.repeat(30) + 'y'.repeat(30);
+        expect(limitTextValue('x'.repeat(30) + 'p'.repeat(10) + 'y'.repeat(30), previous)).
+            toBe('x'.repeat(30) + 'p'.repeat(4) + 'y'.repeat(30));
+    });
+
+    test('cuts a replaced selection down to what fits', () => {
+        const previous = 'a'.repeat(60) + 'bc';
+        expect(limitTextValue('a'.repeat(60) + 'X'.repeat(10) + 'c', previous)).toBe('a'.repeat(60) + 'XXXc');
+    });
+
+    test('never splits a pasted character that shares a surrogate with the previous one', () => {
+        // "😀" and "😁" share their first UTF-16 code unit.
+        const previous = 'a'.repeat(60) + '😀';
+        expect(limitTextValue('a'.repeat(60) + '😁😁', previous)).toBe('a'.repeat(60) + '😁');
+    });
+
+    test('cuts a value already over the limit from the end when nothing was inserted', () => {
+        const over = 'a'.repeat(70);
+        expect(limitTextValue('a'.repeat(69), over)).toBe('a'.repeat(64));
+    });
 });
 
 describe('validateTextValue', () => {
@@ -62,8 +99,9 @@ describe('validateTextValue', () => {
         expect(validateTextValue(textField('url'), '')).toBeUndefined();
     });
 
-    // Each value below was sent to the server's create-post endpoint, which
-    // answered 201 or 400 as listed.
+    // Each value below was checked against the server's create-post endpoint
+    // or `model.ValidatePropertyValueForValueType`, which accept or refuse it
+    // as listed.
     test.each([
         'foo@bar.com',
         ' foo@bar.com ',
@@ -110,6 +148,10 @@ describe('validateTextValue', () => {
         'http://[fe80::1%25eth0]/100%25',
         'http://example.com/100%25',
         'http://example.com/a?q=100%',
+        'http://example.com/a\\b',
+        'https://ex%C3%A9mple.com',
+        'http://user%41@example.com/',
+        '\u0085https://example.com\u0085',
     ])('url: accepts %j, as the server does', (value) => {
         expect(validateTextValue(textField('url'), value)).toBeUndefined();
     });
@@ -130,6 +172,14 @@ describe('validateTextValue', () => {
         'http://example.com/100%',
         'http://example.com/%zz',
         'http://example.com/a#f%',
+        'http://example.com\\path',
+        'http://us\\er@example.com/',
+        'https://exa\tmple.com',
+        'https://example.com/a\nb',
+        'http://exa\x7fmple.com',
+        'https://ex%41mple.com',
+        'http://ex%2Fample.com',
+        '\ufeffhttps://example.com',
     ])('url: refuses %j, as the server does', (value) => {
         expect(validateTextValue(textField('url'), value)?.id).toBe('post_attributes.text_value.invalid_url');
     });

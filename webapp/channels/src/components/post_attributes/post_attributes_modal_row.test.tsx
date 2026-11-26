@@ -256,6 +256,17 @@ describe('PostAttributesModalRow', () => {
         expect(onChange).toHaveBeenCalledWith('field_text', '€'.repeat(21));
     });
 
+    test('a text field at the limit refuses a keystroke before the end, rather than dropping its last character', async () => {
+        const field = makeField({id: 'field_text', name: 'reason', type: 'text', attrs: {display_name: 'Reason'}});
+        const atLimit = 'a'.repeat(63) + 'z';
+        renderRow({field, value: makeValue({field_id: 'field_text', value: atLimit})});
+
+        const input = screen.getByTestId('post-attribute-input-reason');
+
+        await userEvent.type(input, 'b', {initialSelectionStart: 0, initialSelectionEnd: 0});
+        expect(input).toHaveValue(atLimit);
+    });
+
     test('a text field refuses a value its value type rejects, with an inline error, until it is fixed', async () => {
         const field = makeField({id: 'field_text', name: 'contact', type: 'text', attrs: {display_name: 'Contact', value_type: 'email'}});
         const onChange = renderRow({field, value: undefined});
