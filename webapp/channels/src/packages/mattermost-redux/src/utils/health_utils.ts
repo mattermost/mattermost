@@ -35,7 +35,7 @@ export function isHealthFindingOpen(finding: HealthFinding) {
 
 export const HEALTH_FINDING_RESOLVED_REASON = 'resolved_reason';
 
-// Resolved because its node is no longer part of the cluster, not because the problem cleared.
+// Resolved because no running server reports its hostname any more, not because the problem cleared.
 export function isHealthFindingNodeLeft(finding: HealthFinding) {
     return finding.state === 'resolved' && finding.details?.[HEALTH_FINDING_RESOLVED_REASON] === 'node_left';
 }

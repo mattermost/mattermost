@@ -48,8 +48,8 @@ const Trend = ({finding, now}: Props) => {
         return (
             <FormattedMessage
                 id='admin.health_dashboard.trend.node_left'
-                defaultMessage='Node left {time}'
-                values={{time: <RelativeTime value={finding.state_since}/>}}
+                defaultMessage='Last seen {time}'
+                values={{time: <RelativeTime value={finding.last_seen_at}/>}}
             />
         );
     }

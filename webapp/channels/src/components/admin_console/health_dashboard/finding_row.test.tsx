@@ -128,18 +128,19 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
             scope: 'node-3',
             state: 'resolved',
             state_since: now - (2 * 60 * 60000),
-            message: 'This node is no longer part of the cluster, so this check no longer runs on it.',
+            last_seen_at: now - (3 * 60 * 60000),
+            message: 'No running server reports this hostname any more, for example because the server was renamed, replaced or removed.',
             message_id: 'health.resolved.node_left',
             details: {url: 'http://push.example.com', resolved_reason: 'node_left'},
         }), {expanded: true});
 
         const row = screen.getByTestId('healthFinding-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
         expect(row).toHaveClass('HealthFinding--nodeLeft');
-        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Node no longer in the cluster$/);
-        expect(screen.getByText('This node is no longer part of the cluster, so this check no longer runs on it.')).toBeInTheDocument();
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Server no longer present$/);
+        expect(screen.getByText('No running server reports this hostname any more, for example because the server was renamed, replaced or removed.')).toBeInTheDocument();
 
         const toggle = screen.getByRole('button', {name: /Push notification server is not HTTPS on node-3/});
-        expect(toggle).toHaveAccessibleName(/Node left 2 hours ago/);
+        expect(toggle).toHaveAccessibleName(/Last seen 3 hours ago/);
         expect(toggle).not.toHaveAccessibleName(/Resolved/);
 
         expect(detailTerms(expandedDetail())).toEqual(['Severity', 'Node', 'url']);

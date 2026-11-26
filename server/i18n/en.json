@@ -14961,8 +14961,8 @@
   },
   {
     "id": "health.resolved.node_left",
-    "translation": "This node is no longer part of the cluster, so this check no longer runs on it. This does not mean the problem was fixed.",
-    "description": "Health dashboard finding message for a node-scoped finding whose server (node) has left the cluster, for example after a Kubernetes pod or Docker container was replaced or a server was renamed. 'node' means one Mattermost server in a cluster."
+    "translation": "No running server reports this hostname any more, for example because the server was renamed, replaced or removed. The check no longer runs here, so this does not mean the problem was fixed.",
+    "description": "Health dashboard finding message for a finding that applied to one server, shown once no running Mattermost server reports that server's hostname any more. This happens to single servers and clusters alike, for example after a server is renamed, a Docker container or Kubernetes pod is replaced, or a server is removed. The finding row's title already names the hostname."
   },
   {
     "id": "health.rule.audit_log_off.message",

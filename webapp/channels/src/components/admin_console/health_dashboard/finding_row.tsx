@@ -31,7 +31,7 @@ type Props = {
 const stateBadges = defineMessages({
     unknown: {id: 'admin.health_dashboard.finding.unknown', defaultMessage: 'Unknown'},
     resolved: {id: 'admin.health_dashboard.finding.resolved', defaultMessage: 'Resolved'},
-    nodeLeft: {id: 'admin.health_dashboard.finding.node_left', defaultMessage: 'Node no longer in the cluster'},
+    nodeLeft: {id: 'admin.health_dashboard.finding.node_left', defaultMessage: 'Server no longer present'},
 });
 
 function getBadgeMessage(finding: HealthFinding) {
