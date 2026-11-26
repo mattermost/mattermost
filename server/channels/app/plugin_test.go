@@ -604,6 +604,57 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	require.Equal(t, pluginStatus[0].State, model.PluginStateNotRunning)
 }
 
+func TestSyncPluginsActiveStateNilPluginState(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	path, _ := fileutils.FindDir("tests")
+	fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+	})
+
+	pluginStatus, err := env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin", pluginStatus[0].PluginId)
+	require.Equal(t, model.PluginStateRunning, pluginStatus[0].State)
+
+	// Inject the nil entry into the live config directly, bypassing the config
+	// store's SetDefaults, so syncPluginsActiveState itself must tolerate it.
+	liveStates := th.App.Config().PluginSettings.PluginStates
+	original := liveStates["testplugin"]
+	liveStates["testplugin"] = nil
+	t.Cleanup(func() { liveStates["testplugin"] = original })
+
+	require.NotPanics(t, func() {
+		th.App.ch.syncPluginsActiveState()
+	})
+
+	pluginStatus, err = env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin", pluginStatus[0].PluginId)
+	require.Equal(t, model.PluginStateNotRunning, pluginStatus[0].State)
+}
+
 func TestPluginPanicLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should panic", func(t *testing.T) {
