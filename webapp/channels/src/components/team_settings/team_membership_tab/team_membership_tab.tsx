@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules, hasEffectiveRules, autoAddModeForToggle} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules, isEmptyPolicy, autoAddModeForToggle} from '@mattermost/types/access_control';
 import type {JobType} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
@@ -367,9 +367,9 @@ function TeamMembershipTab({
             setIsProcessingSave(true);
 
             const builtRules = buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoAddMembers));
-            const isEmptyPolicy = !hasEffectiveRules(builtRules) && existingImports.length === 0;
+            const willDeletePolicy = isEmptyPolicy(builtRules, existingImports);
 
-            if (isEmptyPolicy) {
+            if (willDeletePolicy) {
                 // Clearing all rules — delete the policy if one existed, otherwise nothing to do.
                 const hadExistingPolicy = originalExpression !== '' || existingRules.length > 0;
                 if (hadExistingPolicy) {
