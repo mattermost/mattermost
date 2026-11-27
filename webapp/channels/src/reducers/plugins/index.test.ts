@@ -283,6 +283,28 @@ describe('channel settings tabs', () => {
     });
 });
 
+describe('components — PostDropdownMenu slot', () => {
+    it('adds a submenu item when the parent menu has no submenu array', () => {
+        let state = pluginReducers(undefined, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'PostDropdownMenu',
+            data: {id: 'parent-menu', pluginId: 'plugin-a'},
+        });
+
+        state = pluginReducers(state, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'PostDropdownMenu',
+            data: {id: 'child-menu', pluginId: 'plugin-a', parentMenuId: 'parent-menu'},
+        });
+
+        expect(state.components.PostDropdownMenu).toHaveLength(1);
+        expect(state.components.PostDropdownMenu[0].id).toBe('parent-menu');
+        expect(state.components.PostDropdownMenu[0].subMenu).toEqual([
+            expect.objectContaining({id: 'child-menu'}),
+        ]);
+    });
+});
+
 describe('components — ChannelIconOverride slot', () => {
     it('initial state has an empty ChannelIconOverride array', () => {
         const state = pluginReducers(undefined, {type: '@@INIT'} as any);

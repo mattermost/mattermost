@@ -23,13 +23,14 @@ import type {
 } from 'types/store/plugins';
 
 function hasMenuId(menu: PostDropdownMenuAction, menuId: string) {
+    if (menu.id === menuId) {
+        return true;
+    }
+
     if (!menu.subMenu) {
         return false;
     }
 
-    if (menu.id === menuId) {
-        return true;
-    }
     for (const subMenu of menu.subMenu) {
         // Recursively check if subMenu contains menuId.
         if (hasMenuId(subMenu, menuId)) {
@@ -41,9 +42,9 @@ function hasMenuId(menu: PostDropdownMenuAction, menuId: string) {
 
 function buildMenu(rootMenu: PostDropdownMenuAction, data: PostDropdownMenuAction): PostDropdownMenuAction {
     // Recursively build the full menu tree.
-    const subMenu = rootMenu.subMenu?.map((m) => buildMenu(m, data));
+    let subMenu = rootMenu.subMenu?.map((m) => buildMenu(m, data));
     if (rootMenu.id === data.parentMenuId) {
-        subMenu?.push(data);
+        subMenu = [...(subMenu ?? []), data];
     }
 
     return {
