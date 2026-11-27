@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 // Check i18n/glossary/ and i18n/style.json. The translation rules read both, so
 // a malformed entry would quietly change what a translation is held to.
 //

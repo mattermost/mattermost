@@ -118,6 +118,7 @@ const messages = defineMessages({
 
 const channelRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier`;
 const threadsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/threads`;
+const boardsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/boards`;
 
 const productTab = (product: ProductComponent): ProductRailTab => `product:${product.id}`;
 
@@ -209,7 +210,7 @@ export default function ProductRail() {
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
     const inThreads = matchPath(pathname, {path: threadsRoutePath}) !== null;
-    const urlChannelPath = channelMatch ? `/${channelMatch.params.team}/${channelMatch.params.path}/${channelMatch.params.identifier}` : null;
+    const inBoardsEmptyState = matchPath(pathname, {path: boardsRoutePath, exact: true}) !== null;
 
     // The rail item the user is under now, and the path to return them to. A channel is recorded
     // only once the open channel matches the URL: while switching, the URL moves first, and the
@@ -232,6 +233,8 @@ export default function ProductRail() {
         // Threads is part of the channels product, and both Channels and Boards list it in their
         // sidebar: it stays under whichever the user opened it from (see the effect below).
         viewedTab = section ?? 'channels';
+    } else if (inBoardsEmptyState && section) {
+        viewedTab = 'boards';
     } else if (currentProduct) {
         viewedTab = productTab(currentProduct);
     }
@@ -258,15 +261,6 @@ export default function ProductRail() {
     // user, even when the open channel is a board.
     const lastBoardsShownInChannels = useRef(boardsShownInChannels);
 
-    // Boards with no board to open, clicked from outside the channels product, lands in the channel
-    // Channels would open, to show the empty Boards sidebar. Opening that channel mustn't move the
-    // sidebar back to Channels, as opening a channel otherwise does.
-    const keepBoardsSectionAt = useRef<string | null>(null);
-
-    // The team's boards may not be known yet on landing there (they load with the channels, and a
-    // product page loaded directly doesn't have them). Once they are, open the first one instead.
-    const awaitingBoardAt = useRef<string | null>(null);
-
     // A rail item to focus once it's back on the rail, after it was pinned from the last row of More.
     const focusAfterPin = useRef<string | null>(null);
     useEffect(() => {
@@ -287,46 +281,11 @@ export default function ProductRail() {
         // Threads, Channels and Boards always lead out of it, to a channel or board. (Leading back to
         // Threads would make them look stuck there.)
         if (enabled && viewedTab && currentTeamId && !inThreads) {
-            const keepBoards = viewedTab === 'channels' && keepBoardsSectionAt.current === viewedPath;
-            if (viewedTab === 'channels' || viewedTab === 'boards') {
-                keepBoardsSectionAt.current = null;
-            }
-
             // A channel or board moves the sidebar to its section.
-            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels && !keepBoards;
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
     }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, inThreads]);
-
-    useEffect(() => {
-        const awaitedPath = awaitingBoardAt.current;
-        if (!awaitedPath) {
-            return;
-        }
-
-        // While the channel loads (the URL is there before the open channel catches up), keep
-        // waiting; leaving for a page outside the rail's items, such as Integrations, stops it.
-        if (!viewedTab) {
-            if (urlChannelPath !== awaitedPath) {
-                awaitingBoardAt.current = null;
-                keepBoardsSectionAt.current = null;
-            }
-            return;
-        }
-
-        // Leaving the channel, or the Boards sidebar, stops waiting, and a later visit to that channel
-        // is an ordinary one, which moves the sidebar to Channels.
-        if (viewedPath !== awaitedPath || section !== 'boards' || currentChannelIsBoard) {
-            awaitingBoardAt.current = null;
-            keepBoardsSectionAt.current = null;
-            return;
-        }
-
-        if (firstBoard && currentTeam) {
-            awaitingBoardAt.current = null;
-            history.replace(`/${currentTeam.name}/channels/${firstBoard.name}`);
-        }
-    }, [viewedTab, viewedPath, urlChannelPath, section, currentChannelIsBoard, firstBoard, currentTeam, history]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
@@ -394,18 +353,13 @@ export default function ProductRail() {
         } : sectionUnreads.channels;
         const channelsPath = lastChannelPath ?? `/${currentTeam.name}/channels/${defaultChannelName}`;
 
-        // Return to the last board, else open the first one. With none to open, Boards still
-        // switches the sidebar so it can say there are none: in place in the channels product,
-        // and from anywhere else in the channel Channels would open.
-        let boardsPath = lastBoardPath;
-        if (!boardsPath && firstBoard) {
-            boardsPath = `/${currentTeam.name}/channels/${firstBoard.name}`;
+        // Return to the last board, else open the first one. With none to open, Boards shows what
+        // boards are and how to create one; that page opens the first board once there is one, so
+        // it also covers boards that aren't known yet (they load with the channels).
+        let boardsTo = lastBoardPath;
+        if (!boardsTo) {
+            boardsTo = firstBoard ? `/${currentTeam.name}/channels/${firstBoard.name}` : `/${currentTeam.name}/boards`;
         }
-        const opensChannelForNoBoards = !boardsPath && !inChannelsProduct;
-        if (!boardsPath) {
-            boardsPath = inChannelsProduct ? pathname : channelsPath;
-        }
-        const boardsTo = boardsPath;
 
         entries.push({
             itemId: 'channels',
@@ -421,11 +375,7 @@ export default function ProductRail() {
             itemId: 'boards',
             elementId: 'product-rail-item-boards',
             to: boardsTo,
-            onClick: () => {
-                keepBoardsSectionAt.current = opensChannelForNoBoards ? boardsTo : null;
-                awaitingBoardAt.current = opensChannelForNoBoards ? boardsTo : null;
-                dispatch(setProductRailSection('boards'));
-            },
+            onClick: () => dispatch(setProductRailSection('boards')),
             icon: <ProductBoardsIcon size={20}/>,
             label: formatMessage(messages.boards),
             active: inChannelsProduct && section === 'boards',
@@ -856,11 +806,12 @@ function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, ha
         onClick();
     });
 
-    const indicator = renderIndicator(mentions, hasUrgent, unread);
+    // The item the user is in shows its unreads in its own sidebar, so it marks none here.
+    const indicator = active ? null : renderIndicator(mentions, hasUrgent, unread);
 
     const className = classNames('ProductRail__item', {
         'ProductRail__item--active': active,
-        'ProductRail__item--unread': unread || mentions > 0,
+        'ProductRail__item--unread': !active && (unread || mentions > 0),
     });
     const content = (
         <>

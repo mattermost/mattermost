@@ -9,4 +9,4 @@
 
 ## Summary
 
-The first health check runs within an hour of enabling the feature.
+No health check has run yet.

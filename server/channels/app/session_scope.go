@@ -42,25 +42,25 @@ func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, per
 	if !scoped {
 		return false, false
 	}
-	if !scope.HasPermission(permissionID) {
+	if !slices.Contains(model.ScopeReadPermissions, permissionID) || !scope.HasPermission(permissionID) {
 		return true, false
 	}
 
 	switch {
 	case target.Channel != nil:
-		return true, a.ScopeAllowsChannel(rctx, scope, target.Channel)
+		return true, a.ScopeAllowsChannel(rctx, scope, target.Channel) && a.HasChannelReadAccess(rctx, session.UserId, target.Channel)
 	case target.ChannelID != "":
 		channel, appErr := a.GetChannel(rctx, target.ChannelID)
 		if appErr != nil {
 			return true, false
 		}
-		return true, a.ScopeAllowsChannel(rctx, scope, channel)
+		return true, a.ScopeAllowsChannel(rctx, scope, channel) && a.HasChannelReadAccess(rctx, session.UserId, channel)
 	case target.PostID != "":
 		channel, err := a.Srv().Store().Channel().GetForPost(target.PostID)
 		if err != nil {
 			return true, false
 		}
-		return true, a.ScopeAllowsChannel(rctx, scope, channel)
+		return true, a.ScopeAllowsChannel(rctx, scope, channel) && a.HasChannelReadAccess(rctx, session.UserId, channel)
 	case target.TeamID != "":
 		if permissionID != model.PermissionViewTeam.Id && permissionID != model.PermissionListTeamChannels.Id {
 			return true, false
@@ -120,13 +120,39 @@ func (a *App) getScopeListedChannels(rctx request.CTX, scope *model.SessionScope
 		}
 		return nil, appErr
 	}
+	teamsByID, err := a.teamsByIDForChannels(channels)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get the teams of channels listed by a session scope", mlog.Err(err))
+		return nil
+	}
 	listed := make([]*model.Channel, 0, len(channels))
 	for _, channel := range channels {
-		if model.SessionScopeAllowsChannel(scope, channel, nil, model.SessionScopeLimits{}) {
+		if model.SessionScopeAllowsChannel(scope, channel, teamsByID[channel.TeamId], model.SessionScopeLimits{}) {
 			listed = append(listed, channel)
 		}
 	}
 	return listed, nil
+}
+
+func (a *App) teamsByIDForChannels(channels []*model.Channel) (map[string]*model.Team, error) {
+	teamIDs := make([]string, 0, len(channels))
+	for _, ch := range channels {
+		if ch.TeamId != "" && !slices.Contains(teamIDs, ch.TeamId) {
+			teamIDs = append(teamIDs, ch.TeamId)
+		}
+	}
+	if len(teamIDs) == 0 {
+		return nil, nil
+	}
+	teams, err := a.Srv().Store().Team().GetMany(teamIDs)
+	if err != nil {
+		return nil, err
+	}
+	byID := make(map[string]*model.Team, len(teams))
+	for _, team := range teams {
+		byID[team.Id] = team
+	}
+	return byID, nil
 }
 
 // scopeListsChannelOnTeam reports whether the scope lists, by ID, an in-scope
@@ -138,23 +164,27 @@ func (a *App) scopeListsChannelOnTeam(rctx request.CTX, scope *model.SessionScop
 }
 
 // ScopeAllowsChannel reports whether channel is in scope, loading the channel's
-// team and the server limits only when a public-channel grant needs them.
+// team (to enforce team deletion and policy checks) and loading server limits
+// only when a public-channel grant needs them.
 func (a *App) ScopeAllowsChannel(rctx request.CTX, scope *model.SessionScope, channel *model.Channel) bool {
 	if scope == nil || channel == nil {
 		return false
 	}
 
 	var team *model.Team
-	var limits model.SessionScopeLimits
-	publicGrant := scope.Resources.OpenTeamPublicChannels || slices.Contains(scope.Resources.PublicChannelTeamIDs, channel.TeamId)
-	if publicGrant && channel.Type == model.ChannelTypeOpen && !scope.ListsChannel(channel.Id) {
-		limits = a.sessionScopeLimits(rctx)
+	if channel.TeamId != "" {
 		var appErr *model.AppError
 		team, appErr = a.GetTeam(channel.TeamId)
 		if appErr != nil {
 			rctx.Logger().Debug("Failed to get team for session scope check", mlog.String("team_id", channel.TeamId), mlog.Err(appErr))
 			return false
 		}
+	}
+
+	var limits model.SessionScopeLimits
+	publicGrant := scope.Resources.OpenTeamPublicChannels || slices.Contains(scope.Resources.PublicChannelTeamIDs, channel.TeamId)
+	if publicGrant && channel.Type == model.ChannelTypeOpen && !scope.ListsChannel(channel.Id) {
+		limits = a.sessionScopeLimits(rctx)
 	}
 
 	return model.SessionScopeAllowsChannel(scope, channel, team, limits)
@@ -214,10 +244,17 @@ func (a *App) scopedViewUsersRestrictions(rctx request.CTX, session *model.Sessi
 	return restrictions
 }
 
-// CreateScopedSession creates a session for userID that can only read what scope
-// allows, on behalf of the plugin pluginID. It is the only way to create a
-// scoped session.
-func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, scope *model.SessionScope, expiresAt int64) (session *model.Session, err error) {
+// CreateScopedSession creates a scoped session described by req on behalf of
+// the plugin pluginID. It is the only way to create a scoped session.
+// A nil req is rejected before auditing so plugins can probe server support
+// without emitting spurious audit failures on every startup.
+func (a *App) CreateScopedSession(rctx request.CTX, pluginID string, req *model.CreateScopedSessionRequest) (session *model.Session, err error) {
+	if req == nil {
+		return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.scope_missing.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	userID, scope, expiresAt := req.UserID, req.Scope, req.ExpiresAt
+
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventCreateScopedSession, model.AuditStatusFail)
 	defer func() {
 		a.LogAuditRec(rctx, auditRec, err)

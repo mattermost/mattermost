@@ -1924,9 +1924,9 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
+func (api *apiTimerLayer) CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CreateScopedSession(userID, scope, expiresAt)
+	_returnsA, _returnsB := api.apiImpl.CreateScopedSession(req)
 	api.recordTime(startTime, "CreateScopedSession", _returnsB == nil)
 	return _returnsA, _returnsB
 }

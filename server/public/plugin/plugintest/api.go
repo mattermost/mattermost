@@ -600,9 +600,9 @@ func (_m *API) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyV
 	return r0, r1
 }
 
-// CreateScopedSession provides a mock function with given fields: userID, scope, expiresAt
-func (_m *API) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
-	ret := _m.Called(userID, scope, expiresAt)
+// CreateScopedSession provides a mock function with given fields: req
+func (_m *API) CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError) {
+	ret := _m.Called(req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateScopedSession")
@@ -610,19 +610,19 @@ func (_m *API) CreateScopedSession(userID string, scope *model.SessionScope, exp
 
 	var r0 *model.Session
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *model.SessionScope, int64) (*model.Session, *model.AppError)); ok {
-		return rf(userID, scope, expiresAt)
+	if rf, ok := ret.Get(0).(func(*model.CreateScopedSessionRequest) (*model.Session, *model.AppError)); ok {
+		return rf(req)
 	}
-	if rf, ok := ret.Get(0).(func(string, *model.SessionScope, int64) *model.Session); ok {
-		r0 = rf(userID, scope, expiresAt)
+	if rf, ok := ret.Get(0).(func(*model.CreateScopedSessionRequest) *model.Session); ok {
+		r0 = rf(req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, *model.SessionScope, int64) *model.AppError); ok {
-		r1 = rf(userID, scope, expiresAt)
+	if rf, ok := ret.Get(1).(func(*model.CreateScopedSessionRequest) *model.AppError); ok {
+		r1 = rf(req)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

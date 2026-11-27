@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import check_config_changes_ci as checker
 
@@ -124,8 +125,8 @@ class UniqueCommitFilterTest(unittest.TestCase):
 
         _git(self.tmpdir, "checkout", "-b", "feature")
         _git(self.tmpdir, "rm", "-q", "server/channels/api4/old_test.go")
-        _write(self.tmpdir, "server/channels/api4/new_test.go", "package api4\n")
-        _write(self.tmpdir, "server/channels/api4/new.go", "package api4\n")
+        _write(self.tmpdir, "server/channels/api4/new_test.go", _HANDLE)
+        _write(self.tmpdir, "server/channels/api4/new.go", _HANDLE)
         head = self._commit("add and remove API files")
 
         self._point_checker(base, head)
@@ -187,6 +188,63 @@ class UniqueCommitFilterTest(unittest.TestCase):
         result = checker.check_api(patches)
         self.assertTrue(any("/api/v4/bar" in item for item in result.additions))
         self.assertFalse(any("/api/v4/foo" in item for item in result.additions))
+
+    def test_retarget_with_inherited_and_new_routes_in_same_file(self):
+        _write(self.tmpdir, "README", "root")
+        root = self._commit("root")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        self._commit("upstream route")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE + _HANDLE_BAR)
+        head = self._commit("feature route")
+        self._point_checker(root, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`POST /api/v4/bar` (`getBar`)"])
+        self.assertEqual(result.removals, [])
+
+    def test_rename_compares_source_snapshot(self):
+        path = "server/channels/api4/old.go"
+        dest = "server/channels/api4/new.go"
+        _write(self.tmpdir, path, _HANDLE)
+        base = self._commit("base")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _git(self.tmpdir, "mv", path, dest)
+        head = self._commit("rename")
+        self._point_checker(base, head)
+        patches = checker.split_patch_by_file(checker.get_full_patch())
+        self.assertIn("rename from " + path, patches[dest])
+        self.assertFalse(checker.check_api(patches).has_findings())
+
+    def test_rename_that_removes_a_route_reports_the_removal(self):
+        path = "server/channels/api4/old.go"
+        dest = "server/channels/api4/new.go"
+        both = _HANDLE.replace("}\n", '\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
+        _write(self.tmpdir, path, both)
+        base = self._commit("base")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _git(self.tmpdir, "mv", path, dest)
+        _write(self.tmpdir, dest, _HANDLE)
+        head = self._commit("rename and drop /baz")
+        self._point_checker(base, head, "master")
+        patches = checker.split_patch_by_file(checker.get_full_patch())
+        self.assertIn("rename from " + path, patches[dest])
+        result = checker.check_api(patches)
+        self.assertEqual(result.removals, ["`GET /api/v4/baz` (`getBaz`)"])
+        self.assertEqual(result.additions, [])
+
+    def test_base_advancement_does_not_appear_as_removal(self):
+        _write(self.tmpdir, "README", "root")
+        self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _write(self.tmpdir, "server/channels/api4/bar.go", _HANDLE_BAR)
+        head = self._commit("feature route")
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        base = self._commit("upstream route")
+        self._point_checker(base, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`POST /api/v4/bar` (`getBar`)"])
+        self.assertEqual(result.removals, [])
 
     def test_endpoints_master_already_has_are_not_reported_again(self):
         """A stacked PR carries the first PR's raw commits; master has them squashed."""
@@ -322,6 +380,125 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, None), ({"c"}, {"a"}))
         self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, {"c"}), (set(), set()))
         self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, {"a"}), ({"c"}, {"a"}))
+
+
+class ApiNoticeTest(unittest.TestCase):
+    def _check(self, path: str, patch_text: str, base_src: str, head_src: str):
+        files = {("base", path): base_src, ("head", path): head_src}
+        with patch.object(checker, "_comparison_base", return_value="base"), \
+                patch.object(checker, "HEAD_SHA", "head"), \
+                patch.object(checker, "file_at_base_tip", return_value=None), \
+                patch.object(checker, "file_at", side_effect=lambda ref, p: files.get((ref, p), "")):
+            return checker.check_api({path: patch_text})
+
+    def test_new_file_notices_for_unparsed_routes(self):
+        path = "server/channels/api4/new.go"
+        for source, expected_endpoints, expected_notice in [
+            (_HANDLE, True, True),
+            (_HANDLE.replace('"/api/v4/foo"', '`/api/v4/foo`'), False, True),
+            (_HANDLE.replace('r.APIHandler(getFoo)', 'customHandler'), False, True),
+            ('package api4', False, False),
+        ]:
+            with self.subTest(source=source):
+                result = self._check(path, "new file mode 100644", "", source)
+                self.assertEqual(bool(result.additions), expected_endpoints)
+                self.assertEqual(bool(result.changes), expected_notice)
+
+    def test_deleted_file_notice_still_requires_parsed_endpoint(self):
+        path = "server/channels/api4/old.go"
+        for source, expected in [(_HANDLE, True), (_HANDLE.replace('"/api/v4/foo"', '`/api/v4/foo`'), False)]:
+            with self.subTest(source=source):
+                result = self._check(path, "deleted file mode 100644", source, "")
+                self.assertEqual(bool(result.changes), expected)
+
+
+class NoteCleanupTest(unittest.TestCase):
+    def test_cleanup_preserves_human_notes_inside_and_outside_fence(self):
+        human = "Added ``Config.Human`` configuration setting."
+        body = human + "\n```release-note\n" + human + "\n```"
+        generated = checker.inject_note(body, "Added ``Config.Generated`` configuration setting.")
+        self.assertEqual(checker.inject_note(generated, ""), body)
+
+    def test_cleanup_restores_none(self):
+        body = "#### Release Note\n```release-note\nNONE\n```"
+        generated = checker.inject_note(body, "Added ``Config.Generated`` configuration setting.")
+        self.assertEqual(checker.inject_note(generated, ""), body)
+
+    def test_generated_notes_are_replaced_idempotently(self):
+        for body in ["```release-note\nNONE\n```", "```release-note\nhuman\n```"]:
+            with self.subTest(body=body):
+                first = checker.inject_note(body, "old generated note")
+                second = checker.inject_note(first, "new generated note")
+                self.assertNotIn("old generated note", second)
+                self.assertEqual(checker.inject_note(second, "new generated note"), second)
+
+    def test_description_without_generated_notes_is_left_alone(self):
+        # The PR template ends with an empty fence the author has yet to fill.
+        with open(os.path.join(os.path.dirname(__file__), "..", "PULL_REQUEST_TEMPLATE.md"), encoding="utf-8") as fh:
+            template = fh.read()
+        for body in [template, template.replace("\n", "\r\n"), "```release-note\n\n```", "description"]:
+            with self.subTest(body=body):
+                self.assertEqual(checker.inject_note(body, ""), body.replace("\r\n", "\n"))
+
+    def test_notes_go_in_the_fence_outside_html_comments(self):
+        with open(os.path.join(os.path.dirname(__file__), "..", "PULL_REQUEST_TEMPLATE.md"), encoding="utf-8") as fh:
+            template = fh.read()
+        note = "Added ``Config.Generated`` configuration setting."
+        generated = checker.inject_note(template, note)
+        fence = checker._release_note_fence(generated)
+        self.assertEqual(fence.group(2), "\n" + note + "\n")
+        self.assertGreater(fence.start(), template.rindex("-->"))
+        self.assertIn("Example:\n```release-note\nAdded new API endpoints", generated)
+        # Cleanup gives NONE back, not the blank fence the template had.
+        self.assertTrue(checker.inject_note(generated, "").rstrip().endswith("```release-note\nNONE\n```"))
+
+    def test_generated_lines_stay_out_of_the_fence_markup(self):
+        generated = checker.inject_note("```release-note\nNONE\n```", "Added ``Config.X`` configuration setting.")
+        fence = checker._release_note_fence(generated)
+        self.assertEqual(fence.group(2), "\nAdded ``Config.X`` configuration setting.\n")
+
+    def test_crlf_description_is_cleaned_without_duplicates(self):
+        first = checker.inject_note("```release-note\r\nNONE\r\n```", "note")
+        second = checker.inject_note(first.replace("\n", "\r\n"), "note")
+        self.assertEqual(second, first)
+        self.assertEqual(second.count("\nnote\n"), 1)
+
+    def test_blocks_from_earlier_versions_are_not_duplicated(self):
+        marked = ("```release-note\n<!-- config-change-checker:start -->\nAdded ``Config.Foo`` configuration setting."
+                  "\n<!-- config-change-checker:end -->\n```")
+        unmarked = "```release-note\nAdded ``Config.Foo`` configuration setting.\n```"
+        for body in [marked, unmarked]:
+            with self.subTest(body=body):
+                result = checker.inject_note(body, "Added ``Config.Foo`` configuration setting.")
+                self.assertEqual(result.count("Added ``Config.Foo``"), 1)
+                self.assertNotIn("config-change-checker:start", result)
+        self.assertEqual(checker.inject_note(marked, ""), "```release-note\nNONE\n```")
+
+    def test_description_without_fence_is_not_edited(self):
+        for body in ["## Release Notes\nfoo", "description", ""]:
+            with self.subTest(body=body):
+                self.assertEqual(checker.inject_note(body, "note"), body)
+
+    def test_repeated_runs_do_not_grow_the_description(self):
+        for body in ["```release-note\nNONE\n```", "## Release Notes\n```release-note\nfoo\n```"]:
+            with self.subTest(body=body):
+                generated = checker.inject_note(body, "note")
+                for _ in range(3):
+                    generated = checker.inject_note(checker.inject_note(generated, ""), "note")
+                self.assertEqual(checker.inject_note(body, "note"), generated)
+                self.assertEqual(checker.inject_note(generated, ""), body)
+
+    def test_import_without_workflow_inputs_or_git_repository(self):
+        script = os.path.abspath(checker.__file__)
+        env = {k: v for k, v in os.environ.items() if k not in (
+            "GITHUB_TOKEN", "PR_NUMBER", "BASE_SHA", "HEAD_SHA",
+        )}
+        with tempfile.TemporaryDirectory() as cwd:
+            subprocess.run([
+                __import__("sys").executable, "-c",
+                "import sys; sys.path.insert(0, sys.argv[1]); import check_config_changes_ci",
+                os.path.dirname(script),
+            ], cwd=cwd, env=env, check=True, capture_output=True)
 
 
 _API_ROUTES = (

@@ -1894,47 +1894,118 @@ func TestPropertyFieldGraphConversion(t *testing.T) {
 	})
 }
 
-// The per-target cap for post attributes is configured in server.go, and nothing in the
-// properties package covers that wiring: a limit registered against the wrong group, or
-// added to the hook after AddHook, would leave every test there passing. This exercises the
-// real group and the real constant through the app layer.
-func TestCreatePropertyField_PostAttributesPerTargetLimit(t *testing.T) {
+// The post cap in the access_control group is configured in server.go through the same
+// PerObjectType map as the user cap, so this goes through the app layer with the real group
+// and the real constants. Post fields are system-scoped, as the access_control validation hook
+// requires.
+func TestCreatePropertyField_AccessControlPostFieldLimit(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
 
-	makeField := func(targetID string) *model.PropertyField {
+	makeField := func(objectType string, targetType model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
 		return &model.PropertyField{
 			GroupID:    group.ID,
-			Name:       "attr-" + model.NewId(),
+			Name:       "attr_" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypePost,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			ObjectType: objectType,
+			TargetType: string(targetType),
 			TargetID:   targetID,
 		}
 	}
-
-	channelID := model.NewId()
-	for i := range model.PostAttributesMaxFieldsPerTarget {
-		_, appErr = th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
-		require.Nil(t, appErr, "field %d of %d should be allowed", i+1, model.PostAttributesMaxFieldsPerTarget)
+	makePostField := func() *model.PropertyField {
+		return makeField(model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelSystem, "")
 	}
 
-	t.Run("rejects the field past the cap", func(t *testing.T) {
-		_, appErr := th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.property_field.create.target_limit_reached.app_error", appErr.Id)
-		// Not 500: the caller asked for something the server can explain, so the sentinel
-		// must be mapped in mapPropertyServiceError.
-		assert.Equal(t, http.StatusUnprocessableEntity, appErr.StatusCode)
+	var postFields []*model.PropertyField
+	for i := range model.PostAttributesMaxFields {
+		created, createErr := th.App.CreatePropertyField(th.Context, makePostField(), false, "")
+		require.Nil(t, createErr, "post field %d of %d should be allowed", i+1, model.PostAttributesMaxFields)
+		postFields = append(postFields, created)
+	}
+
+	t.Run("rejects the post field past the cap", func(t *testing.T) {
+		_, createErr := th.App.CreatePropertyField(th.Context, makePostField(), false, "")
+		require.NotNil(t, createErr)
+		assert.Equal(t, "app.property_field.create.limit_reached.app_error", createErr.Id)
+		assert.Equal(t, http.StatusUnprocessableEntity, createErr.StatusCode)
 	})
 
-	t.Run("a full channel does not consume another channel's allowance", func(t *testing.T) {
-		_, appErr := th.App.CreatePropertyField(th.Context, makeField(model.NewId()), false, "")
-		require.Nil(t, appErr)
+	t.Run("user and channel fields can still be created at the post cap", func(t *testing.T) {
+		for i := range 20 {
+			_, createErr := th.App.CreatePropertyField(th.Context, makeField(model.PropertyFieldObjectTypeUser, model.PropertyFieldTargetLevelSystem, ""), false, "")
+			require.Nil(t, createErr, "user field %d of 20 should be allowed", i+1)
+		}
+
+		_, createErr := th.App.CreatePropertyField(th.Context, makeField(model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelSystem, ""), false, "")
+		require.Nil(t, createErr)
+
+		// The user cap is still its own: 20 user fields, the 21st is refused.
+		_, createErr = th.App.CreatePropertyField(th.Context, makeField(model.PropertyFieldObjectTypeUser, model.PropertyFieldTargetLevelSystem, ""), false, "")
+		require.NotNil(t, createErr)
+		assert.Equal(t, "app.property_field.create.limit_reached.app_error", createErr.Id)
 	})
+
+	t.Run("a deleted post field frees up allowance", func(t *testing.T) {
+		_, createErr := th.App.CreatePropertyField(th.Context, makePostField(), false, "")
+		require.NotNil(t, createErr)
+
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, postFields[0].ID, false, ""))
+
+		_, createErr = th.App.CreatePropertyField(th.Context, makePostField(), false, "")
+		require.Nil(t, createErr)
+	})
+}
+
+// Post fields count toward the group-wide ceiling that the unpaged access_control readers
+// rely on, so once the group holds AccessControlGroupFieldLimit fields, including post
+// fields, a create of any object type is refused.
+func TestCreatePropertyField_AccessControlGroupFieldLimitCountsPostFields(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	seed := func(objectType string) {
+		_, err := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "seed-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+	}
+
+	// Fill the group straight through the store, which skips the hooks. Post fields stay under
+	// their own cap, so a post create below is refused by the group limit and not the post cap:
+	// the post fields seeded here are what push the group over.
+	const seededPostFields = 10
+	for range seededPostFields {
+		seed(model.PropertyFieldObjectTypePost)
+	}
+	for range model.AccessControlGroupFieldLimit - seededPostFields {
+		seed(model.PropertyFieldObjectTypeChannel)
+	}
+
+	for _, objectType := range []string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost} {
+		t.Run("refuses a "+objectType+" field at the group limit", func(t *testing.T) {
+			_, createErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "attr_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				ObjectType: objectType,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+			}, false, "")
+			require.NotNil(t, createErr)
+			assert.Equal(t, "app.property_field.create.group_limit_reached.app_error", createErr.Id)
+		})
+	}
 }
 
 func TestGetPropertyFieldUnconvertedRankOptions(t *testing.T) {
@@ -2041,4 +2112,47 @@ func TestCheckRequiredAttributeTransitionStaleRequiredRead(t *testing.T) {
 	var conflict *model.AppError
 	require.ErrorAs(t, err, &conflict)
 	assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", conflict.Id)
+}
+
+// The per-target cap for post attributes is configured in server.go, and nothing in the
+// properties package covers that wiring: a limit registered against the wrong group, or
+// added to the hook after AddHook, would leave every test there passing. This exercises the
+// real group and the real constant through the app layer.
+func TestCreatePropertyField_PostAttributesPerTargetLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+
+	makeField := func(targetID string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "attr-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   targetID,
+		}
+	}
+
+	channelID := model.NewId()
+	for i := range model.PostAttributesMaxFieldsPerTarget {
+		_, appErr = th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
+		require.Nil(t, appErr, "field %d of %d should be allowed", i+1, model.PostAttributesMaxFieldsPerTarget)
+	}
+
+	t.Run("rejects the field past the cap", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.property_field.create.target_limit_reached.app_error", appErr.Id)
+		// Not 500: the caller asked for something the server can explain, so the sentinel
+		// must be mapped in mapPropertyServiceError.
+		assert.Equal(t, http.StatusUnprocessableEntity, appErr.StatusCode)
+	})
+
+	t.Run("a full channel does not consume another channel's allowance", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, makeField(model.NewId()), false, "")
+		require.Nil(t, appErr)
+	})
 }

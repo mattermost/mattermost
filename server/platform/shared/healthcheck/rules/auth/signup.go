@@ -15,19 +15,17 @@ func init() {
 // RestrictCreationToDomains doesn't suppress the finding: the server only checks the typed
 // address's domain, so without verification anyone can sign up under an allowed domain.
 var openSignupUnverified = healthcheck.Rule{
-	Code:     "OPEN_SIGNUP_UNVERIFIED",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.open_signup_unverified.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.open_signup_unverified.remediation"),
-		DocsURL:       "https://docs.mattermost.com/administration-guide/configure/authentication-configuration-settings.html#require-email-verification",
-		ConsolePath:   "/admin_console/authentication/email",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "EmailSettings.RequireEmailVerification",
-	Eval:       healthcheck.Single(evalOpenSignupUnverified),
+	Code:          "OPEN_SIGNUP_UNVERIFIED",
+	Area:          model.AreaAuth,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.open_signup_unverified.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.open_signup_unverified.remediation"),
+	DocsURL:       "https://docs.mattermost.com/administration-guide/configure/authentication-configuration-settings.html#require-email-verification",
+	ConsolePath:   "/admin_console/authentication/email",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "EmailSettings.RequireEmailVerification",
+	Eval:          healthcheck.Single(evalOpenSignupUnverified),
 }
 
 // openSignupSettings are the settings CreateUserFromSignup requires before it accepts an email signup.

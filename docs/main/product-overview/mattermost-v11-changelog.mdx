@@ -16,6 +16,36 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 ## Release v11.11 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-11-feature-release}
 
+- **11.11.5, released 2026-11-27**
+  - Mattermost v11.11.5 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Microsoft Calendar plugin version [v1.7.2](https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v1.7.2).
+  - Replaced the deprecated ``golang.org/x/crypto/openpgp`` library with ``github.com/ProtonMail/go-crypto`` for plugin signature verification and the Team Edition to Enterprise upgrade. Plugin signatures are now rejected if the signing key is expired or its self-signature lacks a signing key flag, or if the signature uses the MD5 or RIPEMD-160 hash algorithms.
+  - Plugin signatures and Team Edition to Enterprise upgrade signatures that use the SHA-1 hash algorithm, or that are made with a DSA key or an RSA key shorter than 2048 bits, are now rejected. Plugins signed with an admin-configured key using SHA-1 must be re-signed with SHA-256 or stronger; plugins signed with a DSA or short RSA key must be re-signed with a new key.
+  - The Site URL and SMTP connection settings can now only be changed by system admins.
+  - Stopped writing raw session tokens, personal access tokens, OAuth tokens, email verification, password recovery and team invitation tokens, and desktop tokens to the server log when authentication fails. Affected log lines and 401 error messages now show ``token=<redacted>`` instead of the presented value.
+  - Updated how the shared markdown parser handles reference-style links (``[text][label]``). Plugin and integration developers who call ``markdown.Parse``, ``ParseInlines`` or ``RenderBlockHTML`` from the ``server/public`` module need to update their code: ``markdown.Parse`` now returns ``*markdown.ReferenceDefinitions`` instead of ``[]*markdown.ReferenceDefinition``, and the other functions now accept that type.
+  - Updated how inline links and character references are parsed in posts. Link destinations nested more than 32 parentheses deep, and parenthesized link titles containing an unescaped "(", are no longer parsed as links.
+  - Updated how adjacent text nodes are combined when inspecting markdown in posts.
+  - Updated mention parsing of punctuated words in posts.
+  - Updated guest magic link invitation handling.
+  - Updated login session handling.
+  - Updated session lookup message parameters.
+  - Updated WebSocket request parameter handling, connection registration, reconnect handling and connection lifecycle management.
+  - Updated binary WebSocket frame handling so that frames are read within the connection's message size limit before being decoded.
+  - Updated how multipart form data is handled when uploading files.
+  - Updated how file image mini-previews are recorded when reading file information.
+  - Updated file storage connection handling.
+  - Updated office document text extraction.
+  - Updated channel bookmark list handling.
+  - Updated search popout team handling when a search link is opened.
+  - Updated burn-on-read post field handling.
+  - Updated the default page size used when reading a thread or a channel's pinned posts.
+  - Improved file name handling in mmctl support packet and compliance export downloads.
+  - Improved link metadata caching for posts that include permalink previews.
+  - Removed the link to the Mattermost Translation Server from **Settings > Display > Language** and **System Console > Localization**.
+  - Fixed an issue where rotated server log backups could be deleted if the logger was reconfigured while a backup was being compressed, such as during server startup.
+  - Fixed an issue where ``GET /api/v4/users/username/{username}`` returned a 404 error for remote users whose usernames contain a colon, which caused direct message links to remote users to fail on a fresh page load.
+  - Mattermost v11.11.5 contains no database or functional changes.
 - **11.11.4, released 2026-11-05**
   - Mattermost v11.11.4 contains Medium to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Jira plugin version [v4.8.3](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.8.3).

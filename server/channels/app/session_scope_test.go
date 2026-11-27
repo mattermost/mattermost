@@ -89,7 +89,11 @@ func (f *scopeFixture) scope() *model.SessionScope {
 
 func mintScoped(t *testing.T, th *TestHelper, userID string, scope *model.SessionScope) *model.Session {
 	t.Helper()
-	session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, userID, scope, model.GetMillis()+30*60*1000)
+	session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, &model.CreateScopedSessionRequest{
+		UserID:    userID,
+		Scope:     scope,
+		ExpiresAt: model.GetMillis() + 30*60*1000,
+	})
 	require.NoError(t, err)
 	return session
 }
@@ -493,6 +497,103 @@ func TestSessionScopeIsFinalThroughAccessEvaluation(t *testing.T) {
 
 	th.App.Srv().Channels().AccessControl = nil
 	assert.False(t, th.App.HasPermissionToChannelAction(rctx, f.bot.Id, f.bot.Roles, f.botDM.Id, download), "scope applies without ABAC")
+
+	t.Run("system-wide channel_read_access ABAC policy still governs scoped reads", func(t *testing.T) {
+		th2 := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelPermissionActions = true
+		}).InitBasic(t)
+		th2.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th2.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+		f2 := newScopeFixture(t, th2)
+		s2 := mintScoped(t, th2, f2.bot.Id, f2.scope())
+		rctx2 := th2.Context.WithSession(s2)
+
+		orig2 := th2.App.Srv().Channels().AccessControl
+		t.Cleanup(func() { th2.App.Srv().Channels().AccessControl = orig2 })
+
+		mockDenyRead := &einterfacesmocks.AccessControlServiceInterface{}
+		mockDenyRead.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(true, (*model.AppError)(nil))
+		mockDenyRead.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		th2.App.Srv().Channels().AccessControl = mockDenyRead
+
+		ok, _ := th2.App.SessionHasPermissionToReadChannel(rctx2, *s2, f2.triggering)
+		assert.False(t, ok, "system-wide channel_read_access denial blocks scoped reads")
+		ok, _ = th2.App.SessionHasPermissionToChannel(rctx2, *s2, f2.triggering.Id, model.PermissionReadChannel)
+		assert.False(t, ok)
+		mockDenyRead.AssertExpectations(t)
+
+		mockErrRead := &einterfacesmocks.AccessControlServiceInterface{}
+		mockErrRead.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(true, (*model.AppError)(nil))
+		mockErrRead.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{}, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		th2.App.Srv().Channels().AccessControl = mockErrRead
+
+		ok, _ = th2.App.SessionHasPermissionToReadChannel(rctx2, *s2, f2.triggering)
+		assert.False(t, ok, "ABAC evaluation error fails closed for scoped reads")
+		mockErrRead.AssertExpectations(t)
+
+		mockAllowRead := &einterfacesmocks.AccessControlServiceInterface{}
+		mockAllowRead.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(true, (*model.AppError)(nil))
+		mockAllowRead.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		th2.App.Srv().Channels().AccessControl = mockAllowRead
+
+		ok, _ = th2.App.SessionHasPermissionToReadChannel(rctx2, *s2, f2.triggering)
+		assert.True(t, ok, "in-scope channel allowed when system-wide policy allows")
+		ok, _ = th2.App.SessionHasPermissionToReadChannel(rctx2, *s2, f2.botDM)
+		assert.False(t, ok, "out-of-scope channel still denied even when system-wide policy allows")
+		mockAllowRead.AssertExpectations(t)
+	})
+
+	t.Run("listed channel on a policy-enforced or deleted team is denied", func(t *testing.T) {
+		th.App.Srv().Channels().AccessControl = nil
+		policyTeam := th.CreateTeam(t)
+		listedOnPolicyTeam := th.CreatePrivateChannel(t, policyTeam)
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:      policyTeam.Id,
+			Name:    "Scoped listed team policy",
+			Type:    model.AccessControlPolicyTypeTeam,
+			Active:  true,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: `user.attributes.program == "engineering"`,
+			}},
+		})
+		require.NoError(t, err)
+
+		deletedTeam := th.CreateTeam(t)
+		listedOnDeletedTeam := th.CreatePrivateChannel(t, deletedTeam)
+		require.Nil(t, th.App.SoftDeleteTeam(deletedTeam.Id))
+
+		s := mintScoped(t, th, f.bot.Id, &model.SessionScope{
+			Permissions: model.ScopeReadPermissions,
+			Resources: model.SessionScopeResources{
+				ChannelIDs: []string{listedOnPolicyTeam.Id, listedOnDeletedTeam.Id},
+			},
+		})
+		sctx := th.Context.WithSession(s)
+		ok, _ := th.App.SessionHasPermissionToChannel(sctx, *s, listedOnPolicyTeam.Id, model.PermissionReadChannel)
+		assert.False(t, ok, "listed channel on policy-enforced team must be denied")
+		ok, _ = th.App.SessionHasPermissionToReadChannel(sctx, *s, listedOnPolicyTeam)
+		assert.False(t, ok)
+		ok, _ = th.App.SessionHasPermissionToChannel(sctx, *s, listedOnDeletedTeam.Id, model.PermissionReadChannel)
+		assert.False(t, ok, "listed channel on deleted team must be denied")
+		assert.Empty(t, th.App.scopeListedChannels(sctx, func() *model.SessionScope { sc, _ := s.Scope(); return sc }()))
+	})
+
+	t.Run("tampered stored scope with write permission is denied", func(t *testing.T) {
+		th.App.Srv().Channels().AccessControl = nil
+		forged := forgeScoped(t, f.bot.Id, &model.SessionScope{
+			Permissions:       []string{model.PermissionCreatePost.Id},
+			Resources:         model.SessionScopeResources{ChannelIDs: []string{f.triggering.Id}},
+			CreatedByPluginID: scopeTestPluginID,
+		})
+		scoped, allowed := th.App.EvaluateSessionScope(th.Context, forged, model.PermissionCreatePost.Id, SessionScopeTarget{Channel: f.triggering})
+		assert.True(t, scoped)
+		assert.False(t, allowed)
+	})
 }
 
 func TestCreateScopedSession(t *testing.T) {
@@ -505,7 +606,11 @@ func TestCreateScopedSession(t *testing.T) {
 		scope := f.scope()
 		scope.Resources.PublicChannelTeamIDs = []string{f.closedTeam.Id}
 		scope.CreatedByPluginID = "forged"
-		session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, scope, expiresAt)
+		session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, &model.CreateScopedSessionRequest{
+			UserID:    f.bot.Id,
+			Scope:     scope,
+			ExpiresAt: expiresAt,
+		})
 		require.NoError(t, err)
 		assert.NotEmpty(t, session.Token)
 		assert.Equal(t, expiresAt, session.ExpiresAt)
@@ -559,17 +664,34 @@ func TestCreateScopedSession(t *testing.T) {
 		"invalid behalf of": {scopeTestPluginID, f.bot.Id, func() *model.SessionScope { s := f.scope(); s.OnBehalfOfUserID = "x"; return s }, expiresAt},
 	} {
 		t.Run(name, func(t *testing.T) {
-			session, err := th.App.CreateScopedSession(th.Context, tc.pluginID, tc.userID, tc.scope(), tc.expiresAt)
+			session, err := th.App.CreateScopedSession(th.Context, tc.pluginID, &model.CreateScopedSessionRequest{
+				UserID:    tc.userID,
+				Scope:     tc.scope(),
+				ExpiresAt: tc.expiresAt,
+			})
 			require.Error(t, err)
 			assert.Nil(t, session)
 		})
 	}
 
+	t.Run("nil request fails closed without creating a session", func(t *testing.T) {
+		session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, nil)
+		require.Error(t, err)
+		assert.Nil(t, session)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
 	t.Run("deactivated user", func(t *testing.T) {
 		user := th.CreateUser(t)
 		_, appErr := th.App.UpdateActive(th.Context, user, false)
 		require.Nil(t, appErr)
-		_, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, user.Id, f.scope(), expiresAt)
+		_, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, &model.CreateScopedSessionRequest{
+			UserID:    user.Id,
+			Scope:     f.scope(),
+			ExpiresAt: expiresAt,
+		})
 		require.Error(t, err)
 	})
 
@@ -594,9 +716,17 @@ func TestRevokeScopedSessionsForPlugin(t *testing.T) {
 	f := newScopeFixture(t, th)
 	expiresAt := model.GetMillis() + 30*60*1000
 
-	mine, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, f.scope(), expiresAt)
+	mine, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, &model.CreateScopedSessionRequest{
+		UserID:    f.bot.Id,
+		Scope:     f.scope(),
+		ExpiresAt: expiresAt,
+	})
 	require.NoError(t, err)
-	theirs, err := th.App.CreateScopedSession(th.Context, "com.example.other", f.bot.Id, f.scope(), expiresAt)
+	theirs, err := th.App.CreateScopedSession(th.Context, "com.example.other", &model.CreateScopedSessionRequest{
+		UserID:    f.bot.Id,
+		Scope:     f.scope(),
+		ExpiresAt: expiresAt,
+	})
 	require.NoError(t, err)
 	unscoped, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: f.bot.Id})
 	require.Nil(t, appErr)
@@ -647,6 +777,14 @@ func TestScopedSessionsRevokedWhenPluginsAreTurnedOff(t *testing.T) {
 		_, appErr := th.App.GetSession(session.Token)
 		return appErr != nil
 	}, 10*time.Second, 100*time.Millisecond)
+
+	t.Run("plugins disabled on startup with nil pluginsEnvironment still revokes persisted scoped sessions", func(t *testing.T) {
+		persisted := mintScoped(t, th, f.bot.Id, f.scope())
+		th.App.ch.SetPluginsEnvironment(nil)
+		th.App.ch.syncPluginsActiveState()
+		_, appErr := th.App.GetSession(persisted.Token)
+		require.NotNil(t, appErr, "persisted scoped session must be revoked when plugins start disabled")
+	})
 }
 
 func TestScopedSessionIsUnauthenticatedOnPluginRoutes(t *testing.T) {

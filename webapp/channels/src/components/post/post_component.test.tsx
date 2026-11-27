@@ -193,8 +193,8 @@ describe('PostComponent', () => {
                         byFieldId: {},
                     },
                     groups: {
-                        byId: {[GROUP_ID]: {id: GROUP_ID, name: 'post_attributes'}},
-                        byName: {post_attributes: {id: GROUP_ID, name: 'post_attributes'}},
+                        byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}},
+                        byName: {access_control: {id: GROUP_ID, name: 'access_control'}},
                     },
                 },
             },
@@ -218,6 +218,21 @@ describe('PostComponent', () => {
 
             expect(screen.getByTestId('post-attributes-chips')).toBeInTheDocument();
             expect(screen.getByText('SECRET')).toBeInTheDocument();
+        });
+
+        // A board's card shows its attributes inside the plugin's own preview.
+        test('should not show chips on a board card', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    isBoardCard={true}
+                    shouldDisplayBurnOnReadConcealed={false}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
 
         test('should not show chips on a concealed burn-on-read post', () => {

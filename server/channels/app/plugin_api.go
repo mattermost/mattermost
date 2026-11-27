@@ -367,8 +367,8 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 	return api.app.CreateSession(api.ctx, session)
 }
 
-func (api *PluginAPI) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
-	session, err := api.app.CreateScopedSession(api.ctx, api.id, userID, scope, expiresAt)
+func (api *PluginAPI) CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError) {
+	session, err := api.app.CreateScopedSession(api.ctx, api.id, req)
 	if err != nil {
 		return nil, model.AsAppError(err)
 	}
@@ -381,7 +381,7 @@ func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *mo
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if session.IsScoped() && expiresAt > session.CreateAt+model.SessionScopeMaxLifetimeMillis {
+	if session.IsScoped() && (expiresAt <= 0 || expiresAt > session.CreateAt+model.SessionScopeMaxLifetimeMillis) {
 		return model.NewAppError("extendSessionExpiry", "app.session.create_scoped.expires_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2312,4 +2312,18 @@ func (api *PluginAPI) DeletePropertyValuesForFieldWithOptions(groupID, fieldID s
 		return appErr
 	}
 	return nil
+}
+
+// serverMutexAPI lets cluster.Mutex keep its lease in the plugin key value store, under the
+// core server's reserved plugin ID.
+type serverMutexAPI struct {
+	a *App
+}
+
+func (m serverMutexAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	return m.a.SetPluginKeyWithOptions(model.CoreServerPluginID, key, value, options)
+}
+
+func (m serverMutexAPI) LogError(msg string, keyValuePairs ...any) {
+	m.a.Log().Sugar().Errorw(msg, keyValuePairs...)
 }

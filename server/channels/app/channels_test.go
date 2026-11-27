@@ -12,73 +12,99 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
 )
 
-func TestLeaderTask(t *testing.T) {
-	mainHelper.Parallel(t)
+type fakeMutexAPI struct{}
 
-	var lt leaderTask
-	leader := true
-	isLeader := func() bool { return leader }
-	create := func() *model.ScheduledTask {
-		return model.CreateRecurringTask("Test", func() {}, time.Hour)
-	}
-
-	lt.update(isLeader, create)
-	first := lt.task
-	require.NotNil(t, first)
-
-	lt.update(isLeader, create)
-	assert.Same(t, first, lt.task)
-
-	leader = false
-	lt.update(isLeader, create)
-	require.Nil(t, lt.task)
-	require.NotPanics(t, func() { lt.update(isLeader, create) })
-
-	leader = true
-	lt.update(isLeader, create)
-	require.NotNil(t, lt.task)
-	assert.NotSame(t, first, lt.task)
-
-	lt.stop()
-	assert.Nil(t, lt.task)
-	require.NotPanics(t, lt.stop)
-
-	lt.update(isLeader, create)
-	assert.Nil(t, lt.task)
+func (fakeMutexAPI) KVSetWithOptions(string, []byte, model.PluginKVSetOptions) (bool, *model.AppError) {
+	return true, nil
 }
 
-func TestLeaderTaskRunOnLeader(t *testing.T) {
-	create := func() *model.ScheduledTask {
-		return model.CreateRecurringTask("Test", func() {}, time.Hour)
+func (fakeMutexAPI) LogError(string, ...any) {}
+
+func TestRunLocked(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	key := "test_" + model.NewId()
+	mutex, err := cluster.NewMutex(serverMutexAPI{a: th.App}, key)
+	require.NoError(t, err)
+
+	var calls int
+	fn := func() { calls++ }
+
+	t.Run("runs when the lock is free", func(t *testing.T) {
+		assert.True(t, runLocked(fakeMutexAPI{}, key, mutex, fn))
+		assert.Equal(t, 1, calls)
+	})
+
+	t.Run("skips while another holder has the lock", func(t *testing.T) {
+		other, err := cluster.NewMutex(serverMutexAPI{a: th.App}, key)
+		require.NoError(t, err)
+		other.Lock()
+
+		assert.False(t, runLocked(fakeMutexAPI{}, key, mutex, fn))
+		assert.Equal(t, 1, calls)
+
+		other.Unlock()
+		assert.True(t, runLocked(fakeMutexAPI{}, key, mutex, fn))
+		assert.Equal(t, 2, calls)
+	})
+}
+
+func TestClusterTask(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	var calls atomic.Int32
+	fn := func() { calls.Add(1) }
+	schedule := func(run func()) *model.ScheduledTask {
+		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
 
-	t.Run("the leader starts the task", func(t *testing.T) {
-		th := Setup(t)
-		require.True(t, th.App.IsLeader())
+	var leader atomic.Bool
+	var skipped atomic.Int32
+	leader.Store(true)
+	isLeader := func() bool {
+		if leader.Load() {
+			return true
+		}
+		skipped.Add(1)
+		return false
+	}
 
-		var lt leaderTask
-		lt.runOnLeader(th.App, "Test", create)
-		t.Cleanup(lt.stop)
+	var ct clusterTask
+	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
+	first := ct.task
+	require.NotNil(t, first)
 
-		assert.NotNil(t, lt.task)
-	})
+	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
+	assert.Same(t, first, ct.task)
+	require.Eventually(t, func() bool { return calls.Load() >= 2 }, 5*time.Second, 10*time.Millisecond)
 
-	t.Run("a follower does not start the task", func(t *testing.T) {
-		th := SetupWithClusterMock(t, &testlib.FakeClusterInterface{})
-		th.App.Srv().SetLicense(model.NewTestLicense("cluster"))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ClusterSettings.Enable = true
-		})
-		require.False(t, th.App.IsLeader())
+	// Ticks run one at a time, so once one has seen that this node is not the leader, any
+	// earlier tick that saw it was has finished running.
+	leader.Store(false)
+	require.Eventually(t, func() bool { return skipped.Load() >= 1 }, 5*time.Second, 10*time.Millisecond)
+	notLeaderAt := calls.Load()
+	require.Eventually(t, func() bool { return skipped.Load() >= 5 }, 5*time.Second, 10*time.Millisecond)
+	assert.Equal(t, notLeaderAt, calls.Load(), "a node that is not the leader should skip runs")
 
-		var lt leaderTask
-		lt.runOnLeader(th.App, "Test", create)
+	leader.Store(true)
+	require.Eventually(t, func() bool { return calls.Load() > notLeaderAt }, 5*time.Second, 10*time.Millisecond)
 
-		assert.Nil(t, lt.task)
-	})
+	ct.stop()
+	assert.Nil(t, ct.task)
+	require.NotPanics(t, ct.stop)
+
+	stoppedAt := calls.Load()
+	time.Sleep(50 * time.Millisecond)
+	assert.Equal(t, stoppedAt, calls.Load())
+
+	require.NoError(t, ct.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
+	assert.Nil(t, ct.task)
+
+	assert.Error(t, ct.start(fakeMutexAPI{}, isLeader, "", fn, schedule))
 }
 
 func TestChannelsStopCancelsTasks(t *testing.T) {
@@ -87,14 +113,14 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	ch := &Channels{interruptQuitChan: make(chan struct{})}
 
 	var calls atomic.Int32
-	newTask := func() *model.ScheduledTask {
-		return model.CreateRecurringTask("Test", func() { calls.Add(1) }, 10*time.Millisecond)
+	fn := func() { calls.Add(1) }
+	schedule := func(run func()) *model.ScheduledTask {
+		return model.CreateRecurringTask("Test", run, 10*time.Millisecond)
 	}
 	isLeader := func() bool { return true }
-	ch.dndTask.update(isLeader, newTask)
-	ch.postReminderTask.update(isLeader, newTask)
-	ch.scheduledPostTask.update(isLeader, newTask)
-	require.Eventually(t, func() bool { return calls.Load() >= 3 }, 5*time.Second, 10*time.Millisecond)
+	for _, task := range []*clusterTask{&ch.dndTask, &ch.postReminderTask, &ch.scheduledPostTask} {
+		require.NoError(t, task.start(fakeMutexAPI{}, isLeader, "test", fn, schedule))
+	}
 
 	require.NoError(t, ch.Stop())
 	assert.Nil(t, ch.dndTask.task)

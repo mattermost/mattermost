@@ -14,7 +14,7 @@ import {usePostAttributeFields} from 'components/common/hooks/usePostAttributes'
 
 import type {GlobalState} from 'types/store';
 
-import {canEditPostAttributeValue, isChannelPropertyAdmin} from './permissions';
+import {canEditPostAttributeValue, getCurrentUserSystemRoles, isChannelPropertyAdmin} from './permissions';
 import type {ComposerPropertyValue} from './use_staged_post_attributes';
 import {hasValueControl, splitComposerAttributes} from './utils';
 import type {PostAttribute} from './utils';
@@ -71,6 +71,7 @@ export function useComposerAttributes(
 ): ComposerAttributes {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const currentUserId = useSelector(getCurrentUserId);
+    const currentUserRoles = useSelector(getCurrentUserSystemRoles);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const isChannelAdmin = useSelector((state: GlobalState) => (channel ? isChannelPropertyAdmin(state, channel) : false));
 
@@ -79,8 +80,8 @@ export function useComposerAttributes(
     const authorStub = useMemo(() => ({user_id: currentUserId, channel_id: channelId} as Post), [currentUserId, channelId]);
 
     const canEdit = useCallback(
-        (field: PropertyField) => canEditPostAttributeValue(field, authorStub, currentUserId, isSystemAdmin, isChannelAdmin),
-        [authorStub, currentUserId, isSystemAdmin, isChannelAdmin],
+        (field: PropertyField) => canEditPostAttributeValue(field, authorStub, currentUserId, currentUserRoles, isSystemAdmin, isChannelAdmin),
+        [authorStub, currentUserId, currentUserRoles, isSystemAdmin, isChannelAdmin],
     );
 
     // Only a field this user may write and the composer has a control for gets

@@ -25,60 +25,52 @@ func init() {
 }
 
 var nodeContainerMemoryPressure = healthcheck.Rule{
-	Code:     "NODE_CONTAINER_MEMORY_PRESSURE",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_container_memory_pressure.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_container_memory_pressure.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Server.ContainerMemory",
-	EvalNode:   healthcheck.SingleNode(evalNodeContainerMemoryPressure),
+	Code:          "NODE_CONTAINER_MEMORY_PRESSURE",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_container_memory_pressure.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_container_memory_pressure.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Server.ContainerMemory",
+	EvalNode:      healthcheck.SingleNode(evalNodeContainerMemoryPressure),
 }
 
 var nodeContainerOOMKills = healthcheck.Rule{
-	Code:     "NODE_CONTAINER_OOM_KILLS",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_container_oom_kills.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_container_oom_kills.remediation"),
-		ConsolePath:   "/admin_console/plugins/plugin_management",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Server.ContainerOOMKills",
-	EvalNode:   healthcheck.SingleNode(evalNodeContainerOOMKills),
+	Code:          "NODE_CONTAINER_OOM_KILLS",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_container_oom_kills.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_container_oom_kills.remediation"),
+	ConsolePath:   "/admin_console/plugins/plugin_management",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Server.ContainerOOMKills",
+	EvalNode:      healthcheck.SingleNode(evalNodeContainerOOMKills),
 }
 
 var nodeHostMemoryLow = healthcheck.Rule{
-	Code:     "NODE_HOST_MEMORY_LOW",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_host_memory_low.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_host_memory_low.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Server.HostMemory",
-	EvalNode:   healthcheck.SingleNode(evalNodeHostMemoryLow),
+	Code:          "NODE_HOST_MEMORY_LOW",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_host_memory_low.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_host_memory_low.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Server.HostMemory",
+	EvalNode:      healthcheck.SingleNode(evalNodeHostMemoryLow),
 }
 
 var nodeGoMemoryLimitAboveContainer = healthcheck.Rule{
-	Code:     "NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_go_memory_limit_above_container.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_go_memory_limit_above_container.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "Server.GoMemoryLimit",
-	EvalNode:   healthcheck.SingleNode(evalNodeGoMemoryLimitAboveContainer),
+	Code:          "NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_go_memory_limit_above_container.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_go_memory_limit_above_container.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "Server.GoMemoryLimit",
+	EvalNode:      healthcheck.SingleNode(evalNodeGoMemoryLimitAboveContainer),
 }
 
 func nodeMemoryDiagnostics(n *healthcheck.NodeSnapshot) (*model.SupportPacketDiagnostics, bool) {

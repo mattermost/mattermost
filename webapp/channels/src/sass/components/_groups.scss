@@ -96,7 +96,7 @@
         padding: 0.5em 0;
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
         font-size: 1.1em;
-        font-weight: bold;
+        font-weight: 600;
 
         .group-name {
             margin-left: 16px;
@@ -490,7 +490,7 @@
 
     .group-teams-and-channels--header {
         font-size: 1.1em;
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .group-teams-and-channels--body {
@@ -583,7 +583,7 @@
                 justify-content: space-between;
                 border-bottom: 1px solid variables.$dark-gray;
                 font-size: 1.1em;
-                font-weight: bold;
+                font-weight: 600;
             }
         }
     }

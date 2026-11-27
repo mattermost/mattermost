@@ -54,7 +54,7 @@ const CompletedWrapper = styled.div`
         border-radius: 4px;
         color: var(--sidebar-text);
         border: none;
-        font-weight: bold;
+        font-weight: 600;
         margin-top: 15px;
         min-height: 40px;
         &:hover {

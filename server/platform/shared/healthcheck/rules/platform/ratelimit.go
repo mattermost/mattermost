@@ -21,33 +21,29 @@ const (
 )
 
 var rateLimitOffLarge = healthcheck.Rule{
-	Code:     "RATELIMIT_OFF_LARGE",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ratelimit_off_large.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ratelimit_off_large.remediation"),
-		ConsolePath:   rateLimitConsolePath,
-	},
-	Surface:    healthcheck.SurfaceInternal,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "RateLimitSettings.Enable",
-	Eval:       healthcheck.Single(evalRateLimitOffLarge),
+	Code:          "RATELIMIT_OFF_LARGE",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.ratelimit_off_large.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.ratelimit_off_large.remediation"),
+	ConsolePath:   rateLimitConsolePath,
+	Surface:       healthcheck.SurfaceInternal,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "RateLimitSettings.Enable",
+	Eval:          healthcheck.Single(evalRateLimitOffLarge),
 }
 
 var rateLimitStoreSmall = healthcheck.Rule{
-	Code:     "RATELIMIT_STORE_SMALL",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ratelimit_store_small.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ratelimit_store_small.remediation"),
-		ConsolePath:   rateLimitConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "RateLimitSettings.MemoryStoreSize",
-	Eval:       healthcheck.Gate(rateLimitEnabled, healthcheck.ReasonConfigUnavailable, evalRateLimitStoreSmall),
+	Code:          "RATELIMIT_STORE_SMALL",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.ratelimit_store_small.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.ratelimit_store_small.remediation"),
+	ConsolePath:   rateLimitConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "RateLimitSettings.MemoryStoreSize",
+	Eval:          healthcheck.Gate(rateLimitEnabled, healthcheck.ReasonConfigUnavailable, evalRateLimitStoreSmall),
 }
 
 func rateLimitEnabled(s *healthcheck.Snapshot) (bool, bool) {

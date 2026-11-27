@@ -142,6 +142,7 @@ describe('components/BrowseChannels', () => {
         shouldHideJoinedChannels: false,
         shouldHideArchivedChannels: true,
         accessControlEnabled: false,
+        boardChannelIds: new Set<string>(),
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({
                 channel_id: 'channel-id-3',
@@ -1116,6 +1117,106 @@ describe('components/BrowseChannels', () => {
             await user.click(screen.getByLabelText('Channel type filter'));
             expect(screen.queryByText('Discoverable private channels')).not.toBeInTheDocument();
             expect(screen.queryByText('My pending requests')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('as Browse Boards', () => {
+        const boardChannel = TestHelper.getChannelMock({id: 'board_id_1', team_id: 'team_1', display_name: 'Roadmap', name: 'roadmap'});
+        const permissionState = {
+            entities: {
+                users: {currentUserId: 'user-1', profiles: {'user-1': TestHelper.getUserMock({id: 'user-1', roles: 'system_user'})}},
+                teams: {
+                    currentTeamId: 'team_1',
+                    myMembers: {team_1: TestHelper.getTeamMembershipMock({team_id: 'team_1', user_id: 'user-1', roles: 'team_user'})},
+                },
+                roles: {
+                    roles: {
+                        system_user: {name: 'system_user', permissions: []},
+                        team_user: {name: 'team_user', permissions: ['create_public_channel']},
+                    },
+                },
+            },
+        };
+        const boardProps = (createAction = jest.fn()): Props => ({
+            ...baseProps,
+            channels: [defaultChannel, boardChannel],
+            kind: 'board',
+            boardChannelIds: new Set([boardChannel.id, privateChannel.id]),
+            boardCreateItem: {id: 'create-board', pluginId: 'boards', text: 'Create new board', action: createAction, icon: null, placement: 'afterCreateChannel'},
+        });
+
+        test('lists only boards, in board words, and creates one through the board plugin\'s item', async () => {
+            const createAction = jest.fn();
+            const closeModal = jest.fn();
+            const props = boardProps(createAction);
+            renderWithContext(
+                <BrowseChannels
+                    {...props}
+                    actions={{...props.actions, closeModal}}
+                />,
+                permissionState,
+            );
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            expect(screen.getByText('Browse Boards')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Search boards')).toBeInTheDocument();
+            expect(screen.getByText('Board Type: All')).toBeInTheDocument();
+            expect(screen.getByText('Roadmap')).toBeInTheDocument();
+            expect(screen.getByText('channel-3')).toBeInTheDocument();
+            expect(screen.queryByText('Default Channel')).not.toBeInTheDocument();
+            expect(screen.queryByText('Browse Channels')).not.toBeInTheDocument();
+
+            await user.click(screen.getByRole('button', {name: 'Create New Board'}));
+
+            expect(createAction).toHaveBeenCalledWith('team_1');
+            expect(closeModal).toHaveBeenCalled();
+            expect(props.actions.openModal).not.toHaveBeenCalled();
+        });
+
+        test('narrows search results to boards', async () => {
+            const searchAllChannels = jest.fn().mockResolvedValue({data: [
+                {...boardChannel},
+                {...defaultChannel, display_name: 'Default Channel'},
+            ]});
+            const props = boardProps();
+            renderWithContext(
+                <BrowseChannels
+                    {...props}
+                    actions={{...props.actions, searchAllChannels}}
+                />,
+                permissionState,
+            );
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            await user.type(screen.getByPlaceholderText('Search boards'), 'r');
+            await act(async () => {
+                jest.runAllTimers();
+                await Promise.resolve();
+            });
+
+            await waitFor(() => expect(searchAllChannels).toHaveBeenCalled());
+            expect(screen.getByText('Roadmap')).toBeInTheDocument();
+            expect(screen.queryByText('Default Channel')).not.toBeInTheDocument();
+        });
+
+        test('has no create button without a board plugin item to create with', async () => {
+            renderWithContext(
+                <BrowseChannels
+                    {...boardProps()}
+                    boardCreateItem={undefined}
+                />,
+                permissionState,
+            );
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            expect(screen.queryByRole('button', {name: 'Create New Board'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Create New Channel'})).not.toBeInTheDocument();
         });
     });
 });

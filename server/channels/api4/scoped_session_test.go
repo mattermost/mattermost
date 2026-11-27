@@ -107,14 +107,18 @@ func setupScopedAPIFixture(t *testing.T, th *TestHelper) *scopedAPIFixture {
 	f.dmPost, _, err = th.Client.CreatePost(context.Background(), &model.Post{ChannelId: f.botDM.Id, Message: "dmsecret" + model.NewId()})
 	require.NoError(t, err)
 
-	f.session, err = th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
-		Permissions: model.ScopeReadPermissions,
-		Resources: model.SessionScopeResources{
-			ChannelIDs:             []string{f.triggering.Id},
-			OpenTeamPublicChannels: true,
+	f.session, err = th.App.CreateScopedSession(th.Context, "com.example.scoped", &model.CreateScopedSessionRequest{
+		UserID: f.bot.Id,
+		Scope: &model.SessionScope{
+			Permissions: model.ScopeReadPermissions,
+			Resources: model.SessionScopeResources{
+				ChannelIDs:             []string{f.triggering.Id},
+				OpenTeamPublicChannels: true,
+			},
+			OnBehalfOfUserID: th.BasicUser.Id,
 		},
-		OnBehalfOfUserID: th.BasicUser.Id,
-	}, model.GetMillis()+30*60*1000)
+		ExpiresAt: model.GetMillis() + 30*60*1000,
+	})
 	require.NoError(t, err)
 
 	f.client = th.CreateClient()
@@ -424,14 +428,11 @@ func TestScopedSessionLookupsByName(t *testing.T) {
 		require.NotEmpty(t, users)
 		assert.Equal(t, th.BasicUser.Id, users[0].Id)
 
-		users, _, err = f.client.SearchUsers(ctx, &model.UserSearch{Term: th.BasicUser.Username, InChannelId: f.triggering.Id})
-		require.NoError(t, err)
-		assert.NotEmpty(t, users, "members of an in-scope channel")
-		users, _, err = f.client.SearchUsers(ctx, &model.UserSearch{Term: th.BasicUser.Username, TeamId: f.closedTeam.Id, NotInChannelId: f.triggering.Id})
-		require.NoError(t, err)
-		assert.Empty(t, users)
-
 		for _, search := range []*model.UserSearch{
+			{Term: th.BasicUser.Username, InChannelId: f.triggering.Id},
+			{Term: th.BasicUser.Username, TeamId: f.closedTeam.Id, NotInChannelId: f.triggering.Id},
+			{Term: th.BasicUser.Username, TeamId: f.closedTeam.Id},
+			{Term: th.BasicUser.Username, NotInTeamId: f.closedTeam.Id},
 			{Term: th.BasicUser.Username, InChannelId: f.botDM.Id},
 			{Term: th.BasicUser.Username, InChannelId: f.memberPriv.Id},
 			{Term: th.BasicUser.Username, InGroupId: model.NewId()},
@@ -501,14 +502,18 @@ func TestScopedSessionPublicChannelsOnListedTeam(t *testing.T) {
 	_, resp, err := f.client.GetChannel(ctx, publicClosed.Id)
 	requireScopeError(t, resp, err)
 
-	session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
-		Permissions: model.ScopeReadPermissions,
-		Resources: model.SessionScopeResources{
-			ChannelIDs:             []string{f.triggering.Id},
-			OpenTeamPublicChannels: true,
-			PublicChannelTeamIDs:   []string{f.closedTeam.Id},
+	session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", &model.CreateScopedSessionRequest{
+		UserID: f.bot.Id,
+		Scope: &model.SessionScope{
+			Permissions: model.ScopeReadPermissions,
+			Resources: model.SessionScopeResources{
+				ChannelIDs:             []string{f.triggering.Id},
+				OpenTeamPublicChannels: true,
+				PublicChannelTeamIDs:   []string{f.closedTeam.Id},
+			},
 		},
-	}, model.GetMillis()+30*60*1000)
+		ExpiresAt: model.GetMillis() + 30*60*1000,
+	})
 	require.NoError(t, err)
 	client := th.CreateClient()
 	client.SetToken(session.Token)
@@ -613,6 +618,24 @@ func TestScopedSessionUserVisibility(t *testing.T) {
 	th.AddUserToChannel(t, listedMember, f.triggering)
 	_, _, err = f.client.GetUser(ctx, listedMember.Id, "")
 	require.NoError(t, err, "members of a listed channel are visible")
+
+	t.Run("user search rejects channel and team membership filters for scoped sessions", func(t *testing.T) {
+		users, _, err := f.client.SearchUsers(ctx, &model.UserSearch{Term: listedMember.Username})
+		require.NoError(t, err)
+		assert.NotEmpty(t, users, "plain term search remains allowed")
+
+		for name, search := range map[string]*model.UserSearch{
+			"in_channel_id":     {Term: listedMember.Username, InChannelId: f.triggering.Id},
+			"not_in_channel_id": {Term: listedMember.Username, TeamId: f.closedTeam.Id, NotInChannelId: f.triggering.Id},
+			"team_id":           {Term: listedMember.Username, TeamId: f.closedTeam.Id},
+			"not_in_team_id":    {Term: listedMember.Username, NotInTeamId: f.closedTeam.Id},
+		} {
+			t.Run(name, func(t *testing.T) {
+				_, resp, err := f.client.SearchUsers(ctx, search)
+				requireScopeError(t, resp, err)
+			})
+		}
+	})
 }
 
 func TestScopedSessionOpenTeamGrantNeedsJoinPublicTeams(t *testing.T) {

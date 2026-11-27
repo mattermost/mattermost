@@ -4081,8 +4081,8 @@ func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	th.LinkUserToTeam(t, user2, th.BasicTeam)
 	th.AddUserToChannel(t, user2, th.BasicChannel)
 
-	_, appErr = th.App.RevealPost(th.Context, post, user2.Id, "")
-	require.Nil(t, appErr)
+	_, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+	require.NoError(t, err)
 
 	// Get the read receipt to get the expireAt
 	receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
