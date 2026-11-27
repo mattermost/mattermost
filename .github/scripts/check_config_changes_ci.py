@@ -305,7 +305,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
     r'([\w.]*)\.Handle\("([^"]*)"'   # receiver and path
-    r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
+    r',\s*[^)]*\((\w+)(?:,\s*[\w.]+)*\)\)'  # wrapper(...handlerFunc, option...))
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
 
@@ -475,6 +475,8 @@ def check_api(patches: dict[str, str]) -> CheckResult:
         added_eps   |= added
         removed_eps |= removed
  
+        if fname.endswith("_test.go"):
+            continue
         # Only report a new/deleted file when it actually registers endpoints;
         # helper files with no Handle() calls are not release-note worthy.
         # Anchor the check to avoid false positives from unrelated source text.

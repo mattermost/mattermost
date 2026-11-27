@@ -18,6 +18,9 @@ const (
 	AuditKeyIPAddress = "ip_address"
 	AuditKeyClusterID = "cluster_id"
 
+	AuditKeyOnBehalfOfUserID  = "on_behalf_of_user_id"
+	AuditKeyCreatedByPluginID = "created_by_plugin_id"
+
 	AuditStatusSuccess = "success"
 	AuditStatusAttempt = "attempt"
 	AuditStatusFail    = "fail"

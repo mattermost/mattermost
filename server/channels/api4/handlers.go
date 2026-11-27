@@ -20,6 +20,11 @@ type APIHandlerOption string
 
 const (
 	handlerParamFileAPI = APIHandlerOption("fileAPI")
+
+	// handlerParamScopedSession marks a route as reachable by scoped sessions.
+	// Only flag read routes whose permission checks go through the session
+	// scope; see TestScopedSessionRouteAllowlist.
+	handlerParamScopedSession = APIHandlerOption("scopedSession")
 )
 
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
@@ -282,6 +287,8 @@ func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {
 		switch option {
 		case handlerParamFileAPI:
 			handler.FileAPI = true
+		case handlerParamScopedSession:
+			handler.AllowScopedSession = true
 		}
 	}
 }

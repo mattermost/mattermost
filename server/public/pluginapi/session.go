@@ -28,6 +28,17 @@ func (s *SessionService) Create(session *model.Session) (*model.Session, error) 
 	return session, normalizeAppErr(appErr)
 }
 
+// CreateScoped creates a short-lived scoped session described by req.
+// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+// See plugin.API.CreateScopedSession.
+//
+// Minimum server version: 12.2
+func (s *SessionService) CreateScoped(req *model.CreateScopedSessionRequest) (*model.Session, error) {
+	session, appErr := s.api.CreateScopedSession(req)
+
+	return session, normalizeAppErr(appErr)
+}
+
 // ExtendSessionExpiry extends the duration of an existing session.
 //
 // Minimum server version: 6.2

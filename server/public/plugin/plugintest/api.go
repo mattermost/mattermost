@@ -600,6 +600,38 @@ func (_m *API) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyV
 	return r0, r1
 }
 
+// CreateScopedSession provides a mock function with given fields: req
+func (_m *API) CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError) {
+	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateScopedSession")
+	}
+
+	var r0 *model.Session
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.CreateScopedSessionRequest) (*model.Session, *model.AppError)); ok {
+		return rf(req)
+	}
+	if rf, ok := ret.Get(0).(func(*model.CreateScopedSessionRequest) *model.Session); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.CreateScopedSessionRequest) *model.AppError); ok {
+		r1 = rf(req)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateSession provides a mock function with given fields: session
 func (_m *API) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	ret := _m.Called(session)

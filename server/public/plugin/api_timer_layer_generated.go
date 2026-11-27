@@ -1924,6 +1924,13 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateScopedSession(req)
+	api.recordTime(startTime, "CreateScopedSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RegisterEntityType(t)

@@ -16,6 +16,9 @@ import (
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+	if scoped, allowed := a.sessionScopeDecision(&session, permission.Id, SessionScopeTarget{}); scoped {
+		return allowed
+	}
 	if session.IsUnrestricted() {
 		return true
 	}
@@ -25,6 +28,9 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 // SessionHasPermissionToAndNotRestrictedAdmin is a variant of [App.SessionHasPermissionTo] that
 // denies access to restricted system admins. Note that a local session is always unrestricted.
 func (a *App) SessionHasPermissionToAndNotRestrictedAdmin(session model.Session, permission *model.Permission) bool {
+	if scoped, allowed := a.sessionScopeDecision(&session, permission.Id, SessionScopeTarget{}); scoped {
+		return allowed
+	}
 	if session.IsUnrestricted() {
 		return true
 	}
@@ -49,6 +55,9 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, p
 	if teamID == "" {
 		return false
 	}
+	if scoped, allowed := a.sessionScopeDecision(&session, permission.Id, SessionScopeTarget{TeamID: teamID}); scoped {
+		return allowed
+	}
 	if session.IsUnrestricted() {
 		return true
 	}
@@ -71,6 +80,15 @@ func (a *App) SessionHasPermissionToTeams(rctx request.CTX, session model.Sessio
 
 	if slices.Contains(teamIDs, "") {
 		return false
+	}
+
+	if session.IsScoped() {
+		for _, teamID := range teamIDs {
+			if _, allowed := a.EvaluateSessionScope(rctx, &session, permission.Id, SessionScopeTarget{TeamID: teamID}); !allowed {
+				return false
+			}
+		}
+		return true
 	}
 
 	// Check session permission, if it allows access, no need to check teams.
@@ -105,6 +123,10 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 		return false, false
 	}
 
+	if scoped, allowed := a.EvaluateSessionScope(rctx, &session, permission.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed, false
+	}
+
 	hasPermission, isMember = a.sessionHasPermissionToChannelRBAC(rctx, session, channel, permission)
 	if !hasPermission {
 		return hasPermission, isMember
@@ -126,6 +148,10 @@ func (a *App) SessionHasPermissionToChannelRBACOnly(rctx request.CTX, session mo
 	channel, ok := a.channelForPermissionCheck(rctx, channelID)
 	if !ok {
 		return false, false
+	}
+
+	if scoped, allowed := a.EvaluateSessionScope(rctx, &session, permission.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed, false
 	}
 
 	return a.sessionHasPermissionToChannelRBAC(rctx, session, channel, permission)
@@ -182,6 +208,18 @@ func (a *App) SessionHasPermissionToChannels(rctx request.CTX, session model.Ses
 		return true
 	}
 
+	if session.IsScoped() {
+		for _, channelID := range channelIDs {
+			if channelID == "" {
+				return false
+			}
+			if _, allowed := a.EvaluateSessionScope(rctx, &session, permission.Id, SessionScopeTarget{ChannelID: channelID}); !allowed {
+				return false
+			}
+		}
+		return true
+	}
+
 	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
 		return true
 	}
@@ -223,6 +261,10 @@ func (a *App) SessionHasPermissionToChannels(rctx request.CTX, session model.Ses
 }
 
 func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
+	if session.IsScoped() {
+		return false
+	}
+
 	groupMember, err := a.Srv().Store().Group().GetMember(groupID, session.UserId)
 	// don't reject immediately on ErrNoRows error because there's further authz logic below for non-groupmembers
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -244,6 +286,10 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session model.Session, postID string, permission *model.Permission) bool {
 	if postID == "" {
 		return false
+	}
+
+	if scoped, allowed := a.EvaluateSessionScope(rctx, &session, permission.Id, SessionScopeTarget{PostID: postID}); scoped {
+		return allowed
 	}
 
 	hasPermission, channel := a.sessionHasPermissionToChannelByPostRBAC(session, postID, permission)
@@ -291,6 +337,10 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 		return false, false
 	}
 
+	if scoped, allowed := a.EvaluateSessionScope(rctx, &session, model.PermissionReadChannelContent.Id, SessionScopeTarget{PostID: postID}); scoped {
+		return allowed, false
+	}
+
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err != nil {
 		if a.ChannelAccessEnforcementActive() {
@@ -307,6 +357,9 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 }
 
 func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Session, userID, teamID, categoryId string) bool {
+	if session.IsScoped() {
+		return false
+	}
 	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
 		return true
 	}
@@ -315,7 +368,7 @@ func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Ses
 }
 
 func (a *App) SessionHasPermissionToUser(rctx request.CTX, session model.Session, userID string) bool {
-	if userID == "" {
+	if userID == "" || session.IsScoped() {
 		return false
 	}
 	if session.IsUnrestricted() || a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
@@ -343,6 +396,9 @@ func (a *App) SessionHasPermissionToUser(rctx request.CTX, session model.Session
 }
 
 func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
+	if session.IsScoped() {
+		return false
+	}
 	if session.IsUnrestricted() {
 		return true
 	}
@@ -402,6 +458,10 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	if channelID == "" || askingUserId == "" {
 		return false, false
+	}
+
+	if scoped, allowed := a.requestScopeDecision(rctx, askingUserId, permission.Id, SessionScopeTarget{ChannelID: channelID}); scoped {
+		return allowed, false
 	}
 
 	isMember = false
@@ -472,6 +532,9 @@ func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Se
 	if err != nil {
 		return err
 	}
+	if session.IsScoped() {
+		return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
+	}
 	if session.IsUnrestricted() {
 		return nil
 	}
@@ -509,11 +572,17 @@ func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Se
 // hasPermission: true if the user has permission to read the channel, false otherwise
 // isMember: used for auditing access without membership. True if the user is a member of the channel, false otherwise
 func (a *App) SessionHasPermissionToReadChannel(rctx request.CTX, session model.Session, channel *model.Channel) (hasPermission bool, isMember bool) {
+	if scoped, allowed := a.EvaluateSessionScope(rctx, &session, model.PermissionReadChannelContent.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed, false
+	}
 	hasPermission, isMember = a.SessionHasPermissionToReadChannelRBACOnly(rctx, session, channel)
 	return hasPermission && a.EnforceChannelReadAccess(rctx, session.UserId, channel), isMember
 }
 
 func (a *App) SessionHasPermissionToReadChannelRBACOnly(rctx request.CTX, session model.Session, channel *model.Channel) (hasPermission bool, isMember bool) {
+	if scoped, allowed := a.EvaluateSessionScope(rctx, &session, model.PermissionReadChannelContent.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed, false
+	}
 	if session.IsUnrestricted() {
 		return true, false
 	}
@@ -530,12 +599,20 @@ func (a *App) SessionHasPermissionToReadChannelRBACOnly(rctx request.CTX, sessio
 // hasPermission: true if the user has permission to read the channel, false otherwise
 // isMember: used for auditing access without membership. True if the user is a member of the channel, false otherwise
 func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (hasPermission bool, isMember bool) {
+	if scoped, allowed := a.requestScopeDecision(rctx, userID, model.PermissionReadChannelContent.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed, false
+	}
+
 	hasPermission, isMember = a.HasPermissionToReadChannelRBACOnly(rctx, userID, channel)
 	// Suppression helper: deliberately non-recording, see EnforceChannelReadAccess.
 	return hasPermission && a.HasChannelReadAccess(rctx, userID, channel), isMember
 }
 
 func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string, channel *model.Channel) (hasPermission bool, isMember bool) {
+	if scoped, allowed := a.requestScopeDecision(rctx, userID, model.PermissionReadChannelContent.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed, false
+	}
+
 	if ok, member := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true, member
 	}
@@ -558,6 +635,10 @@ func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string
 // Private/DM/GM channels resolve only for members (via the content-read check). Public channels
 // on a team the user does not belong to stay unresolved, preventing cross-team disclosure.
 func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
+	if scoped, allowed := a.requestScopeDecision(rctx, userID, model.PermissionReadChannel.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed
+	}
+
 	// Suppression helper: deliberately non-recording, see EnforceChannelReadAccess.
 	return a.hasPermissionToResolveChannelMentionRBAC(rctx, userID, channel) &&
 		a.HasChannelReadAccess(rctx, userID, channel)
@@ -576,6 +657,10 @@ func (a *App) hasPermissionToResolveChannelMentionRBAC(rctx request.CTX, userID 
 }
 
 func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string, channel *model.Channel) bool {
+	if scoped, allowed := a.requestScopeDecision(rctx, userID, model.PermissionReadChannel.Id, SessionScopeTarget{Channel: channel}); scoped {
+		return allowed
+	}
+
 	return a.hasPermissionToChannelMemberCountRBAC(rctx, userID, channel) &&
 		a.EnforceChannelReadAccess(rctx, userID, channel)
 }
@@ -609,7 +694,7 @@ func (a *App) SessionPropertyFieldEditBasis(rctx request.CTX, session model.Sess
 		CallerType: model.PropertyOwnerTypeUser,
 		CallerID:   session.UserId,
 	}
-	if field == nil {
+	if field == nil || session.IsScoped() {
 		return basis
 	}
 	// Protected denies unconditionally only on an unmigrated field: once
@@ -639,7 +724,7 @@ func (a *App) SessionPropertyFieldEditBasis(rctx request.CTX, session model.Sess
 // configuration at all (an unmigrated field with neither Permissions nor
 // PermissionValues set).
 func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField, valueTargetID string) bool {
-	if field == nil {
+	if field == nil || session.IsScoped() {
 		return false
 	}
 	if field.Permissions == nil && field.PermissionValues == nil {
@@ -668,7 +753,7 @@ func (a *App) SessionPropertyFieldOptionsBasis(rctx request.CTX, session model.S
 		CallerType: model.PropertyOwnerTypeUser,
 		CallerID:   session.UserId,
 	}
-	if field == nil {
+	if field == nil || session.IsScoped() {
 		return basis
 	}
 	if field.Permissions == nil && field.PermissionOptions == nil {
@@ -724,7 +809,7 @@ func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID
 //
 // Returns false for a nil or protected field.
 func (a *App) SessionHasPermissionToAdministerPropertyFieldScope(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
-	if field == nil || field.Protected {
+	if field == nil || field.Protected || session.IsScoped() {
 		return false
 	}
 	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, model.PermissionLevelAdmin)
@@ -995,6 +1080,15 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 // and any added later.
 // Returns true if allowed (or if ABAC is not active), false if denied.
 func (a *App) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	if rctx.Session().IsScoped() && rctx.Session().UserId == userID {
+		if action != model.AccessControlPolicyActionDownloadFileAttachment {
+			return false
+		}
+		if _, allowed := a.requestScopeDecision(rctx, userID, model.PermissionReadChannelContent.Id, SessionScopeTarget{ChannelID: channelID}); !allowed {
+			return false
+		}
+	}
+
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
 		return true
