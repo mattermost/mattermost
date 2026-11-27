@@ -580,11 +580,6 @@ _LEGACY_BLOCK_RE = re.compile(
 _FENCE_RE = re.compile(r"(```release-note)(.*?)(```)", re.DOTALL | re.IGNORECASE)
 _COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
-# Header for the section added when the description has no release-note fence.
-_SECTION_HEADER = "#### Release Note"
-# An existing release-note header the fence goes under when the fence is missing.
-_HEADER_RE = re.compile(r"^#{1,6}[ \t]*Release[ \t]+Notes?[ \t]*$", re.MULTILINE | re.IGNORECASE)
-
 # Matches placeholder content inside a release-note fence that means "nothing
 # to report yet" (e.g. NONE, N/A, ---).  When detected, we replace the
 # placeholder rather than appending alongside it.
@@ -638,28 +633,21 @@ def build_pr_note(results: list[CheckResult]) -> str:
     return "\n".join(lines)
  
  
-def _outside_comments(pattern: re.Pattern, body: str) -> Optional[re.Match]:
-    """The first match of `pattern` that doesn't start inside an HTML comment."""
-    comments = [m.span() for m in _COMMENT_RE.finditer(body)]
-    for m in pattern.finditer(body):
-        if not any(s <= m.start() < e for s, e in comments):
-            return m
-    return None
-
-
 def _release_note_fence(body: str) -> Optional[re.Match]:
     """The first release-note fence outside an HTML comment.
 
     The PR template keeps its example fences inside a comment, ahead of the real one.
     """
-    return _outside_comments(_FENCE_RE, body)
+    comments = [m.span() for m in _COMMENT_RE.finditer(body)]
+    for m in _FENCE_RE.finditer(body):
+        if not any(s <= m.start() < e for s, e in comments):
+            return m
+    return None
 
 
-def _ledger(lines: list[str], placeholder: Optional[str], added_header: bool = False) -> str:
-    """Hidden record of a run's lines. ``placeholder`` is the fence content to restore
-    once they are removed, or None when the checker added the fence itself;
-    ``added_header`` says whether it also added the section header."""
-    data = json.dumps({"lines": lines, "placeholder": placeholder, "header": added_header})
+def _ledger(lines: list[str], placeholder: str) -> str:
+    """Hidden record of a run's lines and the fence content to restore once they are removed."""
+    data = json.dumps({"lines": lines, "placeholder": placeholder})
     return f"{_LEDGER_PREFIX}{base64.b64encode(data.encode()).decode()} -->"
 
 
@@ -702,17 +690,7 @@ def strip_old_note(body: str) -> str:
     content = "\n".join(kept)
 
     if not content.strip():
-        placeholder = record.get("placeholder")
-        if placeholder is None:
-            # The checker added this fence (and maybe its header); take it out again.
-            before = body[:fence.start()]
-            if not record.get("header"):
-                return before.removesuffix("\n") + body[fence.end():]
-            before = before.rstrip()
-            if before.endswith(_SECTION_HEADER):
-                before = before[:-len(_SECTION_HEADER)].rstrip()
-            return before + body[fence.end():]
-        content = placeholder
+        content = record.get("placeholder") or "\nNONE\n"
 
     return body[:fence.start()] + fence.group(1) + content + fence.group(3) + body[fence.end():]
  
@@ -723,8 +701,8 @@ def inject_note(body: str, note: str) -> str:
 
     The lines go INSIDE the first release-note fence outside an HTML comment,
     replacing a placeholder (NONE, empty) or after the author's own lines. A line
-    the fence already has, such as one written by hand, is not added again. With no
-    fence, one goes under an existing release-note header, or a new section is appended. A ledger comment after the fence
+    the fence already has, such as one written by hand, is not added again. A
+    description with no fence is left alone. A ledger comment after the fence
     records what was written so the next run can undo it.
     """
     body = strip_old_note(body)
@@ -733,15 +711,7 @@ def inject_note(body: str, note: str) -> str:
 
     fence = _release_note_fence(body)
     if fence is None:
-        lines = note.split("\n")
-        header = _outside_comments(_HEADER_RE, body)
-        if header:
-            # Put the fence right under the author's own release-note header.
-            return (body[:header.end()] + f"\n```release-note\n{note}\n```\n"
-                    + _ledger(lines, None) + body[header.end():])
-        prefix = body.rstrip() + "\n\n" if body.strip() else ""
-        return (f"{prefix}{_SECTION_HEADER}\n```release-note\n{note}\n```\n"
-                + _ledger(lines, None, added_header=True))
+        return body
 
     content = fence.group(2)
     existing = {line.strip() for line in content.split("\n")}
