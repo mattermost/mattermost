@@ -43,6 +43,8 @@
         "AllowedUntrustedInternalConnections": null,
         "EnableMultifactorAuthentication": null,
         "EnforceMultifactorAuthentication": null,
+        "EnableMobileQRLogin": null,
+        "MobileQRLoginTokenExpirySeconds": null,
         "EnableUserAccessTokens": null,
         "MaximumPersonalAccessTokenLifetimeDays": null,
         "AllowCorsFrom": null,

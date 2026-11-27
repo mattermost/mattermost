@@ -83,6 +83,64 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/login/mobile_qr:
+    post:
+      tags:
+        - users
+      summary: Login using a mobile QR sign-in code
+      description: >
+        Exchanges a short-lived, single-use code created by
+        `POST /api/v4/users/me/mobile_login_token` for a new mobile session
+        belonging to the same user. The new session is returned in the `Token`
+        response header and in the response body; no cookies are set. Every
+        rejection (unknown, already used or expired code, feature disabled,
+        deactivated user, revoked source session) returns the same 401 error so
+        the reason is not disclosed. On success a `mobile_qr_login_redeemed`
+        WebSocket event with the `source_session_id` is sent to the user.
+
+        ##### Permissions
+
+        No permission required. The feature must be enabled with
+        `ServiceSettings.EnableMobileQRLogin`.
+      operationId: LoginWithMobileQRToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  description: The code taken from the `t` query parameter of the QR deep link
+                  type: string
+                device_id:
+                  description: The push notification device ID of the mobile app
+                  type: string
+      responses:
+        "200":
+          description: Mobile QR login successful
+          headers:
+            Token:
+              description: The session token of the new mobile session
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    description: The session token of the new mobile session
+                    type: string
+                  csrf:
+                    description: The CSRF token of the new mobile session
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/v4/users/login/cws:
     post:
       tags:
@@ -1721,6 +1779,60 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/mobile_login_token":
+    post:
+      tags:
+        - users
+      summary: Create a mobile QR sign-in code
+      description: >
+        Creates a short-lived, single-use code that signs the current user in on
+        a mobile device. The response contains a `mattermost://` deep link, the
+        same link rendered as a base64 encoded PNG QR code, and the time at which
+        the code expires. The expiry is set by
+        `ServiceSettings.MobileQRLoginTokenExpirySeconds`.
+
+        The code can be requested from any interactive workstation session
+        (web or desktop), whichever sign-in method the user used. Sessions of
+        the mobile app, personal access tokens, OAuth apps and bots are
+        rejected.
+
+        ##### Permissions
+
+        Must be logged in as the user. `user_id` must be `me` or the ID of the
+        logged in user. The feature must be enabled with
+        `ServiceSettings.EnableMobileQRLogin` and a Site URL must be configured.
+      operationId: CreateMobileQRLoginToken
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID or `me`
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sign-in code created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  link:
+                    description: The deep link that opens the mobile app, in the form `mattermost://<host>[/<subpath>]/login/mobile_qr?t=<code>`
+                    type: string
+                  qr_code:
+                    description: A base64 encoded PNG QR code image of the link
+                    type: string
+                  expires_at:
+                    description: The time in milliseconds since the epoch when the code expires
+                    type: integer
+                    format: int64
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/demote":

@@ -517,6 +517,7 @@ const (
 const (
 	AuditEventAttachDeviceId                     = "attachDeviceId"                     // attach device IDs (standard or VoIP) to user session for mobile app
 	AuditEventCreateUser                         = "createUser"                         // create user account
+	AuditEventCreateMobileQRLoginToken           = "createMobileQRLoginToken"           // create short-lived code that signs a mobile device in from a signed-in workstation
 	AuditEventCreateUserAccessToken              = "createUserAccessToken"              // create personal access token for user API access
 	AuditEventDeleteUser                         = "deleteUser"                         // delete user account
 	AuditEventDemoteUserToGuest                  = "demoteUserToGuest"                  // demote regular user to guest account with limited permissions
@@ -527,6 +528,7 @@ const (
 	AuditEventLocalPermanentDeleteAllUsers       = "localPermanentDeleteAllUsers"       // permanently delete all users locally
 	AuditEventLogin                              = "login"                              // user login to system
 	AuditEventLoginWithDesktopToken              = "loginWithDesktopToken"              // user login to system with desktop token
+	AuditEventLoginWithMobileQRToken             = "loginWithMobileQRToken"             // mobile device login to system with a QR sign-in code
 	AuditEventLogout                             = "logout"                             // user logout from system
 	AuditEventMarkMessagesRead                   = "markAllMessagesRead"                // user marked all direct and group messages as read
 	AuditEventMarkTeamRead                       = "markFullTeamRead"                   // user marked an entire team as read

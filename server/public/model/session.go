@@ -31,6 +31,7 @@ const (
 	SessionPropLastRemovedVoIPDeviceId    = "last_removed_voip_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
+	SessionPropMobileQRSourceSessionId    = "mobile_qr_source_session_id"
 	SessionTypeUserAccessToken            = "UserAccessToken"
 	SessionTypeCloudKey                   = "CloudKey"
 	SessionTypeRemoteclusterToken         = "RemoteClusterToken"

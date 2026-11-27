@@ -14,6 +14,9 @@ const (
 	InvitationExpiryTime      = 1000 * 60 * 60 * 48 // 48 hours
 	MagicLinkExpiryTime       = 1000 * 60 * 5       // 5 minutes
 
+	// MobileQRLoginMaxExpiryTime is a ceiling; the configured expiry is enforced via the token's expires_at.
+	MobileQRLoginMaxExpiryTime = 1000 * 120 // 120 seconds
+
 	TokenTypePasswordRecovery         = "password_recovery"
 	TokenTypeVerifyEmail              = "verify_email"
 	TokenTypeTeamInvitation           = "team_invitation"
@@ -21,6 +24,7 @@ const (
 	TokenTypeCWSAccess                = "cws_access_token"
 	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
 	TokenTypeGuestMagicLink           = "guest_magic_link"
+	TokenTypeMobileQRLogin            = "mobile_qr_login"
 
 	TokenTypeOAuth           = "oauth"
 	TokenTypeSaml            = "saml"
@@ -76,6 +80,8 @@ func (t *Token) IsExpired() bool {
 		expiryTime = InvitationExpiryTime
 	case TokenTypeGuestInvitation:
 		expiryTime = InvitationExpiryTime
+	case TokenTypeMobileQRLogin:
+		expiryTime = MobileQRLoginMaxExpiryTime
 	}
 	return GetMillis() > (t.CreateAt + expiryTime)
 }
