@@ -1,25 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-log() {
-  printf '[cloud-agent-install] %s\n' "$*" >&2
-}
-
-is_true() {
-  case "${1:-}" in
-    1 | true | TRUE | yes | YES) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
-is_git_work_tree() {
-  [ "$(git -C "${1:-}" rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]
-}
-
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$ROOT"
 
-NVM_VERSION="${CLOUD_AGENT_NVM_VERSION:-0.40.3}"
+CLOUD_AGENT_LOG_TAG=cloud-agent-install
+# shellcheck source=cloud-agent-lib.sh
+. "$ROOT/.cursor/scripts/cloud-agent-lib.sh"
 
 export GOPATH="${GOPATH:-$HOME/go}"
 export PATH="/usr/local/go/bin:$GOPATH/bin:/usr/local/bin:$PATH"
@@ -74,9 +61,6 @@ persist_go_path() {
 }
 
 ensure_go() {
-  export GOPATH="${GOPATH:-$HOME/go}"
-  export PATH="/usr/local/go/bin:/usr/local/bin:${GOPATH}/bin:${PATH}"
-
   local required current
   required="$(required_go_version)"
   current="$(current_go_version || true)"
@@ -103,49 +87,16 @@ required_node_version() {
     return 0
   fi
 
-  local version_file="$ROOT/.nvmrc"
-  if [ ! -f "$version_file" ]; then
+  if [ ! -f "$ROOT/.nvmrc" ]; then
     log ".nvmrc is missing; cannot determine the required Node version."
     return 1
   fi
-  tr -d '[:space:]' < "$version_file" | sed 's/^v//'
+  tr -d '[:space:]' < "$ROOT/.nvmrc" | sed 's/^v//'
 }
 
 current_node_version() {
   command -v node >/dev/null 2>&1 || return 1
   node --version | sed 's/^v//'
-}
-
-# .nvmrc may pin a major or major.minor (e.g. 24.11); node --version is always
-# major.minor.patch. Require an exact match on every component the pin specifies.
-node_version_matches() {
-  local required="$1"
-  local current="$2"
-  if [ -z "$required" ] || [ -z "$current" ]; then
-    return 1
-  fi
-
-  local r1 r2 r3 c1 c2 c3
-  IFS=. read -r r1 r2 r3 <<< "$required"
-  IFS=. read -r c1 c2 c3 <<< "$current"
-  [ "$c1" = "$r1" ] || return 1
-  [ -z "${r2:-}" ] || [ "$c2" = "$r2" ] || return 1
-  [ -z "${r3:-}" ] || [ "$c3" = "$r3" ] || return 1
-  return 0
-}
-
-ensure_nvm() {
-  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-  if [ -s "$NVM_DIR/nvm.sh" ]; then
-    # shellcheck source=/dev/null
-    . "$NVM_DIR/nvm.sh"
-    return 0
-  fi
-
-  log "nvm is not installed; cloning v${NVM_VERSION}."
-  git clone --depth 1 --branch "v${NVM_VERSION}" https://github.com/nvm-sh/nvm.git "$NVM_DIR"
-  # shellcheck source=/dev/null
-  . "$NVM_DIR/nvm.sh"
 }
 
 link_node_bins() {
@@ -175,7 +126,6 @@ persist_node_path() {
 
 install_node() {
   local version="$1"
-  ensure_nvm
   log "Installing Node ${version} via nvm."
   nvm install "$version"
   nvm alias default "$version"
@@ -189,7 +139,7 @@ install_node() {
 ensure_node() {
   local required current
   required="$(required_node_version)"
-  ensure_nvm
+  load_nvm
   nvm use "$required" >/dev/null 2>&1 || true
 
   current="$(current_node_version || true)"
@@ -229,240 +179,21 @@ default_enterprise_checkout() {
 }
 
 find_enterprise_checkout() {
-  local candidates=()
+  local overrides=()
   if [ -n "${ENTERPRISE_CHECKOUT_DIR:-}" ]; then
-    candidates+=("$ENTERPRISE_CHECKOUT_DIR")
+    overrides+=("$ENTERPRISE_CHECKOUT_DIR")
   fi
   if [ -n "${ENTERPRISE_DIR:-}" ]; then
-    candidates+=("$ENTERPRISE_DIR")
+    overrides+=("$ENTERPRISE_DIR")
   fi
   if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
     case "$BUILD_ENTERPRISE_DIR" in
-      /*) candidates+=("$BUILD_ENTERPRISE_DIR") ;;
-      *) candidates+=("$ROOT/server/$BUILD_ENTERPRISE_DIR") ;;
+      /*) overrides+=("$BUILD_ENTERPRISE_DIR") ;;
+      *) overrides+=("$ROOT/server/$BUILD_ENTERPRISE_DIR") ;;
     esac
   fi
 
-  candidates+=(
-    "$(default_enterprise_checkout)"
-    "$ROOT/../../enterprise"
-    "$HOME/enterprise"
-  )
-
-  local candidate
-  for candidate in "${candidates[@]}"; do
-    if is_git_work_tree "$candidate"; then
-      realpath -m "$candidate"
-      return 0
-    fi
-  done
-
-  return 1
-}
-
-enterprise_clone_url() {
-  printf 'https://github.com/mattermost/enterprise.git\n'
-}
-
-requested_enterprise_branch() {
-  local branch
-  if [ -n "${ENTERPRISE_BRANCH:-}" ]; then
-    branch="$ENTERPRISE_BRANCH"
-  elif ! branch="$(git -C "$ROOT" symbolic-ref --quiet --short HEAD 2>/dev/null)"; then
-    return 1
-  fi
-  if ! git check-ref-format --branch "$branch" >/dev/null 2>&1; then
-    return 1
-  fi
-
-  printf '%s\n' "$branch"
-}
-
-enterprise_branch_exists() {
-  local branch="$1"
-  local url
-  url="$(enterprise_clone_url)"
-
-  GIT_TERMINAL_PROMPT=0 git ls-remote --exit-code --heads "$url" "refs/heads/$branch" >/dev/null 2>&1 && return 0
-  local status=$?
-  if [ "$status" -eq 2 ]; then
-    return 1
-  fi
-
-  if ! command -v gh >/dev/null 2>&1; then
-    return 2
-  fi
-
-  local exists
-  if ! exists="$(
-    gh api graphql \
-      -f query="query(\$qualifiedName: String!) { repository(owner: \"mattermost\", name: \"enterprise\") { ref(qualifiedName: \$qualifiedName) { id } } }" \
-      -f qualifiedName="refs/heads/$branch" \
-      --jq '.data.repository.ref != null' 2>/dev/null
-  )"; then
-    return 2
-  fi
-
-  [ "$exists" = "true" ]
-}
-
-matching_enterprise_branch() {
-  local branch
-  if ! branch="$(requested_enterprise_branch)"; then
-    log "No valid Enterprise branch was requested; using Enterprise's default branch."
-    return 1
-  fi
-
-  local status
-  if enterprise_branch_exists "$branch"; then
-    printf '%s\n' "$branch"
-    return 0
-  else
-    status=$?
-  fi
-
-  if [ "$status" -eq 1 ]; then
-    log "Enterprise branch $branch does not exist; using Enterprise's default branch."
-    return 1
-  fi
-
-  log "Could not verify Enterprise branch $branch; attempting it before the default branch."
-  printf '%s\n' "$branch"
-}
-
-can_clone_into() {
-  local dest="$1"
-  local parent
-  parent="$(dirname "$dest")"
-  if [ ! -d "$parent" ] || [ ! -w "$parent" ] || [ ! -x "$parent" ]; then
-    return 1
-  fi
-  if [ -L "$dest" ]; then
-    return 1
-  fi
-  if [ ! -e "$dest" ]; then
-    return 0
-  fi
-  if is_git_work_tree "$dest"; then
-    return 0
-  fi
-  if [ ! -d "$dest" ] || [ ! -w "$dest" ] || [ ! -x "$dest" ]; then
-    return 1
-  fi
-
-  local entries
-  if ! entries="$(ls -A "$dest" 2>/dev/null)"; then
-    return 1
-  fi
-  [ -z "$entries" ]
-}
-
-publish_enterprise_checkout() {
-  local source="$1"
-  local dest="$2"
-
-  if mv -T -n "$source" "$dest" && [ ! -e "$source" ]; then
-    return 0
-  fi
-
-  rm -rf "$source"
-  if is_git_work_tree "$dest"; then
-    log "Another process populated Enterprise checkout at $dest; reusing it."
-    return 0
-  fi
-
-  log "Could not publish Enterprise checkout at $dest."
-  return 1
-}
-
-clone_enterprise_ref() {
-  local dest="$1"
-  local url="$2"
-  shift 2
-  local clone_args=("$@")
-  local temp
-
-  if ! temp="$(mktemp -d "$(dirname "$dest")/.enterprise-clone.XXXXXX")"; then
-    return 1
-  fi
-  if GIT_TERMINAL_PROMPT=0 git clone "${clone_args[@]}" "$url" "$temp"; then
-    publish_enterprise_checkout "$temp" "$dest"
-    return $?
-  fi
-  rm -rf "$temp"
-
-  if ! command -v gh >/dev/null 2>&1; then
-    return 1
-  fi
-
-  log "git clone failed; retrying with GitHub CLI."
-  if ! temp="$(mktemp -d "$(dirname "$dest")/.enterprise-clone.XXXXXX")"; then
-    return 1
-  fi
-  if gh repo clone mattermost/enterprise "$temp" -- "${clone_args[@]}"; then
-    publish_enterprise_checkout "$temp" "$dest"
-    return $?
-  fi
-  rm -rf "$temp"
-  return 1
-}
-
-enterprise_clone_dest() {
-  local sibling
-  sibling="$(default_enterprise_checkout)"
-  if can_clone_into "$sibling"; then
-    printf '%s\n' "$sibling"
-    return 0
-  fi
-
-  realpath -m "$HOME/enterprise"
-}
-
-clone_enterprise_checkout() {
-  local dest="$1"
-  local url
-  url="$(enterprise_clone_url)"
-
-  if [ -z "$dest" ] || [ "$dest" = "/" ] || [ "$(basename "$dest")" != "enterprise" ]; then
-    log "Refusing unsafe enterprise clone dest: ${dest:-<empty>}"
-    return 1
-  fi
-
-  if ! can_clone_into "$dest"; then
-    log "Refusing unusable enterprise clone dest: $dest"
-    return 1
-  fi
-
-  if [ -e "$dest" ]; then
-    if is_git_work_tree "$dest"; then
-      return 0
-    fi
-    rmdir "$dest"
-  fi
-
-  log "Enterprise checkout missing; cloning mattermost/enterprise into $dest."
-  log "Git-triggered automations stay single-repo; repositoryDependencies only scopes the GitHub token."
-  mkdir -p "$(dirname "$dest")"
-
-  local clone_args=(--depth 1 --single-branch)
-  local branch
-  if branch="$(matching_enterprise_branch)"; then
-    clone_args+=(--branch "$branch")
-    log "Trying matching Enterprise branch $branch."
-  fi
-
-  if clone_enterprise_ref "$dest" "$url" "${clone_args[@]}"; then
-    return 0
-  fi
-
-  if [ -n "${branch:-}" ]; then
-    log "Could not clone matching Enterprise branch $branch; retrying with the default branch."
-    clone_args=(--depth 1 --single-branch)
-    clone_enterprise_ref "$dest" "$url" "${clone_args[@]}" && return 0
-  fi
-
-  log "Failed to clone mattermost/enterprise. repositoryDependencies must include github.com/mattermost/enterprise so the GitHub token can access it."
-  return 1
+  find_sibling_checkout enterprise "${overrides[@]}"
 }
 
 persist_build_enterprise_dir() {
@@ -498,8 +229,9 @@ ensure_enterprise_checkout() {
   fi
 
   local dest
-  dest="$(enterprise_clone_dest)"
-  clone_enterprise_checkout "$dest"
+  dest="$(sibling_clone_dest enterprise)"
+  log "Git-triggered automations stay single-repo; repositoryDependencies only scopes the GitHub token."
+  clone_sibling_checkout mattermost/enterprise "$dest" "${ENTERPRISE_BRANCH:-}"
   target="$(realpath -m "$dest")"
   if ! is_git_work_tree "$target"; then
     log "Enterprise clone completed but checkout was not found at $dest."
@@ -567,12 +299,115 @@ hydrate_playwright_dependencies() {
   fi
 }
 
+# Prints the plugin repo slugs to clone. CLOUD_AGENT_PLUGINS takes a comma- or
+# space-separated list of names (boards, mattermost-plugin-boards), "all", or "none";
+# CLOUD_AGENT_SUPER_ENV=true alone means "all".
+requested_plugin_slugs() {
+  local requested="${CLOUD_AGENT_PLUGINS:-}"
+  if [ -z "$requested" ]; then
+    is_true "${CLOUD_AGENT_SUPER_ENV:-false}" || return 0
+    requested=all
+  fi
+
+  local manifest token name
+  manifest="$(manifest_plugin_slugs)"
+  for token in ${requested//,/ }; do
+    case "$token" in
+      all) printf '%s\n' "$manifest" ;;
+      none) return 0 ;;
+      *)
+        name="$(plugin_repo_name "$token")"
+        if ! grep -qx "mattermost/$name" <<< "$manifest"; then
+          log "$name is not in repositoryDependencies; cloning only works if the repo is public."
+        fi
+        printf 'mattermost/%s\n' "$name"
+        ;;
+    esac
+  done | awk 'NF && !seen[$0]++'
+}
+
+ensure_plugin_checkouts() {
+  local slug name dest
+  while read -r slug; do
+    [ -n "$slug" ] || continue
+    name="${slug##*/}"
+    if dest="$(find_sibling_checkout "$name")"; then
+      refresh_managed_checkout "$dest" || true
+      continue
+    fi
+    dest="$(sibling_clone_dest "$name")"
+    clone_sibling_checkout "$slug" "$dest" "${CLOUD_AGENT_PLUGIN_BRANCH:-}" || \
+      log "WARNING: could not clone $slug; continuing without it."
+  done < <(requested_plugin_slugs)
+}
+
+hydrate_plugin() {
+  local dir="$1" name version bindir
+  name="$(basename "$dir")"
+  log "Hydrating $name at $dir."
+
+  if version="$(nvmrc_version "$dir")"; then
+    bindir="$(node_bin_dir_for "$version")" || return 1
+  else
+    bindir="$(dirname "$(command -v node)")"
+  fi
+
+  (
+    cd "$dir" || exit 1
+    export PATH="$bindir:$PATH"
+
+    if [ -f go.mod ]; then
+      go mod download || exit 1
+    fi
+
+    if has_make_target webapp/node_modules; then
+      make webapp/node_modules || exit 1
+    elif [ -f webapp/package-lock.json ]; then
+      npm ci --prefix webapp || exit 1
+    fi
+  ) || return 1
+
+  log "$name ready (node $("$bindir/node" --version))."
+}
+
+ensure_plugins() {
+  if is_true "${CLOUD_AGENT_SKIP_PLUGINS:-false}"; then
+    log "Skipping plugin checkouts because CLOUD_AGENT_SKIP_PLUGINS is set."
+    return 0
+  fi
+
+  ensure_plugin_checkouts
+
+  local plugins=()
+  mapfile -t plugins < <(discover_plugin_checkouts)
+  if [ "${#plugins[@]}" -eq 0 ]; then
+    log "No plugin checkouts found; set CLOUD_AGENT_SUPER_ENV=true to clone the core plugins."
+    return 0
+  fi
+
+  if is_true "${CLOUD_AGENT_SKIP_PLUGIN_DEPS:-false}"; then
+    log "Skipping plugin dependency hydration for ${#plugins[@]} plugin(s)."
+    return 0
+  fi
+
+  local dir failed=()
+  for dir in "${plugins[@]}"; do
+    hydrate_plugin "$dir" || failed+=("$(basename "$dir")")
+  done
+
+  if [ "${#failed[@]}" -gt 0 ]; then
+    log "WARNING: plugin hydration failed for: ${failed[*]}. Rerun this script or hydrate them manually."
+  fi
+  log "Plugins: ${#plugins[@]} checkout(s), ${#failed[@]} failed. Run .cursor/scripts/super-env.sh list for details."
+}
+
 ensure_go
 ensure_node
 ensure_enterprise_checkout
 hydrate_go_dependencies
 hydrate_webapp_dependencies
 hydrate_playwright_dependencies
+ensure_plugins
 
 log "AWS CLI: $(aws --version 2>&1 || printf 'not available')"
 log "Install hook complete."
