@@ -528,13 +528,22 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 		return true
 	}
 
+	return a.evaluateGovernedChannelAccess(rctx, ref, channel.Id, action, byChannelPolicy)
+}
+
+// evaluateGovernedChannelAccess decides action for ref in a channel already known to be
+// governed. byChannelPolicy says whether the channel's own policy governs the action, which
+// is when the subject carries the user's channel role. It is the one place the decision-cache
+// key for channel access is built, so request paths and the read-access broadcast hooks share
+// entries. Any error denies.
+func (a *App) evaluateGovernedChannelAccess(rctx request.CTX, ref accessSubjectRef, channelID, action string, byChannelPolicy bool) bool {
 	userID := ref.userID
 	var buildErr error
 	decision, evalErr := a.evaluateAccessCached(rctx, ref,
-		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channel.Id},
+		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
 		action,
 		func() (model.Subject, error) {
-			subject, err := a.channelAccessSubject(rctx, ref, channel.Id, byChannelPolicy)
+			subject, err := a.channelAccessSubject(rctx, ref, channelID, byChannelPolicy)
 			buildErr = err
 			return subject, err
 		},
@@ -543,7 +552,7 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 		rctx.Logger().Info("Failed to build ABAC subject for channel-access evaluation; denying",
 			mlog.String("action", action),
 			mlog.String("user_id", userID),
-			mlog.String("channel_id", channel.Id),
+			mlog.String("channel_id", channelID),
 			mlog.Err(buildErr),
 		)
 		return false
@@ -552,7 +561,7 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 		rctx.Logger().Warn("ABAC channel-access evaluation failed; denying",
 			mlog.String("action", action),
 			mlog.String("user_id", userID),
-			mlog.String("channel_id", channel.Id),
+			mlog.String("channel_id", channelID),
 			mlog.Err(evalErr),
 		)
 		return false
