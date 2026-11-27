@@ -314,7 +314,7 @@ func TestTestingModeUserManagementPermissions(t *testing.T) {
 
 	isActive := func(t *testing.T, userID string) bool {
 		t.Helper()
-		user, appErr := th.App.GetUser(th.Context, userID)
+		user, appErr := th.App.GetUser(userID)
 		require.Nil(t, appErr)
 		return user.DeleteAt == 0
 	}
