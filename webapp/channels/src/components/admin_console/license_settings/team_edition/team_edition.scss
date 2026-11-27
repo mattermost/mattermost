@@ -35,18 +35,10 @@
     }
 
     button,
-    p:not(.upgrade-legal-terms) a {
+    p a {
         width: 100%;
         border-radius: 4px;
         margin: 5px auto;
-    }
-
-    .upgrade-error {
-        margin-top: 10px;
-
-        &.unsupported .form-group {
-            margin-bottom: 0;
-        }
     }
 }
 

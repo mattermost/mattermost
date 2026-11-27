@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
@@ -10,175 +10,14 @@ import SetupSystemSvg from 'components/common/svg_images_components/setup_system
 import ExternalLink from 'components/external_link';
 
 import {LicenseLinks} from 'utils/constants';
-import {format} from 'utils/markdown';
 
-interface TeamEditionRightPanelProps {
-    upgradingPercentage: number;
-    handleUpgrade: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
-    upgradeError: string | null;
-    restartError: string | null;
-
-    handleRestart: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
-
-    setClickNormalUpgradeBtn: () => void;
-
-    openEEModal: () => void;
-
-    restarting: boolean;
-
-    upgradeDisabled: boolean;
-}
-
-const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
-    upgradingPercentage,
-    handleUpgrade,
-    upgradeError,
-    restartError,
-    handleRestart,
-    restarting,
-    openEEModal,
-    setClickNormalUpgradeBtn,
-    upgradeDisabled,
-}: TeamEditionRightPanelProps) => {
-    let upgradeButton = null;
-    const intl = useIntl();
-
-    const onHandleUpgrade = (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (!handleUpgrade) {
-            return;
-        }
-        setClickNormalUpgradeBtn();
-        handleUpgrade(e);
-    };
+const TeamEditionRightPanel: React.FC = () => {
     const upgradeAdvantages = [
         'AD/LDAP Group Sync',
         'High Availability',
         'Advanced compliance',
         'And more...',
     ];
-    if (upgradeDisabled) {
-        upgradeButton = (
-            <div>
-                <p>
-                    <Button
-                        asChild={true}
-                        emphasis='tertiary'
-                    >
-                        <ExternalLink
-                            href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
-                            location='team_edition_right_panel'
-                            role='button'
-                        >
-                            <FormattedMessage
-                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
-                                defaultMessage='Learn more'
-                            />
-                        </ExternalLink>
-                    </Button>
-                </p>
-            </div>
-        );
-    } else if (upgradingPercentage !== 100) {
-        upgradeButton = (
-            <div>
-                <p>
-                    <Button
-                        type='button'
-                        onClick={onHandleUpgrade}
-                        emphasis='primary'
-                        loading={upgradingPercentage > 0}
-                    >
-                        {upgradingPercentage > 0 ? (
-                            <FormattedMessage
-                                id='admin.license.enterprise.upgrading'
-                                defaultMessage='Upgrading {percentage}%'
-                                values={{percentage: upgradingPercentage}}
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.license.enterprise.upgrade'
-                                defaultMessage='Upgrade to Enterprise Edition'
-                            />
-                        )}
-                    </Button>
-                </p>
-                <p className='upgrade-legal-terms'>
-                    <FormattedMessage
-                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsInitial'
-                        defaultMessage='By clicking <b>Upgrade</b>, I agree to the terms of the Mattermost '
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />
-                    <a
-                        role='button'
-                        onClick={openEEModal}
-                    >
-                        <FormattedMessage
-                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.eeLicenseLink'
-                            defaultMessage='Enterprise Edition License'
-                        />
-                    </a>
-                    <FormattedMessage
-                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsFinal'
-                        defaultMessage='. Upgrading will download the binary and update your team edition.'
-                    />
-                </p>
-                {upgradeError && (
-                    <div className='upgrade-error'>
-                        <div className='form-group has-error'>
-                            <div
-                                className='as-bs-label control-label'
-                                dangerouslySetInnerHTML={{
-                                    __html: format(upgradeError),
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    } else if (upgradingPercentage === 100) {
-        upgradeButton = (
-            <div>
-                <p>
-                    <FormattedMessage
-                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart'
-                        defaultMessage='You have upgraded your binary to Mattermost Enterprise. Please restart the server to start using the new binary. You can do it right here:'
-                    />
-                </p>
-                <p>
-                    <Button
-                        type='button'
-                        onClick={handleRestart}
-                        emphasis='primary'
-                        loading={restarting}
-                    >
-                        {restarting ? (
-                            intl.formatMessage({
-                                id: 'admin.licenseSettings.teamEdition.teamEditionRightPanel.restarting',
-                                defaultMessage: 'Restarting',
-                            })
-                        ) : (
-                            <FormattedMessage
-                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.restart'
-                                defaultMessage='Restart Server'
-                            />
-                        )}
-                    </Button>
-                </p>
-                {restartError && (
-                    <div className='upgrade-error'>
-                        <div className='form-group has-error'>
-                            <div className='as-bs-label control-label'>
-                                {restartError}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    }
 
     return (
         <div className='TeamEditionRightPanel'>
@@ -212,7 +51,23 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     );
                 })}
             </div>
-            {upgradeButton}
+            <p>
+                <Button
+                    asChild={true}
+                    emphasis='primary'
+                >
+                    <ExternalLink
+                        href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
+                        location='team_edition_right_panel'
+                        role='button'
+                    >
+                        <FormattedMessage
+                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
+                            defaultMessage='Learn more'
+                        />
+                    </ExternalLink>
+                </Button>
+            </p>
         </div>
     );
 };

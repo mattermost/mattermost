@@ -596,38 +596,6 @@ export async function setSamlIdpCertificateFromMetadata(success: SuccessCallback
     }
 }
 
-export function upgradeToE0() {
-    return async () => {
-        const data = await Client4.upgradeToEnterprise();
-        return data;
-    };
-}
-
-export function upgradeToE0Status() {
-    return async () => {
-        const data = await Client4.upgradeToEnterpriseStatus();
-        return data;
-    };
-}
-
-export function isAllowedToUpgradeToEnterprise() {
-    return async () => {
-        try {
-            await Client4.isAllowedToUpgradeToEnterprise();
-            return {data: true};
-        } catch (error) {
-            return {error};
-        }
-    };
-}
-
-export function restartServer() {
-    return async () => {
-        const data = await Client4.restartServer();
-        return data;
-    };
-}
-
 export function ping(getServerStatus?: boolean, deviceId?: string) {
     return async () => {
         const data = await Client4.ping(getServerStatus, deviceId);
