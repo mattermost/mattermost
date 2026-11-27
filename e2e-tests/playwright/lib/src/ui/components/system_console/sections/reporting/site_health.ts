@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import Switch from '@/ui/components/switch';
+
 function escapeRegExp(text: string) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -111,6 +113,9 @@ export class SiteHealthArea {
 export default class SiteHealth {
     readonly container: Locator;
 
+    readonly automaticChecksSwitch: Switch;
+    readonly automaticChecksOff: Locator;
+
     readonly notEvaluated: Locator;
     readonly lastEvaluated: Locator;
     readonly lastEvaluatedTime: Locator;
@@ -127,6 +132,12 @@ export default class SiteHealth {
 
     constructor(container: Locator) {
         this.container = container;
+
+        this.automaticChecksSwitch = new Switch(container, 'healthDashboardAutomaticChecks');
+        this.automaticChecksOff = container.getByText(
+            'Automatic checks are off. Findings show the last run and may be out of date.',
+            {exact: true},
+        );
 
         this.notEvaluated = container.getByText('Not evaluated yet', {exact: true});
         this.lastEvaluated = container.getByText(/^Last evaluated /);

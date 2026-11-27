@@ -4,6 +4,7 @@
 package imageproxy
 
 import (
+	"cmp"
 	"errors"
 	"io"
 	"net/http"
@@ -141,9 +142,7 @@ func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
 	}
 
 	// Handle protocol-relative URLs.
-	if parsedURL.Scheme == "" {
-		parsedURL.Scheme = proxy.siteURL.Scheme
-	}
+	parsedURL.Scheme = cmp.Or(parsedURL.Scheme, proxy.siteURL.Scheme)
 
 	// If it's a relative URL, fill up the hostname and return.
 	if parsedURL.Host == "" {

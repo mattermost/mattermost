@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -44,9 +45,7 @@ func (s *SqlPostPersistentNotificationStore) GetSingle(postID string) (*model.Po
 
 // Get returns only valid posts.
 func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
-	if params.PerPage == 0 {
-		params.PerPage = 1000
-	}
+	params.PerPage = cmp.Or(params.PerPage, 1000)
 
 	builder := s.getQueryBuilder().
 		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").

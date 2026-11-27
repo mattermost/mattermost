@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"io"
@@ -718,9 +719,7 @@ func (*LoadTestProvider) JSONCommand(a *app.App, rctx request.CTX, args *model.C
 	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
-	if post.Message == "" {
-		post.Message = message
-	}
+	post.Message = cmp.Or(post.Message, message)
 
 	if _, _, err := a.CreatePostMissingChannel(rctx, &post, false, true); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err

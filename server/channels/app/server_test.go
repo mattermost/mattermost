@@ -5,6 +5,7 @@ package app
 
 import (
 	"bufio"
+	"cmp"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -91,15 +92,9 @@ func TestStartServerPortUnavailable(t *testing.T) {
 
 func TestStartServerNoS3Bucket(t *testing.T) {
 	mainHelper.Parallel(t)
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 	configStore, _ := config.NewFileStore("config.json", true)

@@ -17,8 +17,10 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -267,6 +269,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	ok := th.Service.SetLicense(license)
 	require.True(t, ok)
 
+	// The OAuth probes refuse internal addresses, and httptest servers listen on 127.0.0.1.
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+	})
+
 	getDiagnostics := func(t *testing.T) *model.SupportPacketDiagnostics {
 		t.Helper()
 
@@ -302,14 +309,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		require.NotNil(t, d.Server.GoMaxProcs)
 		assert.Positive(t, *d.Server.GoMaxProcs)
 		assert.Equal(t, d.Server.ContainerCPUPeriods == nil, d.Server.ContainerCPUThrottledPeriods == nil)
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.LoadAverage1m)
 			require.NotNil(t, d.Server.LoadAverage5m)
 			require.NotNil(t, d.Server.LoadAverage15m)
+			require.NotNil(t, d.Server.SwapTotalMB)
+			require.NotNil(t, d.Server.SwapUsedMB)
+			require.NotNil(t, d.Server.AvailableMemoryMB)
 		} else {
 			assert.Nil(t, d.Server.LoadAverage1m)
 			assert.Nil(t, d.Server.LoadAverage5m)
 			assert.Nil(t, d.Server.LoadAverage15m)
+			assert.Nil(t, d.Server.SwapTotalMB)
+			assert.Nil(t, d.Server.SwapUsedMB)
+			assert.Nil(t, d.Server.AvailableMemoryMB)
 		}
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.TotalMemoryMB)
@@ -1701,6 +1714,129 @@ func TestStartNetworkProbes(t *testing.T) {
 		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { failed = true })()
 		assert.False(t, failed)
 	})
+}
+
+func TestNetworkProbesSMTP(t *testing.T) {
+	th := Setup(t)
+
+	// smtpProbe sets the SMTP config, then returns what networkProbes recorded for SMTP and whether it would probe it.
+	smtpProbe := func(t *testing.T, server, port string, emailFeaturesOn bool) (status, errMsg string, probed bool) {
+		// CI may point these at a mail server, which would override UpdateConfig.
+		t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", server)
+		t.Setenv("MM_EMAILSETTINGS_SMTPPORT", port)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SMTPServer = new(server)
+			cfg.EmailSettings.SMTPPort = new(port)
+			cfg.EmailSettings.SendEmailNotifications = new(emailFeaturesOn)
+			cfg.EmailSettings.RequireEmailVerification = new(emailFeaturesOn)
+			cfg.ServiceSettings.EnableEmailInvitations = new(emailFeaturesOn)
+			cfg.EmailSettings.EnableSignInWithEmail = new(emailFeaturesOn)
+			cfg.EmailSettings.EnableSignInWithUsername = new(emailFeaturesOn)
+		})
+
+		var d model.SupportPacketDiagnostics
+		probes := th.Service.networkProbes(th.Context, &d)
+		probed = slices.ContainsFunc(probes, func(p networkProbe) bool { return p.section == model.SectionSMTPProbe })
+		return d.Notifications.Email.Status, d.Notifications.Email.Error, probed
+	}
+
+	// SMTP_NOT_CONFIGURED tells a server that never set up email (nothing on the default localhost:10025)
+	// from one running a development mail server there, such as Inbucket, only from this probe's result.
+	// Skipping the probe for the default server would make both SMTP findings resolve.
+	t.Run("probes the default server", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, true)
+
+		assert.True(t, probed)
+		assert.Empty(t, status)
+		assert.Empty(t, errMsg)
+	})
+
+	t.Run("skips when no email feature is on", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, false)
+
+		assert.False(t, probed)
+		assert.Equal(t, model.StatusDisabled, status)
+		assert.Empty(t, errMsg)
+	})
+}
+
+// The probes must use the same clients as the requests they stand in for; httpservice tests the clients themselves.
+func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
+	th := Setup(t)
+
+	var userAgents []string
+	var mu sync.Mutex
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		userAgents = append(userAgents, r.UserAgent())
+		mu.Unlock()
+		if r.URL.Path == "/.well-known/openid-configuration" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"issuer":"https://idp.example.com"}`))
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	configure := map[string]func(cfg *model.Config){
+		"push": func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = new(true)
+			cfg.EmailSettings.PushNotificationServer = new(server.URL)
+		},
+		"openid": func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = new(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = new(server.URL + "/.well-known/openid-configuration")
+		},
+		"gitlab": func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = new(true)
+			cfg.GitLabSettings.DiscoveryEndpoint = new("")
+			cfg.GitLabSettings.TokenEndpoint = new(server.URL + "/oauth/token")
+		},
+	}
+
+	// runProbe runs the named probe against server and returns the User-Agents it sent and its result.
+	runProbe := func(t *testing.T, name, allowedInternal string) ([]string, error) {
+		t.Helper()
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new(allowedInternal)
+			configure[name](cfg)
+		})
+		mu.Lock()
+		userAgents = nil
+		mu.Unlock()
+
+		var d model.SupportPacketDiagnostics
+		probes := th.Service.networkProbes(th.Context, &d)
+		i := slices.IndexFunc(probes, func(p networkProbe) bool { return p.name == name })
+		require.NotEqual(t, -1, i, "%s probe not enabled", name)
+		err := probes[i].run(context.Background())
+
+		mu.Lock()
+		defer mu.Unlock()
+		return slices.Clone(userAgents), err
+	}
+
+	for name := range configure {
+		t.Run(name, func(t *testing.T) {
+			t.Run("sends the Mattermost User-Agent", func(t *testing.T) {
+				agents, err := runProbe(t, name, "127.0.0.1")
+				require.NoError(t, err)
+				assert.Equal(t, []string{"Mattermost-Bot/1.1"}, agents)
+			})
+
+			t.Run("internal address not in AllowedUntrustedInternalConnections", func(t *testing.T) {
+				agents, err := runProbe(t, name, "")
+				if name == "push" {
+					// The push client trusts the admin-configured push server.
+					require.NoError(t, err)
+					assert.Len(t, agents, 1)
+					return
+				}
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "AllowedUntrustedInternalConnections")
+				assert.Empty(t, agents)
+			})
+		})
+	}
 }
 
 func TestGetSupportPacketConfig(t *testing.T) {

@@ -44,42 +44,36 @@ var progressJobTypes = []string{
 }
 
 var jobStuck = healthcheck.Rule{
-	Code:     "JOB_STUCK",
-	Area:     model.AreaJobs,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.job_stuck.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.job_stuck.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalJobStuck,
+	Code:          "JOB_STUCK",
+	Area:          model.AreaJobs,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.job_stuck.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.job_stuck.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalJobStuck,
 }
 
 var jobWedgedAtZero = healthcheck.Rule{
-	Code:     "JOB_WEDGED_AT_ZERO",
-	Area:     model.AreaJobs,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.job_wedged_at_zero.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.job_wedged_at_zero.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalJobWedgedAtZero,
+	Code:          "JOB_WEDGED_AT_ZERO",
+	Area:          model.AreaJobs,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.job_wedged_at_zero.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.job_wedged_at_zero.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalJobWedgedAtZero,
 }
 
 var jobFailed = healthcheck.Rule{
-	Code:     "JOB_FAILED",
-	Area:     model.AreaJobs,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.job_failed.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.job_failed.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalJobFailed,
+	Code:          "JOB_FAILED",
+	Area:          model.AreaJobs,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.job_failed.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.job_failed.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalJobFailed,
 }
 
 // licensed reports whether the license carries the feature jobType's scheduler and worker require.

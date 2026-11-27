@@ -5259,14 +5259,6 @@
     "defaultMessage": "Test Connection",
     "description": "Button label on the System Console SMTP page that sends a test email to verify the connection."
   },
-  "admin.environment.smtp.enableSecurityFixAlert.description": {
-    "defaultMessage": "When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.",
-    "description": "Help text for the Enable Security Alerts setting on the System Console SMTP page."
-  },
-  "admin.environment.smtp.enableSecurityFixAlert.title": {
-    "defaultMessage": "Enable Security Alerts:",
-    "description": "Setting label (ends with a colon) for the Enable Security Alerts toggle on the System Console SMTP page."
-  },
   "admin.environment.smtp.skipServerCertificateVerification.description": {
     "defaultMessage": "When true, Mattermost will not verify the email server certificate.",
     "description": "Help text for the Skip Server Certificate Verification setting on the System Console SMTP page."
@@ -7571,6 +7563,34 @@
     "defaultMessage": "Updates",
     "description": "Section heading on the System Console Site health page grouping health findings in the \"server version and updates\" area; noun, compact space."
   },
+  "admin.health_dashboard.automatic_checks.description": {
+    "defaultMessage": "Runs the health check every hour. Re-run checks still works when this is off.",
+    "description": "Tooltip, and screen reader description, of the \"Automatic checks\" switch on the System Console Site health page when the switch can be changed; \"Re-run checks\" is the label of the button next to it."
+  },
+  "admin.health_dashboard.automatic_checks.label": {
+    "defaultMessage": "Automatic checks",
+    "description": "Label of the switch next to Re-run checks on the System Console Site health page that turns the hourly health check on or off; it saves as soon as it is flipped."
+  },
+  "admin.health_dashboard.automatic_checks.not_allowed": {
+    "defaultMessage": "Only system admins can change this setting.",
+    "description": "Tooltip, and screen reader description, of the disabled \"Automatic checks\" switch on the System Console Site health page, shown to delegated admins who can view the page but lack the system admin permission needed to change it."
+  },
+  "admin.health_dashboard.automatic_checks.off": {
+    "defaultMessage": "Automatic checks are off. Findings show the last run and may be out of date.",
+    "description": "Informational banner on the System Console Site health page shown while the \"Automatic checks\" switch is off; findings then come from the most recent run, which may be old."
+  },
+  "admin.health_dashboard.automatic_checks.off_error": {
+    "defaultMessage": "Automatic checks could not be turned off, so they are still on. Try again.",
+    "description": "Error banner on the System Console Site health page when turning off the \"Automatic checks\" switch fails; the switch is turned back on."
+  },
+  "admin.health_dashboard.automatic_checks.on_error": {
+    "defaultMessage": "Automatic checks could not be turned on, so they are still off. Try again.",
+    "description": "Error banner on the System Console Site health page when turning on the \"Automatic checks\" switch fails; the switch is turned back off."
+  },
+  "admin.health_dashboard.automatic_checks.restricted": {
+    "defaultMessage": "This setting can't be changed while System Console changes are restricted.",
+    "description": "Tooltip, and screen reader description, of the disabled \"Automatic checks\" switch on the System Console Site health page when the server restricts System Console changes (RestrictSystemAdmin), so even system admins can't change it."
+  },
   "admin.health_dashboard.detail.details": {
     "defaultMessage": "Details",
     "description": "Heading of the key/value details list in an expanded finding on the System Console Site health page."
@@ -7636,7 +7656,7 @@
     "description": "Title of the empty Info tab on the System Console Site health page, shown when no info finding is firing."
   },
   "admin.health_dashboard.empty_tab.muted_body": {
-    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.",
+    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review them.",
     "description": "Body of an empty tab on the System Console Site health page when the tab is empty only because its findings are muted; Muted is the toolbar button that lists them."
   },
   "admin.health_dashboard.empty_tab.muted_title": {
@@ -7668,7 +7688,7 @@
     "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
   },
   "admin.health_dashboard.empty.body": {
-    "defaultMessage": "The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.",
+    "defaultMessage": "No health check has run yet. To run one now, select Re-run checks.",
     "description": "Body of the System Console Site health page empty state shown before the first health check has run; Re-run checks is the label of the button above it."
   },
   "admin.health_dashboard.empty.title": {
@@ -7772,7 +7792,7 @@
     "description": "Title of the empty state of the muted findings list on the System Console Site health page."
   },
   "admin.health_dashboard.muted.note": {
-    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.",
+    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmuting a finding returns it to the open list.",
     "description": "Explanation above the list of muted findings on the System Console Site health page."
   },
   "admin.health_dashboard.muted.toggle": {
@@ -7790,6 +7810,10 @@
   "admin.health_dashboard.run.failed_no_reason": {
     "defaultMessage": "The health check did not finish.",
     "description": "Error banner on the System Console Site health page when a health check run failed without a reason from the server, was canceled, or stopped responding."
+  },
+  "admin.health_dashboard.run.not_allowed": {
+    "defaultMessage": "Only system admins can run checks.",
+    "description": ""
   },
   "admin.health_dashboard.run.reload_error": {
     "defaultMessage": "The health check results could not be loaded. Reload the page to see them.",
@@ -10638,6 +10662,14 @@
   "admin.notices.enableEndUserNoticesTitle": {
     "defaultMessage": "Enable End User Notices: ",
     "description": "Setting label (toggle) on the Notices admin page controlling announcement notices shown to all users; ends with a colon and trailing space."
+  },
+  "admin.notices.enableSecurityFixAlertDescription": {
+    "defaultMessage": "When enabled, the server checks Mattermost daily for security bulletins and requests the latest Mattermost release from GitHub to report whether it is out of date. System Admins are emailed relevant bulletins when SMTP is configured. When disabled, the server makes neither request.",
+    "description": "Help text for the Check for Security and Release Updates setting on the System Console Notices page; Mattermost and GitHub are names and stay untranslated."
+  },
+  "admin.notices.enableSecurityFixAlertTitle": {
+    "defaultMessage": "Check for Security and Release Updates: ",
+    "description": "Setting label (toggle) on the Notices admin page controlling whether the server checks Mattermost for security bulletins and the latest release; ends with a colon and trailing space."
   },
   "admin.oauth.dcrDescription": {
     "defaultMessage": "When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.",
@@ -19263,6 +19295,18 @@
     "defaultMessage": "It looks like your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Warning text on the Cloud billing/subscription admin page when the last payment failed due to an expired card; <link> wraps the clickable 'update your payment information' text."
   },
+  "boards_empty_state.create": {
+    "defaultMessage": "Create a board",
+    "description": ""
+  },
+  "boards_empty_state.description": {
+    "defaultMessage": "Boards organize work as cards that you can group, filter and assign. Each board has its own members, and every card has a thread for discussing it.",
+    "description": ""
+  },
+  "boards_empty_state.title": {
+    "defaultMessage": "Plan and track work with boards",
+    "description": ""
+  },
   "bot.add.default_token.expiry": {
     "defaultMessage": "Default token expires",
     "description": "Label for the expiry picker in the 'Default access token' section of the Add Bot Account page (Integrations > Bot Accounts). It sets when the bot's first token expires. 'Expires' is a verb."
@@ -19815,6 +19859,10 @@
     "defaultMessage": "Edit {label}",
     "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."
   },
+  "channel_attributes.info.enter_a_value": {
+    "defaultMessage": "Enter a value",
+    "description": "Placeholder in a Channel Info row for a required text attribute that has no value yet. Selecting it opens the text editor."
+  },
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
@@ -19851,13 +19899,33 @@
     "defaultMessage": "Couldn't save {label}. Try again.",
     "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
   },
+  "channel_attributes.info.save_failed_required": {
+    "defaultMessage": "{label} is required. Choose a value instead of clearing it.",
+    "description": "Inline error under a channel attribute in the channel info right-hand panel when the server refuses to clear a required attribute. {label} is the attribute's display name. Retrying can't help, so it asks for a different value instead."
+  },
+  "channel_attributes.info.select_a_value": {
+    "defaultMessage": "Select a value",
+    "description": "Placeholder in a Channel Info row for a required attribute that has no value yet. Selecting it opens the list of values to choose from."
+  },
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
   },
+  "channel_attributes.labels.set_value": {
+    "defaultMessage": "Set {label}",
+    "description": "Text of a dashed chip in the channel header that prompts a channel admin to set a required channel attribute that has no value yet. {label} is the attribute's name. Opens Channel Info with that attribute in edit mode."
+  },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
+  },
+  "channel_attributes.missing_notice.add_values": {
+    "defaultMessage": "Add values",
+    "description": "Button inside the red notice under the channel header. Opens Channel Info with the first missing required channel attribute in edit mode."
+  },
+  "channel_attributes.missing_notice.text": {
+    "defaultMessage": "Channel attribute values are missing",
+    "description": "Text of the red notice shown under the channel header to channel admins when a required channel attribute has no value on the channel."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -20206,6 +20274,10 @@
   "channel_header.openChannelInfo": {
     "defaultMessage": "View Info",
     "description": "Tooltip of the info button in the channel header; opens the channel info sidebar."
+  },
+  "channel_header.openChannelInfo.missing_values": {
+    "defaultMessage": "{label}, channel attribute values are missing",
+    "description": "Accessible label of the channel info button in the channel header when the channel lacks required attribute values. {label} is the button's usual label, for example View Info."
   },
   "channel_header.otherchannel": {
     "defaultMessage": "{displayName} Channel Menu",
@@ -24419,9 +24491,17 @@
     "defaultMessage": "Search channels",
     "description": "Placeholder and accessibility label of the search input above a filterable channel list (browse channels and sync-job results)."
   },
+  "filtered_channels_list.search.board": {
+    "defaultMessage": "Search boards",
+    "description": ""
+  },
   "filtered_channels_list.search.label": {
     "defaultMessage": "Search Channels",
     "description": "Accessibility label for the channel search input in the Browse Channels dialog."
+  },
+  "filtered_channels_list.search.label.board": {
+    "defaultMessage": "Search Boards",
+    "description": ""
   },
   "filtered_user_list.countTotal": {
     "defaultMessage": "{count, number} {count, plural, one {member} other {members}} of {total, number} total",
@@ -27711,9 +27791,17 @@
     "defaultMessage": "Channel type filter",
     "description": "Accessibility label for the channel-type filter dropdown in the Browse Channels modal."
   },
+  "more_channels.channel_type_filter.board": {
+    "defaultMessage": "Board type filter",
+    "description": ""
+  },
   "more_channels.channel_type_filter.filter_type_set": {
     "defaultMessage": "Channel type filter set to {filterType}",
     "description": "Screen-reader-only announcement in the Browse Channels dialog when the channel type filter changes; {filterType} is the selected filter's name."
+  },
+  "more_channels.channel_type_filter.filter_type_set.board": {
+    "defaultMessage": "Board type filter set to {filterType}",
+    "description": ""
   },
   "more_channels.count": {
     "defaultMessage": "{count} Results",
@@ -27730,6 +27818,10 @@
   "more_channels.create": {
     "defaultMessage": "Create New Channel",
     "description": "Button label (and aria-label) in the Browse Channels modal; opens the create-channel flow. Also shown in the empty search results state."
+  },
+  "more_channels.create.board": {
+    "defaultMessage": "Create New Board",
+    "description": ""
   },
   "more_channels.discoverable": {
     "defaultMessage": "Discoverable",
@@ -27783,9 +27875,17 @@
     "defaultMessage": "No archived channels",
     "description": "Empty-state text in the Browse Channels modal when there are no archived channels to show."
   },
+  "more_channels.noArchived.board": {
+    "defaultMessage": "No archived boards",
+    "description": ""
+  },
   "more_channels.noChannels": {
     "defaultMessage": "No channels",
     "description": "Empty-state text in the Browse Channels modal when no channels are available."
+  },
+  "more_channels.noChannels.board": {
+    "defaultMessage": "No boards",
+    "description": ""
   },
   "more_channels.noDiscoverable": {
     "defaultMessage": "No discoverable private channels",
@@ -27803,9 +27903,17 @@
     "defaultMessage": "No private channels",
     "description": "Empty-state text in the Browse Channels modal when there are no private channels to show."
   },
+  "more_channels.noPrivate.board": {
+    "defaultMessage": "No private boards",
+    "description": ""
+  },
   "more_channels.noPublic": {
     "defaultMessage": "No public channels",
     "description": "Empty-state text in the Browse Channels modal when there are no public channels to show."
+  },
+  "more_channels.noPublic.board": {
+    "defaultMessage": "No public boards",
+    "description": ""
   },
   "more_channels.noRecommended": {
     "defaultMessage": "No recommended channels",
@@ -27835,9 +27943,17 @@
     "defaultMessage": "Channel Type: All",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown showing all channel types."
   },
+  "more_channels.show_all_channels.board": {
+    "defaultMessage": "Board Type: All",
+    "description": ""
+  },
   "more_channels.show_archived_channels": {
     "defaultMessage": "Channel Type: Archived",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown for archived channels."
+  },
+  "more_channels.show_archived_channels.board": {
+    "defaultMessage": "Board Type: Archived",
+    "description": ""
   },
   "more_channels.show_discoverable_channels": {
     "defaultMessage": "Discoverable private channels",
@@ -27851,9 +27967,17 @@
     "defaultMessage": "Channel Type: Private",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown for private channels."
   },
+  "more_channels.show_private_channels.board": {
+    "defaultMessage": "Board Type: Private",
+    "description": ""
+  },
   "more_channels.show_public_channels": {
     "defaultMessage": "Channel Type: Public",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown for public channels."
+  },
+  "more_channels.show_public_channels.board": {
+    "defaultMessage": "Board Type: Public",
+    "description": ""
   },
   "more_channels.show_recommended_channels": {
     "defaultMessage": "Recommended channels",
@@ -27862,6 +27986,10 @@
   "more_channels.title": {
     "defaultMessage": "Browse Channels",
     "description": "Title of the Browse Channels modal, which lists channels the user can join."
+  },
+  "more_channels.title.board": {
+    "defaultMessage": "Browse Boards",
+    "description": ""
   },
   "more_channels.view": {
     "defaultMessage": "View",
@@ -28542,6 +28670,54 @@
   "onboarding_wizard.self_hosted_plugins.title": {
     "defaultMessage": "What tools do you use?",
     "description": "Title question on the plugin selection step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.description": {
+    "defaultMessage": "This is the URL that users will use to access Mattermost. <a>See documentation</a> for more.",
+    "description": "Description under the title of the Site URL step of the workspace setup wizard. <a> links to the Site URL documentation."
+  },
+  "onboarding_wizard.site_url.help": {
+    "defaultMessage": "Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required",
+    "description": "Help text under the URL field on the Site URL step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.hint_ip": {
+    "defaultMessage": "An IP address works, but a domain name is easier to share and is needed for most HTTPS certificates.",
+    "description": "Hint under the URL field on the Site URL step of the workspace setup wizard, shown while the entered host is an IP address."
+  },
+  "onboarding_wizard.site_url.hint_loopback": {
+    "defaultMessage": "This address only works on this computer. Other people won’t be able to reach Mattermost at it.",
+    "description": "Hint under the URL field on the Site URL step of the workspace setup wizard, shown while the entered host is localhost or another loopback address."
+  },
+  "onboarding_wizard.site_url.invalid": {
+    "defaultMessage": "Enter only http:// or https://, a host name, and an optional port, such as https://chat.example.com.",
+    "description": "Error on the Site URL step of the workspace setup wizard when the entered URL has a path, query, or other parts besides the protocol, host, and port. Keep http://, https:// and the example URL as they are."
+  },
+  "onboarding_wizard.site_url.placeholder": {
+    "defaultMessage": "https://chat.example.com",
+    "description": "Placeholder example URL in the URL field on the Site URL step of the workspace setup wizard. Keep as is."
+  },
+  "onboarding_wizard.site_url.skip": {
+    "defaultMessage": "I’ll do this later",
+    "description": "Button on the Site URL step of the workspace setup wizard that advances without setting the Site URL."
+  },
+  "onboarding_wizard.site_url.test_successful": {
+    "defaultMessage": "Test successful. This is a valid URL.",
+    "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server reached the entered URL."
+  },
+  "onboarding_wizard.site_url.test_unsuccessful": {
+    "defaultMessage": "Test unsuccessful. Mattermost couldn’t reach this URL.",
+    "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server could not reach the entered URL."
+  },
+  "onboarding_wizard.site_url.testing": {
+    "defaultMessage": "Testing URL",
+    "description": "Status next to a spinner under the URL field on the Site URL step of the workspace setup wizard while the server tests the entered URL."
+  },
+  "onboarding_wizard.site_url.title": {
+    "defaultMessage": "Confirm your server’s URL",
+    "description": "Title on the Site URL step of the workspace setup wizard."
+  },
+  "onboarding_wizard.site_url.use_anyway": {
+    "defaultMessage": "Use anyway",
+    "description": "Button on the Site URL step of the workspace setup wizard, shown after a failed URL test, that keeps the entered URL and advances."
   },
   "onboarding_wizard.skip-button": {
     "defaultMessage": "Skip",
@@ -31867,6 +32043,10 @@
     "defaultMessage": "Browse channels",
     "description": "Menu item in the Add Channels dropdown that opens the channel browser."
   },
+  "sidebar_left.add_channel_dropdown.browseChannels.board": {
+    "defaultMessage": "Browse boards",
+    "description": ""
+  },
   "sidebar_left.add_channel_dropdown.createNewChannel": {
     "defaultMessage": "Create new channel",
     "description": "Menu item in the Add Channels dropdown that opens the create channel dialog."
@@ -32231,6 +32411,10 @@
     "defaultMessage": "Browse channels",
     "description": "Menu item in the sidebar's + (browse or create channels) menu that opens the channel browser."
   },
+  "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel.board": {
+    "defaultMessage": "Browse boards",
+    "description": ""
+  },
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": {
     "defaultMessage": "Create new category",
     "description": "Menu item in the sidebar's + menu that opens the create sidebar category dialog."
@@ -32535,9 +32719,17 @@
     "defaultMessage": "All channel types",
     "description": "Option in the Browse Channels channel-type filter dropdown that shows every channel type."
   },
+  "suggestion.all.board": {
+    "defaultMessage": "All board types",
+    "description": ""
+  },
   "suggestion.archive": {
     "defaultMessage": "Archived channels",
     "description": "Section heading and filter option in the Browse Channels modal for archived channels."
+  },
+  "suggestion.archive.board": {
+    "defaultMessage": "Archived boards",
+    "description": ""
   },
   "suggestion.archived_channel": {
     "defaultMessage": "Archived channel",
@@ -32627,6 +32819,10 @@
     "defaultMessage": "Private channel",
     "description": "Accessibility label for the private channel (lock) icon next to entries in autocomplete suggestion lists."
   },
+  "suggestion.private.board": {
+    "defaultMessage": "Private boards",
+    "description": ""
+  },
   "suggestion.public": {
     "defaultMessage": "Public channels",
     "description": "Section heading and filter option in the Browse Channels modal for public channels."
@@ -32634,6 +32830,10 @@
   "suggestion.public_channel": {
     "defaultMessage": "Public channel",
     "description": "Accessibility label for the public channel (globe) icon next to entries in autocomplete suggestion lists."
+  },
+  "suggestion.public.board": {
+    "defaultMessage": "Public boards",
+    "description": ""
   },
   "suggestion.recommended": {
     "defaultMessage": "Recommended channels",

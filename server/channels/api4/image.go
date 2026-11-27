@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"net/http"
 	"net/url"
 
@@ -30,9 +31,7 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if parsedURL.Scheme == "" {
-		parsedURL.Scheme = siteURL.Scheme
-	}
+	parsedURL.Scheme = cmp.Or(parsedURL.Scheme, siteURL.Scheme)
 	if parsedURL.Host == "" {
 		parsedURL.Host = siteURL.Host
 	}

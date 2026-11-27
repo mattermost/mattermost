@@ -48,6 +48,7 @@ export default function UserAccountMenu(props: Props) {
 
     return (
         <Menu.Container
+            closeMenuOnTab={false}
             menuButton={{
                 id: ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON,
                 class: classNames('userAccountMenu_menuButton', {

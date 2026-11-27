@@ -4,6 +4,7 @@
 package jobs_test
 
 import (
+	"cmp"
 	"strconv"
 	"testing"
 	"time"
@@ -88,9 +89,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	getBatchNumberFromData := func(t *testing.T, data model.StringMap) int {
 		t.Helper()
 
-		if data["batch_number"] == "" {
-			data["batch_number"] = "1"
-		}
+		data["batch_number"] = cmp.Or(data["batch_number"], "1")
 		batchNumber, err := strconv.Atoi(data["batch_number"])
 		require.NoError(t, err)
 

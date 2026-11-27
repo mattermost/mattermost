@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 	"slices"
@@ -734,9 +735,7 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Normalize the empty string up front to the default
-	if params.EvaluationScope == "" {
-		params.EvaluationScope = model.PolicyEvaluationScopeThisRule
-	}
+	params.EvaluationScope = cmp.Or(params.EvaluationScope, model.PolicyEvaluationScopeThisRule)
 
 	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
 	if !ok {

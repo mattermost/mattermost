@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -256,9 +257,7 @@ func (a *App) SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgem
 	}
 
 	// Make sure ChannelId is set
-	if acknowledgement.ChannelId == "" {
-		acknowledgement.ChannelId = post.ChannelId
-	}
+	acknowledgement.ChannelId = cmp.Or(acknowledgement.ChannelId, post.ChannelId)
 
 	savedAck, nErr := a.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 	if nErr != nil {

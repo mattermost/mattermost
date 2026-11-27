@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"cmp"
 	"fmt"
 	"hash/maphash"
 	"iter"
@@ -353,9 +354,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		case model.WSQueuesStatusOldConnStillOpen:
 			remoteReason = reconnectFailureOldConnStillOpen
 		case model.WSQueuesStatusMissedEventsEvicted:
-			if remoteReason == "" {
-				remoteReason = reconnectFailureMissedEventsEvicted
-			}
+			remoteReason = cmp.Or(remoteReason, reconnectFailureMissedEventsEvicted)
 		}
 		if queues.ActiveQ == nil {
 			continue

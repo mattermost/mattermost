@@ -6,6 +6,7 @@ package app
 import (
 	"archive/tar"
 	"bytes"
+	"cmp"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
@@ -422,15 +423,9 @@ func TestPluginSync(t *testing.T) {
 		{
 			"s3",
 			func(cfg *model.Config) {
-				s3Host := os.Getenv("CI_MINIO_HOST")
-				if s3Host == "" {
-					s3Host = "localhost"
-				}
+				s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-				s3Port := os.Getenv("CI_MINIO_PORT")
-				if s3Port == "" {
-					s3Port = "9000"
-				}
+				s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
@@ -647,6 +642,57 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	require.Len(t, pluginStatus, 1)
 	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 	require.Equal(t, pluginStatus[0].State, model.PluginStateNotRunning)
+}
+
+func TestSyncPluginsActiveStateNilPluginState(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	path, _ := fileutils.FindDir("tests")
+	fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+	})
+
+	pluginStatus, err := env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin", pluginStatus[0].PluginId)
+	require.Equal(t, model.PluginStateRunning, pluginStatus[0].State)
+
+	// Inject the nil entry into the live config directly, bypassing the config
+	// store's SetDefaults, so syncPluginsActiveState itself must tolerate it.
+	liveStates := th.App.Config().PluginSettings.PluginStates
+	original := liveStates["testplugin"]
+	liveStates["testplugin"] = nil
+	t.Cleanup(func() { liveStates["testplugin"] = original })
+
+	require.NotPanics(t, func() {
+		th.App.ch.syncPluginsActiveState()
+	})
+
+	pluginStatus, err = env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin", pluginStatus[0].PluginId)
+	require.Equal(t, model.PluginStateNotRunning, pluginStatus[0].State)
 }
 
 func TestPluginPanicLogs(t *testing.T) {

@@ -15,6 +15,7 @@ import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
+import type {ChannelKind} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 import ChannelNavigator from './channel_navigator';
@@ -50,6 +51,9 @@ type Props = {
     canCreateCustomGroups: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+
+    /** 'board' while the product rail narrows the sidebar to boards: browsing then lists boards. */
+    productRailKind: ChannelKind;
 };
 
 type State = {
@@ -148,6 +152,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
+            dialogProps: {kind: this.props.productRailKind},
         });
     };
 

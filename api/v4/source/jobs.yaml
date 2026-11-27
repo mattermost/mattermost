@@ -19,6 +19,7 @@
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `mobile_session_metadata`, `post_persistent_notifications`, `delete_expired_posts`
         - `manage_system` or `manage_team_access_rules` granted at the system level — `access_control_team_sync`
+        - `sysconsole_read_reporting_site_statistics` — `health_check`
         - `manage_system` — all other job types
 
         When `job_type` is set, you must have the permission that matches that type.
@@ -141,6 +142,7 @@
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `mobile_session_metadata`, `post_persistent_notifications`, `delete_expired_posts`
         - `manage_system` or `manage_team_access_rules` granted at the system level — `access_control_team_sync`
+        - `sysconsole_read_reporting_site_statistics` — `health_check`
         - `manage_system` — all other job types
       operationId: GetJob
       parameters:
@@ -259,6 +261,7 @@
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `mobile_session_metadata`, `post_persistent_notifications`, `delete_expired_posts`
         - `manage_system` or `manage_team_access_rules` granted at the system level — `access_control_team_sync`
+        - `sysconsole_read_reporting_site_statistics` — `health_check`
         - `manage_system` — all other job types
 
         When `job_type` is `access_control_sync` and query parameter `team_id` is set to a valid team GUID, team admins with `manage_team_access_rules` on that team may list jobs scoped to that team without `manage_system`. When `team_id` is set, results include only jobs whose stored data matches that team for the requested type.

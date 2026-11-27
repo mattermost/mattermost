@@ -37,15 +37,13 @@ const (
 var ldapIDEmailAttributes = []string{"mail", "email", "userprincipalname"}
 
 var ldapPortTLSMismatch = healthcheck.Rule{
-	Code:     "LDAP_PORT_TLS_MISMATCH",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_port_tls_mismatch.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_port_tls_mismatch.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_PORT_TLS_MISMATCH",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_port_tls_mismatch.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_port_tls_mismatch.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -54,15 +52,13 @@ var ldapPortTLSMismatch = healthcheck.Rule{
 }
 
 var ldapPortPlainMismatch = healthcheck.Rule{
-	Code:     "LDAP_PORT_PLAIN_MISMATCH",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_port_plain_mismatch.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_port_plain_mismatch.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_PORT_PLAIN_MISMATCH",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_port_plain_mismatch.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_port_plain_mismatch.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -71,15 +67,13 @@ var ldapPortPlainMismatch = healthcheck.Rule{
 }
 
 var ldapSkipCert = healthcheck.Rule{
-	Code:     "LDAP_SKIP_CERT",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_skip_cert.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_skip_cert.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_SKIP_CERT",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_skip_cert.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_skip_cert.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -88,15 +82,13 @@ var ldapSkipCert = healthcheck.Rule{
 }
 
 var ldapQueryTimeoutLow = healthcheck.Rule{
-	Code:     "LDAP_QUERY_TIMEOUT_LOW",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_query_timeout_low.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_query_timeout_low.remediation"),
-		DocsURL:       "https://mattermost.com/pl/configure-ad-ldap-query-timeout",
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_QUERY_TIMEOUT_LOW",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityInfo,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_query_timeout_low.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_query_timeout_low.remediation"),
+	DocsURL:        "https://mattermost.com/pl/configure-ad-ldap-query-timeout",
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -105,15 +97,13 @@ var ldapQueryTimeoutLow = healthcheck.Rule{
 }
 
 var ldapSyncNoBaseDN = healthcheck.Rule{
-	Code:     "LDAP_SYNC_NO_BASEDN",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_sync_no_basedn.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_sync_no_basedn.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_SYNC_NO_BASEDN",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityCritical,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_sync_no_basedn.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_sync_no_basedn.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -122,15 +112,13 @@ var ldapSyncNoBaseDN = healthcheck.Rule{
 }
 
 var ldapRecommendedAtScale = healthcheck.Rule{
-	Code:     "LDAP_RECOMMENDED_AT_SCALE",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_RECOMMENDED_AT_SCALE",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityInfo,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityThreshold,
 	AppliesToCloud: true,
@@ -141,15 +129,13 @@ var ldapRecommendedAtScale = healthcheck.Rule{
 }
 
 var ldapIDIsEmail = healthcheck.Rule{
-	Code:     "LDAP_ID_IS_EMAIL",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_id_is_email.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_id_is_email.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_ID_IS_EMAIL",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_id_is_email.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_id_is_email.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -158,15 +144,13 @@ var ldapIDIsEmail = healthcheck.Rule{
 }
 
 var ldapSyncDutyCycle = healthcheck.Rule{
-	Code:     "LDAP_SYNC_DUTY_CYCLE",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_sync_duty_cycle.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_sync_duty_cycle.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_SYNC_DUTY_CYCLE",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_sync_duty_cycle.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_sync_duty_cycle.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityThreshold,
 	AppliesToCloud: true,

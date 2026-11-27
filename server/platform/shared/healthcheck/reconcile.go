@@ -4,6 +4,7 @@
 package healthcheck
 
 import (
+	"cmp"
 	"fmt"
 	"maps"
 	"time"
@@ -134,10 +135,7 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		next := upsertableFinding(previous, eval, rule, timestampForEval(eval, nowUnixMilli))
 
 		prevState := findingState(previous)
-		nextState := eval.Result.State
-		if nextState == "" {
-			nextState = StateUnknown
-		}
+		nextState := cmp.Or(eval.Result.State, StateUnknown)
 		// Assigning the eval's own state keeps unknown distinct from resolved: an unknown
 		// result becomes unknown, never a clear of a firing finding.
 		next.State = string(nextState)
@@ -267,10 +265,7 @@ func upsertableFinding(previous *model.HealthFinding, eval Evaluation, rule Rule
 		maps.Copy(details, eval.Result.Details)
 	}
 
-	subject := eval.Result.Subject
-	if subject == "" {
-		subject = rule.Subject
-	}
+	subject := cmp.Or(eval.Result.Subject, rule.Subject)
 
 	scope := eval.Result.Scope
 	if previous != nil && scope == "" {

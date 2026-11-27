@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -491,10 +492,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return writeErr
 	}
 
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = defaultEditor
-	}
+	editor := cmp.Or(os.Getenv("EDITOR"), defaultEditor)
 
 	editorCmd := exec.Command(editor, file.Name())
 	editorCmd.Stdout = os.Stdout

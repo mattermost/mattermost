@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -876,7 +878,7 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "http://baseline.example.com"
-		*cfg.ServiceSettings.EnableSecurityFixAlert = false
+		*cfg.ServiceSettings.EnableInsecureOutgoingConnections = false
 		*cfg.EmailSettings.SMTPServer = "baseline-smtp.example.com"
 		*cfg.EmailSettings.SMTPPassword = "baseline-password"
 	})
@@ -897,7 +899,7 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 				cfg = th.App.Config().Clone()
 			}
 			cfg.ServiceSettings.SiteURL = new("http://changed.example.com")
-			cfg.ServiceSettings.EnableSecurityFixAlert = new(true)
+			cfg.ServiceSettings.EnableInsecureOutgoingConnections = new(true)
 			cfg.EmailSettings.SMTPServer = new("changed-smtp.example.com")
 			cfg.EmailSettings.SMTPPassword = new("changed-password")
 
@@ -906,12 +908,12 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 			CheckOKStatus(t, resp)
 
 			serverCfg := th.App.Config()
-			assert.True(t, *serverCfg.ServiceSettings.EnableSecurityFixAlert, "unprotected environment_smtp field should be writable")
+			assert.True(t, *serverCfg.ServiceSettings.EnableInsecureOutgoingConnections, "unprotected environment_web_server field should be writable")
 			assert.Equal(t, "http://baseline.example.com", *serverCfg.ServiceSettings.SiteURL)
 			assert.Equal(t, "baseline-smtp.example.com", *serverCfg.EmailSettings.SMTPServer)
 			assert.Equal(t, "baseline-password", *serverCfg.EmailSettings.SMTPPassword)
 
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableSecurityFixAlert = false })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableInsecureOutgoingConnections = false })
 		})
 	}
 
@@ -921,6 +923,183 @@ func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testi
 		assert.Equal(t, "http://baseline.example.com", *cfg.ServiceSettings.SiteURL)
 		assert.Equal(t, "baseline-smtp.example.com", *cfg.EmailSettings.SMTPServer)
 		assert.Equal(t, model.FakeSetting, *cfg.EmailSettings.SMTPPassword)
+	})
+}
+
+func TestEnableSecurityFixAlertFollowsSiteNoticesPermissions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	grant := func(t *testing.T, permissionIDs ...string) {
+		t.Helper()
+		for _, permissionID := range permissionIDs {
+			th.AddPermissionToRole(t, permissionID, model.SystemUserRoleId)
+			t.Cleanup(func() { th.RemovePermissionFromRole(t, permissionID, model.SystemUserRoleId) })
+		}
+	}
+
+	restoreDefaults := func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableSecurityFixAlert = true
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+	}
+
+	reset := func(t *testing.T) {
+		restoreDefaults()
+		t.Cleanup(restoreDefaults)
+	}
+
+	disableSecurityFixAlert := func(t *testing.T, client *model.Client4) {
+		t.Helper()
+		_, resp, err := client.PatchConfig(context.Background(), &model.Config{
+			ServiceSettings: model.ServiceSettings{EnableSecurityFixAlert: new(false)},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	}
+
+	t.Run("SMTP permissions neither read nor write it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadEnvironmentSMTP.Id, model.PermissionSysconsoleWriteEnvironmentSMTP.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Nil(t, cfg.ServiceSettings.EnableSecurityFixAlert)
+
+		disableSecurityFixAlert(t, th.Client)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+
+	t.Run("Notices read permission reads it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadSiteNotices.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, cfg.ServiceSettings.EnableSecurityFixAlert)
+		assert.True(t, *cfg.ServiceSettings.EnableSecurityFixAlert)
+
+		_, resp, err := th.Client.PatchConfig(context.Background(), &model.Config{
+			ServiceSettings: model.ServiceSettings{EnableSecurityFixAlert: new(false)},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+
+	t.Run("Notices write permission writes it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadSiteNotices.Id, model.PermissionSysconsoleWriteSiteNotices.Id)
+
+		disableSecurityFixAlert(t, th.Client)
+		assert.False(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+
+	t.Run("RestrictSystemAdmin makes it read-only for delegated and system admins", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadSiteNotices.Id, model.PermissionSysconsoleWriteSiteNotices.Id)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, cfg.ServiceSettings.EnableSecurityFixAlert)
+
+		disableSecurityFixAlert(t, th.Client)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+
+		disableSecurityFixAlert(t, th.SystemAdminClient)
+		assert.True(t, *th.App.Config().ServiceSettings.EnableSecurityFixAlert)
+	})
+}
+
+func TestSiteHealthAutomaticChecksPermissions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	grant := func(t *testing.T, permissionIDs ...string) {
+		t.Helper()
+		for _, permissionID := range permissionIDs {
+			th.AddPermissionToRole(t, permissionID, model.SystemUserRoleId)
+			t.Cleanup(func() { th.RemovePermissionFromRole(t, permissionID, model.SystemUserRoleId) })
+		}
+	}
+
+	restoreDefaults := func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SiteHealthSettings.EnableAutomaticChecks = true
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+	}
+
+	reset := func(t *testing.T) {
+		restoreDefaults()
+		t.Cleanup(restoreDefaults)
+	}
+
+	turnOff := func(t *testing.T, client *model.Client4) {
+		t.Helper()
+		_, resp, err := client.PatchConfig(context.Background(), &model.Config{
+			SiteHealthSettings: model.SiteHealthSettings{EnableAutomaticChecks: new(false)},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	}
+
+	t.Run("other System Console permissions neither read nor write it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadEnvironmentSMTP.Id, model.PermissionSysconsoleWriteEnvironmentSMTP.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Nil(t, cfg.SiteHealthSettings.EnableAutomaticChecks)
+
+		turnOff(t, th.Client)
+		assert.True(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("Site Statistics read permission reads it", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, cfg.SiteHealthSettings.EnableAutomaticChecks)
+		assert.True(t, *cfg.SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("Site Statistics write permission doesn't write it without manage_system", func(t *testing.T) {
+		reset(t)
+		grant(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id, model.PermissionSysconsoleWriteReportingSiteStatistics.Id)
+
+		turnOff(t, th.Client)
+		assert.True(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("system admin writes it", func(t *testing.T) {
+		reset(t)
+
+		turnOff(t, th.SystemAdminClient)
+		assert.False(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("RestrictSystemAdmin keeps system admins from writing it, but not local mode", func(t *testing.T) {
+		reset(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		turnOff(t, th.SystemAdminClient)
+		assert.True(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+
+		turnOff(t, th.LocalClient)
+		assert.False(t, *th.App.Config().SiteHealthSettings.EnableAutomaticChecks)
+	})
+
+	t.Run("hidden on Cloud", func(t *testing.T) {
+		reset(t)
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		t.Cleanup(func() { require.Nil(t, th.App.Srv().RemoveLicense()) })
+
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Nil(t, cfg.SiteHealthSettings.EnableAutomaticChecks)
 	})
 }
 
@@ -1049,6 +1228,8 @@ func TestGetClientConfig(t *testing.T) {
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Equal(t, testKey, config["GoogleDeveloperKey"])
+		require.Contains(t, config, "FileLevel")
+		require.Contains(t, config, "BuildDate")
 	})
 
 	t.Run("without session", func(t *testing.T) {
@@ -1063,6 +1244,8 @@ func TestGetClientConfig(t *testing.T) {
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
+		require.NotContains(t, config, "FileLevel", "logging settings should not be exposed before login")
+		require.NotContains(t, config, "BuildDate", "build details should not be exposed before login")
 	})
 
 	t.Run("format=old (backward compatibility)", func(t *testing.T) {
@@ -1450,6 +1633,93 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
 		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
 	})
+}
+
+func TestConfigNilPluginStateEntry(t *testing.T) {
+	const installedPluginID = "testplugin"
+	const arbitraryPluginID = "com.example.someplugin"
+
+	patchWithNilState := func(t *testing.T, th *TestHelper, pluginID string) (*model.Config, *model.Response, error) {
+		patch := &model.Config{PluginSettings: model.PluginSettings{
+			PluginStates: map[string]*model.PluginState{pluginID: nil},
+		}}
+		return th.SystemAdminClient.PatchConfig(context.Background(), patch)
+	}
+
+	updateWithNilState := func(t *testing.T, th *TestHelper, pluginID string) (*model.Config, *model.Response, error) {
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		cfg.PluginSettings.PluginStates[pluginID] = nil
+		return th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+	}
+
+	testCases := []struct {
+		name            string
+		pluginID        string
+		installPlugin   bool
+		saveWithNilFunc func(t *testing.T, th *TestHelper, pluginID string) (*model.Config, *model.Response, error)
+	}{
+		{name: "patch config, arbitrary plugin id", pluginID: arbitraryPluginID, saveWithNilFunc: patchWithNilState},
+		{name: "patch config, installed plugin", pluginID: installedPluginID, installPlugin: true, saveWithNilFunc: patchWithNilState},
+		{name: "update config, arbitrary plugin id", pluginID: arbitraryPluginID, saveWithNilFunc: updateWithNilState},
+		{name: "update config, installed plugin", pluginID: installedPluginID, installPlugin: true, saveWithNilFunc: updateWithNilState},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			th := Setup(t)
+
+			if tc.installPlugin {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.PluginSettings.Enable = true
+					*cfg.PluginSettings.EnableUploads = true
+					*cfg.PluginSettings.RequirePluginSignature = false
+				})
+
+				path, _ := fileutils.FindDir("tests")
+				tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+				require.NoError(t, err)
+
+				manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+				require.NoError(t, err)
+				t.Cleanup(func() { os.RemoveAll("plugins/" + installedPluginID) })
+				require.Equal(t, installedPluginID, manifest.Id)
+
+				_, err = th.SystemAdminClient.EnablePlugin(context.Background(), installedPluginID)
+				require.NoError(t, err)
+			}
+
+			returnedCfg, resp, err := tc.saveWithNilFunc(t, th, tc.pluginID)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			_, present := returnedCfg.PluginSettings.PluginStates[tc.pluginID]
+			assert.False(t, present, "returned config should not contain a nil plugin state entry")
+
+			_, _, err = th.SystemAdminClient.GetConfig(context.Background())
+			require.NoError(t, err, "server should remain available after saving the config")
+
+			storedStates := th.App.Config().PluginSettings.PluginStates
+			_, present = storedStates[tc.pluginID]
+			assert.False(t, present, "stored config should not contain a nil plugin state entry")
+			for id, state := range storedStates {
+				assert.NotNilf(t, state, "stored PluginStates[%q] must not be nil", id)
+			}
+
+			if tc.installPlugin {
+				statuses, _, err := th.SystemAdminClient.GetPluginStatuses(context.Background())
+				require.NoError(t, err)
+				var found bool
+				for _, status := range statuses {
+					if status.PluginId == installedPluginID {
+						found = true
+						assert.Equal(t, model.PluginStateNotRunning, status.State)
+					}
+				}
+				assert.True(t, found, "installed plugin should still be reported")
+			}
+		})
+	}
 }
 
 func TestMigrateConfig(t *testing.T) {

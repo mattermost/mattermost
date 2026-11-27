@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -233,9 +234,7 @@ func (sr *ScheduledRecap) PreSave() {
 		sr.CreateAt = GetMillis()
 	}
 
-	if sr.UpdateAt == 0 {
-		sr.UpdateAt = sr.CreateAt
-	}
+	sr.UpdateAt = cmp.Or(sr.UpdateAt, sr.CreateAt)
 }
 
 // PreUpdate prepares the scheduled recap for update

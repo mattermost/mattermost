@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"net/http"
 	"regexp"
 )
@@ -63,9 +64,7 @@ func (pg *PropertyGroup) PreSave() {
 		pg.ID = NewId()
 	}
 
-	if pg.Version == 0 {
-		pg.Version = PropertyGroupVersionV1
-	}
+	pg.Version = cmp.Or(pg.Version, PropertyGroupVersionV1)
 
 	if pg.SchemaVersion <= 0 {
 		pg.SchemaVersion = 1

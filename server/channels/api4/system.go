@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
@@ -501,13 +501,12 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
 		mlog.String("session_id", c.AppContext.Session().Id),
-		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
-		mlog.Error(msg, fields...)
+		c.Logger.Error(msg, fields...)
 	} else {
-		mlog.Debug(msg, fields...)
+		c.Logger.Debug(msg, fields...)
 	}
 
 	m["message"] = msg
@@ -521,9 +520,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	teamId := r.URL.Query().Get("team_id")
 
-	if name == "" {
-		name = "standard"
-	}
+	name = cmp.Or(name, "standard")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetAnalytics) {
 		c.SetPermissionError(model.PermissionGetAnalytics)
@@ -552,7 +549,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion(c.AppContext, releases.LatestURL)
+	resp, appErr := c.App.GetLatestVersion(c.AppContext, c.App.Srv().LatestVersionURL())
 	if appErr != nil {
 		c.Err = appErr
 		return

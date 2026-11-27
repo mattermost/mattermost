@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 
 import type {Client4} from '@mattermost/client';
 
-import {duration, expect, licenseTier, test} from '@mattermost/playwright-lib';
+import {duration, expect, hasCustomPermissionsSchemesLicense, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 const PROFESSIONAL_TIER = 10;
@@ -131,11 +131,12 @@ let savedConfig: ConfigPatch;
 
 test.beforeEach(async ({pw}) => {
     const {adminClient} = await pw.getAdminClient();
-    const {ServiceSettings, LogSettings} = await adminClient.getConfig();
+    const {ServiceSettings, LogSettings, SiteHealthSettings} = await adminClient.getConfig();
 
     savedConfig = {
         ServiceSettings: {ExtendSessionLengthWithActivity: ServiceSettings.ExtendSessionLengthWithActivity},
         LogSettings: {EnableWebhookDebugging: LogSettings.EnableWebhookDebugging, FileLevel: LogSettings.FileLevel},
+        SiteHealthSettings: {EnableAutomaticChecks: SiteHealthSettings.EnableAutomaticChecks},
     };
 });
 
@@ -628,23 +629,22 @@ test('never shows internal-only findings', {tag: '@system_console'}, async ({pw}
 });
 
 /**
- * @objective Verify a delegated admin without the manage_system permission can't reach Site health, though
+ * @objective Verify a delegated admin who can't read Site Statistics can't reach Site health, though
  * they can open the System Console.
  */
-test('hides Site health from admins without manage_system', {tag: '@system_console'}, async ({pw}) => {
+test('hides Site health from admins who cannot read Site Statistics', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
 
     const {adminClient, user, userClient} = await pw.initSetup();
-    await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+    await adminClient.updateUserRoles(user.id, 'system_user system_user_manager');
 
     const {systemConsolePage} = await pw.testBrowser.login(user);
 
-    // # Open the System Console as a system manager
+    // # Open the System Console as a user manager
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
-    // * Verify Site health is not listed among the Reporting pages they can open
-    await expect(systemConsolePage.sidebar.reporting.teamStatistics.link).toBeVisible();
+    // * Verify Site health is not listed in the sidebar
     await expect(systemConsolePage.sidebar.reporting.siteHealth.link).not.toBeVisible();
 
     // # Go straight to the Site health URL
@@ -691,4 +691,123 @@ test('downloads the Site health findings as HTML', {tag: '@system_console'}, asy
     expect(download.suggestedFilename()).toMatch(/^mm_site_health_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.html$/);
     const html = await readFile(await download.path(), 'utf8');
     expect(html).toContain(LOG_WEBHOOK_PAYLOADS.title);
+});
+
+/**
+ * @objective Verify a System Manager, who can read Site Statistics, gets Site health in place of Workspace Optimization,
+ * with the HealthDashboard feature flag at its default (on).
+ */
+test(
+    'shows the Site health page to a system manager instead of Workspace Optimization',
+    {tag: '@system_console'},
+    async ({pw}) => {
+        await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
+
+        const {adminClient, user} = await pw.initSetup();
+
+        // Assigning system_manager needs the Custom Permission Schemes license feature.
+        test.skip(
+            !hasCustomPermissionsSchemesLicense(await adminClient.getClientLicenseOld()),
+            'Skipping test - server does not have Custom Permission Schemes',
+        );
+
+        await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+        const {systemConsolePage} = await pw.testBrowser.login(user);
+
+        // # Open the System Console
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+
+        // * Verify Site health replaces Workspace Optimization in Reporting
+        await expect(systemConsolePage.sidebar.reporting.siteHealth.link).toBeVisible();
+        await expect(systemConsolePage.sidebar.reporting.workspaceOptimization.link).not.toBeVisible();
+
+        // # Open Reporting > Site health
+        await systemConsolePage.sidebar.reporting.siteHealth.click();
+
+        // * Verify the page loaded from the findings API without an error
+        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site health');
+        await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last evaluated)/)).toBeVisible();
+        await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
+    },
+);
+
+async function getAutomaticChecks(adminClient: Client4) {
+    return (await adminClient.getConfig()).SiteHealthSettings.EnableAutomaticChecks;
+}
+
+/**
+ * @objective Verify a system admin can turn automatic checks off, still run the checks on demand while they are
+ * off, and turn them back on.
+ */
+test('turns automatic checks off and back on', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, ENTERPRISE_TIER);
+
+    const {adminUser, adminClient} = await pw.initSetup();
+    await adminClient.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: true}});
+
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const siteHealth = systemConsolePage.siteHealth;
+
+    // # Open Site health
+    await systemConsolePage.gotoSiteHealth();
+
+    // * Verify automatic checks are on, with no banner
+    await expect(siteHealth.automaticChecksSwitch.input).toBeChecked();
+    await expect(siteHealth.automaticChecksOff).not.toBeVisible();
+
+    // # Turn the Automatic checks switch off
+    await siteHealth.automaticChecksSwitch.click();
+
+    // * Verify the server stores the setting and the page says automatic checks are off
+    await expect.poll(() => getAutomaticChecks(adminClient)).toBe(false);
+    await expect(siteHealth.automaticChecksOff).toBeVisible();
+
+    // # Reload the page
+    await systemConsolePage.page.reload();
+    await siteHealth.toBeVisible();
+
+    // * Verify the setting stayed off
+    await expect(siteHealth.automaticChecksSwitch.input).not.toBeChecked();
+    await expect(siteHealth.automaticChecksOff).toBeVisible();
+
+    // # Run the checks on demand while automatic checks are off
+    await siteHealth.runChecks();
+
+    // # Turn the Automatic checks switch back on
+    await siteHealth.automaticChecksSwitch.click();
+
+    // * Verify the server stores the setting, the banner goes away and the switch is on
+    await expect.poll(() => getAutomaticChecks(adminClient)).toBe(true);
+    await expect(siteHealth.automaticChecksOff).not.toBeVisible();
+    await expect(siteHealth.automaticChecksSwitch.input).toBeChecked();
+});
+
+/**
+ * @objective Verify a System Manager, who can read Site Statistics but lacks manage_system, sees automatic checks
+ * read-only: the switch is disabled.
+ */
+test('shows automatic checks read-only to a system manager', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
+
+    const {adminClient, user} = await pw.initSetup();
+
+    // Assigning system_manager needs the Custom Permission Schemes license feature.
+    test.skip(
+        !hasCustomPermissionsSchemesLicense(await adminClient.getClientLicenseOld()),
+        'Skipping test - server does not have Custom Permission Schemes',
+    );
+
+    await adminClient.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: false}});
+    await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+    const {systemConsolePage} = await pw.testBrowser.login(user);
+    const siteHealth = systemConsolePage.siteHealth;
+
+    // # Open Site health
+    await systemConsolePage.gotoSiteHealth();
+
+    // * Verify the banner shows and the switch can't be changed
+    await expect(siteHealth.automaticChecksOff).toBeVisible();
+    await expect(siteHealth.automaticChecksSwitch.input).not.toBeChecked();
+    await expect(siteHealth.automaticChecksSwitch.input).toBeDisabled();
 });

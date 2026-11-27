@@ -13,6 +13,18 @@
   "Mattermost Cloud": {
     "target": "Mattermost Cloud"
   },
+  "Mattermost Entry": {
+    "target": "Mattermost Entry"
+  },
+  "Mattermost Professional": {
+    "target": "Mattermost Professional"
+  },
+  "Mattermost Enterprise": {
+    "target": "Mattermost Enterprise"
+  },
+  "Mattermost Enterprise Advanced": {
+    "target": "Mattermost Enterprise Advanced"
+  },
   "Channels": {
     "target": "Channels",
     "note": "Product name; do not confuse with the common noun 'channel' = 'канал'."

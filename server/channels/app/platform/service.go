@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
@@ -102,6 +103,9 @@ type PlatformService struct {
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 	samlDiagnostic einterfaces.SamlDiagnosticInterface
+
+	httpService            httpservice.HTTPService
+	pushNotificationClient *http.Client
 
 	Jobs *jobs.JobServer
 
@@ -227,6 +231,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 		ps.configStore = configStore
 	}
+
+	ps.initHTTPClients()
 
 	// Step 1: Start logging.
 	err := ps.initLogging()
@@ -748,6 +754,21 @@ func (ps *PlatformService) FileBackend() filestore.FileBackend {
 
 func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 	return ps.exportFilestore
+}
+
+func (ps *PlatformService) initHTTPClients() {
+	ps.httpService = httpservice.MakeHTTPService(ps)
+	ps.pushNotificationClient = ps.httpService.MakeClient(true)
+}
+
+func (ps *PlatformService) HTTPService() httpservice.HTTPService {
+	return ps.httpService
+}
+
+// PushNotificationClient returns the client for requests to the push proxy. It is built once, so it keeps
+// the EnableInsecureOutgoingConnections value the server started with.
+func (ps *PlatformService) PushNotificationClient() *http.Client {
+	return ps.pushNotificationClient
 }
 
 func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {

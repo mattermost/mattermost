@@ -11,7 +11,10 @@
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
-        "ExtendSessionLengthWithActivity": true
+        "EnableInsecureOutgoingConnections": false,
+        "ExtendSessionLengthWithActivity": true,
+        "EnableDeveloper": false,
+        "EnableTesting": false
     },
     "TeamSettings": {
         "MaxNotificationsPerChannel": 1000,

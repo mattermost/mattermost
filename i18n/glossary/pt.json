@@ -14,6 +14,18 @@
     "target": "Mattermost Cloud",
     "note": "Product name stays English; the bare edition label 'Cloud' was once rendered 'Nuvem' in about.cloudEdition."
   },
+  "Mattermost Entry": {
+    "target": "Mattermost Entry"
+  },
+  "Mattermost Professional": {
+    "target": "Mattermost Professional"
+  },
+  "Mattermost Enterprise": {
+    "target": "Mattermost Enterprise"
+  },
+  "Mattermost Enterprise Advanced": {
+    "target": "Mattermost Enterprise Advanced"
+  },
   "Channels": {
     "target": "Channels",
     "note": "As a product name keep English. The common noun 'channels' is 'canais'."

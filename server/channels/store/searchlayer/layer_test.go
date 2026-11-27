@@ -4,6 +4,7 @@
 package searchlayer_test
 
 import (
+	"cmp"
 	"os"
 	"sync"
 	"testing"
@@ -23,10 +24,7 @@ import (
 func TestUpdateConfigRace(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
+	driverName := cmp.Or(os.Getenv("MM_SQLSETTINGS_DRIVERNAME"), model.DatabaseDriverPostgres)
 	settings := storetest.MakeSqlSettings(driverName)
 	store, err := sqlstore.New(*settings, logger, nil, sqlstore.DisableMorphLogging())
 	require.NoError(t, err)
