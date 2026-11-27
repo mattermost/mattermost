@@ -1973,6 +1973,27 @@ func (s *RetryLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([
 
 }
 
+func (s *RetryLayerChannelStore) GetAllChannelMemberIdsByChannelIds(channelIDs []string) (map[string][]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetAllChannelMemberIdsByChannelIds(channelIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 
 	tries := 0
@@ -3223,6 +3244,27 @@ func (s *RetryLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, chan
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetTeamMembersForTeams(rctx request.CTX, teamIDs []string) (map[string][]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetTeamMembersForTeams(rctx, teamIDs)
 		if err == nil {
 			return result, nil
 		}

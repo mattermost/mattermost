@@ -5,6 +5,8 @@ package opensearch
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,7 +22,10 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 )
 
 func TestOpenSearchIndexerClientTimesOutStalledResponse(t *testing.T) {
@@ -270,6 +275,109 @@ func waitForIndexingJob(t *testing.T, th *api4.TestHelper, jobID string, timeout
 	}
 	t.Fatalf("job %s did not reach a terminal status within %s", jobID, timeout)
 	return nil
+}
+
+type memberLookupCountingStore struct {
+	store.Store
+	channelStore *memberLookupCountingChannelStore
+}
+
+func (s *memberLookupCountingStore) Channel() store.ChannelStore { return s.channelStore }
+
+type memberLookupCountingChannelStore struct {
+	store.ChannelStore
+	perChannelCalls int
+	perBatchCalls   map[string]int
+}
+
+func (s *memberLookupCountingChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
+	s.perChannelCalls++
+	return s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
+}
+
+func (s *memberLookupCountingChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]string, error) {
+	s.perChannelCalls++
+	return s.ChannelStore.GetAllChannelMemberIdsByChannelId(channelID)
+}
+
+func (s *memberLookupCountingChannelStore) GetTeamMembersForTeams(rctx request.CTX, teamIDs []string) (map[string][]string, error) {
+	s.perBatchCalls["GetTeamMembersForTeams"]++
+	return s.ChannelStore.GetTeamMembersForTeams(rctx, teamIDs)
+}
+
+func (s *memberLookupCountingChannelStore) GetAllChannelMemberIdsByChannelIds(channelIDs []string) (map[string][]string, error) {
+	s.perBatchCalls["GetAllChannelMemberIdsByChannelIds"]++
+	return s.ChannelStore.GetAllChannelMemberIdsByChannelIds(channelIDs)
+}
+
+func TestBulkIndexChannelsMemberData(t *testing.T) {
+	th := api4.SetupEnterprise(t)
+	ss := th.App.Srv().Store()
+
+	newTeam := func(userIDs ...string) *model.Team {
+		team, err := ss.Team().Save(&model.Team{DisplayName: "Team", Name: "team" + model.NewId(), Email: "team@example.com", Type: model.TeamOpen})
+		require.NoError(t, err)
+		for _, userID := range userIDs {
+			_, err = ss.Team().SaveMember(th.Context, &model.TeamMember{TeamId: team.Id, UserId: userID}, -1)
+			require.NoError(t, err)
+		}
+		return team
+	}
+	newChannel := func(teamID string, channelType model.ChannelType, memberIDs ...string) *model.Channel {
+		channel, err := ss.Channel().Save(th.Context, &model.Channel{TeamId: teamID, DisplayName: "Channel", Name: "channel" + model.NewId(), Type: channelType}, -1)
+		require.NoError(t, err)
+		for _, userID := range memberIDs {
+			_, err = ss.Channel().SaveMember(th.Context, &model.ChannelMember{ChannelId: channel.Id, UserId: userID, NotifyProps: model.GetDefaultChannelNotifyProps()})
+			require.NoError(t, err)
+		}
+		return channel
+	}
+
+	user1, user2, user3 := th.CreateUser(t), th.CreateUser(t), th.CreateUser(t)
+	team1 := newTeam(user1.Id, user2.Id)
+	team2 := newTeam(user3.Id)
+
+	publicChannel1 := newChannel(team1.Id, model.ChannelTypeOpen, user1.Id)
+	privateChannel1 := newChannel(team1.Id, model.ChannelTypePrivate, user1.Id)
+	publicChannel2 := newChannel(team2.Id, model.ChannelTypeOpen)
+	emptyPrivateChannel2 := newChannel(team2.Id, model.ChannelTypePrivate)
+	dmChannel, err := ss.Channel().CreateDirectChannel(th.Context, user1, user2)
+	require.NoError(t, err)
+
+	channels := []*model.Channel{publicChannel1, privateChannel1, publicChannel2, emptyPrivateChannel2, dmChannel}
+
+	docs := map[string]common.ESChannel{}
+	addItemToBulkProcessorFn := func(_, _, docID string, body io.ReadSeeker) error {
+		var doc common.ESChannel
+		require.NoError(t, json.NewDecoder(body).Decode(&doc))
+		docs[docID] = doc
+		return nil
+	}
+
+	countingChannelStore := &memberLookupCountingChannelStore{ChannelStore: ss.Channel(), perBatchCalls: map[string]int{}}
+	countingStore := &memberLookupCountingStore{Store: ss, channelStore: countingChannelStore}
+	lastChannel, appErr := common.BulkIndexChannels(th.App.Config(), countingStore, th.TestLogger, addItemToBulkProcessorFn, channels, common.IndexingProgress{})
+	require.Nil(t, appErr)
+	assert.Equal(t, dmChannel.Id, lastChannel.Id)
+	assert.Zero(t, countingChannelStore.perChannelCalls, "member data must be fetched per batch, not per channel")
+	assert.Equal(t, map[string]int{"GetTeamMembersForTeams": 1, "GetAllChannelMemberIdsByChannelIds": 1}, countingChannelStore.perBatchCalls)
+
+	require.Len(t, docs, len(channels))
+
+	assert.Nil(t, docs[publicChannel1.Id].UserIDs, "public channels carry no member list")
+	assert.ElementsMatch(t, []string{user1.Id, user2.Id}, docs[publicChannel1.Id].TeamMemberIDs)
+
+	assert.Equal(t, []string{user1.Id}, docs[privateChannel1.Id].UserIDs)
+	assert.ElementsMatch(t, []string{user1.Id, user2.Id}, docs[privateChannel1.Id].TeamMemberIDs)
+
+	assert.Nil(t, docs[publicChannel2.Id].UserIDs)
+	assert.Equal(t, []string{user3.Id}, docs[publicChannel2.Id].TeamMemberIDs)
+
+	assert.Equal(t, []string{}, docs[emptyPrivateChannel2.Id].UserIDs, "a private channel without members is indexed with an empty list")
+	assert.Equal(t, []string{user3.Id}, docs[emptyPrivateChannel2.Id].TeamMemberIDs)
+
+	assert.Nil(t, docs[dmChannel.Id].UserIDs)
+	assert.Equal(t, []string{}, docs[dmChannel.Id].TeamMemberIDs, "a channel without a team is indexed with an empty team member list")
 }
 
 func TestOpenSearchIndexerPending(t *testing.T) {

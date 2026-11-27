@@ -1774,6 +1774,22 @@ func (s *TimerLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetAllChannelMemberIdsByChannelIds(channelIDs []string) (map[string][]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetAllChannelMemberIdsByChannelIds(channelIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllChannelMemberIdsByChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	start := time.Now()
 
@@ -2746,6 +2762,22 @@ func (s *TimerLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, chan
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamMembersForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetTeamMembersForTeams(rctx request.CTX, teamIDs []string) (map[string][]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetTeamMembersForTeams(rctx, teamIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamMembersForTeams", success, elapsed)
 	}
 	return result, err
 }

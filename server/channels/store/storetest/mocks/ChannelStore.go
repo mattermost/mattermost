@@ -654,6 +654,36 @@ func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, 
 	return r0, r1
 }
 
+// GetAllChannelMemberIdsByChannelIds provides a mock function with given fields: channelIDs
+func (_m *ChannelStore) GetAllChannelMemberIdsByChannelIds(channelIDs []string) (map[string][]string, error) {
+	ret := _m.Called(channelIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllChannelMemberIdsByChannelIds")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) (map[string][]string, error)); ok {
+		return rf(channelIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) map[string][]string); ok {
+		r0 = rf(channelIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(channelIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllChannelMembersForUser provides a mock function with given fields: rctx, userID, allowFromCache, includeDeleted
 func (_m *ChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	ret := _m.Called(rctx, userID, allowFromCache, includeDeleted)
@@ -2507,6 +2537,36 @@ func (_m *ChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID str
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTeamMembersForTeams provides a mock function with given fields: rctx, teamIDs
+func (_m *ChannelStore) GetTeamMembersForTeams(rctx request.CTX, teamIDs []string) (map[string][]string, error) {
+	ret := _m.Called(rctx, teamIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamMembersForTeams")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) (map[string][]string, error)); ok {
+		return rf(rctx, teamIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) map[string][]string); ok {
+		r0 = rf(rctx, teamIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
+		r1 = rf(rctx, teamIDs)
 	} else {
 		r1 = ret.Error(1)
 	}
