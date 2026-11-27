@@ -486,20 +486,25 @@ function createDefaultIntroMessage(
                         />
                     }
                     {teamIsGroupConstrained &&
-                    <ToggleModalButton
-                        className='intro-links color--link'
-                        modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
-                        dialogType={AddGroupsToTeamModal}
-                        dialogProps={{channel}}
+                    <TeamPermissionGate
+                        teamId={channel.team_id}
+                        permissions={[Permissions.MANAGE_TEAM]}
                     >
-                        <i
-                            className='fa fa-user-plus'
-                        />
-                        <FormattedMessage
-                            id='intro_messages.addGroupsToTeam'
-                            defaultMessage='Add other groups to this team'
-                        />
-                    </ToggleModalButton>
+                        <ToggleModalButton
+                            className='intro-links color--link'
+                            modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
+                            dialogType={AddGroupsToTeamModal}
+                            dialogProps={{channel}}
+                        >
+                            <i
+                                className='fa fa-user-plus'
+                            />
+                            <FormattedMessage
+                                id='intro_messages.addGroupsToTeam'
+                                defaultMessage='Add other groups to this team'
+                            />
+                        </ToggleModalButton>
+                    </TeamPermissionGate>
                     }
                 </TeamPermissionGate>
             </TeamPermissionGate>
